@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* Class-based dark mode — supports ThemeToggle */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Design Tokens ──────────────────────────────────────────────
+   Edit this block to rebrand the entire template.
+   All Tailwind utilities (bg-primary, text-foreground, etc.)
+   are mapped from these CSS variables via @theme below.
+─────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Brand — change these two to rebrand */
+  --primary: 79 70 229;               /* indigo-600  */
+  --primary-foreground: 255 255 255;
+
+  /* Surfaces */
+  --background: 255 255 255;
+  --foreground: 10 10 10;
+  --card: 250 250 250;
+  --card-foreground: 10 10 10;
+  --border: 229 229 229;              /* neutral-200 */
+  --muted: 245 245 245;               /* neutral-100 */
+  --muted-foreground: 115 115 115;    /* neutral-500 */
+
+  /* Status */
+  --success: 34 197 94;               /* green-500   */
+  --warning: 245 158 11;              /* amber-500   */
+  --destructive: 239 68 68;           /* red-500     */
+  --destructive-foreground: 255 255 255;
+}
+
+.dark {
+  --background: 10 10 10;
+  --foreground: 250 250 250;
+  --card: 23 23 23;                   /* neutral-900 */
+  --card-foreground: 250 250 250;
+  --border: 38 38 38;                 /* neutral-800 */
+  --muted: 23 23 23;
+  --muted-foreground: 163 163 163;    /* neutral-400 */
+}
+
+/* ─── Tailwind Utility Mapping ───────────────────────────────────
+   Exposes utilities: bg-primary, text-foreground, bg-card,
+   text-display, text-heading, etc.
+─────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  /* Brand */
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));   
+
+  /* Surfaces */
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-border: rgb(var(--border));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+
+  /* Status */
+  --color-success: rgb(var(--success));
+  --color-warning: rgb(var(--warning));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+
+  /* ─── Responsive Typography Scale ──────────────────────────────
+     Fluid — scales with viewport, no breakpoint hacks.
+     Usage: className="text-display" / "text-heading" etc.
+  ──────────────────────────────────────────────────────────────── */
+  --text-display: clamp(2.25rem, 5vw, 3.75rem);
+  --text-heading: clamp(1.5rem, 3vw, 2.25rem);
+  --text-subheading: clamp(1.125rem, 2vw, 1.5rem);
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Radius scale */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ─── Base ─────────────────────────────────────────────────────── */
+
+body {
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-sans), Arial, sans-serif;
+}
