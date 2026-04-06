@@ -27,6 +27,7 @@ State flags are boolean values stored on `childProfile` in Convex. They propagat
 | `audio_autoplay` | ON | Whether audio fires automatically on symbol tap |
 | `modelling_push` | OFF | Whether parent can push a modelling session to this child |
 | `core_dropdown_visible` | ON | Whether the core words/numbers/letters dropdown is visible on the talker |
+| `reduce_motion` | OFF | Disables all theme animations regardless of theme type |
 
 ---
 

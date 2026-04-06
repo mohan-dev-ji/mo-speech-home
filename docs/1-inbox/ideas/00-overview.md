@@ -90,5 +90,7 @@ Full detail: `07-home-school-connection.md`
 10-audio-architecture.md              ← two-tier TTS, voice cloning, R2 structure
 11-language-and-i18n.md               ← multi-language UI and symbols, next-intl, Hindi, fonts
 12-convex-schema.md                   ← full schema across all three Convex projects
-13-next16-setup.md                    ← Next.js 16 specific setup, proxy.ts, next-intl v4
+13-next16-setup.md              ← Next.js 16 specific setup, proxy.ts, next-intl v4
+14-pricing-tiers.md             ← Free, Pro, Max tiers, Stripe setup, access control hook
+15-themes.md                    ← Colour theme system, tiled and animated themes, token architecture
 ```

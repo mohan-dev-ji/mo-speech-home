@@ -88,7 +88,8 @@ childProfiles: {
     voice_input_enabled: boolean
     audio_autoplay: boolean
     modelling_push: boolean
-    core_dropdown_visible: boolean   // default: true — hides the core words/numbers/letters dropdown
+    core_dropdown_visible: boolean   // default: true
+    reduce_motion: boolean           // default: false — disables all theme animations — hides the core words/numbers/letters dropdown
   }
   createdAt: number
   updatedAt: number
@@ -317,3 +318,64 @@ shareRequest: {
 **librarySourceId is a loose reference only.** It is never used for rendering — only for the "Reload Defaults" warning flow. There is no enforced foreign key relationship. If a resource pack is deleted, profiles that loaded from it are completely unaffected.
 
 **language fields are open-ended.** Adding a new language is adding a new field to the `words` and `audio` objects — no schema migration required for existing records.
+
+### themes (new — admin managed)
+
+```typescript
+themes: {
+  _id: Id<"themes">
+  name: { eng: string, hin: string }
+  slug: string
+  description?: { eng: string, hin: string }
+  previewColour: string
+  coverImagePath?: string
+  tier: "free" | "premium"
+  season?: string
+  featured: boolean
+  publishedAt?: number
+  expiresAt?: number
+  createdBy: string
+  updatedAt: number
+  tokens: {
+    bgPrimary: string
+    bgSurface: string
+    bgSurfaceAlt: string
+    brandPrimary: string
+    brandSecondary: string
+    brandTertiary: string
+    textPrimary: string
+    textSecondary: string
+    textOnBrand: string
+    symbolCardBg: string
+    symbolCardText: string
+    symbolCardBorder: string
+    symbolCardGlow: string
+    talkerBg: string
+    talkerText: string
+    talkerBorder: string
+    navBg: string
+    navText: string
+    navTextActive: string
+    navIndicator: string
+    success: string
+    warning: string
+    error: string
+    overlay: string
+  }
+}
+```
+
+### childProfile — additions
+
+```typescript
+// Add to childProfiles table:
+themeId?: Id<"themes">               // null = Classic Blue default
+  purchasedThemeIds?: Array<Id<"themes">>  // individually purchased themes
+```
+
+### users — plan field extended
+
+```typescript
+// Extend subscription.plan:
+plan?: "pro_monthly" | "pro_yearly" | "max_monthly" | "max_yearly"
+```
