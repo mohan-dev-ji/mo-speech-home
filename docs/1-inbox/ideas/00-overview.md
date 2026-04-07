@@ -76,8 +76,12 @@ Full detail: `07-home-school-connection.md`
 
 ## Document Index
 
+Start here before any other document: **`00-build-plan.md`**
+
+
 ```
-00-overview.md                        ← this file
+00-build-plan.md                      ← BUILD THIS FIRST — phased build plan for the coding agent
+00-overview.md                        ← product overview and document index
 01-navigation-and-permissions.md      ← four nav items, state flags, permission system
 02-categories.md                      ← categories as the root container, four modes
 03-talker-and-play-modal.md           ← talker header component, play modal, banner state
@@ -93,4 +97,6 @@ Full detail: `07-home-school-connection.md`
 13-next16-setup.md              ← Next.js 16 specific setup, proxy.ts, next-intl v4
 14-pricing-tiers.md             ← Free, Pro, Max tiers, Stripe setup, access control hook
 15-themes.md                    ← Colour theme system, tiled and animated themes, token architecture
+16-affiliates.md               ← Affiliate programme, Stripe Connect, commission models, admin UI
+17-admin-library.md            ← Admin library page, content types, shared components, layout
 ```

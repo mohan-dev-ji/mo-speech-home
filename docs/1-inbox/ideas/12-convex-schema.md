@@ -379,3 +379,53 @@ themeId?: Id<"themes">               // null = Classic Blue default
 // Extend subscription.plan:
 plan?: "pro_monthly" | "pro_yearly" | "max_monthly" | "max_yearly"
 ```
+
+---
+
+## Affiliate Tables (new — convex-home)
+
+### affiliates
+
+```typescript
+affiliates: {
+  _id: Id<"affiliates">
+  userId: Id<"users">
+  affiliateCode: string
+  status: "invited" | "active" | "paused" | "revoked"
+  commissionModel: "first_month" | "recurring" | "flat_fee"
+  commissionRate?: number               // percentage
+  flatFeeAmount?: number                // pence
+  stripeAccountId?: string             // Stripe Connect account ID
+  stripeOnboardingComplete: boolean
+  totalReferrals: number
+  activeSubscribers: number
+  lifetimeEarningsPence: number
+  pendingPayoutPence: number
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+```
+
+### commissionEvents
+
+```typescript
+commissionEvents: {
+  _id: Id<"commissionEvents">
+  affiliateId: Id<"affiliates">
+  referredUserId: Id<"users">
+  stripeInvoiceId: string
+  stripeTransferId?: string
+  amountPence: number
+  status: "pending" | "transferred" | "failed"
+  commissionModel: string
+  createdAt: number
+  transferredAt?: number
+}
+```
+
+### Addition to users table
+
+```typescript
+referredBy?: string    // affiliate code — captured from ref param on signup
+```
