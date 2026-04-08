@@ -2,17 +2,17 @@
 
 ## Overview
 
-Mo Speech Home is built for the whole family, not just the primary parent. A second parent, a grandparent, or an older sibling can all be invited to the same account and use the app with the child — including running modelling mode.
+Mo Speech Home is built for the whole family, not just the primary instructor. A second parent, a grandparent, or an older sibling can all be invited to the same account and use the app with the student — including running modelling mode.
 
 ---
 
 ## Account Structure
 
 ```
-account (primary parent — Stripe subscription holder)
-  ├── childProfile (the child's AAC profile)
+account (primary instructor — Stripe subscription holder)
+  ├── studentProfile (the student's AAC profile)
   └── accountMembers[]
-        ├── { email, role: "owner",        status: "active" }    ← primary parent
+        ├── { email, role: "owner",        status: "active" }    ← primary instructor
         ├── { email, role: "collaborator", status: "active" }    ← second parent
         └── { email, role: "collaborator", status: "pending" }   ← grandparent (invited)
 ```
@@ -24,7 +24,7 @@ account (primary parent — Stripe subscription holder)
 **Owner**
 - The Stripe subscription holder
 - Can invite and remove collaborators
-- Can delete the account and child profile
+- Can delete the account and student profile
 - Full access to all features
 
 **Collaborator**
@@ -45,14 +45,14 @@ account (primary parent — Stripe subscription holder)
 4. An `accountMembers` record is created with `status: "pending"`
 5. Collaborator clicks the link in the email, creates a Clerk account (or signs in if they already have one)
 6. They are linked to the account — `status` updates to `"active"`
-7. They can now open Mo Speech Home and access the child's profile
+7. They can now open Mo Speech Home and access the student's profile
 
 ---
 
 ## Shared State
 
 All collaborators share:
-- The same child profile
+- The same student profile
 - The same categories, lists, sentences, first-thens
 - The same state flags
 - The same modelling session history
@@ -78,6 +78,6 @@ accountMembers: {
 
 ---
 
-## Future Consideration — Child's Own Account
+## Future Consideration — Student's Own Account
 
-As the child grows and gains independence, they may eventually want their own Clerk account to log in and use the app independently. This is not in scope for V1 — the child is always a profile, not a user. The architecture supports adding this later by linking a Clerk account to the `childProfile` record without restructuring the account model.
+As the student grows and gains independence, they may eventually want their own Clerk account to log in and use the app independently. This is not in scope for V1 — the student is always a profile, not a user. The architecture supports adding this later by linking a Clerk account to the `studentProfile` record without restructuring the account model.

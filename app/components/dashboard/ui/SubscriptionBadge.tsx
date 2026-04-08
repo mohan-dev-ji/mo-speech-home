@@ -4,7 +4,7 @@ import type { SubscriptionTier } from "@/types";
 const config: Record<SubscriptionTier, { label: string; variant: "default" | "warning" | "success" | "outline" }> = {
   free: { label: "Free", variant: "outline" },
   pro: { label: "Pro", variant: "default" },
-  business: { label: "Business", variant: "success" },
+  max: { label: "Max", variant: "success" },
 };
 
 export function SubscriptionBadge({ tier }: { tier: SubscriptionTier }) {

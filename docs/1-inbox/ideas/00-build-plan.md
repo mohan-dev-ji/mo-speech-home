@@ -8,7 +8,7 @@ Mo Speech Home is a fresh build — not an extension of the MVP. A template has 
 
 The MVP was a single-screen symbol search tool. Mo Speech Home is a full AAC platform. The routing, layout, component architecture, and context system must be designed from scratch. The Stripe integration, R2 setup, service worker, admin dashboard, and Convex schema foundation carry over directly.
 
-Everything in this app is JSON-driven. Child profiles, categories, symbols, lists, sentences, first-thens, themes, resource packs — all Convex documents. The app shell is a renderer. Keep this mental model throughout the build.
+Everything in this app is JSON-driven. Student profiles, categories, symbols, lists, sentences, first-thens, themes, resource packs — all Convex documents. The app shell is a renderer. Keep this mental model throughout the build.
 
 **The single most important architectural rule: never hard-code `"eng"` anywhere. Every query, every component, every audio path accepts a language parameter.**
 
@@ -51,7 +51,7 @@ The remaining docs (`03` through `17`) are reference material — read them when
 ### 0.2 Set up three Convex projects
 
 - `convex-home` — main app backend (extend from MVP template)
-- `convex-identity` — new project, shared child identity layer
+- `convex-identity` — new project, shared student identity layer
 - `convex-school` — stub only, not built yet
 
 Connect `convex-home` to the app. Leave `convex-identity` connected but empty for now.
@@ -64,7 +64,7 @@ Create all tables before building any UI. Schema first — always.
 symbols          (extend existing — add words.hin, audio.hin)
 users            (extend existing — add referredBy field)
 accountMembers   (new)
-childProfiles    (new — includes all stateFlags)
+studentProfiles  (new — includes all stateFlags)
 profileCategories (new)
 profileSymbols   (new — the most important table)
 profileLists     (new)
@@ -84,7 +84,7 @@ Add all indexes. Seed the symbols table with core 500 priority symbols for devel
 ### 0.4 Define convex-identity schema
 
 ```
-childIdentity    (new)
+studentIdentity  (new)
 profileVisibility (new)
 shareRequest     (new)
 ```
@@ -114,7 +114,7 @@ All context providers wrap the app from day one. Do not add them later.
 ```typescript
 // Four contexts — all present, mostly empty at this stage
 ThemeContext           // active theme tokens applied to CSS custom properties
-ProfileContext         // active childProfile, categories, state flags, language
+ProfileContext         // active studentProfile, categories, state flags, language
 ModellingSessionContext // active modellingSession — normally null
 ResourceLibraryContext // featured/seasonal packs metadata — lightweight
 ```
@@ -171,7 +171,7 @@ Add `componentKey` props to every shared component that modelling mode needs to 
 
 ## Phase 1 — Authentication and Account Model
 
-**Goal:** Parent can sign up, create a child profile, invite a family member.
+**Goal:** Instructor can sign up, create a student profile, invite a family member.
 
 ### 1.1 Carry over from MVP
 
@@ -181,13 +181,13 @@ Add `componentKey` props to every shared component that modelling mode needs to 
 
 Extend Stripe plan field: `"pro_monthly" | "pro_yearly" | "max_monthly" | "max_yearly"`
 
-### 1.2 Child profile creation
+### 1.2 Student profile creation
 
-- After sign up, prompt parent to create a child profile
-- Store `childProfile` in Convex with default state flags
+- After sign up, prompt instructor to create a student profile
+- Store `studentProfile` in Convex with default state flags
 - Set default language to `"eng"`
 - Set default theme to Classic Blue
-- Simultaneously create `childIdentity` in `convex-identity` and generate invite code
+- Simultaneously create `studentIdentity` in `convex-identity` and generate invite code
 
 ### 1.3 Account members (Max tier)
 
@@ -252,27 +252,27 @@ Use this hook throughout — never check the plan string directly in components.
 
 ## Phase 3 — Categories
 
-**Goal:** Parent can create and edit categories. Child can navigate them.
+**Goal:** Instructor can create and edit categories. Student can navigate them.
 
 ### 3.1 Default categories on profile creation
 
-- When `childProfile` is created, run `loadStarterTemplate` mutation
+- When `studentProfile` is created, run `loadStarterTemplate` mutation
 - Seeds `profileCategories` and `profileSymbols` from the starter profile template in `resourcePacks`
-- Child has a working AAC setup immediately
+- Student has a working AAC setup immediately
 
 ### 3.2 Category list screen
 
 - Grid of `profileCategory` cards
 - Each card shows name, icon, colour
 - Ordered by `profileCategory.order`
-- Parent sees edit controls; child does not (read from `ProfileContext` state flags)
+- Instructor sees edit controls; student does not (read from `ProfileContext` state flags)
 
 ### 3.3 Category detail — four modes
 
 - `ModeSwitcher` tabs: Board / Lists / First Thens / Sentences
 - Default mode: Board
 - `CategoryHeader` in `mode="talker"` or `mode="banner"` depending on state flag
-- `talker_banner_toggle` state flag controls whether child can switch
+- `talker_banner_toggle` state flag controls whether student can switch
 
 ### 3.4 Board mode
 
@@ -293,7 +293,7 @@ Use this hook throughout — never check the plan string directly in components.
 
 ## Phase 4 — Symbol Editor
 
-**Goal:** Parent can create fully customised symbols.
+**Goal:** Instructor can create fully customised symbols.
 
 ### 4.1 Symbol editor modal
 
@@ -370,15 +370,15 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 
 ## Phase 6 — Modelling Mode
 
-**Goal:** Parent can push a real-time guided walkthrough to child's device.
+**Goal:** Instructor can push a real-time guided walkthrough to student's device.
 
 ### 6.1 Convex session infrastructure
 
 - `modellingSession` table already in schema
 - `createModellingSession` mutation — pre-computes steps from symbol's category location
-- `advanceStep` mutation — child taps; increments `currentStep`
+- `advanceStep` mutation — student taps; increments `currentStep`
 - `cancelModellingSession` mutation
-- `getActiveModellingSession(profileId)` query — child subscribes
+- `getActiveModellingSession(profileId)` query — student subscribes
 
 ### 6.2 ModellingSessionContext
 
@@ -402,13 +402,13 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 
 ### 6.5 Instructor trigger UI
 
-- Modelling trigger from Category Board (parent only)
+- Modelling trigger from Category Board (instructor only)
 - Symbol picker → confirm modal → session created
 
 ### 6.6 Mirror view and success animation
 
-- Parent screen subscribes to `getModellingSessionById`
-- Shows child's current step in real time
+- Instructor screen subscribes to `getModellingSessionById`
+- Shows student's current step in real time
 - Success animation on `status = "completed"`; both devices return to previous screen
 
 **Reference:** `04-modelling-mode.md`, ADR-006
@@ -417,11 +417,11 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 
 ## Phase 7 — Themes
 
-**Goal:** Child profiles have selectable colour themes.
+**Goal:** Student profiles have selectable colour themes.
 
 - `themes` table already seeded with 6 starter themes (Phase 0)
 - Theme picker in Settings → Appearance
-- `setTheme(themeId)` updates `childProfile.themeId` in Convex
+- `setTheme(themeId)` updates `studentProfile.themeId` in Convex
 - `ThemeContext` applies tokens to CSS custom properties
 - `reduce_motion` state flag disables animations; respects OS `prefers-reduced-motion`
 - Gate premium themes behind Max tier
@@ -432,18 +432,18 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 
 ## Phase 8 — Home/School Connection
 
-**Goal:** Child identity is portable between Mo Speech Home and Mo Speech School.
+**Goal:** Student identity is portable between Mo Speech Home and Mo Speech School.
 
 ### 8.1 convex-identity infrastructure
 
-- `createChildIdentity` mutation — called on child profile creation
+- `createStudentIdentity` mutation — called on student profile creation
 - Generates invite code, links to `homeProfileId`
 - `switchContext` mutation — updates `activeContext`
-- `getActiveContext` query — child's device subscribes
+- `getActiveContext` query — student's device subscribes
 
 ### 8.2 Cross-project HTTP action
 
-**Prototype this early.** Build a simple read-only HTTP endpoint in `convex-home` that returns a child's profile summary given a `homeProfileId` and a shared secret. Call it from a test context. Verify it works in production before building the full sharing inbox around it.
+**Prototype this early.** Build a simple read-only HTTP endpoint in `convex-home` that returns a student's profile summary given a `homeProfileId` and a shared secret. Call it from a test context. Verify it works in production before building the full sharing inbox around it.
 
 ### 8.3 Sharing inbox
 

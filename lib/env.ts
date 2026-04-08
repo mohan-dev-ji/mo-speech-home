@@ -30,12 +30,12 @@ const envSchema = z.object({
   STRIPE_PRO_YEARLY_PRICE_ID: z
     .string()
     .min(1, "STRIPE_PRO_YEARLY_PRICE_ID is required"),
-  STRIPE_BUSINESS_MONTHLY_PRICE_ID: z
+  STRIPE_MAX_MONTHLY_PRICE_ID: z
     .string()
-    .min(1, "STRIPE_BUSINESS_MONTHLY_PRICE_ID is required"),
-  STRIPE_BUSINESS_YEARLY_PRICE_ID: z
+    .min(1, "STRIPE_MAX_MONTHLY_PRICE_ID is required"),
+  STRIPE_MAX_YEARLY_PRICE_ID: z
     .string()
-    .min(1, "STRIPE_BUSINESS_YEARLY_PRICE_ID is required"),
+    .min(1, "STRIPE_MAX_YEARLY_PRICE_ID is required"),
 
   // R2 — optional, app functions without storage
   R2_ACCOUNT_ID: z.string().optional(),

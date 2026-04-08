@@ -6,7 +6,7 @@
 
 ## What the MVP Is
 
-The current codebase is a **symbol search and playback tool**. A single-mode web app where a user searches the 58,000-symbol SymbolStix library by voice or text, builds a sequence of symbols in a top bar, and plays them back fullscreen with audio. There is one user type, one screen, and no concept of categories, lists, children, or instructors.
+The current codebase is a **symbol search and playback tool**. A single-mode web app where a user searches the 58,000-symbol SymbolStix library by voice or text, builds a sequence of symbols in a top bar, and plays them back fullscreen with audio. There is one user type, one screen, and no concept of categories, lists, students, or instructors.
 
 **MVP tech stack:**
 - Next.js 14 / React 18 / Tailwind CSS
@@ -39,7 +39,7 @@ The current codebase is a **symbol search and playback tool**. A single-mode web
 The full build is not one product — it is two distinct products with a shared technical foundation.
 
 ### Mo Speech Home
-**The first product to build.** Parent and child at home. One-to-one. The child is a named profile under the parent's account — they do not have their own Clerk login. The parent (and any invited collaborators such as a second parent or grandparent) act as instructors. Used for both guided modelling sessions and daily communication.
+**The first product to build.** Instructor and student at home. One-to-one. The student is a named profile under the instructor's account — they do not have their own Clerk login. The instructor (and any invited collaborators such as a second parent or grandparent) all act as instructors. Used for both guided modelling sessions and daily communication.
 
 ### Mo Speech School
 **The second product — built after Home is proven.** Teacher and class. One-to-many. Students join via an invite link. The teacher owns the categories and content, shared across the whole class. Modelling can push to one student or broadcast to all simultaneously. Different pricing model (per-teacher subscription with unlimited students).
@@ -55,20 +55,20 @@ The full build is not one product — it is two distinct products with a shared 
 
 ## Mo Speech Home — Account Model
 
-One subscription. One child profile. Multiple adult collaborators.
+One subscription. One student profile. Multiple adult collaborators.
 
 ```
-account (subscription holder — primary parent)
-  └── childProfile (the child's AAC profile)
+account (subscription holder — primary instructor)
+  └── studentProfile (the student's AAC profile)
   └── accountMembers (invited collaborators: second parent, grandparent, sibling)
 ```
 
-- The **account owner** creates the child's profile and holds the Stripe subscription
+- The **account owner** creates the student's profile and holds the Stripe subscription
 - Additional adults are invited by email and get their own Clerk login
-- All collaborators share the same child profile, the same categories, and the same state settings
+- All collaborators share the same student profile, the same categories, and the same state settings
 - Any collaborator can run modelling mode — mum at home, dad at the weekend, grandparent on Sunday
-- The child does **not** have their own Clerk account — they are a profile, not a user
-- `childProfile` holds all state flags — there is no separate `studentStates` relationship table in Home
+- The student does **not** have their own Clerk account — they are a profile, not a user
+- `studentProfile` holds all state flags — there is no separate `studentStates` relationship table in Home
 
 **Mo Speech School schema divergence (for reference):**
 School inverts this entirely. A `teacher` account owns `studentProfiles` (many). Students join via a `classMembers` join table. Categories are owned by the teacher and shared to the class. The schema is genuinely different and should be built as a separate refactor of Home, not bolted onto it.
@@ -77,7 +77,7 @@ School inverts this entirely. A `teacher` account owns `studentProfiles` (many).
 
 ## One App, Permission-Layered
 
-Within Mo Speech Home there are no separate routing trees for parent and child. It is one app where the parent (instructor) sees additional UI — edit controls, create functions, and settings. The child sees a permission-filtered version of the same app based on state flags set by the parent.
+Within Mo Speech Home there are no separate routing trees for instructor and student. It is one app where the instructor sees additional UI — edit controls, create functions, and settings. The student sees a permission-filtered version of the same app based on state flags set by the instructor.
 
 ---
 
@@ -88,7 +88,7 @@ Home  |  Search  |  Categories  |  Settings
 ```
 
 ### Home
-Quick-access dashboard. Shows recent categories, symbol history, and create shortcuts (new list, new sentence, new symbol, etc.). Parent sees all create functions; child visibility is permission-controlled.
+Quick-access dashboard. Shows recent categories, symbol history, and create shortcuts (new list, new sentence, new symbol, etc.). Instructor sees all create functions; student visibility is permission-controlled.
 
 ### Search
 The full MVP search engine carried forward. Voice + text search across the 58,000-symbol SymbolStix library.
@@ -96,13 +96,13 @@ The full MVP search engine carried forward. Voice + text search across the 58,00
 - This is the **free tier anchor** — search remains available on the free plan
 - The talker header component is always present but can be hidden
 - The talker on search is **talker-only** — no banner state toggle
-- Tapping a search result opens the **Create Symbol modal** (parent only) to customise and save to a category
-- Children tap a result to play/preview only
+- Tapping a search result opens the **Create Symbol modal** (instructor only) to customise and save to a category
+- Students tap a result to play/preview only
 
 ### Categories
 Central symbol navigation. All symbols organised by classic AAC categories (Things, Places, People, Feelings, Actions, etc.).
 
-**Symbol source:** Mix of default SymbolStix symbols (pre-organised by library categories) plus any custom symbols the parent has added.
+**Symbol source:** Mix of default SymbolStix symbols (pre-organised by library categories) plus any custom symbols the instructor has added.
 
 Each category has four modes, switchable via tabs:
 
@@ -114,7 +114,7 @@ Each category has four modes, switchable via tabs:
 | **Sentences** | Pre-built sentences for this category | ❌ No |
 
 ### Settings
-Parent-facing configuration. Child permission management (state flag controls), language selection, voice settings, subscription management.
+Instructor-facing configuration. Student permission management (state flag controls), language selection, voice settings, subscription management.
 
 ---
 
@@ -140,19 +140,19 @@ Triggered from the talker play button or from a Board in banner state. One enlar
 
 ## State System
 
-Parent controls boolean flags per child profile stored in Convex. Changes propagate instantly via subscriptions.
+Instructor controls boolean flags per student profile stored in Convex. Changes propagate instantly via subscriptions.
 
 **Key state flags:**
-- `home_visible` — whether child sees the home dashboard
+- `home_visible` — whether student sees the home dashboard
 - `search_visible` — whether search is accessible
 - `categories_visible` — whether categories is accessible
-- `settings_visible` — whether child can access settings
+- `settings_visible` — whether student can access settings
 - `talker_visible` — whether talker header shows (search + board)
-- `talker_banner_toggle` — whether child can switch talker ↔ banner in board mode
+- `talker_banner_toggle` — whether student can switch talker ↔ banner in board mode
 - `play_modal_visible` — whether play button is available
 - `voice_input_enabled` — whether microphone is active
 - `audio_autoplay` — whether audio fires on symbol tap
-- `modelling_push` — whether parent can push modelling sessions
+- `modelling_push` — whether instructor can push modelling sessions
 
 ---
 
@@ -161,13 +161,13 @@ Parent controls boolean flags per child profile stored in Convex. Changes propag
 Real-time, synchronised, interactive guided walkthrough across two devices. Full technical specification to be documented in a dedicated modelling ADR for the new build.
 
 **Summary:**
-1. Parent selects a symbol, confirms, triggers session
+1. Instructor selects a symbol, confirms, triggers session
 2. Convex creates a `modellingSession` with pre-computed navigation steps
-3. Child's app receives session instantly via Convex subscription
-4. Child's screen enters guided walkthrough — per-component black overlay divs cover everything except the active target, which glows
+3. Student's app receives session instantly via Convex subscription
+4. Student's screen enters guided walkthrough — per-component black overlay divs cover everything except the active target, which glows
 5. `ModellingAnnotation` (arrow + symbol + label) appears left or right of the target based on screen position
-6. Child taps highlighted component → `currentStep` advances → both screens update simultaneously
-7. Parent mirrors child's progress in real time
+6. Student taps highlighted component → `currentStep` advances → both screens update simultaneously
+7. Instructor mirrors student's progress in real time
 8. Success animation fires; both devices return to where they were
 
 **Key technical decisions:**
@@ -191,9 +191,9 @@ Mo Speech uses two distinct voice types serving different purposes. This is a de
 ### Tier 2 — Sentences, Lists, First Thens (Natural, On-demand)
 - **Voice:** Google Cloud Chirp 3 HD (primary recommendation) or ElevenLabs
 - **Method:** On-demand API call on first use → audio cached in R2 → all subsequent plays hit R2 directly
-- **Why natural:** Sentences and lists are conversational. A child hearing "Time to brush your teeth" or "I want to go to the park" should hear something warm and human, not robotic
+- **Why natural:** Sentences and lists are conversational. A student hearing "Time to brush your teeth" or "I want to go to the park" should hear something warm and human, not robotic
 - **Cache key structure:** `sentences/{language}/{hash-of-text}.mp3` — generate once, reuse indefinitely
-- **Cost model:** Pay only for generation of new content. An instructor creates a sentence once; R2 serves it forever after
+- **Cost model:** Pay only for generation of new content. Once created; R2 serves it forever after
 
 ### Why Google Chirp 3 HD over ElevenLabs (for now)
 - Already in the Google Cloud ecosystem — same credentials, same billing, no new vendor
@@ -205,9 +205,9 @@ Mo Speech uses two distinct voice types serving different purposes. This is a de
 
 Both ElevenLabs and Mistral's new Voxtral TTS (released March 2026, open-weight) support voice cloning from 2–3 seconds of audio. Two compelling future premium features:
 
-**Parent voice:** The child hears sentences spoken in their parent's voice. Emotionally significant for non-verbal children — familiar, warm, and personal.
+**Instructor's voice:** The student hears sentences spoken in their instructor's voice. Emotionally significant for non-verbal students — familiar, warm, and personal.
 
-**Child's own voice:** The most profound version. Capture whatever vocalisations the child makes — or record them reading words — and synthesise all sentences in *their own voice*. This is a feature that dedicated AAC devices charge thousands of pounds for. At Mo Speech's price point with modern TTS, it becomes accessible. Positioned as a premium tier feature for Mo Speech Home.
+**Student's own voice:** The most profound version. Capture whatever vocalisations the student makes — or record them reading words — and synthesise all sentences in *their own voice*. This is a feature that dedicated AAC devices charge thousands of pounds for. At Mo Speech's price point with modern TTS, it becomes accessible. Positioned as a premium tier feature for Mo Speech Home.
 
 ### Voxtral TTS (Watch This Space)
 Mistral released Voxtral TTS on 26 March 2026 — five days ago at time of writing. Open-weight, 4B parameters, runs on consumer hardware, achieved a 68.4% win rate over ElevenLabs Flash v2.5 in human evaluations. Commercial API pricing not yet fully established. The architecture above works with any provider — Voxtral is worth evaluating seriously once it stabilises.
@@ -228,7 +228,7 @@ audio: { eng: { default: string }, hin: { default: string }, pan: { default: str
 
 The exact field naming is a schema design decision for the new build, not a carry-over from the MVP.
 
-The `childProfile` stores `language: "eng" | "hin" | "pan"`. Every symbol query reads `words[language]` and `audio[language]`. The talker, play modal, and search all use the profile language automatically. No conditional rendering required in components.
+The `studentProfile` stores `language: "eng" | "hin" | "pan"`. Every symbol query reads `words[language]` and `audio[language]`. The talker, play modal, and search all use the profile language automatically. No conditional rendering required in components.
 
 ### Launch languages
 - **English** — primary, fully implemented in MVP
@@ -246,7 +246,7 @@ Tier 1 (symbol audio): Re-run the existing generation script with the target lan
 Tier 2 (natural voice): Google Chirp 3 HD and Voxtral both support Hindi natively. Punjabi support varies by provider — verify before committing. Cache key includes language: `sentences/hin/{hash}.mp3`.
 
 ### Bilingual households
-One language per child profile at launch. The architecture supports adding a language toggle later — it is just a profile field change. Not exposing the toggle in V1 keeps the settings UI simple.
+One language per student profile at launch. The architecture supports adding a language toggle later — it is just a profile field change. Not exposing the toggle in V1 keeps the settings UI simple.
 
 ---
 
@@ -254,7 +254,7 @@ One language per child profile at launch. The architecture supports adding a lan
 
 The MVP already has `symbols` and `users`. Mo Speech Home adds:
 
-- `childProfile` — child's AAC profile (name, age, language, state flags), owned by account
+- `studentProfile` — student's AAC profile (name, age, language, state flags), owned by account
 - `accountMembers` — relationship table linking collaborators to an account (email, role: owner/collaborator, invite status)
 - `modellingSession` — active and completed modelling sessions
 - `categories` — category definitions (name, default or custom, ordering)
@@ -316,7 +316,7 @@ The MVP is not broken — it is scoped for a product that no longer reflects the
 ## Key Architectural Patterns to Design In From Day One
 
 - **Four-item nav shell** — Home, Search, Categories, Settings; all content routes beneath these
-- **Permission context** — single context holding the child profile's state flags; read throughout the tree
+- **Permission context** — single context holding the student profile's state flags; read throughout the tree
 - **Shared talker header component** — one component; search = talker only; board = talker or banner
 - **Category mode tabs** — Board, Lists, First Thens, Sentences as modes within one Category Detail screen
 - **Language-aware symbol queries** — all symbol queries accept a `language` param; components never hard-code `eng`

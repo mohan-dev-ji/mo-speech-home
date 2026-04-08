@@ -2,7 +2,7 @@
 
 ## Overview
 
-The affiliate programme allows Mo Speech to grow internationally through trusted partners — SLTs, AAC specialists, teachers, and engaged parents — who promote the app and earn a commission on users they recruit.
+The affiliate programme allows Mo Speech to grow internationally through trusted partners — SLTs, AAC specialists, teachers, and engaged instructors — who promote the app and earn a commission on users they recruit.
 
 Affiliates are managed by Mo Speech admins via the admin User Settings page. Payouts are fully automated via Stripe Connect — money flows from the Mo Speech Stripe balance directly to the affiliate's bank account without manual intervention.
 

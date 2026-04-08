@@ -38,20 +38,20 @@ Language changes symbol labels and audio only. App UI (nav labels, buttons, moda
 
 - No i18n framework needed
 - Simpler and faster to implement
-- Not a fully native experience for non-English-literate parents
+- Not a fully native experience for non-English-literate instructors
 
 ### Option B — Full UI + Symbol Content (Recommended)
 
 Language changes everything — symbol labels, audio, and all app UI text.
 
 - Requires `next-intl` v4
-- A Hindi-speaking parent sees a fully Hindi app
-- Builds trust with communities where parents may not read English comfortably
+- A Hindi-speaking instructor sees a fully Hindi app
+- Builds trust with communities where instructors may not read English comfortably
 - No AAC platform is doing this — genuine differentiator
 - The marginal cost over Option A is modest once `next-intl` is scaffolded
 
 **Why Option B is the right call for AAC specifically:**
-The person setting up the app is often not the child — it is the grandparent, a carer, or a family member who may not read English comfortably. If they cannot navigate the settings, the app fails the child. A fully localised app removes this barrier entirely.
+The person setting up the app is often not the student — it is the grandparent, a carer, or a family member who may not read English comfortably. If they cannot navigate the settings, the app fails the student. A fully localised app removes this barrier entirely.
 
 ---
 
@@ -64,7 +64,7 @@ words: { eng: string, hin: string }
 audio: { eng: { default: string }, hin: { default: string } }
 ```
 
-Additional languages add new fields — the schema is open-ended. `childProfile.language` determines which fields are queried.
+Additional languages add new fields — the schema is open-ended. `studentProfile.language` determines which fields are queried.
 
 ---
 
@@ -94,8 +94,8 @@ export function BottomNav() {
 }
 ```
 
-**Locale source — from childProfile:**
-When a profile is loaded, `childProfile.language` sets the active locale. The URL prefix updates (`/en/` → `/hi/`) and the entire UI switches. No page reload needed.
+**Locale source — from studentProfile:**
+When a profile is loaded, `studentProfile.language` sets the active locale. The URL prefix updates (`/en/` → `/hi/`) and the entire UI switches. No page reload needed.
 
 **Next.js 16 note:** next-intl middleware must be in `proxy.ts` (not `middleware.ts`) and the exported function must be named `proxy`. See `13-next16-setup.md`.
 
@@ -149,4 +149,4 @@ In the parent view, the parent's UI can be in English while the child's symbols 
 
 ## Bilingual Households
 
-One language per child profile at launch. A bilingual family can create two profiles for the same child — one in each language. The architecture supports per-session language switching later as a profile field change — not exposing it in V1 keeps Settings simple.
+One language per student profile at launch. A bilingual family can create two profiles for the same student — one in each language. The architecture supports per-session language switching later as a profile field change — not exposing it in V1 keeps Settings simple.

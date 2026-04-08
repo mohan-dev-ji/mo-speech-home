@@ -14,7 +14,7 @@ type Props = {
 const TIER_OPTIONS: { value: SubscriptionTier; label: string }[] = [
   { value: "free", label: "Free" },
   { value: "pro", label: "Pro" },
-  { value: "business", label: "Business" },
+  { value: "max", label: "Max" },
 ];
 
 export function GrantAccessForm({ userId, currentTier, currentStatus }: Props) {

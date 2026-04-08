@@ -166,7 +166,7 @@ export const getUserByStripeCustomerId = query({
 export const updateSubscription = mutation({
   args: {
     userId: v.id("users"),
-    tier: v.union(v.literal("free"), v.literal("pro"), v.literal("business")),
+    tier: v.union(v.literal("free"), v.literal("pro"), v.literal("max")),
     status: v.union(
       v.literal("free"),
       v.literal("active"),

@@ -18,7 +18,7 @@ A "pack" in the resource library is simply a category with its accompanying list
 
 ## Category List Screen
 
-The Categories nav item shows a grid of all the child's categories. Each category has a name, icon, and background colour. Tapping a category opens the Category Detail screen.
+The Categories nav item shows a grid of all the student's categories. Each category has a name, icon, and background colour. Tapping a category opens the Category Detail screen.
 
 Default categories are pre-loaded from the Mo Speech resource library when a new profile is created. These are fully editable from day one — they are copied into the user's profile, not linked to the library.
 
@@ -48,7 +48,7 @@ The talker header sits at the top of the board. It can be in one of two states:
 - **Talker state** — tapping a symbol adds it to the talker bar for sentence building
 - **Banner state** — tapping a symbol plays its audio and enlarges it; no sentence building
 
-The parent sets the default state via permissions. If `talker_banner_toggle` is ON, the child can switch between the two states themselves using a toggle button in the header.
+The instructor sets the default state via permissions. If `talker_banner_toggle` is ON, the student can switch between the two states themselves using a toggle button in the header.
 
 ---
 
@@ -72,7 +72,7 @@ Pre-built sentences stored as ordered symbol sequences. Similar to lists but sem
 
 ## Creating and Editing Categories
 
-Parents can:
+Instructors can:
 - Create a new category from scratch
 - Load a category from the resource library (as a starting point)
 - Rename, recolour, and change the icon of any category

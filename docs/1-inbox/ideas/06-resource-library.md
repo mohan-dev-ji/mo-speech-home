@@ -2,7 +2,7 @@
 
 ## What It Is
 
-The Mo Speech resource library is a collection of curated content packs managed by the Mo Speech team via the admin dashboard. Parents can browse the library, preview packs, and load them into their child's profile as a starting point or supplement.
+The Mo Speech resource library is a collection of curated content packs managed by the Mo Speech team via the admin dashboard. Instructors can browse the library, preview packs, and load them into their student's profile as a starting point or supplement.
 
 A pack is simply a category with its accompanying lists, sentences, and first-thens bundled together — the same structure as everything else in the app.
 
@@ -10,9 +10,9 @@ A pack is simply a category with its accompanying lists, sentences, and first-th
 
 ## Why It Matters
 
-Non-verbal children often miss the ambient cultural context that verbal children absorb passively. A Halloween category, a Diwali sentence set, a Christmas first-then — timely, contextual content keeps the child connected to what is happening around them. No AAC platform currently does this as a curated, regularly updated resource.
+Non-verbal students often miss the ambient cultural context that verbal children absorb passively. A Halloween category, a Diwali sentence set, a Christmas first-then — timely, contextual content keeps the student connected to what is happening around them. No AAC platform currently does this as a curated, regularly updated resource.
 
-The library also solves the cold-start problem. A new parent does not need to build everything from scratch. They load a starter pack, the child has working AAC immediately, and the parent customises from there.
+The library also solves the cold-start problem. A new instructor does not need to build everything from scratch. They load a starter pack, the student has working AAC immediately, and the instructor customises from there.
 
 ---
 
@@ -58,7 +58,7 @@ The promotional section updates automatically as packs are published and expired
 
 ## Loading a Pack
 
-When a parent loads a pack:
+When an instructor loads a pack:
 
 1. A Convex mutation `loadResourcePack(profileId, packId)` runs
 2. Creates a `profileCategory` from the pack's category
@@ -73,7 +73,7 @@ The loaded content is completely independent from the library. Editing it does n
 
 ## Reload Defaults
 
-If a category has a `librarySourceId`, the parent can "Reload Defaults" — reset all customisations back to the original pack state.
+If a category has a `librarySourceId`, the instructor can "Reload Defaults" — reset all customisations back to the original pack state.
 
 This is a destructive action. The confirmation modal warns clearly:
 - All label overrides will be lost
@@ -88,4 +88,4 @@ On confirm, all `profileSymbol` records for the category are deleted and recreat
 
 ## Individual Items
 
-Parents can also browse and load individual items from the library — a single list, a single sentence, a single first-then — without loading the full pack. These load into an existing category of the parent's choosing.
+Instructors can also browse and load individual items from the library — a single list, a single sentence, a single first-then — without loading the full pack. These load into an existing category of the instructor's choosing.

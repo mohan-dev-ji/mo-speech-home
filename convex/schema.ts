@@ -11,7 +11,7 @@ export default defineSchema({
       tier: v.union(
         v.literal("free"),
         v.literal("pro"),
-        v.literal("business")
+        v.literal("max")
       ),
       // Stripe subscription lifecycle state
       status: v.union(

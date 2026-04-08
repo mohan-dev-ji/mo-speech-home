@@ -5,7 +5,7 @@
 ```
 convex-home        ← Mo Speech Home backend
 convex-school      ← Mo Speech School backend (future)
-convex-identity    ← Shared child identity layer
+convex-identity    ← Shared student identity layer
 ```
 
 Cross-project reads use HTTP Actions. `convex-school` and `convex-home` each expose read-only HTTP endpoints. The other app calls them via Convex HTTP actions. Prototype this seam early — it is the most novel part of the architecture.
@@ -67,11 +67,11 @@ accountMembers: {
 }
 ```
 
-### childProfiles (new)
+### studentProfiles (new)
 
 ```typescript
-childProfiles: {
-  _id: Id<"childProfiles">
+studentProfiles: {
+  _id: Id<"studentProfiles">
   accountId: Id<"users">
   name: string
   dateOfBirth?: number
@@ -101,7 +101,7 @@ childProfiles: {
 ```typescript
 profileCategories: {
   _id: Id<"profileCategories">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   name: { eng: string, hin: string }
   icon: string
   colour: string
@@ -117,7 +117,7 @@ profileCategories: {
 ```typescript
 profileSymbols: {
   _id: Id<"profileSymbols">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   profileCategoryId: Id<"profileCategories">
   order: number
 
@@ -164,7 +164,7 @@ type AudioSource = {
 ```typescript
 profileLists: {
   _id: Id<"profileLists">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   profileCategoryId: Id<"profileCategories">
   name: { eng: string, hin: string }
   order: number
@@ -180,7 +180,7 @@ profileLists: {
 ```typescript
 profileSentences: {
   _id: Id<"profileSentences">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   profileCategoryId: Id<"profileCategories">
   name: { eng: string, hin: string }
   order: number
@@ -198,7 +198,7 @@ profileSentences: {
 ```typescript
 profileFirstThens: {
   _id: Id<"profileFirstThens">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   profileCategoryId: Id<"profileCategories">
   name: { eng: string, hin: string }
   order: number
@@ -215,7 +215,7 @@ profileFirstThens: {
 ```typescript
 modellingSession: {
   _id: Id<"modellingSessions">
-  profileId: Id<"childProfiles">
+  profileId: Id<"studentProfiles">
   initiatedBy: string
   symbolId: Id<"symbols">
   symbolPreview: { word: string, imagePath: string }
@@ -258,11 +258,11 @@ resourcePacks: {
 
 ## convex-identity Tables
 
-### childIdentity
+### studentIdentity
 
 ```typescript
-childIdentity: {
-  _id: Id<"childIdentities">
+studentIdentity: {
+  _id: Id<"studentIdentities">
   name: string
   dateOfBirth?: number
   profilePhoto?: string
@@ -281,8 +281,8 @@ childIdentity: {
 ```typescript
 profileVisibility: {
   _id: Id<"profileVisibilities">
-  childIdentityId: Id<"childIdentities">
-  viewerRole: "parent" | "teacher"
+  studentIdentityId: Id<"studentIdentities">
+  viewerRole: "instructor" | "teacher"
   canViewHome: boolean
   canViewSchool: boolean
   grantedAt: number
@@ -295,7 +295,7 @@ profileVisibility: {
 ```typescript
 shareRequest: {
   _id: Id<"shareRequests">
-  childIdentityId: Id<"childIdentities">
+  studentIdentityId: Id<"studentIdentities">
   fromApp: "home" | "school"
   toApp: "home" | "school"
   senderClerkId: string
@@ -365,10 +365,10 @@ themes: {
 }
 ```
 
-### childProfile — additions
+### studentProfile — additions
 
 ```typescript
-// Add to childProfiles table:
+// Add to studentProfiles table:
 themeId?: Id<"themes">               // null = Classic Blue default
   purchasedThemeIds?: Array<Id<"themes">>  // individually purchased themes
 ```

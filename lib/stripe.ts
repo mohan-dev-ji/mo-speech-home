@@ -14,9 +14,9 @@ export const PRICE_IDS = {
     monthly: process.env.STRIPE_PRO_MONTHLY_PRICE_ID!,
     yearly: process.env.STRIPE_PRO_YEARLY_PRICE_ID!,
   },
-  business: {
-    monthly: process.env.STRIPE_BUSINESS_MONTHLY_PRICE_ID!,
-    yearly: process.env.STRIPE_BUSINESS_YEARLY_PRICE_ID!,
+  max: {
+    monthly: process.env.STRIPE_MAX_MONTHLY_PRICE_ID!,
+    yearly: process.env.STRIPE_MAX_YEARLY_PRICE_ID!,
   },
 } as const;
 

@@ -2,7 +2,7 @@
 
 ## What It Is
 
-Modelling mode is a real-time, synchronised, interactive guided walkthrough across two devices simultaneously. The parent selects a symbol to model, and the child's device enters a step-by-step guided experience that teaches them how to navigate to that symbol within the app — not just what the symbol means, but where to find it.
+Modelling mode is a real-time, synchronised, interactive guided walkthrough across two devices simultaneously. The instructor selects a symbol to model, and the student's device enters a step-by-step guided experience that teaches them how to navigate to that symbol within the app — not just what the symbol means, but where to find it.
 
 This is the most technically complex feature in Mo Speech Home.
 
@@ -10,23 +10,23 @@ This is the most technically complex feature in Mo Speech Home.
 
 ## The Flow
 
-### Parent side
+### Instructor side
 
-1. Parent enters modelling mode from any Category Board
+1. Instructor enters modelling mode from any Category Board
 2. Taps the symbol they want to model
 3. Confirms in a modal — symbol is shown with its label
 4. Convex creates a `modellingSession` document with a pre-computed steps array
-5. Parent screen enters mirror view — they see the child's progress in real time
+5. Instructor screen enters mirror view — they see the student's progress in real time
 
-### Child side
+### Student side
 
-1. Child's app is subscribed to active `modellingSession` for their profile
-2. Session arrives instantly via Convex — child's screen enters guided walkthrough
+1. Student's app is subscribed to active `modellingSession` for their profile
+2. Session arrives instantly via Convex — student's screen enters guided walkthrough
 3. All components are covered by their individual black overlay divs
-4. One component remains fully visible — the one the child needs to tap next — with an animated glow ring
+4. One component remains fully visible — the one the student needs to tap next — with an animated glow ring
 5. A `ModellingAnnotation` (arrow + symbol image + label) appears beside the target, pointing to it
-6. Child taps the highlighted component → `currentStep` advances in Convex → both screens update
-7. Steps continue until the child reaches the target symbol
+6. Student taps the highlighted component → `currentStep` advances in Convex → both screens update
+7. Steps continue until the student reaches the target symbol
 8. Success animation fires on both screens
 9. Both devices return to where they were
 
@@ -82,8 +82,8 @@ This is the only place in the modelling feature that touches the DOM for measure
 ```typescript
 modellingSession: {
   _id: Id<"modellingSessions">
-  profileId: Id<"childProfiles">
-  initiatedBy: string              // clerkUserId of the parent
+  profileId: Id<"studentProfiles">
+  initiatedBy: string              // clerkUserId of the instructor
   symbolId: Id<"symbols">
   symbolPreview: { word: string, imagePath: string }
   steps: Array<{ screen: string, highlight: string }>
@@ -95,12 +95,12 @@ modellingSession: {
 ```
 
 **Queries:**
-- `getActiveModellingSession(profileId)` — child's app subscribes to this
-- `getModellingSessionById(sessionId)` — parent's mirror view subscribes to this
+- `getActiveModellingSession(profileId)` — student's app subscribes to this
+- `getModellingSessionById(sessionId)` — instructor's mirror view subscribes to this
 
 **Mutations:**
-- `createModellingSession(profileId, symbolId)` — parent triggers; pre-computes steps
-- `advanceStep(sessionId)` — child taps; increments currentStep
+- `createModellingSession(profileId, symbolId)` — instructor triggers; pre-computes steps
+- `advanceStep(sessionId)` — student taps; increments currentStep
 - `cancelModellingSession(sessionId)` — either party can exit early
 
 ---
@@ -120,7 +120,7 @@ Every tappable element the walkthrough needs to highlight must have a stable `co
 
 ## Constraints
 
-- **Live only** — both parent and child must be in the app simultaneously
-- **One-to-one** — one parent to one child per session
-- **One active session per child** — cannot have two simultaneous sessions
-- Session auto-cancels if child goes offline (timeout mutation)
+- **Live only** — both instructor and student must be in the app simultaneously
+- **One-to-one** — one instructor to one student per session
+- **One active session per student** — cannot have two simultaneous sessions
+- Session auto-cancels if student goes offline (timeout mutation)

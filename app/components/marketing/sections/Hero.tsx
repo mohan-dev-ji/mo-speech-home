@@ -8,9 +8,9 @@ export function Hero() {
           Now in beta
         </span>
         <h1 className="text-display font-bold tracking-tight mb-6">
-          Build your SaaS
+          Mo Speech Home
           <br />
-          <span className="text-primary">faster than ever</span>
+          <span className="text-primary">AAC built for the world</span>
         </h1>
         <p className="text-subheading text-muted-foreground max-w-xl mx-auto mb-10">
           Replace this with your product&apos;s value proposition. One sentence

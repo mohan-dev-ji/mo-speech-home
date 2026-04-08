@@ -2,40 +2,40 @@
 
 ## The Problem This Solves
 
-In current AAC practice, a child has one device configured by their teacher and a completely different setup at home configured by their parent. These two worlds never communicate. The child must context-switch between different symbol layouts, different vocabulary, and different sentence structures depending on where they are. This is harmful to communication development — consistency across environments is one of the most important factors in AAC success.
+In current AAC practice, a student has one device configured by their teacher and a completely different setup at home configured by their instructor. These two worlds never communicate. The student must context-switch between different symbol layouts, different vocabulary, and different sentence structures depending on where they are. This is harmful to communication development — consistency across environments is one of the most important factors in AAC success.
 
 ---
 
-## The Solution — Shared Child Identity
+## The Solution — Shared Student Identity
 
-A third Convex project — `convex-identity` — acts as a thin shared layer above both apps. It holds only the child's identity and the relationships between that identity and their Home and School profiles. All content (categories, lists, sentences, first-thens, state flags) remains entirely within its respective app's Convex project and is never merged or automatically synced.
+A third Convex project — `convex-identity` — acts as a thin shared layer above both apps. It holds only the student's identity and the relationships between that identity and their Home and School profiles. All content (categories, lists, sentences, first-thens, state flags) remains entirely within its respective app's Convex project and is never merged or automatically synced.
 
 ```
-convex-home        ← Mo Speech Home backend (parent owns this)
+convex-home        ← Mo Speech Home backend (instructor owns this)
 convex-school      ← Mo Speech School backend (teacher owns this)
-convex-identity    ← Shared child identity (neither owns exclusively)
+convex-identity    ← Shared student identity (neither owns exclusively)
 ```
 
 ---
 
 ## Linking Home and School
 
-1. Parent creates the child in Mo Speech Home → `convex-identity` creates a `childIdentity` record and generates a short invite code (e.g. `MOS-4829-XK`)
-2. Teacher enters the invite code in Mo Speech School → `convex-school` creates a school profile for the child → `convex-identity` links the two profiles
+1. Instructor creates the student in Mo Speech Home → `convex-identity` creates a `studentIdentity` record and generates a short invite code (e.g. `MOS-4829-XK`)
+2. Teacher enters the invite code in Mo Speech School → `convex-school` creates a school profile for the student → `convex-identity` links the two profiles
 3. Both apps are now connected — no content is shared or merged
 
 ---
 
 ## Context Switching
 
-The child's device holds an `activeContext: "home" | "school"` flag in `convex-identity`. Switching context loads the corresponding profile.
+The student's device holds an `activeContext: "home" | "school"` flag in `convex-identity`. Switching context loads the corresponding profile.
 
 **Who can switch context:**
-- The parent (from Settings in Mo Speech Home)
+- The instructor (from Settings in Mo Speech Home)
 - The teacher (from Settings in Mo Speech School)
-- The child themselves (if permissions allow)
+- The student themselves (if permissions allow)
 
-Switching context does not merge, copy, or affect either profile. It only changes which profile the child's device is currently displaying.
+Switching context does not merge, copy, or affect either profile. It only changes which profile the student's device is currently displaying.
 
 ---
 
@@ -43,16 +43,16 @@ Switching context does not merge, copy, or affect either profile. It only change
 
 Neither party sees the other's profile by default. Visibility must be explicitly granted.
 
-- **Parent viewing school profile** — Mo Speech Home makes a read-only HTTP action call to `convex-school`; returns a read-only snapshot; parent cannot edit anything
+- **Instructor viewing school profile** — Mo Speech Home makes a read-only HTTP action call to `convex-school`; returns a read-only snapshot; instructor cannot edit anything
 - **Teacher viewing home profile** — same mechanism in reverse
 
-This is useful practically: a parent seeing what the teacher has built can choose to reinforce the same vocabulary at home — not automatically, but as a deliberate decision. That conscious reinforcement is more developmentally valuable than automatic merging.
+This is useful practically: an instructor seeing what the teacher has built can choose to reinforce the same vocabulary at home — not automatically, but as a deliberate decision. That conscious reinforcement is more developmentally valuable than automatic merging.
 
 ---
 
 ## Sharing Inbox
 
-Either party can share content to the other. A teacher can share a category, list, sentence, or first-then — the parent receives it in their inbox and can review, accept, or decline. The same works in reverse.
+Either party can share content to the other. A teacher can share a category, list, sentence, or first-then — the instructor receives it in their inbox and can review, accept, or decline. The same works in reverse.
 
 **Sending:**
 - Tap "Share with Home" on any category, list, sentence, or first-then in Mo Speech School
@@ -60,7 +60,7 @@ Either party can share content to the other. A teacher can share a category, lis
 - Mo Speech Home shows an inbox badge (driven by a Convex subscription to pending requests)
 
 **Receiving — staging area:**
-- Parent opens their inbox and previews the incoming item in full
+- Instructor opens their inbox and previews the incoming item in full
 - Three options: **Accept** (item copied into Home profile as independent editable content), **Decline** (removed from inbox), **Dismiss** (stays for later)
 - Accepted items are fully independent from the original — editing them has no effect on the school version
 
@@ -78,8 +78,8 @@ Either party can share content to the other. A teacher can share a category, lis
 
 Cross-project reads use HTTP Actions — the recommended approach:
 
-- `convex-school` exposes a dedicated read-only HTTP endpoint authenticated by a shared secret + the child's school profile ID
-- Mo Speech Home calls this endpoint from a Convex HTTP action when the parent requests the school profile view
+- `convex-school` exposes a dedicated read-only HTTP endpoint authenticated by a shared secret + the student's school profile ID
+- Mo Speech Home calls this endpoint from a Convex HTTP action when the instructor requests the school profile view
 
 Prototype this cross-project call early — it is the critical seam between the two systems and must be verified before building context switching or read-only views around it.
 
@@ -88,8 +88,8 @@ Prototype this cross-project call early — it is the critical seam between the 
 ## convex-identity Schema
 
 ```typescript
-childIdentity: {
-  _id: Id<"childIdentities">
+studentIdentity: {
+  _id: Id<"studentIdentities">
   name: string
   dateOfBirth?: number
   profilePhoto?: string
@@ -104,7 +104,7 @@ childIdentity: {
 
 shareRequest: {
   _id: Id<"shareRequests">
-  childIdentityId: Id<"childIdentities">
+  studentIdentityId: Id<"studentIdentities">
   fromApp: "home" | "school"
   toApp: "home" | "school"
   senderClerkId: string
@@ -124,9 +124,9 @@ shareRequest: {
 
 | Aspect | Home | School |
 |---|---|---|
-| Account model | One parent → one child | One teacher → many students |
-| Student access | Child has no Clerk account | Students join via invite link |
-| Content ownership | Parent owns categories | Teacher owns categories, shared to class |
+| Account model | One instructor → one student | One teacher → many students |
+| Student access | Student has no Clerk account | Students join via invite link |
+| Content ownership | Instructor owns categories | Teacher owns categories, shared to class |
 | Modelling | One-to-one | One-to-many broadcast |
 | Pricing | Per family subscription | Per teacher subscription, unlimited students |
 

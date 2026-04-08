@@ -38,7 +38,7 @@ Banner state turns the board into a simple symbol-tap interface — useful for d
 
 A toggle control in the header switches between talker and banner. This toggle is only visible in Category/Board mode — not on the Search page.
 
-If `talker_banner_toggle` is OFF (set by parent), the toggle is hidden and the board stays in whichever state the parent has set as default. The child cannot change it.
+If `talker_banner_toggle` is OFF (set by instructor), the toggle is hidden and the board stays in whichever state the instructor has set as default. The student cannot change it.
 
 ---
 
@@ -51,7 +51,7 @@ Triggered from:
 
 ### What it does
 
-Plays symbols one at a time, enlarged with audio. The full sequence is shown as a thumbnail strip at the bottom for visual context — the child always knows where they are in the sequence.
+Plays symbols one at a time, enlarged with audio. The full sequence is shown as a thumbnail strip at the bottom for visual context — the student always knows where they are in the sequence.
 
 After the final symbol plays, a repeat button appears. Tapping it replays the sequence from the start.
 
@@ -77,7 +77,7 @@ Tapping the close button or swiping down returns to the originating screen with 
 
 Most AAC boards repeat core words — "I", "want", "the", "and", "is", "not", "like", "go" — across every single category. This wastes valuable grid space in every board and creates visual noise. These words don't belong to any specific category; they belong to every sentence.
 
-The core vocabulary dropdown solves this by pulling these words out of the category boards entirely and making them permanently accessible from the talker header, regardless of which category or screen the child is on.
+The core vocabulary dropdown solves this by pulling these words out of the category boards entirely and making them permanently accessible from the talker header, regardless of which category or screen the student is on.
 
 ---
 
@@ -109,7 +109,7 @@ The dropdown closes after a tap, or can be dismissed by tapping outside it.
 
 ### Why This Matters for Board Design
 
-With core words accessible via the dropdown, category boards can focus entirely on topic-specific vocabulary. A Food category contains only food symbols. A Feelings category contains only feeling symbols. The boards become cleaner, more focused, and easier for the child to navigate — because the words needed to build sentences around those topics live in the dropdown, not scattered across every board.
+With core words accessible via the dropdown, category boards can focus entirely on topic-specific vocabulary. A Food category contains only food symbols. A Feelings category contains only feeling symbols. The boards become cleaner, more focused, and easier for the student to navigate — because the words needed to build sentences around those topics live in the dropdown, not scattered across every board.
 
 ---
 
@@ -117,7 +117,7 @@ With core words accessible via the dropdown, category boards can focus entirely 
 
 The core word, number, and letter sets are sourced from the SymbolStix library — they are `symbols` records, not custom content. The sets are defined in the resource library or as a fixed seed in the codebase, and are shared across all profiles. They do not live in `profileSymbols` — they are read directly from the `symbols` table using the `priority` field (1–500 for core vocabulary).
 
-Numbers and letters are a fixed set — no customisation needed. Core words can be extended or reordered by the parent in a future version, but in V1 the set is the Mo Speech default core vocabulary list.
+Numbers and letters are a fixed set — no customisation needed. Core words can be extended or reordered by the instructor in a future version, but in V1 the set is the Mo Speech default core vocabulary list.
 
 The dropdown does not require any new Convex tables. It reads from the existing `symbols` table filtered by `priority` (core words) or by a fixed symbol ID list (numbers, letters).
 
@@ -125,7 +125,7 @@ The dropdown does not require any new Convex tables. It reads from the existing 
 
 ### State Flag
 
-A `core_dropdown_visible` state flag (defaulting ON) allows the parent to hide the dropdown from the child's view if it is not appropriate for their current stage of AAC development.
+A `core_dropdown_visible` state flag (defaulting ON) allows the instructor to hide the dropdown from the student's view if it is not appropriate for their current stage of AAC development.
 
 Add to `childProfile.stateFlags`:
 ```typescript

@@ -20,7 +20,7 @@ Mo Speech Home has three tiers: Free, Pro, and Max.
 | Family member invitations | ❌ | ❌ | ✅ |
 | Mo Speech School connection | ❌ | ❌ | ✅ |
 | Voice cloning (future) | ❌ | ❌ | ✅ |
-| Multiple child profiles | 1 | 1 | Unlimited |
+| Multiple student profiles | 1 | 1 | Unlimited |
 
 ---
 
@@ -28,7 +28,7 @@ Mo Speech Home has three tiers: Free, Pro, and Max.
 
 The Free tier retains full access to the SymbolStix library and the core vocabulary dropdown. Search is the primary communication tool for many users — removing symbol access from the free tier would create a barrier to basic communication. This aligns with the principle that AAC tools are rights, not privileges.
 
-What is gated behind Pro is the structured, category-based navigation system and modelling — features that require significant setup investment from the parent and represent the full platform experience.
+What is gated behind Pro is the structured, category-based navigation system and modelling — features that require significant setup investment from the instructor and represent the full platform experience.
 
 Max gates the social and connective features — family collaboration and School linking — which are infrastructure features with ongoing costs, rather than core AAC features.
 
@@ -76,7 +76,7 @@ A `useSubscription()` hook reads the current user's plan and returns:
   hasSchoolConnection: boolean
   hasPremiumThemes: boolean
   hasVoiceCloning: boolean
-  maxChildProfiles: number
+  maxStudentProfiles: number
   isTrialing: boolean
   trialDaysRemaining: number
 }
@@ -100,4 +100,4 @@ Trial expiry shows the same modal flow as the MVP:
 - Day 29–30: warning modal (once per 24 hours, dismissible)
 - Day 31+: expiry modal with upgrade options and "Continue with Free" option
 
-"Continue with Free" drops the user to the Free tier — they keep their account, their child profile, and their search access. They do not lose any data, but categories and modelling become inaccessible until they upgrade.
+"Continue with Free" drops the user to the Free tier — they keep their account, their student profile, and their search access. They do not lose any data, but categories and modelling become inaccessible until they upgrade.

@@ -13,14 +13,14 @@ export default async function AdminPage() {
     total: users.length,
     free: (users as UserRecord[]).filter((u) => u.subscription.tier === "free").length,
     pro: (users as UserRecord[]).filter((u) => u.subscription.tier === "pro").length,
-    business: (users as UserRecord[]).filter((u) => u.subscription.tier === "business").length,
+    max: (users as UserRecord[]).filter((u) => u.subscription.tier === "max").length,
   };
 
   const statCards = [
     { label: "Total users", value: stats.total, icon: Users },
     { label: "Free", value: stats.free, icon: Star },
     { label: "Pro", value: stats.pro, icon: TrendingUp },
-    { label: "Business", value: stats.business, icon: Building2 },
+    { label: "Max", value: stats.max, icon: Building2 },
   ];
 
   return (

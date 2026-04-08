@@ -1,5 +1,5 @@
 // Subscription tier — what the user has paid for
-export type SubscriptionTier = "free" | "pro" | "business";
+export type SubscriptionTier = "free" | "pro" | "max";
 
 // Stripe subscription lifecycle state
 export type SubscriptionStatus = "free" | "active" | "cancelled" | "past_due";

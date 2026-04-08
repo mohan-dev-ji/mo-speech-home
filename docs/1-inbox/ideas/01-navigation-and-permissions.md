@@ -6,26 +6,26 @@
 Home  |  Search  |  Categories  |  Settings
 ```
 
-The app shell always renders these four items. What the child can access within them is controlled by state flags set by the parent.
+The app shell always renders these four items. What the student can access within them is controlled by state flags set by the instructor.
 
 ---
 
 ## State Flags
 
-State flags are boolean values stored on `childProfile` in Convex. They propagate instantly to all connected devices via Convex subscriptions — no page reload required.
+State flags are boolean values stored on `studentProfile` in Convex. They propagate instantly to all connected devices via Convex subscriptions — no page reload required.
 
 | Flag | Default | Controls |
 |---|---|---|
-| `home_visible` | ON | Whether child sees the Home dashboard |
+| `home_visible` | ON | Whether student sees the Home dashboard |
 | `search_visible` | ON | Whether Search nav item is accessible |
 | `categories_visible` | ON | Whether Categories nav item is accessible |
-| `settings_visible` | OFF | Whether child can access Settings |
+| `settings_visible` | OFF | Whether student can access Settings |
 | `talker_visible` | ON | Whether the talker header renders (search + board) |
-| `talker_banner_toggle` | ON | Whether child can switch between talker and banner in board mode |
+| `talker_banner_toggle` | ON | Whether student can switch between talker and banner in board mode |
 | `play_modal_visible` | ON | Whether the play button is available |
 | `voice_input_enabled` | ON | Whether the microphone button is active |
 | `audio_autoplay` | ON | Whether audio fires automatically on symbol tap |
-| `modelling_push` | OFF | Whether parent can push a modelling session to this child |
+| `modelling_push` | OFF | Whether instructor can push a modelling session to this student |
 | `core_dropdown_visible` | ON | Whether the core words/numbers/letters dropdown is visible on the talker |
 | `reduce_motion` | OFF | Disables all theme animations regardless of theme type |
 
@@ -33,26 +33,26 @@ State flags are boolean values stored on `childProfile` in Convex. They propagat
 
 ## Permission System — One App, Permission-Layered
 
-There are no separate routing trees for parent and child. The same app renders for both. A `PermissionContext` wraps the entire app and holds:
+There are no separate routing trees for instructor and student. The same app renders for both. A `PermissionContext` wraps the entire app and holds:
 
-- The current user's role (`owner` | `collaborator` | `child-view`)
-- All state flags from `childProfile`
+- The current user's role (`owner` | `collaborator` | `student-view`)
+- All state flags from `studentProfile`
 
 Components read from this context to show or hide UI elements. No conditional routing — just conditional rendering based on role and flags.
 
-**Parent sees:** All four nav items, edit controls on categories and symbols, create shortcuts on Home, all settings, modelling trigger button.
+**Instructor sees:** All four nav items, edit controls on categories and symbols, create shortcuts on Home, all settings, modelling trigger button.
 
-**Child sees:** Only what the state flags permit. Nav items that are disabled are hidden entirely — not greyed out.
+**Student sees:** Only what the state flags permit. Nav items that are disabled are hidden entirely — not greyed out.
 
 ---
 
-## Child View vs Parent View
+## Student View vs Instructor View
 
 The app detects which mode to render based on how it is opened:
 
-- **Parent opens the app on their own device** → full parent view
-- **Parent hands device to child** → parent taps "Child View" to switch; state flags take effect; edit controls disappear
-- **Child has their own device** → app opens in child view by default
+- **Instructor opens the app on their own device** → full instructor view
+- **Instructor hands device to student** → instructor taps "Student View" to switch; state flags take effect; edit controls disappear
+- **Student has their own device** → app opens in student view by default
 
 The active view is stored locally on the device, not in Convex. It is a device-level preference, not a profile setting.
 
@@ -60,6 +60,6 @@ The active view is stored locally on the device, not in Convex. It is a device-l
 
 ## Modelling Mode and Permissions
 
-Modelling mode requires `modelling_push = ON` on the child's profile. When the parent triggers a modelling session, Convex creates a `modellingSession` document. The child's app subscribes to active sessions for their profile and enters the guided walkthrough automatically.
+Modelling mode requires `modelling_push = ON` on the student's profile. When the instructor triggers a modelling session, Convex creates a `modellingSession` document. The student's app subscribes to active sessions for their profile and enters the guided walkthrough automatically.
 
 Full detail: `04-modelling-mode.md`

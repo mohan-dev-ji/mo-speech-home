@@ -9,18 +9,18 @@ export const dynamic = "force-dynamic";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 // Map Stripe price ID to subscription tier
-function tierFromPriceId(priceId: string): "pro" | "business" {
+function tierFromPriceId(priceId: string): "pro" | "max" {
   const proIds = [
     process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
     process.env.STRIPE_PRO_YEARLY_PRICE_ID,
   ];
-  return proIds.includes(priceId) ? "pro" : "business";
+  return proIds.includes(priceId) ? "pro" : "max";
 }
 
 function planFromPriceId(priceId: string): "monthly" | "yearly" {
   const monthlyIds = [
     process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    process.env.STRIPE_BUSINESS_MONTHLY_PRICE_ID,
+    process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
   ];
   return monthlyIds.includes(priceId) ? "monthly" : "yearly";
 }
@@ -49,31 +49,40 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const clerkUserId = session.metadata?.clerkUserId;
+        console.log("[webhook] checkout.session.completed", { clerkUserId, mode: session.mode });
         if (!clerkUserId || session.mode !== "subscription") break;
 
         const user = await convex.query(api.users.getUserByClerkId, {
           clerkUserId,
         });
+        console.log("[webhook] user lookup", { found: !!user, userId: user?._id });
         if (!user) break;
 
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         );
         const priceId = subscription.items.data[0]?.price.id ?? "";
+        const tier = tierFromPriceId(priceId);
+        const plan = planFromPriceId(priceId);
+        console.log("[webhook] updating subscription", { userId: user._id, tier, plan, priceId });
 
         // Idempotency: skip if already applied
         if (user.subscription.stripeSubscriptionId === subscription.id &&
-            user.subscription.status === "active") break;
+            user.subscription.status === "active") {
+          console.log("[webhook] already applied, skipping");
+          break;
+        }
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
-          tier: tierFromPriceId(priceId),
+          tier,
           status: "active",
-          plan: planFromPriceId(priceId),
+          plan,
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId: subscription.id,
           subscriptionEndsAt: null,
         });
+        console.log("[webhook] subscription updated successfully");
         break;
       }
 

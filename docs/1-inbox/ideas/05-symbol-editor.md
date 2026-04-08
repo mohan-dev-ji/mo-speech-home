@@ -2,9 +2,9 @@
 
 ## Overview
 
-The symbol editor is a major feature of Mo Speech Home. It allows parents to create fully customised symbols — sourcing the image from four different places, setting the label in any language, choosing or recording the audio, and adjusting every display property.
+The symbol editor is a major feature of Mo Speech Home. It allows instructors to create fully customised symbols — sourcing the image from four different places, setting the label in any language, choosing or recording the audio, and adjusting every display property.
 
-All changes are held in local component state during editing. Nothing is written to Convex until the parent taps **Save to [Category Name]**.
+All changes are held in local component state during editing. Nothing is written to Convex until the instructor taps **Save to [Category Name]**.
 
 ---
 
@@ -20,8 +20,8 @@ All changes are held in local component state during editing. Nothing is written
 **Tab 2: Google Images**
 - Search field → calls Google Custom Search API → returns image results
 - User taps to select an image
-- Image is downloaded server-side and converted to `.webp`, uploaded to R2 under the child's profile folder: `profiles/{profileId}/symbols/{uuid}.webp`
-- Copyright notice displayed: the parent is responsible for image rights
+- Image is downloaded server-side and converted to `.webp`, uploaded to R2 under the student's profile folder: `profiles/{profileId}/symbols/{uuid}.webp`
+- Copyright notice displayed: the instructor is responsible for image rights
 - Original URL stored as audit trail only
 
 **Tab 3: AI Generation (Google Imagen)**
@@ -68,7 +68,7 @@ A live preview of the symbol card updates in real time as properties change.
 
 ## Save Flow
 
-When the parent taps Save:
+When the instructor taps Save:
 
 1. If image source is AI or Google Images and not yet uploaded → upload to R2 first
 2. If audio type is "generate" and not yet generated → call Chirp 3 HD, upload to R2
@@ -104,12 +104,12 @@ profiles/
       {uuid}.mp3      ← User recordings, TTS overrides
 ```
 
-Deleting a child profile batch-deletes everything under `profiles/{profileId}/` in R2.
+Deleting a student profile batch-deletes everything under `profiles/{profileId}/` in R2.
 
 ---
 
 ## Where Symbols Live
 
-Custom symbols created in the editor are saved only to the child's profile (`profileSymbols` table in `convex-home`). They are never added to the global SymbolStix library. They are private to that profile.
+Custom symbols created in the editor are saved only to the student's profile (`profileSymbols` table in `convex-home`). They are never added to the global SymbolStix library. They are private to that profile.
 
 Mo Speech admins may separately curate exceptional custom symbols into the resource library, but this is a manual step — not automatic.

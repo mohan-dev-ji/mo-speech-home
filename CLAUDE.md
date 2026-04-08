@@ -1,62 +1,42 @@
-# mo-starter — Claude Code Controller
+# Mo Speech Home — Claude Code Controller
+
+## What This Is
+Full AAC (Augmentative and Alternative Communication) platform for families. Fresh build on the mo-starter template, which derives from the working Mo Speech MVP.
+
+## Read Before Building
+All product design, feature specs, and build plans are in `docs/`:
+
+| File | Purpose |
+|---|---|
+| `docs/1-inbox/ideas/00-build-plan.md` | **Start here** — phased build plan |
+| `docs/1-inbox/ideas/00-overview.md` | Product vision, account model, doc index |
+| `docs/1-inbox/ideas/12-convex-schema.md` | Full schema across all 3 Convex projects |
+| `docs/1-inbox/ideas/` | All feature concepts — numbered 01–17 |
+| `docs/3-design/screens/` | Figma screen exports by feature |
+| `docs/4-builds/decisions/` | ADRs — read before changing architecture |
+| `docs/4-builds/features/` | Feature specs — write one before building |
 
 ## Stack
-- Next.js 16 (App Router, TypeScript, `.tsx` throughout)
-- Tailwind CSS 4 (tokens via `@theme {}` in `globals.css` — no `tailwind.config.ts`)
-- Clerk v7 (`clerkMiddleware` + async `auth()`)
-- Convex 1.x (real-time DB + auth via JWT)
-- Stripe v19 (checkout, portal, webhooks)
-- Cloudflare R2 (optional private asset storage)
-- Zod (env validation at startup via `lib/env.ts`)
+- Next.js 16 / React 19 / TypeScript / Tailwind CSS 4
+- Clerk v7 · Convex 1.x · Stripe v19 · Cloudflare R2 · next-intl v4
 
-## Key Directories
-```
-app/
-  (auth)/          sign-in, sign-up — no nav chrome
-  (marketing)/     /, /pricing — Navbar + Footer
-  (dashboard)/     /dashboard, /billing, /settings — app shell
-  (admin)/         /admin, /admin/users — admin only
-  api/             stripe/, assets/, health/
-  components/
-    marketing/     sections/ + ui/ — landing page components
-    dashboard/     sections/ + ui/ — app shell components
-    admin/         sections/ + ui/ — admin components
-    shared/ui/     Button, Card, Badge, Skeleton, ThemeToggle
-convex/
-  schema.ts        users table definition
-  auth.config.ts   Clerk JWT issuer config
-  users.ts         all user queries + mutations
-lib/
-  env.ts           Zod env validation (throws at startup)
-  stripe.ts        Stripe singleton + PRICE_IDS
-  r2-storage.ts    R2 helpers (optional)
-  utils.ts         cn(), formatDate(), formatCurrency()
-types/index.ts     SubscriptionTier, SubscriptionStatus, UserRecord
-proxy.ts           Route protection via clerkMiddleware (Next.js 16 replaces middleware.ts)
-```
+## Three Convex Projects
+- `mo-speech-home` → `NEXT_PUBLIC_CONVEX_URL` — main app backend
+- `mo-speech-identity` → `NEXT_PUBLIC_CONVEX_IDENTITY_URL` — shared child identity
+- `mo-speech-school` → stub only, not built yet
 
-## Environment Variables Required
-See `.env.local.example` for the full list with comments.
-Critical: `CLERK_JWT_ISSUER_DOMAIN` must match the Clerk environment (dev vs prod have different values).
+## Pricing Tiers: free / pro / max
+(Template says "business" — this build uses "max" throughout)
 
-## Auth Pattern
-- Client → Convex: `ConvexProviderWithClerk` (JWT, WebSocket)
-- Server → Convex: `ConvexHttpClient` with `NEXT_PUBLIC_CONVEX_URL`
-- `ctx.auth.getUserIdentity()` in Convex queries — `identity.subject` is the Clerk user ID
+## Critical Rules
+1. **Never hard-code `"eng"`** — every query and component accepts a language param
+2. **Schema first** — define all Convex tables before building any UI
+3. **Read `docs/4-builds/decisions/`** before proposing architecture changes
+4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`
 
-## Subscription Model
-Three tiers: free / pro / business. No trial.
-- `free` status + `free` tier = free plan user
-- `active` status + `pro`/`business` tier = paying subscriber
-- `cancelled` status = retain access until `subscriptionEndsAt`
-- `past_due` status = access suspended
-
-## Admin Access
-Set `publicMetadata: { role: "admin" }` on the user in Clerk Dashboard.
-Protected by: middleware (primary) + `(admin)/layout.tsx` redirect (defence in depth).
-
-## Setup
-See `GET-STARTED.md` for full step-by-step instructions.
+## Reference Repos (working auth + payments)
+- Template: `/Users/mohanveraitch/Projects/mo-starter`
+- MVP: `/Users/mohanveraitch/Projects/Mo_Speech/_code/mo-speech-mvp-2.0`
 
 <!-- convex-ai-start -->
 This project uses [Convex](https://convex.dev) as its backend.

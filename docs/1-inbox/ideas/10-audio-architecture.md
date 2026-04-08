@@ -29,7 +29,7 @@ To add a new language: re-run the generation script with the target Google TTS l
 
 ## Tier 2 — Sentence Audio (Natural)
 
-Sentences, lists, and first-thens use Google Cloud Chirp 3 HD — a natural, warm voice. A child hearing "Time to brush your teeth" or "I want to go to the park" should hear something human, not robotic.
+Sentences, lists, and first-thens use Google Cloud Chirp 3 HD — a natural, warm voice. A student hearing "Time to brush your teeth" or "I want to go to the park" should hear something human, not robotic.
 
 **Generation:** On-demand when a sentence is first played. The text is sent to the Chirp 3 HD API server-side. The returned audio is uploaded to R2. All subsequent plays hit R2 directly — no API call, no cost.
 
@@ -61,9 +61,9 @@ Custom symbols (non-SymbolStix) have no step 4 fallback — they always require 
 
 Both ElevenLabs and Mistral Voxtral TTS (released March 2026, open-weight) support cloning from 2–3 seconds of audio. Two compelling future features:
 
-**Parent voice:** A parent records a few seconds of themselves speaking. The app synthesises all sentences in that voice. Emotionally significant for a non-verbal child — they hear a familiar, warm voice from the device.
+**Instructor's voice:** An instructor records a few seconds of themselves speaking. The app synthesises all sentences in that voice. Emotionally significant for a non-verbal student — they hear a familiar, warm voice from the device.
 
-**Child's own voice:** The most profound version. Capture whatever vocalisations the child makes and synthesise all sentences in their own voice. Dedicated AAC devices charge thousands of pounds for this. At Mo Speech's price point with modern TTS it becomes accessible. Positioned as a premium tier feature.
+**Student's own voice:** The most profound version. Capture whatever vocalisations the student makes and synthesise all sentences in their own voice. Dedicated AAC devices charge thousands of pounds for this. At Mo Speech's price point with modern TTS it becomes accessible. Positioned as a premium tier feature.
 
 ---
 

@@ -24,7 +24,7 @@ Building the main app first is not a compromise. It is the right order. The admi
 
 ## Overview
 
-The admin library is the content management system for Mo Speech. Admins create, edit, preview, and publish everything users can load into their child's profile — resource packs, themes, standalone items, the core vocabulary set, and the default starter profile.
+The admin library is the content management system for Mo Speech. Admins create, edit, preview, and publish everything users can load into their student's profile — resource packs, themes, standalone items, the core vocabulary set, and the default starter profile.
 
 Structurally it is Mo Speech with a different header. The category grid, mode tabs, symbol cards, play modal, list editor, sentence editor, and first-then editor are all identical shared components. The only meaningful difference is the talker/banner header — in the admin it becomes a metadata input area instead of a sentence builder.
 
@@ -38,7 +38,7 @@ Structurally it is Mo Speech with a different header. The category grid, mode ta
 | **Standalone Items** | Individual lists, sentences, or first-thens not part of a full pack |
 | **Themes** | Flat, tiled, or animated visual palettes |
 | **Core Vocabulary** | The symbols in the talker dropdown — global, affects all users |
-| **Starter Profile Template** | The default categories loaded when a new child profile is created |
+| **Starter Profile Template** | The default categories loaded when a new student profile is created |
 
 ---
 
@@ -91,7 +91,7 @@ Scheduled means a future `publishedAt` date — content goes live automatically.
 │  [CategoryBoardGrid]      │                        │
 │  [ModeSwitcher]           │  ← What admin sees     │
 │                           │    is exactly what     │
-│  ── Lists ──              │    the child sees      │
+│  ── Lists ──              │    the student sees    │
 │  [ListEditor]             │                        │
 │                           │                        │
 │  ── Sentences ──          │                        │
@@ -243,7 +243,7 @@ Draggable list of default categories. Tapping a category expands the symbol grid
   ≡  🟨 Feelings             24 symbols
   ...
 
-  ⚠️ Changes affect all new child profiles
+  ⚠️ Changes affect all new student profiles
   [Save Changes]  [Reset to Factory Default]
 ```
 

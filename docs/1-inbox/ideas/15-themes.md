@@ -6,13 +6,13 @@ Mo Speech Home uses a JSON-driven theme system rather than a simple light/dark t
 
 Themes are stored in a Convex table managed by the Mo Speech admin team. New themes can be published without a code deploy. Themes can be free, premium, or purchasable. Seasonal and animated themes can be added over time.
 
-Each child profile has its own theme — a child who loves space gets a different look to a sibling who loves flowers.
+Each student profile has its own theme — a student who loves space gets a different look to a sibling who loves flowers.
 
 ---
 
 ## Why Themes Instead of Dark/Light Mode
 
-Dark and light mode is a binary system built for productivity tools. Mo Speech is a communication device for children — the visual experience matters deeply. A child who feels ownership over their device's appearance is more likely to engage with it. A theme that reflects a child's favourite colour or current obsession (space, dinosaurs, flowers) adds personality and connection to the device.
+Dark and light mode is a binary system built for productivity tools. Mo Speech is a communication device for children — the visual experience matters deeply. A student who feels ownership over their device's appearance is more likely to engage with it. A theme that reflects a student's favourite colour or current obsession (space, dinosaurs, flowers) adds personality and connection to the device.
 
 Themes also create a natural premium feature pathway — a growing library of curated, seasonal, tiled, and animated themes that families can unlock or purchase.
 
@@ -177,9 +177,9 @@ Two layers of protection:
 }
 ```
 
-If the child's device has reduced motion enabled in system accessibility settings, all animations are disabled regardless of theme.
+If the student's device has reduced motion enabled in system accessibility settings, all animations are disabled regardless of theme.
 
-**2. In-app state flag** — a `reduce_motion` flag on `childProfile.stateFlags` (default: false) lets the parent disable animations within the app even if the OS setting is not set:
+**2. In-app state flag** — a `reduce_motion` flag on `studentProfile.stateFlags` (default: false) lets the instructor disable animations within the app even if the OS setting is not set:
 
 ```typescript
 reduce_motion: boolean   // default: false
@@ -266,10 +266,10 @@ themes: {
 }
 ```
 
-### Addition to childProfile
+### Addition to studentProfile
 
 ```typescript
-// childProfiles additions
+// studentProfiles additions
 themeId?: Id<"themes">     // null = Classic Blue default
 purchasedThemeIds?: Array<Id<"themes">>  // individually purchased themes
 ```
