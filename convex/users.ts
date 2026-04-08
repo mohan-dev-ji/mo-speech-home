@@ -1,6 +1,20 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Derive the subscription tier from the plan field.
+ * Tier is never stored — always computed so it can't drift out of sync.
+ */
+export function tierFromPlan(
+  plan: string | undefined
+): "free" | "pro" | "max" {
+  if (plan?.startsWith("pro")) return "pro";
+  if (plan?.startsWith("max")) return "max";
+  return "free";
+}
+
 // ─── Client-side queries (JWT-verified via ctx.auth) ──────────────────────────
 
 /**
@@ -24,7 +38,7 @@ export const getMyUser = query({
 
 /**
  * Returns subscription access info for the current user.
- * Used by AppStateProvider to derive hasFullAccess, tier, etc.
+ * Used by the useSubscription hook — derives tier from plan, never reads stored tier.
  */
 export const getMyAccess = query({
   args: {},
@@ -41,8 +55,11 @@ export const getMyAccess = query({
 
     if (!user) return null;
 
-    const { tier, status, subscriptionEndsAt, plan } = user.subscription;
+    const { status, subscriptionEndsAt, plan, trialEndsAt, customAccess } =
+      user.subscription;
     const now = Date.now();
+
+    const tier = tierFromPlan(plan);
 
     // Cancelled users retain access until period end
     const isCancelledButActive =
@@ -53,12 +70,21 @@ export const getMyAccess = query({
     const hasFullAccess =
       tier !== "free" && (status === "active" || isCancelledButActive);
 
+    const isTrialing = status === "trial";
+    const trialDaysRemaining =
+      isTrialing && trialEndsAt
+        ? Math.max(0, Math.ceil((trialEndsAt - now) / 86_400_000))
+        : 0;
+
     return {
       tier,
       status,
       hasFullAccess,
+      isTrialing,
+      trialDaysRemaining,
       plan: plan ?? null,
       subscriptionEndsAt: subscriptionEndsAt ?? null,
+      customAccess: customAccess ?? null,
     };
   },
 });
@@ -67,13 +93,15 @@ export const getMyAccess = query({
 
 /**
  * Create a new user record on first sign-in.
- * Called by AppStateProvider sync effect.
+ * Called by the Clerk webhook or AppStateProvider sync effect.
+ * Starts user on a 14-day trial.
  */
 export const createUser = mutation({
   args: {
     clerkUserId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
+    referredBy: v.optional(v.string()), // affiliate code from signup cookie
   },
   handler: async (ctx, args) => {
     // Guard: don't create duplicates
@@ -83,13 +111,16 @@ export const createUser = mutation({
       .first();
     if (existing) return existing._id;
 
+    const trialEndsAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
+
     return await ctx.db.insert("users", {
       clerkUserId: args.clerkUserId,
       email: args.email,
       name: args.name,
+      referredBy: args.referredBy,
       subscription: {
-        tier: "free",
-        status: "free",
+        status: "trial",
+        trialEndsAt,
       },
       lastActiveAt: Date.now(),
     });
@@ -122,7 +153,7 @@ export const deleteMyUser = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
       .first();
 
-    if (!user) return; // already gone
+    if (!user) return;
     await ctx.db.delete(user._id);
   },
 });
@@ -162,33 +193,73 @@ export const getUserByStripeCustomerId = query({
 /**
  * Update subscription data from Stripe webhook events.
  * Called server-side via ConvexHttpClient with deploy key.
+ * Does NOT accept tier — tier is always derived from plan.
  */
 export const updateSubscription = mutation({
   args: {
     userId: v.id("users"),
-    tier: v.union(v.literal("free"), v.literal("pro"), v.literal("max")),
     status: v.union(
-      v.literal("free"),
+      v.literal("trial"),
       v.literal("active"),
+      v.literal("expired"),
       v.literal("cancelled"),
       v.literal("past_due")
     ),
-    plan: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
+    plan: v.optional(
+      v.union(
+        v.literal("pro_monthly"),
+        v.literal("pro_yearly"),
+        v.literal("max_monthly"),
+        v.literal("max_yearly")
+      )
+    ),
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
-    subscriptionEndsAt: v.optional(v.union(v.number(), v.null())),
+    subscriptionEndsAt: v.optional(v.number()),
+    trialEndsAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { userId, ...subscriptionData } = args;
+    const { userId, ...fields } = args;
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("User not found");
 
     await ctx.db.patch(userId, {
       subscription: {
         ...user.subscription,
-        ...subscriptionData,
+        ...fields,
       },
       lastActiveAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Grant or revoke custom admin access (bypasses Stripe subscription check).
+ */
+export const setCustomAccess = mutation({
+  args: {
+    userId: v.id("users"),
+    isActive: v.boolean(),
+    reason: v.string(),
+    grantedBy: v.string(), // admin clerkUserId
+    expiresAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, ...access } = args;
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("User not found");
+
+    await ctx.db.patch(userId, {
+      subscription: {
+        ...user.subscription,
+        customAccess: {
+          isActive: access.isActive,
+          reason: access.reason,
+          grantedBy: access.grantedBy,
+          grantedAt: Date.now(),
+          expiresAt: access.expiresAt,
+        },
+      },
     });
   },
 });
@@ -211,11 +282,9 @@ export const getUserById = query({
 export const listAllUsers = query({
   args: {
     limit: v.optional(v.number()),
-    cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
-    const users = await ctx.db.query("users").order("desc").take(limit);
-    return users;
+    return await ctx.db.query("users").order("desc").take(limit);
   },
 });
