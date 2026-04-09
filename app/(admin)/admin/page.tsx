@@ -1,19 +1,25 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import type { UserRecord } from "@/types";
-import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/shared/ui/Card";
+import { Card, CardContent } from "@/app/components/shared/ui/Card";
 import { Users, TrendingUp, Star, Building2 } from "lucide-react";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+function deriveTier(plan?: string): "free" | "pro" | "max" {
+  if (!plan) return "free";
+  if (plan.startsWith("max")) return "max";
+  if (plan.startsWith("pro")) return "pro";
+  return "free";
+}
 
 export default async function AdminPage() {
   const users = await convex.query(api.users.listAllUsers, { limit: 500 });
 
   const stats = {
     total: users.length,
-    free: (users as UserRecord[]).filter((u) => u.subscription.tier === "free").length,
-    pro: (users as UserRecord[]).filter((u) => u.subscription.tier === "pro").length,
-    max: (users as UserRecord[]).filter((u) => u.subscription.tier === "max").length,
+    free: users.filter((u) => deriveTier(u.subscription.plan) === "free").length,
+    pro: users.filter((u) => deriveTier(u.subscription.plan) === "pro").length,
+    max: users.filter((u) => deriveTier(u.subscription.plan) === "max").length,
   };
 
   const statCards = [

@@ -3,26 +3,20 @@ import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type Stripe from "stripe";
+import type { SubscriptionPlanId } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-// Map Stripe price ID to subscription tier
-function tierFromPriceId(priceId: string): "pro" | "max" {
-  const proIds = [
-    process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    process.env.STRIPE_PRO_YEARLY_PRICE_ID,
-  ];
-  return proIds.includes(priceId) ? "pro" : "max";
-}
-
-function planFromPriceId(priceId: string): "monthly" | "yearly" {
-  const monthlyIds = [
-    process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
-  ];
-  return monthlyIds.includes(priceId) ? "monthly" : "yearly";
+// Map Stripe price ID to full plan ID (encodes tier + billing interval)
+function planIdFromPriceId(priceId: string): SubscriptionPlanId {
+  if (priceId === process.env.STRIPE_PRO_MONTHLY_PRICE_ID) return "pro_monthly";
+  if (priceId === process.env.STRIPE_PRO_YEARLY_PRICE_ID) return "pro_yearly";
+  if (priceId === process.env.STRIPE_MAX_MONTHLY_PRICE_ID) return "max_monthly";
+  if (priceId === process.env.STRIPE_MAX_YEARLY_PRICE_ID) return "max_yearly";
+  // Fallback — treat unknown price as pro_monthly; operator should check Stripe config
+  return "pro_monthly";
 }
 
 export async function POST(request: Request) {
@@ -52,78 +46,66 @@ export async function POST(request: Request) {
         console.log("[webhook] checkout.session.completed", { clerkUserId, mode: session.mode });
         if (!clerkUserId || session.mode !== "subscription") break;
 
-        const user = await convex.query(api.users.getUserByClerkId, {
-          clerkUserId,
-        });
+        const user = await convex.query(api.users.getUserByClerkId, { clerkUserId });
         console.log("[webhook] user lookup", { found: !!user, userId: user?._id });
         if (!user) break;
 
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
-        const priceId = subscription.items.data[0]?.price.id ?? "";
-        const tier = tierFromPriceId(priceId);
-        const plan = planFromPriceId(priceId);
-        console.log("[webhook] updating subscription", { userId: user._id, tier, plan, priceId });
+        const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+        const priceId = sub.items.data[0]?.price.id ?? "";
+        const plan = planIdFromPriceId(priceId);
+        console.log("[webhook] updating subscription", { userId: user._id, plan, priceId });
 
         // Idempotency: skip if already applied
-        if (user.subscription.stripeSubscriptionId === subscription.id &&
-            user.subscription.status === "active") {
+        if (user.subscription.stripeSubscriptionId === sub.id && user.subscription.status === "active") {
           console.log("[webhook] already applied, skipping");
           break;
         }
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
-          tier,
           status: "active",
           plan,
           stripeCustomerId: session.customer as string,
-          stripeSubscriptionId: subscription.id,
-          subscriptionEndsAt: null,
+          stripeSubscriptionId: sub.id,
         });
         console.log("[webhook] subscription updated successfully");
         break;
       }
 
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const sub = event.data.object as Stripe.Subscription;
         const user = await convex.query(api.users.getUserByStripeCustomerId, {
-          stripeCustomerId: subscription.customer as string,
+          stripeCustomerId: sub.customer as string,
         });
         if (!user) break;
 
-        const priceId = subscription.items.data[0]?.price.id ?? "";
-        const status = subscription.cancel_at_period_end ? "cancelled"
-          : subscription.status === "active" ? "active"
-          : subscription.status === "past_due" ? "past_due"
+        const priceId = sub.items.data[0]?.price.id ?? "";
+        const status = sub.cancel_at_period_end ? "cancelled"
+          : sub.status === "active" ? "active"
+          : sub.status === "past_due" ? "past_due"
           : "active";
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
-          tier: tierFromPriceId(priceId),
           status,
-          plan: planFromPriceId(priceId),
-          subscriptionEndsAt: subscription.cancel_at_period_end
-            ? (subscription.cancel_at ?? subscription.items.data[0]?.current_period_end ?? 0) * 1000
-            : null,
+          plan: planIdFromPriceId(priceId),
+          subscriptionEndsAt: sub.cancel_at_period_end
+            ? (sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0) * 1000
+            : undefined,
         });
         break;
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const sub = event.data.object as Stripe.Subscription;
         const user = await convex.query(api.users.getUserByStripeCustomerId, {
-          stripeCustomerId: subscription.customer as string,
+          stripeCustomerId: sub.customer as string,
         });
         if (!user) break;
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
-          tier: "free",
-          status: "free",
-          plan: undefined,
-          subscriptionEndsAt: null,
+          status: "expired",
         });
         break;
       }
@@ -137,7 +119,6 @@ export async function POST(request: Request) {
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
-          tier: user.subscription.tier,
           status: "past_due",
         });
         // TODO: Send payment failure email (e.g. via Resend or Nodemailer)

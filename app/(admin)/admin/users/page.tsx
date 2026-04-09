@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import type { UserRecord } from "@/types";
+import { deriveTier, type UserRecord } from "@/types";
 import { AccessBadge } from "@/app/components/admin/ui/AccessBadge";
 import { StripeLink } from "@/app/components/admin/ui/StripeLink";
 import { formatDate } from "@/lib/utils";
@@ -44,7 +44,7 @@ export default async function AdminUsersPage() {
                 </td>
                 <td className="p-4">
                   <AccessBadge
-                    tier={user.subscription.tier}
+                    tier={deriveTier(user.subscription.plan)}
                     status={user.subscription.status}
                   />
                 </td>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppState } from "@/app/components/AppStateProvider";
 import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/shared/ui/Card";
 import { Button } from "@/app/components/shared/ui/Button";
 
-export default function BillingPage() {
+function BillingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { subscription } = useAppState();
@@ -73,6 +73,14 @@ export default function BillingPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense>
+      <BillingContent />
+    </Suspense>
   );
 }
 

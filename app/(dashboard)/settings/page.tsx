@@ -76,7 +76,7 @@ function PlanCTA({
     }
   };
 
-  const isFreeUser = currentStatus === "free";
+  const isFreeUser = currentTier === "free";
   const isCurrentTier = currentTier === targetTier;
   const isActive = currentStatus === "active";
   const isCancelled = currentStatus === "cancelled";
@@ -135,6 +135,10 @@ export default function SettingsPage() {
   };
 
   const isSubscribed = subscription.status === "active" || subscription.status === "cancelled";
+  // Extract billing interval from the full plan ID (e.g. "pro_monthly" → "monthly")
+  const currentBillingInterval: SubscriptionPlan | null =
+    subscription.plan?.includes("yearly") ? "yearly" :
+    subscription.plan ? "monthly" : null;
 
   return (
     <div className="space-y-8">
@@ -241,7 +245,7 @@ export default function SettingsPage() {
                         billingPlan={billingPlan}
                         currentTier={subscription.tier}
                         currentStatus={subscription.status}
-                        currentPlan={subscription.plan}
+                        currentPlan={currentBillingInterval}
                         onPortal={handlePortal}
                         portalLoading={portalLoading}
                       />

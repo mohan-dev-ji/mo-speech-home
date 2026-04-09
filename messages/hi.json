@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "होम",
+    "search": "खोज",
+    "categories": "श्रेणियाँ",
+    "settings": "सेटिंग्स"
+  },
+  "common": {
+    "talker": "टॉकर",
+    "instructor": "प्रशिक्षक",
+    "student": "छात्र"
+  },
+  "home": {
+    "title": "होम",
+    "resourceLibrary": "टेम्पलेट / संसाधन पुस्तकालय"
+  },
+  "search": {
+    "title": "खोज",
+    "placeholder": "एक प्रतीक खोजें..."
+  },
+  "categories": {
+    "title": "श्रेणियाँ"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "themes": "थीम",
+    "languages": "भाषाएँ",
+    "symbols": "प्रतीक",
+    "navbar": "नेविगेशन साइड बार",
+    "grid": "ग्रिड",
+    "voice": "आवाज़",
+    "profile": "प्रोफ़ाइल",
+    "invites": "आमंत्रण"
+  }
+}

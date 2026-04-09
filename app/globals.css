@@ -28,6 +28,21 @@
   --warning: 245 158 11;              /* amber-500   */
   --destructive: 239 68 68;           /* red-500     */
   --destructive-foreground: 255 255 255;
+
+  /* ─── AAC App Shell ─────────────────────────────────────────────
+     These will be overridden per-profile by ThemeContext in Phase 0.8.
+     All shell components read from these variables — never hard-coded.
+  ──────────────────────────────────────────────────────────────── */
+  --app-sidebar: 90 104 120;          /* sidebar background        */
+  --app-topbar: 61 78 95;             /* topbar background         */
+  --app-nav-item: 255 255 255;        /* nav button background     */
+  --app-nav-item-active: 241 245 249; /* nav button active bg      */
+  --app-nav-text: 55 65 81;           /* nav button text           */
+  --app-logo-text: 255 255 255;       /* "Mo Speech" logo text     */
+  --app-topbar-text: 226 232 240;     /* topbar primary text       */
+  --app-topbar-text-dim: 148 163 184; /* topbar secondary text     */
+  --app-profile-badge-bg: 45 60 75;   /* profile pill background   */
+  --app-profile-badge-text: 203 213 225; /* profile pill text      */
 }
 
 .dark {
@@ -85,6 +100,18 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+
+  /* AAC App Shell colors */
+  --color-app-sidebar: rgb(var(--app-sidebar));
+  --color-app-topbar: rgb(var(--app-topbar));
+  --color-app-nav-item: rgb(var(--app-nav-item));
+  --color-app-nav-item-active: rgb(var(--app-nav-item-active));
+  --color-app-nav-text: rgb(var(--app-nav-text));
+  --color-app-logo: rgb(var(--app-logo-text));
+  --color-app-topbar-text: rgb(var(--app-topbar-text));
+  --color-app-topbar-text-dim: rgb(var(--app-topbar-text-dim));
+  --color-app-profile-badge-bg: rgb(var(--app-profile-badge-bg));
+  --color-app-profile-badge-text: rgb(var(--app-profile-badge-text));
 }
 
 /* ─── Base ─────────────────────────────────────────────────────── */

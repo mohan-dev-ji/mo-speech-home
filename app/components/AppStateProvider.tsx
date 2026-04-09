@@ -54,7 +54,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const subscription: UserSubscription = {
     tier: accessData?.tier ?? "free",
-    status: accessData?.status ?? "free",
+    status: accessData?.status ?? "trial",
     hasFullAccess: accessData?.hasFullAccess ?? false,
     plan: accessData?.plan ?? null,
     subscriptionEndsAt: accessData?.subscriptionEndsAt ?? null,

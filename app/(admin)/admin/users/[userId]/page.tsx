@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { deriveTier } from "@/types";
 import { AccessBadge } from "@/app/components/admin/ui/AccessBadge";
 import { StripeLink } from "@/app/components/admin/ui/StripeLink";
 import { GrantAccessForm } from "@/app/components/admin/sections/GrantAccessForm";
@@ -24,6 +25,7 @@ export default async function UserDetailPage({
   if (!user) notFound();
 
   const sub = user.subscription;
+  const tier = deriveTier(sub.plan);
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -72,7 +74,7 @@ export default async function UserDetailPage({
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-small">
             <dt className="text-muted-foreground">Plan</dt>
             <dd>
-              <AccessBadge tier={sub.tier} status={sub.status} />
+              <AccessBadge tier={tier} status={sub.status} />
             </dd>
 
             <dt className="text-muted-foreground">Billing</dt>
@@ -115,7 +117,7 @@ export default async function UserDetailPage({
           </p>
           <GrantAccessForm
             userId={user._id}
-            currentTier={sub.tier}
+            currentTier={tier}
             currentStatus={sub.status}
           />
         </div>

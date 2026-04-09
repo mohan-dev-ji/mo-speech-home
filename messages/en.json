@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "categories": "Categories",
+    "settings": "Settings"
+  },
+  "common": {
+    "talker": "Talker",
+    "instructor": "Instructor",
+    "student": "Student"
+  },
+  "home": {
+    "title": "Home",
+    "resourceLibrary": "Templates / Resource Library"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search for a symbol..."
+  },
+  "categories": {
+    "title": "Categories"
+  },
+  "settings": {
+    "title": "Settings",
+    "themes": "Themes",
+    "languages": "Languages",
+    "symbols": "Symbols",
+    "navbar": "Navigational Side Bar",
+    "grid": "Grid",
+    "voice": "Voice",
+    "profile": "Profile",
+    "invites": "Invites"
+  }
+}
