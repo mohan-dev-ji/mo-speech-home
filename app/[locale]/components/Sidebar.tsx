@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Home, Search, Tag, Settings, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,32 +11,38 @@ type SidebarProps = {
 };
 
 const mainNavItems = [
-  { segment: 'home', icon: Home },
-  { segment: 'search', icon: Search },
-  { segment: 'categories', icon: Tag },
+  { segment: 'home',       icon: Home   },
+  { segment: 'search',     icon: Search },
+  { segment: 'categories', icon: Tag    },
 ] as const;
-
-// Labels are hardcoded in English for the shell; Phase 2+ uses useTranslations
-const LABELS: Record<string, string> = {
-  home: 'Home',
-  search: 'Search',
-  categories: 'Category',
-  settings: 'Settings',
-};
 
 export function Sidebar({ locale }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations('nav');
 
   function isActive(segment: string) {
     return pathname.startsWith(`/${locale}/${segment}`);
   }
 
+  const navItemBase = cn(
+    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-small font-medium transition-opacity'
+  );
+
   return (
-    <aside className="w-40 flex flex-col bg-app-sidebar shrink-0 h-full">
-      {/* Logo */}
+    <aside
+      className="w-40 flex flex-col shrink-0 h-full"
+      style={{ background: 'var(--theme-nav-bg)' }}
+    >
+      {/* Logo — brand name stays Latin across all locales */}
       <div className="flex items-center gap-2 px-4 py-5">
-        <Mic className="w-4 h-4 text-app-logo shrink-0" />
-        <span className="text-app-logo font-semibold text-sm leading-none">Mo Speech</span>
+        <Mic className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-nav-text)' }} />
+        <span
+          className="font-semibold text-sm leading-none"
+          style={{ color: 'var(--theme-nav-text)' }}
+          lang="en"
+        >
+          Mo Speech
+        </span>
       </div>
 
       {/* Main nav */}
@@ -44,15 +51,14 @@ export function Sidebar({ locale }: SidebarProps) {
           <Link
             key={segment}
             href={`/${locale}/${segment}`}
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-small font-medium transition-colors",
-              isActive(segment)
-                ? "bg-app-nav-item text-app-nav-text shadow-sm"
-                : "bg-app-nav-item text-app-nav-text opacity-80 hover:opacity-100"
-            )}
+            className={cn(navItemBase, isActive(segment) ? 'opacity-100 shadow-sm' : 'opacity-75 hover:opacity-100')}
+            style={{
+              background: 'var(--theme-bg-surface)',
+              color: 'var(--theme-text-primary)',
+            }}
           >
             <Icon className="w-4 h-4 shrink-0" />
-            {LABELS[segment]}
+            {t(segment)}
           </Link>
         ))}
       </nav>
@@ -61,15 +67,14 @@ export function Sidebar({ locale }: SidebarProps) {
       <div className="px-3 pb-5">
         <Link
           href={`/${locale}/settings`}
-          className={cn(
-            "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-small font-medium transition-colors",
-            isActive('settings')
-              ? "bg-app-nav-item text-app-nav-text shadow-sm"
-              : "bg-app-nav-item text-app-nav-text opacity-80 hover:opacity-100"
-          )}
+          className={cn(navItemBase, isActive('settings') ? 'opacity-100 shadow-sm' : 'opacity-75 hover:opacity-100')}
+          style={{
+            background: 'var(--theme-bg-surface)',
+            color: 'var(--theme-text-primary)',
+          }}
         >
           <Settings className="w-4 h-4 shrink-0" />
-          {LABELS.settings}
+          {t('settings')}
         </Link>
       </div>
     </aside>
