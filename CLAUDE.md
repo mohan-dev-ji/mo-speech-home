@@ -13,6 +13,7 @@ All product design, feature specs, and build plans are in `docs/`:
 | `docs/1-inbox/ideas/12-convex-schema.md` | Full schema across all 3 Convex projects |
 | `docs/1-inbox/ideas/` | All feature concepts — numbered 01–17 |
 | `docs/3-design/screens/` | Figma screen exports by feature |
+| `docs/3-design/design-systems/` | Design system reference image and Tokenised themes |
 | `docs/4-builds/decisions/` | ADRs — read before changing architecture |
 | `docs/4-builds/features/` | Feature specs — write one before building |
 
@@ -33,6 +34,7 @@ All product design, feature specs, and build plans are in `docs/`:
 2. **Schema first** — define all Convex tables before building any UI
 3. **Read `docs/4-builds/decisions/`** before proposing architecture changes
 4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`
+5. **Always** use tailwind design tokens for all elements in frontend. Color palette, spacing, roundness and font. `tailwind.config.ts`
 
 ## Reference Repos (working auth + payments)
 - Template: `/Users/mohanveraitch/Projects/mo-starter`

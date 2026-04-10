@@ -1,11 +1,12 @@
 @import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* Class-based dark mode — supports ThemeToggle */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ─── Marketing / Template Design Tokens ────────────────────────
    Used by the marketing site, admin, and template dashboard only.
-   The AAC app shell uses --theme-* variables below.
+   The AAC app shell uses --theme-* variables defined below.
 ─────────────────────────────────────────────────────────────────── */
 
 :root {
@@ -28,61 +29,63 @@
   --destructive: 239 68 68;           /* red-500     */
   --destructive-foreground: 255 255 255;
 
-  /* ─── AAC Theme Tokens — Classic Blue defaults ───────────────────
-     ThemeContext overrides these via document.documentElement.style
-     when a profile's active theme is loaded (Phase 1 + Phase 7).
-     You bring the final values — these placeholders match the
-     current look so there is no visual change until you do.
-
-     Token → CSS property mapping is defined in ThemeContext.tsx.
+  /* ─── AAC Theme Tokens — Default (Slate) ────────────────────────
+     All token names match the Figma design system exactly.
+     Source: docs/3-design/design-system/Themes/Default.tokens.json
+     ThemeContext overrides these at runtime per student profile.
+     Tailwind utilities (bg-theme-*, text-theme-*, etc.) are defined
+     in tailwind.config.ts and resolved via these CSS vars.
   ──────────────────────────────────────────────────────────────── */
 
-  /* Backgrounds — can be any valid CSS background value (colour,
-     gradient, or url() for tiled themes). Not exposed as Tailwind
-     bg-* utilities because of this. Use background: var(--theme-*)
-     in CSS rules, or style={{background:'var(--theme-*)'}} inline. */
-  --theme-bg-primary:      #f8fafc;
-  --theme-bg-surface:      #ffffff;
-  --theme-bg-surface-alt:  #3d4e5f;
+  /* ── Colours (per-theme) ── */
+  --theme-background:         #18181B;  /* zinc/900   — all flat themes */
+  --theme-primary:            #62748E;  /* slate/500  — Default */
+  --theme-banner:             #45556C;  /* slate/600  — Default */
+  --theme-card:               #314158;  /* slate/700  — Default */
+  --theme-alt-card:           #E4E4E7;  /* zinc/200   — all flat themes */
+  --theme-symbol-bg:          #FAFAFA;  /* zinc/50    — all flat themes */
+  --theme-button-highlight:   #E2E8F0;  /* slate/200  — Default */
+  --theme-text:               #3F3F46;  /* zinc/700   — all flat themes */
+  --theme-secondary-text:     #71717B;  /* zinc/500   — all flat themes */
+  --theme-alt-text:           #FAFAFA;  /* zinc/50    — all flat themes */
+  --theme-secondary-alt-text: #D4D4D8;  /* zinc/300   — Default; zinc/100 others */
+  --theme-line:               #0F172B;  /* slate/900  — Default */
+  --theme-enter-mode:         #FF6900;  /* orange/500 — all flat themes except Sky */
+  --theme-success:            #00C951;  /* green/500  — all themes */
+  --theme-warning:            #FB2C36;  /* red/500    — all themes */
 
-  /* Brand */
-  --theme-brand-primary:   #3b82f6;
-  --theme-brand-secondary: #60a5fa;
-  --theme-brand-tertiary:  #bfdbfe;
+  /* ── Spacing (shared across all flat themes) ── */
+  --theme-general-padding:            32px;
+  --theme-general-space-between:      32px;
+  --theme-header-banner-padding:      32px;
+  --theme-modal-padding:              24px;
+  --theme-categories-folder-padding:  20px;
+  --theme-modal-space-between:        16px;
+  --theme-large-buttons-padding:      16px;
+  --theme-item-padding:               16px;
+  --theme-header-talker-padding:      16px;
 
-  /* Text */
-  --theme-text-primary:    #0f172a;
-  --theme-text-secondary:  #64748b;
-  --theme-text-on-brand:   #ffffff;
+  /* ── Roundness (shared across all flat themes) ── */
+  --theme-roundness:           16px;
+  --theme-small-roundness:      8px;
 
-  /* Symbol cards — bg can be url() in tiled themes */
-  --theme-symbol-card-bg:     #ffffff;
-  --theme-symbol-card-text:   #0f172a;
-  --theme-symbol-card-border: 1px solid #e2e8f0;
-  --theme-symbol-card-glow:   none;
+  /* ── Remaining spacing ── */
+  --theme-elements-space-between:   8px;
+  --theme-symbol-card-padding:      8px;
+  --theme-buttons-y-padding:        8px;
 
-  /* Modelling mode */
-  --theme-modelling-glow-ring: 0 0 0 3px #3b82f6, 0 0 16px rgba(59,130,246,0.5);
+  /* ── Typography — fixed px, shared across all themes ── */
+  /* Font: Noto Sans (set in [data-locale] below).        */
+  /* Weights: semibold (600) for h1–h4 + p-bold, normal (400) for large/p/s. */
+  --theme-text-h1:    64px;
+  --theme-text-h2:    48px;
+  --theme-text-h3:    36px;
+  --theme-text-h4:    24px;
+  --theme-text-large: 20px;
+  --theme-text-p:     16px;
+  --theme-text-s:     14px;
 
-  /* Talker bar */
-  --theme-talker-bg:     #1e293b;
-  --theme-talker-text:   #f8fafc;
-  --theme-talker-border: 1px solid #334155;
-
-  /* Navigation (sidebar) */
-  --theme-nav-bg:          #5a6878;
-  --theme-nav-text:        #ffffff;
-  --theme-nav-text-active: #ffffff;
-  --theme-nav-indicator:   #3b82f6;
-
-  /* Utility */
-  --theme-success: #22c55e;
-  --theme-warning: #f59e0b;
-  --theme-error:   #ef4444;
-  --theme-overlay: #000000;
-
-  /* Animation — populated by animated themes.
-     reduce_motion flag and prefers-reduced-motion both suppress these. */
+  /* ── Animation — populated by animated themes only ── */
   --theme-bg-animation:          none;
   --theme-bg-animation-duration: 4s;
   --theme-card-animation:        none;
@@ -100,7 +103,8 @@
 
 /* ─── Tailwind Utility Mapping ───────────────────────────────────
    Template utilities: bg-primary, text-foreground, etc.
-   Theme colour utilities: text-theme-text, bg-theme-nav, etc.
+   Theme token utilities (bg-theme-*, text-theme-*, etc.) come from
+   tailwind.config.ts via the @config directive above.
 ─────────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -133,35 +137,11 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Radius scale */
+  /* Template radius scale */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-
-  /* ─── AAC Theme colour utilities ────────────────────────────────
-     Only pure-colour tokens go here (text-*, bg-* for solid colours).
-     Background tokens that can be url()/gradient are handled via
-     CSS rules, not Tailwind utilities.
-  ──────────────────────────────────────────────────────────────── */
-  --color-theme-brand:          var(--theme-brand-primary);
-  --color-theme-brand-secondary: var(--theme-brand-secondary);
-  --color-theme-brand-tertiary: var(--theme-brand-tertiary);
-  --color-theme-text:           var(--theme-text-primary);
-  --color-theme-text-secondary: var(--theme-text-secondary);
-  --color-theme-text-on-brand:  var(--theme-text-on-brand);
-  --color-theme-surface:        var(--theme-bg-surface);
-  --color-theme-surface-alt:    var(--theme-bg-surface-alt);
-  --color-theme-nav:            var(--theme-nav-bg);
-  --color-theme-nav-text:       var(--theme-nav-text);
-  --color-theme-nav-text-active: var(--theme-nav-text-active);
-  --color-theme-nav-indicator:  var(--theme-nav-indicator);
-  --color-theme-symbol-text:    var(--theme-symbol-card-text);
-  --color-theme-talker:         var(--theme-talker-bg);
-  --color-theme-talker-text:    var(--theme-talker-text);
-  --color-theme-success:        var(--theme-success);
-  --color-theme-warning:        var(--theme-warning);
-  --color-theme-error:          var(--theme-error);
 }
 
 /* ─── Base ─────────────────────────────────────────────────────── */
@@ -179,34 +159,96 @@ body {
 
 [data-locale] {
   font-family: var(--font-noto-sans), Arial, sans-serif;
-  background: var(--theme-bg-primary);
-  color: var(--theme-text-primary);
+  background: var(--theme-background);
+  color: var(--theme-text);
 }
 
 [data-locale="hi"] {
   font-family: var(--font-noto-devanagari), var(--font-noto-sans), Arial, sans-serif;
 }
 
-/* ─── Shared component theme classes ────────────────────────────
-   Used by shared components (SymbolCard, TalkerBar, etc.) to pull
-   from the active theme without hard-coding values.
+/* ─── AAC Component Classes ──────────────────────────────────────
+   Shared semantic classes used by AAC components to pull from the
+   active theme without hard-coding values. All values from tokens.
 ──────────────────────────────────────────────────────────────── */
 
+/* Symbol card — dark card bg, symbol image area is light for clarity */
 .symbol-card {
-  background:    var(--theme-symbol-card-bg);
-  color:         var(--theme-symbol-card-text);
-  border:        var(--theme-symbol-card-border);
-  box-shadow:    var(--theme-symbol-card-glow);
+  background:    var(--theme-card);
+  color:         var(--theme-alt-text);
+  border-radius: var(--theme-roundness);
+  padding:       var(--theme-symbol-card-padding);
 }
 
+/* The image/icon area inside a symbol card */
+.symbol-card__image {
+  background:    var(--theme-symbol-bg);
+  border-radius: calc(var(--theme-roundness) - var(--theme-symbol-card-padding));
+}
+
+/* Modelling mode — target symbol is highlighted */
 .symbol-card--modelling-target {
-  box-shadow: var(--theme-modelling-glow-ring);
+  outline: 3px solid var(--theme-primary);
+  outline-offset: 2px;
 }
 
+/* Talker bar */
 .talker-bar {
-  background: var(--theme-talker-bg);
-  color:      var(--theme-talker-text);
-  border:     var(--theme-talker-border);
+  background: var(--theme-card);
+  color:      var(--theme-alt-text);
+  border-top: 1px solid var(--theme-line);
+}
+
+/* Header / nav banner */
+.app-banner {
+  background: var(--theme-banner);
+  color:      var(--theme-alt-text);
+  padding:    var(--theme-header-banner-padding);
+}
+
+/* ─── Button Patterns ────────────────────────────────────────────
+   Large = student-facing AAC buttons (symbol categories, nav items)
+   Small = instructor editing/management controls
+   Active = the on/selected/current state (also used for nav tracking)
+──────────────────────────────────────────────────────────────── */
+
+/* Large student button — default (not selected) */
+.btn-large {
+  background:    var(--theme-primary);
+  color:         var(--theme-alt-text);
+  border-radius: var(--theme-roundness);
+  padding:       var(--theme-buttons-y-padding) var(--theme-large-buttons-padding);
+}
+
+/* Large button — active / on / current route */
+.btn-large--active {
+  background: var(--theme-button-highlight);
+  color:      var(--theme-text);
+}
+
+/* Small instructor button */
+.btn-small {
+  border-radius: var(--theme-small-roundness);
+  padding:       var(--theme-buttons-y-padding) var(--theme-large-buttons-padding);
+}
+
+/* ─── Edit Mode ──────────────────────────────────────────────────
+   Applied to editable elements when instructor enters edit mode.
+   Orange outline is distinct from all theme colours — unmistakable.
+──────────────────────────────────────────────────────────────── */
+
+.editable {
+  outline:        2px solid var(--theme-enter-mode);
+  outline-offset: 2px;
+  border-radius:  var(--theme-roundness);
+  cursor:         pointer;
+}
+
+.editable--small {
+  outline:        2px solid var(--theme-enter-mode);
+  outline-offset: 2px;
+  border-radius:  var(--theme-small-roundness);
+  cursor:         pointer;
 }
 
 /* ─── Theme Animations ───────────────────────────────────────────
@@ -231,7 +273,7 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: var(--theme-symbol-card-glow); }
+  0%, 100% { box-shadow: 0 0 12px var(--theme-primary); }
   50%       { box-shadow: none; }
 }
 

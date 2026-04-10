@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Home, Search, Tag, Settings, Mic } from 'lucide-react';
+import { Home, Search, Tag, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LogoSvg } from './LogoSvg';
 
 type SidebarProps = {
   locale: string;
@@ -24,59 +25,44 @@ export function Sidebar({ locale }: SidebarProps) {
     return pathname.startsWith(`/${locale}/${segment}`);
   }
 
-  const navItemBase = cn(
-    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-small font-medium transition-opacity'
-  );
+  // Shared button shape — full-width, token-driven padding and radius
+  const btnBase = 'w-full flex items-center gap-2.5 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-small font-medium transition-colors';
+  const btnInactive = 'bg-theme-primary text-theme-alt-text hover:opacity-90';
+  const btnActive   = 'bg-theme-button-highlight text-theme-text';
 
   return (
-    <aside
-      className="w-40 flex flex-col shrink-0 h-full"
-      style={{ background: 'var(--theme-nav-bg)' }}
-    >
-      {/* Logo — brand name stays Latin across all locales */}
-      <div className="flex items-center gap-2 px-4 py-5">
-        <Mic className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-nav-text)' }} />
-        <span
-          className="font-semibold text-sm leading-none"
-          style={{ color: 'var(--theme-nav-text)' }}
-          lang="en"
-        >
-          Mo Speech
-        </span>
+    <aside className="flex flex-col shrink-0 h-full bg-theme-card">
+
+      {/* Logo — general padding all round; w-[155px] on the SVG drives the sidebar's natural width */}
+      <div className="p-theme-general">
+        <LogoSvg className="w-[155px] text-theme-alt-text" />
       </div>
 
-      {/* Main nav */}
-      <nav className="flex flex-col gap-2 flex-1 px-3">
+      {/* Nav — same horizontal padding as logo section to keep buttons aligned */}
+      <nav className="flex flex-col flex-1 gap-theme-general px-theme-general">
         {mainNavItems.map(({ segment, icon: Icon }) => (
           <Link
             key={segment}
             href={`/${locale}/${segment}`}
-            className={cn(navItemBase, isActive(segment) ? 'opacity-100 shadow-sm' : 'opacity-75 hover:opacity-100')}
-            style={{
-              background: 'var(--theme-bg-surface)',
-              color: 'var(--theme-text-primary)',
-            }}
+            className={cn(btnBase, isActive(segment) ? btnActive : btnInactive)}
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            {t(segment)}
+            <Icon className="w-4 h-8 shrink-0" />
+            <span className="truncate">{t(segment)}</span>
           </Link>
         ))}
       </nav>
 
-      {/* Settings at bottom */}
-      <div className="px-3 pb-5">
+      {/* Settings — pinned to bottom, same horizontal padding as nav */}
+      <div className="px-theme-general pb-theme-general pt-2">
         <Link
           href={`/${locale}/settings`}
-          className={cn(navItemBase, isActive('settings') ? 'opacity-100 shadow-sm' : 'opacity-75 hover:opacity-100')}
-          style={{
-            background: 'var(--theme-bg-surface)',
-            color: 'var(--theme-text-primary)',
-          }}
+          className={cn(btnBase, isActive('settings') ? btnActive : btnInactive)}
         >
-          <Settings className="w-4 h-4 shrink-0" />
-          {t('settings')}
+          <Settings className="w-4 h-8 shrink-0" />
+          <span className="truncate">{t('settings')}</span>
         </Link>
       </div>
+
     </aside>
   );
 }

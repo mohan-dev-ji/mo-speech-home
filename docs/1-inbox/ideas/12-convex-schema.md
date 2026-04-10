@@ -39,9 +39,8 @@ users: {
   _id: Id<"users">
   clerkUserId: string
   subscription: {
-    status: "trial" | "active" | "expired" | "cancelled"
+    status: "active" | "expired" | "cancelled"
     customAccess?: { isActive: boolean, reason: string, grantedBy: string, grantedAt: number, expiresAt?: number }
-    trialEndsAt?: number
     subscriptionEndsAt?: number
     plan?: "monthly" | "yearly"
     stripeCustomerId?: string

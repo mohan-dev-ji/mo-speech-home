@@ -16,7 +16,7 @@ The app is one codebase, permission-layered. The instructor sees edit controls, 
 - **Storage**: Cloudflare R2
 - **Hosting**: Vercel
 - **i18n**: next-intl v4
-- **Payments**: Stripe (trial, monthly, yearly, portal, webhooks)
+- **Payments**: Stripe (monthly, yearly, portal, webhooks)
 
 ---
 

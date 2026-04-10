@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
+import { DevTestPanel } from './DevTestPanel';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -9,8 +10,9 @@ export default async function SettingsPage({ params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <div className="p-6">
-      <p className="text-muted-foreground text-small">Settings — Phase 7</p>
+    <div className="p-theme-general flex flex-col gap-theme-modal-gap">
+      <p className="text-theme-secondary-text text-theme-s">Settings — Phase 7</p>
+      <DevTestPanel currentLocale={locale} />
     </div>
   );
 }

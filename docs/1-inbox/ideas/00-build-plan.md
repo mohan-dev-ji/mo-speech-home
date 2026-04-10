@@ -175,7 +175,7 @@ Add `componentKey` props to every shared component that modelling mode needs to 
 
 ### 1.1 Carry over from MVP
 
-- Stripe subscription flow (trial, monthly, yearly, portal, webhooks)
+- Stripe subscription flow (monthly, yearly, portal, webhooks)
 - Admin dashboard (user management, custom access)
 - Clerk auth middleware
 
@@ -205,8 +205,6 @@ Extend Stripe plan field: `"pro_monthly" | "pro_yearly" | "max_monthly" | "max_y
   hasModelling: boolean
   hasFamilyMembers: boolean
   hasPremiumThemes: boolean
-  isTrialing: boolean
-  trialDaysRemaining: number
 }
 ```
 

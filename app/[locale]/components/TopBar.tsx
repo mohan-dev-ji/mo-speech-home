@@ -16,20 +16,16 @@ export function TopBar() {
 
   return (
     <header
-      className="h-12 flex items-center px-5 gap-2 shrink-0"
-      style={{ background: 'var(--theme-bg-surface-alt)' }}
+      className="h-auto py-theme-general flex items-center px-5 gap-2 shrink-0 bg-theme-banner"
     >
       <span
-        className="text-small font-medium px-2.5 py-1 rounded-md"
-        style={{
-          background: 'rgba(0,0,0,0.25)',
-          color: 'var(--theme-nav-text)',
-        }}
+        className="text-small font-medium px-2.5 py-1 rounded-md text-theme-secondary-alt-text"
+        
       >
         {tCommon('instructor')}
       </span>
-      <span className="text-small" style={{ color: 'var(--theme-nav-text)', opacity: 0.5 }}>›</span>
-      <span className="text-small font-medium" style={{ color: 'var(--theme-nav-text)' }}>
+      <span className="text-theme-secondary-alt-text">›</span>
+      <span className="text-theme-secondary-alt-text font-medium">
         {pageLabel}
       </span>
     </header>

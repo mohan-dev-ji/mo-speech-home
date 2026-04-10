@@ -45,9 +45,9 @@ Suggested starting prices (to be validated with early users):
 | Max | £14.99/month | £119/year (save ~£61) |
 
 All paid plans:
-- 30-day free trial with full Max access — no credit card required
 - Cancel anytime via Stripe Customer Portal
 - Access continues until end of billing period on cancellation
+- No refunds — when you upgrade or downgrade, the new plan starts at the next billing date and is shown clearly at the top of the plan selection screen
 
 ---
 
@@ -77,8 +77,6 @@ A `useSubscription()` hook reads the current user's plan and returns:
   hasPremiumThemes: boolean
   hasVoiceCloning: boolean
   maxStudentProfiles: number
-  isTrialing: boolean
-  trialDaysRemaining: number
 }
 ```
 
@@ -92,12 +90,8 @@ The existing admin dashboard supports granting custom access (SLP/professional, 
 
 ---
 
-## Trial
+## Plan Changes
 
-30-day free trial with full Max access. Automatically starts on account creation. No credit card required.
+When a user upgrades or downgrades their plan, the new plan takes effect at the start of the next billing period. No refunds are issued for unused time on the current plan.
 
-Trial expiry shows the same modal flow as the MVP:
-- Day 29–30: warning modal (once per 24 hours, dismissible)
-- Day 31+: expiry modal with upgrade options and "Continue with Free" option
-
-"Continue with Free" drops the user to the Free tier — they keep their account, their student profile, and their search access. They do not lose any data, but categories and modelling become inaccessible until they upgrade.
+The plan selection screen shows a clear notice at the top: **"Your new plan will start on [date]."** This is shown whenever the user has a pending plan change.
