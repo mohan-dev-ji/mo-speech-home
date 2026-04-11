@@ -113,7 +113,7 @@ export const createUser = mutation({
 
     const trialEndsAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
 
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       clerkUserId: args.clerkUserId,
       email: args.email,
       name: args.name,
@@ -124,6 +124,25 @@ export const createUser = mutation({
       },
       lastActiveAt: Date.now(),
     });
+
+    // Activate any pending invite for this email address.
+    // The inviting account owner's record is already in accountMembers with status "pending".
+    const pendingInvite = await ctx.db
+      .query("accountMembers")
+      .withIndex("by_email_and_status", (q) =>
+        q.eq("email", args.email).eq("status", "pending")
+      )
+      .first();
+
+    if (pendingInvite) {
+      await ctx.db.patch(pendingInvite._id, {
+        clerkUserId: args.clerkUserId,
+        status: "active",
+        joinedAt: Date.now(),
+      });
+    }
+
+    return userId;
   },
 });
 

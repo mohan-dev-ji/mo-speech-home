@@ -111,7 +111,9 @@ export default defineSchema({
   })
     .index("by_account_id", ["accountId"])
     .index("by_clerk_user_id", ["clerkUserId"])
-    .index("by_account_id_and_status", ["accountId", "status"]),
+    .index("by_account_id_and_status", ["accountId", "status"])
+    .index("by_email", ["email"])
+    .index("by_email_and_status", ["email", "status"]),
 
   /**
    * Student profile — one per student, shared by all account members.

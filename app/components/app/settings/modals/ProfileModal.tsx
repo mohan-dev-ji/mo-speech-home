@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser, useReverification } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useProfile } from "@/app/contexts/ProfileContext";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/shared/ui/Dialog";
@@ -12,6 +13,117 @@ import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
 import { Button } from "@/app/components/shared/ui/Button";
 import { Input } from "@/app/components/shared/ui/Input";
 import { Camera } from "lucide-react";
+
+// ─── Student profile section ──────────────────────────────────────────────────
+
+function StudentProfileSection() {
+  const { studentProfile } = useProfile();
+  const updateStudentProfile = useMutation(api.studentProfiles.updateStudentProfile);
+
+  const [name,     setName]     = useState("");
+  const [dob,      setDob]      = useState("");
+  const [language, setLanguage] = useState<"eng" | "hin">("eng");
+  const [origName, setOrigName] = useState("");
+  const [origDob,  setOrigDob]  = useState("");
+  const [origLang, setOrigLang] = useState<"eng" | "hin">("eng");
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState("");
+  const [success,  setSuccess]  = useState("");
+
+  useEffect(() => {
+    if (!studentProfile) return;
+    const n = studentProfile.name;
+    const d = studentProfile.dateOfBirth
+      ? new Date(studentProfile.dateOfBirth).toISOString().split("T")[0]
+      : "";
+    const l = (studentProfile.language as "eng" | "hin") ?? "eng";
+    setName(n); setOrigName(n);
+    setDob(d);  setOrigDob(d);
+    setLanguage(l); setOrigLang(l);
+  }, [studentProfile]);
+
+  if (!studentProfile) return null;
+
+  const hasChanges = name !== origName || dob !== origDob || language !== origLang;
+
+  const handleSave = async () => {
+    setSaving(true); setError(""); setSuccess("");
+    try {
+      const dateOfBirth = dob ? new Date(dob).getTime() : undefined;
+      await updateStudentProfile({
+        profileId: studentProfile._id,
+        name: name.trim() || undefined,
+        dateOfBirth,
+        language,
+      });
+      setOrigName(name); setOrigDob(dob); setOrigLang(language);
+      setSuccess("Student profile saved.");
+    } catch {
+      setError("Failed to save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="pt-4 border-t border-border space-y-3">
+      <p className="text-small font-semibold text-foreground">Student profile</p>
+
+      <Input
+        label="Student's name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Student's name"
+      />
+
+      {/* Language */}
+      <div className="space-y-1.5">
+        <span className="text-small font-medium text-foreground">Language</span>
+        <div className="flex gap-2">
+          {(["eng", "hin"] as const).map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => setLanguage(lang)}
+              className={`flex-1 py-2 rounded-md border text-small font-medium transition-colors ${
+                language === lang
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {lang === "eng" ? "English" : "हिंदी"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Date of birth */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="text-small font-medium text-foreground">Date of birth</span>
+          <span className="text-xs text-muted-foreground">(optional)</span>
+        </div>
+        <input
+          type="date"
+          value={dob}
+          onChange={(e) => setDob(e.target.value)}
+          max={new Date().toISOString().split("T")[0]}
+          className="w-full px-3 py-2 text-body bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary text-foreground"
+        />
+      </div>
+
+      {(error || success) && (
+        <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
+      )}
+
+      <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges || !name.trim()}>
+        Save student profile
+      </Button>
+    </div>
+  );
+}
+
+// ─── ProfileModal ─────────────────────────────────────────────────────────────
 
 export function ProfileModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
@@ -122,7 +234,10 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
         <DialogTitle>Profile</DialogTitle>
       </DialogHeader>
 
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+      <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+        {/* ── Instructor account ─────────────────────────── */}
+        <p className="text-small font-semibold text-foreground">Your account</p>
+
         {/* Avatar */}
         <div className="flex items-center gap-3">
           <button
@@ -169,7 +284,10 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
           <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
         )}
 
-        {/* Danger zone */}
+        {/* ── Student profile ────────────────────────────── */}
+        <StudentProfileSection />
+
+        {/* ── Danger zone ───────────────────────────────── */}
         <div className="pt-2 border-t border-border">
           <p className="text-caption text-muted-foreground mb-2">Permanently deletes your account and cancels any active subscription.</p>
           <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>Delete my account</Button>

@@ -30,7 +30,8 @@
     "symbols": "प्रतीक",
     "grid": "ग्रिड",
     "navbar": "नेविगेशन साइड बार",
-    "invites": "आमंत्रण"
+    "invites": "आमंत्रण",
+    "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner. (hi)"
   },
   "plan": {
     "heading": "Plan (hi)",
@@ -77,6 +78,42 @@
     "maxFeature2": "Family member invitations (hi)",
     "maxFeature3": "Mo Speech School connection (hi)",
     "maxFeature4": "Voice cloning (coming soon) (hi)"
+  },
+  "onboarding": {
+    "title": "Let's get started (hi)",
+    "subtitle": "Create a profile for your student to set up their AAC board. (hi)",
+    "studentName": "Student's name (hi)",
+    "studentNamePlaceholder": "e.g. Amir, Priya… (hi)",
+    "language": "Language (hi)",
+    "languageEng": "English",
+    "languageHin": "हिंदी",
+    "dob": "Date of birth (hi)",
+    "dobOptional": "(optional) (hi)",
+    "cta": "Create profile (hi)",
+    "nameRequired": "Please enter the student's name. (hi)",
+    "errorGeneric": "Something went wrong. Please try again. (hi)"
+  },
+  "invites": {
+    "title": "Invite (hi)",
+    "newMemberLabel": "Invite a new member (hi)",
+    "emailPlaceholder": "Enter email (hi)",
+    "sendButton": "Send Invite (hi)",
+    "invitedMembers": "Invited members (hi)",
+    "tableEmail": "Email (hi)",
+    "tableName": "Name (hi)",
+    "tableStatus": "Status (hi)",
+    "tableDate": "Date (hi)",
+    "statusPending": "Waiting (hi)",
+    "statusActive": "Accepted (hi)",
+    "emptyState": "No invited members yet. (hi)",
+    "errorInvalidEmail": "Enter a valid email address. (hi)",
+    "errorGeneric": "Something went wrong. Please try again. (hi)",
+    "errorAlreadyInvited": "This email has already been invited. (hi)",
+    "successInvited": "Invite sent. (hi)",
+    "close": "Close (hi)",
+    "upgradeTitle": "Family member invitations (hi)",
+    "upgradeMessage": "Invite family members and carers to share the same student profile. Available on the Max plan. (hi)",
+    "upgradeCta": "Upgrade to Max (hi)"
   },
   "billing": {
     "activated": "Subscription activated. Welcome aboard! (hi)",

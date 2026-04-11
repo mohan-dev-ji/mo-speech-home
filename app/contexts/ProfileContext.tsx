@@ -1,8 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Doc } from '@/convex/_generated/dataModel';
 
-// State flags stored on studentProfile in Convex — Phase 1 wires these to real data
+// State flags stored on studentProfile in Convex
 type StateFlags = {
   home_visible: boolean;
   search_visible: boolean;
@@ -37,6 +40,8 @@ type ViewMode = 'instructor' | 'student-view';
 
 type ProfileContextValue = {
   activeProfileId: string | null;
+  studentProfile: Doc<'studentProfiles'> | null;
+  profileLoading: boolean;
   stateFlags: StateFlags;
   language: string;
   viewMode: ViewMode;
@@ -46,6 +51,8 @@ type ProfileContextValue = {
 
 const ProfileContext = createContext<ProfileContextValue>({
   activeProfileId: null,
+  studentProfile: null,
+  profileLoading: true,
   stateFlags: DEFAULT_FLAGS,
   language: 'eng',
   viewMode: 'instructor',
@@ -57,14 +64,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>('instructor');
   const [language, setLanguage] = useState('eng');
 
-  // Phase 1: load activeProfile from Convex and subscribe to stateFlags
+  // undefined = still loading; null = loaded, no profile (onboarding needed)
+  const studentProfile = useQuery(api.studentProfiles.getMyStudentProfile);
+  const profileLoading = studentProfile === undefined;
 
   return (
     <ProfileContext.Provider
       value={{
-        activeProfileId: null,
-        stateFlags: DEFAULT_FLAGS,
-        language,
+        activeProfileId: studentProfile?._id ?? null,
+        studentProfile: studentProfile ?? null,
+        profileLoading,
+        stateFlags: studentProfile?.stateFlags ?? DEFAULT_FLAGS,
+        // Profile language takes precedence; fallback to locally selected language
+        language: studentProfile?.language ?? language,
         viewMode,
         setViewMode,
         setLanguage,

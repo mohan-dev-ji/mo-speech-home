@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as accountMembers from "../accountMembers.js";
+import type * as studentProfiles from "../studentProfiles.js";
 import type * as themes from "../themes.js";
 import type * as users from "../users.js";
 
@@ -18,6 +20,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accountMembers: typeof accountMembers;
+  studentProfiles: typeof studentProfiles;
   themes: typeof themes;
   users: typeof users;
 }>;

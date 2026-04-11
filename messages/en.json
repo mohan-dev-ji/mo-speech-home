@@ -30,7 +30,8 @@
     "symbols": "Symbols",
     "grid": "Grid",
     "navbar": "Navigational Side Bar",
-    "invites": "Invites"
+    "invites": "Invites",
+    "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner."
   },
   "plan": {
     "heading": "Plan",
@@ -77,6 +78,42 @@
     "maxFeature2": "Family member invitations",
     "maxFeature3": "Mo Speech School connection",
     "maxFeature4": "Voice cloning (coming soon)"
+  },
+  "onboarding": {
+    "title": "Let's get started",
+    "subtitle": "Create a profile for your student to set up their AAC board.",
+    "studentName": "Student's name",
+    "studentNamePlaceholder": "e.g. Amir, Priya…",
+    "language": "Language",
+    "languageEng": "English",
+    "languageHin": "हिंदी",
+    "dob": "Date of birth",
+    "dobOptional": "(optional)",
+    "cta": "Create profile",
+    "nameRequired": "Please enter the student's name.",
+    "errorGeneric": "Something went wrong. Please try again."
+  },
+  "invites": {
+    "title": "Invite",
+    "newMemberLabel": "Invite a new member",
+    "emailPlaceholder": "Enter email",
+    "sendButton": "Send Invite",
+    "invitedMembers": "Invited members",
+    "tableEmail": "Email",
+    "tableName": "Name",
+    "tableStatus": "Status",
+    "tableDate": "Date",
+    "statusPending": "Waiting",
+    "statusActive": "Accepted",
+    "emptyState": "No invited members yet.",
+    "errorInvalidEmail": "Enter a valid email address.",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorAlreadyInvited": "This email has already been invited.",
+    "successInvited": "Invite sent.",
+    "close": "Close",
+    "upgradeTitle": "Family member invitations",
+    "upgradeMessage": "Invite family members and carers to share the same student profile. Available on the Max plan.",
+    "upgradeCta": "Upgrade to Max"
   },
   "billing": {
     "activated": "Subscription activated. Welcome aboard!",

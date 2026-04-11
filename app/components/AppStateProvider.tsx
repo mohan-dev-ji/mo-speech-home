@@ -9,6 +9,7 @@ import type { UserSubscription, UserRecord } from "@/types";
 type AppStateContextValue = {
   userRecord: UserRecord | null | undefined;
   subscription: UserSubscription;
+  isCollaborator: boolean;
   isLoading: boolean;
 };
 
@@ -22,6 +23,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const userRecord = useQuery(api.users.getMyUser) as UserRecord | null | undefined;
   const accessData = useQuery(api.users.getMyAccess);
+  const membership = useQuery(api.accountMembers.getMyMembership);
 
   // ─── Mutations ───────────────────────────────────────────────────────────────
 
@@ -65,13 +67,15 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // the Clerk JWT is delivered — !identity in the handler returns null immediately.
   // null !== undefined so the undefined checks don't catch it. Since null accessData
   // is always transient on an authenticated page, treat it as loading.
+  const isCollaborator = membership?.status === "active";
+
   const isLoading =
     userRecord === undefined ||
     accessData === undefined ||
     accessData === null;
 
   return (
-    <AppStateContext.Provider value={{ userRecord, subscription, isLoading }}>
+    <AppStateContext.Provider value={{ userRecord, subscription, isCollaborator, isLoading }}>
       {children}
     </AppStateContext.Provider>
   );
