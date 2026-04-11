@@ -29,7 +29,7 @@ Home  |  Search  |  Categories  |  Settings
 - **Home** — dashboard with recent categories, symbol history, create shortcuts, and resource library promotions
 - **Search** — full SymbolStix voice + text search; the free tier anchor; talker header always present (talker-only, no banner toggle here)
 - **Categories** — the primary AAC navigation; all categories with four modes each (Board, Lists, First Thens, Sentences)
-- **Settings** — student permission management, language, voice, subscription
+- **Settings** — grid of 8 cards opening modals: Profile (account), Plan (subscription tiers), Voice (language + voice), Theme (colour scheme), Symbols, Grid, Navigational Side Bar, Invites
 
 ---
 

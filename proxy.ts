@@ -19,7 +19,7 @@ export default clerkMiddleware(async (auth, request) => {
     const role = (sessionClaims?.metadata as Record<string, string> | undefined)
       ?.role;
     if (!userId || role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/en/home", request.url));
     }
     return;
   }

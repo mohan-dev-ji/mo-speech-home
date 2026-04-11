@@ -53,14 +53,17 @@ export default async function AppLayout({ children, params }: Props) {
     <NextIntlClientProvider messages={messages} locale={locale}>
       <AppProviders>
         {/* data-locale drives font switching in globals.css — no flash, server-rendered */}
+        {/* dark class ensures template UI components (Card, Button, Dialog) use their dark variants */}
         <div
-          className={`flex h-screen overflow-hidden ${fontClasses}`}
+          className={`dark flex h-screen overflow-hidden ${fontClasses}`}
           data-locale={locale}
         >
           <Sidebar locale={locale} />
           <div className="flex flex-1 flex-col min-w-0">
             <TopBar />
-            <main className="flex-1 overflow-auto bg-background">
+            {/* Inline style: bg-theme-* Tailwind utilities rely on @config var() parsing which
+                can be unreliable in Tailwind v4. Direct CSS var reference is always safe. */}
+            <main className="flex-1 overflow-auto" style={{ background: 'var(--theme-background)' }}>
               {children}
             </main>
           </div>

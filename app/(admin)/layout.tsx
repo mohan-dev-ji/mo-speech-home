@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Defence in depth — middleware also checks this
   if (!userId || role !== "admin") {
-    redirect("/dashboard");
+    redirect("/en/home");
   }
 
   return (
@@ -43,7 +43,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           ))}
         </nav>
         <div className="px-3 pt-4 border-t border-border">
-          <Link href="/dashboard" className="text-caption text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/en/home" className="text-caption text-muted-foreground hover:text-foreground transition-colors">
             ← Back to app
           </Link>
         </div>

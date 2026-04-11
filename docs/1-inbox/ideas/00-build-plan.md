@@ -181,6 +181,10 @@ Add `componentKey` props to every shared component that modelling mode needs to 
 
 Extend Stripe plan field: `"pro_monthly" | "pro_yearly" | "max_monthly" | "max_yearly"`
 
+**Post-auth routing:** After sign-in or sign-up, Clerk redirects to `/start`. The `/start` page is a language chooser — user picks English or Hindi and is routed to `/{locale}/home`. The choice is stored in `localStorage`. On subsequent visits, `/start` auto-redirects to the saved locale without showing the picker again.
+
+**No `/dashboard` route.** The old template's `(dashboard)` route group has been removed. Account and plan management live at `/{locale}/settings` and `/{locale}/settings/account` within the app. Stripe checkout success/cancel redirects to `/en/settings?success=true`.
+
 ### 1.2 Student profile creation
 
 - After sign up, prompt instructor to create a student profile

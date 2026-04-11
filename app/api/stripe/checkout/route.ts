@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/billing?success=true`,
-    cancel_url: `${origin}/billing?cancelled=true`,
+    success_url: `${origin}/en/settings?success=true`,
+    cancel_url: `${origin}/en/settings?cancelled=true`,
     metadata: {
       clerkUserId: userId,
       tier,

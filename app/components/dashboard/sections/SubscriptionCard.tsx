@@ -40,7 +40,7 @@ export function SubscriptionCard({ subscription }: { subscription: UserSubscript
       </CardContent>
       <CardFooter>
         <Link
-          href="/billing"
+          href="/en/settings"
           className="text-small text-primary hover:opacity-80 transition-opacity"
         >
           {hasFullAccess ? "Manage billing →" : "Upgrade plan →"}
