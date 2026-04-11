@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@config "../tailwind.config.ts";
+@source "../app/**/*.{ts,tsx,js,jsx}";
 
 /* Class-based dark mode — supports ThemeToggle */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -102,9 +102,9 @@
 }
 
 /* ─── Tailwind Utility Mapping ───────────────────────────────────
-   Template utilities: bg-primary, text-foreground, etc.
-   Theme token utilities (bg-theme-*, text-theme-*, etc.) come from
-   tailwind.config.ts via the @config directive above.
+   @theme inline keeps var() references live at runtime.
+   Without inline, Tailwind v4 resolves var() at build time and bakes
+   in the hex — editing :root values would then have no effect.
 ─────────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -123,7 +123,67 @@
   --color-destructive:            rgb(var(--destructive));
   --color-destructive-foreground: rgb(var(--destructive-foreground));
 
-  /* ─── Responsive Typography Scale ──────────────────────────────
+  /* ─── AAC Theme Colour Tokens ───────────────────────────────────
+     Changing any hex in :root above updates all utilities instantly.
+  ──────────────────────────────────────────────────────────────── */
+  --color-theme-background:         var(--theme-background);
+  --color-theme-primary:            var(--theme-primary);
+  --color-theme-banner:             var(--theme-banner);
+  --color-theme-card:               var(--theme-card);
+  --color-theme-alt-card:           var(--theme-alt-card);
+  --color-theme-symbol-bg:          var(--theme-symbol-bg);
+  --color-theme-button-highlight:   var(--theme-button-highlight);
+  --color-theme-text:               var(--theme-text);
+  --color-theme-secondary-text:     var(--theme-secondary-text);
+  --color-theme-alt-text:           var(--theme-alt-text);
+  --color-theme-secondary-alt-text: var(--theme-secondary-alt-text);
+  --color-theme-line:               var(--theme-line);
+  --color-theme-enter-mode:         var(--theme-enter-mode);
+  --color-theme-success:            var(--theme-success);
+  --color-theme-warning:            var(--theme-warning);
+
+  /* ─── AAC Border Radius Tokens ──────────────────────────────────
+     rounded-theme / rounded-theme-sm
+  ──────────────────────────────────────────────────────────────── */
+  --radius-theme:    var(--theme-roundness);
+  --radius-theme-sm: var(--theme-small-roundness);
+
+  /* ─── AAC Spacing Tokens ────────────────────────────────────────
+     p-theme-general, gap-theme-gap, px-theme-btn-x, etc.
+  ──────────────────────────────────────────────────────────────── */
+  --spacing-theme-general:   var(--theme-general-padding);
+  --spacing-theme-gap:       var(--theme-general-space-between);
+  --spacing-theme-modal:     var(--theme-modal-padding);
+  --spacing-theme-modal-gap: var(--theme-modal-space-between);
+  --spacing-theme-folder:    var(--theme-categories-folder-padding);
+  --spacing-theme-btn-x:     var(--theme-large-buttons-padding);
+  --spacing-theme-btn-y:     var(--theme-buttons-y-padding);
+  --spacing-theme-item:      var(--theme-item-padding);
+  --spacing-theme-symbol:    var(--theme-symbol-card-padding);
+  --spacing-theme-elements:  var(--theme-elements-space-between);
+  --spacing-theme-banner:    var(--theme-header-banner-padding);
+  --spacing-theme-talker:    var(--theme-header-talker-padding);
+
+  /* ─── AAC Typography Tokens ─────────────────────────────────────
+     text-theme-h4, text-theme-p, text-theme-s etc.
+     Line heights are fixed (not dynamic) — match tailwind.config.ts.
+  ──────────────────────────────────────────────────────────────── */
+  --text-theme-h1:                   var(--theme-text-h1);
+  --text-theme-h1--line-height:      1.1;
+  --text-theme-h2:                   var(--theme-text-h2);
+  --text-theme-h2--line-height:      1.15;
+  --text-theme-h3:                   var(--theme-text-h3);
+  --text-theme-h3--line-height:      1.2;
+  --text-theme-h4:                   var(--theme-text-h4);
+  --text-theme-h4--line-height:      1.25;
+  --text-theme-large:                var(--theme-text-large);
+  --text-theme-large--line-height:   1.4;
+  --text-theme-p:                    var(--theme-text-p);
+  --text-theme-p--line-height:       1.5;
+  --text-theme-s:                    var(--theme-text-s);
+  --text-theme-s--line-height:       1.5;
+
+  /* ─── Responsive Typography Scale (template/marketing) ──────────
      Usage: className="text-display" / "text-heading" etc.
   ──────────────────────────────────────────────────────────────── */
   --text-display:    clamp(2.25rem, 5vw, 3.75rem);

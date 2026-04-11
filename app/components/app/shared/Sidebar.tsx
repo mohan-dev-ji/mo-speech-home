@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Home, Search, Tag, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LogoSvg } from './LogoSvg';
+import { LogoSvg } from '@/app/components/app/shared/LogoSvg';
 
 type SidebarProps = {
   locale: string;
@@ -25,7 +25,6 @@ export function Sidebar({ locale }: SidebarProps) {
     return pathname.startsWith(`/${locale}/${segment}`);
   }
 
-  // Shared button shape — full-width, token-driven padding and radius
   const btnBase = 'w-full flex items-center gap-2.5 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-small font-medium transition-colors';
   const btnInactive = 'bg-theme-primary text-theme-alt-text hover:opacity-90';
   const btnActive   = 'bg-theme-button-highlight text-theme-text';
@@ -33,12 +32,10 @@ export function Sidebar({ locale }: SidebarProps) {
   return (
     <aside className="flex flex-col shrink-0 h-full bg-theme-card">
 
-      {/* Logo — general padding all round; w-[155px] on the SVG drives the sidebar's natural width */}
       <div className="p-theme-general">
         <LogoSvg className="w-[155px] text-theme-alt-text" />
       </div>
 
-      {/* Nav — same horizontal padding as logo section to keep buttons aligned */}
       <nav className="flex flex-col flex-1 gap-theme-general px-theme-general">
         {mainNavItems.map(({ segment, icon: Icon }) => (
           <Link
@@ -52,7 +49,6 @@ export function Sidebar({ locale }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Settings — pinned to bottom, same horizontal padding as nav */}
       <div className="px-theme-general pb-theme-general pt-2">
         <Link
           href={`/${locale}/settings`}

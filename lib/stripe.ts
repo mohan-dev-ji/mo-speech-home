@@ -5,7 +5,7 @@ import Stripe from "stripe";
  * Pin the API version here — check stripe.com/docs/api/versioning before updating.
  */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-06-30.basil",
+  apiVersion: "2026-03-25.dahlia",
   typescript: true,
 });
 

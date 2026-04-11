@@ -30,11 +30,12 @@ All product design, feature specs, and build plans are in `docs/`:
 (Template says "business" — this build uses "max" throughout)
 
 ## Critical Rules
-1. **Never hard-code `"eng"`** — every query and component accepts a language param
+1. **Never hard-code UI copy** — all text must come from `useTranslations`; add every key to `en.json` (real English) and `hi.json` (`"English value (hi)"` as a placeholder until a translator replaces it)
 2. **Schema first** — define all Convex tables before building any UI
 3. **Read `docs/4-builds/decisions/`** before proposing architecture changes
 4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`
 5. **Always** use tailwind design tokens for all elements in frontend. Color palette, spacing, roundness and font. `tailwind.config.ts`
+6. **Components live in `app/components/{domain}/{type}/`** — domain is `app`, `marketing`, or `admin`; type is `sections` (page-level compositions), `ui` (reusable atoms), or `modals` (dialogs); `page.tsx` files must be thin and import only from these folders.
 
 ## Reference Repos (working auth + payments)
 - Template: `/Users/mohanveraitch/Projects/mo-starter`

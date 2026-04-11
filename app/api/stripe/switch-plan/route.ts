@@ -32,8 +32,10 @@ export async function POST(request: Request) {
 
   await stripe.subscriptions.update(user.subscription.stripeSubscriptionId, {
     items: [{ id: currentItemId, price: priceId }],
-    proration_behavior: "always_invoice",
-    // If the subscription was set to cancel at period end, resume it
+    // Defer price change to next billing date — no immediate invoice.
+    // New tier access is granted immediately via the subscription.updated webhook.
+    proration_behavior: "none",
+    // Switching tiers always reactivates a cancelling subscription.
     cancel_at_period_end: false,
   });
 

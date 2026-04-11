@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface PricingToggleProps {
@@ -8,10 +9,11 @@ interface PricingToggleProps {
 }
 
 export function PricingToggle({ value, onChange }: PricingToggleProps) {
+  const t = useTranslations("plan");
   return (
     <div className="inline-flex items-center gap-3">
       <span className={cn("text-small", value === "monthly" ? "text-foreground font-medium" : "text-muted-foreground")}>
-        Monthly
+        {t("billingMonthly")}
       </span>
       <button
         onClick={() => onChange(value === "monthly" ? "yearly" : "monthly")}
@@ -29,9 +31,9 @@ export function PricingToggle({ value, onChange }: PricingToggleProps) {
         />
       </button>
       <span className={cn("text-small", value === "yearly" ? "text-foreground font-medium" : "text-muted-foreground")}>
-        Yearly
+        {t("billingYearly")}
         <span className="ml-1.5 px-1.5 py-0.5 bg-success/10 text-success text-caption rounded-full font-medium">
-          Save 20%
+          {t("save20")}
         </span>
       </span>
     </div>

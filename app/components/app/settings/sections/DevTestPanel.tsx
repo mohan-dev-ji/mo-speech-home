@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from '@/i18n/navigation';
-import { useTheme } from '@/app/contexts/ThemeContext';
-import { THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
+import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 // ─── DEV ONLY — remove before production ──────────────────────────────────────

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/app/components/shared/ui/Button";
 import type { SubscriptionTier, SubscriptionPlan } from "@/types";
 
@@ -11,6 +12,7 @@ interface UpgradeButtonProps {
 }
 
 export function UpgradeButton({ tier, plan, label }: UpgradeButtonProps) {
+  const t = useTranslations("upgradeButton");
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
@@ -30,9 +32,11 @@ export function UpgradeButton({ tier, plan, label }: UpgradeButtonProps) {
     }
   };
 
+  const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+
   return (
     <Button onClick={handleUpgrade} loading={loading}>
-      {label ?? `Upgrade to ${tier.charAt(0).toUpperCase() + tier.slice(1)}`}
+      {label ?? t("defaultLabel", { tier: tierName })}
     </Button>
   );
 }

@@ -4,9 +4,9 @@ import { notFound } from 'next/navigation';
 import { Noto_Sans } from 'next/font/google';
 import { Noto_Sans_Devanagari } from 'next/font/google';
 import { routing } from '@/i18n/routing';
-import { AppProviders } from './components/AppProviders';
-import { Sidebar } from './components/Sidebar';
-import { TopBar } from './components/TopBar';
+import { AppProviders } from '@/app/components/app/shared/AppProviders';
+import { Sidebar } from '@/app/components/app/shared/Sidebar';
+import { TopBar } from '@/app/components/app/shared/TopBar';
 
 // Load per locale — not all at once.
 // notoSans is always loaded (Latin chars appear in Hindi UI too).
