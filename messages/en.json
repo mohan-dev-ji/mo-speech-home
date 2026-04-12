@@ -10,13 +10,20 @@
     "instructor": "Instructor",
     "student": "Student"
   },
+  "topBar": {
+    "header": "Header",
+    "headerToggleLabel": "Toggle talker header"
+  },
   "home": {
     "title": "Home",
     "resourceLibrary": "Templates / Resource Library"
   },
   "search": {
     "title": "Search",
-    "placeholder": "Search for a symbol..."
+    "placeholder": "Search for a symbol…",
+    "emptyHint": "Start typing to find a symbol",
+    "noResults": "No results for \"{query}\"",
+    "talkerHint": "Tap symbols to build a sentence…"
   },
   "categories": {
     "title": "Categories"

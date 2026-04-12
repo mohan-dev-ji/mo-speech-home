@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Doc } from '@/convex/_generated/dataModel';
 
@@ -47,6 +47,7 @@ type ProfileContextValue = {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   setLanguage: (lang: string) => void;
+  setTalkerVisible: (value: boolean) => void;
 };
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -58,6 +59,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   viewMode: 'instructor',
   setViewMode: () => {},
   setLanguage: () => {},
+  setTalkerVisible: () => {},
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -67,6 +69,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // undefined = still loading; null = loaded, no profile (onboarding needed)
   const studentProfile = useQuery(api.studentProfiles.getMyStudentProfile);
   const profileLoading = studentProfile === undefined;
+
+  const setStateFlagMutation = useMutation(api.studentProfiles.setStateFlag);
+
+  function setTalkerVisible(value: boolean) {
+    if (!studentProfile) return;
+    setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
+  }
 
   return (
     <ProfileContext.Provider
@@ -80,6 +89,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         viewMode,
         setViewMode,
         setLanguage,
+        setTalkerVisible,
       }}
     >
       {children}

@@ -15,12 +15,13 @@ export type TalkerSymbolItem = {
 
 type TalkerBarProps = {
   symbols: TalkerSymbolItem[];
+  placeholder?: string;
   onPlaySentence: () => void;
   onRemove: (instanceId: string) => void;
   onClear: () => void;
 };
 
-export function TalkerBar({ symbols, onPlaySentence, onRemove, onClear }: TalkerBarProps) {
+export function TalkerBar({ symbols, placeholder = 'Tap symbols to build a sentence…', onPlaySentence, onRemove, onClear }: TalkerBarProps) {
   return (
     <div
       className="talker-bar flex items-center gap-2 min-h-[64px] px-3 py-2 overflow-x-auto"
@@ -32,7 +33,7 @@ export function TalkerBar({ symbols, onPlaySentence, onRemove, onClear }: Talker
             className="text-caption opacity-50 select-none"
             style={{ color: 'var(--theme-talker-text)' }}
           >
-            Tap symbols to build a sentence…
+            {placeholder}
           </span>
         ) : (
           symbols.map((item) => (

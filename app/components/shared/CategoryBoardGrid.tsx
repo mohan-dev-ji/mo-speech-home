@@ -9,7 +9,7 @@ type CategoryBoardGridProps = {
 export function CategoryBoardGrid({ children, columns = 4 }: CategoryBoardGridProps) {
   return (
     <div
-      className="grid gap-3 p-4 content-start"
+      className="grid gap-3 py-4 content-start"
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {children}

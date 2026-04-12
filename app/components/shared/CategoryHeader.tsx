@@ -20,6 +20,7 @@ type TalkerBannerProps = BaseProps & {
   talkerBar: React.ReactNode;
   showToggle?: boolean;        // driven by talker_banner_toggle state flag
   onToggleMode?: () => void;
+  wrapperStyle?: React.CSSProperties; // override wrapper background (e.g. transparent)
 };
 
 type AdminMetadataProps = BaseProps & {
@@ -71,7 +72,7 @@ export function CategoryHeader(props: CategoryHeaderProps) {
   return (
     <div
       className="flex flex-col"
-      style={{ background: 'var(--theme-talker-bg)' }}
+      style={{ background: 'var(--theme-talker-bg)', ...props.wrapperStyle }}
     >
       {props.mode === 'talker' && (
         <div className="px-3 py-2">

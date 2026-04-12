@@ -10,13 +10,20 @@
     "instructor": "प्रशिक्षक",
     "student": "छात्र"
   },
+  "topBar": {
+    "header": "Header (hi)",
+    "headerToggleLabel": "Toggle talker header (hi)"
+  },
   "home": {
     "title": "होम",
     "resourceLibrary": "टेम्पलेट / संसाधन पुस्तकालय"
   },
   "search": {
     "title": "खोज",
-    "placeholder": "एक प्रतीक खोजें..."
+    "placeholder": "एक प्रतीक खोजें…",
+    "emptyHint": "Start typing to find a symbol (hi)",
+    "noResults": "No results for \"{query}\" (hi)",
+    "talkerHint": "Tap symbols to build a sentence… (hi)"
   },
   "categories": {
     "title": "श्रेणियाँ"

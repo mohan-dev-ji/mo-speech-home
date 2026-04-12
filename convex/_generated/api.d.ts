@@ -10,6 +10,7 @@
 
 import type * as accountMembers from "../accountMembers.js";
 import type * as studentProfiles from "../studentProfiles.js";
+import type * as symbols from "../symbols.js";
 import type * as themes from "../themes.js";
 import type * as users from "../users.js";
 
@@ -22,6 +23,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accountMembers: typeof accountMembers;
   studentProfiles: typeof studentProfiles;
+  symbols: typeof symbols;
   themes: typeof themes;
   users: typeof users;
 }>;

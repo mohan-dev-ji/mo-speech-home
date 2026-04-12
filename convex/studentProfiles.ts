@@ -101,6 +101,50 @@ export const createStudentProfile = mutation({
 });
 
 /**
+ * Toggle a single state flag on a student profile.
+ * Used by the instructor to adjust the student's live view (e.g. talker_visible).
+ * Verifies ownership — collaborators can also call this.
+ */
+export const setStateFlag = mutation({
+  args: {
+    profileId: v.id("studentProfiles"),
+    flag: v.string(), // key of stateFlags object
+    value: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) throw new Error("Profile not found");
+
+    // Allow account owner or active collaborator
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const isOwner = profile.accountId === user._id;
+    const isCollaborator =
+      !isOwner &&
+      !!(await ctx.db
+        .query("accountMembers")
+        .withIndex("by_clerk_user_id", (q) =>
+          q.eq("clerkUserId", user.clerkUserId)
+        )
+        .first());
+
+    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+
+    await ctx.db.patch(args.profileId, {
+      stateFlags: { ...profile.stateFlags, [args.flag]: args.value } as typeof profile.stateFlags,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
  * Update a student profile's editable fields.
  * Verifies the caller owns the account this profile belongs to.
  */

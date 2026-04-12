@@ -89,6 +89,33 @@
   --theme-bg-animation:          none;
   --theme-bg-animation-duration: 4s;
   --theme-card-animation:        none;
+
+  /* ── New token names (Convex themes schema) ────────────────────────
+     These aliases bridge the shared components to the current theme system.
+     Phase 7 will wire these directly from the themes Convex table.
+  ──────────────────────────────────────────────────────────────────── */
+  --theme-bg-primary:         var(--theme-background);
+  --theme-bg-surface:         var(--theme-card);
+  --theme-bg-surface-alt:     var(--theme-banner);
+  --theme-brand-primary:      var(--theme-primary);
+  --theme-brand-secondary:    var(--theme-primary);
+  --theme-brand-tertiary:     var(--theme-primary);
+  --theme-text-primary:       var(--theme-alt-text);
+  --theme-text-secondary:     var(--theme-secondary-alt-text);
+  --theme-text-on-brand:      var(--theme-alt-text);
+  --theme-symbol-card-bg:     var(--theme-symbol-bg);
+  --theme-symbol-card-text:   var(--theme-text);
+  --theme-symbol-card-border: var(--theme-line);
+  --theme-symbol-card-glow:   var(--theme-primary);
+  --theme-talker-bg:          var(--theme-card);
+  --theme-talker-text:        var(--theme-alt-text);
+  --theme-talker-border:      var(--theme-line);
+  --theme-nav-bg:             var(--theme-banner);
+  --theme-nav-text:           var(--theme-alt-text);
+  --theme-nav-text-active:    var(--theme-button-highlight);
+  --theme-nav-indicator:      var(--theme-primary);
+  --theme-overlay:            rgba(0, 0, 0, 0.82);
+  --theme-error:              var(--theme-warning);
 }
 
 .dark {
@@ -232,11 +259,12 @@ body {
    active theme without hard-coding values. All values from tokens.
 ──────────────────────────────────────────────────────────────── */
 
-/* Symbol card — dark card bg, symbol image area is light for clarity */
+/* Symbol card — off-white bg, dark text, line token border */
 .symbol-card {
-  background:    var(--theme-card);
-  color:         var(--theme-alt-text);
+  background:    var(--theme-symbol-bg);
+  color:         var(--theme-text);
   border-radius: var(--theme-roundness);
+  border:        1px solid var(--theme-line);
   padding:       var(--theme-symbol-card-padding);
 }
 
@@ -254,9 +282,8 @@ body {
 
 /* Talker bar */
 .talker-bar {
-  background: var(--theme-card);
+  background: transparent;
   color:      var(--theme-alt-text);
-  border-top: 1px solid var(--theme-line);
 }
 
 /* Header / nav banner */
