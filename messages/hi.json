@@ -25,6 +25,16 @@
     "noResults": "No results for \"{query}\" (hi)",
     "talkerHint": "Tap symbols to build a sentence… (hi)"
   },
+  "talker": {
+    "playLabel": "Play sentence (hi)",
+    "clearLabel": "Clear sentence (hi)",
+    "saveLabel": "Save sentence (hi)",
+    "openDropdown": "Open quick symbols (hi)",
+    "closeDropdown": "Close quick symbols (hi)",
+    "tabCoreWords": "Core Words (hi)",
+    "tabNumbers": "Numbers (hi)",
+    "tabLetters": "Letters (hi)"
+  },
   "categories": {
     "title": "श्रेणियाँ"
   },
@@ -39,6 +49,16 @@
     "navbar": "नेविगेशन साइड बार",
     "invites": "आमंत्रण",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner. (hi)"
+  },
+  "grid": {
+    "title": "Grid (hi)",
+    "sizeLabel": "Symbol grid size (hi)",
+    "large": "Large (hi)",
+    "largeHint": "4 columns (hi)",
+    "medium": "Medium (hi)",
+    "mediumHint": "8 columns (hi)",
+    "small": "Small (hi)",
+    "smallHint": "12 columns (hi)"
   },
   "plan": {
     "heading": "Plan (hi)",

@@ -16,6 +16,7 @@ const DEFAULT_STATE_FLAGS = {
   modelling_push: false,
   core_dropdown_visible: true,
   reduce_motion: false,
+  grid_size: "large" as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -139,6 +140,48 @@ export const setStateFlag = mutation({
 
     await ctx.db.patch(args.profileId, {
       stateFlags: { ...profile.stateFlags, [args.flag]: args.value } as typeof profile.stateFlags,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Set the grid size preference for a student profile.
+ * large=4 cols, medium=8 cols, small=12 cols.
+ * Verifies ownership — collaborators can also call this.
+ */
+export const setGridSize = mutation({
+  args: {
+    profileId: v.id("studentProfiles"),
+    gridSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) throw new Error("Profile not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const isOwner = profile.accountId === user._id;
+    const isCollaborator =
+      !isOwner &&
+      !!(await ctx.db
+        .query("accountMembers")
+        .withIndex("by_clerk_user_id", (q) =>
+          q.eq("clerkUserId", user.clerkUserId)
+        )
+        .first());
+
+    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+
+    await ctx.db.patch(args.profileId, {
+      stateFlags: { ...profile.stateFlags, grid_size: args.gridSize },
       updatedAt: Date.now(),
     });
   },

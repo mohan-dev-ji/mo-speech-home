@@ -19,6 +19,7 @@ type StateFlags = {
   modelling_push: boolean;
   core_dropdown_visible: boolean;
   reduce_motion: boolean;
+  grid_size: 'large' | 'medium' | 'small';
 };
 
 const DEFAULT_FLAGS: StateFlags = {
@@ -34,6 +35,7 @@ const DEFAULT_FLAGS: StateFlags = {
   modelling_push: false,
   core_dropdown_visible: true,
   reduce_motion: false,
+  grid_size: 'large',
 };
 
 type ViewMode = 'instructor' | 'student-view';
@@ -48,6 +50,7 @@ type ProfileContextValue = {
   setViewMode: (mode: ViewMode) => void;
   setLanguage: (lang: string) => void;
   setTalkerVisible: (value: boolean) => void;
+  setGridSize: (size: 'large' | 'medium' | 'small') => void;
 };
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -60,6 +63,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   setViewMode: () => {},
   setLanguage: () => {},
   setTalkerVisible: () => {},
+  setGridSize: () => {},
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -71,10 +75,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const profileLoading = studentProfile === undefined;
 
   const setStateFlagMutation = useMutation(api.studentProfiles.setStateFlag);
+  const setGridSizeMutation  = useMutation(api.studentProfiles.setGridSize);
 
   function setTalkerVisible(value: boolean) {
     if (!studentProfile) return;
     setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
+  }
+
+  function setGridSize(size: 'large' | 'medium' | 'small') {
+    if (!studentProfile) return;
+    setGridSizeMutation({ profileId: studentProfile._id, gridSize: size });
   }
 
   return (
@@ -90,6 +100,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setViewMode,
         setLanguage,
         setTalkerVisible,
+        setGridSize,
       }}
     >
       {children}

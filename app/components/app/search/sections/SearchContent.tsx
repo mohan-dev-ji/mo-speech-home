@@ -6,8 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { CategoryHeader } from '@/app/components/shared/CategoryHeader';
-import { TalkerBar, type TalkerSymbolItem } from '@/app/components/shared/TalkerBar';
+import { TalkerSection, type TalkerSymbolItem } from '@/app/components/shared/TalkerSection';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
 import { PlayModal } from '@/app/components/shared/PlayModal';
@@ -51,6 +50,7 @@ export function SearchContent() {
 
   // ─── Talker handlers ───────────────────────────────────────────────────────
 
+  /** Tap a search result → add to talker */
   function addToTalker(symbolId: string, imagePath: string, label: string) {
     setTalkerSymbols((prev) => [
       ...prev,
@@ -64,13 +64,31 @@ export function SearchContent() {
     ]);
   }
 
-  function removeFromTalker(instanceId: string) {
-    setTalkerSymbols((prev) => prev.filter((s) => s.instanceId !== instanceId));
+  /** Tap a quick-access symbol in the dropdown → add to talker (no image for now) */
+  function addQuickSymbol(label: string) {
+    setTalkerSymbols((prev) => [
+      ...prev,
+      {
+        instanceId: crypto.randomUUID(),
+        symbolId: `quick-${label}`,
+        imagePath: undefined,
+        label,
+      },
+    ]);
   }
 
+  /** Tap a chip in the talker → play that single symbol */
+  function handleChipTap(item: TalkerSymbolItem) {
+    setPlayModal({
+      symbolId: item.symbolId,
+      imagePath: item.imagePath,
+      label: item.label,
+    });
+  }
+
+  /** Play button → play first symbol (full sequence audio is Phase 4) */
   function handlePlaySentence() {
     if (talkerSymbols.length === 0) return;
-    // Open PlayModal on the first symbol; full sequence audio is Phase 4
     const first = talkerSymbols[0];
     setPlayModal({
       symbolId: first.symbolId,
@@ -90,22 +108,19 @@ export function SearchContent() {
   return (
     <div className="flex flex-col h-full px-theme-general py-theme-general gap-theme-gap">
 
-      {/* Talker header — search is always talker mode, never banner */}
+      {/* Talker header — search always uses talker mode */}
       {stateFlags.talker_visible && (
-        <CategoryHeader
-          mode="talker"
-          talkerBar={
-            <TalkerBar
-              symbols={talkerSymbols}
-              placeholder={t('talkerHint')}
-              onPlaySentence={handlePlaySentence}
-              onRemove={removeFromTalker}
-              onClear={() => setTalkerSymbols([])}
-            />
-          }
-          showToggle={false}
-          wrapperStyle={{ background: 'transparent' }}
-        />
+        <div className="shrink-0 mb-8">
+          <TalkerSection
+            symbols={talkerSymbols}
+            placeholder={t('talkerHint')}
+            language={language}
+            onChipTap={handleChipTap}
+            onPlaySentence={handlePlaySentence}
+            onClear={() => setTalkerSymbols([])}
+            onQuickSymbolTap={addQuickSymbol}
+          />
+        </div>
       )}
 
       {/* Search input */}
@@ -120,7 +135,7 @@ export function SearchContent() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('placeholder')}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl text-body outline-none"
+            className="w-full pl-9 pr-4 py-1.5 rounded-xl text-body outline-none"
             style={{
               background: 'var(--theme-alt-card)',
               color: 'var(--theme-text)',
@@ -160,7 +175,7 @@ export function SearchContent() {
 
         {/* No results */}
         {noResults && (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center">
             <p className="text-body" style={{ color: 'var(--theme-text-secondary)' }}>
               {t('noResults', { query: debouncedQuery })}
             </p>
@@ -169,7 +184,7 @@ export function SearchContent() {
 
         {/* Results grid */}
         {hasResults && (
-          <CategoryBoardGrid columns={4}>
+          <CategoryBoardGrid>
             {results.map((symbol) => {
               const label =
                 language === 'hin' && symbol.words.hin
@@ -191,7 +206,7 @@ export function SearchContent() {
         )}
       </div>
 
-      {/* Play modal — opened by talker play button */}
+      {/* Play modal */}
       {playModal && (
         <PlayModal
           isOpen={true}

@@ -25,6 +25,16 @@
     "noResults": "No results for \"{query}\"",
     "talkerHint": "Tap symbols to build a sentence…"
   },
+  "talker": {
+    "playLabel": "Play sentence",
+    "clearLabel": "Clear sentence",
+    "saveLabel": "Save sentence",
+    "openDropdown": "Open quick symbols",
+    "closeDropdown": "Close quick symbols",
+    "tabCoreWords": "Core Words",
+    "tabNumbers": "Numbers",
+    "tabLetters": "Letters"
+  },
   "categories": {
     "title": "Categories"
   },
@@ -39,6 +49,16 @@
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner."
+  },
+  "grid": {
+    "title": "Grid",
+    "sizeLabel": "Symbol grid size",
+    "large": "Large",
+    "largeHint": "4 columns",
+    "medium": "Medium",
+    "mediumHint": "8 columns",
+    "small": "Small",
+    "smallHint": "12 columns"
   },
   "plan": {
     "heading": "Plan",

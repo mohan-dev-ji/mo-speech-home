@@ -1,13 +1,13 @@
 "use client";
 
 // One component, three modes:
-//   "talker"         — talker bar + optional banner toggle (Search & Board)
+//   "talker"         — talker bar + collapse chevron (Search & Board)
 //   "banner"         — collapsed; tapping a symbol plays audio directly
 //   "admin-metadata" — category name + edit/add controls (instructor view)
 //
 // All props/callbacks only — no context dependency.
 
-import { Edit2, Plus } from 'lucide-react';
+import { ChevronDown, Edit2, Plus } from 'lucide-react';
 
 export type CategoryHeaderMode = 'talker' | 'banner' | 'admin-metadata';
 
@@ -20,7 +20,8 @@ type TalkerBannerProps = BaseProps & {
   talkerBar: React.ReactNode;
   showToggle?: boolean;        // driven by talker_banner_toggle state flag
   onToggleMode?: () => void;
-  wrapperStyle?: React.CSSProperties; // override wrapper background (e.g. transparent)
+  isCollapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
 type AdminMetadataProps = BaseProps & {
@@ -71,25 +72,43 @@ export function CategoryHeader(props: CategoryHeaderProps) {
   // talker / banner mode
   return (
     <div
-      className="flex flex-col"
-      style={{ background: 'var(--theme-talker-bg)', ...props.wrapperStyle }}
+      className="flex flex-col rounded-theme overflow-hidden"
+      style={{ background: 'var(--theme-bg-surface-alt)' }}
     >
-      {props.mode === 'talker' && (
-        <div className="px-3 py-2">
+      {/* Talker bar content — hidden when collapsed */}
+      {props.mode === 'talker' && !props.isCollapsed && (
+        <div className="px-3 py-3">
           {props.talkerBar}
         </div>
       )}
-      {props.showToggle && props.onToggleMode && (
+
+      {/* Mode toggle (text button, rarely shown) */}
+      {props.showToggle && props.onToggleMode && !props.isCollapsed && (
         <div className="flex justify-end px-3 pb-2">
           <button
             type="button"
             onClick={props.onToggleMode}
             className="text-caption px-2.5 py-1 rounded-md"
-            style={{ background: 'rgba(255,255,255,0.15)', color: 'var(--theme-talker-text)' }}
+            style={{ background: 'rgba(255,255,255,0.15)', color: 'var(--theme-nav-text)' }}
           >
             {props.mode === 'talker' ? 'Switch to Banner' : 'Switch to Talker'}
           </button>
         </div>
+      )}
+
+      {/* Collapse chevron strip — only rendered when onToggleCollapsed is wired */}
+      {props.onToggleCollapsed && (
+        <button
+          type="button"
+          onClick={props.onToggleCollapsed}
+          className="flex items-center justify-center py-1.5 w-full transition-colors hover:bg-black/10"
+          style={{ color: 'var(--theme-nav-text)' }}
+          aria-label={props.isCollapsed ? 'Expand talker' : 'Collapse talker'}
+        >
+          <ChevronDown
+            className={`w-5 h-5 transition-transform duration-200 ${props.isCollapsed ? 'rotate-180' : ''}`}
+          />
+        </button>
       )}
     </div>
   );
