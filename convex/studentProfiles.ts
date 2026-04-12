@@ -17,6 +17,8 @@ const DEFAULT_STATE_FLAGS = {
   core_dropdown_visible: true,
   reduce_motion: false,
   grid_size: "large" as const,
+  symbol_label_visible: true,
+  symbol_text_size: "small" as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -182,6 +184,47 @@ export const setGridSize = mutation({
 
     await ctx.db.patch(args.profileId, {
       stateFlags: { ...profile.stateFlags, grid_size: args.gridSize },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Set the symbol text size preference for a student profile.
+ * small=p-bold, medium=h4, large=h2.
+ */
+export const setSymbolTextSize = mutation({
+  args: {
+    profileId: v.id("studentProfiles"),
+    textSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) throw new Error("Profile not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const isOwner = profile.accountId === user._id;
+    const isCollaborator =
+      !isOwner &&
+      !!(await ctx.db
+        .query("accountMembers")
+        .withIndex("by_clerk_user_id", (q) =>
+          q.eq("clerkUserId", user.clerkUserId)
+        )
+        .first());
+
+    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+
+    await ctx.db.patch(args.profileId, {
+      stateFlags: { ...profile.stateFlags, symbol_text_size: args.textSize },
       updatedAt: Date.now(),
     });
   },

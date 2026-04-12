@@ -53,7 +53,7 @@ export function TalkerSection({
 
   const hasSymbols = symbols.length > 0;
 
-  // Measure on mount and whenever the window resizes
+  // Measure on mount, window resize, and any height change on the main bar
   useEffect(() => {
     function measure() {
       const main = mainRef.current?.getBoundingClientRect();
@@ -63,7 +63,15 @@ export function TalkerSection({
     }
     measure();
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+
+    // Re-measure whenever the bar's height changes (e.g. chips wrap to a new row)
+    const ro = new ResizeObserver(measure);
+    if (mainRef.current) ro.observe(mainRef.current);
+
+    return () => {
+      window.removeEventListener('resize', measure);
+      ro.disconnect();
+    };
   }, []);
 
   return (
@@ -93,11 +101,11 @@ export function TalkerSection({
             type="button"
             onClick={onPlaySentence}
             disabled={!hasSymbols}
-            className="col-span-2 flex items-center justify-center h-8 rounded-full transition-transform active:scale-95 disabled:opacity-40"
+            className="col-span-2 flex items-center justify-center h-12 rounded-full transition-transform active:scale-95 disabled:opacity-40"
             style={{ background: 'var(--theme-success)', color: '#fff' }}
             aria-label={t('playLabel')}
           >
-            <Volume2 className="w-4 h-4" />
+            <Volume2 className="w-5 h-5" />
           </button>
 
           {/* Clear all — red */}
@@ -105,11 +113,11 @@ export function TalkerSection({
             type="button"
             onClick={onClear}
             disabled={!hasSymbols}
-            className="flex items-center justify-center h-8 rounded-lg transition-transform active:scale-95 disabled:opacity-40"
+            className="flex items-center justify-center h-12 rounded-lg transition-transform active:scale-95 disabled:opacity-40"
             style={{ background: 'var(--theme-warning)', color: '#fff' }}
             aria-label={t('clearLabel')}
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
 
           {/* Save — brand blue (disabled until Phase 2 wires onSave) */}
@@ -117,11 +125,11 @@ export function TalkerSection({
             type="button"
             onClick={onSave}
             disabled={!hasSymbols || !onSave}
-            className="flex items-center justify-center h-8 rounded-lg transition-transform active:scale-95 disabled:opacity-40"
+            className="flex items-center justify-center h-12 rounded-lg transition-transform active:scale-95 disabled:opacity-40"
             style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-text-on-brand)' }}
             aria-label={t('saveLabel')}
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-5 h-5" />
           </button>
         </div>
       </div>

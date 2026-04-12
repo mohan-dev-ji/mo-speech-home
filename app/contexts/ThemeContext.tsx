@@ -112,7 +112,7 @@ export const THEME_TOKENS = {
     banner:           '#45556C',  // slate/600
     card:             '#314158',  // slate/700
     buttonHighlight:  '#E2E8F0',  // slate/200
-    line:             '#0F172B',  // slate/900
+    line:             '#1E293B',  // slate/800
     secondaryAltText: '#D4D4D8',  // zinc/300
     enterMode:        '#FF6900',  // orange/500
   },
@@ -122,7 +122,7 @@ export const THEME_TOKENS = {
     banner:           '#0084D1',  // sky/600
     card:             '#024A70',  // sky/900
     buttonHighlight:  '#B8E6FE',  // sky/200
-    line:             '#052F4A',  // sky/950
+    line:             '#075985',  // sky/800
     secondaryAltText: '#F4F4F5',  // zinc/100
     enterMode:        '#FD9A00',  // amber/500
   },
@@ -132,7 +132,7 @@ export const THEME_TOKENS = {
     banner:           '#BB4D00',  // amber/700
     card:             '#7B3306',  // amber/900
     buttonHighlight:  '#FEE685',  // amber/200
-    line:             '#7B3306',  // amber/900
+    line:             '#92400E',  // amber/800
     secondaryAltText: '#F4F4F5',  // zinc/100
     enterMode:        '#FF6900',  // orange/500
   },
@@ -142,7 +142,7 @@ export const THEME_TOKENS = {
     banner:           '#A800B7',  // fuchsia/700
     card:             '#721378',  // fuchsia/900
     buttonHighlight:  '#F6CFFF',  // fuchsia/200
-    line:             '#8A0194',  // fuchsia/800
+    line:             '#86198F',  // fuchsia/800
     secondaryAltText: '#F4F4F5',  // zinc/100
     enterMode:        '#FF6900',  // orange/500
   },
@@ -152,7 +152,7 @@ export const THEME_TOKENS = {
     banner:           '#497D00',  // lime/700
     card:             '#35530E',  // lime/900
     buttonHighlight:  '#D8F999',  // lime/200
-    line:             '#3D6300',  // lime/800
+    line:             '#3F6212',  // lime/800
     secondaryAltText: '#F4F4F5',  // zinc/100
     enterMode:        '#FF6900',  // orange/500
   },
@@ -162,7 +162,7 @@ export const THEME_TOKENS = {
     banner:           '#C70036',  // rose/700
     card:             '#8B0836',  // rose/900
     buttonHighlight:  '#FFCCD3',  // rose/200
-    line:             '#A50036',  // rose/800
+    line:             '#9F1239',  // rose/800
     secondaryAltText: '#F4F4F5',  // zinc/100
     enterMode:        '#FF6900',  // orange/500
   },

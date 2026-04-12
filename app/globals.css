@@ -49,7 +49,7 @@
   --theme-secondary-text:     #71717B;  /* zinc/500   — all flat themes */
   --theme-alt-text:           #FAFAFA;  /* zinc/50    — all flat themes */
   --theme-secondary-alt-text: #D4D4D8;  /* zinc/300   — Default; zinc/100 others */
-  --theme-line:               #0F172B;  /* slate/900  — Default */
+  --theme-line:               #1E293B;  /* slate/800  — Default */
   --theme-enter-mode:         #FF6900;  /* orange/500 — all flat themes except Sky */
   --theme-success:            #00C951;  /* green/500  — all themes */
   --theme-warning:            #FB2C36;  /* red/500    — all themes */
@@ -264,7 +264,6 @@ body {
   background:    var(--theme-symbol-bg);
   color:         var(--theme-text);
   border-radius: var(--theme-roundness);
-  border:        1px solid var(--theme-line);
   padding:       var(--theme-symbol-card-padding);
 }
 

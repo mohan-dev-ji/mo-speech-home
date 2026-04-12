@@ -50,6 +50,17 @@
     "invites": "आमंत्रण",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner. (hi)"
   },
+  "symbols": {
+    "title": "Symbols (hi)",
+    "displayTextLabel": "Display text (hi)",
+    "textSizeLabel": "Text size (hi)",
+    "large": "Large (hi)",
+    "largeHint": "h2",
+    "medium": "Medium (hi)",
+    "mediumHint": "h4",
+    "small": "Small (hi)",
+    "smallHint": "p bold"
+  },
   "grid": {
     "title": "Grid (hi)",
     "sizeLabel": "Symbol grid size (hi)",

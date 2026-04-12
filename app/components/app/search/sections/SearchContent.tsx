@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
@@ -16,8 +16,19 @@ import { PlayModal } from '@/app/components/shared/PlayModal';
 type PlayModalState = {
   symbolId: string;
   imagePath?: string;
+  audioPath?: string;
   label: string;
 } | null;
+
+// ─── Audio ────────────────────────────────────────────────────────────────────
+
+// Must be called synchronously within a user-gesture handler.
+// The /api/assets route redirects to a signed R2 URL — the browser follows
+// the redirect transparently, preserving the gesture chain for autoplay.
+function playAudio(audioPath: string) {
+  const audio = new Audio(`/api/assets?key=${audioPath}`);
+  audio.play().catch(() => {});
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -29,6 +40,7 @@ export function SearchContent() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [talkerSymbols, setTalkerSymbols] = useState<TalkerSymbolItem[]>([]);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
+  const cancelSequenceRef = useRef(false);
 
   // Debounce: fire immediately on clear, wait 300ms after each keystroke
   useEffect(() => {
@@ -50,21 +62,24 @@ export function SearchContent() {
 
   // ─── Talker handlers ───────────────────────────────────────────────────────
 
-  /** Tap a search result → add to talker */
-  function addToTalker(symbolId: string, imagePath: string, label: string) {
+  /** Tap a search result → play audio + add to talker */
+  function addToTalker(symbolId: string, imagePath: string, label: string, audioPath: string) {
+    // Play synchronously — must stay within the user gesture chain
+    playAudio(audioPath);
+
     setTalkerSymbols((prev) => [
       ...prev,
       {
         instanceId: crypto.randomUUID(),
         symbolId,
-        // Serve via proxy — R2 assets are private (SymbolStix licence)
         imagePath: `/api/assets?key=${imagePath}`,
+        audioPath,
         label,
       },
     ]);
   }
 
-  /** Tap a quick-access symbol in the dropdown → add to talker (no image for now) */
+  /** Tap a quick-access symbol in the dropdown → add to talker (no audio in Phase 1) */
   function addQuickSymbol(label: string) {
     setTalkerSymbols((prev) => [
       ...prev,
@@ -77,24 +92,48 @@ export function SearchContent() {
     ]);
   }
 
-  /** Tap a chip in the talker → play that single symbol */
+  /** Tap a chip in the talker → replay audio + show play modal */
   function handleChipTap(item: TalkerSymbolItem) {
+    if (item.audioPath) playAudio(item.audioPath);
     setPlayModal({
       symbolId: item.symbolId,
       imagePath: item.imagePath,
+      audioPath: item.audioPath,
       label: item.label,
     });
   }
 
-  /** Play button → play first symbol (full sequence audio is Phase 4) */
-  function handlePlaySentence() {
+  /** Play button → play all talker symbols sequentially */
+  async function handlePlaySentence() {
     if (talkerSymbols.length === 0) return;
-    const first = talkerSymbols[0];
-    setPlayModal({
-      symbolId: first.symbolId,
-      imagePath: first.imagePath,
-      label: first.label,
-    });
+    cancelSequenceRef.current = false;
+
+    for (const symbol of talkerSymbols) {
+      if (cancelSequenceRef.current) break;
+
+      // Show modal for the current symbol
+      setPlayModal({
+        symbolId: symbol.symbolId,
+        imagePath: symbol.imagePath,
+        audioPath: symbol.audioPath,
+        label: symbol.label,
+      });
+
+      if (symbol.audioPath) {
+        const path = symbol.audioPath;
+        await new Promise<void>((resolve) => {
+          const audio = new Audio(`/api/assets?key=${path}`);
+          audio.addEventListener('ended', () => resolve());
+          audio.addEventListener('error', () => resolve());
+          audio.play().catch(() => resolve());
+        });
+      } else {
+        // No audio — hold the modal briefly so the symbol is still visible
+        await new Promise<void>((resolve) => setTimeout(resolve, 600));
+      }
+    }
+
+    if (!cancelSequenceRef.current) setPlayModal(null);
   }
 
   // ─── Derived state ─────────────────────────────────────────────────────────
@@ -191,6 +230,12 @@ export function SearchContent() {
                   ? symbol.words.hin
                   : symbol.words.eng;
 
+              // Resolve audio path: prefer language-matched audio, fall back to eng
+              const audioPath =
+                language === 'hin' && symbol.audio.hin?.default
+                  ? symbol.audio.hin.default
+                  : symbol.audio.eng.default;
+
               return (
                 <SymbolCard
                   key={symbol._id}
@@ -198,7 +243,7 @@ export function SearchContent() {
                   imagePath={`/api/assets?key=${symbol.imagePath}`}
                   label={label}
                   language={language}
-                  onTap={() => addToTalker(symbol._id, symbol.imagePath, label)}
+                  onTap={() => addToTalker(symbol._id, symbol.imagePath, label, audioPath)}
                 />
               );
             })}
@@ -214,7 +259,7 @@ export function SearchContent() {
           imagePath={playModal.imagePath}
           label={playModal.label}
           language={language}
-          onClose={() => setPlayModal(null)}
+          onClose={() => { cancelSequenceRef.current = true; setPlayModal(null); }}
         />
       )}
     </div>

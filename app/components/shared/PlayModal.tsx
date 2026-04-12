@@ -20,7 +20,7 @@ export function PlayModal({ isOpen, imagePath, label, onClose }: PlayModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
       style={{ background: 'var(--theme-overlay)' }}
       onClick={onClose}
     >

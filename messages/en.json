@@ -50,6 +50,17 @@
     "invites": "Invites",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner."
   },
+  "symbols": {
+    "title": "Symbols",
+    "displayTextLabel": "Display text",
+    "textSizeLabel": "Text size",
+    "large": "Large",
+    "largeHint": "h2",
+    "medium": "Medium",
+    "mediumHint": "h4",
+    "small": "Small",
+    "smallHint": "p bold"
+  },
   "grid": {
     "title": "Grid",
     "sizeLabel": "Symbol grid size",

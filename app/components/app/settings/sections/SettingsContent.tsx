@@ -9,6 +9,7 @@ import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { VoiceModal }    from "@/app/components/app/settings/modals/VoiceModal";
 import { ThemeModal }    from "@/app/components/app/settings/modals/ThemeModal";
 import { GridModal }     from "@/app/components/app/settings/modals/GridModal";
+import { SymbolsModal }  from "@/app/components/app/settings/modals/SymbolsModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
 import { Users } from "lucide-react";
@@ -49,7 +50,7 @@ export function SettingsContent() {
       case "plan":    return <PlanModal     onClose={close} />;
       case "voice":   return <VoiceModal    onClose={close} />;
       case "theme":   return <ThemeModal    onClose={close} />;
-      case "symbols": return <ScaffoldModal title={t("symbols")} onClose={close} />;
+      case "symbols": return <SymbolsModal onClose={close} />;
       case "grid":    return <GridModal onClose={close} />;
       case "navbar":  return <ScaffoldModal title={t("navbar")}  onClose={close} />;
       case "invites": return <InvitesModal onClose={close} onOpenPlan={() => { close(); open("plan"); }} />;

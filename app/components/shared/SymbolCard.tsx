@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from 'react';
+import { useProfile } from '@/app/contexts/ProfileContext';
+
 // componentKey: "symbol-{symbolId}" — required for modelling mode targeting.
 // All props/callbacks only — no context dependency.
 
@@ -14,6 +17,12 @@ type SymbolCardProps = {
   onTap: () => void;
 };
 
+const TEXT_SIZE_CLASS: Record<'large' | 'medium' | 'small', string> = {
+  large:  'text-theme-h2 font-semibold',
+  medium: 'text-theme-h4 font-semibold',
+  small:  'text-theme-p font-bold',
+};
+
 export function SymbolCard({
   imagePath,
   label,
@@ -22,10 +31,18 @@ export function SymbolCard({
   isModellingTarget = false,
   onTap,
 }: SymbolCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const { stateFlags } = useProfile();
+
+  const labelVisible = showLabel && (stateFlags.symbol_label_visible ?? true);
+  const textSizeClass = TEXT_SIZE_CLASS[stateFlags.symbol_text_size ?? 'small'];
+
   return (
     <button
       type="button"
       onClick={onTap}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={[
         'symbol-card',
         'flex flex-col items-center justify-between',
@@ -33,6 +50,14 @@ export function SymbolCard({
         'transition-transform active:scale-95',
         isModellingTarget ? 'symbol-card--modelling-target' : '',
       ].join(' ')}
+      style={{
+        borderWidth: '4px',
+        borderStyle: 'solid',
+        borderColor: hovered
+          ? 'var(--theme-brand-primary)'
+          : 'var(--theme-line)',
+        transition: 'border-color 150ms ease, transform 150ms ease',
+      }}
     >
       {showImage && (
         <div className="flex-1 flex items-center justify-center w-full min-h-0">
@@ -49,8 +74,11 @@ export function SymbolCard({
           )}
         </div>
       )}
-      {showLabel && (
-        <span className="text-caption font-medium text-center leading-tight mt-1 truncate w-full px-0.5">
+      {labelVisible && (
+        <span
+          className={`${textSizeClass} text-center leading-tight mt-1 truncate w-full px-0.5`}
+          style={{ color: 'var(--theme-text)' }}
+        >
           {label}
         </span>
       )}
