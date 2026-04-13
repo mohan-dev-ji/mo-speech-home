@@ -542,6 +542,8 @@ These were made deliberately after significant discussion. Do not change them wi
 
 **Shared components have no app-specific context dependencies** — they accept props only; contexts wrap them at the page level
 
+**Two-level edit pattern for categories** — Level 1 is in-page edit mode: toggling it switches view components to their editable variants (drag/delete/reorder) without leaving the page. Level 2 is `SymbolEditorModal`: the single shared modal for all symbol creative editing (image, label, audio, display), called from any Level 1 edit surface. Never build symbol creative editing inside a page.
+
 **`ModellingSessionContext` wraps the entire app from day one** — even though modelling mode is built in Phase 6; the `ModellingOverlayWrapper` on every highlightable element needs the context to exist from the start
 
 **`librarySourceId` is a loose reference only** — never used for rendering; only for the reload defaults flow; no enforced foreign key

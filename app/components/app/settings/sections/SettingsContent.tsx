@@ -28,7 +28,7 @@ type SettingId = typeof OWNER_SETTINGS_IDS[number];
 
 const MODAL_SIZE: Partial<Record<SettingId, string>> = {
   plan:    "max-w-3xl",
-  profile: "max-w-md",
+  profile: "max-w-lg",
   theme:   "max-w-md",
   voice:   "max-w-sm",
   invites: "max-w-2xl",

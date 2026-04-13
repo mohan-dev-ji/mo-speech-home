@@ -13,6 +13,43 @@ Instructor can create, edit, and reorder categories. Student can navigate a grid
 
 ---
 
+## Edit Mode Architecture — Read This First
+
+There are two distinct levels of editing. Do not conflate them.
+
+### Level 1 — In-page edit mode (toggle on the current page)
+
+Edit mode is a local boolean state on the page (`isEditing`). Toggling it switches every item on the page from its **view component** to its **edit component** — same page, same URL, no navigation.
+
+| Page | View component | Edit component |
+|---|---|---|
+| Categories list | `CategoryTile` | `CategoryTileEditable` — move (drag), delete |
+| Category board | `SymbolCard` | `SymbolCardEditable` — move (drag), edit, delete |
+| Category lists | `ListItem` | `ListItemEditable` — move, edit, delete |
+| Category sentences | `SentenceItem` | `SentenceItemEditable` — move, edit, delete |
+| Category first-thens | `FirstThenCard` | `FirstThenCardEditable` — move, edit, delete |
+
+The edit component handles position/order changes and deletion directly. It also exposes an "Edit" button that escalates to Level 2.
+
+### Level 2 — Symbol editor modal (shared across the entire app)
+
+Pressing "Edit" on a symbol from **any context** (board, list, sentence, first-then, or anywhere else in the future) opens `SymbolEditorModal`. This is a single shared component in `app/components/shared/` that handles the full creative editing experience: image source, label, audio, and display overrides.
+
+`SymbolEditorModal` is never duplicated or specialised per-context. It receives a `profileSymbolId` (edit mode) or `profileCategoryId` (create mode) and handles everything internally.
+
+```
+In-page edit mode       ← drag/delete/reorder — stays on page
+      │
+      └─ tap Edit on a symbol
+            │
+            ▼
+      SymbolEditorModal  ← full creative editing — shared modal, called from anywhere
+```
+
+This distinction must hold throughout the build. If you find yourself building editing UI inside a page that belongs in `SymbolEditorModal`, stop and put it in the modal instead.
+
+---
+
 ## Schema Changes Required Before Building Any UI
 
 ### 1. Add `activeProfileId` to `users` table
@@ -93,17 +130,22 @@ getProfileCategories(profileId: Id<"studentProfiles">)
 
 ### Render
 
-- `CategoryBoardGrid` of category tiles
+- `CategoryBoardGrid` of `CategoryTile` components
 - Each tile: icon, name (in active language), background colour
 - Tap → navigate to `/[locale]/categories/[categoryId]`
-- Instructor sees an edit button on each tile (pencil icon, top-right corner)
-- Instructor sees a "+ Add Category" tile at the end of the grid
+- Instructor sees an "Edit" toggle button in the page header
 
-### Edit mode (instructor only)
+### View mode
 
-- Tap edit → `CategoryEditModal`: rename, change icon, change colour, delete
-- Drag to reorder (updates `order` field on `profileCategories`)
-- Delete: confirmation modal with destructive warning — deletes category + all its `profileSymbols`
+- Tap a tile → navigate to board
+
+### Edit mode (instructor only, Level 1)
+
+- Each `CategoryTile` switches to `CategoryTileEditable`
+- Drag handle to reorder (patches `order` on `profileCategories`)
+- Delete button with confirmation — deletes category + all associated `profileSymbols`, `profileLists`, `profileSentences`, `profileFirstThens`
+- Tap the tile body → opens `CategoryMetaModal` (rename, change icon, change colour) — this is a simple metadata modal, not the symbol editor
+- "+ Add Category" button appears at the end of the grid in edit mode
 
 ---
 
@@ -144,47 +186,69 @@ getProfileSymbols(profileCategoryId: Id<"profileCategories">)
 - Grid column count from `stateFlags.grid_size` (large=4, medium=8, small=12)
 - Each `SymbolCard` wrapped in `ModellingOverlayWrapper` with `componentKey="symbol-{symbolId}"`
 
-### Tap behaviour
+### Tap behaviour (view mode)
 
 | Header mode | Tap action |
 |---|---|
 | Talker | Add to talker bar. If `audio_autoplay` is on, play audio immediately. |
 | Banner | Play audio + show PlayModal |
 
-### Instructor edit controls
+### Edit mode (instructor only, Level 1)
 
-- Long-press or edit-mode button reveals: reorder handle, edit button, delete button
-- Edit → opens `SymbolEditorModal` (Phase 4)
-- "+ Add Symbol" button at end of grid → opens `SymbolEditorModal` in create mode
+- Instructor sees an "Edit" toggle button in the page header
+- Each `SymbolCard` switches to `SymbolCardEditable`
+- `SymbolCardEditable` shows: drag handle (reorder), Edit button, Delete button
+- **Edit button → opens `SymbolEditorModal` (Level 2)** — full creative editing
+- Delete button: removes `profileSymbol` record + associated R2 assets
+- Drag to reorder (patches `order` on `profileSymbols`)
+- "+ Add Symbol" tile at end of grid → opens `SymbolEditorModal` in create mode
 
 ---
 
 ## Lists Mode
 
+**View mode**
 - Ordered list of `profileLists` for this category
 - Each list: name + ordered symbol chips
 - Tap a chip → play audio
 - Play button → PlayModal with sequential playback
-- Instructor: add/edit/delete lists
+
+**Edit mode (Level 1)**
+- Each `ListItem` switches to `ListItemEditable`: drag to reorder, delete list, edit list name
+- Tapping a symbol chip within the editable list → opens `SymbolEditorModal` (Level 2)
+- "+ Add List" button → opens a simple name input, then puts the new list into edit mode
+- "+ Add Symbol" within a list → opens `SymbolEditorModal` in create mode
 
 ---
 
 ## First Thens Mode
 
+**View mode**
 - Grid of `profileFirstThens` for this category
 - Each card: "First [symbol] Then [symbol]"
 - Tap either symbol → play its audio
-- Instructor: add/edit/delete first-thens
+
+**Edit mode (Level 1)**
+- Each `FirstThenCard` switches to `FirstThenCardEditable`: drag to reorder, delete, edit name
+- Tapping either symbol slot → opens `SymbolEditorModal` (Level 2) to swap or edit that symbol
+- "+ Add First Then" button
 
 ---
 
 ## Sentences Mode
 
+**View mode**
 - Ordered list of `profileSentences` for this category
 - Each sentence: name + ordered symbol chips
 - Play button → PlayModal + generates/plays Chirp 3 HD natural voice audio
 - TTS audio cached to R2 on first play; subsequent plays use cached file
-- Instructor: add/edit/delete sentences
+
+**Edit mode (Level 1)**
+- Each `SentenceItem` switches to `SentenceItemEditable`: drag to reorder, delete, edit name
+- Tapping a symbol chip → opens `SymbolEditorModal` (Level 2)
+- Reordering chips within a sentence patches `items` array order
+- "+ Add Sentence" button
+- "+ Add Symbol" within a sentence → opens `SymbolEditorModal` in create mode
 
 ---
 

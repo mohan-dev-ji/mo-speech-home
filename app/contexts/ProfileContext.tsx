@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { Doc } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 
 // State flags stored on studentProfile in Convex
 type StateFlags = {
@@ -22,6 +22,10 @@ type StateFlags = {
   grid_size: 'large' | 'medium' | 'small';
   symbol_label_visible: boolean;
   symbol_text_size: 'large' | 'medium' | 'small' | 'xs';
+  lists_visible: boolean;
+  sentences_visible: boolean;
+  first_thens_visible: boolean;
+  student_can_edit: boolean;
 };
 
 const DEFAULT_FLAGS: StateFlags = {
@@ -40,6 +44,10 @@ const DEFAULT_FLAGS: StateFlags = {
   grid_size: 'large',
   symbol_label_visible: true,
   symbol_text_size: 'small' as const,
+  lists_visible: true,
+  sentences_visible: true,
+  first_thens_visible: true,
+  student_can_edit: false,
 };
 
 type ViewMode = 'instructor' | 'student-view';
@@ -47,12 +55,14 @@ type ViewMode = 'instructor' | 'student-view';
 type ProfileContextValue = {
   activeProfileId: string | null;
   studentProfile: Doc<'studentProfiles'> | null;
+  allProfiles: Doc<'studentProfiles'>[];
   profileLoading: boolean;
   stateFlags: StateFlags;
   language: string;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   setLanguage: (lang: string) => void;
+  setActiveProfile: (profileId: Id<'studentProfiles'>) => void;
   setTalkerVisible: (value: boolean) => void;
   setGridSize: (size: 'large' | 'medium' | 'small') => void;
   setSymbolLabelVisible: (value: boolean) => void;
@@ -62,12 +72,14 @@ type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue>({
   activeProfileId: null,
   studentProfile: null,
+  allProfiles: [],
   profileLoading: true,
   stateFlags: DEFAULT_FLAGS,
   language: 'eng',
   viewMode: 'instructor',
   setViewMode: () => {},
   setLanguage: () => {},
+  setActiveProfile: () => {},
   setTalkerVisible: () => {},
   setGridSize: () => {},
   setSymbolLabelVisible: () => {},
@@ -81,14 +93,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const studentProfile = useQuery(api.studentProfiles.getMyStudentProfile);
   const profileLoading = studentProfile === undefined;
 
-  const setStateFlagMutation      = useMutation(api.studentProfiles.setStateFlag);
-  const setGridSizeMutation       = useMutation(api.studentProfiles.setGridSize);
-  const setSymbolTextSizeMutation = useMutation(api.studentProfiles.setSymbolTextSize);
+  const allProfiles = useQuery(api.studentProfiles.getMyStudentProfiles) ?? [];
+
+  const setStateFlagMutation         = useMutation(api.studentProfiles.setStateFlag);
+  const setGridSizeMutation          = useMutation(api.studentProfiles.setGridSize);
+  const setSymbolTextSizeMutation    = useMutation(api.studentProfiles.setSymbolTextSize);
   const updateStudentProfileMutation = useMutation(api.studentProfiles.updateStudentProfile);
+  const setActiveProfileMutation     = useMutation(api.studentProfiles.setActiveProfile);
 
   function setLanguage(lang: string) {
     if (!studentProfile) return;
     updateStudentProfileMutation({ profileId: studentProfile._id, language: lang });
+  }
+
+  function setActiveProfile(profileId: Id<'studentProfiles'>) {
+    setActiveProfileMutation({ profileId });
   }
 
   function setTalkerVisible(value: boolean) {
@@ -119,6 +138,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       value={{
         activeProfileId: studentProfile?._id ?? null,
         studentProfile: studentProfile ?? null,
+        allProfiles,
         profileLoading,
         stateFlags: studentProfile?.stateFlags
           ? {
@@ -126,12 +146,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               grid_size:            studentProfile.stateFlags.grid_size            ?? DEFAULT_FLAGS.grid_size,
               symbol_label_visible: studentProfile.stateFlags.symbol_label_visible ?? DEFAULT_FLAGS.symbol_label_visible,
               symbol_text_size:     studentProfile.stateFlags.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
+              lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
+              sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
+              first_thens_visible:  studentProfile.stateFlags.first_thens_visible  ?? DEFAULT_FLAGS.first_thens_visible,
+              student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
             }
           : DEFAULT_FLAGS,
         language: studentProfile?.language ?? 'eng',
         viewMode,
         setViewMode,
         setLanguage,
+        setActiveProfile,
         setTalkerVisible,
         setGridSize,
         setSymbolLabelVisible,

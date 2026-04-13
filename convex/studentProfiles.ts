@@ -18,15 +18,22 @@ const DEFAULT_STATE_FLAGS = {
   reduce_motion: false,
   grid_size: "large" as const,
   symbol_label_visible: true,
-  symbol_text_size: "small" as const, // kept as 'small' default; grid large→medium, medium→small, small→xs
+  symbol_text_size: "small" as const,
+  lists_visible: true,
+  sentences_visible: true,
+  first_thens_visible: true,
+  student_can_edit: false,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
- * Get the student profile for the current user's account.
- * Returns null if the user has not yet created a profile (onboarding incomplete).
- * Phase 1: one profile per account.
+ * Get the active student profile for the current user.
+ * Resolution order:
+ *   1. users.activeProfileId (if set and valid)
+ *   2. First profile found for the account (backwards compat / first-time)
+ *   3. Collaborator path: active membership → host account's active profile
+ * Returns null if no profile exists (onboarding needed).
  */
 export const getMyStudentProfile = query({
   args: {},
@@ -40,21 +47,31 @@ export const getMyStudentProfile = query({
       .first();
     if (!user) return null;
 
-    // Instructor path: own account has a profile
-    const ownProfile = await ctx.db
+    // Instructor path: own account
+    if (user.activeProfileId) {
+      const active = await ctx.db.get(user.activeProfileId);
+      if (active && active.accountId === user._id) return active;
+    }
+    const firstOwn = await ctx.db
       .query("studentProfiles")
       .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
       .first();
-    if (ownProfile) return ownProfile;
+    if (firstOwn) return firstOwn;
 
-    // Collaborator path: active membership on another account → load that account's profile
+    // Collaborator path: active membership on another account
     const membership = await ctx.db
       .query("accountMembers")
       .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", user.clerkUserId))
       .first();
-
     if (!membership || membership.status !== "active") return null;
 
+    const hostUser = await ctx.db.get(membership.accountId);
+    if (!hostUser) return null;
+
+    if (hostUser.activeProfileId) {
+      const hostActive = await ctx.db.get(hostUser.activeProfileId);
+      if (hostActive) return hostActive;
+    }
     return await ctx.db
       .query("studentProfiles")
       .withIndex("by_account_id", (q) => q.eq("accountId", membership.accountId))
@@ -62,18 +79,42 @@ export const getMyStudentProfile = query({
   },
 });
 
+/**
+ * Get all student profiles belonging to the current user's own account.
+ * Returns [] for collaborators (they don't own profiles).
+ * Used by the profile switcher in Settings.
+ */
+export const getMyStudentProfiles = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) return [];
+
+    return await ctx.db
+      .query("studentProfiles")
+      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
+      .collect();
+  },
+});
+
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
 /**
- * Create a student profile after sign-up (onboarding step).
- * Seeds default state flags and sets the chosen language.
- * Guard: one profile per account — returns existing ID if already created.
+ * Create a new student profile on this account.
+ * Multiple profiles per account are allowed.
+ * The new profile becomes the active profile immediately.
  */
 export const createStudentProfile = mutation({
   args: {
     name: v.string(),
     dateOfBirth: v.optional(v.number()),
-    language: v.string(), // "eng" | "hin" — open-ended
+    language: v.string(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -85,14 +126,7 @@ export const createStudentProfile = mutation({
       .first();
     if (!user) throw new Error("User record not found");
 
-    // One profile per account in Phase 1
-    const existing = await ctx.db
-      .query("studentProfiles")
-      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
-      .first();
-    if (existing) return existing._id;
-
-    return await ctx.db.insert("studentProfiles", {
+    const profileId = await ctx.db.insert("studentProfiles", {
       accountId: user._id,
       name: args.name,
       dateOfBirth: args.dateOfBirth,
@@ -100,18 +134,89 @@ export const createStudentProfile = mutation({
       stateFlags: DEFAULT_STATE_FLAGS,
       updatedAt: Date.now(),
     });
+
+    // New profile becomes active immediately
+    await ctx.db.patch(user._id, { activeProfileId: profileId });
+
+    return profileId;
+  },
+});
+
+/**
+ * Switch the active profile on the current user's account.
+ * Verifies the profile belongs to the caller's own account.
+ */
+export const setActiveProfile = mutation({
+  args: {
+    profileId: v.id("studentProfiles"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile || profile.accountId !== user._id)
+      throw new Error("Profile not found or not authorised");
+
+    await ctx.db.patch(user._id, { activeProfileId: args.profileId });
+  },
+});
+
+/**
+ * Delete a student profile.
+ * Cannot delete the last remaining profile on an account.
+ * If the deleted profile was active, switches to the next available profile.
+ */
+export const deleteStudentProfile = mutation({
+  args: {
+    profileId: v.id("studentProfiles"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile || profile.accountId !== user._id)
+      throw new Error("Not authorised");
+
+    const allProfiles = await ctx.db
+      .query("studentProfiles")
+      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
+      .collect();
+
+    if (allProfiles.length <= 1)
+      throw new Error("Cannot delete the only profile");
+
+    // If deleting the active profile, switch to another before deleting
+    if (user.activeProfileId === args.profileId) {
+      const next = allProfiles.find((p) => p._id !== args.profileId);
+      if (next) await ctx.db.patch(user._id, { activeProfileId: next._id });
+    }
+
+    await ctx.db.delete(args.profileId);
   },
 });
 
 /**
  * Toggle a single state flag on a student profile.
- * Used by the instructor to adjust the student's live view (e.g. talker_visible).
  * Verifies ownership — collaborators can also call this.
  */
 export const setStateFlag = mutation({
   args: {
     profileId: v.id("studentProfiles"),
-    flag: v.string(), // key of stateFlags object
+    flag: v.string(),
     value: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -121,7 +226,6 @@ export const setStateFlag = mutation({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) throw new Error("Profile not found");
 
-    // Allow account owner or active collaborator
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
@@ -141,16 +245,17 @@ export const setStateFlag = mutation({
     if (!isOwner && !isCollaborator) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileId, {
-      stateFlags: { ...profile.stateFlags, [args.flag]: args.value } as typeof profile.stateFlags,
+      stateFlags: {
+        ...profile.stateFlags,
+        [args.flag]: args.value,
+      } as typeof profile.stateFlags,
       updatedAt: Date.now(),
     });
   },
 });
 
 /**
- * Set the grid size preference for a student profile.
- * large=4 cols, medium=8 cols, small=12 cols.
- * Verifies ownership — collaborators can also call this.
+ * Set the grid size preference. large=4 cols, medium=8 cols, small=12 cols.
  */
 export const setGridSize = mutation({
   args: {
@@ -190,13 +295,17 @@ export const setGridSize = mutation({
 });
 
 /**
- * Set the symbol text size preference for a student profile.
- * small=p-bold, medium=h4, large=h2.
+ * Set the symbol text size preference.
  */
 export const setSymbolTextSize = mutation({
   args: {
     profileId: v.id("studentProfiles"),
-    textSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs")),
+    textSize: v.union(
+      v.literal("large"),
+      v.literal("medium"),
+      v.literal("small"),
+      v.literal("xs")
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -231,8 +340,8 @@ export const setSymbolTextSize = mutation({
 });
 
 /**
- * Update a student profile's editable fields.
- * Verifies the caller owns the account this profile belongs to.
+ * Update a student profile's editable fields (name, language, dateOfBirth).
+ * Only the account owner can do this.
  */
 export const updateStudentProfile = mutation({
   args: {

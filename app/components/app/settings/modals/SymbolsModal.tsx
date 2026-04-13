@@ -8,7 +8,7 @@ import {
 } from "@/app/components/shared/ui/Dialog";
 import { Button } from "@/app/components/shared/ui/Button";
 
-type TextSize = 'large' | 'medium' | 'small';
+type TextSize = 'large' | 'medium' | 'small' | 'xs';
 
 export function SymbolsModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("symbols");

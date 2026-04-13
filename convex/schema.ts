@@ -88,6 +88,7 @@ export default defineSchema({
       stripeSubscriptionId: v.optional(v.string()),
     }),
     referredBy: v.optional(v.string()), // affiliate code captured on signup
+    activeProfileId: v.optional(v.id("studentProfiles")), // which profile is active; null = fall back to first found
     lastActiveAt: v.number(),
   })
     .index("by_clerk_id", ["clerkUserId"])
@@ -144,6 +145,11 @@ export default defineSchema({
       grid_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"))), // large=4, medium=8, small=12 cols; optional for backwards compat (defaults to 'large')
       symbol_label_visible: v.optional(v.boolean()), // show/hide text label on symbol cards; defaults to true
       symbol_text_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))), // h2/h4/p-bold/s-bold; defaults to 'small'
+      // ── Student-facing permission flags (set by instructor) ──
+      lists_visible:      v.optional(v.boolean()), // Lists mode in categories; default true
+      sentences_visible:  v.optional(v.boolean()), // Sentences mode in categories; default true
+      first_thens_visible: v.optional(v.boolean()), // First Thens mode in categories; default true
+      student_can_edit:   v.optional(v.boolean()), // Student can edit board content; default false
     }),
     updatedAt: v.number(),
   })

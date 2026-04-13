@@ -1,124 +1,186 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useUser, useReverification } from "@clerk/nextjs";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/shared/ui/Dialog";
-import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
 import { Button } from "@/app/components/shared/ui/Button";
 import { Input } from "@/app/components/shared/ui/Input";
-import { Camera } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
-// ─── Student profile section ──────────────────────────────────────────────────
+// ─── Permission config ────────────────────────────────────────────────────────
 
-function StudentProfileSection() {
-  const { studentProfile } = useProfile();
-  const updateStudentProfile = useMutation(api.studentProfiles.updateStudentProfile);
+type PermissionFlag = {
+  flag: string;
+  labelKey: keyof ReturnType<ReturnType<typeof useTranslations>>;
+  default: boolean;
+};
 
-  const [name,     setName]     = useState("");
-  const [dob,      setDob]      = useState("");
-  const [language, setLanguage] = useState<"eng" | "hin">("eng");
-  const [origName, setOrigName] = useState("");
-  const [origDob,  setOrigDob]  = useState("");
-  const [origLang, setOrigLang] = useState<"eng" | "hin">("eng");
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState("");
-  const [success,  setSuccess]  = useState("");
+const PERMISSIONS = [
+  { flag: "categories_visible", labelKey: "permBoards",       defaultVal: true  },
+  { flag: "lists_visible",      labelKey: "permLists",        defaultVal: true  },
+  { flag: "sentences_visible",  labelKey: "permSentences",    defaultVal: true  },
+  { flag: "first_thens_visible",labelKey: "permFirstThens",   defaultVal: true  },
+  { flag: "search_visible",     labelKey: "permSearch",       defaultVal: true  },
+  { flag: "settings_visible",   labelKey: "permSettings",     defaultVal: false },
+  { flag: "student_can_edit",   labelKey: "permAllowEditing", defaultVal: false },
+] as const;
 
-  useEffect(() => {
-    if (!studentProfile) return;
-    const n = studentProfile.name;
-    const d = studentProfile.dateOfBirth
-      ? new Date(studentProfile.dateOfBirth).toISOString().split("T")[0]
-      : "";
-    const l = (studentProfile.language as "eng" | "hin") ?? "eng";
-    setName(n); setOrigName(n);
-    setDob(d);  setOrigDob(d);
-    setLanguage(l); setOrigLang(l);
-  }, [studentProfile]);
+// ─── Profile tab content ──────────────────────────────────────────────────────
 
-  if (!studentProfile) return null;
+function ProfileTabContent({
+  profile,
+  isAppActive,
+}: {
+  profile: Doc<"studentProfiles">;
+  isAppActive: boolean;
+}) {
+  const t = useTranslations("studentProfile");
+  const { setActiveProfile, allProfiles } = useProfile();
+  const updateProfile  = useMutation(api.studentProfiles.updateStudentProfile);
+  const setFlag        = useMutation(api.studentProfiles.setStateFlag);
+  const deleteProfile  = useMutation(api.studentProfiles.deleteStudentProfile);
 
-  const hasChanges = name !== origName || dob !== origDob || language !== origLang;
+  const [name,        setName]        = useState(profile.name);
+  const [origName,    setOrigName]    = useState(profile.name);
+  const [savingName,  setSavingName]  = useState(false);
+  const [deleteOpen,  setDeleteOpen]  = useState(false);
+  const [deleting,    setDeleting]    = useState(false);
+  const [error,       setError]       = useState("");
 
-  const handleSave = async () => {
-    setSaving(true); setError(""); setSuccess("");
+  const flags = profile.stateFlags as Record<string, boolean | string | undefined>;
+  const canDelete = allProfiles.length > 1;
+
+  const handleSaveName = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === origName) return;
+    setSavingName(true);
+    setError("");
     try {
-      const dateOfBirth = dob ? new Date(dob).getTime() : undefined;
-      await updateStudentProfile({
-        profileId: studentProfile._id,
-        name: name.trim() || undefined,
-        dateOfBirth,
-        language,
-      });
-      setOrigName(name); setOrigDob(dob); setOrigLang(language);
-      setSuccess("Student profile saved.");
+      await updateProfile({ profileId: profile._id, name: trimmed });
+      setOrigName(trimmed);
     } catch {
-      setError("Failed to save. Please try again.");
+      setError(t("errorGeneric"));
     } finally {
-      setSaving(false);
+      setSavingName(false);
+    }
+  };
+
+  const handleToggleFlag = (flag: string, currentVal: boolean) => {
+    setFlag({ profileId: profile._id, flag, value: !currentVal });
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteProfile({ profileId: profile._id });
+    } catch {
+      setError(t("errorGeneric"));
+      setDeleting(false);
+      setDeleteOpen(false);
     }
   };
 
   return (
-    <div className="pt-4 border-t border-border space-y-3">
-      <p className="text-small font-semibold text-foreground">Student profile</p>
+    <div className="space-y-5 pt-3 pb-1">
 
-      <Input
-        label="Student's name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Student's name"
-      />
-
-      {/* Language */}
-      <div className="space-y-1.5">
-        <span className="text-small font-medium text-foreground">Language</span>
-        <div className="flex gap-2">
-          {(["eng", "hin"] as const).map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              onClick={() => setLanguage(lang)}
-              className={`flex-1 py-2 rounded-md border text-small font-medium transition-colors ${
-                language === lang
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {lang === "eng" ? "English" : "हिंदी"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Date of birth */}
-      <div className="space-y-1.5">
+      {/* Active / switch indicator */}
+      {isAppActive ? (
         <div className="flex items-center gap-2">
-          <span className="text-small font-medium text-foreground">Date of birth</span>
-          <span className="text-xs text-muted-foreground">(optional)</span>
+          <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+          <span className="text-caption text-muted-foreground">{t("activeLabel")}</span>
         </div>
-        <input
-          type="date"
-          value={dob}
-          onChange={(e) => setDob(e.target.value)}
-          max={new Date().toISOString().split("T")[0]}
-          className="w-full px-3 py-2 text-body bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary text-foreground"
-        />
-      </div>
-
-      {(error || success) && (
-        <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-border shrink-0" />
+          <span className="text-caption text-muted-foreground flex-1">{t("notActiveLabel")}</span>
+          <Button
+            size="sm"
+            onClick={() => setActiveProfile(profile._id as Id<"studentProfiles">)}
+          >
+            {t("switchButton")}
+          </Button>
+        </div>
       )}
 
-      <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges || !name.trim()}>
-        Save student profile
-      </Button>
+      {/* Profile name */}
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <Input
+            label={t("profileNameLabel")}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={handleSaveName}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); }}
+          />
+        </div>
+        {name.trim() !== origName && (
+          <Button size="sm" onClick={handleSaveName} loading={savingName}>
+            {t("saveNameButton")}
+          </Button>
+        )}
+      </div>
+
+      {/* Permission toggles */}
+      <div>
+        <p className="text-small font-semibold text-foreground mb-3">
+          {t("permissionsHeading")}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+            const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
+            return (
+              <button
+                key={flag}
+                type="button"
+                onClick={() => handleToggleFlag(flag, value)}
+                className={`px-3 py-1.5 rounded-md text-small font-medium border transition-colors ${
+                  value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {t(labelKey as any)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {error && <p className="text-small text-destructive">{error}</p>}
+
+      {/* Delete (hidden if only one profile) */}
+      {canDelete && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setDeleteOpen(!deleteOpen)}
+            className="flex items-center gap-1 text-small text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t("deleteDropdownLabel")}
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform ${deleteOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {deleteOpen && (
+            <div className="mt-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                loading={deleting}
+                onClick={handleDelete}
+              >
+                {t("deleteConfirmButton")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -126,194 +188,106 @@ function StudentProfileSection() {
 // ─── ProfileModal ─────────────────────────────────────────────────────────────
 
 export function ProfileModal({ onClose }: { onClose: () => void }) {
-  const router = useRouter();
-  const { user, isLoaded } = useUser();
-  const deleteMyUser = useMutation(api.users.deleteMyUser);
+  const t = useTranslations("studentProfile");
+  const { allProfiles, activeProfileId } = useProfile();
+  const createProfile = useMutation(api.studentProfiles.createStudentProfile);
 
-  const updatePasswordVerified = useReverification(
-    async (newPassword: string) => user?.updatePassword({ newPassword })
-  );
-  const deleteUserVerified = useReverification(async () => user?.delete());
+  const [selectedId,   setSelectedId]   = useState<string>(activeProfileId ?? allProfiles[0]?._id ?? "");
+  const [newName,      setNewName]      = useState("");
+  const [creating,     setCreating]     = useState(false);
+  const [createError,  setCreateError]  = useState("");
 
-  const [firstName,       setFirstName]       = useState("");
-  const [lastName,        setLastName]        = useState("");
-  const [email,           setEmail]           = useState("");
-  const [newPassword,     setNewPassword]     = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [origFirst,       setOrigFirst]       = useState("");
-  const [origLast,        setOrigLast]        = useState("");
-  const [origEmail,       setOrigEmail]       = useState("");
-  const [saving,          setSaving]          = useState(false);
-  const [photoLoading,    setPhotoLoading]    = useState(false);
-  const [error,           setError]           = useState("");
-  const [success,         setSuccess]         = useState("");
-  const [deleteOpen,      setDeleteOpen]      = useState(false);
-  const [deleting,        setDeleting]        = useState(false);
-  const [passwordError,   setPasswordError]   = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    const first = user.firstName ?? "";
-    const last  = user.lastName  ?? "";
-    const em    = user.primaryEmailAddress?.emailAddress ?? "";
-    setFirstName(first); setOrigFirst(first);
-    setLastName(last);   setOrigLast(last);
-    setEmail(em);        setOrigEmail(em);
-  }, [user]);
-
-  if (!isLoaded) return null;
-
-  const hasChanges =
-    firstName !== origFirst || lastName !== origLast ||
-    email !== origEmail     || newPassword.length > 0;
-
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoLoading(true);
-    try { await user?.setProfileImage({ file }); }
-    catch { setError("Failed to update photo."); }
-    finally {
-      setPhotoLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const saveChanges = async (includePassword = false) => {
-    setSaving(true); setError("");
+  const handleCreate = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    setCreating(true);
+    setCreateError("");
     try {
-      if (firstName !== origFirst || lastName !== origLast) {
-        await user?.update({ firstName, lastName });
-        setOrigFirst(firstName); setOrigLast(lastName);
-      }
-      if (email !== origEmail) {
-        await user?.createEmailAddress({ email });
-        setSuccess("Verification email sent. It will become your primary once confirmed.");
-        setOrigEmail(email);
-      }
-      if (includePassword && newPassword) {
-        await updatePasswordVerified(newPassword);
-        setNewPassword(""); setConfirmPassword("");
-      }
-      if (!success) setSuccess("Changes saved.");
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.message ?? "Failed to save changes.");
-    } finally { setSaving(false); }
-  };
-
-  const handleSave = async () => {
-    setError(""); setSuccess(""); setPasswordError("");
-    if (newPassword && newPassword !== confirmPassword) {
-      setPasswordError("Passwords don't match."); return;
-    }
-    await saveChanges(!!newPassword);
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
-    try {
-      const res = await fetch("/api/delete-account", { method: "POST" });
-      if (!res.ok) throw new Error("Stripe cleanup failed");
-      await deleteMyUser();
-      await deleteUserVerified();
-      router.push("/");
+      const id = await createProfile({ name: trimmed, language: "eng" });
+      setNewName("");
+      setSelectedId(id);
     } catch {
-      setError("Failed to delete account. Please try again.");
-      setDeleting(false); setDeleteOpen(false);
+      setCreateError(t("errorGeneric"));
+    } finally {
+      setCreating(false);
     }
   };
 
-  const initials =
-    [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join("") ||
-    user?.primaryEmailAddress?.emailAddress?.[0]?.toUpperCase() || "?";
+  const selectedProfile =
+    allProfiles.find((p) => p._id === selectedId) ?? allProfiles[0];
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Profile</DialogTitle>
+        <DialogTitle>{t("title")}</DialogTitle>
       </DialogHeader>
 
-      <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
-        {/* ── Instructor account ─────────────────────────── */}
-        <p className="text-small font-semibold text-foreground">Your account</p>
-
-        {/* Avatar */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={photoLoading}
-            className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-border hover:ring-primary transition-all group shrink-0"
-            aria-label="Change photo"
-          >
-            {user?.imageUrl ? (
-              <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="w-full h-full flex items-center justify-center bg-muted text-subheading font-medium">{initials}</span>
-            )}
-            <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="w-3.5 h-3.5 text-white" />
-            </span>
-          </button>
-          <div>
-            <button onClick={() => fileInputRef.current?.click()} disabled={photoLoading}
-              className="text-small text-primary hover:underline disabled:opacity-50">
-              {photoLoading ? "Uploading…" : "Change photo"}
-            </button>
-            <p className="text-caption text-muted-foreground">JPG, PNG or GIF. Max 10MB.</p>
-          </div>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-        </div>
-
-        {/* Name */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input label="First name" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" />
-          <Input label="Last name"  value={lastName}  onChange={e => setLastName(e.target.value)}  placeholder="Last name" />
-        </div>
-
-        {/* Email */}
-        <Input label="Email address" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
-
-        {/* Password */}
-        <Input label="New password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Leave blank to keep current" error={passwordError} />
-        {newPassword && (
-          <Input label="Confirm password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
-        )}
-
-        {(error || success) && (
-          <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
-        )}
-
-        {/* ── Student profile ────────────────────────────── */}
-        <StudentProfileSection />
-
-        {/* ── Danger zone ───────────────────────────────── */}
-        <div className="pt-2 border-t border-border">
-          <p className="text-caption text-muted-foreground mb-2">Permanently deletes your account and cancels any active subscription.</p>
-          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>Delete my account</Button>
-        </div>
+      {/* Create new profile row */}
+      <div className="flex gap-2">
+        <input
+          className="flex-1 px-3 py-2 text-small bg-background border border-border rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
+                     text-foreground placeholder:text-muted-foreground"
+          placeholder={t("newProfilePlaceholder")}
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
+        />
+        <Button
+          size="sm"
+          loading={creating}
+          disabled={!newName.trim()}
+          onClick={handleCreate}
+        >
+          {t("createButton")}
+        </Button>
       </div>
+      {createError && <p className="text-small text-destructive">{createError}</p>}
+
+      {/* Profile tabs */}
+      {allProfiles.length > 0 && (
+        <>
+          <div className="flex border-b border-border -mx-6 px-6 overflow-x-auto">
+            {allProfiles.map((profile) => {
+              const isSelected = profile._id === selectedId;
+              const isActive   = profile._id === activeProfileId;
+              return (
+                <button
+                  key={profile._id}
+                  type="button"
+                  onClick={() => setSelectedId(profile._id)}
+                  className={`relative shrink-0 px-4 py-2.5 text-small font-medium whitespace-nowrap transition-colors ${
+                    isSelected
+                      ? "text-primary border-b-2 border-primary -mb-px"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {profile.name}
+                  {/* Green dot = app-active profile */}
+                  {isActive && (
+                    <span className="absolute top-2 right-1.5 w-1.5 h-1.5 rounded-full bg-success" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedProfile && (
+            <ProfileTabContent
+              key={selectedProfile._id}
+              profile={selectedProfile}
+              isAppActive={selectedProfile._id === activeProfileId}
+            />
+          )}
+        </>
+      )}
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{t("cancelButton")}</Button>
         </DialogClose>
-        <Button onClick={handleSave} loading={saving} disabled={!hasChanges}>Save</Button>
+        <Button onClick={onClose}>{t("confirmButton")}</Button>
       </DialogFooter>
-
-      {/* Delete confirmation */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete account?</DialogTitle>
-          </DialogHeader>
-          <p className="text-small text-muted-foreground">This will cancel your subscription, delete all your data, and cannot be undone.</p>
-          <DialogFooter>
-            <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
-            <Button variant="destructive" loading={deleting} onClick={handleDeleteAccount}>Yes, delete my account</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
