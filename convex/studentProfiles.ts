@@ -349,6 +349,7 @@ export const updateStudentProfile = mutation({
     name: v.optional(v.string()),
     dateOfBirth: v.optional(v.number()),
     language: v.optional(v.string()),
+    themeSlug: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

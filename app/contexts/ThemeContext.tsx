@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from 'react';
@@ -205,11 +204,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [tokens, setTokens] = useState<ThemeTokens>(THEME_TOKENS.default);
   const [reduceMotion, setReduceMotionState] = useState(false);
-
-  // Apply Default (Slate) on first mount — no flash since CSS defaults match
-  useEffect(() => {
-    applyThemeTokens(THEME_TOKENS.default, reduceMotion);
-  }, []);
+  // No mount effect needed — CSS vars are defined in globals.css with default values.
+  // Applying defaults here would race with ProfileContext's theme restoration on locale change.
 
   // ProfileContext calls setTheme() when the active studentProfile loads
   function setTheme(themeId: string, newTokens: ThemeTokens) {

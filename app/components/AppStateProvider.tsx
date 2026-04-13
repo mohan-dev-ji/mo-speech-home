@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import type { UserSubscription, UserRecord } from "@/types";
 
@@ -18,8 +19,12 @@ const AppStateContext = createContext<AppStateContextValue | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const hasSynced = useRef(false);
+  const params = useParams();
+  const router = useRouter();
+  // urlLocale is the locale segment in the current path, e.g. 'en' or 'hi'
+  const urlLocale = (params?.locale as string) ?? null;
 
-  // ─── Convex queries (JWT-verified, real-time via WebSocket) ──────────────────
+  // ─── Convex queries ──────────────────────────────────────────────────────────
 
   const userRecord = useQuery(api.users.getMyUser) as UserRecord | null | undefined;
   const accessData = useQuery(api.users.getMyAccess);
@@ -40,17 +45,36 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     hasSynced.current = true;
 
     if (userRecord === null) {
-      // First sign-in — create the user record
+      // First sign-in — create the user record, capture the current URL locale
       createUser({
         clerkUserId: clerkUser.id,
         email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
         name: clerkUser.fullName ?? undefined,
+        locale: urlLocale ?? "en",
       });
     } else {
       // Returning user — update activity timestamp
       updateLastActive({ userId: userRecord._id as any });
     }
   }, [isLoaded, clerkUser, userRecord]);
+
+  // ─── Locale mismatch redirect — returning users only ─────────────────────────
+  // If the stored locale differs from the current URL locale, redirect.
+  // This handles sign-in which always lands on /en/home regardless of preference.
+
+  useEffect(() => {
+    if (!userRecord || !urlLocale || !router) return;
+    const storedLocale = userRecord.locale;
+    if (storedLocale && storedLocale !== urlLocale) {
+      // Swap the locale segment in the current path so the user stays on the same page.
+      // e.g. /en/settings → /hi/settings, /en/home → /hi/home (covers sign-in redirect too).
+      const newPath = window.location.pathname.replace(
+        new RegExp(`^/${urlLocale}(/|$)`),
+        `/${storedLocale}$1`,
+      );
+      router.replace(newPath);
+    }
+  }, [userRecord?.locale, urlLocale]);
 
   // ─── Derived subscription status ─────────────────────────────────────────────
 
@@ -63,10 +87,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     loading: accessData === undefined,
   };
 
-  // Both queries return null (not undefined) when the Convex WebSocket connects before
-  // the Clerk JWT is delivered — !identity in the handler returns null immediately.
-  // null !== undefined so the undefined checks don't catch it. Since null accessData
-  // is always transient on an authenticated page, treat it as loading.
   const isCollaborator = membership?.status === "active";
 
   const isLoading =

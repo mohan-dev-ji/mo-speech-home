@@ -46,6 +46,7 @@
     "theme": "थीम",
     "symbols": "प्रतीक",
     "grid": "ग्रिड",
+    "instructor": "Instructor Profile (hi)",
     "navbar": "नेविगेशन साइड बार",
     "invites": "आमंत्रण",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner. (hi)"
@@ -171,6 +172,10 @@
     "permAllowEditing": "Allow Editing (hi)",
     "deleteDropdownLabel": "Delete Profile (hi)",
     "deleteConfirmButton": "Delete Profile (hi)",
+    "sectionLanguage": "Language (hi)",
+    "sectionTheme": "Theme (hi)",
+    "sectionGrid": "Symbol grid (hi)",
+    "sectionSymbols": "Symbols (hi)",
     "saveNameButton": "Save (hi)",
     "cancelButton": "Cancel (hi)",
     "confirmButton": "Done (hi)",

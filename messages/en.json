@@ -46,6 +46,7 @@
     "theme": "Theme",
     "symbols": "Symbols",
     "grid": "Grid",
+    "instructor": "Instructor Profile",
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner."
@@ -171,6 +172,10 @@
     "permAllowEditing": "Allow Editing",
     "deleteDropdownLabel": "Delete Profile",
     "deleteConfirmButton": "Delete Profile",
+    "sectionLanguage": "Language",
+    "sectionTheme": "Theme",
+    "sectionGrid": "Symbol grid",
+    "sectionSymbols": "Symbols",
     "saveNameButton": "Save",
     "cancelButton": "Cancel",
     "confirmButton": "Done",

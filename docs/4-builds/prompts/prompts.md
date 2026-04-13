@@ -1,0 +1,1 @@
+categories edit is a page not a modal

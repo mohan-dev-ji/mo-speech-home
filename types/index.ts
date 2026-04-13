@@ -47,4 +47,13 @@ export type UserRecord = {
     trialEndsAt?: number | null;
   };
   lastActiveAt: number;
+  locale?: string;
+  themeSlug?: string;
+  stateFlags?: {
+    grid_size?: 'large' | 'medium' | 'small';
+    symbol_label_visible?: boolean;
+    symbol_text_size?: 'large' | 'medium' | 'small' | 'xs';
+    reduce_motion?: boolean;
+    core_dropdown_visible?: boolean;
+  };
 };

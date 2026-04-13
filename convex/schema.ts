@@ -90,6 +90,16 @@ export default defineSchema({
     referredBy: v.optional(v.string()), // affiliate code captured on signup
     activeProfileId: v.optional(v.id("studentProfiles")), // which profile is active; null = fall back to first found
     lastActiveAt: v.number(),
+    // ── Instructor-level preferences (saved here, not on student profile) ──
+    locale: v.optional(v.string()),     // 'en' | 'hi' — drives UI locale routing
+    themeSlug: v.optional(v.string()),  // flat theme key e.g. 'default' | 'sky'
+    stateFlags: v.optional(v.object({
+      grid_size:            v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"))),
+      symbol_label_visible: v.optional(v.boolean()),
+      symbol_text_size:     v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))),
+      reduce_motion:        v.optional(v.boolean()),
+      core_dropdown_visible: v.optional(v.boolean()),
+    })),
   })
     .index("by_clerk_id", ["clerkUserId"])
     .index("by_subscription_status", ["subscription.status"])
@@ -127,7 +137,8 @@ export default defineSchema({
     dateOfBirth: v.optional(v.number()),
     profilePhoto: v.optional(v.string()), // R2 path
     language: v.string(), // "eng" | "hin" — open-ended
-    themeId: v.optional(v.id("themes")), // null = Classic Blue default
+    themeId: v.optional(v.id("themes")), // reserved for Convex themes table (Phase 7)
+    themeSlug: v.optional(v.string()),   // flat theme key used now e.g. 'default' | 'sky'
     purchasedThemeIds: v.optional(v.array(v.id("themes"))), // individually purchased premium themes
     stateFlags: v.object({
       home_visible: v.boolean(),

@@ -102,6 +102,7 @@ export const createUser = mutation({
     email: v.string(),
     name: v.optional(v.string()),
     referredBy: v.optional(v.string()), // affiliate code from signup cookie
+    locale: v.optional(v.string()),     // 'en' | 'hi' — set from /start or VoiceModal
   },
   handler: async (ctx, args) => {
     // Guard: don't create duplicates
@@ -118,6 +119,7 @@ export const createUser = mutation({
       email: args.email,
       name: args.name,
       referredBy: args.referredBy,
+      locale: args.locale,
       subscription: {
         status: "trial",
         trialEndsAt,
@@ -279,6 +281,91 @@ export const setCustomAccess = mutation({
           expiresAt: access.expiresAt,
         },
       },
+    });
+  },
+});
+
+// ─── Instructor preference mutations ─────────────────────────────────────────
+
+/**
+ * Save the instructor's UI locale preference.
+ * Drives locale routing — 'en' | 'hi'.
+ */
+export const setMyLocale = mutation({
+  args: { locale: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { locale: args.locale });
+  },
+});
+
+/**
+ * Save the instructor's active theme slug.
+ */
+export const setMyThemeSlug = mutation({
+  args: { themeSlug: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { themeSlug: args.themeSlug });
+  },
+});
+
+/**
+ * Set the instructor's grid size preference (saved to users, not studentProfiles).
+ */
+export const setMyInstructorGridSize = mutation({
+  args: { gridSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small")) },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      stateFlags: { ...(user.stateFlags ?? {}), grid_size: args.gridSize },
+    });
+  },
+});
+
+/**
+ * Set the instructor's symbol text size preference.
+ */
+export const setMyInstructorSymbolTextSize = mutation({
+  args: { textSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs")) },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      stateFlags: { ...(user.stateFlags ?? {}), symbol_text_size: args.textSize },
+    });
+  },
+});
+
+/**
+ * Toggle a single boolean flag in the instructor's stateFlags.
+ * Supports: symbol_label_visible, reduce_motion, core_dropdown_visible.
+ */
+export const setMyInstructorFlag = mutation({
+  args: { flag: v.string(), value: v.boolean() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      stateFlags: { ...(user.stateFlags ?? {}), [args.flag]: args.value },
     });
   },
 });

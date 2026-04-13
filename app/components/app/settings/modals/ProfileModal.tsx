@@ -6,6 +6,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
+import { type ThemeSlug } from "@/app/contexts/ThemeContext";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/shared/ui/Dialog";
@@ -13,13 +14,21 @@ import { Button } from "@/app/components/shared/ui/Button";
 import { Input } from "@/app/components/shared/ui/Input";
 import { ChevronDown } from "lucide-react";
 
-// ─── Permission config ────────────────────────────────────────────────────────
+// ─── Theme swatches ───────────────────────────────────────────────────────────
 
-type PermissionFlag = {
-  flag: string;
-  labelKey: keyof ReturnType<ReturnType<typeof useTranslations>>;
-  default: boolean;
-};
+const THEME_SWATCHES: { slug: ThemeSlug; swatch: string; name: string }[] = [
+  { slug: "default", swatch: "#62748E", name: "Classic" },
+  { slug: "sky",     swatch: "#00A6F4", name: "Sky"     },
+  { slug: "amber",   swatch: "#E17100", name: "Amber"   },
+  { slug: "fuchsia", swatch: "#E12AFB", name: "Fuchsia" },
+  { slug: "lime",    swatch: "#5EA500", name: "Lime"    },
+  { slug: "rose",    swatch: "#FF2056", name: "Rose"    },
+];
+
+type GridSize = "large" | "medium" | "small";
+type TextSize = "large" | "medium" | "small" | "xs";
+
+// ─── Permissions ─────────────────────────────────────────────────────────────
 
 const PERMISSIONS = [
   { flag: "categories_visible", labelKey: "permBoards",       defaultVal: true  },
@@ -42,8 +51,11 @@ function ProfileTabContent({
 }) {
   const t = useTranslations("studentProfile");
   const { setActiveProfile, allProfiles } = useProfile();
+
   const updateProfile  = useMutation(api.studentProfiles.updateStudentProfile);
   const setFlag        = useMutation(api.studentProfiles.setStateFlag);
+  const setGridMut     = useMutation(api.studentProfiles.setGridSize);
+  const setTextSizeMut = useMutation(api.studentProfiles.setSymbolTextSize);
   const deleteProfile  = useMutation(api.studentProfiles.deleteStudentProfile);
 
   const [name,        setName]        = useState(profile.name);
@@ -55,6 +67,8 @@ function ProfileTabContent({
 
   const flags = profile.stateFlags as Record<string, boolean | string | undefined>;
   const canDelete = allProfiles.length > 1;
+
+  // ── Name ──
 
   const handleSaveName = async () => {
     const trimmed = name.trim();
@@ -71,9 +85,49 @@ function ProfileTabContent({
     }
   };
 
+  // ── Language ──
+
+  const currentLang = profile.language ?? "eng";
+  const handleLangChange = (lang: string) => {
+    updateProfile({ profileId: profile._id, language: lang });
+  };
+
+  // ── Theme ──
+
+  const currentThemeSlug = ((profile as any).themeSlug ?? "default") as ThemeSlug;
+  const handleThemeChange = (slug: ThemeSlug) => {
+    updateProfile({ profileId: profile._id, themeSlug: slug });
+  };
+
+  // ── Grid ──
+
+  const currentGrid = (flags.grid_size as GridSize | undefined) ?? "large";
+  const handleGridChange = (size: GridSize) => {
+    const derived: TextSize = size === "large" ? "medium" : size === "medium" ? "small" : "xs";
+    setGridMut({ profileId: profile._id, gridSize: size });
+    setTextSizeMut({ profileId: profile._id, textSize: derived });
+  };
+
+  // ── Symbols ──
+
+  const labelVisible = flags.symbol_label_visible !== undefined ? !!flags.symbol_label_visible : true;
+  const currentTextSize = (flags.symbol_text_size as TextSize | undefined) ?? "small";
+
+  const handleLabelToggle = () => {
+    setFlag({ profileId: profile._id, flag: "symbol_label_visible", value: !labelVisible });
+  };
+
+  const handleTextSizeChange = (size: TextSize) => {
+    setTextSizeMut({ profileId: profile._id, textSize: size });
+  };
+
+  // ── Permissions ──
+
   const handleToggleFlag = (flag: string, currentVal: boolean) => {
     setFlag({ profileId: profile._id, flag, value: !currentVal });
   };
+
+  // ── Delete ──
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -89,7 +143,7 @@ function ProfileTabContent({
   return (
     <div className="space-y-5 pt-3 pb-1">
 
-      {/* Active / switch indicator */}
+      {/* Active / switch */}
       {isAppActive ? (
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />
@@ -99,16 +153,13 @@ function ProfileTabContent({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-border shrink-0" />
           <span className="text-caption text-muted-foreground flex-1">{t("notActiveLabel")}</span>
-          <Button
-            size="sm"
-            onClick={() => setActiveProfile(profile._id as Id<"studentProfiles">)}
-          >
+          <Button size="sm" onClick={() => setActiveProfile(profile._id as Id<"studentProfiles">)}>
             {t("switchButton")}
           </Button>
         </div>
       )}
 
-      {/* Profile name */}
+      {/* Name */}
       <div className="flex gap-2 items-end">
         <div className="flex-1">
           <Input
@@ -126,7 +177,104 @@ function ProfileTabContent({
         )}
       </div>
 
-      {/* Permission toggles */}
+      {/* Language */}
+      <div>
+        <p className="text-small font-semibold text-foreground mb-2">{t("sectionLanguage")}</p>
+        <div className="flex gap-2">
+          {[
+            { code: "eng", label: "English" },
+            { code: "hin", label: "हिंदी"   },
+          ].map(({ code, label }) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => handleLangChange(code)}
+              className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors ${
+                currentLang === code
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Theme */}
+      <div>
+        <p className="text-small font-semibold text-foreground mb-2">{t("sectionTheme")}</p>
+        <div className="flex flex-wrap gap-2">
+          {THEME_SWATCHES.map(({ slug, swatch, name: themeName }) => (
+            <button
+              key={slug}
+              type="button"
+              onClick={() => handleThemeChange(slug)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-small font-medium border transition-colors ${
+                currentThemeSlug === slug
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: swatch }} />
+              {themeName}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div>
+        <p className="text-small font-semibold text-foreground mb-2">{t("sectionGrid")}</p>
+        <div className="flex gap-2">
+          {(["large", "medium", "small"] as GridSize[]).map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => handleGridChange(size)}
+              className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors capitalize ${
+                currentGrid === size
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Symbols */}
+      <div className="space-y-2">
+        <p className="text-small font-semibold text-foreground">{t("sectionSymbols")}</p>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={labelVisible}
+            onChange={handleLabelToggle}
+            className="w-4 h-4 rounded accent-primary cursor-pointer"
+          />
+          <span className="text-small text-foreground">Show text label</span>
+        </label>
+        <div className={`flex gap-2 ${!labelVisible ? "opacity-40 pointer-events-none" : ""}`}>
+          {(["large", "medium", "small"] as TextSize[]).map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => handleTextSizeChange(size)}
+              className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors capitalize ${
+                currentTextSize === size
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Permissions */}
       <div>
         <p className="text-small font-semibold text-foreground mb-3">
           {t("permissionsHeading")}
@@ -154,7 +302,7 @@ function ProfileTabContent({
 
       {error && <p className="text-small text-destructive">{error}</p>}
 
-      {/* Delete (hidden if only one profile) */}
+      {/* Delete */}
       {canDelete && (
         <div>
           <button
@@ -163,18 +311,11 @@ function ProfileTabContent({
             className="flex items-center gap-1 text-small text-muted-foreground hover:text-foreground transition-colors"
           >
             {t("deleteDropdownLabel")}
-            <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform ${deleteOpen ? "rotate-180" : ""}`}
-            />
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${deleteOpen ? "rotate-180" : ""}`} />
           </button>
           {deleteOpen && (
             <div className="mt-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                loading={deleting}
-                onClick={handleDelete}
-              >
+              <Button variant="destructive" size="sm" loading={deleting} onClick={handleDelete}>
                 {t("deleteConfirmButton")}
               </Button>
             </div>
@@ -192,10 +333,10 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
   const { allProfiles, activeProfileId } = useProfile();
   const createProfile = useMutation(api.studentProfiles.createStudentProfile);
 
-  const [selectedId,   setSelectedId]   = useState<string>(activeProfileId ?? allProfiles[0]?._id ?? "");
-  const [newName,      setNewName]      = useState("");
-  const [creating,     setCreating]     = useState(false);
-  const [createError,  setCreateError]  = useState("");
+  const [selectedId,  setSelectedId]  = useState<string>(activeProfileId ?? allProfiles[0]?._id ?? "");
+  const [newName,     setNewName]     = useState("");
+  const [creating,    setCreating]    = useState(false);
+  const [createError, setCreateError] = useState("");
 
   const handleCreate = async () => {
     const trimmed = newName.trim();
@@ -213,8 +354,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const selectedProfile =
-    allProfiles.find((p) => p._id === selectedId) ?? allProfiles[0];
+  const selectedProfile = allProfiles.find((p) => p._id === selectedId) ?? allProfiles[0];
 
   return (
     <>
@@ -222,7 +362,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
         <DialogTitle>{t("title")}</DialogTitle>
       </DialogHeader>
 
-      {/* Create new profile row */}
+      {/* Create new profile */}
       <div className="flex gap-2">
         <input
           className="flex-1 px-3 py-2 text-small bg-background border border-border rounded-md
@@ -233,18 +373,13 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
         />
-        <Button
-          size="sm"
-          loading={creating}
-          disabled={!newName.trim()}
-          onClick={handleCreate}
-        >
+        <Button size="sm" loading={creating} disabled={!newName.trim()} onClick={handleCreate}>
           {t("createButton")}
         </Button>
       </div>
       {createError && <p className="text-small text-destructive">{createError}</p>}
 
-      {/* Profile tabs */}
+      {/* Tabs */}
       {allProfiles.length > 0 && (
         <>
           <div className="flex border-b border-border -mx-6 px-6 overflow-x-auto">
@@ -263,7 +398,6 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
                   }`}
                 >
                   {profile.name}
-                  {/* Green dot = app-active profile */}
                   {isActive && (
                     <span className="absolute top-2 right-1.5 w-1.5 h-1.5 rounded-full bg-success" />
                   )}
@@ -273,11 +407,13 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
           </div>
 
           {selectedProfile && (
-            <ProfileTabContent
-              key={selectedProfile._id}
-              profile={selectedProfile}
-              isAppActive={selectedProfile._id === activeProfileId}
-            />
+            <div className="overflow-y-auto max-h-[55vh]">
+              <ProfileTabContent
+                key={selectedProfile._id}
+                profile={selectedProfile}
+                isAppActive={selectedProfile._id === activeProfileId}
+              />
+            </div>
           )}
         </>
       )}

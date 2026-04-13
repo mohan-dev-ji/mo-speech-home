@@ -4,34 +4,28 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAppState } from "@/app/components/AppStateProvider";
 import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
+import { InstructorProfileModal } from "@/app/components/app/settings/modals/InstructorProfileModal";
 import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal";
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
-import { VoiceModal }    from "@/app/components/app/settings/modals/VoiceModal";
-import { ThemeModal }    from "@/app/components/app/settings/modals/ThemeModal";
-import { GridModal }     from "@/app/components/app/settings/modals/GridModal";
-import { SymbolsModal }  from "@/app/components/app/settings/modals/SymbolsModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
-  "profile", "plan", "voice", "theme",
-  "symbols", "grid", "navbar", "invites",
+  "instructor", "profile", "plan", "navbar", "invites",
 ] as const;
 
 const COLLABORATOR_SETTINGS_IDS = [
-  "profile", "voice", "theme",
-  "symbols", "grid", "navbar",
+  "instructor", "navbar",
 ] as const;
 
 type SettingId = typeof OWNER_SETTINGS_IDS[number];
 
 const MODAL_SIZE: Partial<Record<SettingId, string>> = {
-  plan:    "max-w-3xl",
-  profile: "max-w-lg",
-  theme:   "max-w-md",
-  voice:   "max-w-sm",
-  invites: "max-w-2xl",
+  instructor: "max-w-lg",
+  profile:    "max-w-lg",
+  plan:       "max-w-3xl",
+  invites:    "max-w-2xl",
 };
 
 export function SettingsContent() {
@@ -46,14 +40,11 @@ export function SettingsContent() {
 
   const renderModal = () => {
     switch (activeModal) {
-      case "profile": return <ProfileModal  onClose={close} />;
-      case "plan":    return <PlanModal     onClose={close} />;
-      case "voice":   return <VoiceModal    onClose={close} />;
-      case "theme":   return <ThemeModal    onClose={close} />;
-      case "symbols": return <SymbolsModal onClose={close} />;
-      case "grid":    return <GridModal onClose={close} />;
-      case "navbar":  return <ScaffoldModal title={t("navbar")}  onClose={close} />;
-      case "invites": return <InvitesModal onClose={close} onOpenPlan={() => { close(); open("plan"); }} />;
+      case "instructor": return <InstructorProfileModal onClose={close} />;
+      case "profile":    return <ProfileModal onClose={close} />;
+      case "plan":       return <PlanModal    onClose={close} />;
+      case "navbar":     return <ScaffoldModal title={t("navbar")} onClose={close} />;
+      case "invites":    return <InvitesModal onClose={close} onOpenPlan={() => { close(); open("plan"); }} />;
     }
   };
 
@@ -63,7 +54,6 @@ export function SettingsContent() {
         <h1 className="text-theme-h4 font-semibold text-theme-alt-text">{t("title")}</h1>
       </div>
 
-      {/* Collaborator notice */}
       {isCollaborator && (
         <div className="flex items-center gap-3 rounded-theme bg-theme-card px-5 py-3">
           <Users className="w-4 h-4 text-theme-secondary-text shrink-0" />
@@ -84,7 +74,7 @@ export function SettingsContent() {
       </div>
 
       <Dialog open={activeModal !== null} onOpenChange={isOpen => { if (!isOpen) close(); }}>
-        <DialogContent className={MODAL_SIZE[activeModal ?? "symbols"] ?? "max-w-md"}>
+        <DialogContent className={MODAL_SIZE[activeModal ?? "instructor"] ?? "max-w-md"}>
           {renderModal()}
         </DialogContent>
       </Dialog>

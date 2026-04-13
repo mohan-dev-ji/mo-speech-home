@@ -1,11 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
 
-// State flags stored on studentProfile in Convex
+// ─── State flag types ─────────────────────────────────────────────────────────
+
 type StateFlags = {
   home_visible: boolean;
   search_visible: boolean;
@@ -28,11 +30,12 @@ type StateFlags = {
   student_can_edit: boolean;
 };
 
+// Instructor defaults — all navigation/features always on, display prefs standard
 const DEFAULT_FLAGS: StateFlags = {
   home_visible: true,
   search_visible: true,
   categories_visible: true,
-  settings_visible: false,
+  settings_visible: true,   // instructor always sees settings
   talker_visible: true,
   talker_banner_toggle: true,
   play_modal_visible: true,
@@ -50,24 +53,38 @@ const DEFAULT_FLAGS: StateFlags = {
   student_can_edit: false,
 };
 
+// ─── Context type ─────────────────────────────────────────────────────────────
+
 type ViewMode = 'instructor' | 'student-view';
 
 type ProfileContextValue = {
-  activeProfileId: string | null;
+  // Student profile
+  activeProfileId: Id<'studentProfiles'> | null;
   studentProfile: Doc<'studentProfiles'> | null;
   allProfiles: Doc<'studentProfiles'>[];
   profileLoading: boolean;
+
+  // Active flags and language (viewMode-aware)
   stateFlags: StateFlags;
-  language: string;
+  language: string; // 'eng' | 'hin' — for search index + TTS
+
+  // View mode
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  setLanguage: (lang: string) => void;
-  setActiveProfile: (profileId: Id<'studentProfiles'>) => void;
-  setTalkerVisible: (value: boolean) => void;
+
+  // Instructor display setters (save to users table)
   setGridSize: (size: 'large' | 'medium' | 'small') => void;
   setSymbolLabelVisible: (value: boolean) => void;
   setSymbolTextSize: (size: 'large' | 'medium' | 'small' | 'xs') => void;
+  setInstructorTheme: (slug: string) => void;
+
+  // Active student profile setters (kept for talker/legacy use)
+  setTalkerVisible: (value: boolean) => void;
+  setLanguage: (lang: string) => void;
+  setActiveProfile: (profileId: Id<'studentProfiles'>) => void;
 };
+
+// ─── Context ──────────────────────────────────────────────────────────────────
 
 const ProfileContext = createContext<ProfileContextValue>({
   activeProfileId: null,
@@ -78,28 +95,121 @@ const ProfileContext = createContext<ProfileContextValue>({
   language: 'eng',
   viewMode: 'instructor',
   setViewMode: () => {},
-  setLanguage: () => {},
-  setActiveProfile: () => {},
-  setTalkerVisible: () => {},
   setGridSize: () => {},
   setSymbolLabelVisible: () => {},
   setSymbolTextSize: () => {},
+  setInstructorTheme: () => {},
+  setTalkerVisible: () => {},
+  setLanguage: () => {},
+  setActiveProfile: () => {},
 });
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>('instructor');
+  const { setTheme } = useTheme();
 
-  // undefined = still loading; null = loaded, no profile (onboarding needed)
+  // ── Data queries ────────────────────────────────────────────────────────────
+
+  // Instructor/user data — drives instructor view settings
+  const userRecord = useQuery(api.users.getMyUser);
+
+  // Student profile data
   const studentProfile = useQuery(api.studentProfiles.getMyStudentProfile);
   const profileLoading = studentProfile === undefined;
-
   const allProfiles = useQuery(api.studentProfiles.getMyStudentProfiles) ?? [];
 
+  // ── Mutations — instructor (users table) ────────────────────────────────────
+
+  const setMyInstructorGridSizeMutation       = useMutation(api.users.setMyInstructorGridSize);
+  const setMyInstructorSymbolTextSizeMutation = useMutation(api.users.setMyInstructorSymbolTextSize);
+  const setMyInstructorFlagMutation           = useMutation(api.users.setMyInstructorFlag);
+  const setMyThemeSlugMutation                = useMutation(api.users.setMyThemeSlug);
+
+  // ── Mutations — student profiles (studentProfiles table) ───────────────────
+
   const setStateFlagMutation         = useMutation(api.studentProfiles.setStateFlag);
-  const setGridSizeMutation          = useMutation(api.studentProfiles.setGridSize);
-  const setSymbolTextSizeMutation    = useMutation(api.studentProfiles.setSymbolTextSize);
   const updateStudentProfileMutation = useMutation(api.studentProfiles.updateStudentProfile);
   const setActiveProfileMutation     = useMutation(api.studentProfiles.setActiveProfile);
+
+  // ── Apply instructor theme from Convex on load ──────────────────────────────
+
+  useEffect(() => {
+    if (!userRecord?.themeSlug) return;
+    const slug = userRecord.themeSlug as ThemeSlug;
+    if (THEME_TOKENS[slug]) {
+      setTheme(slug, THEME_TOKENS[slug]);
+    }
+  }, [userRecord?.themeSlug]);
+
+  // ── Compute active stateFlags ────────────────────────────────────────────────
+
+  // Instructor flags: defaults overridden by anything stored in users.stateFlags
+  const instructorFlags: StateFlags = {
+    ...DEFAULT_FLAGS,
+    grid_size:             userRecord?.stateFlags?.grid_size            ?? DEFAULT_FLAGS.grid_size,
+    symbol_label_visible:  userRecord?.stateFlags?.symbol_label_visible ?? DEFAULT_FLAGS.symbol_label_visible,
+    symbol_text_size:      userRecord?.stateFlags?.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
+    reduce_motion:         userRecord?.stateFlags?.reduce_motion        ?? DEFAULT_FLAGS.reduce_motion,
+    core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
+  };
+
+  // Student flags: from the active student profile
+  const studentFlags: StateFlags = studentProfile?.stateFlags
+    ? {
+        ...studentProfile.stateFlags,
+        grid_size:            studentProfile.stateFlags.grid_size            ?? DEFAULT_FLAGS.grid_size,
+        symbol_label_visible: studentProfile.stateFlags.symbol_label_visible ?? DEFAULT_FLAGS.symbol_label_visible,
+        symbol_text_size:     studentProfile.stateFlags.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
+        lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
+        sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
+        first_thens_visible:  studentProfile.stateFlags.first_thens_visible  ?? DEFAULT_FLAGS.first_thens_visible,
+        student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
+      }
+    : DEFAULT_FLAGS;
+
+  // viewMode-aware stateFlags
+  const stateFlags: StateFlags = viewMode === 'instructor' ? instructorFlags : studentFlags;
+
+  // viewMode-aware language ('eng' | 'hin') for search index and TTS
+  // Instructor locale is 'en' or 'hi'; map to 3-letter code for Convex search
+  const instructorLocale = userRecord?.locale ?? 'en';
+  const instructorLanguage = instructorLocale === 'hi' ? 'hin' : 'eng';
+  const language = viewMode === 'instructor'
+    ? instructorLanguage
+    : (studentProfile?.language ?? 'eng');
+
+  // ── Instructor setters ───────────────────────────────────────────────────────
+
+  function setGridSize(size: 'large' | 'medium' | 'small') {
+    // Derive text size: large→medium, medium→small, small→xs
+    const derived = size === 'large' ? 'medium' : size === 'medium' ? 'small' : 'xs';
+    setMyInstructorGridSizeMutation({ gridSize: size });
+    setMyInstructorSymbolTextSizeMutation({ textSize: derived });
+  }
+
+  function setSymbolLabelVisible(value: boolean) {
+    setMyInstructorFlagMutation({ flag: 'symbol_label_visible', value });
+  }
+
+  function setSymbolTextSize(size: 'large' | 'medium' | 'small' | 'xs') {
+    setMyInstructorSymbolTextSizeMutation({ textSize: size });
+  }
+
+  function setInstructorTheme(slug: string) {
+    setMyThemeSlugMutation({ themeSlug: slug });
+    if (THEME_TOKENS[slug as ThemeSlug]) {
+      setTheme(slug, THEME_TOKENS[slug as ThemeSlug]);
+    }
+  }
+
+  // ── Student setters (active profile) ─────────────────────────────────────────
+
+  function setTalkerVisible(value: boolean) {
+    if (!studentProfile) return;
+    setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
+  }
 
   function setLanguage(lang: string) {
     if (!studentProfile) return;
@@ -110,28 +220,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setActiveProfileMutation({ profileId });
   }
 
-  function setTalkerVisible(value: boolean) {
-    if (!studentProfile) return;
-    setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
-  }
-
-  function setGridSize(size: 'large' | 'medium' | 'small') {
-    if (!studentProfile) return;
-    // Derive text size from grid size: large → medium, medium → small, small → xs
-    const derivedTextSize = size === 'large' ? 'medium' : size === 'medium' ? 'small' : 'xs';
-    setGridSizeMutation({ profileId: studentProfile._id, gridSize: size });
-    setSymbolTextSizeMutation({ profileId: studentProfile._id, textSize: derivedTextSize });
-  }
-
-  function setSymbolLabelVisible(value: boolean) {
-    if (!studentProfile) return;
-    setStateFlagMutation({ profileId: studentProfile._id, flag: 'symbol_label_visible', value });
-  }
-
-  function setSymbolTextSize(size: 'large' | 'medium' | 'small' | 'xs') {
-    if (!studentProfile) return;
-    setSymbolTextSizeMutation({ profileId: studentProfile._id, textSize: size });
-  }
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <ProfileContext.Provider
@@ -140,27 +229,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         studentProfile: studentProfile ?? null,
         allProfiles,
         profileLoading,
-        stateFlags: studentProfile?.stateFlags
-          ? {
-              ...studentProfile.stateFlags,
-              grid_size:            studentProfile.stateFlags.grid_size            ?? DEFAULT_FLAGS.grid_size,
-              symbol_label_visible: studentProfile.stateFlags.symbol_label_visible ?? DEFAULT_FLAGS.symbol_label_visible,
-              symbol_text_size:     studentProfile.stateFlags.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
-              lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
-              sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
-              first_thens_visible:  studentProfile.stateFlags.first_thens_visible  ?? DEFAULT_FLAGS.first_thens_visible,
-              student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
-            }
-          : DEFAULT_FLAGS,
-        language: studentProfile?.language ?? 'eng',
+        stateFlags,
+        language,
         viewMode,
         setViewMode,
-        setLanguage,
-        setActiveProfile,
-        setTalkerVisible,
         setGridSize,
         setSymbolLabelVisible,
         setSymbolTextSize,
+        setInstructorTheme,
+        setTalkerVisible,
+        setLanguage,
+        setActiveProfile,
       }}
     >
       {children}
