@@ -17,10 +17,11 @@ type SymbolCardProps = {
   onTap: () => void;
 };
 
-const TEXT_SIZE_CLASS: Record<'large' | 'medium' | 'small', string> = {
+const TEXT_SIZE_CLASS: Record<'large' | 'medium' | 'small' | 'xs', string> = {
   large:  'text-theme-h2 font-semibold',
   medium: 'text-theme-h4 font-semibold',
   small:  'text-theme-p font-bold',
+  xs:     'text-theme-xs font-bold',
 };
 
 export function SymbolCard({

@@ -21,7 +21,7 @@ type StateFlags = {
   reduce_motion: boolean;
   grid_size: 'large' | 'medium' | 'small';
   symbol_label_visible: boolean;
-  symbol_text_size: 'large' | 'medium' | 'small';
+  symbol_text_size: 'large' | 'medium' | 'small' | 'xs';
 };
 
 const DEFAULT_FLAGS: StateFlags = {
@@ -39,7 +39,7 @@ const DEFAULT_FLAGS: StateFlags = {
   reduce_motion: false,
   grid_size: 'large',
   symbol_label_visible: true,
-  symbol_text_size: 'small',
+  symbol_text_size: 'small' as const,
 };
 
 type ViewMode = 'instructor' | 'student-view';
@@ -56,7 +56,7 @@ type ProfileContextValue = {
   setTalkerVisible: (value: boolean) => void;
   setGridSize: (size: 'large' | 'medium' | 'small') => void;
   setSymbolLabelVisible: (value: boolean) => void;
-  setSymbolTextSize: (size: 'large' | 'medium' | 'small') => void;
+  setSymbolTextSize: (size: 'large' | 'medium' | 'small' | 'xs') => void;
 };
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -76,15 +76,20 @@ const ProfileContext = createContext<ProfileContextValue>({
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>('instructor');
-  const [language, setLanguage] = useState('eng');
 
   // undefined = still loading; null = loaded, no profile (onboarding needed)
   const studentProfile = useQuery(api.studentProfiles.getMyStudentProfile);
   const profileLoading = studentProfile === undefined;
 
-  const setStateFlagMutation    = useMutation(api.studentProfiles.setStateFlag);
-  const setGridSizeMutation     = useMutation(api.studentProfiles.setGridSize);
+  const setStateFlagMutation      = useMutation(api.studentProfiles.setStateFlag);
+  const setGridSizeMutation       = useMutation(api.studentProfiles.setGridSize);
   const setSymbolTextSizeMutation = useMutation(api.studentProfiles.setSymbolTextSize);
+  const updateStudentProfileMutation = useMutation(api.studentProfiles.updateStudentProfile);
+
+  function setLanguage(lang: string) {
+    if (!studentProfile) return;
+    updateStudentProfileMutation({ profileId: studentProfile._id, language: lang });
+  }
 
   function setTalkerVisible(value: boolean) {
     if (!studentProfile) return;
@@ -93,7 +98,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   function setGridSize(size: 'large' | 'medium' | 'small') {
     if (!studentProfile) return;
+    // Derive text size from grid size: large → medium, medium → small, small → xs
+    const derivedTextSize = size === 'large' ? 'medium' : size === 'medium' ? 'small' : 'xs';
     setGridSizeMutation({ profileId: studentProfile._id, gridSize: size });
+    setSymbolTextSizeMutation({ profileId: studentProfile._id, textSize: derivedTextSize });
   }
 
   function setSymbolLabelVisible(value: boolean) {
@@ -101,7 +109,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setStateFlagMutation({ profileId: studentProfile._id, flag: 'symbol_label_visible', value });
   }
 
-  function setSymbolTextSize(size: 'large' | 'medium' | 'small') {
+  function setSymbolTextSize(size: 'large' | 'medium' | 'small' | 'xs') {
     if (!studentProfile) return;
     setSymbolTextSizeMutation({ profileId: studentProfile._id, textSize: size });
   }
@@ -120,8 +128,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               symbol_text_size:     studentProfile.stateFlags.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
             }
           : DEFAULT_FLAGS,
-        // Profile language takes precedence; fallback to locally selected language
-        language: studentProfile?.language ?? language,
+        language: studentProfile?.language ?? 'eng',
         viewMode,
         setViewMode,
         setLanguage,

@@ -84,6 +84,7 @@
   --theme-text-large: 20px;
   --theme-text-p:     16px;
   --theme-text-s:     14px;
+  --theme-text-xs:    11px;
 
   /* ── Animation — populated by animated themes only ── */
   --theme-bg-animation:          none;
@@ -209,6 +210,8 @@
   --text-theme-p--line-height:       1.5;
   --text-theme-s:                    var(--theme-text-s);
   --text-theme-s--line-height:       1.5;
+  --text-theme-xs:                   var(--theme-text-xs);
+  --text-theme-xs--line-height:      1.4;
 
   /* ─── Responsive Typography Scale (template/marketing) ──────────
      Usage: className="text-display" / "text-heading" etc.

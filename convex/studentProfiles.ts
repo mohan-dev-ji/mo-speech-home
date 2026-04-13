@@ -18,7 +18,7 @@ const DEFAULT_STATE_FLAGS = {
   reduce_motion: false,
   grid_size: "large" as const,
   symbol_label_visible: true,
-  symbol_text_size: "small" as const,
+  symbol_text_size: "small" as const, // kept as 'small' default; grid large→medium, medium→small, small→xs
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ export const setGridSize = mutation({
 export const setSymbolTextSize = mutation({
   args: {
     profileId: v.id("studentProfiles"),
-    textSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small")),
+    textSize: v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs")),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

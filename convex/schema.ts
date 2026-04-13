@@ -143,7 +143,7 @@ export default defineSchema({
       reduce_motion: v.boolean(), // disables all theme animations; default false
       grid_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"))), // large=4, medium=8, small=12 cols; optional for backwards compat (defaults to 'large')
       symbol_label_visible: v.optional(v.boolean()), // show/hide text label on symbol cards; defaults to true
-      symbol_text_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"))), // h2/h4/p-bold; defaults to 'small'
+      symbol_text_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))), // h2/h4/p-bold/s-bold; defaults to 'small'
     }),
     updatedAt: v.number(),
   })

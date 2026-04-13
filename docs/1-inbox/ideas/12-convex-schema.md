@@ -38,6 +38,7 @@ symbols: {
 users: {
   _id: Id<"users">
   clerkUserId: string
+  activeProfileId?: Id<"studentProfiles">  // which profile is currently active; null = first profile found (backwards compat)
   subscription: {
     status: "active" | "expired" | "cancelled"
     customAccess?: { isActive: boolean, reason: string, grantedBy: string, grantedAt: number, expiresAt?: number }
@@ -68,6 +69,8 @@ accountMembers: {
 
 ### studentProfiles (new)
 
+Multiple profiles per account are supported. Each profile is an independent AAC setup with its own categories, symbols, settings, and language. The active profile is tracked via `users.activeProfileId`.
+
 ```typescript
 studentProfiles: {
   _id: Id<"studentProfiles">
@@ -75,25 +78,41 @@ studentProfiles: {
   name: string
   dateOfBirth?: number
   profilePhoto?: string
-  language: string                          // "eng" | "hin"
+  language: string                          // "eng" | "hin" — open-ended, stored per profile
+  themeId?: Id<"themes">                    // null = Classic Blue default
+  purchasedThemeIds?: Array<Id<"themes">>   // individually purchased themes
   stateFlags: {
+    // ── Navigation visibility ──
     home_visible: boolean
     search_visible: boolean
     categories_visible: boolean
     settings_visible: boolean
+    // ── Talker / playback ──
     talker_visible: boolean
-    talker_banner_toggle: boolean
+    talker_banner_toggle: boolean           // student can toggle between talker and banner mode
     play_modal_visible: boolean
     voice_input_enabled: boolean
     audio_autoplay: boolean
-    modelling_push: boolean
-    core_dropdown_visible: boolean   // default: true
-    reduce_motion: boolean           // default: false — disables all theme animations — hides the core words/numbers/letters dropdown
+    // ── Modelling ──
+    modelling_push: boolean                 // instructor can push modelling sessions
+    // ── Display ──
+    core_dropdown_visible: boolean          // core words/numbers/letters dropdown; default true
+    reduce_motion: boolean                  // disables all theme animations; default false
+    grid_size?: "large" | "medium" | "small"         // large=4 cols, medium=8, small=12; default "large"
+    symbol_label_visible?: boolean          // show text label on symbol cards; default true
+    symbol_text_size?: "large" | "medium" | "small" | "xs"  // h2/h4/p-bold/s-bold; auto-derived from grid_size
   }
   createdAt: number
   updatedAt: number
 }
 ```
+
+**grid_size → symbol_text_size derivation (enforced in ProfileContext):**
+| grid_size | symbol_text_size |
+|---|---|
+| `large` | `medium` (h4, 24px) |
+| `medium` | `small` (p-bold, 16px) |
+| `small` | `xs` (s-bold, 11px) |
 
 ### profileCategories (new)
 
@@ -311,6 +330,8 @@ shareRequest: {
 ---
 
 ## Key Design Decisions
+
+**Multiple profiles per account are supported from the start.** Each `studentProfiles` document belongs to one `accountId`. The `users.activeProfileId` field tracks which profile is active for the session. Switching profiles patches `users.activeProfileId` and `ProfileContext` re-queries. When creating a second profile the instructor is offered two options: duplicate an existing profile (copies all `profileCategories` and `profileSymbols` with the new `profileId`) or start from the admin-managed default template. Collaborators on the account see whichever profile is currently active.
 
 **Lists always reference profileSymbolId, never raw symbolId.** Every symbol in the user's profile — whether from SymbolStix or custom — exists as a `profileSymbol` record. Lists, sentences, and first-thens reference `profileSymbol` records. This means overrides apply consistently everywhere a symbol appears, and custom symbols work identically to SymbolStix symbols throughout the app.
 

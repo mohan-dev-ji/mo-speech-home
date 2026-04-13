@@ -252,9 +252,20 @@ Use this hook throughout — never check the plan string directly in components.
 
 ---
 
-## Phase 3 — Categories
+## Phase 3 — Categories and Multiple Profiles
 
-**Goal:** Instructor can create and edit categories. Student can navigate them.
+**Goal:** Instructor can create and edit categories. Student can navigate them. Multiple profiles per account are supported.
+
+### 3.0 Multiple profiles
+
+- Add `activeProfileId?: Id<"studentProfiles">` to the `users` Convex table
+- Remove the one-profile-per-account guard in `createStudentProfile`
+- Update `getMyStudentProfile` to accept an optional `profileId`; fall back to `users.activeProfileId`, then to first profile found
+- Add `setActiveProfile(profileId)` mutation that patches `users.activeProfileId`
+- ProfileContext: expose `setActiveProfile`; profile switcher in settings UI
+- New profile creation flow: modal offers "Duplicate [existing profile]" or "Start from defaults"
+  - Duplicate: copies all `profileCategories` + `profileSymbols` with new `profileId`
+  - Default: runs `loadStarterTemplate` from the admin resource pack
 
 ### 3.1 Default categories on profile creation
 
