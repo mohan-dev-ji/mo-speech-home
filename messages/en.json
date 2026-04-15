@@ -36,7 +36,17 @@
     "tabLetters": "Letters"
   },
   "categories": {
-    "title": "Categories"
+    "title": "Categories",
+    "edit": "Edit",
+    "save": "Save",
+    "add": "Add",
+    "loading": "Loading categories…",
+    "noProfile": "No student profile found.",
+    "deleteTitle": "Delete Category",
+    "deleteConfirm": "This will permanently delete \"{name}\" and all its symbols. This cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…"
   },
   "settings": {
     "title": "Settings",

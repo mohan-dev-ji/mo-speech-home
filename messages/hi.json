@@ -36,7 +36,17 @@
     "tabLetters": "Letters (hi)"
   },
   "categories": {
-    "title": "श्रेणियाँ"
+    "title": "श्रेणियाँ",
+    "edit": "Edit (hi)",
+    "save": "Save (hi)",
+    "add": "Add (hi)",
+    "loading": "Loading categories… (hi)",
+    "noProfile": "No student profile found. (hi)",
+    "deleteTitle": "Delete Category (hi)",
+    "deleteConfirm": "This will permanently delete \"{name}\" and all its symbols. This cannot be undone. (hi)",
+    "cancel": "Cancel (hi)",
+    "delete": "Delete (hi)",
+    "deleting": "Deleting… (hi)"
   },
   "settings": {
     "title": "सेटिंग्स",

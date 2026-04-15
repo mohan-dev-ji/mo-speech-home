@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { setRequestLocale } from 'next-intl/server';
+import { CategoriesContent } from '@/app/components/app/categories/sections/CategoriesContent';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -9,8 +11,8 @@ export default async function CategoriesPage({ params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <div className="p-6">
-      <p className="text-muted-foreground text-small">Categories — Phase 3</p>
-    </div>
+    <Suspense>
+      <CategoriesContent />
+    </Suspense>
   );
 }
