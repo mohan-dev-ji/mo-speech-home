@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
@@ -137,6 +138,14 @@ export const createStudentProfile = mutation({
 
     // New profile becomes active immediately
     await ctx.db.patch(user._id, { activeProfileId: profileId });
+
+    // Seed default categories + symbols in the background — runs right after
+    // this mutation commits so the profile exists before seeding starts.
+    await ctx.scheduler.runAfter(
+      0,
+      internal.profileCategories.seedDefaultProfile,
+      { profileId }
+    );
 
     return profileId;
   },

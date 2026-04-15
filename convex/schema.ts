@@ -38,6 +38,7 @@ export default defineSchema({
     priority: v.optional(v.number()), // 1–500 for core vocabulary free tier
   })
     .index("by_priority", ["priority"])
+    .index("by_words_eng", ["words.eng"])
     .searchIndex("search_words_eng", {
       searchField: "words.eng",
       filterFields: ["priority"],
