@@ -153,6 +153,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     symbol_text_size:      userRecord?.stateFlags?.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
     reduce_motion:         userRecord?.stateFlags?.reduce_motion        ?? DEFAULT_FLAGS.reduce_motion,
     core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
+    talker_visible:        userRecord?.stateFlags?.talker_visible       ?? DEFAULT_FLAGS.talker_visible,
   };
 
   // Student flags: from the active student profile
@@ -207,6 +208,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // ── Student setters (active profile) ─────────────────────────────────────────
 
   function setTalkerVisible(value: boolean) {
+    if (viewMode === 'instructor') {
+      setMyInstructorFlagMutation({ flag: 'talker_visible', value });
+      return;
+    }
     if (!studentProfile) return;
     setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
   }

@@ -30,7 +30,7 @@ export function Sidebar({ locale }: SidebarProps) {
   const btnActive   = 'bg-theme-button-highlight text-theme-text';
 
   return (
-    <aside className="flex flex-col shrink-0 h-full bg-theme-card">
+    <aside className="hidden md:flex flex-col shrink-0 h-full bg-theme-card">
 
       <div className="p-theme-general">
         <LogoSvg className="w-[155px] text-theme-alt-text" />

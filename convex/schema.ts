@@ -100,6 +100,7 @@ export default defineSchema({
       symbol_text_size:     v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))),
       reduce_motion:        v.optional(v.boolean()),
       core_dropdown_visible: v.optional(v.boolean()),
+      talker_visible:       v.optional(v.boolean()),
     })),
   })
     .index("by_clerk_id", ["clerkUserId"])

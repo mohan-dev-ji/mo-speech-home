@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { Edit2, Save, Plus } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  arrayMove,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { CategoryTile } from '@/app/components/app/categories/ui/CategoryTile';
 import {
@@ -18,6 +33,49 @@ import {
   DialogClose,
 } from '@/app/components/shared/ui/Dialog';
 
+// ─── Sortable wrapper ─────────────────────────────────────────────────────────
+// Owns the useSortable hook and passes drag handle props down to CategoryTile.
+
+type SortableTileProps = {
+  category: Doc<'profileCategories'>;
+  language: string;
+  isEditing: boolean;
+  onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
+};
+
+function SortableCategoryTile({ category, language, isEditing, onDeleteRequest }: SortableTileProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category._id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <CategoryTile
+        category={category}
+        language={language}
+        isEditing={isEditing}
+        onDeleteRequest={onDeleteRequest}
+        dragHandleProps={{ listeners, attributes }}
+      />
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 
 export function CategoriesContent() {
@@ -27,6 +85,7 @@ export function CategoriesContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   const categories = useQuery(
     api.profileCategories.getProfileCategories,
@@ -34,6 +93,47 @@ export function CategoriesContent() {
   );
 
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
+  const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
+
+  // Sync localOrder from server: keep existing order, remove deleted, append new
+  useEffect(() => {
+    if (!categories) return;
+    setLocalOrder((prev) => {
+      const serverIds = categories.map((c) => c._id as string);
+      const kept = prev.filter((id) => serverIds.includes(id));
+      const added = serverIds.filter((id) => !prev.includes(id));
+      return [...kept, ...added];
+    });
+  }, [categories]);
+
+  // Build a lookup map and derive display order from localOrder
+  const categoryMap = Object.fromEntries((categories ?? []).map((c) => [c._id, c]));
+  const orderedCategories = localOrder
+    .map((id) => categoryMap[id])
+    .filter(Boolean) as Doc<'profileCategories'>[];
+
+  // dnd-kit sensors — 8px distance threshold prevents accidental drag on click
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !activeProfileId) return;
+
+    setLocalOrder((prev) => {
+      const oldIndex = prev.indexOf(active.id as string);
+      const newIndex = prev.indexOf(over.id as string);
+      const newOrder = arrayMove(prev, oldIndex, newIndex);
+
+      reorderCategoriesMutation({
+        profileId: activeProfileId,
+        orderedIds: newOrder as Id<'profileCategories'>[],
+      });
+
+      return newOrder;
+    });
+  }
 
   function handleDeleteRequest(id: Id<'profileCategories'>, name: string) {
     setPendingDelete({ id, name });
@@ -51,14 +151,13 @@ export function CategoriesContent() {
   }
 
   return (
-    <div className="p-theme-general flex flex-col gap-theme-gap">
+    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Page header */}
       <div className="rounded-theme bg-theme-card px-theme-item py-theme-item flex flex-col gap-theme-elements">
         <h1 className="text-theme-h4 font-semibold text-theme-alt-text">{t('title')}</h1>
         <div className="flex items-center gap-theme-elements">
 
-          {/* Edit / Save toggle */}
           <button
             type="button"
             onClick={() => setIsEditing((v) => !v)}
@@ -66,19 +165,12 @@ export function CategoriesContent() {
             style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--theme-alt-text)' }}
           >
             {isEditing ? (
-              <>
-                <Save className="w-3.5 h-3.5" />
-                {t('save')}
-              </>
+              <><Save className="w-3.5 h-3.5" />{t('save')}</>
             ) : (
-              <>
-                <Edit2 className="w-3.5 h-3.5" />
-                {t('edit')}
-              </>
+              <><Edit2 className="w-3.5 h-3.5" />{t('edit')}</>
             )}
           </button>
 
-          {/* Add — always visible */}
           <button
             type="button"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-colors hover:bg-white/20"
@@ -101,18 +193,26 @@ export function CategoriesContent() {
       )}
 
       {/* Category grid */}
-      {categories && categories.length > 0 && (
-        <div className="grid grid-cols-4 gap-theme-gap">
-          {categories.map((cat) => (
-            <CategoryTile
-              key={cat._id}
-              category={cat}
-              language={language}
-              isEditing={isEditing}
-              onDeleteRequest={handleDeleteRequest}
-            />
-          ))}
-        </div>
+      {orderedCategories.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={localOrder} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-theme-mobile-gap md:gap-theme-gap">
+              {orderedCategories.map((cat) => (
+                <SortableCategoryTile
+                  key={cat._id}
+                  category={cat}
+                  language={language}
+                  isEditing={isEditing}
+                  onDeleteRequest={handleDeleteRequest}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Delete confirmation dialog */}

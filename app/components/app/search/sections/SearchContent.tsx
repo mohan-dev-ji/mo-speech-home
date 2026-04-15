@@ -145,7 +145,7 @@ export function SearchContent() {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full px-theme-general py-theme-general gap-theme-gap">
+    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Talker header — search always uses talker mode */}
       {stateFlags.talker_visible && (

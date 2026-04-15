@@ -57,6 +57,8 @@
   /* ── Spacing (shared across all flat themes) ── */
   --theme-general-padding:            32px;
   --theme-general-space-between:      32px;
+  --theme-mobile-general-padding:      16px;
+  --theme-mobile-general-space-between: 16px;
   --theme-header-banner-padding:      32px;
   --theme-modal-padding:              24px;
   --theme-categories-folder-padding:  20px;
@@ -179,8 +181,10 @@
   /* ─── AAC Spacing Tokens ────────────────────────────────────────
      p-theme-general, gap-theme-gap, px-theme-btn-x, etc.
   ──────────────────────────────────────────────────────────────── */
-  --spacing-theme-general:   var(--theme-general-padding);
-  --spacing-theme-gap:       var(--theme-general-space-between);
+  --spacing-theme-general:        var(--theme-general-padding);
+  --spacing-theme-gap:            var(--theme-general-space-between);
+  --spacing-theme-mobile-general: var(--theme-mobile-general-padding);
+  --spacing-theme-mobile-gap:     var(--theme-mobile-general-space-between);
   --spacing-theme-modal:     var(--theme-modal-padding);
   --spacing-theme-modal-gap: var(--theme-modal-space-between);
   --spacing-theme-folder:    var(--theme-categories-folder-padding);
