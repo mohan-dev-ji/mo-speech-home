@@ -25,6 +25,14 @@
     "noResults": "No results for \"{query}\"",
     "talkerHint": "Tap symbols to build a sentence…"
   },
+  "header": {
+    "switchToBanner": "Switch to direct play",
+    "switchToTalker": "Switch to sentence builder"
+  },
+  "banner": {
+    "modelButton": "Model",
+    "editButton": "Edit"
+  },
   "talker": {
     "playLabel": "Play sentence",
     "clearLabel": "Clear sentence",
@@ -34,6 +42,12 @@
     "tabCoreWords": "Core Words",
     "tabNumbers": "Numbers",
     "tabLetters": "Letters"
+  },
+  "categoryDetail": {
+    "back": "Categories",
+    "loading": "Loading symbols…",
+    "empty": "No symbols in this category yet.",
+    "noProfile": "No student profile found."
   },
   "categories": {
     "title": "Categories",

@@ -7,8 +7,8 @@
 //   left   = anchorLeft  + anchorWidth × 0.1   (centred on x axis)
 //   top    = anchorBottom  (flush with bottom of the main bar)
 //
-// Rounding: bottom corners only (rounded-b-theme) — the square top edge
-//   makes it look physically connected to the TalkerBar from below.
+// Rounding: bottom corners only — square top edge makes it look
+//   physically connected to the TalkerBar from below.
 //
 // Both states render via portal so the panel can overlay page content.
 
@@ -17,28 +17,29 @@ import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolCard } from './SymbolCard';
+import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 
-// ─── Hardcoded quick-access data (Phase 1) ───────────────────────────────────
+// ─── Static data ──────────────────────────────────────────────────────────────
 
-const CORE_WORDS = [
-  'yes', 'no', 'want', 'go', 'more', 'help',
-  'stop', 'eat', 'drink', 'like', 'I', 'you',
-  'we', 'here', 'there', 'good', 'bad', 'big',
-  'small', 'hot', 'cold', 'please', 'again', 'all done',
+const NUMBERS = [
+  '0', '1', '2', '3', '4', '5',
+  '6', '7', '8', '9', '10', '20',
 ];
-const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '20'];
-const LETTERS  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-type DropdownTab = 'core' | 'numbers' | 'letters';
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+
+// Group IDs from LITTLE_WORDS_GROUPS + two fixed tabs
+type TabId = 'numbers' | 'letters' | string;
+
+const GROUP_TABS = LITTLE_WORDS_GROUPS.map((g) => ({ id: g.id, name: g.name }));
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TalkerDropdownProps = {
-  /** Bottom edge of the main TalkerBar (px from viewport top) */
   anchorBottom: number;
-  /** Left edge of the white chip area */
   anchorLeft: number;
-  /** Width of the white chip area */
   anchorWidth: number;
   language: string;
   onSymbolTap: (label: string) => void;
@@ -55,26 +56,23 @@ export function TalkerDropdown({
 }: TalkerDropdownProps) {
   const t = useTranslations('talker');
   const [isOpen, setIsOpen]       = useState(false);
-  const [activeTab, setActiveTab] = useState<DropdownTab>('core');
+  const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
   const [mounted, setMounted]     = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Don't render until client is mounted and the anchor has been measured
   if (!mounted || anchorWidth === 0) return null;
 
   // ── Derived position ──────────────────────────────────────────────────────
   const dropWidth = anchorWidth * 0.8;
-  const dropLeft  = anchorLeft  + anchorWidth * 0.1; // centred on chip area
+  const dropLeft  = anchorLeft  + anchorWidth * 0.1;
 
-  // Shared style for both closed tab and open panel
   const baseStyle: React.CSSProperties = {
     position: 'fixed',
     top:   anchorBottom,
     left:  dropLeft,
     width: dropWidth,
     zIndex: 50,
-    // Square top, rounded bottom only
     borderRadius: `0 0 var(--theme-roundness) var(--theme-roundness)`,
     overflow: 'hidden',
   };
@@ -82,13 +80,22 @@ export function TalkerDropdown({
   function getItems(): string[] {
     if (activeTab === 'numbers') return NUMBERS;
     if (activeTab === 'letters') return LETTERS;
-    return CORE_WORDS;
+    const group = LITTLE_WORDS_GROUPS.find((g) => g.id === activeTab);
+    return group ? group.words : [];
   }
 
-  const tabs: { key: DropdownTab; label: string }[] = [
-    { key: 'core',    label: t('tabCoreWords') },
-    { key: 'numbers', label: t('tabNumbers')   },
-    { key: 'letters', label: t('tabLetters')   },
+  function getTabLabel(id: TabId): string {
+    if (id === 'numbers') return t('tabNumbers');
+    if (id === 'letters') return t('tabLetters');
+    const group = LITTLE_WORDS_GROUPS.find((g) => g.id === id);
+    if (!group) return id;
+    return language === 'hin' ? group.name.hin : group.name.eng;
+  }
+
+  const allTabs: TabId[] = [
+    ...GROUP_TABS.map((g) => g.id),
+    'numbers',
+    'letters',
   ];
 
   // ── Closed: chevron tab ───────────────────────────────────────────────────
@@ -113,22 +120,22 @@ export function TalkerDropdown({
       className="flex flex-col"
       style={{ ...baseStyle, bottom: 0, background: 'var(--theme-banner)' }}
     >
-      {/* Mode tabs */}
-      <div className="flex justify-center gap-2 px-4 py-3 shrink-0">
-        {tabs.map(({ key, label }) => (
+      {/* Scrollable tab bar */}
+      <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {allTabs.map((id) => (
           <button
-            key={key}
+            key={id}
             type="button"
-            onClick={() => setActiveTab(key)}
-            className="px-4 py-1.5 rounded-lg text-small font-medium transition-colors"
+            onClick={() => setActiveTab(id)}
+            className="shrink-0 px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
             style={{
-              background: activeTab === key
+              background: activeTab === id
                 ? 'rgba(255,255,255,0.25)'
                 : 'rgba(255,255,255,0.1)',
               color: 'var(--theme-nav-text)',
             }}
           >
-            {label}
+            {getTabLabel(id)}
           </button>
         ))}
       </div>
@@ -142,13 +149,13 @@ export function TalkerDropdown({
               symbolId={`quick-${label}`}
               label={label}
               language={language}
-              onTap={() => onSymbolTap(label)}
+              onTap={() => { onSymbolTap(label); setIsOpen(false); }}
             />
           ))}
         </div>
       </div>
 
-      {/* Sticky close strip — card bg, always visible */}
+      {/* Sticky close strip */}
       <button
         type="button"
         onClick={() => setIsOpen(false)}

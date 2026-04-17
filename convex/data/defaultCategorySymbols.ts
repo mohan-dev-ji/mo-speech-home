@@ -5,7 +5,7 @@
  *   - symbolstixCategories: which SymbolStix `categories` values to query
  *   - words: ordered list of 48 words to seed (matched against symbols.words.eng)
  *
- * Each DropdownGroup defines 25 words for the core little-words dropdown.
+ * Each DropdownGroup defines 24 words for the core little-words dropdown.
  *
  * Seeding logic: for each word in the `words` array, find the first symbol
  * WHERE words.eng === word AND categories contains any of symbolstixCategories.
@@ -467,8 +467,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
     words: [
       "yes", "please", "more", "stop", "good", "bad", "happy", "sad",
       "me", "my", "he", "she", "we", "they", "all", "same",
-      "different", "big", "little", "what", "how", "who", "and",
-      "but", "because",
+      "different", "big", "little", "what", "how", "who", "and", "but",
     ],
   },
   {
@@ -478,8 +477,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
     words: [
       "want", "need", "help", "go", "come", "eat", "drink", "play",
       "open", "close", "finished", "look", "see", "feel", "do",
-      "can", "have", "make", "get", "put", "say", "tell", "like",
-      "now", "here",
+      "can", "have", "make", "get", "put", "say", "tell", "like", "now",
     ],
   },
   {
@@ -489,8 +487,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
     words: [
       "I", "you", "he", "she", "we", "they", "me", "him", "her",
       "us", "them", "it", "mine", "yours", "his", "hers", "ours",
-      "theirs", "myself", "yourself", "everyone", "nobody", "someone",
-      "anybody", "themselves",
+      "theirs", "myself", "yourself", "everyone", "nobody", "someone", "anybody",
     ],
   },
   {
@@ -500,8 +497,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
     words: [
       "and", "but", "or", "because", "if", "when", "where", "who",
       "why", "so", "although", "after", "before", "while", "since",
-      "until", "either", "both", "as", "than", "though", "yet",
-      "for", "which", "whether",
+      "until", "either", "both", "as", "than", "though", "yet", "for",
     ],
   },
   {
@@ -511,8 +507,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
     words: [
       "in", "on", "at", "the", "a", "an", "with", "to", "from",
       "of", "by", "over", "under", "up", "down", "near", "between",
-      "behind", "beside", "around", "through", "past", "inside",
-      "about", "above",
+      "behind", "beside", "around", "through", "past", "inside", "about",
     ],
   },
   {
@@ -523,7 +518,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
       "now", "today", "tomorrow", "yesterday", "here", "there",
       "maybe", "never", "soon", "very", "just", "almost", "away",
       "far", "outside", "inside", "anywhere", "somewhere", "early",
-      "yet", "well", "else", "instead", "even", "each",
+      "yet", "well", "else", "instead", "even",
     ],
   },
 ];

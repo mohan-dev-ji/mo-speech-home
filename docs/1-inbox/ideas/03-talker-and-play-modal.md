@@ -1,6 +1,6 @@
 # Talker Header and Play Modal
 
-## The Talker Header Component
+## The Header Component
 
 A single shared component used in two places — the Search page and Category Board mode. It behaves differently in each context.
 
@@ -39,6 +39,28 @@ Banner state turns the board into a simple symbol-tap interface — useful for d
 A toggle control in the header switches between talker and banner. This toggle is only visible in Category/Board mode — not on the Search page.
 
 If `talker_banner_toggle` is OFF (set by instructor), the toggle is hidden and the board stays in whichever state the instructor has set as default. The student cannot change it.
+
+### Toggle UI Spec
+
+The header card has a fixed button column on the right (same structure in both states — height never changes on toggle):
+
+| Slot | Talker state | Banner state |
+|---|---|---|
+| 1 (top) | `Zap` icon → switches to banner | `AlignLeft` icon → switches back to talker |
+| 2 | Play (green) | Invisible — occupies space |
+| 3 | Clear (red) | Invisible — occupies space |
+| 4 | Save (blue) | Invisible — occupies space |
+
+The toggle button uses a muted semi-transparent background to distinguish it visually from the action buttons. The `Zap` icon is amber to signal "direct/fast"; the `AlignLeft` icon is white/neutral to signal "return to builder".
+
+The left content area switches between `TalkerBar` (sentence chips) and `Banner` (direct-play indicator). Both use `min-h-[160px]` so the card height is identical in both states — no layout jump on toggle.
+
+The `Banner` component displays:
+- Amber `Zap` icon in a rounded container
+- "Direct Play" title
+- "Tap any symbol to hear it" subtitle
+
+The `Header` component (`app/components/shared/Header.tsx`) is the single entry point — it wraps `TalkerBar`, `Banner`, the button column, and `TalkerDropdown`. Pass `showToggle={false}` (or omit) for Search page to disable the toggle entirely.
 
 ---
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { useState } from 'react';
 import { Menu, X, Home, Search, Tag, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,9 @@ const mobileNavItems = [
   { segment: 'settings',   icon: Settings },
 ] as const;
 
+const linkStyle = { color: 'var(--theme-secondary-alt-text)' } as const;
+const boldStyle = { color: 'var(--theme-alt-text)' } as const;
+
 export function TopBar() {
   const pathname = usePathname();
   const params = useParams();
@@ -23,12 +27,18 @@ export function TopBar() {
   const tCommon = useTranslations('common');
   const tTopBar = useTranslations('topBar');
   const { stateFlags, setTalkerVisible } = useProfile();
+  const { breadcrumbExtra } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const segments = pathname.replace(`/${locale}`, '').split('/').filter(Boolean);
   const currentSegment = segments[0] ?? 'home';
-  const pageLabel = tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment;
-  const isSearchPage = currentSegment === 'search';
+  const isSubPage = segments.length >= 2;
+  const showTalkerToggle = currentSegment === 'search' || currentSegment === 'categories';
+
+  // Label shown in mobile bar — deepest crumb
+  const mobileLabel = isSubPage && breadcrumbExtra
+    ? breadcrumbExtra.label
+    : (tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment);
 
   function isActive(segment: string) {
     return pathname.startsWith(`/${locale}/${segment}`);
@@ -38,7 +48,7 @@ export function TopBar() {
   const btnInactive = 'bg-theme-primary text-theme-alt-text hover:opacity-90';
   const btnActive   = 'bg-theme-button-highlight text-theme-text';
 
-  const headerToggle = isSearchPage && (
+  const headerToggle = showTalkerToggle && (
     <button
       type="button"
       onClick={() => setTalkerVisible(!stateFlags.talker_visible)}
@@ -62,10 +72,70 @@ export function TopBar() {
           }}
         />
       </div>
-      <span className="text-small font-medium" style={{ color: 'var(--theme-secondary-alt-text)' }}>
+      <span className="text-small font-medium" style={linkStyle}>
         {tTopBar('header')}
       </span>
     </button>
+  );
+
+  // ─── Breadcrumb nodes ────────────────────────────────────────────────────────
+
+  // Home node — link unless we are on home
+  const homeNode = currentSegment === 'home' ? (
+    <span className="flex items-center gap-1 text-small font-semibold" style={boldStyle}>
+      <Home className="w-3.5 h-3.5" />
+      {tNav('home')}
+    </span>
+  ) : (
+    <Link
+      href={`/${locale}/home`}
+      className="flex items-center gap-1 text-small font-medium transition-colors hover:underline"
+      style={linkStyle}
+    >
+      <Home className="w-3.5 h-3.5" />
+      {tNav('home')}
+    </Link>
+  );
+
+  // Section node (categories, search, settings) — link if sub-page, bold if current
+  const sectionLabel = tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment;
+  const sectionNode = currentSegment !== 'home' && (
+    isSubPage ? (
+      <Link
+        href={`/${locale}/${currentSegment}`}
+        className="text-small font-medium transition-colors hover:underline"
+        style={linkStyle}
+      >
+        {sectionLabel}
+      </Link>
+    ) : (
+      <span className="text-small font-semibold" style={boldStyle}>
+        {sectionLabel}
+      </span>
+    )
+  );
+
+  // Detail node — only on sub-pages (e.g. category detail)
+  const detailNode = isSubPage && breadcrumbExtra && (
+    <span className="flex items-center gap-1.5 text-small font-semibold" style={boldStyle}>
+      {breadcrumbExtra.colour && (
+        <span
+          className="w-2.5 h-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: breadcrumbExtra.colour }}
+        />
+      )}
+      {breadcrumbExtra.label}
+    </span>
+  );
+
+  const sep = <span className="text-small" style={linkStyle}>›</span>;
+
+  const breadcrumbs = (
+    <div className="flex items-center gap-2">
+      {homeNode}
+      {sectionNode && <>{sep}{sectionNode}</>}
+      {detailNode && <>{sep}{detailNode}</>}
+    </div>
   );
 
   return (
@@ -78,24 +148,21 @@ export function TopBar() {
         <button
           type="button"
           className="md:hidden flex items-center justify-center w-8 h-8 -ml-1.5 rounded-md"
-          style={{ color: 'var(--theme-secondary-alt-text)' }}
+          style={linkStyle}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         >
           {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        {/* Page label — mobile only, shown inline in the bar for context */}
-        <span
-          className="md:hidden text-small font-medium"
-          style={{ color: 'var(--theme-secondary-alt-text)' }}
-        >
-          {pageLabel}
+        {/* Page label — mobile only */}
+        <span className="md:hidden text-small font-medium" style={linkStyle}>
+          {mobileLabel}
         </span>
 
-        {/* Breadcrumb — desktop only */}
+        {/* Instructor badge — desktop only */}
         <span
-          className="hidden md:inline text-small font-medium px-2.5 py-1 rounded-md"
+          className="hidden md:inline text-small font-medium px-2.5 py-1 rounded-md shrink-0"
           style={{
             color: 'var(--theme-secondary-alt-text)',
             border: '1px solid rgba(255,255,255,0.2)',
@@ -103,26 +170,27 @@ export function TopBar() {
         >
           {tCommon('instructor')}
         </span>
-        <span className="hidden md:inline text-small" style={{ color: 'var(--theme-secondary-alt-text)' }}>›</span>
-        <span className="hidden md:inline text-small font-medium" style={{ color: 'var(--theme-secondary-alt-text)' }}>
-          {pageLabel}
-        </span>
+
+        {/* Full breadcrumb trail — desktop only */}
+        <span className="hidden md:inline text-small" style={linkStyle}>›</span>
+        <div className="hidden md:flex">
+          {breadcrumbs}
+        </div>
 
         <div className="flex-1" />
 
-        {/* Header toggle — desktop only; lives in the dropdown on mobile */}
+        {/* Header toggle — desktop only */}
         <div className="hidden md:flex">
           {headerToggle}
         </div>
       </header>
 
-      {/* Mobile dropdown — fullscreen panel below the bar */}
+      {/* Mobile dropdown */}
       {menuOpen && (
         <div
           className="md:hidden fixed inset-x-0 bottom-0 flex flex-col overflow-auto"
           style={{ top: '48px', background: 'var(--theme-card)', zIndex: 60 }}
         >
-          {/* Topbar section: breadcrumb + mode buttons */}
           <div
             className="px-5 py-4 flex flex-col gap-3"
             style={{ borderBottom: '1px solid var(--theme-line)' }}
@@ -137,15 +205,12 @@ export function TopBar() {
               >
                 {tCommon('instructor')}
               </span>
-              <span className="text-small" style={{ color: 'var(--theme-secondary-alt-text)' }}>›</span>
-              <span className="text-small font-medium" style={{ color: 'var(--theme-secondary-alt-text)' }}>
-                {pageLabel}
-              </span>
+              <span className="text-small" style={linkStyle}>›</span>
+              {breadcrumbs}
             </div>
             {headerToggle}
           </div>
 
-          {/* Nav links — full width */}
           <nav className="flex flex-col gap-3 p-5">
             {mobileNavItems.map(({ segment, icon: Icon }) => (
               <Link

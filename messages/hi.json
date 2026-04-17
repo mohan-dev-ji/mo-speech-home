@@ -25,6 +25,14 @@
     "noResults": "No results for \"{query}\" (hi)",
     "talkerHint": "Tap symbols to build a sentence… (hi)"
   },
+  "header": {
+    "switchToBanner": "Switch to direct play (hi)",
+    "switchToTalker": "Switch to sentence builder (hi)"
+  },
+  "banner": {
+    "modelButton": "Model (hi)",
+    "editButton": "Edit (hi)"
+  },
   "talker": {
     "playLabel": "Play sentence (hi)",
     "clearLabel": "Clear sentence (hi)",
@@ -34,6 +42,12 @@
     "tabCoreWords": "Core Words (hi)",
     "tabNumbers": "Numbers (hi)",
     "tabLetters": "Letters (hi)"
+  },
+  "categoryDetail": {
+    "back": "Categories (hi)",
+    "loading": "Loading symbols… (hi)",
+    "empty": "No symbols in this category yet. (hi)",
+    "noProfile": "No student profile found. (hi)"
   },
   "categories": {
     "title": "श्रेणियाँ",

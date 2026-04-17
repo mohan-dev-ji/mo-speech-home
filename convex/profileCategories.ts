@@ -132,6 +132,17 @@ export const reseedProfile = mutation({
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
+ * Return a single category by its document ID.
+ * Used by the category detail screen for the header.
+ */
+export const getProfileCategory = query({
+  args: { profileCategoryId: v.id("profileCategories") },
+  handler: async (ctx, args) => {
+    return ctx.db.get(args.profileCategoryId);
+  },
+});
+
+/**
  * Return all categories for a profile in display order.
  * Used by the categories list screen.
  */
@@ -166,6 +177,57 @@ export const getProfileSymbols = query({
       )
       .order("asc")
       .collect();
+  },
+});
+
+/**
+ * Return profileSymbols with image paths and audio resolved.
+ * For symbolstix sources the symbols record is fetched and joined.
+ * Returns a flat shape ready for SymbolCard without needing client-side joins.
+ */
+export const getProfileSymbolsWithImages = query({
+  args: { profileCategoryId: v.id("profileCategories") },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id_and_order", (q) =>
+        q.eq("profileCategoryId", args.profileCategoryId)
+      )
+      .order("asc")
+      .collect();
+
+    return Promise.all(
+      rows.map(async (ps) => {
+        let imagePath: string | undefined;
+        let audioEng: string | undefined;
+        let audioHin: string | undefined;
+
+        if (ps.imageSource.type === "symbolstix") {
+          const sym = await ctx.db.get(ps.imageSource.symbolId);
+          if (sym) {
+            imagePath  = sym.imagePath;
+            audioEng   = ps.audio?.eng?.path ?? sym.audio.eng.default;
+            audioHin   = ps.audio?.hin?.path ?? sym.audio.hin?.default;
+          }
+        } else {
+          // googleImages | aiGenerated | userUpload — all have imagePath
+          const src = ps.imageSource as { imagePath: string };
+          imagePath  = src.imagePath;
+          audioEng   = ps.audio?.eng?.path;
+          audioHin   = ps.audio?.hin?.path;
+        }
+
+        return {
+          _id:               ps._id,
+          profileCategoryId: ps.profileCategoryId,
+          order:             ps.order,
+          label:             ps.label,
+          imagePath,
+          audioEng,
+          audioHin,
+        };
+      })
+    );
   },
 });
 

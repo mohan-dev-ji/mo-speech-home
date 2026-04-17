@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { Edit2, Save, Plus } from 'lucide-react';
@@ -41,9 +42,10 @@ type SortableTileProps = {
   language: string;
   isEditing: boolean;
   onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
+  onClick?: () => void;
 };
 
-function SortableCategoryTile({ category, language, isEditing, onDeleteRequest }: SortableTileProps) {
+function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onClick }: SortableTileProps) {
   const {
     attributes,
     listeners,
@@ -67,6 +69,7 @@ function SortableCategoryTile({ category, language, isEditing, onDeleteRequest }
         category={category}
         language={language}
         isEditing={isEditing}
+        onClick={onClick}
         onDeleteRequest={onDeleteRequest}
         dragHandleProps={{ listeners, attributes }}
       />
@@ -81,6 +84,9 @@ type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 export function CategoriesContent() {
   const t = useTranslations('categories');
   const { activeProfileId, language } = useProfile();
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
 
   const [isEditing, setIsEditing] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
@@ -208,6 +214,7 @@ export function CategoriesContent() {
                   language={language}
                   isEditing={isEditing}
                   onDeleteRequest={handleDeleteRequest}
+                  onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
                 />
               ))}
             </div>
