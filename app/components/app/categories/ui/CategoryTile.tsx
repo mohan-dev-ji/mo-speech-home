@@ -4,6 +4,7 @@ import { ImageIcon, Trash2, Move } from 'lucide-react';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 
 type Props = {
   category: Doc<'profileCategories'>;
@@ -84,7 +85,7 @@ export function CategoryTile({
         {/* Folder tab */}
         <div
           className="self-start h-6 w-[30%] shrink-0 rounded-t-theme-sm"
-          style={{ backgroundColor: category.colour }}
+          style={{ backgroundColor: getCategoryColour(category.colour).c500 }}
         />
 
         {/* Card body — relative so overlays can be positioned inside it */}

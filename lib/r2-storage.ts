@@ -2,6 +2,7 @@ import {
   S3Client,
   GetObjectCommand,
   HeadObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -49,6 +50,22 @@ export async function getSignedFileUrl(
   if (!r2Client || !bucketName) throw new Error("R2 not configured");
   const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
   return getSignedUrl(r2Client, command, { expiresIn });
+}
+
+export async function uploadBuffer(
+  key: string,
+  buffer: Buffer | Uint8Array,
+  contentType: string
+): Promise<void> {
+  if (!r2Client || !bucketName) throw new Error("R2 not configured");
+  await r2Client.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    })
+  );
 }
 
 export async function getFile(

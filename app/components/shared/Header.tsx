@@ -24,6 +24,7 @@ import { TalkerBar } from './TalkerBar';
 import type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 import { TalkerDropdown } from './TalkerDropdown';
 import { Banner } from './Banner';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 
 export type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 
@@ -43,6 +44,9 @@ type HeaderProps = {
   mode?: 'talker' | 'banner';
   onToggleMode?: () => void;
   categoryName?: string;
+  categoryImagePath?: string;
+  categoryColour?: string;
+  onEditCategory?: () => void;
 };
 
 // ─── Pill toggle ─────────────────────────────────────────────────────────────
@@ -91,6 +95,9 @@ export function Header({
   mode = 'talker',
   onToggleMode,
   categoryName = '',
+  categoryImagePath,
+  categoryColour,
+  onEditCategory,
 }: HeaderProps) {
   const t = useTranslations('talker');
   const tH = useTranslations('header');
@@ -101,6 +108,9 @@ export function Header({
 
   const hasSymbols = symbols.length > 0;
   const isBanner   = mode === 'banner';
+  const headerBg   = categoryColour
+    ? getCategoryColour(categoryColour).c700
+    : 'var(--theme-card)';
 
   useEffect(() => {
     function measure() {
@@ -125,7 +135,7 @@ export function Header({
     return (
       <div
         className="relative rounded-theme p-3"
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: headerBg }}
       >
         {showToggle && (
           <div className="absolute top-3 right-3">
@@ -138,7 +148,12 @@ export function Header({
         )}
         {/* Right padding keeps content clear of the toggle pill */}
         <div className={showToggle ? 'pr-14' : ''}>
-          <Banner categoryName={categoryName} />
+          <Banner
+            categoryName={categoryName}
+            imagePath={categoryImagePath}
+            colour={categoryColour}
+            onEdit={onEditCategory}
+          />
         </div>
       </div>
     );
@@ -151,7 +166,7 @@ export function Header({
       <div
         ref={mainRef}
         className="flex items-stretch gap-2 p-3 rounded-theme"
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: headerBg }}
       >
         {/* Chip area */}
         <div ref={chipAreaRef} className="flex-1 min-w-0">

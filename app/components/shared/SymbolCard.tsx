@@ -2,9 +2,20 @@
 
 import { useState } from 'react';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 
 // componentKey: "symbol-{symbolId}" — required for modelling mode targeting.
-// All props/callbacks only — no context dependency.
+
+export type SymbolDisplay = {
+  bgColour?: string;
+  textColour?: string;
+  textSize?: 'sm' | 'md' | 'lg' | 'xl';
+  borderColour?: string;
+  borderWidth?: number;
+  showLabel?: boolean;
+  showImage?: boolean;
+  shape?: 'square' | 'rounded' | 'circle';
+};
 
 type SymbolCardProps = {
   symbolId: string;
@@ -14,14 +25,45 @@ type SymbolCardProps = {
   showLabel?: boolean;
   showImage?: boolean;
   isModellingTarget?: boolean;
+  display?: SymbolDisplay;
+  categoryColour?: string;
   onTap: () => void;
 };
 
-const TEXT_SIZE_CLASS: Record<'large' | 'medium' | 'small' | 'xs', string> = {
-  large:  'text-theme-h2 font-semibold',
-  medium: 'text-theme-h4 font-semibold',
-  small:  'text-theme-p font-bold',
-  xs:     'text-theme-xs font-bold',
+// Font-weight classes only — font-size is set via cqw in inline style
+const PROFILE_TEXT_WEIGHT: Record<'large' | 'medium' | 'small' | 'xs', string> = {
+  large:  'font-semibold',
+  medium: 'font-semibold',
+  small:  'font-bold',
+  xs:     'font-bold',
+};
+
+const DISPLAY_TEXT_WEIGHT: Record<'sm' | 'md' | 'lg' | 'xl', string> = {
+  sm: 'font-bold',
+  md: 'font-bold',
+  lg: 'font-semibold',
+  xl: 'font-semibold',
+};
+
+// Font sizes as container-relative units — scale with the card's rendered width
+const PROFILE_TEXT_CQW: Record<'large' | 'medium' | 'small' | 'xs', string> = {
+  large:  '18cqw',
+  medium: '15cqw',
+  small:  '12cqw',
+  xs:     '10cqw',
+};
+
+const DISPLAY_TEXT_CQW: Record<'sm' | 'md' | 'lg' | 'xl', string> = {
+  sm: '10cqw',
+  md: '12cqw',
+  lg: '15cqw',
+  xl: '15cqw',
+};
+
+const SHAPE_CLASS: Record<'square' | 'rounded' | 'circle', string> = {
+  square:  'rounded-none',
+  rounded: 'rounded-xl',
+  circle:  'rounded-full',
 };
 
 export function SymbolCard({
@@ -30,15 +72,42 @@ export function SymbolCard({
   showLabel = true,
   showImage = true,
   isModellingTarget = false,
+  display,
+  categoryColour,
   onTap,
 }: SymbolCardProps) {
   const [hovered, setHovered] = useState(false);
   const { stateFlags } = useProfile();
 
-  const labelVisible = showLabel && (stateFlags.symbol_label_visible ?? true);
-  const textSizeClass = TEXT_SIZE_CLASS[stateFlags.symbol_text_size ?? 'small'];
+  const catPair = categoryColour ? getCategoryColour(categoryColour) : null;
+  const defaultBg = catPair ? catPair.c100 : 'var(--theme-symbol-bg)';
+  const defaultBorder = catPair ? catPair.c500 : 'var(--theme-line)';
+
+  // Per-symbol overrides take priority over profile-level flags
+  const labelVisible = display?.showLabel !== undefined
+    ? display.showLabel
+    : showLabel && (stateFlags.symbol_label_visible ?? true);
+
+  const imageVisible = display?.showImage !== undefined ? display.showImage : showImage;
+
+  const textWeightClass = display?.textSize
+    ? DISPLAY_TEXT_WEIGHT[display.textSize]
+    : PROFILE_TEXT_WEIGHT[stateFlags.symbol_text_size ?? 'small'];
+
+  const textFontSize = display?.textSize
+    ? DISPLAY_TEXT_CQW[display.textSize]
+    : PROFILE_TEXT_CQW[stateFlags.symbol_text_size ?? 'small'];
+
+  const shapeClass = SHAPE_CLASS[display?.shape ?? 'rounded'];
+
+  const borderWidth = display?.borderWidth ?? 4;
+
+  const borderColor = hovered
+    ? 'var(--theme-brand-primary)'
+    : (display?.borderColour ?? defaultBorder);
 
   return (
+    <div className="w-full aspect-square" style={{ containerType: 'inline-size' }}>
     <button
       type="button"
       onClick={onTap}
@@ -47,20 +116,20 @@ export function SymbolCard({
       className={[
         'symbol-card',
         'flex flex-col items-center justify-between',
-        'rounded-xl p-2 w-full aspect-square cursor-pointer',
+        shapeClass,
+        'p-2 w-full h-full cursor-pointer',
         'transition-transform active:scale-95',
         isModellingTarget ? 'symbol-card--modelling-target' : '',
       ].join(' ')}
       style={{
-        borderWidth: '4px',
+        backgroundColor: display?.bgColour ?? defaultBg,
+        borderWidth: `${borderWidth * 0.75}cqw`,
         borderStyle: 'solid',
-        borderColor: hovered
-          ? 'var(--theme-brand-primary)'
-          : 'var(--theme-line)',
+        borderColor,
         transition: 'border-color 150ms ease, transform 150ms ease',
       }}
     >
-      {showImage && (
+      {imageVisible && (
         <div className="flex-1 flex items-center justify-center w-full min-h-0">
           {imagePath ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -77,12 +146,13 @@ export function SymbolCard({
       )}
       {labelVisible && (
         <span
-          className={`${textSizeClass} text-center leading-tight mt-1 truncate w-full px-0.5`}
-          style={{ color: 'var(--theme-text)' }}
+          className={`${textWeightClass} text-center leading-tight mt-1 truncate w-full px-0.5`}
+          style={{ color: display?.textColour ?? 'var(--theme-text)', fontSize: textFontSize }}
         >
           {label}
         </span>
       )}
     </button>
+    </div>
   );
 }

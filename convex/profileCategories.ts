@@ -26,11 +26,24 @@ export const seedDefaultProfile = internalMutation({
     for (let catIndex = 0; catIndex < DEFAULT_CATEGORIES.length; catIndex++) {
       const cat = DEFAULT_CATEGORIES[catIndex];
 
+      // Resolve folder cover image — exact index lookup (1 read)
+      let folderImagePath: string | undefined;
+      if (cat.folderWord) {
+        const folderSym = await ctx.db
+          .query("symbols")
+          .withIndex("by_words_eng", (q) =>
+            q.eq("words.eng", cat.folderWord!)
+          )
+          .first();
+        if (folderSym) folderImagePath = folderSym.imagePath;
+      }
+
       const profileCategoryId = await ctx.db.insert("profileCategories", {
         profileId: args.profileId,
         name: cat.name,
         icon: cat.icon,
         colour: cat.colour,
+        ...(folderImagePath ? { imagePath: folderImagePath } : {}),
         order: catIndex,
         updatedAt: now,
       });
@@ -40,12 +53,13 @@ export const seedDefaultProfile = internalMutation({
       let skipped = 0;
 
       for (const word of cat.words) {
-        // Use the search index (guaranteed backfilled on existing symbols table).
-        // Take more candidates than needed so we can filter for exact match + right category.
+        // Exact btree index lookup — only reads documents where words.eng === word.
+        // Take 3 in case the same word exists across multiple SymbolStix categories;
+        // the category filter below picks the best match.
         const candidates = await ctx.db
           .query("symbols")
-          .withSearchIndex("search_words_eng", (q) => q.search("words.eng", word))
-          .take(20);
+          .withIndex("by_words_eng", (q) => q.eq("words.eng", word))
+          .take(3);
 
         const wordLower = word.toLowerCase();
 
@@ -222,6 +236,7 @@ export const getProfileSymbolsWithImages = query({
           profileCategoryId: ps.profileCategoryId,
           order:             ps.order,
           label:             ps.label,
+          display:           ps.display,
           imagePath,
           audioEng,
           audioHin,
@@ -253,6 +268,45 @@ export const reorderCategories = mutation({
         throw new Error("Category not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
+  },
+});
+
+/**
+ * Update a category's colour and/or folder cover image.
+ * Called by the board edit mode banner save.
+ */
+export const updateCategoryMeta = mutation({
+  args: {
+    profileCategoryId: v.id("profileCategories"),
+    colour: v.optional(v.string()),
+    imagePath: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const cat = await ctx.db.get(args.profileCategoryId);
+    if (!cat) throw new Error("Category not found");
+
+    const profile = await ctx.db.get(cat.profileId);
+    if (!profile) throw new Error("Profile not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) =>
+        q.eq("clerkUserId", identity.subject)
+      )
+      .unique();
+    if (!user || user._id !== profile.accountId)
+      throw new Error("Not authorised");
+
+    await ctx.db.patch(args.profileCategoryId, {
+      ...(args.colour !== undefined && { colour: args.colour }),
+      ...(args.imagePath !== undefined && { imagePath: args.imagePath }),
+      updatedAt: Date.now(),
+    });
+
+    return args.profileCategoryId;
   },
 });
 

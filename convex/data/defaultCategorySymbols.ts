@@ -34,6 +34,8 @@ export type CategorySeed = {
   symbolstixCategories: string[];
   /** Ordered list of words.eng to seed — first 48 matches used */
   words: string[];
+  /** Word to look up for the category folder cover image */
+  folderWord?: string;
 };
 
 export type DropdownGroup = {
@@ -51,6 +53,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Actions", hin: "Actions (hi)" },
     icon: "⚡",
     colour: "#F97316",
+    folderWord: "play",
     symbolstixCategories: ["Actions"],
     words: [
       "want", "need", "go", "stop", "eat", "drink", "help", "play",
@@ -66,6 +69,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "People", hin: "People (hi)" },
     icon: "👥",
     colour: "#A855F7",
+    folderWord: "family",
     // Note: teacher/doctor/nurse/firefighter/police officer/dentist/driver live in Occupations
     symbolstixCategories: [
       "People Symbolstix", "People", "Family", "Occupations",
@@ -86,6 +90,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Feelings", hin: "Feelings (hi)" },
     icon: "😊",
     colour: "#EC4899",
+    folderWord: "happy",
     symbolstixCategories: ["Feelings"],
     // Note: "tired" does not exist in Feelings — needs custom symbol
     words: [
@@ -105,6 +110,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Describe", hin: "Describe (hi)" },
     icon: "🔵",
     colour: "#14B8A6",
+    folderWord: "beautiful",
     // Note: "grey" not in DB — use "gray". "favourite" not in DB — use "favorite"
     symbolstixCategories: ["Descriptives", "Colors & Shapes"],
     words: [
@@ -126,6 +132,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Food & Drink", hin: "Food & Drink (hi)" },
     icon: "🍎",
     colour: "#EF4444",
+    folderWord: "apple",
     // Note: "chocolate" not in any food category — needs custom symbol
     // Note: "burger" not in DB — needs custom symbol
     symbolstixCategories: [
@@ -150,6 +157,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Home", hin: "Home (hi)" },
     icon: "🏠",
     colour: "#3B82F6",
+    folderWord: "bedroom",
     // Note: "fridge" not in DB — needs custom symbol
     // Note: "sofa" not in DB — needs custom symbol
     // Note: "phone" not in DB — needs custom symbol
@@ -178,6 +186,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Activities", hin: "Activities (hi)" },
     icon: "⚽",
     colour: "#22C55E",
+    folderWord: "football",
     // Note: "swimming" (noun) not in DB — "swim" used instead
     // Note: "guitar" not in DB — violin/drums/piano available
     // Note: "cinema" not in DB — "movie" covers intent
@@ -207,6 +216,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "School", hin: "School (hi)" },
     icon: "📚",
     colour: "#EAB308",
+    folderWord: "school",
     // Note: "maths" not in DB — "math" used (US spelling). Custom label override needed for UK
     // Note: "PE" / "physical education" not usable — needs custom symbol
     // Note: "headteacher" not in DB — "principal" used (US term)
@@ -237,6 +247,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Health", hin: "Health (hi)" },
     icon: "❤️",
     colour: "#F43F5E",
+    folderWord: "doctor",
     // Note: "tummy ache" not in DB — needs custom symbol
     // Note: "allergy" not in DB — needs custom symbol
     // Note: "plaster" not in DB (UK) — "bandage" covers it
@@ -266,6 +277,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Animals", hin: "Animals (hi)" },
     icon: "🐾",
     colour: "#F59E0B",
+    folderWord: "dog",
     // Note: "bear" only in American Sign Language — needs custom symbol
     // Note: "hippo" only in American Sign Language — needs custom symbol
     // Note: "whale" only in Characters/Religion — needs custom symbol
@@ -292,6 +304,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Nature", hin: "Nature (hi)" },
     icon: "🌿",
     colour: "#10B981",
+    folderWord: "sun",
     symbolstixCategories: [
       "Nature", "Weather", "Seasons", "Landforms",
       "Continents & Bodies of Water", "Plants", "Flowers",
@@ -313,6 +326,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Community", hin: "Community (hi)" },
     icon: "🏘️",
     colour: "#6366F1",
+    folderWord: "hospital",
     // Note: "aeroplane" not in DB (UK) — "airplane" used
     // Note: "fire engine" not in DB — needs custom symbol
     // Note: "cinema" not in DB
@@ -340,6 +354,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Time", hin: "Time (hi)" },
     icon: "⏰",
     colour: "#0EA5E9",
+    folderWord: "clock",
     symbolstixCategories: [
       "Calendar & Time", "Days of Week", "Months", "Seasons",
       "Descriptives", "Adverbs", "Conjunctions",
@@ -365,6 +380,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Numbers", hin: "Numbers (hi)" },
     icon: "🔢",
     colour: "#06B6D4",
+    folderWord: "number",
     // Note: "equals" not in DB — needs custom symbol
     // Note: "minus" only in American Sign Language — needs custom symbol
     // Note: metric measurements (centimetre, metre, litre) not in DB
@@ -388,6 +404,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Chat", hin: "Chat (hi)" },
     icon: "💬",
     colour: "#F472B6",
+    folderWord: "hello",
     symbolstixCategories: ["Interjections", "Greetings & Wrap ups"],
     words: [
       "hi", "hello", "good morning!", "good night.", "goodbye!", "bye!",
@@ -409,6 +426,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Questions", hin: "Questions (hi)" },
     icon: "❓",
     colour: "#7C3AED",
+    folderWord: "what",
     symbolstixCategories: ["Questions"],
     words: [
       "how", "can i", "do you", "what is", "where is", "may i",
@@ -434,6 +452,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     name: { eng: "Religion", hin: "Religion (hi)" },
     icon: "🙏",
     colour: "#D97706",
+    folderWord: "pray",
     // Note: "christmas" standalone not in Religion — "christmas manger scene" used
     // Note: "shabbat" not in DB standalone
     // Note: "meditation" / "blessing" / "faith" not in DB

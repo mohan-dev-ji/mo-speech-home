@@ -11,6 +11,7 @@
 import type * as accountMembers from "../accountMembers.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
 import type * as profileCategories from "../profileCategories.js";
+import type * as profileSymbols from "../profileSymbols.js";
 import type * as studentProfiles from "../studentProfiles.js";
 import type * as symbols from "../symbols.js";
 import type * as themes from "../themes.js";
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   accountMembers: typeof accountMembers;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
   profileCategories: typeof profileCategories;
+  profileSymbols: typeof profileSymbols;
   studentProfiles: typeof studentProfiles;
   symbols: typeof symbols;
   themes: typeof themes;

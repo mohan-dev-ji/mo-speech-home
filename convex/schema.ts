@@ -177,6 +177,7 @@ export default defineSchema({
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     icon: v.string(),
     colour: v.string(),
+    imagePath: v.optional(v.string()), // R2 path for the folder cover image
     order: v.number(),
     librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — reload defaults only
     updatedAt: v.number(),
