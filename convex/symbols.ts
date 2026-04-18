@@ -79,3 +79,24 @@ export const searchSymbols = query({
       .take(limit);
   },
 });
+
+/**
+ * Batch-fetch symbols by exact word labels (eng).
+ * Uses the by_words_eng index for O(1) per word.
+ * Returns only found symbols — missing words are silently skipped.
+ * Used by TalkerDropdown to load real images and audio for little-words groups.
+ */
+export const getSymbolsByWords = query({
+  args: { words: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const results = await Promise.all(
+      args.words.map((word) =>
+        ctx.db
+          .query("symbols")
+          .withIndex("by_words_eng", (q) => q.eq("words.eng", word))
+          .first()
+      )
+    );
+    return results.filter((s): s is NonNullable<typeof s> => s !== null);
+  },
+});

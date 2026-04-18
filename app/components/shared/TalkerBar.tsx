@@ -12,6 +12,15 @@ export type TalkerSymbolItem = {
   label: string;
 };
 
+// Payload emitted by TalkerDropdown when a quick-access symbol is tapped.
+// Omits instanceId — the receiving handler assigns that on insert.
+export type QuickSymbolItem = {
+  symbolId: string;
+  label: string;
+  imagePath?: string;
+  audioPath?: string;
+};
+
 type TalkerBarProps = {
   symbols: TalkerSymbolItem[];
   placeholder?: string;

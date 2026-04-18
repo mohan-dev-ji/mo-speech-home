@@ -21,11 +21,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Volume2, X, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { TalkerBar } from './TalkerBar';
-import type { TalkerSymbolItem } from './TalkerBar';
+import type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 import { TalkerDropdown } from './TalkerDropdown';
 import { Banner } from './Banner';
 
-export type { TalkerSymbolItem } from './TalkerBar';
+export type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ type HeaderProps = {
   onPlaySentence: () => void;
   onClear: () => void;
   onSave?: () => void;
-  onQuickSymbolTap: (label: string) => void;
+  onQuickSymbolTap: (item: QuickSymbolItem) => void;
   // Omit showToggle (or false) for Search — talker only, no banner
   showToggle?: boolean;
   mode?: 'talker' | 'banner';

@@ -9,7 +9,7 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
-import { Header, type TalkerSymbolItem } from '@/app/components/shared/Header';
+import { Header, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/Header';
 import { PlayModal } from '@/app/components/shared/PlayModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -75,10 +75,17 @@ export function CategoryDetailContent({ categoryId }: Props) {
     ]);
   }
 
-  function addQuickSymbol(label: string) {
+  function addQuickSymbol(item: QuickSymbolItem) {
+    if (item.audioPath) playAudio(item.audioPath);
     setTalkerSymbols((prev) => [
       ...prev,
-      { instanceId: crypto.randomUUID(), symbolId: `quick-${label}`, imagePath: undefined, label },
+      {
+        instanceId: crypto.randomUUID(),
+        symbolId: item.symbolId,
+        imagePath: item.imagePath,
+        audioPath: item.audioPath,
+        label: item.label,
+      },
     ]);
   }
 

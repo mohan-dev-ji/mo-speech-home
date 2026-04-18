@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { TalkerSection, type TalkerSymbolItem } from '@/app/components/shared/TalkerSection';
+import { TalkerSection, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/TalkerSection';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
 import { PlayModal } from '@/app/components/shared/PlayModal';
@@ -79,15 +79,17 @@ export function SearchContent() {
     ]);
   }
 
-  /** Tap a quick-access symbol in the dropdown → add to talker (no audio in Phase 1) */
-  function addQuickSymbol(label: string) {
+  /** Tap a quick-access symbol in the dropdown → play audio + add to talker */
+  function addQuickSymbol(item: QuickSymbolItem) {
+    if (item.audioPath) playAudio(item.audioPath);
     setTalkerSymbols((prev) => [
       ...prev,
       {
         instanceId: crypto.randomUUID(),
-        symbolId: `quick-${label}`,
-        imagePath: undefined,
-        label,
+        symbolId: item.symbolId,
+        imagePath: item.imagePath,
+        audioPath: item.audioPath,
+        label: item.label,
       },
     ]);
   }

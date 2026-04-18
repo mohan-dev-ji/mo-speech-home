@@ -269,6 +269,158 @@ Student edit permissions are a Phase 4+ concern. For Phase 3, only instructors c
 
 ---
 
+## Category Colour System
+
+`profileCategories.colour` stores a **Tailwind base colour name** — e.g. `"rose"`, `"sky"`, `"orange"`. A single value drives three surfaces:
+
+| Surface | Value used |
+|---|---|
+| Category tab (folder tile + breadcrumb badge) | `{colour}-500` |
+| Symbol hover border — all symbols in the category | `{colour}-500` |
+| Symbol card background — all symbols in the category | `{colour}-100` |
+
+Individual `profileSymbol.display.bgColour` / `display.borderColour` overrides still take precedence — the category colour is the default, not a hard override.
+
+### CATEGORY_COLOURS map
+
+A static constant `CATEGORY_COLOURS` in `app/lib/categoryColours.ts` maps each allowed name to its hex pair:
+
+```typescript
+export const CATEGORY_COLOURS: Record<string, { c500: string; c100: string }> = {
+  rose:   { c500: '#F43F5E', c100: '#FFE4E6' },
+  pink:   { c500: '#EC4899', c100: '#FCE7F3' },
+  orange: { c500: '#F97316', c100: '#FFEDD5' },
+  amber:  { c500: '#F59E0B', c100: '#FEF3C7' },
+  yellow: { c500: '#EAB308', c100: '#FEF9C3' },
+  lime:   { c500: '#84CC16', c100: '#ECFCCB' },
+  green:  { c500: '#22C55E', c100: '#DCFCE7' },
+  teal:   { c500: '#14B8A6', c100: '#CCFBF1' },
+  sky:    { c500: '#0EA5E9', c100: '#E0F2FE' },
+  blue:   { c500: '#3B82F6', c100: '#DBEAFE' },
+  indigo: { c500: '#6366F1', c100: '#E0E7FF' },
+  violet: { c500: '#8B5CF6', c100: '#EDE9FE' },
+  purple: { c500: '#A855F7', c100: '#F3E8FF' },
+  fuchsia:{ c500: '#D946EF', c100: '#FDF4FF' },
+  red:    { c500: '#EF4444', c100: '#FEE2E2' },
+  slate:  { c500: '#64748B', c100: '#F1F5F9' },
+};
+```
+
+**No dynamic Tailwind class names.** All colour application uses `style={{ backgroundColor: hex, borderColor: hex }}` via this map. This avoids Tailwind purge issues entirely.
+
+### Migration note
+
+`defaultCategorySymbols.ts` currently stores hex values (e.g. `#F97316`). These must be replaced with named keys (`"orange"`) before the colour system is wired. Update the seed data at the same time as implementing the colour picker.
+
+---
+
+## Banner Mode
+
+The `Header` component in `mode="banner"` shows:
+
+```
+┌─ Banner card (var(--theme-card) bg) ─────────────────────────────┐
+│  [Category image]  Category name                  [pill toggle]  │
+│                    [Model] [Edit]                                 │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Category image
+
+Stored as `imagePath: v.optional(v.string())` — a new field to add to `profileCategories` (R2 path, same convention as symbol images). This image:
+
+- Displays in the banner (left side, ~80px square)
+- Appears as the folder card image on the categories list screen (replacing the current `ImageIcon` placeholder)
+- Is editable only in edit mode (see below)
+
+**Schema addition required:**
+```typescript
+// convex/schema.ts — profileCategories table
+imagePath: v.optional(v.string()),
+```
+
+### What is visible in non-edit banner mode
+
+| Element | Visible |
+|---|---|
+| Category image | ✅ |
+| Category name | ✅ |
+| Category colour (as tab/breadcrumb) | ✅ |
+| Colour picker | ❌ — edit mode only |
+| Model button | ✅ (disabled until Phase 6) |
+| Edit button | ✅ |
+
+---
+
+## Board Mode — Edit State
+
+### Entering edit mode
+
+Tapping **Edit** in the banner sets `isEditing = true` (local state). No URL change.
+
+### Banner in edit mode
+
+The banner transforms to an editing surface:
+
+- **Category image** — same position, gains orange SVG dashed border + tap-to-change overlay; tapping opens the image picker (subset of SymbolEditorModal image tab — deferred to Phase 4, shows placeholder tap for now)
+- **Colour picker** — appears in the banner below the image; renders swatches from `CATEGORY_COLOURS`; selected colour patches `profileCategories.colour` immediately on tap
+- Model and Edit buttons remain; Edit button now reads "Done" to exit edit mode
+
+### Symbol grid in edit mode
+
+Every `SymbolCard` switches to `SymbolCardEditable`. Visual rules:
+
+- **Shrink**: inner content padded to ~p-3 within the same grid cell, creating a visible gap from the cell boundary
+- **Orange dashed border**: SVG overlay using `stroke: var(--theme-enter-mode)`, `strokeDasharray: "12 6"`, same pattern as `CategoryTile` in edit mode
+- **Edit overlay strip** at the bottom of each card (three icon buttons, semi-transparent `var(--theme-card)` bg):
+  - Pencil → `onEditRequest(profileSymbolId)` — caller opens `SymbolEditorModal` (Phase 4 placeholder for now)
+  - Trash → `onDeleteRequest(profileSymbolId)` — confirmation then removes record
+  - Grip → drag handle for reorder (dnd-kit, patches `order` on `profileSymbols`)
+- **"+ Add Symbol" tile** at the end of the grid — tapping opens `SymbolEditorModal` in create mode (Phase 4 placeholder)
+
+### SymbolCardEditable component
+
+Lives at `app/components/app/categories/ui/SymbolCardEditable.tsx`.
+
+```typescript
+type SymbolCardEditableProps = {
+  profileSymbolId: Id<'profileSymbols'>;
+  imagePath?: string;
+  label: string;
+  language: string;
+  onEditRequest: (id: Id<'profileSymbols'>) => void;
+  onDeleteRequest: (id: Id<'profileSymbols'>) => void;
+  dragHandleProps?: { listeners?: ...; attributes?: ... };
+};
+```
+
+This is a Level 1 edit component. It never opens `SymbolEditorModal` itself — it calls `onEditRequest` and lets the page handle Level 2.
+
+---
+
+## Mode Switcher
+
+The category detail page has four modes switched by a tab bar:
+
+```
+[ Board ]  [ Lists ]  [ First Thens ]  [ Sentences ]
+```
+
+Tab visibility is gated by state flags:
+
+| Tab | State flag | Default |
+|---|---|---|
+| Board | always visible | — |
+| Lists | `lists_visible` | true |
+| First Thens | `first_thens_visible` | true |
+| Sentences | `sentences_visible` | true |
+
+Mode state is local — resets to Board on navigation away and back.
+
+The mode switcher is `app/components/app/categories/ui/ModeSwitcher.tsx`.
+
+---
+
 ## Convex Indexes Required
 
 ```typescript
