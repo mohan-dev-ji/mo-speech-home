@@ -47,7 +47,14 @@
     "back": "Categories",
     "loading": "Loading symbols…",
     "empty": "No symbols in this category yet.",
-    "noProfile": "No student profile found."
+    "noProfile": "No student profile found.",
+    "modeBoard": "Board",
+    "modeLists": "Lists",
+    "modeFirstThens": "First Thens",
+    "modeSentences": "Sentences",
+    "listsPlaceholder": "Lists coming soon",
+    "firstThensPlaceholder": "First Thens coming soon",
+    "sentencesPlaceholder": "Sentences coming soon"
   },
   "categories": {
     "title": "Categories",

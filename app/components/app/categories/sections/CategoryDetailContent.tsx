@@ -11,6 +11,7 @@ import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
 import { Header, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/Header';
 import { PlayModal } from '@/app/components/shared/PlayModal';
+import type { CategoryMode } from '@/app/components/app/categories/ui/ModeSwitcher';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,10 +41,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
   const { language, stateFlags, activeProfileId } = useProfile();
-  const { setBreadcrumbExtra } = useBreadcrumb();
+  const { setBreadcrumbExtra, setTopBarExtras } = useBreadcrumb();
 
   const [talkerSymbols, setTalkerSymbols] = useState<TalkerSymbolItem[]>([]);
   const [headerMode, setHeaderMode] = useState<'talker' | 'banner'>('talker');
+  const [activeMode, setActiveMode] = useState<CategoryMode>('board');
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const cancelSequenceRef = useRef(false);
 
@@ -126,7 +128,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
     if (!cancelSequenceRef.current) setPlayModal(null);
   }
 
-  // ─── Breadcrumb (must be before conditional returns) ─────────────────────────
+  // ─── Breadcrumb + TopBar extras (must be before conditional returns) ─────────
 
   useEffect(() => {
     if (!category) return;
@@ -134,6 +136,20 @@ export function CategoryDetailContent({ categoryId }: Props) {
     setBreadcrumbExtra({ label: name, colour: category.colour });
     return () => setBreadcrumbExtra(null);
   }, [category, language, setBreadcrumbExtra]);
+
+  useEffect(() => {
+    setTopBarExtras({
+      modeSwitcher: {
+        activeMode,
+        onChange: setActiveMode,
+        listsVisible:      stateFlags.lists_visible      ?? true,
+        firstThensVisible: stateFlags.first_thens_visible ?? true,
+        sentencesVisible:  stateFlags.sentences_visible   ?? true,
+      },
+      showHeaderToggle: activeMode === 'board',
+    });
+    return () => setTopBarExtras(null);
+  }, [activeMode, stateFlags, setTopBarExtras]);
 
   // ─── Derived ─────────────────────────────────────────────────────────────────
 
@@ -154,8 +170,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
-      {/* Board header — talker or banner, togglable */}
-      {stateFlags.talker_visible && (
+      {/* Board header — talker or banner, only on board mode */}
+      {activeMode === 'board' && stateFlags.talker_visible && (
         <div className="shrink-0">
           <Header
             symbols={talkerSymbols}
@@ -172,48 +188,81 @@ export function CategoryDetailContent({ categoryId }: Props) {
         </div>
       )}
 
-      {/* Symbol grid */}
+      {/* Mode content */}
       <div className="flex-1 overflow-auto mt-8">
-        {symbols === undefined && (
-          <div className="flex items-center justify-center py-16">
-            <div
-              className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
-            />
-          </div>
-        )}
 
-        {symbols?.length === 0 && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-body" style={{ color: 'var(--theme-secondary-text)' }}>{t('empty')}</p>
-          </div>
-        )}
-
-        {symbols && symbols.length > 0 && (
-          <CategoryBoardGrid>
-            {symbols.map((sym) => {
-              const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
-              const audioPath = language === 'hin' ? (sym.audioHin ?? sym.audioEng) : sym.audioEng;
-
-              return (
-                <SymbolCard
-                  key={sym._id}
-                  symbolId={sym._id}
-                  imagePath={sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined}
-                  label={label}
-                  language={language}
-                  onTap={() => {
-                    if (!audioPath) return;
-                    if (headerMode === 'banner') {
-                      playAudio(audioPath);
-                    } else if (sym.imagePath) {
-                      addToTalker(sym._id, sym.imagePath, label, audioPath);
-                    }
-                  }}
+        {/* ── Board mode ────────────────────────────────────────────────── */}
+        {activeMode === 'board' && (
+          <>
+            {symbols === undefined && (
+              <div className="flex items-center justify-center py-16">
+                <div
+                  className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
                 />
-              );
-            })}
-          </CategoryBoardGrid>
+              </div>
+            )}
+
+            {symbols?.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-body" style={{ color: 'var(--theme-secondary-text)' }}>{t('empty')}</p>
+              </div>
+            )}
+
+            {symbols && symbols.length > 0 && (
+              <CategoryBoardGrid>
+                {symbols.map((sym) => {
+                  const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
+                  const audioPath = language === 'hin' ? (sym.audioHin ?? sym.audioEng) : sym.audioEng;
+
+                  return (
+                    <SymbolCard
+                      key={sym._id}
+                      symbolId={sym._id}
+                      imagePath={sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined}
+                      label={label}
+                      language={language}
+                      onTap={() => {
+                        if (!audioPath) return;
+                        if (headerMode === 'banner') {
+                          playAudio(audioPath);
+                        } else if (sym.imagePath) {
+                          addToTalker(sym._id, sym.imagePath, label, audioPath);
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </CategoryBoardGrid>
+            )}
+          </>
+        )}
+
+        {/* ── Lists mode — placeholder ──────────────────────────────────── */}
+        {activeMode === 'lists' && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('listsPlaceholder')}
+            </p>
+          </div>
+        )}
+
+        {/* ── First Thens mode — placeholder ───────────────────────────── */}
+        {activeMode === 'first-thens' && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('firstThensPlaceholder')}
+            </p>
+          </div>
+        )}
+
+        {/* ── Sentences mode — placeholder ──────────────────────────────── */}
+        {activeMode === 'sentences' && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('sentencesPlaceholder')}
+            </p>
+          </div>
         )}
       </div>
 

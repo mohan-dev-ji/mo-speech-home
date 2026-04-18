@@ -47,7 +47,14 @@
     "back": "Categories (hi)",
     "loading": "Loading symbols… (hi)",
     "empty": "No symbols in this category yet. (hi)",
-    "noProfile": "No student profile found. (hi)"
+    "noProfile": "No student profile found. (hi)",
+    "modeBoard": "Board (hi)",
+    "modeLists": "Lists (hi)",
+    "modeFirstThens": "First Thens (hi)",
+    "modeSentences": "Sentences (hi)",
+    "listsPlaceholder": "Lists coming soon (hi)",
+    "firstThensPlaceholder": "First Thens coming soon (hi)",
+    "sentencesPlaceholder": "Sentences coming soon (hi)"
   },
   "categories": {
     "title": "श्रेणियाँ",

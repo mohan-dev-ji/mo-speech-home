@@ -5,6 +5,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
+import { ModeSwitcher } from '@/app/components/app/categories/ui/ModeSwitcher';
 import { useState } from 'react';
 import { Menu, X, Home, Search, Tag, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,13 +28,14 @@ export function TopBar() {
   const tCommon = useTranslations('common');
   const tTopBar = useTranslations('topBar');
   const { stateFlags, setTalkerVisible } = useProfile();
-  const { breadcrumbExtra } = useBreadcrumb();
+  const { breadcrumbExtra, topBarExtras } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const segments = pathname.replace(`/${locale}`, '').split('/').filter(Boolean);
   const currentSegment = segments[0] ?? 'home';
   const isSubPage = segments.length >= 2;
-  const showTalkerToggle = currentSegment === 'search' || currentSegment === 'categories';
+  // Search always shows the toggle; category detail only shows it when in board mode (via topBarExtras)
+  const showTalkerToggle = currentSegment === 'search' || (topBarExtras?.showHeaderToggle ?? false);
 
   // Label shown in mobile bar — deepest crumb
   const mobileLabel = isSubPage && breadcrumbExtra
@@ -179,6 +181,20 @@ export function TopBar() {
 
         <div className="flex-1" />
 
+        {/* Mode tabs — desktop only, only on pages that register them */}
+        {topBarExtras?.modeSwitcher && (
+          <div className="hidden md:flex">
+            <ModeSwitcher
+              activeMode={topBarExtras.modeSwitcher.activeMode}
+              onChange={topBarExtras.modeSwitcher.onChange}
+              listsVisible={topBarExtras.modeSwitcher.listsVisible}
+              firstThensVisible={topBarExtras.modeSwitcher.firstThensVisible}
+              sentencesVisible={topBarExtras.modeSwitcher.sentencesVisible}
+              small
+            />
+          </div>
+        )}
+
         {/* Header toggle — desktop only */}
         <div className="hidden md:flex">
           {headerToggle}
@@ -208,6 +224,16 @@ export function TopBar() {
               <span className="text-small" style={linkStyle}>›</span>
               {breadcrumbs}
             </div>
+            {topBarExtras?.modeSwitcher && (
+              <ModeSwitcher
+                activeMode={topBarExtras.modeSwitcher.activeMode}
+                onChange={(mode) => { topBarExtras.modeSwitcher.onChange(mode); setMenuOpen(false); }}
+                listsVisible={topBarExtras.modeSwitcher.listsVisible}
+                firstThensVisible={topBarExtras.modeSwitcher.firstThensVisible}
+                sentencesVisible={topBarExtras.modeSwitcher.sentencesVisible}
+                small
+              />
+            )}
             {headerToggle}
           </div>
 

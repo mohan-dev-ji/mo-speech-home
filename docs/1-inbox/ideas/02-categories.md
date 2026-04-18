@@ -70,6 +70,104 @@ Pre-built sentences stored as ordered symbol sequences. Similar to lists but sem
 
 ---
 
+## Category Colour System
+
+`profileCategories.colour` stores a **Tailwind base colour name** — e.g. `"rose"`, `"sky"`, `"orange"`. A single value drives three surfaces:
+
+| Surface | Value used |
+|---|---|
+| Category tab (folder tile + breadcrumb badge) | `{colour}-500` |
+| Symbol hover border — all symbols in the category | `{colour}-500` |
+| Symbol card background — all symbols in the category | `{colour}-100` |
+
+Individual `profileSymbol.display.bgColour` / `display.borderColour` overrides still take precedence — the category colour is the default, not a hard override.
+
+A static constant `CATEGORY_COLOURS` in `app/lib/categoryColours.ts` maps each allowed name to its hex pair (c500 + c100). All colour application uses `style={{ backgroundColor: hex }}` via this map — no dynamic Tailwind class names.
+
+**Allowed colour names:** rose, pink, orange, amber, yellow, lime, green, teal, sky, blue, indigo, violet, purple, fuchsia, red, slate.
+
+**Migration note:** `defaultCategorySymbols.ts` currently stores hex values (e.g. `#F97316`). Replace with named keys (`"orange"`) when the colour picker is wired.
+
+---
+
+## Mode Switcher
+
+The category detail page has four modes switched by a compact tab bar in the **TopBar**:
+
+```
+[ Board ]  [ Lists ]  [ First Thens ]  [ Sentences ]
+```
+
+Tab visibility is gated by state flags:
+
+| Tab | State flag | Default |
+|---|---|---|
+| Board | always visible | — |
+| Lists | `lists_visible` | true |
+| First Thens | `first_thens_visible` | true |
+| Sentences | `sentences_visible` | true |
+
+The Header toggle in the TopBar is only visible when Board mode is active — all other modes have no header.
+
+Mode state is local — resets to Board on navigation away and back.
+
+---
+
+## Banner Mode
+
+The header in banner state shows:
+
+```
+┌─ Banner card ────────────────────────────────────────────────────┐
+│  [Category image]  Category name                  [pill toggle]  │
+│                    [Model] [Edit]                                 │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Category image
+
+Stored as `imagePath: v.optional(v.string())` on `profileCategories` (R2 path). This image:
+
+- Displays in the banner (left side, ~80px square)
+- Appears as the folder card image on the categories list screen (replacing the placeholder icon)
+- Is editable only in edit mode
+
+**Schema addition required:** `imagePath: v.optional(v.string())` on `profileCategories`.
+
+### Visibility rules
+
+| Element | Non-edit banner | Edit mode |
+|---|---|---|
+| Category image | ✅ | ✅ (editable — dashed border) |
+| Category name | ✅ | ✅ |
+| Category colour (tab/badge) | ✅ | ✅ |
+| Colour picker | ❌ | ✅ |
+| Model button | ✅ (disabled Phase 6) | ✅ |
+| Edit / Done button | ✅ | ✅ |
+
+---
+
+## Board Mode — Edit State
+
+Tapping **Edit** in the banner sets `isEditing = true` (local state, no URL change).
+
+### Banner in edit mode
+
+- **Category image** — gains orange SVG dashed border + tap-to-change overlay; tapping opens image picker (Phase 4)
+- **Colour picker** — appears in the banner; renders swatches from `CATEGORY_COLOURS`; selected colour patches `profileCategories.colour` immediately
+- Edit button reads "Done" to exit
+
+### Symbol grid in edit mode
+
+Every `SymbolCard` switches to `SymbolCardEditable`:
+
+- **Shrink** — inner content padded ~p-3, creating a visual gap from the cell edge
+- **Orange SVG dashed border** — `stroke: var(--theme-enter-mode)`, `strokeDasharray: "12 6"` (same pattern as CategoryTile)
+- **Bottom overlay strip** — three icons: Pencil (→ SymbolEditorModal, Phase 4), Trash (→ delete with confirm), Grip (→ drag reorder)
+- **"+ Add Symbol" tile** at end of grid (Phase 4)
+
+---
+
 ## Creating and Editing Categories
 
 Instructors can:
