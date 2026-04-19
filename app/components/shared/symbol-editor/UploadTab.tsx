@@ -58,16 +58,16 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
           <img
             src={displaySrc}
             alt="Selected"
-            className="max-w-[180px] max-h-[180px] object-contain rounded-xl"
+            className="max-w-[180px] max-h-[180px] object-contain rounded-theme-sm"
           />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-small font-semibold"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-theme-sm text-theme-s font-semibold"
             style={{
-              background: 'var(--theme-bg-surface)',
-              color: 'var(--theme-text-primary)',
-              border: '1px solid var(--theme-bg-surface-alt)',
+              background: 'var(--theme-symbol-bg)',
+              color: 'var(--theme-text)',
+              border: '1px solid var(--theme-button-highlight)',
             }}
           >
             <Upload className="w-4 h-4" />
@@ -77,21 +77,21 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
       ) : (
         <>
           <div
-            className="w-28 h-28 rounded-2xl flex items-center justify-center"
-            style={{ background: 'var(--theme-bg-surface)', border: '2px dashed var(--theme-bg-surface-alt)' }}
+            className="w-28 h-28 rounded-theme-sm flex items-center justify-center"
+            style={{ background: 'var(--theme-symbol-bg)', border: '2px dashed var(--theme-button-highlight)' }}
           >
-            <Upload className="w-8 h-8" style={{ color: 'var(--theme-text-secondary)' }} />
+            <Upload className="w-8 h-8" style={{ color: 'var(--theme-secondary-text)' }} />
           </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-small font-semibold"
-            style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-text-on-brand)' }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-theme-sm text-theme-s font-semibold"
+            style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-alt-text)' }}
           >
             <Upload className="w-4 h-4" />
             {t('uploadFromDevice')}
           </button>
-          <p className="text-caption text-center max-w-xs" style={{ color: 'var(--theme-text-secondary)' }}>
+          <p className="text-theme-xs text-center max-w-xs" style={{ color: 'var(--theme-secondary-text)' }}>
             {t('uploadHint')}
           </p>
         </>

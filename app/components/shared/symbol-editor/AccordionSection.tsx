@@ -11,18 +11,18 @@ type Props = {
 
 export function AccordionSection({ label, isOpen, onToggle, children }: Props) {
   return (
-    <div className="border-b last:border-b-0" style={{ borderColor: 'var(--theme-bg-surface-alt)' }}>
+    <div className="border-b last:border-b-0" style={{ borderColor: 'var(--theme-button-highlight)' }}>
       <button
         type="button"
         onClick={onToggle}
         className="w-full flex items-center justify-between px-4 py-3 text-left"
       >
-        <span className="text-small font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
+        <span className="text-theme-s font-semibold" style={{ color: 'var(--theme-text)' }}>
           {label}
         </span>
         {isOpen
-          ? <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-text-secondary)' }} />
-          : <ChevronRight className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-text-secondary)' }} />
+          ? <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-secondary-text)' }} />
+          : <ChevronRight className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-secondary-text)' }} />
         }
       </button>
       {isOpen && (

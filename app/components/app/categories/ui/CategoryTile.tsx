@@ -35,6 +35,7 @@ export function CategoryTile({
       ? category.name.hin
       : category.name.eng;
 
+  const colourPair = getCategoryColour(category.colour);
   const Tag = isEditing ? ('div' as const) : ('button' as const);
 
   return (
@@ -85,41 +86,43 @@ export function CategoryTile({
         {/* Folder tab */}
         <div
           className="self-start h-6 w-[30%] shrink-0 rounded-t-theme-sm"
-          style={{ backgroundColor: getCategoryColour(category.colour).c500 }}
+          style={{ backgroundColor: colourPair.c500 }}
         />
 
-        {/* Card body — relative so overlays can be positioned inside it */}
-        <div className="w-full flex-1 min-h-0 bg-theme-symbol-bg rounded-theme rounded-tl-none overflow-hidden relative transition-opacity group-hover:opacity-90">
+        {/* Card body — dark bg matches the design */}
+        <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
 
-          {/* Folder image or placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {category.imagePath ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`/api/assets?key=${category.imagePath}`}
-                alt={name}
-                className="w-full h-full object-contain p-3"
-                draggable={false}
-              />
-            ) : (
-              <ImageIcon className="w-1/2 h-1/2 text-theme-secondary-text" />
-            )}
-          </div>
-
-          {/* Category name — overlays the top of the symbol */}
-          <div
-            className="absolute top-0 inset-x-0 px-2 py-1.5 flex items-center justify-center"
-            style={{ background: OVERLAY_BG }}
-          >
-            <p className="text-theme-xs font-semibold text-theme-alt-text text-center truncate w-full">
+          {/* Category name — top of card, text scales up on smaller screens */}
+          <div className="shrink-0 px-3 pt-3 pb-2 flex items-center justify-center">
+            <p className="text-theme-h3 md:text-theme-h4 lg:text-theme-large font-semibold text-theme-alt-text text-center truncate w-full leading-tight">
               {name}
             </p>
           </div>
 
-          {/* Edit mode action buttons — overlays the bottom of the symbol */}
+          {/* Symbol — square coloured box, height-first sizing */}
+          <div className="flex-1 min-h-0 p-3 flex items-center justify-center overflow-hidden">
+            <div
+              className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"
+              style={{ backgroundColor: colourPair.c100 }}
+            >
+              {category.imagePath ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/api/assets?key=${category.imagePath}`}
+                  alt={name}
+                  className="w-full h-full object-contain p-2"
+                  draggable={false}
+                />
+              ) : (
+                <ImageIcon className="w-1/2 h-1/2" style={{ color: colourPair.c500 }} />
+              )}
+            </div>
+          </div>
+
+          {/* Edit mode action buttons */}
           {isEditing && (
             <div
-              className="absolute bottom-0 inset-x-0 px-2 py-1.5 flex items-center justify-center gap-3"
+              className="shrink-0 px-2 py-1.5 flex items-center justify-center gap-3"
               style={{ background: OVERLAY_BG }}
             >
               <button

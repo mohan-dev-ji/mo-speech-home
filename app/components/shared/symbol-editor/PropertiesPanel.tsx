@@ -120,7 +120,7 @@ export function PropertiesPanel({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-bg-surface-alt)' }}>
+    <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-button-highlight)' }}>
 
       {/* ── Label ─────────────────────────────────────────────────────────── */}
       <AccordionSection
@@ -129,7 +129,7 @@ export function PropertiesPanel({
         onToggle={() => toggleSection('label')}
       >
         <label className="flex flex-col gap-1">
-          <span className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+          <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
             {t('labelEng')}
           </span>
           <input
@@ -137,17 +137,17 @@ export function PropertiesPanel({
             value={draft.labelEng}
             onChange={(e) => patch({ labelEng: e.target.value })}
             placeholder={t('labelPlaceholder')}
-            className="w-full rounded-lg px-3 py-2 text-small outline-none"
+            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
             style={{
-              background: 'var(--theme-bg-surface)',
-              color: 'var(--theme-text-primary)',
-              border: '1px solid var(--theme-bg-surface-alt)',
+              background: 'var(--theme-symbol-bg)',
+              color: 'var(--theme-text)',
+              border: '1px solid var(--theme-button-highlight)',
             }}
           />
         </label>
         {language === 'hin' && (
           <label className="flex flex-col gap-1">
-            <span className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+            <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('labelHin')}
             </span>
             <input
@@ -155,11 +155,11 @@ export function PropertiesPanel({
               value={draft.labelHin}
               onChange={(e) => patch({ labelHin: e.target.value })}
               placeholder={t('labelPlaceholder')}
-              className="w-full rounded-lg px-3 py-2 text-small outline-none"
+              className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
               style={{
-                background: 'var(--theme-bg-surface)',
-                color: 'var(--theme-text-primary)',
-                border: '1px solid var(--theme-bg-surface-alt)',
+                background: 'var(--theme-symbol-bg)',
+                color: 'var(--theme-text)',
+                border: '1px solid var(--theme-button-highlight)',
               }}
             />
           </label>
@@ -174,8 +174,8 @@ export function PropertiesPanel({
       >
         {/* Segmented control */}
         <div
-          className="flex rounded-lg overflow-hidden p-0.5 gap-0.5"
-          style={{ background: 'var(--theme-bg-surface-alt)' }}
+          className="flex rounded-theme-sm overflow-hidden p-0.5 gap-0.5"
+          style={{ background: 'var(--theme-button-highlight)' }}
         >
           {AUDIO_MODES.map((mode) => {
             const isActive = draft.audioMode === mode;
@@ -186,10 +186,10 @@ export function PropertiesPanel({
                 type="button"
                 disabled={isDisabled}
                 onClick={() => patch({ audioMode: mode })}
-                className="flex-1 py-1.5 rounded text-caption font-medium transition-colors"
+                className="flex-1 py-1.5 rounded text-theme-xs font-medium transition-colors"
                 style={{
                   background: isActive ? 'var(--theme-brand-primary)' : 'transparent',
-                  color: isActive ? 'var(--theme-text-on-brand)' : 'var(--theme-text-primary)',
+                  color: isActive ? 'var(--theme-alt-text)' : 'var(--theme-text)',
                   opacity: isDisabled ? 0.35 : 1,
                 }}
               >
@@ -200,17 +200,17 @@ export function PropertiesPanel({
         </div>
 
         {draft.audioMode === 'default' && (
-          <p className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+          <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
             {t('audioDefaultHint')}
           </p>
         )}
         {draft.audioMode === 'choose-word' && (
-          <p className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+          <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
             {t('audioChooseWordComingSoon')}
           </p>
         )}
         {draft.audioMode === 'generate' && (
-          <p className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+          <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
             {t('audioGenerateComingSoon')}
           </p>
         )}
@@ -221,10 +221,10 @@ export function PropertiesPanel({
               <button
                 type="button"
                 onClick={isRecording ? stopRecording : startRecording}
-                className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-small font-semibold"
+                className="flex items-center justify-center gap-2 rounded-theme-sm py-2.5 text-theme-s font-semibold"
                 style={{
-                  background: isRecording ? '#ef4444' : 'var(--theme-brand-primary)',
-                  color: 'var(--theme-text-on-brand)',
+                  background: isRecording ? 'var(--theme-warning)' : 'var(--theme-brand-primary)',
+                  color: 'var(--theme-alt-text)',
                 }}
               >
                 {isRecording
@@ -237,11 +237,11 @@ export function PropertiesPanel({
                 <button
                   type="button"
                   onClick={() => { const a = new Audio(pendingAudioBlobUrl); a.play(); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-small font-medium"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
                   style={{
-                    background: 'var(--theme-bg-surface)',
-                    color: 'var(--theme-text-primary)',
-                    border: '1px solid var(--theme-bg-surface-alt)',
+                    background: 'var(--theme-symbol-bg)',
+                    color: 'var(--theme-text)',
+                    border: '1px solid var(--theme-button-highlight)',
                   }}
                 >
                   <Play className="w-3.5 h-3.5" />{t('audioRecordPlayback')}
@@ -249,11 +249,11 @@ export function PropertiesPanel({
                 <button
                   type="button"
                   onClick={discardRecording}
-                  className="flex-1 flex items-center justify-center rounded-lg py-2 text-small font-medium"
+                  className="flex-1 flex items-center justify-center rounded-theme-sm py-2 text-theme-s font-medium"
                   style={{
-                    background: 'var(--theme-bg-surface)',
-                    color: '#ef4444',
-                    border: '1px solid var(--theme-bg-surface-alt)',
+                    background: 'var(--theme-symbol-bg)',
+                    color: 'var(--theme-warning)',
+                    border: '1px solid var(--theme-button-highlight)',
                   }}
                 >
                   {t('audioRecordDiscard')}
@@ -273,7 +273,7 @@ export function PropertiesPanel({
         <div className="grid grid-cols-2 gap-3">
           {COLOUR_FIELDS.map(({ key, labelKey }) => (
             <label key={key} className="flex flex-col gap-1">
-              <span className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+              <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
                 {t(labelKey as Parameters<typeof t>[0])}
               </span>
               <div className="flex items-center gap-2">
@@ -281,16 +281,16 @@ export function PropertiesPanel({
                   type="color"
                   value={draft[key] as string}
                   onChange={(e) => patch({ [key]: e.target.value })}
-                  className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+                  className="w-7 h-7 rounded-theme-sm cursor-pointer border-0 p-0"
                 />
-                <span className="text-caption font-mono" style={{ color: 'var(--theme-text-secondary)' }}>
+                <span className="text-theme-xs font-mono" style={{ color: 'var(--theme-secondary-text)' }}>
                   {draft[key] as string}
                 </span>
               </div>
             </label>
           ))}
           <label className="flex flex-col gap-1">
-            <span className="text-caption" style={{ color: 'var(--theme-text-secondary)' }}>
+            <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('displayBorderWidth')}
             </span>
             <input
@@ -299,11 +299,11 @@ export function PropertiesPanel({
               max={8}
               value={draft.borderWidth}
               onChange={(e) => patch({ borderWidth: Number(e.target.value) })}
-              className="w-full rounded-lg px-3 py-1.5 text-small outline-none"
+              className="w-full rounded-theme-sm px-3 py-1.5 text-theme-s outline-none"
               style={{
-                background: 'var(--theme-bg-surface)',
-                color: 'var(--theme-text-primary)',
-                border: '1px solid var(--theme-bg-surface-alt)',
+                background: 'var(--theme-symbol-bg)',
+                color: 'var(--theme-text)',
+                border: '1px solid var(--theme-button-highlight)',
               }}
             />
           </label>
@@ -313,11 +313,11 @@ export function PropertiesPanel({
           <button
             type="button"
             onClick={() => patch({ showLabel: !draft.showLabel })}
-            className="flex-1 py-2 rounded-lg text-caption font-medium"
+            className="flex-1 py-2 rounded-theme-sm text-theme-xs font-medium"
             style={{
-              background: draft.showLabel ? 'var(--theme-brand-primary)' : 'var(--theme-bg-surface)',
-              color: draft.showLabel ? 'var(--theme-text-on-brand)' : 'var(--theme-text-secondary)',
-              border: draft.showLabel ? 'none' : '1px solid var(--theme-bg-surface-alt)',
+              background: draft.showLabel ? 'var(--theme-brand-primary)' : 'var(--theme-symbol-bg)',
+              color: draft.showLabel ? 'var(--theme-alt-text)' : 'var(--theme-secondary-text)',
+              border: draft.showLabel ? 'none' : '1px solid var(--theme-button-highlight)',
             }}
           >
             {draft.showLabel ? t('displayShowLabel') : t('displayHideLabel')}
@@ -325,11 +325,11 @@ export function PropertiesPanel({
           <button
             type="button"
             onClick={() => patch({ showImage: !draft.showImage })}
-            className="flex-1 py-2 rounded-lg text-caption font-medium"
+            className="flex-1 py-2 rounded-theme-sm text-theme-xs font-medium"
             style={{
-              background: draft.showImage ? 'var(--theme-brand-primary)' : 'var(--theme-bg-surface)',
-              color: draft.showImage ? 'var(--theme-text-on-brand)' : 'var(--theme-text-secondary)',
-              border: draft.showImage ? 'none' : '1px solid var(--theme-bg-surface-alt)',
+              background: draft.showImage ? 'var(--theme-brand-primary)' : 'var(--theme-symbol-bg)',
+              color: draft.showImage ? 'var(--theme-alt-text)' : 'var(--theme-secondary-text)',
+              border: draft.showImage ? 'none' : '1px solid var(--theme-button-highlight)',
             }}
           >
             {draft.showImage ? t('displayShowImage') : t('displayHideImage')}
@@ -344,8 +344,8 @@ export function PropertiesPanel({
         onToggle={() => toggleSection('text')}
       >
         <div
-          className="flex rounded-lg overflow-hidden p-0.5 gap-0.5"
-          style={{ background: 'var(--theme-bg-surface-alt)' }}
+          className="flex rounded-theme-sm overflow-hidden p-0.5 gap-0.5"
+          style={{ background: 'var(--theme-button-highlight)' }}
         >
           {TEXT_SIZES.map((size) => {
             const isActive = draft.textSize === size;
@@ -354,10 +354,10 @@ export function PropertiesPanel({
                 key={size}
                 type="button"
                 onClick={() => patch({ textSize: size })}
-                className="flex-1 py-1.5 rounded text-small font-medium"
+                className="flex-1 py-1.5 rounded text-theme-s font-medium"
                 style={{
                   background: isActive ? 'var(--theme-brand-primary)' : 'transparent',
-                  color: isActive ? 'var(--theme-text-on-brand)' : 'var(--theme-text-primary)',
+                  color: isActive ? 'var(--theme-alt-text)' : 'var(--theme-text)',
                 }}
               >
                 {textSizeLabel[size]}
@@ -374,8 +374,8 @@ export function PropertiesPanel({
         onToggle={() => toggleSection('shape')}
       >
         <div
-          className="flex rounded-lg overflow-hidden p-0.5 gap-0.5"
-          style={{ background: 'var(--theme-bg-surface-alt)' }}
+          className="flex rounded-theme-sm overflow-hidden p-0.5 gap-0.5"
+          style={{ background: 'var(--theme-button-highlight)' }}
         >
           {SHAPES.map((s) => {
             const isActive = draft.shape === s;
@@ -384,10 +384,10 @@ export function PropertiesPanel({
                 key={s}
                 type="button"
                 onClick={() => patch({ shape: s })}
-                className="flex-1 py-1.5 rounded text-small font-medium"
+                className="flex-1 py-1.5 rounded text-theme-s font-medium"
                 style={{
                   background: isActive ? 'var(--theme-brand-primary)' : 'transparent',
-                  color: isActive ? 'var(--theme-text-on-brand)' : 'var(--theme-text-primary)',
+                  color: isActive ? 'var(--theme-alt-text)' : 'var(--theme-text)',
                 }}
               >
                 {shapeLabel[s]}
@@ -406,11 +406,11 @@ export function PropertiesPanel({
         <select
           value={draft.profileCategoryId}
           onChange={(e) => patch({ profileCategoryId: e.target.value as Draft['profileCategoryId'] })}
-          className="w-full rounded-lg px-3 py-2 text-small outline-none"
+          className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
           style={{
-            background: 'var(--theme-bg-surface)',
-            color: 'var(--theme-text-primary)',
-            border: '1px solid var(--theme-bg-surface-alt)',
+            background: 'var(--theme-symbol-bg)',
+            color: 'var(--theme-text)',
+            border: '1px solid var(--theme-button-highlight)',
           }}
         >
           <option value="" disabled>{t('categoryPlaceholder')}</option>

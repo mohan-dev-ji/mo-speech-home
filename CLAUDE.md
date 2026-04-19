@@ -34,7 +34,7 @@ All product design, feature specs, and build plans are in `docs/`:
 2. **Schema first** — define all Convex tables before building any UI
 3. **Read `docs/4-builds/decisions/`** before proposing architecture changes
 4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`
-5. **Always** use tailwind design tokens for all elements in frontend. Color palette, spacing, roundness and font. `tailwind.config.ts`
+5. **Always use AAC theme tokens** — never hard-code colours, spacing, radii, or font sizes in AAC UI. This project uses **Tailwind CSS 4** — there is no `tailwind.config.ts`. All `--theme-*` CSS variables are declared in `:root` in `app/globals.css` and mapped to Tailwind utilities via the `@theme inline` block in the same file. Use `bg-theme-*`, `text-theme-*`, `rounded-theme` / `rounded-theme-sm`, `p-theme-*`, `gap-theme-*` etc. `ThemeContext` overwrites the CSS vars at runtime per student profile — any hard-coded value will break theme switching.
 6. **Components live in `app/components/{domain}/{type}/`** — domain is `app`, `marketing`, or `admin`; type is `sections` (page-level compositions), `ui` (reusable atoms), or `modals` (dialogs); `page.tsx` files must be thin and import only from these folders.
 
 ## Reference Repos (working auth + payments)

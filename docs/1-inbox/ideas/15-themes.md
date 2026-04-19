@@ -13,7 +13,7 @@ Each student profile has its own theme.
 **Implementation files:**
 | File | Role |
 |---|---|
-| `tailwind.config.ts` | Tailwind utilities — `bg-theme-primary`, `text-theme-text`, `rounded-theme`, `p-theme-general`, etc. |
+| `app/globals.css` (`@theme inline` block) | Tailwind v4 utility mapping — `bg-theme-primary`, `text-theme-text`, `rounded-theme`, `p-theme-general`, etc. No `tailwind.config.ts` exists. |
 | `app/globals.css` | CSS custom property defaults (Default/Slate theme), component classes, animations |
 | `app/contexts/ThemeContext.tsx` | Runtime token application, all 6 theme catalogues, `ThemeTokens` type |
 

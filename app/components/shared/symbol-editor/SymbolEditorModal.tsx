@@ -310,26 +310,26 @@ export function SymbolEditorModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+      className="fixed inset-0 z-[200] flex items-end md:items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.6)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="relative flex flex-col md:flex-row w-full md:max-w-5xl h-[92dvh] md:h-[85vh] rounded-t-2xl md:rounded-2xl overflow-hidden"
-        style={{ background: 'var(--theme-bg-primary)' }}
+        style={{ background: 'var(--theme-alt-card)' }}
       >
 
         {/* ── LEFT PANEL: header + preview + properties + actions ─────────── */}
         <div
           className="flex flex-col md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r h-[46%] md:h-full"
-          style={{ borderColor: 'var(--theme-bg-surface-alt)' }}
+          style={{ borderColor: 'var(--theme-button-highlight)' }}
         >
           {/* Header row */}
           <div
             className="flex items-center justify-between px-4 py-3 shrink-0"
-            style={{ background: 'var(--theme-bg-surface-alt)' }}
+            style={{ background: 'var(--theme-symbol-bg)', borderBottom: '1px solid var(--theme-button-highlight)' }}
           >
-            <h2 className="text-small font-bold" style={{ color: 'var(--theme-nav-text)' }}>
+            <h2 className="text-theme-s font-bold" style={{ color: 'var(--theme-text)' }}>
               {isEditMode ? t('titleEdit') : t('titleCreate')}
             </h2>
           </div>
@@ -360,10 +360,10 @@ export function SymbolEditorModal({
           {/* Action buttons */}
           <div
             className="shrink-0 px-4 py-4 flex flex-col gap-2"
-            style={{ borderTop: '1px solid var(--theme-bg-surface-alt)' }}
+            style={{ borderTop: '1px solid var(--theme-button-highlight)' }}
           >
             {saveError && (
-              <div className="flex items-center gap-1.5 text-caption" style={{ color: '#ef4444' }}>
+              <div className="flex items-center gap-1.5 text-theme-xs" style={{ color: 'var(--theme-warning)' }}>
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>{saveError}</span>
               </div>
@@ -372,11 +372,11 @@ export function SymbolEditorModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl text-small font-semibold"
+                className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
                 style={{
-                  background: 'var(--theme-bg-surface)',
-                  color: 'var(--theme-text-secondary)',
-                  border: '1px solid var(--theme-bg-surface-alt)',
+                  background: 'var(--theme-symbol-bg)',
+                  color: 'var(--theme-secondary-text)',
+                  border: '1px solid var(--theme-button-highlight)',
                 }}
               >
                 {t('cancel')}
@@ -385,10 +385,10 @@ export function SymbolEditorModal({
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-2.5 rounded-xl text-small font-semibold"
+                className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
                 style={{
                   background: 'var(--theme-brand-primary)',
-                  color: 'var(--theme-text-on-brand)',
+                  color: 'var(--theme-alt-text)',
                   opacity: isSaving ? 0.6 : 1,
                 }}
               >
@@ -404,7 +404,7 @@ export function SymbolEditorModal({
           {/* Tab bar */}
           <div
             className="flex shrink-0 border-b overflow-x-auto"
-            style={{ borderColor: 'var(--theme-bg-surface-alt)' }}
+            style={{ borderColor: 'var(--theme-button-highlight)' }}
           >
             {imageTabConfig.map(({ value, label }) => {
               const isActive = draft.imageSourceTab === value;
@@ -413,8 +413,8 @@ export function SymbolEditorModal({
                   key={value}
                   type="button"
                   onClick={() => patch({ imageSourceTab: value })}
-                  className="px-4 py-3 text-small font-medium shrink-0 relative whitespace-nowrap"
-                  style={{ color: isActive ? 'var(--theme-brand-primary)' : 'var(--theme-text-secondary)' }}
+                  className="px-4 py-3 text-theme-s font-medium shrink-0 relative whitespace-nowrap"
+                  style={{ color: isActive ? 'var(--theme-brand-primary)' : 'var(--theme-secondary-text)' }}
                 >
                   {label}
                   {isActive && (
@@ -443,14 +443,14 @@ export function SymbolEditorModal({
             )}
             {draft.imageSourceTab === 'google-images' && (
               <div className="flex items-center justify-center h-full p-6">
-                <p className="text-small text-center" style={{ color: 'var(--theme-text-secondary)' }}>
+                <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
                   {t('googleComingSoon')}
                 </p>
               </div>
             )}
             {draft.imageSourceTab === 'ai-generate' && (
               <div className="flex items-center justify-center h-full p-6">
-                <p className="text-small text-center" style={{ color: 'var(--theme-text-secondary)' }}>
+                <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
                   {t('aiComingSoon')}
                 </p>
               </div>

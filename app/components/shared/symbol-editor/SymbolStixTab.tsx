@@ -47,22 +47,22 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
       <div className="p-3 shrink-0">
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2"
-          style={{ background: 'var(--theme-bg-surface)', border: '1px solid var(--theme-bg-surface-alt)' }}
+          style={{ background: 'var(--theme-symbol-bg)', border: '1px solid var(--theme-button-highlight)' }}
         >
-          <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-text-secondary)' }} />
+          <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-secondary-text)' }} />
           <input
             type="text"
             value={rawSearch}
             onChange={(e) => setRawSearch(e.target.value)}
             placeholder={t('searchPlaceholder')}
-            className="flex-1 bg-transparent text-small outline-none"
-            style={{ color: 'var(--theme-text-primary)' }}
+            className="flex-1 bg-transparent text-theme-s outline-none"
+            style={{ color: 'var(--theme-text)' }}
           />
           {rawSearch && (
             <button
               type="button"
               onClick={() => { setRawSearch(''); setDebouncedSearch(''); }}
-              style={{ color: 'var(--theme-text-secondary)' }}
+              style={{ color: 'var(--theme-secondary-text)' }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -74,7 +74,7 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         {!debouncedSearch.trim() && (
           <div className="flex items-center justify-center h-32">
-            <p className="text-small text-center" style={{ color: 'var(--theme-text-secondary)' }}>
+            <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('searchEmpty')}
             </p>
           </div>
@@ -82,7 +82,7 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
 
         {debouncedSearch.trim() && results?.length === 0 && (
           <div className="flex items-center justify-center h-32">
-            <p className="text-small text-center" style={{ color: 'var(--theme-text-secondary)' }}>
+            <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('searchNoResults', { query: debouncedSearch })}
             </p>
           </div>
@@ -98,11 +98,11 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
                   key={sym._id}
                   type="button"
                   onClick={() => handleSelect(sym)}
-                  className="flex flex-col items-center gap-1 rounded-xl p-2"
+                  className="flex flex-col items-center gap-1 rounded-theme-sm p-2"
                   style={{
                     background: isSelected
                       ? 'color-mix(in srgb, var(--theme-brand-primary) 12%, transparent)'
-                      : 'var(--theme-bg-surface)',
+                      : 'var(--theme-symbol-bg)',
                     border: `2px solid ${isSelected ? 'var(--theme-brand-primary)' : 'transparent'}`,
                   }}
                 >
@@ -113,8 +113,8 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
                     className="w-full aspect-square object-contain rounded"
                   />
                   <span
-                    className="text-caption text-center leading-tight line-clamp-1 w-full"
-                    style={{ color: isSelected ? 'var(--theme-brand-primary)' : 'var(--theme-text-primary)' }}
+                    className="text-theme-xs text-center leading-tight line-clamp-1 w-full"
+                    style={{ color: isSelected ? 'var(--theme-brand-primary)' : 'var(--theme-text)' }}
                   >
                     {symLabel}
                   </span>
