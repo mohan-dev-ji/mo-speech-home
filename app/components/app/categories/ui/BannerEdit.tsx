@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { LogOut, PlusSquare, FolderOpen, ImageIcon, Pencil, ChevronDown } from 'lucide-react';
+import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
 
@@ -121,13 +121,6 @@ function EditableImageCard({
           <ImageIcon className="w-12 h-12" style={{ color: colourPair.c500 }} />
         )}
 
-        {/* Pencil overlay at bottom */}
-        <div
-          className="absolute bottom-0 inset-x-0 flex items-center justify-center py-1.5"
-          style={{ background: 'color-mix(in srgb, var(--theme-symbol-bg) 85%, transparent)' }}
-        >
-          <Pencil className="w-3.5 h-3.5" style={{ color: colourPair.c500 }} />
-        </div>
       </div>
     </div>
   );

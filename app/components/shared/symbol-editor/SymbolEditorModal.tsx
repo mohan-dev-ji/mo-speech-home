@@ -22,6 +22,10 @@ export type SymbolEditorModalProps = {
   language: string;
   onClose: () => void;
   onSave: (id: Id<'profileSymbols'>) => void;
+  // Folder image mode — picks an image for the category, skips label/audio/display
+  folderImageMode?: boolean;
+  initialImagePath?: string;
+  onFolderImageSave?: (imagePath: string) => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -46,6 +50,9 @@ export function SymbolEditorModal({
   language,
   onClose,
   onSave,
+  folderImageMode = false,
+  initialImagePath,
+  onFolderImageSave,
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
@@ -55,6 +62,9 @@ export function SymbolEditorModal({
   const [draft, setDraft] = useState<Draft>({
     ...INITIAL_DRAFT,
     profileCategoryId: initCategoryId ?? '',
+    ...(folderImageMode && initialImagePath
+      ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
+      : {}),
   });
 
   // Pending blobs — held in memory, uploaded only on Save
@@ -149,6 +159,33 @@ export function SymbolEditorModal({
 
   async function handleSave() {
     setSaveError(null);
+
+    if (folderImageMode) {
+      const hasImage =
+        draft.imageSourceTab === 'symbolstix'
+          ? !!draft.symbolstixImagePath
+          : !!(pendingImageBlob || draft.resolvedImagePath);
+      if (!hasImage) { setSaveError(t('errorNoImage')); return; }
+      setIsSaving(true);
+      try {
+        let imagePath = draft.resolvedImagePath;
+        if (pendingImageBlob && draft.imageSourceTab === 'upload') {
+          const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.webp`;
+          await uploadBlobToR2(pendingImageBlob, key);
+          imagePath = key;
+        }
+        if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
+          imagePath = draft.symbolstixImagePath;
+        }
+        onFolderImageSave?.(imagePath!);
+        onClose();
+      } catch {
+        setSaveError(t('errorSave'));
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
 
     if (!draft.labelEng.trim()) { setSaveError(t('errorNoLabel')); return; }
     if (!draft.profileCategoryId) { setSaveError(t('errorNoCategory')); return; }
@@ -298,25 +335,27 @@ export function SymbolEditorModal({
           </div>
 
           {/* Live preview card */}
-          <div className="px-6 pt-3 pb-2 shrink-0">
+          <div className={`px-6 pt-3 pb-2 ${folderImageMode ? 'flex-1 flex items-center justify-center' : 'shrink-0'}`}>
             <div className="w-1/2 mx-auto">
               <SymbolPreview
                 imageSrc={previewImageSrc}
-                label={previewLabel}
+                label={folderImageMode ? '' : previewLabel}
                 draft={draft}
               />
             </div>
           </div>
 
-          {/* Collapsible properties — scrolls between preview and buttons */}
-          <PropertiesPanel
-            draft={draft}
-            patch={patch}
-            language={language}
-            categories={categories}
-            pendingAudioBlobUrl={pendingAudioBlobUrl}
-            onAudioBlobChange={handleAudioBlobChange}
-          />
+          {/* Collapsible properties — hidden in folder image mode */}
+          {!folderImageMode && (
+            <PropertiesPanel
+              draft={draft}
+              patch={patch}
+              language={language}
+              categories={categories}
+              pendingAudioBlobUrl={pendingAudioBlobUrl}
+              onAudioBlobChange={handleAudioBlobChange}
+            />
+          )}
 
           {/* Action buttons */}
           <div

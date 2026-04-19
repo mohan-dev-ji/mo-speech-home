@@ -150,10 +150,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [draftColour, setDraftColour] = useState('orange');
   const [draftImagePath, setDraftImagePath] = useState<string | undefined>(undefined);
   const [symbolEditorState, setSymbolEditorState] = useState<SymbolEditorState>({ isOpen: false });
+  const [folderImageModalOpen, setFolderImageModalOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
-  const folderImageInputRef = useRef<HTMLInputElement>(null);
 
   // ── Convex ──────────────────────────────────────────────────────────────────
   const profileCategoryId = categoryId as Id<'profileCategories'>;
@@ -319,31 +319,15 @@ export function CategoryDetailContent({ categoryId }: Props) {
   }
 
   function handleEditFolderImage() {
-    folderImageInputRef.current?.click();
+    setFolderImageModalOpen(true);
   }
 
-  async function handleFolderFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !activeProfileId) return;
-    e.target.value = '';
-
-    const uuid = crypto.randomUUID();
-    const key = `profiles/${activeProfileId}/symbols/${uuid}.webp`;
-
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('key', key);
-      const res = await fetch('/api/upload-asset', { method: 'POST', body: fd });
-      if (res.ok) {
-        setDraftImagePath(key);
-        updateCategoryMeta({ profileCategoryId, imagePath: key }).catch((e) =>
-          console.error('[CategoryDetailContent] folder image update failed', e)
-        );
-      }
-    } catch (e) {
-      console.error('[CategoryDetailContent] folder image upload failed', e);
-    }
+  function handleFolderImageSave(imagePath: string) {
+    setDraftImagePath(imagePath);
+    updateCategoryMeta({ profileCategoryId, imagePath }).catch((e) =>
+      console.error('[CategoryDetailContent] folder image update failed', e)
+    );
+    setFolderImageModalOpen(false);
   }
 
   // ── Breadcrumb + TopBar extras ──────────────────────────────────────────────
@@ -392,15 +376,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
-
-      {/* Hidden file input for folder image upload */}
-      <input
-        ref={folderImageInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFolderFileChange}
-      />
 
       {/* Board header */}
       {activeMode === 'board' && (
@@ -566,6 +541,20 @@ export function CategoryDetailContent({ categoryId }: Props) {
           language={language}
           onClose={() => setSymbolEditorState({ isOpen: false })}
           onSave={() => setSymbolEditorState({ isOpen: false })}
+        />
+      )}
+
+      {/* Folder image picker modal */}
+      {folderImageModalOpen && activeProfileId && (
+        <SymbolEditorModal
+          isOpen={true}
+          profileId={activeProfileId as Id<'studentProfiles'>}
+          language={language}
+          folderImageMode={true}
+          initialImagePath={draftImagePath}
+          onClose={() => setFolderImageModalOpen(false)}
+          onSave={() => {}}
+          onFolderImageSave={handleFolderImageSave}
         />
       )}
 

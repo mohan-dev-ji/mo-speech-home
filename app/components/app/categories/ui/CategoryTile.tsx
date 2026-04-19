@@ -91,9 +91,19 @@ export function CategoryTile({
         {/* Card body — relative so overlays can be positioned inside it */}
         <div className="w-full flex-1 min-h-0 bg-theme-symbol-bg rounded-theme rounded-tl-none overflow-hidden relative transition-opacity group-hover:opacity-90">
 
-          {/* Symbol placeholder — centred, fills the card */}
+          {/* Folder image or placeholder */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <ImageIcon className="w-1/2 h-1/2 text-theme-secondary-text" />
+            {category.imagePath ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/assets?key=${category.imagePath}`}
+                alt={name}
+                className="w-full h-full object-contain p-3"
+                draggable={false}
+              />
+            ) : (
+              <ImageIcon className="w-1/2 h-1/2 text-theme-secondary-text" />
+            )}
           </div>
 
           {/* Category name — overlays the top of the symbol */}
