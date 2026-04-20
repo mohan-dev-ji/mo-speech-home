@@ -12,13 +12,14 @@
 //
 // Both states render via portal so the panel can overlay page content.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { SymbolCard } from './SymbolCard';
+import { NavTabButton } from './ui/NavTabButton';
 import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 import type { QuickSymbolItem } from './TalkerBar';
 
@@ -57,8 +58,20 @@ export function TalkerDropdown({
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
   const [mounted, setMounted]     = useState(false);
+  const panelRef                  = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
 
   const activeGroup = LITTLE_WORDS_GROUPS.find((g) => g.id === activeTab);
 
@@ -114,7 +127,6 @@ export function TalkerDropdown({
 
   function handleTap(item: QuickSymbolItem) {
     onSymbolTap(item);
-    setIsOpen(false);
   }
 
   // ── Closed: chevron tab ───────────────────────────────────────────────────
@@ -124,7 +136,7 @@ export function TalkerDropdown({
         type="button"
         onClick={() => setIsOpen(true)}
         className="flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity"
-        style={{ ...baseStyle, background: 'var(--theme-banner)', color: 'var(--theme-nav-text)' }}
+        style={{ ...baseStyle, background: 'var(--theme-card)', color: 'var(--theme-nav-text)' }}
         aria-label={t('openDropdown')}
       >
         <ChevronDown className="w-5 h-5" />
@@ -177,27 +189,39 @@ export function TalkerDropdown({
 
   // ── Open: full panel ──────────────────────────────────────────────────────
   return createPortal(
-    <div
-      className="flex flex-col"
-      style={{ ...baseStyle, bottom: 0, background: 'var(--theme-banner)' }}
-    >
+    <>
+      {/* Overlay — blocks board taps; clicking it triggers click-outside close */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 49,
+          background: 'rgba(0,0,0,0.45)',
+        }}
+      />
+
+      <div
+        ref={panelRef}
+        className="flex flex-col"
+        style={{ ...baseStyle, bottom: 0, background: 'var(--theme-card)' }}
+      >
+      {/* Chevron close — stays at same position as the closed-state tab */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(false)}
+        className="shrink-0 flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity"
+        style={{ color: 'var(--theme-nav-text)' }}
+        aria-label={t('closeDropdown')}
+      >
+        <ChevronDown className="w-5 h-5 rotate-180" />
+      </button>
+
       {/* Scrollable tab bar */}
       <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {allTabs.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setActiveTab(id)}
-            className="shrink-0 px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
-            style={{
-              background: activeTab === id
-                ? 'rgba(255,255,255,0.25)'
-                : 'rgba(255,255,255,0.1)',
-              color: 'var(--theme-nav-text)',
-            }}
-          >
+          <NavTabButton key={id} active={activeTab === id} onClick={() => setActiveTab(id)}>
             {getTabLabel(id)}
-          </button>
+          </NavTabButton>
         ))}
       </div>
 
@@ -207,18 +231,8 @@ export function TalkerDropdown({
           {renderItems()}
         </div>
       </div>
-
-      {/* Sticky close strip */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(false)}
-        className="shrink-0 flex items-center justify-center w-full py-2 hover:opacity-70 transition-opacity"
-        style={{ background: 'var(--theme-card)', color: 'var(--theme-nav-text)' }}
-        aria-label={t('closeDropdown')}
-      >
-        <ChevronDown className="w-5 h-5 rotate-180" />
-      </button>
-    </div>,
+    </div>
+    </>,
     document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from 'next-intl';
+import { NavTabButton } from '@/app/components/shared/ui/NavTabButton';
 
 export type CategoryMode = 'board' | 'lists' | 'first-thens' | 'sentences';
 
@@ -22,8 +23,6 @@ type ModeSwitcherProps = {
   listsVisible?: boolean;
   firstThensVisible?: boolean;
   sentencesVisible?: boolean;
-  // small=true: used in the TopBar — tighter padding, smaller radius
-  small?: boolean;
 };
 
 export function ModeSwitcher({
@@ -32,7 +31,6 @@ export function ModeSwitcher({
   listsVisible = true,
   firstThensVisible = true,
   sentencesVisible = true,
-  small = false,
 }: ModeSwitcherProps) {
   const t = useTranslations('categoryDetail');
 
@@ -48,34 +46,16 @@ export function ModeSwitcher({
   if (tabs.length <= 1) return null;
 
   return (
-    <div
-      className="flex gap-1 overflow-x-auto shrink-0"
-      style={{ scrollbarWidth: 'none' }}
-    >
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeMode;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            className={[
-              'shrink-0 text-small font-medium transition-colors',
-              small ? 'px-3 py-1 rounded-md' : 'px-4 py-2 rounded-lg',
-            ].join(' ')}
-            style={{
-              background: isActive
-                ? 'var(--theme-button-highlight)'
-                : 'rgba(255,255,255,0.07)',
-              color: isActive
-                ? 'var(--theme-text)'
-                : 'var(--theme-secondary-alt-text)',
-            }}
-          >
-            {t(tab.labelKey)}
-          </button>
-        );
-      })}
+    <div className="flex gap-1 overflow-x-auto shrink-0" style={{ scrollbarWidth: 'none' }}>
+      {tabs.map((tab) => (
+        <NavTabButton
+          key={tab.id}
+          active={tab.id === activeMode}
+          onClick={() => onChange(tab.id)}
+        >
+          {t(tab.labelKey)}
+        </NavTabButton>
+      ))}
     </div>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Home, Search, Tag, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { NavTabButton } from '@/app/components/shared/ui/NavTabButton';
 import { LogoSvg } from '@/app/components/app/shared/LogoSvg';
 
 type SidebarProps = {
@@ -25,10 +24,6 @@ export function Sidebar({ locale }: SidebarProps) {
     return pathname.startsWith(`/${locale}/${segment}`);
   }
 
-  const btnBase = 'w-full flex items-center gap-2.5 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-small font-medium transition-colors';
-  const btnInactive = 'bg-theme-primary text-theme-alt-text hover:opacity-90';
-  const btnActive   = 'bg-theme-button-highlight text-theme-text';
-
   return (
     <aside className="hidden md:flex flex-col shrink-0 h-full bg-theme-card">
 
@@ -38,25 +33,27 @@ export function Sidebar({ locale }: SidebarProps) {
 
       <nav className="flex flex-col flex-1 gap-theme-general px-theme-general">
         {mainNavItems.map(({ segment, icon: Icon }) => (
-          <Link
+          <NavTabButton
             key={segment}
             href={`/${locale}/${segment}`}
-            className={cn(btnBase, isActive(segment) ? btnActive : btnInactive)}
+            active={isActive(segment)}
+            size="lg"
           >
             <Icon className="w-4 h-8 shrink-0" />
             <span className="truncate">{t(segment)}</span>
-          </Link>
+          </NavTabButton>
         ))}
       </nav>
 
       <div className="px-theme-general pb-theme-general pt-2">
-        <Link
+        <NavTabButton
           href={`/${locale}/settings`}
-          className={cn(btnBase, isActive('settings') ? btnActive : btnInactive)}
+          active={isActive('settings')}
+          size="lg"
         >
           <Settings className="w-4 h-8 shrink-0" />
           <span className="truncate">{t('settings')}</span>
-        </Link>
+        </NavTabButton>
       </div>
 
     </aside>
