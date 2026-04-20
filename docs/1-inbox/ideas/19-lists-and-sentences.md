@@ -54,23 +54,26 @@ items: Array<{
 
 ### Image sources for list items
 
-When adding an image to a list item, a `ListItemPickerModal` opens with three tabs:
+When adding an image to a list item, the existing `SymbolEditorModal` opens in list context. The image tabs work exactly as in the category board flow, but the save behaviour is different (see below).
 
-| Tab | What it does |
+| Source | Storage |
 |---|---|
-| **My Categories** | Browse existing profile categories. Tap a symbol to copy its `imagePath` string into the list item. The original category board symbol is untouched. |
-| **SymbolStix** | Search the SymbolStix library by keyword. Tap an image to use its `imagePath` directly. SymbolStix paths are never deleted (shared library asset). |
-| **Upload** | Upload a custom image. Stored at `profiles/{profileId}/lists/{listId}/items/`. These are owned by the list — deleted when the list is deleted. |
+| **SymbolStix** | `imagePath` from the `symbols` table stored directly in the list item. No R2 copy — the shared library file is reused as-is. |
+| **Google Images** | Downloaded server-side, uploaded to R2 under `profiles/{profileId}/`, R2 path stored in the item. |
+| **AI Generation** | Generated server-side, uploaded to R2 under `profiles/{profileId}/`, R2 path stored in the item. |
+| **User Upload** | Uploaded to R2, path stored in the item. |
+
+There is no "My Categories" tab. The category board is a separate context; symbols are not browsed or copied from there when editing lists.
 
 ### Image ownership and deletion
 
 | Image source | Who owns it | Deleted when list is deleted? |
 |---|---|---|
-| Copied from category (imagePath string copy) | Category owns it | No — list only copied the path string |
 | SymbolStix library path | Shared library | No — never deleted |
-| Uploaded to list path | List owns it | Yes — R2 asset deleted with list |
+| Google Images / AI gen uploaded to profile R2 | Profile-level asset | Yes — R2 asset deleted with the list |
+| User upload | Profile-level asset | Yes — R2 asset deleted with the list |
 
-This model means `deleteProfileList` only needs to clean up R2 assets under `profiles/{profileId}/lists/{listId}/`.
+`deleteProfileList` cleans up only R2 assets that were uploaded specifically for that list. SymbolStix paths are skipped.
 
 ---
 
@@ -99,7 +102,7 @@ No `description` field. No per-item audio.
 
 ### Image sources
 
-Same `ListItemPickerModal` — same three tabs (My Categories / SymbolStix / Upload). Upload path is `profiles/{profileId}/sentences/{sentenceId}/items/`.
+Same `SymbolEditorModal` in sentence context — same image source tabs (SymbolStix / Google Images / AI Generation / Upload). SymbolStix paths stored directly; Google Images and AI gen uploaded to R2 under `profiles/{profileId}/`. No `profileSymbol` record created.
 
 ---
 
@@ -191,38 +194,16 @@ Resource library packs that previously included category-level lists/sentences w
 
 ---
 
-## ListItemPickerModal
-
-A context-aware picker modal opened when adding an image to a list or sentence item.
-
-```
-┌─ Add Symbol ──────────────────────────────────────┐
-│  [ My Categories ] [ SymbolStix ] [ Upload ]      │
-│                                                   │
-│  My Categories tab:                               │
-│    ┌──────────────────────────────────────────┐   │
-│    │ [Clothing ▸]  [Food ▸]  [Daily ▸] …     │   │
-│    │                                          │   │
-│    │  [symbol] [symbol] [symbol] [symbol]     │   │
-│    └──────────────────────────────────────────┘   │
-│                                                   │
-│  SymbolStix tab:                                  │
-│    [search input]                                 │
-│    [symbol grid — tap to select]                  │
-│                                                   │
-│  Upload tab:                                      │
-│    [file picker — compresses to .webp client-side]│
-└───────────────────────────────────────────────────┘
-```
-
-Tapping any symbol in any tab saves `imagePath` into the list/sentence item and closes the modal. No `profileSymbol` record is created.
-
----
-
 ## Symbol Editor Context Awareness
 
-When the symbol editor modal is opened from a **category board** context, the save flow creates/updates a `profileSymbol` record (with label, audio, display options). Save button reads "Save to [Category Name]".
+The `SymbolEditorModal` is used for adding images to both category boards and list/sentence items. The image source tabs (SymbolStix / Google Images / AI Generation / Upload) are the same in both contexts.
 
-When opened from a **list or sentence** context, the save flow writes only `imagePath` into the item — no `profileSymbol` record, no label/audio fields shown. Save button reads "Save to List" / "Save to Sentence".
+**Save behaviour differs by calling context:**
 
-The modal adapts its UI and save behaviour based on calling context.
+| Context | Save creates | Save button label |
+|---|---|---|
+| Category board | `profileSymbol` record (with label, audio, display fields) | "Save to [Category Name]" |
+| List item | Only `imagePath` stored in the list item — no `profileSymbol` created | "Save to list" |
+| Sentence item | Only `imagePath` stored in the sentence item — no `profileSymbol` created | "Save to sentence" |
+
+In list/sentence context, the label, audio, and display sections of the editor are not shown — only the image picker tabs.

@@ -4,16 +4,16 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
-import { ModeSwitcher } from '@/app/components/app/categories/ui/ModeSwitcher';
 import { QuickSettings } from '@/app/components/app/shared/QuickSettings';
 import { useState } from 'react';
-import { Menu, X, Home, Search, Tag, Settings } from 'lucide-react';
+import { Menu, X, Home, Search, Tag, List, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mobileNavItems = [
   { segment: 'home',       icon: Home     },
   { segment: 'search',     icon: Search   },
   { segment: 'categories', icon: Tag      },
+  { segment: 'lists',      icon: List     },
   { segment: 'settings',   icon: Settings },
 ] as const;
 
@@ -26,7 +26,7 @@ export function TopBar() {
   const locale = params.locale as string;
   const tNav = useTranslations('nav');
   const tCommon = useTranslations('common');
-  const { breadcrumbExtra, topBarExtras } = useBreadcrumb();
+  const { breadcrumbExtra } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const segments = pathname.replace(`/${locale}`, '').split('/').filter(Boolean);
@@ -48,7 +48,6 @@ export function TopBar() {
 
   // ─── Breadcrumb nodes ────────────────────────────────────────────────────────
 
-  // Home node — link unless we are on home
   const homeNode = currentSegment === 'home' ? (
     <span className="flex items-center gap-1 text-small font-semibold" style={boldStyle}>
       <Home className="w-3.5 h-3.5" />
@@ -65,7 +64,6 @@ export function TopBar() {
     </Link>
   );
 
-  // Section node (categories, search, settings) — link if sub-page, bold if current
   const sectionLabel = tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment;
   const sectionNode = currentSegment !== 'home' && (
     isSubPage ? (
@@ -83,7 +81,6 @@ export function TopBar() {
     )
   );
 
-  // Detail node — only on sub-pages (e.g. category detail)
   const detailNode = isSubPage && breadcrumbExtra && (
     <span className="flex items-center gap-1.5 text-small font-semibold" style={boldStyle}>
       {breadcrumbExtra.colour && (
@@ -147,20 +144,6 @@ export function TopBar() {
 
         <div className="flex-1" />
 
-        {/* Mode tabs — desktop only, only on pages that register them */}
-        {topBarExtras?.modeSwitcher && (
-          <div className="hidden md:flex">
-            <ModeSwitcher
-              activeMode={topBarExtras.modeSwitcher.activeMode}
-              onChange={topBarExtras.modeSwitcher.onChange}
-              listsVisible={topBarExtras.modeSwitcher.listsVisible}
-              firstThensVisible={topBarExtras.modeSwitcher.firstThensVisible}
-              sentencesVisible={topBarExtras.modeSwitcher.sentencesVisible}
-              small
-            />
-          </div>
-        )}
-
         <QuickSettings />
       </header>
 
@@ -171,7 +154,7 @@ export function TopBar() {
           style={{ top: '48px', background: 'var(--theme-card)', zIndex: 60 }}
         >
           <div
-            className="px-5 py-4 flex flex-col gap-3"
+            className="px-5 py-4"
             style={{ borderBottom: '1px solid var(--theme-line)' }}
           >
             <div className="flex items-center gap-2">
@@ -187,16 +170,6 @@ export function TopBar() {
               <span className="text-small" style={linkStyle}>›</span>
               {breadcrumbs}
             </div>
-            {topBarExtras?.modeSwitcher && (
-              <ModeSwitcher
-                activeMode={topBarExtras.modeSwitcher.activeMode}
-                onChange={(mode) => { topBarExtras.modeSwitcher.onChange(mode); setMenuOpen(false); }}
-                listsVisible={topBarExtras.modeSwitcher.listsVisible}
-                firstThensVisible={topBarExtras.modeSwitcher.firstThensVisible}
-                sentencesVisible={topBarExtras.modeSwitcher.sentencesVisible}
-                small
-              />
-            )}
           </div>
 
           <nav className="flex flex-col gap-3 p-5">

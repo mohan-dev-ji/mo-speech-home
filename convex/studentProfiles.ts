@@ -22,7 +22,6 @@ const DEFAULT_STATE_FLAGS = {
   symbol_text_size: "small" as const,
   lists_visible: true,
   sentences_visible: true,
-  first_thens_visible: true,
   student_can_edit: false,
 };
 

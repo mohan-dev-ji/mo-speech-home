@@ -1,8 +1,7 @@
 "use client";
 
-import { Layers, Pencil, ImageIcon, ArrowLeft } from 'lucide-react';
+import { Layers, Pencil, ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 
 type BannerProps = {
@@ -14,7 +13,6 @@ type BannerProps = {
 
 export function Banner({ categoryName, imagePath, colour, onEdit }: BannerProps) {
   const t = useTranslations('banner');
-  const router = useRouter();
 
   const colourPair = getCategoryColour(colour ?? 'orange');
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
@@ -34,12 +32,13 @@ export function Banner({ categoryName, imagePath, colour, onEdit }: BannerProps)
         <div className="flex items-center gap-2 mt-3">
           <button
             type="button"
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-semibold transition-opacity hover:opacity-90"
-            style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+            onClick={onEdit}
+            disabled={!onEdit}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            {t('backButton')}
+            <Pencil className="w-3.5 h-3.5" />
+            {t('editButton')}
           </button>
 
           <button
@@ -50,17 +49,6 @@ export function Banner({ categoryName, imagePath, colour, onEdit }: BannerProps)
           >
             <Layers className="w-3.5 h-3.5" />
             {t('modelButton')}
-          </button>
-
-          <button
-            type="button"
-            onClick={onEdit}
-            disabled={!onEdit}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            {t('editButton')}
           </button>
         </div>
       </div>

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
-import { Edit2, Save, Plus } from 'lucide-react';
+import { Edit2, LogOut, Plus } from 'lucide-react';
+import { PageBanner } from '@/app/components/shared/PageBanner';
 import {
   DndContext,
   closestCenter,
@@ -83,7 +84,7 @@ type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 
 export function CategoriesContent() {
   const t = useTranslations('categories');
-  const { activeProfileId, language } = useProfile();
+  const { activeProfileId, language, stateFlags } = useProfile();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
@@ -160,33 +161,35 @@ export function CategoriesContent() {
     <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Page header */}
-      <div className="rounded-theme bg-theme-card px-theme-item py-theme-item flex flex-col gap-theme-elements">
-        <h1 className="text-theme-h4 font-semibold text-theme-alt-text">{t('title')}</h1>
-        <div className="flex items-center gap-theme-elements">
-
-          <button
-            type="button"
-            onClick={() => setIsEditing((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-colors hover:bg-white/20"
-            style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--theme-alt-text)' }}
-          >
-            {isEditing ? (
-              <><Save className="w-3.5 h-3.5" />{t('save')}</>
-            ) : (
-              <><Edit2 className="w-3.5 h-3.5" />{t('edit')}</>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-colors hover:bg-white/20"
-            style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--theme-alt-text)' }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {t('add')}
-          </button>
+      {stateFlags.talker_visible && (
+        <div className="shrink-0">
+          <PageBanner title={t('title')}>
+            <button
+              type="button"
+              onClick={() => setIsEditing((v) => !v)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-90"
+              style={{
+                background: isEditing ? 'var(--theme-button-highlight)' : 'var(--theme-card)',
+                color: isEditing ? 'var(--theme-text)' : 'var(--theme-text-primary)',
+              }}
+            >
+              {isEditing ? (
+                <><LogOut className="w-3.5 h-3.5" />{t('exitEdit')}</>
+              ) : (
+                <><Edit2 className="w-3.5 h-3.5" />{t('edit')}</>
+              )}
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t('add')}
+            </button>
+          </PageBanner>
         </div>
-      </div>
+      )}
 
       {/* Loading */}
       {categories === undefined && activeProfileId && (

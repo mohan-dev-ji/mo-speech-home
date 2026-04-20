@@ -159,10 +159,10 @@ export default defineSchema({
       symbol_label_visible: v.optional(v.boolean()), // show/hide text label on symbol cards; defaults to true
       symbol_text_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))), // h2/h4/p-bold/s-bold; defaults to 'small'
       // ── Student-facing permission flags (set by instructor) ──
-      lists_visible:      v.optional(v.boolean()), // Lists mode in categories; default true
-      sentences_visible:  v.optional(v.boolean()), // Sentences mode in categories; default true
-      first_thens_visible: v.optional(v.boolean()), // First Thens mode in categories; default true
-      student_can_edit:   v.optional(v.boolean()), // Student can edit board content; default false
+      lists_visible:        v.optional(v.boolean()), // Lists nav item; default true
+      sentences_visible:    v.optional(v.boolean()), // Sentences nav item; default true
+      student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
+      first_thens_visible:  v.optional(v.boolean()), // First Thens nav item; default true
     }),
     updatedAt: v.number(),
   })
@@ -253,18 +253,18 @@ export default defineSchema({
     .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
 
   /**
-   * A named ordered list within a category.
-   * items is bounded in practice (AAC lists are short routines/choices).
+   * A named ordered list. Profile-level — not tied to a category.
+   * Items store imagePath directly (SymbolStix path or R2 upload path).
+   * First Then is a display toggle, not a separate table.
    */
   profileLists: defineTable({
     profileId: v.id("studentProfiles"),
-    profileCategoryId: v.id("profileCategories"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     order: v.number(),
     librarySourceId: v.optional(v.string()),
     items: v.array(
       v.object({
-        profileSymbolId: v.id("profileSymbols"),
+        imagePath: v.optional(v.string()),
         order: v.number(),
         description: v.optional(v.string()),
       })
@@ -272,24 +272,23 @@ export default defineSchema({
     displayFormat: v.optional(v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))),
     showNumbers: v.optional(v.boolean()),
     showChecklist: v.optional(v.boolean()),
+    showFirstThen: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_profile_id", ["profileId"])
-    .index("by_profile_category_id", ["profileCategoryId"])
-    .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
+    .index("by_profile_id_and_order", ["profileId", "order"]),
 
   /**
-   * A pre-built sentence. Played as a single Chirp 3 HD TTS audio unit.
-   * ttsAudioPath cached in R2 — regenerated on label or item change.
+   * A pre-built sentence. Profile-level — not tied to a category.
+   * Items store imagePath directly. Whole-sentence TTS audio at sentence level.
    */
   profileSentences: defineTable({
     profileId: v.id("studentProfiles"),
-    profileCategoryId: v.id("profileCategories"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     order: v.number(),
     librarySourceId: v.optional(v.string()),
     items: v.array(
-      v.object({ profileSymbolId: v.id("profileSymbols"), order: v.number() })
+      v.object({ imagePath: v.optional(v.string()), order: v.number() })
     ),
     ttsAudioPath: v.optional(
       v.object({
@@ -306,32 +305,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_profile_id", ["profileId"])
-    .index("by_profile_category_id", ["profileCategoryId"])
-    .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
-
-  /**
-   * A First/Then visual schedule card.
-   * Exactly two symbols — first and then.
-   */
-  profileFirstThens: defineTable({
-    profileId: v.id("studentProfiles"),
-    profileCategoryId: v.id("profileCategories"),
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-    order: v.number(),
-    librarySourceId: v.optional(v.string()),
-    first: v.object({
-      profileSymbolId: v.id("profileSymbols"),
-      labelOverride: v.optional(v.string()),
-    }),
-    then: v.object({
-      profileSymbolId: v.id("profileSymbols"),
-      labelOverride: v.optional(v.string()),
-    }),
-    updatedAt: v.number(),
-  })
-    .index("by_profile_id", ["profileId"])
-    .index("by_profile_category_id", ["profileCategoryId"])
-    .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
+    .index("by_profile_id_and_order", ["profileId", "order"]),
 
   /**
    * Real-time modelling session. Instructor pushes; student device subscribes.
@@ -393,7 +367,6 @@ export default defineSchema({
     }),
     lists: v.array(v.any()),      // mirrors profileLists structure
     sentences: v.array(v.any()), // mirrors profileSentences structure
-    firstThens: v.array(v.any()), // mirrors profileFirstThens structure
   })
     .index("by_featured", ["featured"])
     .index("by_season", ["season"]),

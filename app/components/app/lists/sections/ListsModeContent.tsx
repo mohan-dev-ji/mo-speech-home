@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -19,10 +19,11 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, Pencil, Trash2, Move, Check, X, LogOut } from 'lucide-react';
+import { PageBanner } from '@/app/components/shared/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { CreateListModal } from '@/app/components/app/categories/modals/CreateListModal';
+import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/app/components/shared/ui/Dialog';
-import { ListDetailContent } from '@/app/components/app/categories/sections/ListDetailContent';
+import { ListDetailContent } from '@/app/components/app/lists/sections/ListDetailContent';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ function SortableListRow({
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
   onDeleteRequest, onOpen,
 }: SortableListRowProps) {
-  const t = useTranslations('categoryDetail');
+  const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: list._id });
 
@@ -131,7 +132,6 @@ function SortableListRow({
       >
         <ThumbnailStrip thumbnails={list.thumbnails} />
 
-        {/* Name area */}
         <div className="flex-1 min-w-0">
           {isEditingThisName ? (
             <div className="flex items-center gap-2">
@@ -166,7 +166,6 @@ function SortableListRow({
           )}
         </div>
 
-        {/* Edit mode controls */}
         {isEditing && (
           <div className="flex items-center gap-1 shrink-0">
             <button
@@ -174,7 +173,7 @@ function SortableListRow({
               onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
               className="p-1.5 rounded transition-colors hover:bg-red-100/10"
               style={{ color: 'var(--theme-warning)' }}
-              aria-label={t('listsRowDelete')}
+              aria-label={t('rowDelete')}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -183,7 +182,7 @@ function SortableListRow({
               onClick={(e) => { e.stopPropagation(); onEditNameStart(list._id, name); }}
               className="p-1.5 rounded transition-colors hover:bg-black/10"
               style={{ color: 'var(--theme-alt-text)' }}
-              aria-label={t('listsRowEdit')}
+              aria-label={t('rowEdit')}
             >
               <Pencil className="w-4 h-4" />
             </button>
@@ -191,7 +190,7 @@ function SortableListRow({
               type="button"
               className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none"
               style={{ color: 'var(--theme-alt-text)' }}
-              aria-label={t('listsRowMove')}
+              aria-label={t('rowMove')}
               {...listeners}
               {...attributes}
             >
@@ -204,24 +203,13 @@ function SortableListRow({
   );
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
-type Props = {
-  categoryId: string;
-};
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ListsModeContent({ categoryId }: Props) {
-  const t = useTranslations('categoryDetail');
-  const { language, activeProfileId } = useProfile();
+export function ListsModeContent() {
+  const t = useTranslations('lists');
+  const { language, activeProfileId, stateFlags } = useProfile();
 
-  const profileCategoryId = categoryId as Id<'profileCategories'>;
-
-  // ── Drill-down: null = list-of-lists, set = inside a specific list
   const [selectedListId, setSelectedListId] = useState<Id<'profileLists'> | null>(null);
-
-  // ── View state
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -230,17 +218,20 @@ export function ListsModeContent({ categoryId }: Props) {
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
-  // ── Convex
-  const lists = useQuery(api.profileLists.getProfileLists, { profileCategoryId });
+  const profileId = activeProfileId as Id<'studentProfiles'> | undefined;
+
+  const lists = useQuery(
+    api.profileLists.getProfileLists,
+    profileId ? { profileId } : 'skip'
+  );
   const createList = useMutation(api.profileLists.createProfileList);
+  const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const deleteList = useMutation(api.profileLists.deleteProfileList);
   const renameList = useMutation(api.profileLists.updateProfileListName);
   const reorderLists = useMutation(api.profileLists.reorderProfileLists);
 
-  // ── DnD
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  // ── Sync local order
   useEffect(() => {
     if (!lists) return;
     setLocalOrder((prev) => {
@@ -253,23 +244,26 @@ export function ListsModeContent({ categoryId }: Props) {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over || active.id === over.id || !profileId) return;
     setLocalOrder((prev) => {
       const oldIdx = prev.indexOf(active.id as string);
       const newIdx = prev.indexOf(over.id as string);
       const next = arrayMove(prev, oldIdx, newIdx);
-      reorderLists({ profileCategoryId, orderedIds: next as Id<'profileLists'>[] });
+      reorderLists({ profileId, orderedIds: next as Id<'profileLists'>[] });
       return next;
     });
   }
 
-  async function handleCreate(name: string) {
-    if (!activeProfileId) return;
-    const id = await createList({
-      profileId: activeProfileId as Id<'studentProfiles'>,
-      profileCategoryId,
-      name: { eng: name },
-    });
+  async function handleCreate(name: string, steps: string[]) {
+    if (!profileId) return;
+    const id = await createList({ profileId, name: { eng: name } });
+    const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
+    if (nonEmpty.length > 0) {
+      await updateListItems({
+        profileListId: id,
+        items: nonEmpty.map((description, i) => ({ order: i, description })),
+      });
+    }
     setSelectedListId(id);
   }
 
@@ -293,69 +287,59 @@ export function ListsModeContent({ categoryId }: Props) {
     setEditingNameId(null);
   }
 
-  // If drilling into a specific list, render list detail
   if (selectedListId) {
     return (
       <ListDetailContent
         listId={selectedListId}
-        categoryId={categoryId}
         onBack={() => setSelectedListId(null)}
       />
     );
   }
 
-  // ── Map for ordering
   const listMap = Object.fromEntries((lists ?? []).map((l) => [l._id, l]));
   const orderedLists = localOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
   return (
-    <div className="flex flex-col gap-theme-gap">
+    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Header */}
-      <div
-        className="shrink-0 rounded-theme p-4"
-        style={{ background: 'var(--theme-card)' }}
-      >
-        <h2 className="text-theme-h3 font-bold mb-3" style={{ color: 'var(--theme-text-primary)' }}>
-          {t('modeLists')}
-        </h2>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setCreateModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.15)' }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {t('listsCreate')}
-          </button>
-
-          {isEditing ? (
+      {stateFlags.talker_visible && (
+        <div className="shrink-0">
+          <PageBanner title={t('title')}>
+            {isEditing ? (
+              <button
+                type="button"
+                onClick={() => { setIsEditing(false); setEditingNameId(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
+                style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {t('exitEdit')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+                style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                {t('edit')}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => { setIsEditing(false); setEditingNameId(null); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
-              style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              {t('listsExitEdit')}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
+              onClick={() => setCreateModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
             >
-              <Pencil className="w-3.5 h-3.5" />
-              {t('listsEdit')}
+              <Plus className="w-3.5 h-3.5" />
+              {t('create')}
             </button>
-          )}
+          </PageBanner>
         </div>
-      </div>
+      )}
 
-      {/* Loading */}
       {lists === undefined && (
         <div className="flex justify-center py-12">
           <div
@@ -365,16 +349,14 @@ export function ListsModeContent({ categoryId }: Props) {
         </div>
       )}
 
-      {/* Empty */}
       {lists?.length === 0 && (
         <div className="flex items-center justify-center py-16">
           <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-            {t('listsEmpty')}
+            {t('empty')}
           </p>
         </div>
       )}
 
-      {/* List rows */}
       {lists && lists.length > 0 && (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
@@ -400,23 +382,21 @@ export function ListsModeContent({ categoryId }: Props) {
         </DndContext>
       )}
 
-      {/* Create modal */}
       <CreateListModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
       />
 
-      {/* Delete confirmation */}
       <Dialog
         open={pendingDelete !== null}
         onOpenChange={(open) => { if (!open) setPendingDelete(null); }}
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t('listsDeleteTitle')}</DialogTitle>
+            <DialogTitle>{t('deleteTitle')}</DialogTitle>
             <DialogDescription>
-              {t('listsDeleteConfirm', { name: pendingDelete?.name ?? '' })}
+              {t('deleteConfirm', { name: pendingDelete?.name ?? '' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -426,7 +406,7 @@ export function ListsModeContent({ categoryId }: Props) {
                 className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
                 style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
               >
-                {t('listsDeleteCancel')}
+                {t('deleteCancel')}
               </button>
             </DialogClose>
             <button
@@ -436,7 +416,7 @@ export function ListsModeContent({ categoryId }: Props) {
               className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
               style={{ background: 'var(--theme-warning)', color: '#fff' }}
             >
-              {isDeleting ? t('listsDeleting') : t('listsDeleteButton')}
+              {isDeleting ? t('deleting') : t('deleteButton')}
             </button>
           </DialogFooter>
         </DialogContent>

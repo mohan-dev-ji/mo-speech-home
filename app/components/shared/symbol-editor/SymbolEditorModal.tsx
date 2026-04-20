@@ -26,6 +26,8 @@ export type SymbolEditorModalProps = {
   folderImageMode?: boolean;
   initialImagePath?: string;
   onFolderImageSave?: (imagePath: string) => void;
+  // Override the modal header title
+  modalTitle?: string;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -53,6 +55,7 @@ export function SymbolEditorModal({
   folderImageMode = false,
   initialImagePath,
   onFolderImageSave,
+  modalTitle,
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
@@ -330,7 +333,7 @@ export function SymbolEditorModal({
             style={{ background: 'var(--theme-symbol-bg)', borderBottom: '1px solid var(--theme-button-highlight)' }}
           >
             <h2 className="text-theme-s font-bold" style={{ color: 'var(--theme-text)' }}>
-              {isEditMode ? t('titleEdit') : t('titleCreate')}
+              {modalTitle ?? (isEditMode ? t('titleEdit') : t('titleCreate'))}
             </h2>
           </div>
 

@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ArrowLeft, ListOrdered, CheckSquare, Pencil, LogOut, Plus, Trash2, Move, ChevronDown } from 'lucide-react';
+import { PageBanner } from '@/app/components/shared/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -39,23 +40,20 @@ type DisplayFormat = 'rows' | 'columns' | 'grid';
 
 type ListItem = {
   localId: string;
-  profileSymbolId: Id<'profileSymbols'>;
+  imagePath?: string;
   order: number;
   description?: string;
-  imagePath?: string;
-  labelEng?: string;
-  labelHin?: string;
 };
 
 // ─── Format dropdown ──────────────────────────────────────────────────────────
 
 function FormatDropdown({ value, onChange }: { value: DisplayFormat; onChange: (f: DisplayFormat) => void }) {
-  const t = useTranslations('categoryDetail');
+  const t = useTranslations('lists');
   const [open, setOpen] = useState(false);
   const options: { id: DisplayFormat; label: string }[] = [
-    { id: 'rows',    label: t('listFormatRows') },
-    { id: 'columns', label: t('listFormatColumns') },
-    { id: 'grid',    label: t('listFormatGrid') },
+    { id: 'rows',    label: t('formatRows') },
+    { id: 'columns', label: t('formatColumns') },
+    { id: 'grid',    label: t('formatGrid') },
   ];
   const current = options.find((o) => o.id === value)?.label ?? value;
 
@@ -97,21 +95,16 @@ function FormatDropdown({ value, onChange }: { value: DisplayFormat; onChange: (
 
 // ─── Symbol thumbnail ─────────────────────────────────────────────────────────
 
-function SymbolThumb({ imagePath, label, size = 'md' }: { imagePath?: string; label?: string; size?: 'sm' | 'md' | 'lg' }) {
+function SymbolThumb({ imagePath, size = 'md' }: { imagePath?: string; size?: 'sm' | 'md' | 'lg' }) {
   const dim = size === 'sm' ? 'w-14 h-14' : size === 'lg' ? 'w-24 h-24' : 'w-16 h-16';
   return (
     <div
-      className={`${dim} rounded-theme-sm overflow-hidden flex flex-col items-center justify-center shrink-0`}
+      className={`${dim} rounded-theme-sm overflow-hidden flex items-center justify-center shrink-0`}
       style={{ background: 'var(--theme-symbol-card-bg, rgba(255,255,255,0.12))' }}
     >
-      {label && (
-        <span className="text-[9px] font-medium truncate w-full text-center px-1" style={{ color: 'var(--theme-text-primary)' }}>
-          {label}
-        </span>
-      )}
       {imagePath ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/api/assets?key=${imagePath}`} alt={label ?? ''} className="w-full flex-1 object-contain p-1" draggable={false} />
+        <img src={`/api/assets?key=${imagePath}`} alt="" className="w-full h-full object-contain p-1" draggable={false} />
       ) : (
         <div className="w-10 h-10 rounded bg-black/10" />
       )}
@@ -121,22 +114,17 @@ function SymbolThumb({ imagePath, label, size = 'md' }: { imagePath?: string; la
 
 // ─── Edit symbol slot ─────────────────────────────────────────────────────────
 
-function EditSymbolSlot({ imagePath, label, onAdd, onDelete }: { imagePath?: string; label?: string; onAdd: () => void; onDelete: () => void }) {
+function EditSymbolSlot({ imagePath, onAdd, onDelete }: { imagePath?: string; onAdd: () => void; onDelete: () => void }) {
   return (
     <div
-      className="relative w-20 h-20 rounded-theme-sm overflow-hidden flex flex-col items-center justify-center shrink-0 cursor-pointer"
+      className="relative w-20 h-20 rounded-theme-sm overflow-hidden flex items-center justify-center shrink-0 cursor-pointer"
       style={{ background: 'var(--theme-symbol-card-bg, rgba(255,255,255,0.12))', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
       onClick={onAdd}
     >
       {imagePath ? (
         <>
-          {label && (
-            <span className="text-[9px] font-medium truncate w-full text-center px-1 shrink-0" style={{ color: 'var(--theme-text-primary)' }}>
-              {label}
-            </span>
-          )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/assets?key=${imagePath}`} alt={label ?? ''} className="w-full flex-1 object-contain p-1" draggable={false} />
+          <img src={`/api/assets?key=${imagePath}`} alt="" className="w-full h-full object-contain p-1" draggable={false} />
           <div className="absolute bottom-0 inset-x-0 flex justify-center gap-2 py-0.5" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={(e) => e.stopPropagation()}>
             <button type="button" onClick={onDelete} className="text-white/80 hover:text-white"><Trash2 className="w-3 h-3" /></button>
             <button type="button" onClick={onAdd} className="text-white/80 hover:text-white"><Pencil className="w-3 h-3" /></button>
@@ -164,7 +152,7 @@ type SortableEditRowProps = {
 };
 
 function SortableEditRow({ item, index, showNumbers, showChecklist, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol }: SortableEditRowProps) {
-  const t = useTranslations('categoryDetail');
+  const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
 
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
@@ -177,21 +165,21 @@ function SortableEditRow({ item, index, showNumbers, showChecklist, onDeleteRequ
             {index + 1}
           </div>
         )}
-        <EditSymbolSlot imagePath={item.imagePath} label={item.labelEng} onAdd={onAddSymbol} onDelete={onRemoveSymbol} />
+        <EditSymbolSlot imagePath={item.imagePath} onAdd={onAddSymbol} onDelete={onRemoveSymbol} />
         <input
           type="text"
           value={item.description ?? ''}
           onChange={(e) => onDescriptionChange(e.target.value)}
           onBlur={onDescriptionBlur}
-          placeholder={t('listItemDescriptionPlaceholder')}
+          placeholder={t('itemDescriptionPlaceholder')}
           className="flex-1 px-3 py-2 rounded-theme-sm text-theme-s outline-none"
           style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.12)' }}
         />
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid rgba(255,255,255,0.3)' }} />}
-        <button type="button" onClick={onDeleteRequest} className="p-1.5 rounded shrink-0 hover:bg-red-100/10" style={{ color: 'var(--theme-warning)' }} aria-label={t('listItemDelete')}>
+        <button type="button" onClick={onDeleteRequest} className="p-1.5 rounded shrink-0 hover:bg-red-100/10" style={{ color: 'var(--theme-warning)' }} aria-label={t('itemDelete')}>
           <Trash2 className="w-4 h-4" />
         </button>
-        <button type="button" className="p-1.5 rounded shrink-0 cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--theme-alt-text)' }} aria-label={t('listItemMove')} {...listeners} {...attributes}>
+        <button type="button" className="p-1.5 rounded shrink-0 cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--theme-alt-text)' }} aria-label={t('itemMove')} {...listeners} {...attributes}>
           <Move className="w-4 h-4" />
         </button>
       </div>
@@ -201,7 +189,7 @@ function SortableEditRow({ item, index, showNumbers, showChecklist, onDeleteRequ
 
 // ─── Display item variants ────────────────────────────────────────────────────
 
-type DisplayItemProps = { item: ListItem; index: number; showNumbers: boolean; showChecklist: boolean; checked: boolean; onToggle: () => void };
+type DisplayItemProps = { item: ListItem; index: number; showNumbers: boolean; showChecklist: boolean; showFirstThen: boolean; checked: boolean; onToggle: () => void };
 
 function CheckboxBtn({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
   return (
@@ -216,50 +204,79 @@ function CheckboxBtn({ checked, onToggle }: { checked: boolean; onToggle: () => 
   );
 }
 
-function DisplayItemRow({ item, index, showNumbers, showChecklist, checked, onToggle }: DisplayItemProps) {
+function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle }: DisplayItemProps) {
+  const t = useTranslations('lists');
   return (
     <div className="flex items-center gap-4 rounded-theme p-4 transition-colors" style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}>
+      {showFirstThen && (
+        <span
+          className="text-theme-l font-bold shrink-0 w-14 text-center py-1 rounded-theme-sm"
+          style={{ background: index === 0 ? 'var(--theme-brand-primary)' : 'rgba(255,255,255,0.12)', color: index === 0 ? 'var(--theme-alt-text)' : 'var(--theme-text-primary)' }}
+        >
+          {index === 0 ? t('firstLabel') : t('thenLabel')}
+        </span>
+      )}
       {showNumbers && <span className="text-theme-h3 font-bold shrink-0 w-8 text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{index + 1}</span>}
-      <SymbolThumb imagePath={item.imagePath} label={item.labelEng} size="lg" />
+      <SymbolThumb imagePath={item.imagePath} size="lg" />
       {item.description && <p className="flex-1 text-theme-p" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>}
       {showChecklist && <CheckboxBtn checked={checked} onToggle={onToggle} />}
     </div>
   );
 }
 
-function DisplayItemColumn({ item, index, showNumbers, showChecklist, checked, onToggle }: DisplayItemProps) {
+function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle }: DisplayItemProps) {
+  const t = useTranslations('lists');
   return (
-    <div className="flex flex-col items-center gap-2 rounded-theme p-3 transition-colors" style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}>
-      {showNumbers && <span className="text-theme-h2 font-bold" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{index + 1}</span>}
-      <SymbolThumb imagePath={item.imagePath} label={item.labelEng} size="lg" />
-      {item.description && <p className="text-theme-s text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>}
-      {showChecklist && <CheckboxBtn checked={checked} onToggle={onToggle} />}
+    <div className="flex flex-col rounded-theme overflow-hidden transition-colors h-full" style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}>
+      {showFirstThen && (
+        <div
+          className="w-full text-center py-2 text-theme-h4 font-bold"
+          style={{ background: index === 0 ? 'var(--theme-brand-primary)' : 'rgba(255,255,255,0.12)', color: index === 0 ? 'var(--theme-alt-text)' : 'var(--theme-text-primary)' }}
+        >
+          {index === 0 ? t('firstLabel') : t('thenLabel')}
+        </div>
+      )}
+      <div className="flex flex-col items-center justify-center gap-theme-mobile-gap p-theme-mobile-general flex-1">
+        {showNumbers && <span className="text-theme-h2 font-bold" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{index + 1}</span>}
+        <SymbolThumb imagePath={item.imagePath} size="lg" />
+        {item.description && <p className="text-theme-s text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>}
+        {showChecklist && <CheckboxBtn checked={checked} onToggle={onToggle} />}
+      </div>
     </div>
   );
 }
 
-function DisplayItemGrid({ item, index, showNumbers, showChecklist, checked, onToggle }: DisplayItemProps) {
+function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle }: DisplayItemProps) {
+  const t = useTranslations('lists');
   return (
-    <div className="flex items-center gap-3 rounded-theme p-4 transition-colors" style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}>
-      {showNumbers && <span className="text-theme-h3 font-bold shrink-0" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{index + 1}</span>}
-      <SymbolThumb imagePath={item.imagePath} label={item.labelEng} size="md" />
-      {item.description && <p className="flex-1 text-theme-s" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>}
-      {showChecklist && <CheckboxBtn checked={checked} onToggle={onToggle} />}
+    <div className="flex flex-col gap-2 rounded-theme p-4 transition-colors" style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}>
+      {showFirstThen && (
+        <div
+          className="w-full text-center py-1.5 rounded-theme-sm text-theme-l font-bold"
+          style={{ background: index === 0 ? 'var(--theme-brand-primary)' : 'rgba(255,255,255,0.12)', color: index === 0 ? 'var(--theme-alt-text)' : 'var(--theme-text-primary)' }}
+        >
+          {index === 0 ? t('firstLabel') : t('thenLabel')}
+        </div>
+      )}
+      <div className="flex items-center gap-3">
+        {showNumbers && <span className="text-theme-h3 font-bold shrink-0" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{index + 1}</span>}
+        <SymbolThumb imagePath={item.imagePath} size="md" />
+        {item.description && <p className="flex-1 text-theme-s" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>}
+        {showChecklist && <CheckboxBtn checked={checked} onToggle={onToggle} />}
+      </div>
     </div>
   );
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-type Props = { listId: Id<'profileLists'>; categoryId: string; onBack: () => void };
+type Props = { listId: Id<'profileLists'>; onBack: () => void };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ListDetailContent({ listId, categoryId, onBack }: Props) {
-  const t = useTranslations('categoryDetail');
-  const { language, activeProfileId } = useProfile();
-
-  const profileCategoryId = categoryId as Id<'profileCategories'>;
+export function ListDetailContent({ listId, onBack }: Props) {
+  const t = useTranslations('lists');
+  const { language, activeProfileId, stateFlags } = useProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -277,22 +294,21 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
 
   useEffect(() => {
     if (!list) return;
-    const mapped = list.items.map((item) => ({
+    const mapped = list.items.map((item, i) => ({
       ...item,
-      localId: `${item.profileSymbolId}-${item.order}`,
+      localId: `item-${i}-${item.imagePath ?? 'empty'}`,
     }));
     setLocalItems(mapped);
     localItemsRef.current = mapped;
   }, [list]);
 
-  // Keep ref in sync with state for use in closures (e.g. onBlur)
   useEffect(() => { localItemsRef.current = localItems; }, [localItems]);
 
   async function persistItems(items: ListItem[]) {
     await updateItems({
       profileListId: listId,
       items: items.map((item, i) => ({
-        profileSymbolId: item.profileSymbolId,
+        imagePath: item.imagePath,
         order: i,
         description: item.description,
       })),
@@ -323,23 +339,17 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
     persistItems(localItemsRef.current);
   }
 
-  function handleSymbolSaved(profileSymbolId: Id<'profileSymbols'>) {
+  async function handleListImageSaved(imagePath: string) {
     if (symbolPickerForIndex === null) return;
-    setLocalItems((prev) => {
-      const next = [...prev];
-      if (symbolPickerForIndex >= prev.length) {
-        next.push({
-          profileSymbolId,
-          order: next.length,
-          localId: `${profileSymbolId}-${Date.now()}`,
-        });
-      } else {
-        next[symbolPickerForIndex] = { ...next[symbolPickerForIndex], profileSymbolId };
-      }
-      persistItems(next);
-      return next;
-    });
+    const idx = symbolPickerForIndex;
+    const prev = localItemsRef.current;
+    const next =
+      idx < prev.length
+        ? prev.map((item, i) => (i === idx ? { ...item, imagePath } : item))
+        : [...prev, { localId: `item-${prev.length}-${Date.now()}`, imagePath, order: prev.length }];
+    setLocalItems(next);
     setSymbolPickerForIndex(null);
+    await persistItems(next);
   }
 
   async function handleDeleteItemConfirm() {
@@ -364,19 +374,31 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const showFirstThen: boolean = (list as any)?.showFirstThen ?? false;
+
   function toggleNumbers() {
     if (!list) return;
-    updateDisplay({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
   }
 
   function toggleChecklist() {
     if (!list) return;
-    updateDisplay({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist, showFirstThen });
+  }
+
+  function toggleFirstThen() {
+    if (!list) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen: !showFirstThen });
   }
 
   function handleFormatChange(fmt: DisplayFormat) {
     if (!list) return;
-    updateDisplay({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
   }
 
   if (!list) {
@@ -390,12 +412,80 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
   const listName = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
 
   return (
-    <div className="flex flex-col gap-theme-gap">
+    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Header */}
-      <div className="shrink-0 rounded-theme p-4" style={{ background: 'var(--theme-card)' }}>
-        {/* Back nav + title */}
-        <div className="flex items-center gap-2 mb-3">
+      <div className="shrink-0">
+        {stateFlags.talker_visible ? (
+          <PageBanner title={listName}>
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
+              style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              {t('back')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleNumbers}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+              style={{
+                background: list.showNumbers ? 'var(--theme-button-highlight)' : 'var(--theme-card)',
+                color: list.showNumbers ? 'var(--theme-text)' : 'var(--theme-text-primary)',
+              }}
+            >
+              <ListOrdered className="w-3.5 h-3.5" />
+              {t('numberedList')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleChecklist}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+              style={{
+                background: list.showChecklist ? 'var(--theme-button-highlight)' : 'var(--theme-card)',
+                color: list.showChecklist ? 'var(--theme-text)' : 'var(--theme-text-primary)',
+              }}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              {t('checklist')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleFirstThen}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+              style={{
+                background: showFirstThen ? 'var(--theme-button-highlight)' : 'var(--theme-card)',
+                color: showFirstThen ? 'var(--theme-text)' : 'var(--theme-text-primary)',
+              }}
+            >
+              {t('firstThen')}
+            </button>
+            {isEditing ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
+                style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {t('exitEdit')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
+                style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                {t('editList')}
+              </button>
+            )}
+            <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
+          </PageBanner>
+        ) : (
           <button
             type="button"
             onClick={onBack}
@@ -403,66 +493,14 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
             style={{ color: 'var(--theme-text-secondary)' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            {t('listBack')}
+            {t('back')}
           </button>
-          <span style={{ color: 'var(--theme-text-secondary)' }}>›</span>
-          <h2 className="text-theme-h3 font-bold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-            {listName}
-          </h2>
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleNumbers}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-all"
-            style={{ background: list.showNumbers ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showNumbers ? 'var(--theme-text)' : 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.15)' }}
-          >
-            <ListOrdered className="w-3.5 h-3.5" />
-            {t('listNumberedList')}
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleChecklist}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-all"
-            style={{ background: list.showChecklist ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showChecklist ? 'var(--theme-text)' : 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.15)' }}
-          >
-            <CheckSquare className="w-3.5 h-3.5" />
-            {t('listChecklist')}
-          </button>
-
-          {isEditing ? (
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
-              style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              {t('listExitEdit')}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.15)' }}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              {t('listEditList')}
-            </button>
-          )}
-
-          <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
-        </div>
+        )}
       </div>
 
-      {/* Empty state (view mode) */}
       {localItems.length === 0 && !isEditing && (
         <div className="flex items-center justify-center py-16">
-          <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>{t('listEmpty')}</p>
+          <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>{t('itemEmpty')}</p>
         </div>
       )}
 
@@ -483,7 +521,9 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
                   onDescriptionBlur={handleDescriptionBlur}
                   onAddSymbol={() => setSymbolPickerForIndex(idx)}
                   onRemoveSymbol={() => {
-                    const next = localItems.filter((_, i) => i !== idx);
+                    const next = localItems.map((item, i) =>
+                      i === idx ? { ...item, imagePath: undefined } : item
+                    );
                     setLocalItems(next);
                     persistItems(next);
                   }}
@@ -497,7 +537,7 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
                 style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--theme-brand-primary, var(--theme-primary))', border: '1.5px dashed var(--theme-brand-primary, var(--theme-primary))' }}
               >
                 <Plus className="w-4 h-4" />
-                <span className="text-theme-s font-medium">{t('listAddItem')}</span>
+                <span className="text-theme-s font-medium">{t('addItem')}</span>
               </button>
             </div>
           </SortableContext>
@@ -508,17 +548,19 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
       {!isEditing && list.displayFormat === 'rows' && localItems.length > 0 && (
         <div className="flex flex-col gap-3">
           {localItems.map((item, idx) => (
-            <DisplayItemRow key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
+            <DisplayItemRow key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} showFirstThen={showFirstThen} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
           ))}
         </div>
       )}
 
       {/* ── Display: Columns ──────────────────────────────────────────────────── */}
       {!isEditing && list.displayFormat === 'columns' && localItems.length > 0 && (
-        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
-          {localItems.map((item, idx) => (
-            <DisplayItemColumn key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
-          ))}
+        <div className="overflow-x-auto -mx-theme-mobile-general px-theme-mobile-general md:-mx-theme-general md:px-theme-general">
+          <div className="grid gap-theme-mobile-gap md:gap-theme-gap" style={{ gridTemplateColumns: `repeat(${Math.max(localItems.length, 2)}, minmax(0, 1fr))`, minWidth: `${Math.max(localItems.length, 2) * 140}px` }}>
+            {localItems.map((item, idx) => (
+              <DisplayItemColumn key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} showFirstThen={showFirstThen} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
+            ))}
+          </div>
         </div>
       )}
 
@@ -526,20 +568,22 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
       {!isEditing && list.displayFormat === 'grid' && localItems.length > 0 && (
         <div className="grid grid-cols-2 gap-3">
           {localItems.map((item, idx) => (
-            <DisplayItemGrid key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
+            <DisplayItemGrid key={item.localId} item={item} index={idx} showNumbers={list.showNumbers} showChecklist={list.showChecklist} showFirstThen={showFirstThen} checked={checkedIds.has(item.localId)} onToggle={() => toggleChecked(item.localId)} />
           ))}
         </div>
       )}
 
-      {/* Symbol picker */}
+      {/* Image picker for list items — folder image mode: returns imagePath directly, no category needed */}
       {symbolPickerForIndex !== null && activeProfileId && (
         <SymbolEditorModal
           isOpen={true}
-          profileCategoryId={profileCategoryId}
           profileId={activeProfileId as Id<'studentProfiles'>}
           language={language}
+          folderImageMode={true}
+          modalTitle={t('imagePickerTitle')}
           onClose={() => setSymbolPickerForIndex(null)}
-          onSave={(id) => handleSymbolSaved(id)}
+          onSave={() => {}}
+          onFolderImageSave={handleListImageSaved}
         />
       )}
 
@@ -547,17 +591,17 @@ export function ListDetailContent({ listId, categoryId, onBack }: Props) {
       <Dialog open={pendingDeleteIndex !== null} onOpenChange={(open) => { if (!open) setPendingDeleteIndex(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t('listDeleteItemTitle')}</DialogTitle>
-            <DialogDescription>{t('listDeleteItemConfirm')}</DialogDescription>
+            <DialogTitle>{t('deleteItemTitle')}</DialogTitle>
+            <DialogDescription>{t('deleteItemConfirm')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
               <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}>
-                {t('listDeleteItemCancel')}
+                {t('deleteItemCancel')}
               </button>
             </DialogClose>
             <button type="button" onClick={handleDeleteItemConfirm} disabled={isDeletingItem} className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50" style={{ background: 'var(--theme-warning)', color: '#fff' }}>
-              {isDeletingItem ? t('listDeletingItem') : t('listDeleteItemButton')}
+              {isDeletingItem ? t('deletingItem') : t('deleteItemButton')}
             </button>
           </DialogFooter>
         </DialogContent>

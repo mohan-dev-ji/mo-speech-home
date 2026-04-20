@@ -26,7 +26,6 @@ type StateFlags = {
   symbol_text_size: 'large' | 'medium' | 'small' | 'xs';
   lists_visible: boolean;
   sentences_visible: boolean;
-  first_thens_visible: boolean;
   student_can_edit: boolean;
 };
 
@@ -49,7 +48,6 @@ const DEFAULT_FLAGS: StateFlags = {
   symbol_text_size: 'small' as const,
   lists_visible: true,
   sentences_visible: true,
-  first_thens_visible: true,
   student_can_edit: false,
 };
 
@@ -165,7 +163,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         symbol_text_size:     studentProfile.stateFlags.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
         lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
         sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
-        first_thens_visible:  studentProfile.stateFlags.first_thens_visible  ?? DEFAULT_FLAGS.first_thens_visible,
         student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
       }
     : DEFAULT_FLAGS;

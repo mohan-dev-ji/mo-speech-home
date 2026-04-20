@@ -52,17 +52,24 @@ Sentence audio is at the sentence level (whole-sentence TTS), not per-item.
 
 **First Then becomes a display toggle on Lists** — `showFirstThen: boolean`. When active, the first item is labelled "First" and all subsequent items are labelled "Then". This toggle is independent and additive alongside `showNumbers` and `showChecklist`. All three can be active simultaneously.
 
-### 6. The symbol picker is context-aware
+### 6. The symbol picker reuses the existing SymbolEditorModal
 
-When adding an image to a list or sentence item, a `ListItemPickerModal` opens. It has three tabs:
+When adding an image to a list or sentence item, the existing `SymbolEditorModal` is opened in a list/sentence context. No separate picker modal is needed.
 
-- **My Categories** — browse existing profile categories, tap a symbol to copy its `imagePath` into the list item. The original category board symbol is not affected; only the path string is copied.
-- **SymbolStix** — search the SymbolStix library, pick by image. Stores the library `imagePath` directly.
-- **Upload** — upload a custom image. Stored at `profiles/{profileId}/lists/{listId}/items/` for lists, `profiles/{profileId}/sentences/{sentenceId}/items/` for sentences.
+**Image sources and storage:**
 
-When adding a symbol to a **category board** (via `SymbolEditorModal`), the existing flow applies: creates a `profileSymbol` with full label, audio, and display customisation.
+| Source | What happens |
+|---|---|
+| **SymbolStix** | `imagePath` from the `symbols` table is stored directly in the list/sentence item. No R2 copy — the library file is reused as-is. |
+| **Google Images** | Downloaded server-side, uploaded to R2 under the profile path, R2 path stored in the item. |
+| **AI Generation** | Generated server-side, uploaded to R2 under the profile path, R2 path stored in the item. |
+| **User Upload** | Uploaded to R2 under the profile path, R2 path stored in the item. |
 
-The symbol editor adapts its save label and behaviour to the calling context.
+There is no "My Categories" tab. Browsing a category board to copy a symbol path is not part of the picker flow.
+
+When saving in **list or sentence context**, the modal stores only `imagePath` into the list/sentence item — no `profileSymbol` record is created. The save button label reflects the destination ("Save to list" / "Save to sentence").
+
+When saving in **category board context**, the existing flow applies: creates/updates a `profileSymbol` with full label, audio, and display customisation.
 
 ---
 

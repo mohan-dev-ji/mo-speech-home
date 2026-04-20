@@ -4,57 +4,43 @@ import { v } from "convex/values";
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
- * Returns all lists for a category in display order.
- * Includes the first 4 symbol image paths as thumbnails for each list.
+ * Returns all lists for a profile in display order.
+ * Includes the first 4 item image paths as thumbnails.
  */
 export const getProfileLists = query({
-  args: { profileCategoryId: v.id("profileCategories") },
+  args: { profileId: v.id("studentProfiles") },
   handler: async (ctx, args) => {
     const lists = await ctx.db
       .query("profileLists")
-      .withIndex("by_profile_category_id_and_order", (q) =>
-        q.eq("profileCategoryId", args.profileCategoryId)
+      .withIndex("by_profile_id_and_order", (q) =>
+        q.eq("profileId", args.profileId)
       )
       .order("asc")
       .collect();
 
-    return Promise.all(
-      lists.map(async (list) => {
-        const firstFour = [...list.items]
-          .sort((a, b) => a.order - b.order)
-          .slice(0, 4);
+    return lists.map((list) => {
+      const firstFour = [...list.items]
+        .sort((a, b) => a.order - b.order)
+        .slice(0, 4);
 
-        const thumbnails = await Promise.all(
-          firstFour.map(async (item) => {
-            const ps = await ctx.db.get(item.profileSymbolId);
-            if (!ps) return { imagePath: undefined as string | undefined };
-
-            if (ps.imageSource.type === "symbolstix") {
-              const sym = await ctx.db.get(ps.imageSource.symbolId);
-              return { imagePath: sym?.imagePath as string | undefined };
-            }
-            const src = ps.imageSource as { imagePath: string };
-            return { imagePath: src.imagePath as string | undefined };
-          })
-        );
-
-        return {
-          _id: list._id,
-          name: list.name,
-          order: list.order,
-          displayFormat: list.displayFormat ?? ("rows" as const),
-          showNumbers: list.showNumbers ?? false,
-          showChecklist: list.showChecklist ?? false,
-          itemCount: list.items.length,
-          thumbnails,
-        };
-      })
-    );
+      return {
+        _id: list._id,
+        name: list.name,
+        order: list.order,
+        displayFormat: list.displayFormat ?? ("rows" as const),
+        showNumbers: list.showNumbers ?? false,
+        showChecklist: list.showChecklist ?? false,
+        showFirstThen: list.showFirstThen ?? false,
+        itemCount: list.items.length,
+        thumbnails: firstFour.map((item) => ({ imagePath: item.imagePath })),
+      };
+    });
   },
 });
 
 /**
- * Returns a single list with all items and resolved symbol data.
+ * Returns a single list with all items sorted by order.
+ * Items carry imagePath directly — no join needed.
  */
 export const getProfileListWithItems = query({
   args: { profileListId: v.id("profileLists") },
@@ -62,45 +48,15 @@ export const getProfileListWithItems = query({
     const list = await ctx.db.get(args.profileListId);
     if (!list) return null;
 
-    const sortedItems = [...list.items].sort((a, b) => a.order - b.order);
-
-    const items = await Promise.all(
-      sortedItems.map(async (item) => {
-        const ps = await ctx.db.get(item.profileSymbolId);
-        let imagePath: string | undefined;
-        let labelEng: string | undefined;
-        let labelHin: string | undefined;
-
-        if (ps) {
-          labelEng = ps.label.eng;
-          labelHin = ps.label.hin;
-          if (ps.imageSource.type === "symbolstix") {
-            const sym = await ctx.db.get(ps.imageSource.symbolId);
-            if (sym) imagePath = sym.imagePath;
-          } else {
-            const src = ps.imageSource as { imagePath: string };
-            imagePath = src.imagePath;
-          }
-        }
-
-        return {
-          profileSymbolId: item.profileSymbolId,
-          order: item.order,
-          description: item.description,
-          imagePath,
-          labelEng,
-          labelHin,
-        };
-      })
-    );
+    const items = [...list.items].sort((a, b) => a.order - b.order);
 
     return {
       _id: list._id,
-      profileCategoryId: list.profileCategoryId,
       name: list.name,
       displayFormat: list.displayFormat ?? ("rows" as const),
       showNumbers: list.showNumbers ?? false,
       showChecklist: list.showChecklist ?? false,
+      showFirstThen: list.showFirstThen ?? false,
       items,
     };
   },
@@ -111,7 +67,6 @@ export const getProfileListWithItems = query({
 export const createProfileList = mutation({
   args: {
     profileId: v.id("studentProfiles"),
-    profileCategoryId: v.id("profileCategories"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
@@ -120,21 +75,21 @@ export const createProfileList = mutation({
 
     const last = await ctx.db
       .query("profileLists")
-      .withIndex("by_profile_category_id_and_order", (q) =>
-        q.eq("profileCategoryId", args.profileCategoryId)
+      .withIndex("by_profile_id_and_order", (q) =>
+        q.eq("profileId", args.profileId)
       )
       .order("desc")
       .first();
 
     return ctx.db.insert("profileLists", {
       profileId: args.profileId,
-      profileCategoryId: args.profileCategoryId,
       name: args.name,
       order: last ? last.order + 1 : 0,
       items: [],
       displayFormat: "rows",
       showNumbers: false,
       showChecklist: false,
+      showFirstThen: false,
       updatedAt: Date.now(),
     });
   },
@@ -158,7 +113,7 @@ export const updateProfileListItems = mutation({
     profileListId: v.id("profileLists"),
     items: v.array(
       v.object({
-        profileSymbolId: v.id("profileSymbols"),
+        imagePath: v.optional(v.string()),
         order: v.number(),
         description: v.optional(v.string()),
       })
@@ -172,12 +127,56 @@ export const updateProfileListItems = mutation({
   },
 });
 
+/**
+ * Saves a symbol editor result into a list item.
+ * Resolves the profileSymbol's imagePath server-side so items remain self-contained.
+ * Pass insertAtIndex to replace an existing slot; omit to append.
+ */
+export const addItemFromSymbol = mutation({
+  args: {
+    profileListId: v.id("profileLists"),
+    profileSymbolId: v.id("profileSymbols"),
+    insertAtIndex: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const sym = await ctx.db.get(args.profileSymbolId);
+    if (!sym) throw new Error("profileSymbol not found");
+
+    let imagePath: string | undefined;
+    if (sym.imageSource.type === "symbolstix") {
+      const libSym = await ctx.db.get(sym.imageSource.symbolId);
+      imagePath = libSym?.imagePath;
+    } else {
+      const src = sym.imageSource as { imagePath?: string };
+      imagePath = src.imagePath;
+    }
+
+    const list = await ctx.db.get(args.profileListId);
+    if (!list) throw new Error("profileList not found");
+
+    const items = [...list.items].sort((a, b) => a.order - b.order);
+
+    if (args.insertAtIndex !== undefined && args.insertAtIndex < items.length) {
+      items[args.insertAtIndex] = { ...items[args.insertAtIndex], imagePath };
+    } else {
+      items.push({ imagePath, order: items.length, description: undefined });
+    }
+
+    const reindexed = items.map((item, i) => ({ ...item, order: i }));
+    await ctx.db.patch(args.profileListId, { items: reindexed, updatedAt: Date.now() });
+  },
+});
+
 export const updateProfileListDisplay = mutation({
   args: {
     profileListId: v.id("profileLists"),
     displayFormat: v.union(v.literal("rows"), v.literal("columns"), v.literal("grid")),
     showNumbers: v.boolean(),
     showChecklist: v.boolean(),
+    showFirstThen: v.boolean(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -187,6 +186,7 @@ export const updateProfileListDisplay = mutation({
       displayFormat: args.displayFormat,
       showNumbers: args.showNumbers,
       showChecklist: args.showChecklist,
+      showFirstThen: args.showFirstThen,
       updatedAt: Date.now(),
     });
   },
@@ -204,7 +204,7 @@ export const deleteProfileList = mutation({
 
 export const reorderProfileLists = mutation({
   args: {
-    profileCategoryId: v.id("profileCategories"),
+    profileId: v.id("studentProfiles"),
     orderedIds: v.array(v.id("profileLists")),
   },
   handler: async (ctx, args) => {

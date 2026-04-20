@@ -25,7 +25,6 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
-import { ListsModeContent } from '@/app/components/app/categories/sections/ListsModeContent';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { Header, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/Header';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
@@ -40,7 +39,6 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/app/components/shared/ui/Dialog';
-import type { CategoryMode } from '@/app/components/app/categories/ui/ModeSwitcher';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,12 +135,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
   const { language, stateFlags, activeProfileId } = useProfile();
-  const { setBreadcrumbExtra, setTopBarExtras } = useBreadcrumb();
+  const { setBreadcrumbExtra } = useBreadcrumb();
 
   // ── View state ──────────────────────────────────────────────────────────────
   const [talkerSymbols, setTalkerSymbols] = useState<TalkerSymbolItem[]>([]);
   const [headerMode, setHeaderMode] = useState<'talker' | 'banner'>('talker');
-  const [activeMode, setActiveMode] = useState<CategoryMode>('board');
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const cancelSequenceRef = useRef(false);
 
@@ -340,20 +337,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
     return () => setBreadcrumbExtra(null);
   }, [category, language, setBreadcrumbExtra]);
 
-  useEffect(() => {
-    setTopBarExtras({
-      modeSwitcher: {
-        activeMode,
-        onChange: setActiveMode,
-        listsVisible:       stateFlags.lists_visible       ?? true,
-        firstThensVisible:  stateFlags.first_thens_visible ?? true,
-        sentencesVisible:   stateFlags.sentences_visible   ?? true,
-      },
-      showHeaderToggle: activeMode === 'board' && !isEditing,
-    });
-    return () => setTopBarExtras(null);
-  }, [activeMode, isEditing, stateFlags, setTopBarExtras]);
-
   // ── Derived ─────────────────────────────────────────────────────────────────
 
   const categoryName = category
@@ -379,11 +362,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Board header */}
-      {activeMode === 'board' && (
-        <div className="shrink-0">
-          {isEditing ? (
+      <div className="shrink-0">
+        {isEditing ? (
             <div
-              className="relative rounded-theme p-3"
+              className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
               style={{ background: getCategoryColour(draftColour).c700 }}
             >
               <BannerEdit
@@ -413,106 +395,76 @@ export function CategoryDetailContent({ categoryId }: Props) {
               onEditCategory={handleEditStart}
             />
           ) : null}
-        </div>
-      )}
+      </div>
 
-      {/* Mode content */}
+      {/* Board */}
       <div className="flex-1 overflow-auto mt-8">
+        {symbols === undefined && (
+          <div className="flex items-center justify-center py-16">
+            <div
+              className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
+            />
+          </div>
+        )}
 
-        {/* ── Board mode ───────────────────────────────────────────────── */}
-        {activeMode === 'board' && (
-          <>
-            {symbols === undefined && (
-              <div className="flex items-center justify-center py-16">
-                <div
-                  className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
-                />
-              </div>
-            )}
+        {symbols?.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-body" style={{ color: 'var(--theme-secondary-text)' }}>{t('empty')}</p>
+          </div>
+        )}
 
-            {symbols?.length === 0 && (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-body" style={{ color: 'var(--theme-secondary-text)' }}>{t('empty')}</p>
-              </div>
-            )}
-
-            {symbols && symbols.length > 0 && (
-              isEditing ? (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext items={localOrder} strategy={rectSortingStrategy}>
-                    <CategoryBoardGrid>
-                      {orderedSymbols.map((sym) => (
-                        <SortableSymbolCard
-                          key={sym._id}
-                          sym={sym}
-                          language={language}
-                          categoryColour={category?.colour}
-                          onEdit={handleEditSymbol}
-                          onDeleteRequest={handleDeleteRequest}
-                        />
-                      ))}
-                    </CategoryBoardGrid>
-                  </SortableContext>
-                </DndContext>
-              ) : (
+        {symbols && symbols.length > 0 && (
+          isEditing ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={localOrder} strategy={rectSortingStrategy}>
                 <CategoryBoardGrid>
-                  {symbols.map((sym) => {
-                    const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
-                    const audioPath = language === 'hin' ? (sym.audioHin ?? sym.audioEng) : sym.audioEng;
-                    const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
-
-                    return (
-                      <SymbolCard
-                        key={sym._id}
-                        symbolId={sym._id}
-                        imagePath={imageUrl}
-                        label={label}
-                        language={language}
-                        display={sym.display}
-                        categoryColour={category?.colour}
-                        onTap={() => {
-                          if (!audioPath) return;
-                          if (headerMode === 'banner') {
-                            playAudio(audioPath);
-                          } else if (sym.imagePath) {
-                            addToTalker(sym._id, sym.imagePath, label, audioPath);
-                          }
-                        }}
-                      />
-                    );
-                  })}
+                  {orderedSymbols.map((sym) => (
+                    <SortableSymbolCard
+                      key={sym._id}
+                      sym={sym}
+                      language={language}
+                      categoryColour={category?.colour}
+                      onEdit={handleEditSymbol}
+                      onDeleteRequest={handleDeleteRequest}
+                    />
+                  ))}
                 </CategoryBoardGrid>
-              )
-            )}
-          </>
-        )}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <CategoryBoardGrid>
+              {symbols.map((sym) => {
+                const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
+                const audioPath = language === 'hin' ? (sym.audioHin ?? sym.audioEng) : sym.audioEng;
+                const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
 
-        {/* ── Lists mode ───────────────────────────────────────────────── */}
-        {activeMode === 'lists' && (
-          <ListsModeContent categoryId={categoryId} />
-        )}
-
-        {/* ── First Thens mode — placeholder ───────────────────────────── */}
-        {activeMode === 'first-thens' && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('firstThensPlaceholder')}
-            </p>
-          </div>
-        )}
-
-        {/* ── Sentences mode — placeholder ──────────────────────────────── */}
-        {activeMode === 'sentences' && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('sentencesPlaceholder')}
-            </p>
-          </div>
+                return (
+                  <SymbolCard
+                    key={sym._id}
+                    symbolId={sym._id}
+                    imagePath={imageUrl}
+                    label={label}
+                    language={language}
+                    display={sym.display}
+                    categoryColour={category?.colour}
+                    onTap={() => {
+                      if (!audioPath) return;
+                      if (headerMode === 'banner') {
+                        playAudio(audioPath);
+                      } else if (sym.imagePath) {
+                        addToTalker(sym._id, sym.imagePath, label, audioPath);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </CategoryBoardGrid>
+          )
         )}
       </div>
 
