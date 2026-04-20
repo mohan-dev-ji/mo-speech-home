@@ -14,6 +14,11 @@
     "header": "Header",
     "headerToggleLabel": "Toggle talker header"
   },
+  "quickSettings": {
+    "label": "Quick settings",
+    "headerToggle": "Header",
+    "headerToggleLabel": "Toggle header visibility"
+  },
   "home": {
     "title": "Home",
     "resourceLibrary": "Templates / Resource Library"

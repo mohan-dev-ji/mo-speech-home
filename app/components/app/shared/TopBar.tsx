@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { ModeSwitcher } from '@/app/components/app/categories/ui/ModeSwitcher';
+import { QuickSettings } from '@/app/components/app/shared/QuickSettings';
 import { useState } from 'react';
 import { Menu, X, Home, Search, Tag, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,16 +26,12 @@ export function TopBar() {
   const locale = params.locale as string;
   const tNav = useTranslations('nav');
   const tCommon = useTranslations('common');
-  const tTopBar = useTranslations('topBar');
-  const { stateFlags, setTalkerVisible } = useProfile();
   const { breadcrumbExtra, topBarExtras } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const segments = pathname.replace(`/${locale}`, '').split('/').filter(Boolean);
   const currentSegment = segments[0] ?? 'home';
   const isSubPage = segments.length >= 2;
-  // Search always shows the toggle; category detail only shows it when in board mode (via topBarExtras)
-  const showTalkerToggle = currentSegment === 'search' || (topBarExtras?.showHeaderToggle ?? false);
 
   // Label shown in mobile bar — deepest crumb
   const mobileLabel = isSubPage && breadcrumbExtra
@@ -49,36 +45,6 @@ export function TopBar() {
   const btnBase = 'w-full flex items-center gap-2.5 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-small font-medium transition-colors';
   const btnInactive = 'bg-theme-primary text-theme-alt-text hover:opacity-90';
   const btnActive   = 'bg-theme-button-highlight text-theme-text';
-
-  const headerToggle = showTalkerToggle && (
-    <button
-      type="button"
-      onClick={() => setTalkerVisible(!stateFlags.talker_visible)}
-      className="flex items-center gap-2"
-      aria-label={tTopBar('headerToggleLabel')}
-    >
-      <div
-        className="relative w-10 h-6 rounded-full transition-colors duration-200"
-        style={{
-          background: stateFlags.talker_visible
-            ? 'var(--theme-success)'
-            : 'rgba(255,255,255,0.2)',
-        }}
-      >
-        <span
-          className="absolute top-0.5 left-0 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
-          style={{
-            transform: stateFlags.talker_visible
-              ? 'translateX(18px)'
-              : 'translateX(2px)',
-          }}
-        />
-      </div>
-      <span className="text-small font-medium" style={linkStyle}>
-        {tTopBar('header')}
-      </span>
-    </button>
-  );
 
   // ─── Breadcrumb nodes ────────────────────────────────────────────────────────
 
@@ -195,10 +161,7 @@ export function TopBar() {
           </div>
         )}
 
-        {/* Header toggle — desktop only */}
-        <div className="hidden md:flex">
-          {headerToggle}
-        </div>
+        <QuickSettings />
       </header>
 
       {/* Mobile dropdown */}
@@ -234,7 +197,6 @@ export function TopBar() {
                 small
               />
             )}
-            {headerToggle}
           </div>
 
           <nav className="flex flex-col gap-3 p-5">

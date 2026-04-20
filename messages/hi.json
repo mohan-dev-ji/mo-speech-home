@@ -14,6 +14,11 @@
     "header": "Header (hi)",
     "headerToggleLabel": "Toggle talker header (hi)"
   },
+  "quickSettings": {
+    "label": "Quick settings (hi)",
+    "headerToggle": "Header (hi)",
+    "headerToggleLabel": "Toggle header visibility (hi)"
+  },
   "home": {
     "title": "होम",
     "resourceLibrary": "टेम्पलेट / संसाधन पुस्तकालय"
