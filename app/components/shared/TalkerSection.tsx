@@ -80,7 +80,7 @@ export function TalkerSection({
       <div
         ref={mainRef}
         className="flex items-stretch gap-2 p-3 rounded-theme"
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: 'var(--theme-banner)' }}
       >
         {/* White chip area */}
         <div ref={chipAreaRef} className="flex-1 min-w-0">

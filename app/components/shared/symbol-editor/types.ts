@@ -2,7 +2,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 
 export type ImageSourceTab = 'symbolstix' | 'upload' | 'google-images' | 'ai-generate';
 export type AudioMode = 'default' | 'record' | 'choose-word' | 'generate';
-export type TextSize = 'sm' | 'md' | 'lg';
+export type TextSize = 'sm' | 'md' | 'lg' | 'xl';
 export type CardShape = 'square' | 'rounded' | 'circle';
 
 export type Draft = {

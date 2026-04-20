@@ -124,7 +124,7 @@ export function TalkerDropdown({
         type="button"
         onClick={() => setIsOpen(true)}
         className="flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity"
-        style={{ ...baseStyle, background: 'var(--theme-card)', color: 'var(--theme-nav-text)' }}
+        style={{ ...baseStyle, background: 'var(--theme-banner)', color: 'var(--theme-nav-text)' }}
         aria-label={t('openDropdown')}
       >
         <ChevronDown className="w-5 h-5" />

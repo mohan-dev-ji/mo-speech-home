@@ -108,9 +108,8 @@ export function Header({
 
   const hasSymbols = symbols.length > 0;
   const isBanner   = mode === 'banner';
-  const headerBg   = categoryColour
-    ? getCategoryColour(categoryColour).c700
-    : 'var(--theme-card)';
+  const bannerBg   = categoryColour ? getCategoryColour(categoryColour).c700 : 'var(--theme-banner)';
+  const talkerBg   = 'var(--theme-banner)';
 
   useEffect(() => {
     function measure() {
@@ -127,15 +126,15 @@ export function Header({
       window.removeEventListener('resize', measure);
       ro.disconnect();
     };
-  }, []);
+  }, [isBanner]);
 
   // ─── Banner mode ─────────────────────────────────────────────────────────────
 
   if (isBanner) {
     return (
       <div
-        className="relative rounded-theme p-3"
-        style={{ background: headerBg }}
+        className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
+        style={{ background: bannerBg }}
       >
         {showToggle && (
           <div className="absolute top-3 right-3">
@@ -165,8 +164,8 @@ export function Header({
     <div>
       <div
         ref={mainRef}
-        className="flex items-stretch gap-2 p-3 rounded-theme"
-        style={{ background: headerBg }}
+        className="flex items-stretch gap-2 p-3 rounded-theme min-h-[200px]"
+        style={{ background: 'var(--theme-banner)' }}
       >
         {/* Chip area */}
         <div ref={chipAreaRef} className="flex-1 min-w-0">
