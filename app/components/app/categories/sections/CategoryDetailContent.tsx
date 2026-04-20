@@ -25,6 +25,7 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
+import { ListsModeContent } from '@/app/components/app/categories/sections/ListsModeContent';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { Header, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/Header';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
@@ -491,13 +492,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
           </>
         )}
 
-        {/* ── Lists mode — placeholder ──────────────────────────────────── */}
+        {/* ── Lists mode ───────────────────────────────────────────────── */}
         {activeMode === 'lists' && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-body opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('listsPlaceholder')}
-            </p>
-          </div>
+          <ListsModeContent categoryId={categoryId} />
         )}
 
         {/* ── First Thens mode — placeholder ───────────────────────────── */}

@@ -263,8 +263,15 @@ export default defineSchema({
     order: v.number(),
     librarySourceId: v.optional(v.string()),
     items: v.array(
-      v.object({ profileSymbolId: v.id("profileSymbols"), order: v.number() })
+      v.object({
+        profileSymbolId: v.id("profileSymbols"),
+        order: v.number(),
+        description: v.optional(v.string()),
+      })
     ),
+    displayFormat: v.optional(v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))),
+    showNumbers: v.optional(v.boolean()),
+    showChecklist: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_profile_id", ["profileId"])
