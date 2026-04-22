@@ -139,6 +139,7 @@ export default defineSchema({
     dateOfBirth: v.optional(v.number()),
     profilePhoto: v.optional(v.string()), // R2 path
     language: v.string(), // "eng" | "hin" — open-ended
+    voiceId: v.optional(v.string()), // e.g. 'en-GB-News-M' — defaults to DEFAULT_VOICE_ID
     themeId: v.optional(v.id("themes")), // reserved for Convex themes table (Phase 7)
     themeSlug: v.optional(v.string()),   // flat theme key used now e.g. 'default' | 'sky'
     purchasedThemeIds: v.optional(v.array(v.id("themes"))), // individually purchased premium themes
@@ -253,6 +254,17 @@ export default defineSchema({
     .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
 
   /**
+   * Global TTS cache — shared across all profiles and voices.
+   * Populated by POST /api/tts on cache miss. Never deleted.
+   */
+  ttsCache: defineTable({
+    text: v.string(),       // normalised (lowercase, trimmed)
+    voiceId: v.string(),    // e.g. 'en-GB-News-M'
+    r2Key: v.string(),      // audio/{voiceId}/tts/{uuid}.mp3
+    charCount: v.number(),  // for cost tracking
+  }).index("by_text_voice", ["text", "voiceId"]),
+
+  /**
    * A named ordered list. Profile-level — not tied to a category.
    * Items store imagePath directly (SymbolStix path or R2 upload path).
    * First Then is a display toggle, not a separate table.
@@ -267,6 +279,7 @@ export default defineSchema({
         imagePath: v.optional(v.string()),
         order: v.number(),
         description: v.optional(v.string()),
+        audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
       })
     ),
     displayFormat: v.optional(v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))),
@@ -280,28 +293,29 @@ export default defineSchema({
 
   /**
    * A pre-built sentence. Profile-level — not tied to a category.
-   * Items store imagePath directly. Whole-sentence TTS audio at sentence level.
+   * Slots store imagePath + displayProps. Audio is at sentence level.
    */
   profileSentences: defineTable({
     profileId: v.id("studentProfiles"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     order: v.number(),
     librarySourceId: v.optional(v.string()),
-    items: v.array(
-      v.object({ imagePath: v.optional(v.string()), order: v.number() })
-    ),
-    ttsAudioPath: v.optional(
+    text: v.optional(v.string()),      // sentence text — feeds TTS and display
+    slots: v.array(
       v.object({
-        eng: v.optional(v.string()),
-        hin: v.optional(v.string()),
+        order: v.number(),
+        imagePath: v.optional(v.string()),
+        displayProps: v.optional(v.object({
+          bgColour: v.optional(v.string()),
+          textColour: v.optional(v.string()),
+          textSize: v.optional(v.union(v.literal("sm"), v.literal("md"), v.literal("lg"), v.literal("xl"))),
+          showLabel: v.optional(v.boolean()),
+          showImage: v.optional(v.boolean()),
+          cardShape: v.optional(v.union(v.literal("square"), v.literal("rounded"), v.literal("circle"))),
+        })),
       })
     ),
-    ttsText: v.optional(
-      v.object({
-        eng: v.optional(v.string()),
-        hin: v.optional(v.string()),
-      })
-    ),
+    audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
     updatedAt: v.number(),
   })
     .index("by_profile_id", ["profileId"])

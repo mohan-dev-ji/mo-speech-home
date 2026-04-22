@@ -16,6 +16,7 @@ import type * as profileSymbols from "../profileSymbols.js";
 import type * as studentProfiles from "../studentProfiles.js";
 import type * as symbols from "../symbols.js";
 import type * as themes from "../themes.js";
+import type * as ttsCache from "../ttsCache.js";
 import type * as users from "../users.js";
 
 import type {
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   studentProfiles: typeof studentProfiles;
   symbols: typeof symbols;
   themes: typeof themes;
+  ttsCache: typeof ttsCache;
   users: typeof users;
 }>;
 

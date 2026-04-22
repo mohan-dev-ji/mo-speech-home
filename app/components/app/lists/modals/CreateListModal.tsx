@@ -80,7 +80,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               autoFocus
               className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
               style={{
-                background: 'rgba(255,255,255,0.06)',
+                background: 'var(--theme-symbol-bg)',
                 color: 'var(--theme-text)',
                 border: '1px solid rgba(255,255,255,0.12)',
               }}
@@ -98,7 +98,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
                 <div key={i} className="flex items-center gap-3">
                   <div
                     className="w-7 h-7 rounded-theme-sm shrink-0 flex items-center justify-center text-theme-s font-bold"
-                    style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--theme-text)' }}
+                    style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}
                   >
                     {i + 1}
                   </div>
@@ -109,7 +109,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
                     placeholder={t('createModalStepPlaceholder')}
                     className="flex-1 px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.06)',
+                      background: 'var(--theme-symbol-bg)',
                       color: 'var(--theme-text)',
                       border: '1px solid rgba(255,255,255,0.1)',
                     }}
@@ -123,9 +123,9 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               onClick={addStep}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80 mt-1"
               style={{
-                background: 'transparent',
-                color: 'var(--theme-text-secondary)',
-                border: '1.5px dashed rgba(255,255,255,0.2)',
+                background: 'var(--theme-primary)',
+                color: 'var(--theme-alt-text)',
+                border: 'none',
               }}
             >
               <Plus className="w-4 h-4" />
@@ -139,7 +139,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               type="button"
               onClick={() => handleOpenChange(false)}
               className="py-3 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--theme-text)' }}
+              style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}
             >
               {t('createModalCancel')}
             </button>

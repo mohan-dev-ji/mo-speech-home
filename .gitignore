@@ -56,6 +56,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# secrets — service account keys, never commit
+/secrets
+
 # env files (can opt-in for committing if needed)
 .env*
 !.env.local.example

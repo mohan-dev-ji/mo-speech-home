@@ -81,28 +81,46 @@ There is no "My Categories" tab. The category board is a separate context; symbo
 
 ### What a sentence is
 
-An ordered set of symbol images that form a visual phrase. Sentences are image-only — no per-item text, no per-item voice. Audio is at the sentence level: a whole-sentence TTS string spoken by Google Chirp 3 HD (natural voice).
+An ordered set of symbol slots that form a visual phrase. Each slot has an image and display properties (background, text colour, card shape etc.) but no per-slot audio. Audio is at the sentence level — the whole sentence spoken in the student's selected voice.
 
-### Item data model
+### Slot data model
 
 ```typescript
-items: Array<{
+slots: Array<{
   order: number
-  imagePath?: string      // R2 path — same three sources as list items
+  imagePath?: string      // R2 path — SymbolStix path or profiles/{profileId}/images/
+  displayProps?: {
+    bgColour?: string
+    textColour?: string
+    textSize?: 'sm' | 'md' | 'lg' | 'xl'
+    showLabel?: boolean
+    showImage?: boolean
+    cardShape?: 'square' | 'rounded' | 'circle'
+  }
 }>
 ```
 
-No `description` field. No per-item audio.
+No per-slot audio. No `description` field per slot.
 
 ### Sentence audio
 
-`ttsText: { eng?: string, hin?: string }` is authored by the instructor (the text to be spoken, not the symbol labels). On first play:
-1. Check `ttsAudioPath` — if cached, play from R2.
-2. On cache miss, call Google Chirp 3 HD TTS server-side, store result at `profiles/{profileId}/sentences/{sentenceId}/audio/{lang}.mp3`, patch `ttsAudioPath`.
+`text` is the sentence as authored by the instructor (what is spoken, not the symbol labels). Audio is resolved via the lookup-first flow in `POST /api/tts`:
+
+1. Search SymbolStix audio folder for the profile's current `voiceId`
+2. Search global `ttsCache` by `(text, voiceId)`
+3. If not found → generate via Google Cloud TTS (WaveNet/News API) → upload to `audio/{voiceId}/tts/{uuid}.mp3` → cache → return `r2Key`
+
+`audioPath` stores the resolved R2 key (global TTS cache key, or `profiles/{profileId}/audio/{uuid}.webm` for recorded voice). On play, audio is served via `/api/assets?key={audioPath}`.
+
+The **Sentence Audio Editor** is a dedicated component (separate from the universal `SymbolEditorModal`) that presents:
+- Text field (pre-populated from slot descriptions if available, fully editable)
+- **Generate** button → runs the lookup-first flow above
+- **Record** button → MediaRecorder flow; blob uploaded to `profiles/{profileId}/audio/` on Save
+- Preview and regenerate/re-record freely before committing
 
 ### Image sources
 
-Same `SymbolEditorModal` in sentence context — same image source tabs (SymbolStix / Google Images / AI Generation / Upload). SymbolStix paths stored directly; Google Images and AI gen uploaded to R2 under `profiles/{profileId}/`. No `profileSymbol` record created.
+`SymbolEditorModal` in `sentenceSlot` mode — image picker tabs + display properties shown; label and audio sections hidden. SymbolStix paths stored directly; Google Images and AI gen uploaded to R2 under `profiles/{profileId}/images/`. No `profileSymbol` record created.
 
 ---
 
@@ -125,6 +143,7 @@ profileLists: {
     order: number
     imagePath?: string
     description?: string
+    audioPath?: string    // global TTS key or profiles/{profileId}/audio/...
   }>
   createdAt: number
   updatedAt: number
@@ -142,12 +161,13 @@ profileSentences: {
   name: { eng: string, hin?: string }
   order: number
   librarySourceId?: string
-  items: Array<{
+  text?: string                            // sentence text — feeds TTS and display
+  slots: Array<{
     order: number
     imagePath?: string
+    displayProps?: DisplayProps
   }>
-  ttsText?: { eng?: string, hin?: string }
-  ttsAudioPath?: { eng?: string, hin?: string }
+  audioPath?: string                       // global TTS key or profiles/{profileId}/audio/...
   createdAt: number
   updatedAt: number
 }
@@ -196,14 +216,15 @@ Resource library packs that previously included category-level lists/sentences w
 
 ## Symbol Editor Context Awareness
 
-The `SymbolEditorModal` is used for adding images to both category boards and list/sentence items. The image source tabs (SymbolStix / Google Images / AI Generation / Upload) are the same in both contexts.
+`SymbolEditorModal` is a universal modal used across all three contexts. The `mode` prop controls which sections are shown and what Save does.
 
-**Save behaviour differs by calling context:**
+| Section | `categoryBoard` | `listItem` | `sentenceSlot` |
+|---|---|---|---|
+| Image picker (4 tabs) | ✓ | ✓ | ✓ |
+| Label / Description | Label + language | Description | — |
+| Audio (Generate / Record) | ✓ | ✓ | — |
+| Display properties | ✓ | — | ✓ |
+| Save creates | `profileSymbol` record | `imagePath` + `audioPath` on item | `imagePath` + `displayProps` on slot |
+| Save button label | "Save to [Category]" | "Save to list" | "Save to sentence" |
 
-| Context | Save creates | Save button label |
-|---|---|---|
-| Category board | `profileSymbol` record (with label, audio, display fields) | "Save to [Category Name]" |
-| List item | Only `imagePath` stored in the list item — no `profileSymbol` created | "Save to list" |
-| Sentence item | Only `imagePath` stored in the sentence item — no `profileSymbol` created | "Save to sentence" |
-
-In list/sentence context, the label, audio, and display sections of the editor are not shown — only the image picker tabs.
+Sentence-level audio is handled by the **Sentence Audio Editor** — a separate component, not the universal modal. See the Sentence Audio section above and `05-symbol-editor.md` for full details.

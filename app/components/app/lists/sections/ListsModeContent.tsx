@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -33,7 +34,6 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/app/components/shared/ui/Dialog';
-import { ListDetailContent } from '@/app/components/app/lists/sections/ListDetailContent';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,32 +50,22 @@ type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function ThumbnailStrip({ thumbnails }: { thumbnails: { imagePath?: string }[] }) {
-  const placeholders = Array.from({ length: 4 }, (_, i) => thumbnails[i]);
+  const filled = thumbnails.filter((t) => t.imagePath);
   return (
     <div className="flex gap-2 shrink-0">
-      {placeholders.map((t, i) => (
+      {filled.map((t, i) => (
         <div
           key={i}
-          className="relative w-[70px] h-[70px] rounded-theme-sm overflow-hidden flex items-center justify-center shrink-0"
+          className="w-[70px] h-[70px] rounded-theme-sm overflow-hidden flex items-center justify-center shrink-0"
           style={{ background: 'var(--theme-symbol-card-bg, rgba(255,255,255,0.12))' }}
         >
-          <span
-            className="absolute top-1 left-1 text-[10px] font-bold leading-none"
-            style={{ color: 'var(--theme-text-secondary, rgba(255,255,255,0.4))' }}
-          >
-            {i + 1}
-          </span>
-          {t?.imagePath ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`/api/assets?key=${t.imagePath}`}
-              alt=""
-              className="w-full h-full object-contain p-1"
-              draggable={false}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded bg-black/10" />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/assets?key=${t.imagePath}`}
+            alt=""
+            className="w-full h-full object-contain p-1"
+            draggable={false}
+          />
         </div>
       ))}
     </div>
@@ -207,9 +197,11 @@ function SortableListRow({
 
 export function ListsModeContent() {
   const t = useTranslations('lists');
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const { language, activeProfileId, stateFlags } = useProfile();
 
-  const [selectedListId, setSelectedListId] = useState<Id<'profileLists'> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -264,7 +256,7 @@ export function ListsModeContent() {
         items: nonEmpty.map((description, i) => ({ order: i, description })),
       });
     }
-    setSelectedListId(id);
+    router.push(`/${locale}/lists/${id}`);
   }
 
   async function handleDeleteConfirm() {
@@ -285,15 +277,6 @@ export function ListsModeContent() {
     }
     await renameList({ profileListId: editingNameId, name: { eng: editingNameValue.trim() } });
     setEditingNameId(null);
-  }
-
-  if (selectedListId) {
-    return (
-      <ListDetailContent
-        listId={selectedListId}
-        onBack={() => setSelectedListId(null)}
-      />
-    );
   }
 
   const listMap = Object.fromEntries((lists ?? []).map((l) => [l._id, l]));
@@ -374,7 +357,7 @@ export function ListsModeContent() {
                   onEditNameSave={handleEditNameSave}
                   onEditNameCancel={() => setEditingNameId(null)}
                   onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
-                  onOpen={setSelectedListId}
+                  onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
                 />
               ))}
             </div>
