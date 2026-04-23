@@ -116,6 +116,7 @@ export const updateProfileListItems = mutation({
         imagePath: v.optional(v.string()),
         order: v.number(),
         description: v.optional(v.string()),
+        audioPath: v.optional(v.string()),
       })
     ),
   },

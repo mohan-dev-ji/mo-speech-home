@@ -6,23 +6,34 @@ import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
 import { SymbolPreview } from './SymbolPreview';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SymbolStixTab } from './SymbolStixTab';
 import { UploadTab } from './UploadTab';
 import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type ListItemSaveResult = {
+  imagePath?: string;
+  description?: string;
+  audioPath?: string;
+};
 
 export type SymbolEditorModalProps = {
   isOpen: boolean;
-  profileSymbolId?: Id<'profileSymbols'>;   // edit mode
-  profileCategoryId?: Id<'profileCategories'>; // create mode default category
+  profileSymbolId?: Id<'profileSymbols'>;        // edit mode (categoryBoard)
+  profileCategoryId?: Id<'profileCategories'>;    // create mode default category
   profileId: Id<'studentProfiles'>;
   language: string;
+  voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
+  editorMode?: 'categoryBoard' | 'listItem';      // defaults to 'categoryBoard'
+  initialLabel?: string;                          // pre-populate label / description field
   onClose: () => void;
   onSave: (id: Id<'profileSymbols'>) => void;
-  // Folder image mode — picks an image for the category, skips label/audio/display
+  onListItemSave?: (result: ListItemSaveResult) => void;
+  // Folder image mode — picks an image for the category folder, skips label/audio/display
   folderImageMode?: boolean;
   initialImagePath?: string;
   onFolderImageSave?: (imagePath: string) => void;
@@ -40,8 +51,6 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
   if (!res.ok) throw new Error('Upload failed');
 }
 
-// Tab labels resolved inside the component after t() is available — see imageTabConfig below
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function SymbolEditorModal({
@@ -50,8 +59,12 @@ export function SymbolEditorModal({
   profileCategoryId: initCategoryId,
   profileId,
   language,
+  voiceId = DEFAULT_VOICE_ID,
+  editorMode = 'categoryBoard',
+  initialLabel,
   onClose,
   onSave,
+  onListItemSave,
   folderImageMode = false,
   initialImagePath,
   onFolderImageSave,
@@ -62,21 +75,26 @@ export function SymbolEditorModal({
 
   // ── State ──────────────────────────────────────────────────────────────────
 
+  const initialAudioMode = 'default';
+
   const [draft, setDraft] = useState<Draft>({
     ...INITIAL_DRAFT,
+    audioMode: initialAudioMode,
     profileCategoryId: initCategoryId ?? '',
+    ...(initialLabel ? { labelEng: initialLabel } : {}),
     ...(folderImageMode && initialImagePath
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
       : {}),
   });
 
-  // Pending blobs — held in memory, uploaded only on Save
   const [pendingImageBlob, setPendingImageBlob] = useState<Blob | null>(null);
   const [pendingImagePreviewUrl, setPendingImagePreviewUrl] = useState<string | null>(null);
   const [pendingAudioBlob, setPendingAudioBlob] = useState<Blob | null>(null);
   const [pendingAudioBlobUrl, setPendingAudioBlobUrl] = useState<string | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
   const imagePreviewUrlRef = useRef<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -90,7 +108,7 @@ export function SymbolEditorModal({
 
   const categories = useQuery(
     api.profileCategories.getProfileCategories,
-    { profileId }
+    editorMode === 'categoryBoard' ? { profileId } : 'skip'
   );
 
   const createProfileSymbol = useMutation(api.profileSymbols.createProfileSymbol);
@@ -119,7 +137,7 @@ export function SymbolEditorModal({
       audioMode:
         !ps.audio?.eng ? 'default' :
         ps.audio.eng.type === 'recorded' ? 'record' :
-        ps.audio.eng.type === 'tts' ? 'generate' : 'choose-word',
+        ps.audio.eng.type === 'tts' ? 'generate' : 'default',
       resolvedAudioPath: ps.audio?.eng?.path,
       bgColour: ps.display?.bgColour ?? INITIAL_DRAFT.bgColour,
       textColour: ps.display?.textColour ?? INITIAL_DRAFT.textColour,
@@ -137,6 +155,7 @@ export function SymbolEditorModal({
   useEffect(() => {
     return () => {
       if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
+      previewAudioRef.current?.pause();
     };
   }, []);
 
@@ -158,11 +177,39 @@ export function SymbolEditorModal({
     setPendingAudioBlobUrl(blobUrl);
   }
 
+  // ── Preview play overlay ───────────────────────────────────────────────────
+
+  function handlePreviewPlay() {
+    let audioUrl: string | null = null;
+
+    if (draft.audioMode === 'default' && draft.symbolstixAudioEng) {
+      audioUrl = `/api/assets?key=${draft.symbolstixAudioEng}`;
+    } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
+      audioUrl = `/api/assets?key=${draft.ttsR2Key}`;
+    } else if (draft.audioMode === 'record' && pendingAudioBlobUrl) {
+      audioUrl = pendingAudioBlobUrl;
+    }
+
+    if (!audioUrl) return;
+
+    previewAudioRef.current?.pause();
+    const audio = new Audio(audioUrl);
+    previewAudioRef.current = audio;
+
+    const done = () => setIsPreviewPlaying(false);
+    audio.addEventListener('ended', done);
+    audio.addEventListener('error', done);
+
+    setIsPreviewPlaying(true);
+    audio.play().catch(done);
+  }
+
   // ── Save ───────────────────────────────────────────────────────────────────
 
   async function handleSave() {
     setSaveError(null);
 
+    // ── Folder image mode (category folder image) ─────────────────────────
     if (folderImageMode) {
       const hasImage =
         draft.imageSourceTab === 'symbolstix'
@@ -190,6 +237,48 @@ export function SymbolEditorModal({
       return;
     }
 
+    // ── List item mode ────────────────────────────────────────────────────
+    if (editorMode === 'listItem') {
+      setIsSaving(true);
+      try {
+        // Resolve image
+        let imagePath: string | undefined = draft.resolvedImagePath;
+        if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
+          imagePath = draft.symbolstixImagePath;
+        } else if (pendingImageBlob) {
+          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.webp`;
+          await uploadBlobToR2(pendingImageBlob, key);
+          imagePath = key;
+        }
+
+        // Resolve audio
+        let audioPath: string | undefined;
+        if (draft.audioMode === 'record' && pendingAudioBlob) {
+          const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
+          const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
+          await uploadBlobToR2(pendingAudioBlob, key);
+          audioPath = key;
+        } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
+          audioPath = draft.ttsR2Key;
+        } else if (draft.audioMode === 'default' && draft.symbolstixAudioEng) {
+          audioPath = draft.symbolstixAudioEng;
+        }
+
+        onListItemSave?.({
+          imagePath,
+          description: draft.labelEng.trim() || undefined,
+          audioPath,
+        });
+        onClose();
+      } catch {
+        setSaveError(t('errorSave'));
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
+    // ── Category board mode ───────────────────────────────────────────────
     if (!draft.labelEng.trim()) { setSaveError(t('errorNoLabel')); return; }
     if (!draft.profileCategoryId) { setSaveError(t('errorNoCategory')); return; }
 
@@ -216,6 +305,8 @@ export function SymbolEditorModal({
         const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
         await uploadBlobToR2(pendingAudioBlob, key);
         resolvedAudioPath = key;
+      } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
+        resolvedAudioPath = draft.ttsR2Key;
       }
 
       // 3. Build imageSource
@@ -230,11 +321,13 @@ export function SymbolEditorModal({
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
-      // 4. Build audio override (only for 'record' — tts/choose-word deferred)
+      // 4. Build audio override
       type AR = { type: 'r2' | 'tts' | 'recorded'; path: string; ttsText?: string; language?: string };
       let audio: { eng?: AR; hin?: AR } | undefined;
       if (draft.audioMode === 'record' && resolvedAudioPath) {
         audio = { eng: { type: 'recorded', path: resolvedAudioPath, language: 'eng' } };
+      } else if (draft.audioMode === 'generate' && resolvedAudioPath) {
+        audio = { eng: { type: 'tts', path: resolvedAudioPath, language: 'eng' } };
       }
 
       const display = {
@@ -289,7 +382,7 @@ export function SymbolEditorModal({
 
   if (!isOpen) return null;
 
-  // ── Tab config (after t() is in scope) ────────────────────────────────────
+  // ── Tab config ─────────────────────────────────────────────────────────────
 
   const imageTabConfig: { value: ImageSourceTab; label: string }[] = [
     { value: 'symbolstix', label: t('tabSymbolstix') },
@@ -309,6 +402,11 @@ export function SymbolEditorModal({
   const previewLabel =
     language === 'hin' && draft.labelHin ? draft.labelHin : draft.labelEng;
 
+  const defaultTitle =
+    editorMode === 'listItem'
+      ? t('titleListItem')
+      : isEditMode ? t('titleEdit') : t('titleCreate');
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -322,18 +420,18 @@ export function SymbolEditorModal({
         style={{ background: 'var(--theme-alt-card)' }}
       >
 
-        {/* ── LEFT PANEL: header + preview + properties + actions ─────────── */}
+        {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
         <div
           className="flex flex-col md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r h-[46%] md:h-full"
           style={{ borderColor: 'var(--theme-button-highlight)' }}
         >
-          {/* Header row */}
+          {/* Header */}
           <div
             className="flex items-center justify-between px-4 py-3 shrink-0"
             style={{ background: 'var(--theme-symbol-bg)', borderBottom: '1px solid var(--theme-button-highlight)' }}
           >
             <h2 className="text-theme-s font-bold" style={{ color: 'var(--theme-text)' }}>
-              {modalTitle ?? (isEditMode ? t('titleEdit') : t('titleCreate'))}
+              {modalTitle ?? defaultTitle}
             </h2>
           </div>
 
@@ -344,11 +442,13 @@ export function SymbolEditorModal({
                 imageSrc={previewImageSrc}
                 label={folderImageMode ? '' : previewLabel}
                 draft={draft}
+                onPlay={handlePreviewPlay}
+                isPlaying={isPreviewPlaying}
               />
             </div>
           </div>
 
-          {/* Collapsible properties — hidden in folder image mode */}
+          {/* Properties — hidden in folder image mode */}
           {!folderImageMode && (
             <PropertiesPanel
               draft={draft}
@@ -357,6 +457,8 @@ export function SymbolEditorModal({
               categories={categories}
               pendingAudioBlobUrl={pendingAudioBlobUrl}
               onAudioBlobChange={handleAudioBlobChange}
+              editorMode={editorMode}
+              voiceId={voiceId}
             />
           )}
 
@@ -401,7 +503,7 @@ export function SymbolEditorModal({
           </div>
         </div>
 
-        {/* ── RIGHT PANEL: image source tabs + content ─────────────────────── */}
+        {/* ── RIGHT PANEL: image source tabs ──────────────────────────────── */}
         <div className="flex flex-col flex-1 min-h-0 h-[54%] md:h-full">
 
           {/* Tab bar */}

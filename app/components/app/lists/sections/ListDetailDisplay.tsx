@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
@@ -71,6 +72,18 @@ export function ListItemPlayModal({
   onToggle,
   onClose,
 }: ListItemPlayModalProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current?.pause();
+    if (state?.item.audioPath) {
+      const audio = new Audio(`/api/assets?key=${state.item.audioPath}`);
+      audioRef.current = audio;
+      audio.play().catch(() => {});
+    }
+    return () => { audioRef.current?.pause(); };
+  }, [state]);
+
   if (!state) return null;
   const { item, index } = state;
   const checked = checkedIds.has(item.localId);
@@ -102,17 +115,22 @@ export function ListItemPlayModal({
             {index + 1}
           </span>
         )}
-        {item.imagePath ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/assets?key=${item.imagePath}`}
-            alt={item.description ?? ''}
-            className="w-full aspect-square object-contain"
-            draggable={false}
-          />
-        ) : (
-          <div className="w-full aspect-square rounded-xl bg-black/10" />
-        )}
+        <div
+          className="w-full aspect-square rounded-theme flex items-center justify-center p-4"
+          style={{ background: 'var(--theme-symbol-bg)' }}
+        >
+          {item.imagePath ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/api/assets?key=${item.imagePath}`}
+              alt={item.description ?? ''}
+              className="max-w-full max-h-full object-contain"
+              draggable={false}
+            />
+          ) : (
+            <div className="w-3/4 aspect-square rounded-xl" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          )}
+        </div>
         {item.description && (
           <p className="text-theme-h4 font-semibold text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>
             {item.description}
@@ -169,9 +187,29 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
           {index + 1}
         </span>
       )}
-      <SymbolThumb imagePath={item.imagePath} size="lg" />
+
+      {/* Symbol card */}
+      <div
+        className="w-full aspect-square rounded-theme flex items-center justify-center p-3"
+        style={{ background: 'var(--theme-symbol-bg)' }}
+      >
+        {item.imagePath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/assets?key=${item.imagePath}`}
+            alt={item.description ?? ''}
+            className="max-w-full max-h-full object-contain"
+            draggable={false}
+          />
+        ) : (
+          <div className="w-3/4 aspect-square rounded-xl" style={{ background: 'rgba(0,0,0,0.08)' }} />
+        )}
+      </div>
+
       {item.description && (
-        <p className="text-theme-s text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>
+        <p className="text-theme-s text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>
+          {item.description}
+        </p>
       )}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>

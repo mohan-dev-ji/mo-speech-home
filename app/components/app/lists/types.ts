@@ -5,4 +5,5 @@ export type ListItem = {
   imagePath?: string;
   order: number;
   description?: string;
+  audioPath?: string;
 };

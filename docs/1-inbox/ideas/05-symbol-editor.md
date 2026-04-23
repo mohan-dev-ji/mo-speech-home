@@ -13,8 +13,8 @@ All changes are held in local state. Nothing is written to Convex or R2 until th
 | Section | `categoryBoard` | `listItem` | `sentenceSlot` |
 |---|---|---|---|
 | Image picker (4 tabs) | ✓ | ✓ | ✓ |
-| Label / Description | Label + language selector | Description (single lang) | — |
-| Audio — Default | SymbolStix symbols only | — | — |
+| Label / Description | Description (single lang) | Description (single lang) | — |
+| Audio — Default | SymbolStix symbols only | SymbolStix symbols only | — |
 | Audio — Generate | ✓ | ✓ | — |
 | Audio — Record | ✓ | ✓ | — |
 | Display properties | ✓ | — | ✓ |
@@ -103,6 +103,29 @@ type AudioState =
   | { mode: 'tts'; r2Key: string | null }   // null = not yet generated
   | { mode: 'record'; blob: Blob | null }   // null = not yet recorded
 ```
+
+---
+
+## Preview Play Overlay
+
+A play button overlays the live preview card in the symbol editor left panel at all times. Clicking it previews the symbol's current audio without saving anything.
+
+### Behaviour
+
+- **Overlay visible**: a semi-transparent dark scrim covers the preview card; a white play button circle sits centred on top.
+- **On click**: the scrim fades out (opacity → 0, pointerEvents → none); audio starts playing.
+- **On audio end / error**: the scrim fades back in — the overlay reappears.
+- **No audio yet**: the overlay still renders but the click is a no-op (nothing plays, no error shown).
+
+### Audio resolution (what gets played)
+
+| `audioMode` | Audio source |
+|---|---|
+| `default` | `draft.symbolstixAudioEng` via `/api/assets?key=…` |
+| `generate` | `draft.ttsR2Key` via `/api/assets?key=…` (only after Generate has been called) |
+| `record` | `pendingAudioBlobUrl` (in-memory blob URL — not yet uploaded) |
+
+The overlay applies the card's current `shape` class so it clips correctly for rounded / circle cards.
 
 ---
 

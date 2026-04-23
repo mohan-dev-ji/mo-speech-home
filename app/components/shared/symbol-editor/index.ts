@@ -1,2 +1,2 @@
 export { SymbolEditorModal } from './SymbolEditorModal';
-export type { SymbolEditorModalProps } from './SymbolEditorModal';
+export type { SymbolEditorModalProps, ListItemSaveResult } from './SymbolEditorModal';

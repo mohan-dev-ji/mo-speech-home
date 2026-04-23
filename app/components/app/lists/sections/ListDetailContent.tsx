@@ -12,7 +12,7 @@ import { PageBanner } from '@/app/components/shared/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { SymbolEditorModal } from '@/app/components/shared/SymbolEditorModal';
+import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/shared/SymbolEditorModal';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
@@ -28,7 +28,7 @@ export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
   const router = useRouter();
   const { setBreadcrumbExtra } = useBreadcrumb();
-  const { language, activeProfileId, stateFlags } = useProfile();
+  const { language, activeProfileId, stateFlags, studentProfile } = useProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -65,7 +65,12 @@ export function ListDetailContent({ listId }: Props) {
   async function persistItems(items: ListItem[]) {
     await updateItems({
       profileListId: listId,
-      items: items.map((item, i) => ({ imagePath: item.imagePath, order: i, description: item.description })),
+      items: items.map((item, i) => ({
+        imagePath: item.imagePath,
+        order: i,
+        description: item.description,
+        audioPath: item.audioPath,
+      })),
     });
   }
 
@@ -93,14 +98,27 @@ export function ListDetailContent({ listId }: Props) {
     persistItems(localItemsRef.current);
   }
 
-  async function handleListImageSaved(imagePath: string) {
+  async function handleListItemSaved(result: ListItemSaveResult) {
     if (symbolPickerForIndex === null) return;
     const idx = symbolPickerForIndex;
     const prev = localItemsRef.current;
     const next =
       idx < prev.length
-        ? prev.map((item, i) => (i === idx ? { ...item, imagePath } : item))
-        : [...prev, { localId: `item-${prev.length}-${Date.now()}`, imagePath, order: prev.length }];
+        ? prev.map((item, i) =>
+            i === idx
+              ? { ...item, imagePath: result.imagePath, description: result.description ?? item.description, audioPath: result.audioPath }
+              : item
+          )
+        : [
+            ...prev,
+            {
+              localId: `item-${prev.length}-${Date.now()}`,
+              imagePath: result.imagePath,
+              description: result.description,
+              audioPath: result.audioPath,
+              order: prev.length,
+            },
+          ];
     setLocalItems(next);
     setSymbolPickerForIndex(null);
     await persistItems(next);
@@ -269,11 +287,12 @@ export function ListDetailContent({ listId }: Props) {
           isOpen={true}
           profileId={activeProfileId as Id<'studentProfiles'>}
           language={language}
-          folderImageMode={true}
-          modalTitle={t('imagePickerTitle')}
+          editorMode="listItem"
+          voiceId={studentProfile?.voiceId ?? 'en-GB-News-M'}
+          initialLabel={localItems[symbolPickerForIndex]?.description}
           onClose={() => setSymbolPickerForIndex(null)}
           onSave={() => {}}
-          onFolderImageSave={handleListImageSaved}
+          onListItemSave={handleListItemSaved}
         />
       )}
 

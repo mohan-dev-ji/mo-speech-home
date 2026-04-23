@@ -95,32 +95,42 @@ export async function POST(request: Request) {
     text: normalised,
     voiceId,
   }) as LookupResult;
+  console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" lookup=`, JSON.stringify(lookup));
 
   if (lookup.source === "symbolstix") {
-    const key = R2_PATHS.symbolstixAudio(voiceId, lookup.audioDefault);
-    if (await fileExists(key)) {
-      return NextResponse.json({ r2Key: key, cached: true });
+    // audioDefault is already the full R2 path (e.g. "audio/eng/default/hello.mp3")
+    const key = lookup.audioDefault;
+    const exists = await fileExists(key);
+    console.log(`[TTS] symbolstix key="${key}" exists=${exists}`);
+    if (exists) {
+      return NextResponse.json({ r2Key: key, cached: true, source: "symbolstix" });
     }
-    // R2 file absent for this voice — fall through to generate
+    // R2 file absent — fall through to generate
   }
 
   // ── Step 2: TTS cache ─────────────────────────────────────────────────────
   if (lookup.source === "ttsCache") {
-    return NextResponse.json({ r2Key: lookup.r2Key, cached: true });
+    return NextResponse.json({ r2Key: lookup.r2Key, cached: true, source: "cache" });
   }
 
   // ── Step 3: Generate, upload, cache ──────────────────────────────────────
-  const audioBuffer = await synthesise(rawText, voiceId);
-  const r2Key = R2_PATHS.ttsAudio(voiceId, randomUUID());
+  try {
+    const audioBuffer = await synthesise(rawText, voiceId);
+    const r2Key = R2_PATHS.ttsAudio(voiceId, randomUUID());
 
-  await uploadBuffer(r2Key, audioBuffer, "audio/mpeg");
+    await uploadBuffer(r2Key, audioBuffer, "audio/mpeg");
 
-  await convex.mutation(api.ttsCache.write, {
-    text: normalised,
-    voiceId,
-    r2Key,
-    charCount: rawText.length,
-  });
+    await convex.mutation(api.ttsCache.write, {
+      text: normalised,
+      voiceId,
+      r2Key,
+      charCount: rawText.length,
+    });
 
-  return NextResponse.json({ r2Key, cached: false });
+    return NextResponse.json({ r2Key, cached: false, source: "generated" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[TTS] generation failed:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
