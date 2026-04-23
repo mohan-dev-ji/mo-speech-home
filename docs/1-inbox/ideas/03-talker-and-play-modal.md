@@ -1,23 +1,33 @@
 # Talker Header and Play Modal
 
-## The Header Component
+> **Architecture note:** See ADR-004 for the decision to make the talker persistent and global.
 
-A single shared component used in two places — the Search page and Category Board mode. It behaves differently in each context.
+## The Talker Bar
 
-| Context | Hideable | Banner toggle | Notes |
-|---|---|---|---|
-| Search page | Yes | No — talker only | Always talker state; no toggle |
-| Category / Board | Yes | Yes — if permission ON | Full toggle between talker and banner |
+The talker bar renders in the **app layout shell** above all pages. It is not owned by any individual page. The sentence buffer (`talkerSymbols`) lives in `TalkerContext` and survives navigation — the student can tap symbols across category boards, the search page, and the categories list without losing their sentence.
 
-The component is always present in both contexts but can be hidden via the `talker_visible` state flag.
+The talker is visible on **every app page** when `stateFlags.talker_visible` is ON.
 
 ---
 
-## Talker State
+## Toggle Hierarchy
 
-Tapping a symbol adds it to the talker bar as a sequence of symbol thumbnails. The bar grows horizontally as symbols are added.
+Two controls in QuickSettings govern the talker:
 
-Controls in talker state:
+| Toggle | Flag | What it does |
+|---|---|---|
+| **Header on/off** | `talker_visible` | Master switch — hides the entire talker bar. When OFF the bar is not rendered on any page. |
+| **Talker / Banner mode** | stored on TalkerContext | Sub-mode for the visible header. Only active in QuickSettings when Header is ON. |
+
+The in-header pill toggle is removed. Mode switching is done exclusively via QuickSettings. This keeps the toggle hierarchy explicit and centrally managed.
+
+---
+
+## Talker Mode
+
+Tapping a symbol adds it to the talker bar as a sequence of symbol thumbnails.
+
+Controls in talker mode:
 - **Play button** — sends the full sequence to the Play Modal
 - **Clear button** — empties the bar
 - **Individual symbol tap** — removes that symbol from the sequence
@@ -26,41 +36,31 @@ The talker bar is the equivalent of Proloquo2Go's message box. It is the sentenc
 
 ---
 
-## Banner State
+## Banner Mode
 
-In banner state the talker bar is hidden. Tapping a symbol plays its audio immediately and briefly enlarges the symbol card. There is no sequence building.
+In banner mode the talker bar is still visible but the sentence buffer is bypassed. Tapping a symbol plays its audio immediately. There is no sequence building.
 
-Banner state turns the board into a simple symbol-tap interface — useful for direct, single-word communication without the complexity of sentence building.
+Banner mode turns the app into a simple symbol-tap interface — useful for direct, single-word communication without the complexity of sentence building.
 
 ---
 
-## Switching Between States
+## Switching Between Modes
 
-A toggle control in the header switches between talker and banner. This toggle is only visible in Category/Board mode — not on the Search page.
+Mode is changed via QuickSettings (not via an in-header pill toggle).
 
-If `talker_banner_toggle` is OFF (set by instructor), the toggle is hidden and the board stays in whichever state the instructor has set as default. The student cannot change it.
+If `talker_banner_toggle` is OFF (set by instructor), the mode toggle row is hidden in QuickSettings and the app stays in whichever mode the instructor has set. The student cannot change it.
 
-### Toggle UI Spec
+---
 
-The header card has a fixed button column on the right (same structure in both states — height never changes on toggle):
+## Category Page Header
 
-| Slot | Talker state | Banner state |
-|---|---|---|
-| 1 (top) | `Zap` icon → switches to banner | `AlignLeft` icon → switches back to talker |
-| 2 | Play (green) | Invisible — occupies space |
-| 3 | Clear (red) | Invisible — occupies space |
-| 4 | Save (blue) | Invisible — occupies space |
+The category name, colour, and folder image are displayed in a thin `CategoryPageHeader` component that lives at the top of the category detail board — separate from the talker bar. Edit mode (BannerEdit) is triggered from there, not from the talker.
 
-The toggle button uses a muted semi-transparent background to distinguish it visually from the action buttons. The `Zap` icon is amber to signal "direct/fast"; the `AlignLeft` icon is white/neutral to signal "return to builder".
+---
 
-The left content area switches between `TalkerBar` (sentence chips) and `Banner` (direct-play indicator). Both use `min-h-[160px]` so the card height is identical in both states — no layout jump on toggle.
+## Header Component
 
-The `Banner` component displays:
-- Amber `Zap` icon in a rounded container
-- "Direct Play" title
-- "Tap any symbol to hear it" subtitle
-
-The `Header` component (`app/components/shared/Header.tsx`) is the single entry point — it wraps `TalkerBar`, `Banner`, the button column, and `TalkerDropdown`. Pass `showToggle={false}` (or omit) for Search page to disable the toggle entirely.
+`app/components/shared/Header.tsx` is a pure talker display. It no longer accepts category-specific props (`categoryName`, `categoryImagePath`, `categoryColour`, `onEditCategory`, `showToggle`, `mode`, `onToggleMode`). It renders the `TalkerBar`, the action button column, and the `TalkerDropdown`.
 
 ---
 

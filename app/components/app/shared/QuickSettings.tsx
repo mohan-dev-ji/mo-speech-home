@@ -4,12 +4,14 @@ import { useState, useRef, useEffect } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useTalker } from '@/app/contexts/TalkerContext';
 
 export function QuickSettings() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const t = useTranslations('quickSettings');
   const { stateFlags, setTalkerVisible } = useProfile();
+  const { talkerMode, setTalkerMode } = useTalker();
 
   useEffect(() => {
     if (!open) return;
@@ -21,6 +23,8 @@ export function QuickSettings() {
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [open]);
+
+  const directPlayOn = talkerMode === 'banner';
 
   return (
     <div ref={ref} className="relative">
@@ -57,7 +61,7 @@ export function QuickSettings() {
             {t('label')}
           </div>
 
-          {/* Header visibility toggle */}
+          {/* Header on/off — master toggle */}
           <div className="px-3 py-2.5 flex items-center justify-between gap-3">
             <span className="text-small font-medium" style={{ color: 'var(--theme-alt-text)' }}>
               {t('headerToggle')}
@@ -79,6 +83,39 @@ export function QuickSettings() {
                 className="absolute top-0.5 left-0 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                 style={{
                   transform: stateFlags.talker_visible
+                    ? 'translateX(18px)'
+                    : 'translateX(2px)',
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Direct play mode — only active when header is on */}
+          <div
+            className="px-3 py-2.5 flex items-center justify-between gap-3 transition-opacity"
+            style={{ opacity: stateFlags.talker_visible ? 1 : 0.35 }}
+          >
+            <span className="text-small font-medium" style={{ color: 'var(--theme-alt-text)' }}>
+              {t('modeToggle')}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={directPlayOn}
+              aria-label={t('modeToggleLabel')}
+              disabled={!stateFlags.talker_visible}
+              onClick={() => setTalkerMode(directPlayOn ? 'talker' : 'banner')}
+              className="relative w-10 h-6 rounded-full shrink-0 transition-colors duration-200 disabled:cursor-not-allowed"
+              style={{
+                background: directPlayOn
+                  ? 'var(--theme-success)'
+                  : 'rgba(0,0,0,0.25)',
+              }}
+            >
+              <span
+                className="absolute top-0.5 left-0 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                style={{
+                  transform: directPlayOn
                     ? 'translateX(18px)'
                     : 'translateX(2px)',
                 }}

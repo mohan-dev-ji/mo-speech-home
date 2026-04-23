@@ -64,7 +64,9 @@
   "quickSettings": {
     "label": "Quick settings",
     "headerToggle": "Header",
-    "headerToggleLabel": "Toggle header visibility"
+    "headerToggleLabel": "Toggle header visibility",
+    "modeToggle": "Direct play",
+    "modeToggleLabel": "Toggle direct play mode"
   },
   "home": {
     "title": "Home",

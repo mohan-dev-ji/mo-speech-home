@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -20,15 +20,15 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
-import { Header, type TalkerSymbolItem, type QuickSymbolItem } from '@/app/components/shared/Header';
+import { getCategoryColour } from '@/app/lib/categoryColours';
+import { CategoryPageHeader } from '@/app/components/app/categories/ui/CategoryPageHeader';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
-import { PlayModal } from '@/app/components/shared/PlayModal';
 import { SymbolEditorModal } from '@/app/components/shared/SymbolEditorModal';
 import {
   Dialog,
@@ -41,13 +41,6 @@ import {
 } from '@/app/components/shared/ui/Dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-type PlayModalState = {
-  symbolId: string;
-  imagePath?: string;
-  audioPath?: string;
-  label: string;
-} | null;
 
 type SymbolEditorState =
   | { isOpen: false }
@@ -135,13 +128,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
   const { language, stateFlags, activeProfileId } = useProfile();
+  const { talkerMode, addToTalker } = useTalker();
   const { setBreadcrumbExtra } = useBreadcrumb();
-
-  // ── View state ──────────────────────────────────────────────────────────────
-  const [talkerSymbols, setTalkerSymbols] = useState<TalkerSymbolItem[]>([]);
-  const [headerMode, setHeaderMode] = useState<'talker' | 'banner'>('talker');
-  const [playModal, setPlayModal] = useState<PlayModalState>(null);
-  const cancelSequenceRef = useRef(false);
 
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [isEditing, setIsEditing] = useState(false);
@@ -182,77 +170,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
       const serverIds = symbols.map((s) => s._id as string);
       const kept = prev.filter((id) => serverIds.includes(id));
       const added = serverIds.filter((id) => !prev.includes(id));
-      // Prepend new symbols so they appear top-left (order 0)
       return [...added, ...kept];
     });
   }, [symbols]);
-
-  // ── Talker handlers ─────────────────────────────────────────────────────────
-
-  function addToTalker(symbolId: string, imagePath: string, label: string, audioPath: string) {
-    playAudio(audioPath);
-    setTalkerSymbols((prev) => [
-      ...prev,
-      {
-        instanceId: crypto.randomUUID(),
-        symbolId,
-        imagePath: `/api/assets?key=${imagePath}`,
-        audioPath,
-        label,
-      },
-    ]);
-  }
-
-  function addQuickSymbol(item: QuickSymbolItem) {
-    if (item.audioPath) playAudio(item.audioPath);
-    setTalkerSymbols((prev) => [
-      ...prev,
-      {
-        instanceId: crypto.randomUUID(),
-        symbolId: item.symbolId,
-        imagePath: item.imagePath,
-        audioPath: item.audioPath,
-        label: item.label,
-      },
-    ]);
-  }
-
-  function handleChipTap(item: TalkerSymbolItem) {
-    if (item.audioPath) playAudio(item.audioPath);
-    setPlayModal({
-      symbolId: item.symbolId,
-      imagePath: item.imagePath,
-      audioPath: item.audioPath,
-      label: item.label,
-    });
-  }
-
-  async function handlePlaySentence() {
-    if (talkerSymbols.length === 0) return;
-    cancelSequenceRef.current = false;
-
-    for (const symbol of talkerSymbols) {
-      if (cancelSequenceRef.current) break;
-      setPlayModal({
-        symbolId: symbol.symbolId,
-        imagePath: symbol.imagePath,
-        audioPath: symbol.audioPath,
-        label: symbol.label,
-      });
-      if (symbol.audioPath) {
-        const path = symbol.audioPath;
-        await new Promise<void>((resolve) => {
-          const audio = new Audio(`/api/assets?key=${path}`);
-          audio.addEventListener('ended', () => resolve());
-          audio.addEventListener('error', () => resolve());
-          audio.play().catch(() => resolve());
-        });
-      } else {
-        await new Promise<void>((resolve) => setTimeout(resolve, 600));
-      }
-    }
-    if (!cancelSequenceRef.current) setPlayModal(null);
-  }
 
   // ── Drag handlers ────────────────────────────────────────────────────────────
 
@@ -328,7 +248,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
     setFolderImageModalOpen(false);
   }
 
-  // ── Breadcrumb + TopBar extras ──────────────────────────────────────────────
+  // ── Breadcrumb ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!category) return;
@@ -361,9 +281,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
-      {/* Board header */}
-      <div className="shrink-0">
-        {isEditing ? (
+      {/* Page header — category name + edit, or edit controls when editing */}
+      {stateFlags.talker_visible && (
+        <div className="shrink-0">
+          {isEditing ? (
             <div
               className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
               style={{ background: getCategoryColour(draftColour).c700 }}
@@ -378,27 +299,19 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 onEditFolderImage={handleEditFolderImage}
               />
             </div>
-          ) : stateFlags.talker_visible ? (
-            <Header
-              symbols={talkerSymbols}
-              language={language}
-              onChipTap={handleChipTap}
-              onPlaySentence={handlePlaySentence}
-              onClear={() => setTalkerSymbols([])}
-              onQuickSymbolTap={addQuickSymbol}
-              showToggle={true}
-              mode={headerMode}
-              onToggleMode={() => setHeaderMode((m) => (m === 'talker' ? 'banner' : 'talker'))}
+          ) : (
+            <CategoryPageHeader
               categoryName={categoryName}
-              categoryImagePath={category?.imagePath}
-              categoryColour={category?.colour}
-              onEditCategory={handleEditStart}
+              imagePath={category?.imagePath}
+              colour={category?.colour}
+              onEdit={handleEditStart}
             />
-          ) : null}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Board */}
-      <div className="flex-1 overflow-auto mt-8">
+      <div className="flex-1 overflow-auto">
         {symbols === undefined && (
           <div className="flex items-center justify-center py-16">
             <div
@@ -454,10 +367,16 @@ export function CategoryDetailContent({ categoryId }: Props) {
                     categoryColour={category?.colour}
                     onTap={() => {
                       if (!audioPath) return;
-                      if (headerMode === 'banner') {
+                      if (talkerMode === 'banner') {
                         playAudio(audioPath);
                       } else if (sym.imagePath) {
-                        addToTalker(sym._id, sym.imagePath, label, audioPath);
+                        playAudio(audioPath);
+                        addToTalker({
+                          symbolId: sym._id,
+                          imagePath: `/api/assets?key=${sym.imagePath}`,
+                          audioPath,
+                          label,
+                        });
                       }
                     }}
                   />
@@ -467,18 +386,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
           )
         )}
       </div>
-
-      {/* Play modal */}
-      {playModal && (
-        <PlayModal
-          isOpen={true}
-          symbolId={playModal.symbolId}
-          imagePath={playModal.imagePath}
-          label={playModal.label}
-          language={language}
-          onClose={() => { cancelSequenceRef.current = true; setPlayModal(null); }}
-        />
-      )}
 
       {/* Symbol editor modal */}
       {symbolEditorState.isOpen && activeProfileId && (

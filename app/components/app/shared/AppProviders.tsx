@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from '@/app/contexts/ThemeContext';
 import { ProfileProvider } from '@/app/contexts/ProfileContext';
+import { TalkerProvider } from '@/app/contexts/TalkerContext';
 import { ModellingSessionProvider } from '@/app/contexts/ModellingSessionContext';
 import { ResourceLibraryProvider } from '@/app/contexts/ResourceLibraryContext';
 import { BreadcrumbProvider } from '@/app/contexts/BreadcrumbContext';
@@ -14,14 +15,16 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <AppStateProvider>
       <ThemeProvider>
         <ProfileProvider>
-          <ModellingSessionProvider>
-            <ResourceLibraryProvider>
-              <BreadcrumbProvider>
-                <StudentOnboardingGate />
-                {children}
-              </BreadcrumbProvider>
-            </ResourceLibraryProvider>
-          </ModellingSessionProvider>
+          <TalkerProvider>
+            <ModellingSessionProvider>
+              <ResourceLibraryProvider>
+                <BreadcrumbProvider>
+                  <StudentOnboardingGate />
+                  {children}
+                </BreadcrumbProvider>
+              </ResourceLibraryProvider>
+            </ModellingSessionProvider>
+          </TalkerProvider>
         </ProfileProvider>
       </ThemeProvider>
     </AppStateProvider>

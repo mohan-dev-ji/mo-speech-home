@@ -7,6 +7,7 @@ import { routing } from '@/i18n/routing';
 import { AppProviders } from '@/app/components/app/shared/AppProviders';
 import { Sidebar } from '@/app/components/app/shared/Sidebar';
 import { TopBar } from '@/app/components/app/shared/TopBar';
+import { PersistentTalker } from '@/app/components/app/shared/PersistentTalker';
 
 // Load per locale — not all at once.
 // notoSans is always loaded (Latin chars appear in Hindi UI too).
@@ -61,6 +62,7 @@ export default async function AppLayout({ children, params }: Props) {
           <Sidebar locale={locale} />
           <div className="flex flex-1 flex-col min-w-0">
             <TopBar />
+            <PersistentTalker />
             {/* Inline style: bg-theme-* Tailwind utilities rely on @config var() parsing which
                 can be unreliable in Tailwind v4. Direct CSS var reference is always safe. */}
             <main className="flex-1 overflow-auto" style={{ background: 'var(--theme-background)' }}>
