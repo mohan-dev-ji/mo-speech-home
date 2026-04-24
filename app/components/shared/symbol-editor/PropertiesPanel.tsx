@@ -14,7 +14,7 @@ type Props = {
   categories: Doc<'profileCategories'>[] | undefined;
   pendingAudioBlobUrl: string | null;
   onAudioBlobChange: (blob: Blob | null, blobUrl: string | null) => void;
-  editorMode: 'categoryBoard' | 'listItem';
+  editorMode: 'categoryBoard' | 'listItem' | 'sentenceSlot';
   voiceId: string;
 };
 
@@ -177,8 +177,8 @@ export function PropertiesPanel({
   return (
     <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-button-highlight)' }}>
 
-      {/* ── Label / Description ───────────────────────────────────────────── */}
-      <AccordionSection
+      {/* ── Label / Description — hidden for sentenceSlot ─────────────────── */}
+      {editorMode !== 'sentenceSlot' && <AccordionSection
         label={labelSectionTitle}
         isOpen={openSections.has('label')}
         onToggle={() => toggleSection('label')}
@@ -219,10 +219,10 @@ export function PropertiesPanel({
             />
           </label>
         )}
-      </AccordionSection>
+      </AccordionSection>}
 
-      {/* ── Audio ─────────────────────────────────────────────────────────── */}
-      <AccordionSection
+      {/* ── Audio — hidden for sentenceSlot ───────────────────────────────── */}
+      {editorMode !== 'sentenceSlot' && <AccordionSection
         label={t('sectionAudio')}
         isOpen={openSections.has('audio')}
         onToggle={() => toggleSection('audio')}
@@ -382,10 +382,10 @@ export function PropertiesPanel({
             )}
           </>
         )}
-      </AccordionSection>
+      </AccordionSection>}
 
-      {/* ── Display (categoryBoard only) ──────────────────────────────────── */}
-      {editorMode === 'categoryBoard' && (
+      {/* ── Display (categoryBoard + sentenceSlot) ────────────────────────── */}
+      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
         <AccordionSection
           label={t('sectionDisplay')}
           isOpen={openSections.has('display')}
@@ -459,8 +459,8 @@ export function PropertiesPanel({
         </AccordionSection>
       )}
 
-      {/* ── Text size (categoryBoard only) ────────────────────────────────── */}
-      {editorMode === 'categoryBoard' && (
+      {/* ── Text size (categoryBoard + sentenceSlot) ─────────────────────── */}
+      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
         <AccordionSection
           label={t('sectionText')}
           isOpen={openSections.has('text')}
@@ -491,8 +491,8 @@ export function PropertiesPanel({
         </AccordionSection>
       )}
 
-      {/* ── Shape (categoryBoard only) ────────────────────────────────────── */}
-      {editorMode === 'categoryBoard' && (
+      {/* ── Shape (categoryBoard + sentenceSlot) ─────────────────────────── */}
+      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
         <AccordionSection
           label={t('sectionShape')}
           isOpen={openSections.has('shape')}

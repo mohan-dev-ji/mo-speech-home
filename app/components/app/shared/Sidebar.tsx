@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Home, Search, Tag, List, Settings } from 'lucide-react';
+import { Home, Search, Tag, List, MessageSquare, Settings } from 'lucide-react';
 import { NavTabButton } from '@/app/components/shared/ui/NavTabButton';
 import { LogoSvg } from '@/app/components/app/shared/LogoSvg';
 
@@ -11,10 +11,11 @@ type SidebarProps = {
 };
 
 const mainNavItems = [
-  { segment: 'home',       icon: Home   },
-  { segment: 'search',     icon: Search },
-  { segment: 'categories', icon: Tag    },
-  { segment: 'lists',      icon: List   },
+  { segment: 'home',       icon: Home          },
+  { segment: 'search',     icon: Search        },
+  { segment: 'categories', icon: Tag           },
+  { segment: 'lists',      icon: List          },
+  { segment: 'sentences',  icon: MessageSquare },
 ] as const;
 
 export function Sidebar({ locale }: SidebarProps) {

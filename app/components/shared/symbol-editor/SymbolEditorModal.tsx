@@ -21,6 +21,18 @@ export type ListItemSaveResult = {
   audioPath?: string;
 };
 
+export type SentenceSlotSaveResult = {
+  imagePath?: string;
+  displayProps?: {
+    bgColour?: string;
+    textColour?: string;
+    textSize?: 'sm' | 'md' | 'lg';
+    showLabel?: boolean;
+    showImage?: boolean;
+    cardShape?: 'square' | 'rounded' | 'circle';
+  };
+};
+
 export type SymbolEditorModalProps = {
   isOpen: boolean;
   profileSymbolId?: Id<'profileSymbols'>;        // edit mode (categoryBoard)
@@ -28,11 +40,12 @@ export type SymbolEditorModalProps = {
   profileId: Id<'studentProfiles'>;
   language: string;
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
-  editorMode?: 'categoryBoard' | 'listItem';      // defaults to 'categoryBoard'
+  editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot';  // defaults to 'categoryBoard'
   initialLabel?: string;                          // pre-populate label / description field
   onClose: () => void;
   onSave: (id: Id<'profileSymbols'>) => void;
   onListItemSave?: (result: ListItemSaveResult) => void;
+  onSentenceSlotSave?: (result: SentenceSlotSaveResult) => void;
   // Folder image mode — picks an image for the category folder, skips label/audio/display
   folderImageMode?: boolean;
   initialImagePath?: string;
@@ -65,6 +78,7 @@ export function SymbolEditorModal({
   onClose,
   onSave,
   onListItemSave,
+  onSentenceSlotSave,
   folderImageMode = false,
   initialImagePath,
   onFolderImageSave,
@@ -82,7 +96,7 @@ export function SymbolEditorModal({
     audioMode: initialAudioMode,
     profileCategoryId: initCategoryId ?? '',
     ...(initialLabel ? { labelEng: initialLabel } : {}),
-    ...(folderImageMode && initialImagePath
+    ...((folderImageMode || editorMode === 'sentenceSlot') && initialImagePath
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
       : {}),
   });
@@ -228,6 +242,39 @@ export function SymbolEditorModal({
           imagePath = draft.symbolstixImagePath;
         }
         onFolderImageSave?.(imagePath!);
+        onClose();
+      } catch {
+        setSaveError(t('errorSave'));
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
+    // ── Sentence slot mode ────────────────────────────────────────────────
+    if (editorMode === 'sentenceSlot') {
+      setIsSaving(true);
+      try {
+        let imagePath: string | undefined = draft.resolvedImagePath;
+        if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
+          imagePath = draft.symbolstixImagePath;
+        } else if (pendingImageBlob) {
+          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.webp`;
+          await uploadBlobToR2(pendingImageBlob, key);
+          imagePath = key;
+        }
+        const ts = draft.textSize;
+        onSentenceSlotSave?.({
+          imagePath,
+          displayProps: {
+            bgColour:   draft.bgColour,
+            textColour: draft.textColour,
+            textSize:   (ts === 'xl' ? 'lg' : ts) as 'sm' | 'md' | 'lg',
+            showLabel:  draft.showLabel,
+            showImage:  draft.showImage,
+            cardShape:  draft.shape,
+          },
+        });
         onClose();
       } catch {
         setSaveError(t('errorSave'));
@@ -403,9 +450,9 @@ export function SymbolEditorModal({
     language === 'hin' && draft.labelHin ? draft.labelHin : draft.labelEng;
 
   const defaultTitle =
-    editorMode === 'listItem'
-      ? t('titleListItem')
-      : isEditMode ? t('titleEdit') : t('titleCreate');
+    editorMode === 'sentenceSlot' ? t('titleSentenceSlot') :
+    editorMode === 'listItem'     ? t('titleListItem') :
+    isEditMode ? t('titleEdit') : t('titleCreate');
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
