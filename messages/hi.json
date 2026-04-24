@@ -64,8 +64,8 @@
     "label": "Quick settings (hi)",
     "headerToggle": "Header (hi)",
     "headerToggleLabel": "Toggle header visibility (hi)",
-    "modeToggle": "Direct play (hi)",
-    "modeToggleLabel": "Toggle direct play mode (hi)"
+    "modeToggle": "Talker (hi)",
+    "modeToggleLabel": "Toggle talker mode (hi)"
   },
   "home": {
     "title": "होम",

@@ -9,6 +9,7 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/shared/SymbolCard';
+import { PageBanner } from '@/app/components/shared/PageBanner';
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
 
@@ -52,8 +53,15 @@ export function SearchContent() {
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
+      {/* Page banner — banner/edit mode only */}
+      {stateFlags.talker_visible && talkerMode === 'banner' && (
+        <div className="shrink-0">
+          <PageBanner title={t('title')} />
+        </div>
+      )}
+
       {/* Search input */}
-      <div className="shrink-0" style={{ marginTop: stateFlags.talker_visible ? undefined : undefined }}>
+      <div className="shrink-0">
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"

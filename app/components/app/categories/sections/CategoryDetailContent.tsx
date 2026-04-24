@@ -281,8 +281,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
-      {/* Page header — category name + edit, or edit controls when editing */}
-      {stateFlags.talker_visible && (
+      {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
+      {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           {isEditing ? (
             <div

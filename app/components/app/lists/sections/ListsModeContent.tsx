@@ -24,6 +24,7 @@ import { PageBanner } from '@/app/components/shared/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useTalker } from '@/app/contexts/TalkerContext';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
@@ -201,6 +202,7 @@ export function ListsModeContent() {
   const params = useParams();
   const locale = params.locale as string;
   const { language, activeProfileId, stateFlags } = useProfile();
+  const { talkerMode } = useTalker();
 
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -286,7 +288,7 @@ export function ListsModeContent() {
     <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
 
       {/* Header */}
-      {stateFlags.talker_visible && (
+      {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
             {isEditing ? (

@@ -12,6 +12,7 @@ import { PageBanner } from '@/app/components/shared/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useTalker } from '@/app/contexts/TalkerContext';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/shared/SymbolEditorModal';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -29,6 +30,7 @@ export function ListDetailContent({ listId }: Props) {
   const router = useRouter();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const { language, activeProfileId, stateFlags, studentProfile } = useProfile();
+  const { talkerMode } = useTalker();
 
   const [isEditing, setIsEditing] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -212,9 +214,9 @@ export function ListDetailContent({ listId }: Props) {
   return (
     <div className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}>
 
-      {/* Header */}
-      <div className="shrink-0">
-        {stateFlags.talker_visible ? (
+      {/* Header — banner mode only; talker mode renders nothing so no empty div creates phantom gap */}
+      {stateFlags.talker_visible && talkerMode === 'banner' && (
+        <div className="shrink-0">
           <PageBanner title={listName}>
             <button type="button" onClick={() => router.back()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90" style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}>
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -244,13 +246,14 @@ export function ListDetailContent({ listId }: Props) {
             )}
             <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
           </PageBanner>
-        ) : (
-          <button type="button" onClick={() => router.back()} className="flex items-center gap-1 text-theme-s font-medium transition-opacity hover:opacity-70" style={{ color: 'var(--theme-text-secondary)' }}>
-            <ArrowLeft className="w-4 h-4" />
-            {t('back')}
-          </button>
-        )}
-      </div>
+        </div>
+      )}
+      {!stateFlags.talker_visible && (
+        <button type="button" onClick={() => router.back()} className="flex items-center gap-1 text-theme-s font-medium transition-opacity hover:opacity-70" style={{ color: 'var(--theme-text-secondary)' }}>
+          <ArrowLeft className="w-4 h-4" />
+          {t('back')}
+        </button>
+      )}
 
       {localItems.length === 0 && !isEditing && (
         <div className="flex items-center justify-center py-16">

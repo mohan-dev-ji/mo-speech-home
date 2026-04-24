@@ -29,12 +29,13 @@ function playAudio(audioPath: string) {
 
 export function PersistentTalker() {
   const { stateFlags, language } = useProfile();
-  const { talkerSymbols, addToTalker, clearTalker } = useTalker();
+  const { talkerSymbols, talkerMode, addToTalker, clearTalker } = useTalker();
 
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const cancelSequenceRef = useRef(false);
 
-  if (!stateFlags.talker_visible) return null;
+  // Only render in sentence-builder mode; banner mode shows page-level banners instead
+  if (!stateFlags.talker_visible || talkerMode !== 'talker') return null;
 
   function handleChipTap(item: TalkerSymbolItem) {
     if (item.audioPath) playAudio(item.audioPath);
@@ -85,7 +86,7 @@ export function PersistentTalker() {
 
   return (
     <>
-      <div className="shrink-0 px-theme-mobile-general md:px-theme-general pt-theme-mobile-general md:pt-theme-general">
+      <div className="shrink-0 px-theme-mobile-general md:px-theme-general pt-theme-mobile-general md:pt-theme-general pb-8">
         <Header
           symbols={talkerSymbols}
           language={language}

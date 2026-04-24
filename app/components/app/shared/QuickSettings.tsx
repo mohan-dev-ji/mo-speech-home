@@ -24,7 +24,8 @@ export function QuickSettings() {
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [open]);
 
-  const directPlayOn = talkerMode === 'banner';
+  // Talker ON = sentence builder active; OFF = banner/edit mode
+  const talkerActive = talkerMode === 'talker';
 
   return (
     <div ref={ref} className="relative">
@@ -101,13 +102,13 @@ export function QuickSettings() {
             <button
               type="button"
               role="switch"
-              aria-checked={directPlayOn}
+              aria-checked={talkerActive}
               aria-label={t('modeToggleLabel')}
               disabled={!stateFlags.talker_visible}
-              onClick={() => setTalkerMode(directPlayOn ? 'talker' : 'banner')}
+              onClick={() => setTalkerMode(talkerActive ? 'banner' : 'talker')}
               className="relative w-10 h-6 rounded-full shrink-0 transition-colors duration-200 disabled:cursor-not-allowed"
               style={{
-                background: directPlayOn
+                background: talkerActive
                   ? 'var(--theme-success)'
                   : 'rgba(0,0,0,0.25)',
               }}
@@ -115,7 +116,7 @@ export function QuickSettings() {
               <span
                 className="absolute top-0.5 left-0 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
                 style={{
-                  transform: directPlayOn
+                  transform: talkerActive
                     ? 'translateX(18px)'
                     : 'translateX(2px)',
                 }}
