@@ -5,6 +5,8 @@ export type AudioMode = 'default' | 'record' | 'generate';
 export type TextSize = 'sm' | 'md' | 'lg' | 'xl';
 export type CardShape = 'square' | 'rounded' | 'circle';
 
+export type ActiveAudioSource = 'default' | 'generate' | 'record';
+
 export type Draft = {
   imageSourceTab: ImageSourceTab;
   // SymbolStix
@@ -17,10 +19,12 @@ export type Draft = {
   // Labels
   labelEng: string;
   labelHin: string;
-  // Audio
+  // Audio — `audioMode` is purely tab navigation; `activeAudioSource` is what plays.
   audioMode: AudioMode;
-  resolvedAudioPath?: string;
-  ttsR2Key?: string;  // populated after successful Generate call
+  activeAudioSource: ActiveAudioSource | null;
+  defaultAudioPath?: string;          // SymbolStix default for the picked symbol
+  generatedAudioPath?: string;        // R2 key from Generate (was: ttsR2Key)
+  recordedAudioPath?: string;         // R2 key from Record (rehydrated or post-upload)
   // Display
   bgColour: string;
   textColour: string;
@@ -39,6 +43,7 @@ export const INITIAL_DRAFT: Draft = {
   labelEng: '',
   labelHin: '',
   audioMode: 'default',
+  activeAudioSource: null,
   bgColour: '#ffffff',
   textColour: '#111827',
   borderColour: '#d1d5db',

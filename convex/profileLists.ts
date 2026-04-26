@@ -117,6 +117,16 @@ export const updateProfileListItems = mutation({
         order: v.number(),
         description: v.optional(v.string()),
         audioPath: v.optional(v.string()),
+        activeAudioSource: v.optional(v.union(
+          v.literal("default"), v.literal("generate"), v.literal("record")
+        )),
+        defaultAudioPath:   v.optional(v.string()),
+        generatedAudioPath: v.optional(v.string()),
+        recordedAudioPath:  v.optional(v.string()),
+        imageSourceType: v.optional(v.union(
+          v.literal("symbolstix"), v.literal("upload"),
+          v.literal("googleImages"), v.literal("aiGenerated")
+        )),
       })
     ),
   },

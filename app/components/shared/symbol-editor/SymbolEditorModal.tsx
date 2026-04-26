@@ -19,6 +19,11 @@ export type ListItemSaveResult = {
   imagePath?: string;
   description?: string;
   audioPath?: string;
+  activeAudioSource?: 'default' | 'generate' | 'record';
+  defaultAudioPath?: string;
+  generatedAudioPath?: string;
+  recordedAudioPath?: string;
+  imageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
 };
 
 export type SentenceSlotSaveResult = {
@@ -49,9 +54,16 @@ export type SymbolEditorModalProps = {
   // Folder image mode — picks an image for the category folder, skips label/audio/display
   folderImageMode?: boolean;
   initialImagePath?: string;
+  initialAudioPath?: string;
   onFolderImageSave?: (imagePath: string) => void;
   // Override the modal header title
   modalTitle?: string;
+  // List-item rehydration — restores active-source audio + image-source-tab on re-edit
+  initialActiveAudioSource?: 'default' | 'generate' | 'record';
+  initialDefaultAudioPath?: string;
+  initialGeneratedAudioPath?: string;
+  initialRecordedAudioPath?: string;
+  initialImageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -81,23 +93,71 @@ export function SymbolEditorModal({
   onSentenceSlotSave,
   folderImageMode = false,
   initialImagePath,
+  initialAudioPath,
   onFolderImageSave,
   modalTitle,
+  initialActiveAudioSource,
+  initialDefaultAudioPath,
+  initialGeneratedAudioPath,
+  initialRecordedAudioPath,
+  initialImageSourceType,
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  const initialAudioMode = 'default';
+  // ── Initial draft ──────────────────────────────────────────────────────────
+  // listItem rehydration uses the active-source model: each source is held
+  // independently and `activeAudioSource` selects which one playback uses.
+  const listItemImageTab: ImageSourceTab | undefined =
+    editorMode === 'listItem' && initialImageSourceType
+      ? (initialImageSourceType === 'symbolstix'   ? 'symbolstix'    :
+         initialImageSourceType === 'googleImages' ? 'google-images' :
+         initialImageSourceType === 'aiGenerated'  ? 'ai-generate'   : 'upload')
+      : undefined;
+
+  const listItemImageSeed =
+    editorMode === 'listItem' && initialImagePath
+      ? (listItemImageTab === 'symbolstix'
+          ? { imageSourceTab: 'symbolstix' as const, symbolstixImagePath: initialImagePath }
+          : { imageSourceTab: (listItemImageTab ?? 'upload') as ImageSourceTab, resolvedImagePath: initialImagePath })
+      : {};
+
+  // Back-compat: items saved before the active-source model only carry `audioPath`.
+  // Treat that as the default source so re-saving an untouched item doesn't erase it.
+  const seededDefaultAudioPath =
+    editorMode === 'listItem'
+      ? (initialDefaultAudioPath
+          ?? (!initialActiveAudioSource && !initialGeneratedAudioPath && !initialRecordedAudioPath
+              ? initialAudioPath
+              : undefined))
+      : undefined;
+
+  const initialActive: Draft['activeAudioSource'] =
+    editorMode === 'listItem'
+      ? (initialActiveAudioSource ?? (seededDefaultAudioPath ? 'default' : null))
+      : null;
+
+  const initialAudioMode = initialActive ?? 'default';
 
   const [draft, setDraft] = useState<Draft>({
     ...INITIAL_DRAFT,
     audioMode: initialAudioMode,
+    activeAudioSource: initialActive,
     profileCategoryId: initCategoryId ?? '',
     ...(initialLabel ? { labelEng: initialLabel } : {}),
+    // folderImage / sentenceSlot keep the simpler image rehydration (always upload tab)
     ...((folderImageMode || editorMode === 'sentenceSlot') && initialImagePath
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
+      : {}),
+    ...listItemImageSeed,
+    ...(editorMode === 'listItem'
+      ? {
+          defaultAudioPath:   seededDefaultAudioPath,
+          generatedAudioPath: initialGeneratedAudioPath,
+          recordedAudioPath:  initialRecordedAudioPath,
+        }
       : {}),
   });
 
@@ -133,6 +193,21 @@ export function SymbolEditorModal({
   useEffect(() => {
     if (!existingSymbol) return;
     const ps = existingSymbol;
+
+    // Map saved audio.eng to the active-source model.
+    const eng = ps.audio?.eng;
+    const defaultPath = ps.symbolRecord?.audio.eng.default;
+    const activeSource: Draft['activeAudioSource'] =
+      !eng ? (defaultPath ? 'default' : null) :
+      eng.type === 'recorded' ? 'record' :
+      eng.type === 'tts'      ? 'generate' : 'default';
+
+    // Each source's path: prefer alternates; fall back to the active path if it matches.
+    const generatedAudioPath =
+      eng?.alternates?.generated ?? (eng?.type === 'tts' ? eng.path : undefined);
+    const recordedAudioPath =
+      eng?.alternates?.recorded  ?? (eng?.type === 'recorded' ? eng.path : undefined);
+
     setDraft({
       imageSourceTab:
         ps.imageSource.type === 'symbolstix' ? 'symbolstix' :
@@ -140,7 +215,7 @@ export function SymbolEditorModal({
         ps.imageSource.type === 'googleImages' ? 'google-images' : 'ai-generate',
       symbolstixId: ps.imageSource.type === 'symbolstix' ? ps.imageSource.symbolId : undefined,
       symbolstixImagePath: ps.symbolRecord?.imagePath,
-      symbolstixAudioEng: ps.symbolRecord?.audio.eng.default,
+      symbolstixAudioEng: defaultPath,
       symbolstixAudioHin: ps.symbolRecord?.audio.hin?.default,
       resolvedImagePath:
         ps.imageSource.type !== 'symbolstix'
@@ -148,11 +223,11 @@ export function SymbolEditorModal({
           : undefined,
       labelEng: ps.label.eng,
       labelHin: ps.label.hin ?? '',
-      audioMode:
-        !ps.audio?.eng ? 'default' :
-        ps.audio.eng.type === 'recorded' ? 'record' :
-        ps.audio.eng.type === 'tts' ? 'generate' : 'default',
-      resolvedAudioPath: ps.audio?.eng?.path,
+      audioMode: activeSource ?? 'default',
+      activeAudioSource: activeSource,
+      defaultAudioPath: defaultPath,
+      generatedAudioPath,
+      recordedAudioPath,
       bgColour: ps.display?.bgColour ?? INITIAL_DRAFT.bgColour,
       textColour: ps.display?.textColour ?? INITIAL_DRAFT.textColour,
       borderColour: ps.display?.borderColour ?? INITIAL_DRAFT.borderColour,
@@ -196,12 +271,13 @@ export function SymbolEditorModal({
   function handlePreviewPlay() {
     let audioUrl: string | null = null;
 
-    if (draft.audioMode === 'default' && draft.symbolstixAudioEng) {
-      audioUrl = `/api/assets?key=${draft.symbolstixAudioEng}`;
-    } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
-      audioUrl = `/api/assets?key=${draft.ttsR2Key}`;
-    } else if (draft.audioMode === 'record' && pendingAudioBlobUrl) {
-      audioUrl = pendingAudioBlobUrl;
+    if (draft.activeAudioSource === 'default' && draft.defaultAudioPath) {
+      audioUrl = `/api/assets?key=${draft.defaultAudioPath}`;
+    } else if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
+      audioUrl = `/api/assets?key=${draft.generatedAudioPath}`;
+    } else if (draft.activeAudioSource === 'record') {
+      if (pendingAudioBlobUrl) audioUrl = pendingAudioBlobUrl;
+      else if (draft.recordedAudioPath) audioUrl = `/api/assets?key=${draft.recordedAudioPath}`;
     }
 
     if (!audioUrl) return;
@@ -288,33 +364,47 @@ export function SymbolEditorModal({
     if (editorMode === 'listItem') {
       setIsSaving(true);
       try {
-        // Resolve image
+        // Resolve image and remember which tab it came from
         let imagePath: string | undefined = draft.resolvedImagePath;
+        let imageSourceType: ListItemSaveResult['imageSourceType'] = initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
+          imageSourceType = 'symbolstix';
         } else if (pendingImageBlob) {
           const key = `profiles/${profileId}/images/${crypto.randomUUID()}.webp`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
+          imageSourceType =
+            draft.imageSourceTab === 'google-images' ? 'googleImages' :
+            draft.imageSourceTab === 'ai-generate'   ? 'aiGenerated'  : 'upload';
         }
 
-        // Resolve audio
-        let audioPath: string | undefined;
-        if (draft.audioMode === 'record' && pendingAudioBlob) {
+        // Upload pending recording before save (only if record is the active source —
+        // an in-flight blob the user didn't switch to is discarded on save).
+        let recordedAudioPath = draft.recordedAudioPath;
+        if (pendingAudioBlob && draft.activeAudioSource === 'record') {
           const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
           const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
           await uploadBlobToR2(pendingAudioBlob, key);
-          audioPath = key;
-        } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
-          audioPath = draft.ttsR2Key;
-        } else if (draft.audioMode === 'default' && draft.symbolstixAudioEng) {
-          audioPath = draft.symbolstixAudioEng;
+          recordedAudioPath = key;
         }
+
+        // Resolve the active audio path for runtime playback.
+        const audioPath =
+          draft.activeAudioSource === 'default'  ? draft.defaultAudioPath :
+          draft.activeAudioSource === 'generate' ? draft.generatedAudioPath :
+          draft.activeAudioSource === 'record'   ? recordedAudioPath :
+          undefined;
 
         onListItemSave?.({
           imagePath,
           description: draft.labelEng.trim() || undefined,
           audioPath,
+          activeAudioSource: draft.activeAudioSource ?? undefined,
+          defaultAudioPath: draft.defaultAudioPath,
+          generatedAudioPath: draft.generatedAudioPath,
+          recordedAudioPath,
+          imageSourceType,
         });
         onClose();
       } catch {
@@ -345,15 +435,13 @@ export function SymbolEditorModal({
         resolvedImagePath = key;
       }
 
-      // 2. Upload pending audio recording
-      let resolvedAudioPath = draft.resolvedAudioPath;
-      if (pendingAudioBlob && draft.audioMode === 'record') {
+      // 2. Upload pending audio recording (only if record is the active source)
+      let recordedAudioPath = draft.recordedAudioPath;
+      if (pendingAudioBlob && draft.activeAudioSource === 'record') {
         const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
         const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
         await uploadBlobToR2(pendingAudioBlob, key);
-        resolvedAudioPath = key;
-      } else if (draft.audioMode === 'generate' && draft.ttsR2Key) {
-        resolvedAudioPath = draft.ttsR2Key;
+        recordedAudioPath = key;
       }
 
       // 3. Build imageSource
@@ -368,13 +456,42 @@ export function SymbolEditorModal({
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
-      // 4. Build audio override
-      type AR = { type: 'r2' | 'tts' | 'recorded'; path: string; ttsText?: string; language?: string };
+      // 4. Build audio override using the active-source model.
+      // type encodes the active source ('r2'=default, 'tts'=generated, 'recorded'=recorded);
+      // alternates carries the inactive ones so they survive a re-edit.
+      type AR = {
+        type: 'r2' | 'tts' | 'recorded';
+        path: string;
+        ttsText?: string;
+        language?: string;
+        alternates?: { default?: string; generated?: string; recorded?: string };
+      };
       let audio: { eng?: AR; hin?: AR } | undefined;
-      if (draft.audioMode === 'record' && resolvedAudioPath) {
-        audio = { eng: { type: 'recorded', path: resolvedAudioPath, language: 'eng' } };
-      } else if (draft.audioMode === 'generate' && resolvedAudioPath) {
-        audio = { eng: { type: 'tts', path: resolvedAudioPath, language: 'eng' } };
+      const activePath =
+        draft.activeAudioSource === 'default'  ? draft.defaultAudioPath :
+        draft.activeAudioSource === 'generate' ? draft.generatedAudioPath :
+        draft.activeAudioSource === 'record'   ? recordedAudioPath :
+        undefined;
+
+      if (draft.activeAudioSource && activePath) {
+        const activeType: AR['type'] =
+          draft.activeAudioSource === 'generate' ? 'tts' :
+          draft.activeAudioSource === 'record'   ? 'recorded' : 'r2';
+
+        const alternates: AR['alternates'] = {
+          ...(draft.activeAudioSource !== 'default'   && draft.defaultAudioPath   ? { default:   draft.defaultAudioPath   } : {}),
+          ...(draft.activeAudioSource !== 'generate' && draft.generatedAudioPath ? { generated: draft.generatedAudioPath } : {}),
+          ...(draft.activeAudioSource !== 'record'   && recordedAudioPath        ? { recorded:  recordedAudioPath        } : {}),
+        };
+
+        audio = {
+          eng: {
+            type: activeType,
+            path: activePath,
+            language: 'eng',
+            ...(Object.keys(alternates).length ? { alternates } : {}),
+          },
+        };
       }
 
       const display = {

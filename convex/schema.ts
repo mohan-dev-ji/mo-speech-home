@@ -2,11 +2,18 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 // Reusable audio source validator (used in profileSymbols)
+// `type` encodes the active source: 'r2' = default (SymbolStix), 'tts' = generated, 'recorded' = user recording.
+// `alternates` holds the inactive sources so the editor can flip back without losing them.
 const audioSource = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
   path: v.string(),
   ttsText: v.optional(v.string()),
   language: v.optional(v.string()),
+  alternates: v.optional(v.object({
+    default:   v.optional(v.string()),
+    generated: v.optional(v.string()),
+    recorded:  v.optional(v.string()),
+  })),
 });
 
 export default defineSchema({
@@ -279,7 +286,20 @@ export default defineSchema({
         imagePath: v.optional(v.string()),
         order: v.number(),
         description: v.optional(v.string()),
-        audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
+        audioPath: v.optional(v.string()), // active audio path — what playback uses
+        // Active-source model: which audio is in use, plus the inactive alternates so
+        // the editor can flip between sources non-destructively on re-edit.
+        activeAudioSource: v.optional(v.union(
+          v.literal("default"), v.literal("generate"), v.literal("record")
+        )),
+        defaultAudioPath:   v.optional(v.string()), // derived from picked SymbolStix symbol
+        generatedAudioPath: v.optional(v.string()), // R2 key from Generate
+        recordedAudioPath:  v.optional(v.string()), // R2 key from Record
+        // Image source the user picked, so the editor lands on the right tab on re-edit.
+        imageSourceType: v.optional(v.union(
+          v.literal("symbolstix"), v.literal("upload"),
+          v.literal("googleImages"), v.literal("aiGenerated")
+        )),
       })
     ),
     displayFormat: v.optional(v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))),

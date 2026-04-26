@@ -35,6 +35,10 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
       symbolstixImagePath: sym.imagePath,
       symbolstixAudioEng: sym.audio.eng.default,
       symbolstixAudioHin: sym.audio.hin?.default,
+      defaultAudioPath: sym.audio.eng.default,
+      // Adopt 'default' as the active source only if nothing is active yet —
+      // swapping the symbol mid-edit must not clobber a generated/recorded clip.
+      ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
       // Pre-populate label only if blank
       labelEng: draft.labelEng || sym.words.eng,
       labelHin: draft.labelHin || (sym.words.hin ?? ''),

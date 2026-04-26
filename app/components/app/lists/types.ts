@@ -6,4 +6,9 @@ export type ListItem = {
   order: number;
   description?: string;
   audioPath?: string;
+  activeAudioSource?: 'default' | 'generate' | 'record';
+  defaultAudioPath?: string;
+  generatedAudioPath?: string;
+  recordedAudioPath?: string;
+  imageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
 };

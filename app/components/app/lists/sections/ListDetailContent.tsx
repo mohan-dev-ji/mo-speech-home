@@ -72,6 +72,11 @@ export function ListDetailContent({ listId }: Props) {
         order: i,
         description: item.description,
         audioPath: item.audioPath,
+        activeAudioSource: item.activeAudioSource,
+        defaultAudioPath: item.defaultAudioPath,
+        generatedAudioPath: item.generatedAudioPath,
+        recordedAudioPath: item.recordedAudioPath,
+        imageSourceType: item.imageSourceType,
       })),
     });
   }
@@ -104,22 +109,26 @@ export function ListDetailContent({ listId }: Props) {
     if (symbolPickerForIndex === null) return;
     const idx = symbolPickerForIndex;
     const prev = localItemsRef.current;
+    const merge = (item: ListItem): ListItem => ({
+      ...item,
+      imagePath:          result.imagePath,
+      description:        result.description ?? item.description,
+      audioPath:          result.audioPath,
+      activeAudioSource:  result.activeAudioSource,
+      defaultAudioPath:   result.defaultAudioPath,
+      generatedAudioPath: result.generatedAudioPath,
+      recordedAudioPath:  result.recordedAudioPath,
+      imageSourceType:    result.imageSourceType,
+    });
     const next =
       idx < prev.length
-        ? prev.map((item, i) =>
-            i === idx
-              ? { ...item, imagePath: result.imagePath, description: result.description ?? item.description, audioPath: result.audioPath }
-              : item
-          )
+        ? prev.map((item, i) => (i === idx ? merge(item) : item))
         : [
             ...prev,
-            {
+            merge({
               localId: `item-${prev.length}-${Date.now()}`,
-              imagePath: result.imagePath,
-              description: result.description,
-              audioPath: result.audioPath,
               order: prev.length,
-            },
+            }),
           ];
     setLocalItems(next);
     setSymbolPickerForIndex(null);
@@ -293,6 +302,13 @@ export function ListDetailContent({ listId }: Props) {
           editorMode="listItem"
           voiceId={studentProfile?.voiceId ?? 'en-GB-News-M'}
           initialLabel={localItems[symbolPickerForIndex]?.description}
+          initialImagePath={localItems[symbolPickerForIndex]?.imagePath}
+          initialAudioPath={localItems[symbolPickerForIndex]?.audioPath}
+          initialActiveAudioSource={localItems[symbolPickerForIndex]?.activeAudioSource}
+          initialDefaultAudioPath={localItems[symbolPickerForIndex]?.defaultAudioPath}
+          initialGeneratedAudioPath={localItems[symbolPickerForIndex]?.generatedAudioPath}
+          initialRecordedAudioPath={localItems[symbolPickerForIndex]?.recordedAudioPath}
+          initialImageSourceType={localItems[symbolPickerForIndex]?.imageSourceType}
           onClose={() => setSymbolPickerForIndex(null)}
           onSave={() => {}}
           onListItemSave={handleListItemSaved}

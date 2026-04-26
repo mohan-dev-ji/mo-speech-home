@@ -1,19 +1,24 @@
 # Mo Speech — Design System: From Figma to Runtime
-## YouTube Video Script
+## YouTube Video Script — Revised
 
 **Estimated runtime:** ~13–14 minutes  
-**Format:** Screen recording of slides + voiceover  
+**Format:** Screen recording — slides + Figma + live localhost + code  
 **Audience:** Developers and designers interested in design tokens, Tailwind CSS 4, and runtime theming
 
 ---
 
-> **Production notes**
-> - Slides are in `design-system-slides.html` — run fullscreen in browser
-> - Advance slides with arrow keys or spacebar
-> - `[→]` = advance slide · `[PAUSE]` = natural breath beat
-> - Each section shows `[~Xs]` estimated speaking time
-> - The Tailwind failure diagram has a shake animation — let it finish before moving on, it's the visual payoff of that slide
-> - This script is written in first person — it's your story, your design decisions
+> **Before you record — have these open:**
+> - `design-system-slides.html` fullscreen in browser (advance with arrow keys / spacebar)
+> - Figma — Mo Speech design file, Variables panel visible
+> - `localhost:3000` running, DevTestPanel accessible
+> - VS Code — `app/globals.css` and `app/contexts/ThemeContext.tsx` open in tabs
+>
+> **Marker key:**
+> - `[→]` advance slide · `[PAUSE]` breath beat · `[~Xs]` approx speaking time
+> - ### 🎨 FIGMA — switch to Figma
+> - ### 💻 CODE — switch to VS Code at that file and line
+> - ### 🌐 LIVE — switch to localhost
+> - ### ← SLIDES — switch back to slide deck
 
 ---
 
@@ -35,7 +40,7 @@ So let's go through the whole thing — design, export, the first attempt, the f
 
 [~20s]
 
-The design system covers five themes, four design pillars — colour, spacing, typography, and border radius — and it switches between themes at runtime, instantly, without reloading the page.
+The design system covers six themes, four design pillars — colour, spacing, typography, and roundness — and it switches between themes at runtime, instantly, without reloading the page.
 
 Getting to that point took a few tries. Here's how it happened.
 
@@ -45,11 +50,11 @@ Getting to that point took a few tries. Here's how it happened.
 
 ## SLIDE 2 — The Full Journey
 
-[~70s]
+[~65s]
 
 Here's the whole story in one diagram. Let it animate through and then I'll walk you back through each step.
 
-So — it starts in Figma, where I designed the variables. Those got exported to a JSON file. I then gave that JSON to Claude Code and asked it to generate both CSS custom properties and Tailwind token config from the same source.
+So — it starts in Figma, where I designed the variables. Those got exported to a JSON file — one file per theme. I then gave those JSON files to Claude Code and asked it to generate both CSS custom properties and Tailwind token config from the same source.
 
 Now here's where the path forks. You can see the diagram splits into two branches.
 
@@ -65,47 +70,59 @@ I'll explain exactly why the first branch failed in a few slides. It's a specifi
 
 ---
 
-## SLIDE 3 — Designing in Figma — The 4 Pillars
+## SLIDE 3 — Designing in Figma — What's in the Variables Panel
 
-[~65s]
+[~75s]
 
-So the design work started in Figma's Variables panel.
+So the design work started in Figma's Variables panel. Let me show you what that looks like.
 
-I defined four things.
+### 🎨 FIGMA — Variables panel · Colour section · Default theme column selected
 
-**Colour.** Each theme is a set of semantic colour tokens — `primary`, `alt-text`, `background`, `highlight`. Not raw hex values, not Tailwind colour names. Semantic names, so that when you switch theme the whole palette swaps and no component code needs to know about it.
+You can see the 15 colour tokens here. None of these are hex values at this stage — they're semantic names. **Primary**, **Banner**, **Card**, **Button-highlight**, **Alt-Card**, **Line**, **Symbol-BG**, **Background** — and then fixed tokens like **Success**, **Warning**, and **Enter-Mode** that stay the same across every theme.
 
-Those colour swatches you can see — the default greys at the top are the default theme. The sky blue, the rose red, the forest green — those are alternative themes. Same token names, different values in each one.
+The naming is the whole point. These names describe *what the thing is* in the UI — not what colour it happens to be. That's what makes theme switching possible.
 
-**Spacing.** A four-step scale derived from a base unit — xs, sm, md, lg. Components reference the scale name, not a raw pixel value. That means you can change the density of the whole UI by touching one number.
+### 🎨 FIGMA — scroll right to show all 6 theme columns (Default · Sky · Amber · Lime · Fuchsia · Rose)
 
-**Typography.** A size ramp mapped to semantic roles. Heading, body, caption. Again, semantic names rather than raw sizes.
+Six themes. Same 15 token names in every column. Different values in each. The Sky column has a blue Primary, Amber has a deep orange, Lime has a green. But they all have a Primary, a Banner, a Card — the structure is the contract.
 
-**Border radius.** A single token. This is the thing that controls the "personality" of the UI — whether it feels sharp and technical, soft and friendly, or pill-shaped and playful. One token affects every button, every card, every input in the entire app.
+### 🎨 FIGMA — scroll down to Spacing section
 
-[PAUSE]
+Then spacing. Twelve named tokens — **General-padding**, **Modal-padding**, **Symbol-card-padding** and so on. Same idea — semantic names, not raw pixel values.
 
-The important thing about all of these is that they're semantic. They describe *what the thing is*, not *what it looks like*. That's what makes runtime theme switching possible.
+### 🎨 FIGMA — scroll down to Roundness section
+
+And two roundness tokens: **Roundness** and **Modal-Roundness**. One token controls the personality of every button, card, and input in the entire app.
+
+### ← SLIDES
 
 [→]
 
 ---
 
-## SLIDE 4 — Export to JSON — The Bridge File
+## SLIDE 4 — From Figma to CSS — The Naming Bridge
 
-[~50s]
+[~55s]
 
-Figma can export your variable sets as JSON. What comes out is exactly what you see on the left — a nested object where each token has a name and a value.
+So the table on this slide shows exactly how the names travel from Figma through to the CSS.
 
-`color.primary.value` is `#62748E`. `spacing.sm.value` is `8px`. `radius.default.value` is `12px`.
+When you export variables from Figma, you get a JSON file — one per theme — and the keys in that JSON are identical to the variable names you defined. **Primary** in Figma becomes the `Primary` key in the JSON. **Secondary-Alt-Text** stays **Secondary-Alt-Text**.
 
-The structure itself is the contract. Every theme file has exactly the same keys with different values. If you change a key name in one theme file, you have to change it everywhere — and the code will tell you immediately if something's missing.
+### 💻 CODE — docs/3-design/design-system/Themes/Default.tokens.json · top of file · "Primary" key
 
-I had one JSON per theme. `tokens-default.json`, `tokens-sky.json`, `tokens-rose.json`. Same shape, different values.
+You can see here — the key is exactly what I named it in Figma, and the value is the hex colour plus all the Figma metadata.
 
-Then I gave these to Claude Code and said: turn these into CSS custom properties and Tailwind token configuration. Generate both from the same source so they stay in sync.
+### 💻 CODE — docs/3-design/design-system/Themes/Sky.tokens.json · same "Primary" key, different hex
 
-Which it did. And then the fun started.
+Same key name, different value. That's the whole schema contract.
+
+### ← SLIDES
+
+Then Claude Code read those JSON files and generated the CSS variables. The transformation is simple: lowercase, replace spaces and capitals with kebab-case, add a `--theme-` prefix. So **Button-highlight** becomes `--theme-button-highlight`. **General-padding** becomes `--theme-general-padding`. That naming convention stays consistent all the way through the codebase.
+
+[PAUSE]
+
+And that's the bridge. Figma names are human-readable and semantic. CSS custom properties use the same words, just formatted for code.
 
 [→]
 
@@ -115,15 +132,13 @@ Which it did. And then the fun started.
 
 [~60s]
 
-The generated Tailwind config looked clean. Token names mapped to semantic utility classes — `bg-primary`, `text-alt-text`, `rounded-default`. You could write component code that read like plain English. It felt right.
+Now here's where it got interesting. Claude Code generated a Tailwind token config alongside the CSS variables. The idea was: define the tokens in Tailwind's `@theme` block, let Tailwind generate the utility classes at build time — things like `bg-theme-primary`, `text-theme-alt-text` — and then when a user switches theme, ThemeContext would overwrite the underlying CSS variables and everything would update.
 
-The idea was: define the tokens in Tailwind's `@theme` block, generate the utility classes at build time, and then when a user switches theme, ThemeContext would overwrite the underlying CSS variables and everything would update.
-
-Except it didn't. Watch the diagram on this slide — in particular the circle in the middle that says "NO EFFECT."
+Except it didn't. Watch the diagram — particularly the circle in the middle that says "NO EFFECT."
 
 ThemeContext was calling `setProperty` on the root element. It was changing the variable. But nothing in the UI was changing.
 
-The new hex value was being written to the DOM. It just wasn't connected to anything visible.
+The new value was being written to the DOM. It just wasn't connected to anything visible.
 
 [PAUSE]
 
@@ -133,45 +148,61 @@ And that took a while to figure out. Let me show you exactly why.
 
 ---
 
-## SLIDE 6 — Why Tailwind Alone Couldn't Do Runtime Theming
+## SLIDE 6 — Why @theme inline Fixes It
 
-[~75s]
+[~80s]
 
 This slide shows the root cause. Look at both columns.
 
-On the left — `@theme` without the `inline` keyword. You define your token as a static value: `--color-primary: #62748E`. Tailwind reads that at build time and generates a utility class. But look at what it generates: `.bg-primary { background-color: #62748E }`. The hex value is right there, hardcoded, in the generated CSS. It's not a reference to the variable — it's the resolved value.
+On the left — `@theme` without the `inline` keyword. You define your token pointing to a static hex value. Tailwind reads that at build time and generates a utility class. But the critical thing: Tailwind *resolves* the value at build time. It writes the literal hex string directly into the generated CSS. Not a reference — the actual colour.
 
-So when ThemeContext later calls `setProperty('--color-primary', '#00A6F4')`, there's nothing to cascade into. The utility class doesn't know the variable exists. It has the colour baked in. The variable change disappears into a void.
-
-[PAUSE]
-
-On the right — `@theme inline`. Now you define the token as a reference: `--color-primary: var(--theme-primary)`. And look at what Tailwind generates: `.bg-theme-primary { background-color: var(--theme-primary) }`. The variable reference is preserved in the generated CSS.
-
-Now when ThemeContext calls `setProperty('--theme-primary', '#00A6F4')`, the utility class *does* cascade. The browser resolves the var at paint time, finds the new value, and repaints.
+So when ThemeContext later calls `setProperty`, there's nothing to cascade into. The utility class doesn't know the variable exists. It has the colour baked in.
 
 [PAUSE]
 
-The `inline` keyword is the fix. It tells Tailwind: "don't resolve this — keep it as a variable reference in the generated output." Without it, Tailwind treats your tokens as build-time constants. With it, they become runtime-switchable.
+On the right — `@theme inline`. Now you define the token pointing to a `var()` reference. Because of the `inline` keyword, Tailwind preserves that reference in the generated output. The utility class contains `var(--theme-primary)` — not the resolved colour.
+
+Now when ThemeContext calls `setProperty`, the utility *does* cascade. The browser resolves the var at paint time, finds the new value, and repaints.
+
+[PAUSE]
+
+The `inline` keyword is the fix. Without it, Tailwind treats your tokens as build-time constants. With it, they become runtime-switchable.
+
+### 💻 CODE — app/globals.css:140 · @theme inline block · scroll up briefly to :root at line 41 for context
+
+You can see it here — the `@theme inline` block maps every `--theme-*` variable to a Tailwind utility name using `var()` references throughout. This is the bridge that makes runtime switching possible.
+
+### ← SLIDES
 
 [→]
 
 ---
 
-## SLIDE 7 — `globals.css` — The Token Declaration
+## SLIDE 7 — globals.css — Three Blocks
 
-[~60s]
+[~65s]
 
-So this is what the working setup looks like in `globals.css`.
+So `globals.css` has three distinct sections, each doing a completely separate job.
 
-Three blocks.
+**Block one** — the `:root` declaration.
 
-**Block one** — the `:root` declaration. This is where the actual runtime values live. Every `--theme-*` variable is defined here. This is the only thing ThemeContext needs to overwrite when a theme switches. Default values ship with the app; ThemeContext replaces them at runtime.
+### 💻 CODE — app/globals.css:41 · :root block · scroll slowly through the --theme-* variables
 
-**Block two** — `@theme inline`. This is the bridge to Tailwind. Each `--color-theme-*` entry maps a Tailwind namespace name to one of our runtime vars. The `inline` keyword means Tailwind generates `var(--theme-primary)` in the utility, not the resolved hex value.
+This is where the actual runtime values live. Every `--theme-*` variable is defined here with the Default theme as the starting value. This is the only block ThemeContext needs to touch when a theme switches — it just overwrites these.
 
-This is why you can write `bg-theme-primary` in your JSX and have it respond to theme switches. Tailwind generates the utility. The utility references the var. ThemeContext changes the var. The browser repaints.
+**Block two** — `@theme inline`.
 
-**Block three** — the font rule. This is completely separate from theming — it's driven by locale, not theme. The `[data-locale="hi"]` selector swaps the font-family to Devanagari. Theme has no effect on fonts.
+### 💻 CODE — app/globals.css:140 · @theme inline block
+
+This is the bridge to Tailwind. Each entry maps a Tailwind colour name to one of our runtime vars. You write `bg-theme-primary` in your JSX. Tailwind generates a utility with `var(--theme-primary)` inside it. ThemeContext changes `--theme-primary`. The browser repaints.
+
+**Block three** — `[data-locale]`.
+
+### 💻 CODE — app/globals.css:254 · [data-locale] font rules
+
+This is completely separate from theming — it's driven by locale, not by the theme system. When the layout sets `data-locale="hi"`, the Devanagari font-family kicks in. Theme has no effect on fonts.
+
+### ← SLIDES
 
 [→]
 
@@ -179,17 +210,31 @@ This is why you can write `bg-theme-primary` in your JSX and have it respond to 
 
 ## SLIDE 8 — ThemeContext — The Runtime Switcher
 
-[~60s]
+[~65s]
 
-`THEME_TOKENS` is just a plain JavaScript object. Each key is a theme ID. Each value is an object of CSS custom property names mapped to their values for that theme.
+ThemeContext has three parts: the token catalogue, the function that applies them, and the React context that makes it available app-wide.
 
-So `default` has `--theme-primary: #62748E`. `sky` has `--theme-primary: #00A6F4`. Same key, different value. That's the whole theming model.
+**THEME_TOKENS** is the catalogue. Six objects — one per theme — each containing all 15 colour values. Spacing and roundness are optional overrides; flat themes inherit the defaults from `globals.css`.
 
-`applyThemeTokens` is the function that does the actual switching. It takes the token object for the chosen theme, loops through every entry, and calls `style.setProperty` on `document.documentElement` — which is the `:root` element. One pass, all tokens updated simultaneously.
+### 💻 CODE — app/contexts/ThemeContext.tsx:107 · THEME_TOKENS object · scroll through default and sky entries
+
+You can see here — default, sky, amber, lime, fuchsia, rose. Same keys, different values.
+
+**applyThemeTokens** is the function that does the switching.
+
+### 💻 CODE — app/contexts/ThemeContext.tsx:174 · applyThemeTokens function
+
+It loops through the TOKEN_TO_CSS map and calls `style.setProperty` on `document.documentElement` — which is the `:root` element. One pass, all tokens updated simultaneously.
 
 [PAUSE]
 
-The fact that this works without triggering a React re-render is worth dwelling on. React has no idea anything changed. There's no state update, no context propagation through the tree, no re-rendering of components. The CSS cascade handles all of it. The browser sees that the custom property values changed, and repaints the affected elements in the next frame. It's genuinely instant.
+The fact that this works without triggering a React re-render is worth dwelling on. React has no idea anything changed. The CSS cascade handles all of it. The browser sees that the custom property values changed and repaints the affected elements in the next frame. It's genuinely instant.
+
+### 🌐 LIVE — localhost:3000 · open DevTestPanel · switch Default → Sky → Amber → Fuchsia · go slowly
+
+Watch this. Tap Sky. Tap Amber. Tap Fuchsia. Every colour, every component, every shadow — updated in a single frame. No reload, no flash, no delay.
+
+### ← SLIDES
 
 [→]
 
@@ -199,21 +244,21 @@ The fact that this works without triggering a React re-render is worth dwelling 
 
 [~65s]
 
-Let me walk you through the full sequence once more, with the diagram to make it concrete.
+Let me walk you through the full sequence once more with the diagram.
 
-The user taps "Sky" in the settings panel.
+The user taps "Sky" in the DevTestPanel.
 
-The panel calls `setTheme('sky', THEME_TOKENS.sky)` on the ThemeContext.
+The panel calls `setTheme` on the ThemeContext, passing the sky token set.
 
-ThemeContext calls `applyThemeTokens` with the sky token set. That function loops through the object and calls `setProperty` for each key — `--theme-primary` gets `#00A6F4`, `--theme-background` gets `#EFF9FF`, and so on for every token.
+ThemeContext calls `applyThemeTokens`. That function loops through the object and calls `setProperty` for each key — `--theme-primary` gets `#00A6F4`, `--theme-banner` gets `#0084D1`, `--theme-card` gets `#024A70`, and so on for all 15 colour tokens.
 
 Those property writes update `:root`. The CSS cascade immediately picks them up.
 
-Every utility class that references one of those vars — `bg-theme-primary`, `text-theme-alt-text`, `rounded-theme` — now resolves to the new value. The browser repaints.
+Every utility class that references one of those vars — `bg-theme-primary`, `text-theme-alt-text` — now resolves to the new value. The browser repaints.
 
 [PAUSE]
 
-Look at the timing strip at the bottom of the diagram. Steps three, four, and five — the property write, the cascade, and the repaint — happen in a single browser paint cycle. From the user's perspective, it's instantaneous. No loading indicator, no transition, no delay. The UI just changes.
+Look at the timing strip at the bottom. Steps three, four, and five — the property write, the cascade, and the repaint — happen in a single browser paint cycle. From the user's perspective, it's instantaneous.
 
 [→]
 
@@ -221,21 +266,29 @@ Look at the timing strip at the bottom of the diagram. Steps three, four, and fi
 
 ## SLIDE 10 — Adding a New Theme
 
-[~45s]
+[~50s]
 
 Here's the payoff of the whole architecture. Adding a new theme is adding one object to `THEME_TOKENS`.
 
-Same keys as every other theme. Different values. That's it.
+Same 15 colour keys as every other theme. Different values. That's it.
 
-No new CSS file. No Tailwind config change. No rebuild required for the theme itself. The `applyThemeTokens` function is generic — it takes whatever object you give it and writes those vars to the root. It doesn't need to know about specific theme names.
+### 💻 CODE — app/contexts/ThemeContext.tsx:107 · end of THEME_TOKENS · show where a new entry goes
 
-So when I add a `forest` theme — green primary, light green background — I put the object in `THEME_TOKENS`, add a button to `DevTestPanel`, and it works on the next hot reload.
+You'd add a new slug here — let's say `ocean` — fill in all 15 colour tokens, and that's the data side done.
+
+### 💻 CODE — app/contexts/ThemeContext.tsx:174 · applyThemeTokens · show it's completely generic
+
+`applyThemeTokens` is completely generic — it takes whatever object you give it and writes those vars to the root. It doesn't know about specific theme names.
+
+### ← SLIDES
+
+No new CSS file. No Tailwind config change. No rebuild required. Add a button in DevTestPanel, hot reload, and it works.
 
 [PAUSE]
 
-And the reason this scales well is that every component in the app is theme-agnostic. They use `bg-theme-primary`, not `bg-slate-600`. They describe what role the colour plays, not what colour it is. So adding a theme is purely additive — you're not touching any component code.
+And the reason this scales is that every component in the app is theme-agnostic. They use `bg-theme-primary`, not `bg-slate-600`. They describe what role the colour plays, not what colour it is.
 
-In Mo Speech, every student profile has its own theme ID stored in Convex. When the profile loads, `setTheme()` is called once, and the entire UI reflects their preferences. Same code, different data.
+In Mo Speech, every student profile has its own theme slug stored in Convex. When the profile loads, `setTheme()` is called once, and the entire UI reflects their preferences.
 
 ---
 
@@ -243,7 +296,7 @@ In Mo Speech, every student profile has its own theme ID stored in Convex. When 
 
 [~35s]
 
-So the short version: design in Figma with semantic tokens. Export to JSON. Use CSS custom properties as your runtime source of truth. Bridge to Tailwind utilities with `@theme inline` so the utilities reference the variables instead of baking in the values. And use a ThemeContext to rewrite the variables whenever the theme changes.
+So the short version: design in Figma with 15 semantic colour tokens across 6 themes. Export to JSON — one file per theme, same keys in each. Use CSS custom properties as your runtime source of truth. Bridge to Tailwind with `@theme inline` so the utilities reference the variables instead of baking in the values. And use a ThemeContext to rewrite the variables whenever the theme changes.
 
 The `inline` keyword is the thing that ties it all together — without it, Tailwind resolves your tokens at build time and runtime switching becomes impossible.
 
@@ -251,28 +304,33 @@ Thanks for watching. If you build something with this pattern, let me know in th
 
 ---
 
-## Quick reference card
+## Quick reference
 
-| Slide | Topic | Approx time |
+| Slide | Topic | Time |
 |---|---|---|
 | 1 | Title | 0:00 |
 | 2 | The full journey | 0:45 |
-| 3 | Designing in Figma — the 4 pillars | 1:55 |
-| 4 | Export to JSON | 3:00 |
-| 5 | First attempt — Tailwind tokens | 3:50 |
-| 6 | Why Tailwind couldn't do runtime theming | 4:50 |
-| 7 | globals.css — the token declaration | 6:05 |
-| 8 | ThemeContext — the runtime switcher | 7:05 |
-| 9 | Token flow — from switch to screen | 8:05 |
-| 10 | Adding a new theme | 9:10 |
-| Outro | Recap | 9:55 |
+| 3 | Designing in Figma | 1:50 |
+| 4 | Naming bridge — Figma → JSON → CSS | 3:05 |
+| 5 | First attempt — Tailwind tokens | 4:00 |
+| 6 | Why @theme inline fixes it | 5:00 |
+| 7 | globals.css — three blocks | 6:20 |
+| 8 | ThemeContext — the runtime switcher | 7:25 |
+| 9 | Token flow — switch to screen | 8:30 |
+| 10 | Adding a new theme | 9:35 |
+| Outro | Recap | 10:25 |
 
-**Total: ~10 min 30 sec**
+**Total: ~11 min**
 
 ---
 
-> **Key talking points to land clearly**
-> - `@theme` vs `@theme inline` is the crux of the whole video — don't rush slide 6
-> - The "semantic not literal" point on slide 3 sets up why runtime switching is even possible
-> - The shake animation on slide 5 is timed to land right after you say "it did not work"
-> - On slide 9, pause on the timing strip — it visually proves the "instant" claim
+## Screen switches at a glance
+
+| Slide | 🎨 Figma | 💻 Code | 🌐 Live |
+|---|---|---|---|
+| 3 | Colour tokens · All 6 themes · Spacing · Roundness | — | — |
+| 4 | — | Default.tokens.json · Sky.tokens.json | — |
+| 6 | — | globals.css:140 | — |
+| 7 | — | globals.css:41 → :140 → :254 | — |
+| 8 | — | ThemeContext.tsx:107 → :174 | DevTestPanel theme switching |
+| 10 | — | ThemeContext.tsx:107 → :174 | — |

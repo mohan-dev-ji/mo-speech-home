@@ -90,6 +90,7 @@ export function PropertiesPanel({
         const url = URL.createObjectURL(blob);
         audioBlobUrlRef.current = url;
         onAudioBlobChange(blob, url);
+        patch({ activeAudioSource: 'record' });
         stream.getTracks().forEach((t) => t.stop());
       };
 
@@ -110,6 +111,11 @@ export function PropertiesPanel({
     if (audioBlobUrlRef.current) URL.revokeObjectURL(audioBlobUrlRef.current);
     audioBlobUrlRef.current = null;
     onAudioBlobChange(null, null);
+    patch({
+      recordedAudioPath: undefined,
+      // Flip back to default if available, else clear active.
+      activeAudioSource: draft.defaultAudioPath ? 'default' : null,
+    });
   }
 
   // ── Generate TTS ────────────────────────────────────────────────────────────
@@ -131,7 +137,7 @@ export function PropertiesPanel({
         throw new Error(detail);
       }
       const { r2Key, source } = (await res.json()) as { r2Key: string; cached: boolean; source: 'symbolstix' | 'cache' | 'generated' };
-      patch({ ttsR2Key: r2Key });
+      patch({ generatedAudioPath: r2Key, activeAudioSource: 'generate' });
       setAudioSource(source);
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : t('audioGenerateError'));
@@ -141,12 +147,43 @@ export function PropertiesPanel({
   }
 
   function playTtsPreview() {
-    if (!draft.ttsR2Key) return;
+    if (!draft.generatedAudioPath) return;
     ttsPreviewAudioRef.current?.pause();
-    const audio = new Audio(`/api/assets?key=${draft.ttsR2Key}`);
+    const audio = new Audio(`/api/assets?key=${draft.generatedAudioPath}`);
     ttsPreviewAudioRef.current = audio;
     audio.play().catch(() => {});
   }
+
+  // ── Active-audio helpers ────────────────────────────────────────────────────
+
+  function activeAudioUrl(): string | null {
+    if (draft.activeAudioSource === 'default' && draft.defaultAudioPath) {
+      return `/api/assets?key=${draft.defaultAudioPath}`;
+    }
+    if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
+      return `/api/assets?key=${draft.generatedAudioPath}`;
+    }
+    if (draft.activeAudioSource === 'record') {
+      if (pendingAudioBlobUrl) return pendingAudioBlobUrl;
+      if (draft.recordedAudioPath) return `/api/assets?key=${draft.recordedAudioPath}`;
+    }
+    return null;
+  }
+
+  function playActiveAudio() {
+    const url = activeAudioUrl();
+    if (!url) return;
+    ttsPreviewAudioRef.current?.pause();
+    const audio = new Audio(url);
+    ttsPreviewAudioRef.current = audio;
+    audio.play().catch(() => {});
+  }
+
+  const statusLabelKey =
+    draft.activeAudioSource === 'default'  ? 'audioStatusDefault'   :
+    draft.activeAudioSource === 'generate' ? 'audioStatusGenerated' :
+    draft.activeAudioSource === 'record'   ? 'audioStatusRecorded'  :
+    'audioStatusNone';
 
   // ── Labels ──────────────────────────────────────────────────────────────────
 
@@ -227,7 +264,34 @@ export function PropertiesPanel({
         isOpen={openSections.has('audio')}
         onToggle={() => toggleSection('audio')}
       >
-        {/* Segmented control */}
+        {/* Status banner — shows which audio is currently active */}
+        <div
+          className="flex items-center gap-2 rounded-theme-sm px-2.5 py-2"
+          style={{
+            background: 'var(--theme-symbol-bg)',
+            border: '1px solid var(--theme-button-highlight)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={playActiveAudio}
+            disabled={!activeAudioUrl()}
+            aria-label={t('audioPlay')}
+            className="flex items-center justify-center w-8 h-8 rounded-theme-sm shrink-0"
+            style={{
+              background: 'var(--theme-brand-primary)',
+              color: 'var(--theme-alt-text)',
+              opacity: activeAudioUrl() ? 1 : 0.4,
+            }}
+          >
+            <Play className="w-4 h-4" />
+          </button>
+          <span className="text-theme-xs" style={{ color: 'var(--theme-text)' }}>
+            {t(statusLabelKey as Parameters<typeof t>[0])}
+          </span>
+        </div>
+
+        {/* Segmented control — purely tab navigation, doesn't affect activeAudioSource */}
         <div
           className="flex rounded-theme-sm overflow-hidden p-0.5 gap-0.5"
           style={{ background: 'var(--theme-button-highlight)' }}
@@ -253,15 +317,31 @@ export function PropertiesPanel({
 
         {/* Default */}
         {draft.audioMode === 'default' && (
-          <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
-            {t('audioDefaultHint')}
-          </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
+              {t('audioDefaultHint')}
+            </p>
+            {draft.defaultAudioPath && draft.activeAudioSource !== 'default' && (
+              <button
+                type="button"
+                onClick={() => patch({ activeAudioSource: 'default' })}
+                className="flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                style={{
+                  background: 'var(--theme-symbol-bg)',
+                  color: 'var(--theme-text)',
+                  border: '1px solid var(--theme-button-highlight)',
+                }}
+              >
+                {t('audioUseDefault')}
+              </button>
+            )}
+          </div>
         )}
 
         {/* Generate */}
         {draft.audioMode === 'generate' && (
           <div className="flex flex-col gap-2">
-            {!draft.ttsR2Key ? (
+            {!draft.generatedAudioPath ? (
               <>
                 <button
                   type="button"
@@ -286,38 +366,54 @@ export function PropertiesPanel({
                 )}
               </>
             ) : (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={playTtsPreview}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
-                  style={{
-                    background: 'var(--theme-symbol-bg)',
-                    color: 'var(--theme-text)',
-                    border: '1px solid var(--theme-button-highlight)',
-                  }}
-                >
-                  <Play className="w-3.5 h-3.5" />{t('audioGeneratePlay')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { patch({ ttsR2Key: undefined }); setAudioSource(null); handleGenerate(); }}
-                  disabled={isGenerating}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
-                  style={{
-                    background: 'var(--theme-symbol-bg)',
-                    color: 'var(--theme-text)',
-                    border: '1px solid var(--theme-button-highlight)',
-                    opacity: isGenerating ? 0.55 : 1,
-                  }}
-                >
-                  {isGenerating
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <RefreshCw className="w-3.5 h-3.5" />
-                  }
-                  {t('audioGenerateRegenerate')}
-                </button>
-              </div>
+              <>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={playTtsPreview}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-text)',
+                      border: '1px solid var(--theme-button-highlight)',
+                    }}
+                  >
+                    <Play className="w-3.5 h-3.5" />{t('audioGeneratePlay')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { patch({ generatedAudioPath: undefined }); setAudioSource(null); handleGenerate(); }}
+                    disabled={isGenerating}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-text)',
+                      border: '1px solid var(--theme-button-highlight)',
+                      opacity: isGenerating ? 0.55 : 1,
+                    }}
+                  >
+                    {isGenerating
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <RefreshCw className="w-3.5 h-3.5" />
+                    }
+                    {t('audioGenerateRegenerate')}
+                  </button>
+                </div>
+                {draft.activeAudioSource !== 'generate' && (
+                  <button
+                    type="button"
+                    onClick={() => patch({ activeAudioSource: 'generate' })}
+                    className="flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-text)',
+                      border: '1px solid var(--theme-button-highlight)',
+                    }}
+                  >
+                    {t('audioUseGenerated')}
+                  </button>
+                )}
+              </>
             )}
             {audioSource && (
               <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
@@ -336,8 +432,8 @@ export function PropertiesPanel({
 
         {/* Record */}
         {draft.audioMode === 'record' && (
-          <>
-            {!pendingAudioBlobUrl ? (
+          <div className="flex flex-col gap-2">
+            {!(pendingAudioBlobUrl || draft.recordedAudioPath) ? (
               <button
                 type="button"
                 onClick={isRecording ? stopRecording : startRecording}
@@ -353,34 +449,56 @@ export function PropertiesPanel({
                 }
               </button>
             ) : (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => { const a = new Audio(pendingAudioBlobUrl); a.play(); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
-                  style={{
-                    background: 'var(--theme-symbol-bg)',
-                    color: 'var(--theme-text)',
-                    border: '1px solid var(--theme-button-highlight)',
-                  }}
-                >
-                  <Play className="w-3.5 h-3.5" />{t('audioRecordPlayback')}
-                </button>
-                <button
-                  type="button"
-                  onClick={discardRecording}
-                  className="flex-1 flex items-center justify-center rounded-theme-sm py-2 text-theme-s font-medium"
-                  style={{
-                    background: 'var(--theme-symbol-bg)',
-                    color: 'var(--theme-warning)',
-                    border: '1px solid var(--theme-button-highlight)',
-                  }}
-                >
-                  {t('audioRecordDiscard')}
-                </button>
-              </div>
+              <>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = pendingAudioBlobUrl
+                        ?? (draft.recordedAudioPath ? `/api/assets?key=${draft.recordedAudioPath}` : null);
+                      if (!url) return;
+                      const a = new Audio(url);
+                      a.play().catch(() => {});
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-text)',
+                      border: '1px solid var(--theme-button-highlight)',
+                    }}
+                  >
+                    <Play className="w-3.5 h-3.5" />{t('audioRecordPlayback')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={discardRecording}
+                    className="flex-1 flex items-center justify-center rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-warning)',
+                      border: '1px solid var(--theme-button-highlight)',
+                    }}
+                  >
+                    {t('audioRecordDiscard')}
+                  </button>
+                </div>
+                {draft.activeAudioSource !== 'record' && (
+                  <button
+                    type="button"
+                    onClick={() => patch({ activeAudioSource: 'record' })}
+                    className="flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-text)',
+                      border: '1px solid var(--theme-button-highlight)',
+                    }}
+                  >
+                    {t('audioUseRecorded')}
+                  </button>
+                )}
+              </>
             )}
-          </>
+          </div>
         )}
       </AccordionSection>}
 
