@@ -16,7 +16,7 @@ export function SymbolThumb({ imagePath, size = 'md' }: { imagePath?: string; si
     >
       {imagePath ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/api/assets?key=${imagePath}`} alt="" className="w-full h-full object-contain p-1" draggable={false} />
+        <img src={`/api/assets?key=${imagePath}`} alt="" className="max-w-[78%] max-h-[78%] object-contain" draggable={false} />
       ) : (
         <div className="w-10 h-10 rounded bg-black/10" />
       )}
@@ -69,7 +69,7 @@ export function EditSymbolSlot({
       {imagePath ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/assets?key=${imagePath}`} alt="" className="w-full h-full object-contain p-1" draggable={false} />
+          <img src={`/api/assets?key=${imagePath}`} alt="" className="max-w-[78%] max-h-[78%] object-contain" draggable={false} />
           <div
             className="absolute bottom-0 inset-x-0 flex justify-center gap-2 py-0.5"
             style={{ background: 'rgba(0,0,0,0.4)' }}

@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 // ─── Google Cloud TTS (REST) ──────────────────────────────────────────────────
 
 async function synthesise(text: string, voiceId: VoiceId): Promise<Buffer> {
-  const credJson = process.env.GOOGLE_TTS_CREDENTIALS_JSON;
-  if (!credJson) throw new Error("GOOGLE_TTS_CREDENTIALS_JSON not set");
+  const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!credJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not set");
 
   const googleAuth = new GoogleAuth({
     credentials: JSON.parse(credJson),

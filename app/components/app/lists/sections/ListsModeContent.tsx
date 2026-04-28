@@ -64,7 +64,7 @@ function ThumbnailStrip({ thumbnails }: { thumbnails: { imagePath?: string }[] }
           <img
             src={`/api/assets?key=${t.imagePath}`}
             alt=""
-            className="w-full h-full object-contain p-1"
+            className="max-w-[78%] max-h-[78%] object-contain"
             draggable={false}
           />
         </div>

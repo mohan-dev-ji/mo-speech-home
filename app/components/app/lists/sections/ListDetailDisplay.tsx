@@ -116,7 +116,7 @@ export function ListItemPlayModal({
           </span>
         )}
         <div
-          className="w-full aspect-square rounded-theme flex items-center justify-center p-4"
+          className="w-full aspect-square rounded-theme overflow-hidden flex items-center justify-center p-4"
           style={{ background: 'var(--theme-symbol-bg)' }}
         >
           {item.imagePath ? (
@@ -124,7 +124,7 @@ export function ListItemPlayModal({
             <img
               src={`/api/assets?key=${item.imagePath}`}
               alt={item.description ?? ''}
-              className="max-w-full max-h-full object-contain"
+              className="w-[78%] h-[78%] object-contain"
               draggable={false}
             />
           ) : (
@@ -177,7 +177,7 @@ function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen
 function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay }: DisplayItemProps) {
   return (
     <div
-      className="flex flex-1 flex-col items-center justify-center gap-3 rounded-theme p-4 transition-colors h-full cursor-pointer"
+      className="flex flex-1 min-w-0 min-h-0 flex-col items-center justify-center gap-3 rounded-theme p-4 transition-colors h-full cursor-pointer"
       style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}
       onClick={onPlay}
     >
@@ -190,7 +190,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
 
       {/* Symbol card */}
       <div
-        className="w-full aspect-square rounded-theme flex items-center justify-center p-3"
+        className="w-full aspect-square rounded-theme overflow-hidden flex items-center justify-center"
         style={{ background: 'var(--theme-symbol-bg)' }}
       >
         {item.imagePath ? (
@@ -198,7 +198,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
           <img
             src={`/api/assets?key=${item.imagePath}`}
             alt={item.description ?? ''}
-            className="max-w-full max-h-full object-contain"
+            className="w-[78%] h-[78%] object-contain"
             draggable={false}
           />
         ) : (
