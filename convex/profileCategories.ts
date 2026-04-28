@@ -224,7 +224,7 @@ export const getProfileSymbolsWithImages = query({
             audioHin   = ps.audio?.hin?.path ?? sym.audio.hin?.default;
           }
         } else {
-          // googleImages | aiGenerated | userUpload — all have imagePath
+          // imageSearch | aiGenerated | userUpload — all have imagePath
           const src = ps.imageSource as { imagePath: string };
           imagePath  = src.imagePath;
           audioEng   = ps.audio?.eng?.path;

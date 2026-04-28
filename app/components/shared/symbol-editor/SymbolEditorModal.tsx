@@ -11,6 +11,7 @@ import { SymbolPreview } from './SymbolPreview';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SymbolStixTab } from './SymbolStixTab';
 import { UploadTab } from './UploadTab';
+import { ImagesTab } from './ImagesTab';
 import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ export type ListItemSaveResult = {
   defaultAudioPath?: string;
   generatedAudioPath?: string;
   recordedAudioPath?: string;
-  imageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
+  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
 
 export type SentenceSlotSaveResult = {
@@ -63,7 +64,7 @@ export type SymbolEditorModalProps = {
   initialDefaultAudioPath?: string;
   initialGeneratedAudioPath?: string;
   initialRecordedAudioPath?: string;
-  initialImageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
+  initialImageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,6 +75,16 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
   fd.append('key', key);
   const res = await fetch('/api/upload-asset', { method: 'POST', body: fd });
   if (!res.ok) throw new Error('Upload failed');
+}
+
+// Pick an R2 extension from a blob mime type. UploadTab encodes to webp; the
+// Wikimedia proxy returns whatever Wikimedia served (typically jpeg/png).
+function extForBlob(blob: Blob): string {
+  const t = blob.type.toLowerCase();
+  if (t.includes('png')) return 'png';
+  if (t.includes('jpeg') || t.includes('jpg')) return 'jpg';
+  if (t.includes('gif')) return 'gif';
+  return 'webp';
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -112,9 +123,9 @@ export function SymbolEditorModal({
   // independently and `activeAudioSource` selects which one playback uses.
   const listItemImageTab: ImageSourceTab | undefined =
     editorMode === 'listItem' && initialImageSourceType
-      ? (initialImageSourceType === 'symbolstix'   ? 'symbolstix'    :
-         initialImageSourceType === 'googleImages' ? 'google-images' :
-         initialImageSourceType === 'aiGenerated'  ? 'ai-generate'   : 'upload')
+      ? (initialImageSourceType === 'symbolstix'   ? 'symbolstix'   :
+         initialImageSourceType === 'imageSearch'  ? 'image-search' :
+         initialImageSourceType === 'aiGenerated'  ? 'ai-generate'  : 'upload')
       : undefined;
 
   const listItemImageSeed =
@@ -212,7 +223,7 @@ export function SymbolEditorModal({
       imageSourceTab:
         ps.imageSource.type === 'symbolstix' ? 'symbolstix' :
         ps.imageSource.type === 'userUpload' ? 'upload' :
-        ps.imageSource.type === 'googleImages' ? 'google-images' : 'ai-generate',
+        ps.imageSource.type === 'imageSearch' ? 'image-search' : 'ai-generate',
       symbolstixId: ps.imageSource.type === 'symbolstix' ? ps.imageSource.symbolId : undefined,
       symbolstixImagePath: ps.symbolRecord?.imagePath,
       symbolstixAudioEng: defaultPath,
@@ -220,6 +231,18 @@ export function SymbolEditorModal({
       resolvedImagePath:
         ps.imageSource.type !== 'symbolstix'
           ? (ps.imageSource as { imagePath: string }).imagePath
+          : undefined,
+      wikimediaSourceUrl:
+        ps.imageSource.type === 'imageSearch'
+          ? (ps.imageSource as { imageSourceUrl?: string }).imageSourceUrl
+          : undefined,
+      wikimediaAttribution:
+        ps.imageSource.type === 'imageSearch'
+          ? (ps.imageSource as { attribution?: string }).attribution
+          : undefined,
+      wikimediaLicense:
+        ps.imageSource.type === 'imageSearch'
+          ? (ps.imageSource as { license?: string }).license
           : undefined,
       labelEng: ps.label.eng,
       labelHin: ps.label.hin ?? '',
@@ -310,7 +333,7 @@ export function SymbolEditorModal({
       try {
         let imagePath = draft.resolvedImagePath;
         if (pendingImageBlob && draft.imageSourceTab === 'upload') {
-          const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.webp`;
+          const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
@@ -335,7 +358,7 @@ export function SymbolEditorModal({
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
         } else if (pendingImageBlob) {
-          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.webp`;
+          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
@@ -371,12 +394,12 @@ export function SymbolEditorModal({
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
         } else if (pendingImageBlob) {
-          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.webp`;
+          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
           imageSourceType =
-            draft.imageSourceTab === 'google-images' ? 'googleImages' :
-            draft.imageSourceTab === 'ai-generate'   ? 'aiGenerated'  : 'upload';
+            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
+            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
         }
 
         // Upload pending recording before save (only if record is the active source —
@@ -427,10 +450,13 @@ export function SymbolEditorModal({
 
     setIsSaving(true);
     try {
-      // 1. Upload pending image
+      // 1. Upload pending image (upload tab OR Image Search proxy result)
       let resolvedImagePath = draft.resolvedImagePath;
-      if (pendingImageBlob && draft.imageSourceTab === 'upload') {
-        const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.webp`;
+      if (
+        pendingImageBlob &&
+        (draft.imageSourceTab === 'upload' || draft.imageSourceTab === 'image-search')
+      ) {
+        const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
       }
@@ -448,12 +474,20 @@ export function SymbolEditorModal({
       type IS =
         | { type: 'symbolstix'; symbolId: Id<'symbols'> }
         | { type: 'userUpload'; imagePath: string }
-        | { type: 'googleImages'; imagePath: string; imageSourceUrl?: string }
+        | { type: 'imageSearch'; imagePath: string; imageSourceUrl?: string; attribution?: string; license?: string }
         | { type: 'aiGenerated'; imagePath: string; aiPrompt?: string };
 
       const imageSource: IS =
         draft.imageSourceTab === 'symbolstix'
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }
+          : draft.imageSourceTab === 'image-search'
+          ? {
+              type: 'imageSearch',
+              imagePath: resolvedImagePath!,
+              imageSourceUrl: draft.wikimediaSourceUrl,
+              attribution: draft.wikimediaAttribution,
+              license: draft.wikimediaLicense,
+            }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
       // 4. Build audio override using the active-source model.
@@ -551,7 +585,7 @@ export function SymbolEditorModal({
   const imageTabConfig: { value: ImageSourceTab; label: string }[] = [
     { value: 'symbolstix', label: t('tabSymbolstix') },
     { value: 'upload', label: t('tabUpload') },
-    { value: 'google-images', label: t('tabGoogleImages') },
+    { value: 'image-search', label: t('tabImageSearch') },
     { value: 'ai-generate', label: t('tabAiGenerate') },
   ];
 
@@ -710,12 +744,12 @@ export function SymbolEditorModal({
                 onImageSelected={handleImageSelected}
               />
             )}
-            {draft.imageSourceTab === 'google-images' && (
-              <div className="flex items-center justify-center h-full p-6">
-                <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
-                  {t('googleComingSoon')}
-                </p>
-              </div>
+            {draft.imageSourceTab === 'image-search' && (
+              <ImagesTab
+                draft={draft}
+                patch={patch}
+                onImageSelected={handleImageSelected}
+              />
             )}
             {draft.imageSourceTab === 'ai-generate' && (
               <div className="flex items-center justify-center h-full p-6">

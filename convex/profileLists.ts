@@ -125,7 +125,7 @@ export const updateProfileListItems = mutation({
         recordedAudioPath:  v.optional(v.string()),
         imageSourceType: v.optional(v.union(
           v.literal("symbolstix"), v.literal("upload"),
-          v.literal("googleImages"), v.literal("aiGenerated")
+          v.literal("imageSearch"), v.literal("aiGenerated")
         )),
       })
     ),

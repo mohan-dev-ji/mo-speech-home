@@ -211,9 +211,14 @@ export default defineSchema({
         symbolId: v.id("symbols"),
       }),
       v.object({
-        type: v.literal("googleImages"),
+        // External image search result (Wikimedia today; Pixabay/Unsplash/Pexels later).
+        // Per-result provenance is tracked on each cached search result via `provider`,
+        // not on this enum — the enum stays generic so adding a provider doesn't migrate.
+        type: v.literal("imageSearch"),
         imagePath: v.string(), // R2 path
-        imageSourceUrl: v.optional(v.string()), // original URL (audit trail)
+        imageSourceUrl: v.optional(v.string()), // original URL (audit trail) — e.g. Wikimedia file page
+        attribution: v.optional(v.string()), // photographer / uploader credit
+        license: v.optional(v.string()), // e.g. "CC BY-SA 4.0"
       }),
       v.object({
         type: v.literal("aiGenerated"),
@@ -298,7 +303,7 @@ export default defineSchema({
         // Image source the user picked, so the editor lands on the right tab on re-edit.
         imageSourceType: v.optional(v.union(
           v.literal("symbolstix"), v.literal("upload"),
-          v.literal("googleImages"), v.literal("aiGenerated")
+          v.literal("imageSearch"), v.literal("aiGenerated")
         )),
       })
     ),
@@ -513,4 +518,43 @@ export default defineSchema({
     .index("by_affiliate_id", ["affiliateId"])
     .index("by_referred_user_id", ["referredUserId"])
     .index("by_stripe_invoice_id", ["stripeInvoiceId"]),
+
+  /**
+   * Cache of external image-search results (Wikimedia Commons today; same shape
+   * for any future provider). Keyed by normalised query + page so paginated
+   * scrolls stay cached. Provider returns ~20 results per page; we re-fetch on
+   * cache miss only. 24h TTL — fresh enough that new uploads surface, slow
+   * enough to keep API calls minimal.
+   */
+  imageSearchCache: defineTable({
+    query: v.string(), // normalised: lowercase, trimmed
+    page: v.number(),  // 0-indexed
+    results: v.array(
+      v.object({
+        pageId: v.number(),
+        title: v.string(),
+        thumbnailUrl: v.string(),
+        sourceUrl: v.string(),
+        attribution: v.string(),
+        license: v.string(),
+        width: v.number(),
+        height: v.number(),
+        mime: v.string(),
+        provider: v.string(), // 'wikimedia' for now
+      })
+    ),
+    expiresAt: v.number(),
+  }).index("by_query_and_page", ["query", "page"]),
+
+  /**
+   * Per-user per-day quota counters for metered features.
+   * Day key is YYYY-MM-DD UTC. One row per (userId, feature, day).
+   * Shared infra — image search uses 'imageSearch'; AI gen will use 'aiImageGenerate'.
+   */
+  featureQuota: defineTable({
+    userId: v.string(),  // clerk user id (identity.subject)
+    feature: v.string(), // e.g. 'imageSearch'
+    day: v.string(),     // 'YYYY-MM-DD' UTC
+    count: v.number(),
+  }).index("by_user_and_feature_and_day", ["userId", "feature", "day"]),
 });

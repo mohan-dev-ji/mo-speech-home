@@ -12,16 +12,20 @@ export const lookup = query({
     voiceId: v.string(),
   },
   handler: async (ctx, { text, voiceId }) => {
-    // Check if text exactly matches a SymbolStix word
-    const symbol = await ctx.db
+    // Match against SymbolStix case-insensitively. The exact-match index
+    // (by_words_eng) is case-sensitive — "pringles" wouldn't find "Pringles" —
+    // so we hit the tokenised search index and confirm the top result's label
+    // matches when lowercased. Confirmation guards against false positives
+    // ("apple" → "Apple Pie") that the search index would otherwise rank.
+    const candidate = await ctx.db
       .query("symbols")
-      .withIndex("by_words_eng", (q) => q.eq("words.eng", text))
+      .withSearchIndex("search_words_eng", (q) => q.search("words.eng", text))
       .first();
 
-    if (symbol) {
+    if (candidate && candidate.words.eng.toLowerCase().trim() === text) {
       return {
         source: "symbolstix" as const,
-        audioDefault: symbol.audio.eng.default,
+        audioDefault: candidate.audio.eng.default,
       };
     }
 

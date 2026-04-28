@@ -1,6 +1,6 @@
 import type { Id } from '@/convex/_generated/dataModel';
 
-export type ImageSourceTab = 'symbolstix' | 'upload' | 'google-images' | 'ai-generate';
+export type ImageSourceTab = 'symbolstix' | 'upload' | 'image-search' | 'ai-generate';
 export type AudioMode = 'default' | 'record' | 'generate';
 export type TextSize = 'sm' | 'md' | 'lg' | 'xl';
 export type CardShape = 'square' | 'rounded' | 'circle';
@@ -16,6 +16,11 @@ export type Draft = {
   symbolstixAudioHin?: string;
   // Custom image (upload / google / ai) — resolved R2 path
   resolvedImagePath?: string;
+  // Wikimedia Commons attribution — populated when Image Search picks a result,
+  // persisted on the saved symbol so credit can be surfaced wherever it shows.
+  wikimediaSourceUrl?: string;
+  wikimediaAttribution?: string;
+  wikimediaLicense?: string;
   // Labels
   labelEng: string;
   labelHin: string;

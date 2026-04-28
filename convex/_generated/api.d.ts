@@ -10,6 +10,8 @@
 
 import type * as accountMembers from "../accountMembers.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
+import type * as featureQuota from "../featureQuota.js";
+import type * as imageCache from "../imageCache.js";
 import type * as profileCategories from "../profileCategories.js";
 import type * as profileLists from "../profileLists.js";
 import type * as profileSentences from "../profileSentences.js";
@@ -29,6 +31,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   accountMembers: typeof accountMembers;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
+  featureQuota: typeof featureQuota;
+  imageCache: typeof imageCache;
   profileCategories: typeof profileCategories;
   profileLists: typeof profileLists;
   profileSentences: typeof profileSentences;

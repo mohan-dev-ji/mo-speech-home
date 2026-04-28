@@ -6,14 +6,25 @@ const audioSourceValidator = v.object({
   path: v.string(),
   ttsText: v.optional(v.string()),
   language: v.optional(v.string()),
+  // Inactive sources held alongside the active one so the editor can flip
+  // between default/generate/record on re-edit without losing them.
+  alternates: v.optional(
+    v.object({
+      default:   v.optional(v.string()),
+      generated: v.optional(v.string()),
+      recorded:  v.optional(v.string()),
+    })
+  ),
 });
 
 const imageSourceValidator = v.union(
   v.object({ type: v.literal("symbolstix"), symbolId: v.id("symbols") }),
   v.object({
-    type: v.literal("googleImages"),
+    type: v.literal("imageSearch"),
     imagePath: v.string(),
     imageSourceUrl: v.optional(v.string()),
+    attribution: v.optional(v.string()),
+    license: v.optional(v.string()),
   }),
   v.object({
     type: v.literal("aiGenerated"),

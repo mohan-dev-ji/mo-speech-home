@@ -10,5 +10,5 @@ export type ListItem = {
   defaultAudioPath?: string;
   generatedAudioPath?: string;
   recordedAudioPath?: string;
-  imageSourceType?: 'symbolstix' | 'upload' | 'googleImages' | 'aiGenerated';
+  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
