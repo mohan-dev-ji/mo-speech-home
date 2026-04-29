@@ -83,19 +83,27 @@ export function SymbolCard({
   const defaultBg = catPair ? catPair.c100 : 'var(--theme-symbol-bg)';
   const defaultBorder = catPair ? catPair.c500 : 'var(--theme-line)';
 
-  // Per-symbol overrides take priority over profile-level flags
-  const labelVisible = display?.showLabel !== undefined
-    ? display.showLabel
+  // Per-symbol overrides take priority over profile-level flags, but the
+  // symbol editor seeds these from its defaults on every save (see
+  // SymbolEditorModal.tsx: showLabel:true, showImage:true, textSize:'sm').
+  // Treat those default values as "follow profile" so the profile-level
+  // toggles in Settings still affect edited symbols.
+  const showLabelOverride = display?.showLabel === false ? false : undefined;
+  const labelVisible = showLabelOverride !== undefined
+    ? showLabelOverride
     : showLabel && (stateFlags.symbol_label_visible ?? true);
 
-  const imageVisible = display?.showImage !== undefined ? display.showImage : showImage;
+  const imageVisible = display?.showImage === false ? false : showImage;
 
-  const textWeightClass = display?.textSize
-    ? DISPLAY_TEXT_WEIGHT[display.textSize]
+  // Only treat textSize as an override when it differs from the editor default ('sm')
+  const textSizeOverride = display?.textSize && display.textSize !== 'sm' ? display.textSize : undefined;
+
+  const textWeightClass = textSizeOverride
+    ? DISPLAY_TEXT_WEIGHT[textSizeOverride]
     : PROFILE_TEXT_WEIGHT[stateFlags.symbol_text_size ?? 'small'];
 
-  const textFontSize = display?.textSize
-    ? DISPLAY_TEXT_CQW[display.textSize]
+  const textFontSize = textSizeOverride
+    ? DISPLAY_TEXT_CQW[textSizeOverride]
     : PROFILE_TEXT_CQW[stateFlags.symbol_text_size ?? 'small'];
 
   const shapeClass = SHAPE_CLASS[display?.shape ?? 'rounded'];

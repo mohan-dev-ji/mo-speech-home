@@ -11,6 +11,7 @@ import { StudentOnboardingGate } from '@/app/components/app/onboarding/StudentOn
 import { ToastProvider } from '@/app/components/shared/Toast';
 import { InstructorPresenceWatcher } from '@/app/components/app/shared/InstructorPresenceWatcher';
 import { StudentViewLocaleSync } from '@/app/components/app/shared/StudentViewLocaleSync';
+import { StudentViewRouteGuard } from '@/app/components/app/shared/StudentViewRouteGuard';
 import type { ReactNode } from 'react';
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -26,6 +27,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
                     <StudentOnboardingGate />
                     <InstructorPresenceWatcher />
                     <StudentViewLocaleSync />
+                    <StudentViewRouteGuard />
                     {children}
                   </ToastProvider>
                 </BreadcrumbProvider>

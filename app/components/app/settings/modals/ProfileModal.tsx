@@ -29,14 +29,19 @@ type GridSize = "large" | "medium" | "small";
 type TextSize = "large" | "medium" | "small" | "xs";
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
+// Page permissions hide the nav link AND block the route in student-view.
+// Editing permissions gate features inside pages; they do not affect routing.
 
-const PERMISSIONS = [
-  { flag: "categories_visible", labelKey: "permBoards",       defaultVal: true  },
-  { flag: "lists_visible",      labelKey: "permLists",        defaultVal: true  },
+const PAGE_PERMISSIONS = [
+  { flag: "home_visible",       labelKey: "permHome",       defaultVal: true  },
+  { flag: "search_visible",     labelKey: "permSearch",     defaultVal: true  },
+  { flag: "categories_visible", labelKey: "permCategories", defaultVal: true  },
+  { flag: "lists_visible",      labelKey: "permLists",      defaultVal: true  },
+  { flag: "settings_visible",   labelKey: "permSettings",   defaultVal: false },
+] as const;
+
+const EDITING_PERMISSIONS = [
   { flag: "sentences_visible",  labelKey: "permSentences",    defaultVal: true  },
-  { flag: "first_thens_visible",labelKey: "permFirstThens",   defaultVal: true  },
-  { flag: "search_visible",     labelKey: "permSearch",       defaultVal: true  },
-  { flag: "settings_visible",   labelKey: "permSettings",     defaultVal: false },
   { flag: "student_can_edit",   labelKey: "permAllowEditing", defaultVal: false },
 ] as const;
 
@@ -279,8 +284,10 @@ function ProfileTabContent({
         <p className="text-small font-semibold text-foreground mb-3">
           {t("permissionsHeading")}
         </p>
+
+        {/* Page access — hides nav link and blocks route in student-view */}
         <div className="flex flex-wrap gap-2">
-          {PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+          {PAGE_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
             const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
             return (
               <button
@@ -293,7 +300,31 @@ function ProfileTabContent({
                     : "bg-background text-muted-foreground border-border hover:bg-muted"
                 }`}
               >
-                {t(labelKey as any)}
+                {t(labelKey as Parameters<typeof t>[0])}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Divider between page-access and editing permissions */}
+        <hr className="border-border my-3" />
+
+        {/* Editing permissions — feature-level toggles inside pages */}
+        <div className="flex flex-wrap gap-2">
+          {EDITING_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+            const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
+            return (
+              <button
+                key={flag}
+                type="button"
+                onClick={() => handleToggleFlag(flag, value)}
+                className={`px-3 py-1.5 rounded-md text-small font-medium border transition-colors ${
+                  value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {t(labelKey as Parameters<typeof t>[0])}
               </button>
             );
           })}

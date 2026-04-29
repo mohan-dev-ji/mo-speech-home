@@ -2,6 +2,19 @@ import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// Keys that have been removed from the schema but may still exist on older
+// student profile documents. Strip these before spreading stateFlags into
+// `ctx.db.patch`, otherwise Convex rejects the write with a schema error.
+const DEPRECATED_FLAG_KEYS = ["first_thens_visible"] as const;
+
+function cleanStateFlags<T extends Record<string, unknown>>(flags: T): T {
+  const cleaned = { ...flags } as Record<string, unknown>;
+  for (const key of DEPRECATED_FLAG_KEYS) delete cleaned[key];
+  return cleaned as T;
+}
+
 // ─── Defaults ────────────────────────────────────────────────────────────────
 
 const DEFAULT_STATE_FLAGS = {
@@ -253,10 +266,10 @@ export const setStateFlag = mutation({
     if (!isOwner && !isCollaborator) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileId, {
-      stateFlags: {
+      stateFlags: cleanStateFlags({
         ...profile.stateFlags,
         [args.flag]: args.value,
-      } as typeof profile.stateFlags,
+      }) as typeof profile.stateFlags,
       updatedAt: Date.now(),
     });
   },
@@ -296,7 +309,7 @@ export const setGridSize = mutation({
     if (!isOwner && !isCollaborator) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileId, {
-      stateFlags: { ...profile.stateFlags, grid_size: args.gridSize },
+      stateFlags: cleanStateFlags({ ...profile.stateFlags, grid_size: args.gridSize }),
       updatedAt: Date.now(),
     });
   },
@@ -341,7 +354,7 @@ export const setSymbolTextSize = mutation({
     if (!isOwner && !isCollaborator) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileId, {
-      stateFlags: { ...profile.stateFlags, symbol_text_size: args.textSize },
+      stateFlags: cleanStateFlags({ ...profile.stateFlags, symbol_text_size: args.textSize }),
       updatedAt: Date.now(),
     });
   },
@@ -374,5 +387,44 @@ export const updateStudentProfile = mutation({
 
     const { profileId, ...updates } = args;
     await ctx.db.patch(profileId, { ...updates, updatedAt: Date.now() });
+  },
+});
+
+/**
+ * One-shot migration to strip deprecated stateFlags keys (e.g. first_thens_visible)
+ * from every profile owned by the authenticated user. Run from any window in
+ * the app's dev console:
+ *   await window.__convex.mutation('studentProfiles:cleanupDeprecatedFlags', {})
+ * Or invoke from the Convex dashboard. Idempotent — safe to run repeatedly.
+ */
+export const cleanupDeprecatedFlags = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User record not found");
+
+    const profiles = await ctx.db
+      .query("studentProfiles")
+      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
+      .collect();
+
+    let cleaned = 0;
+    for (const profile of profiles) {
+      const flags = profile.stateFlags as Record<string, unknown>;
+      const hasDeprecated = DEPRECATED_FLAG_KEYS.some((k) => k in flags);
+      if (!hasDeprecated) continue;
+      await ctx.db.patch(profile._id, {
+        stateFlags: cleanStateFlags(profile.stateFlags),
+        updatedAt: Date.now(),
+      });
+      cleaned += 1;
+    }
+    return { cleaned, total: profiles.length };
   },
 });

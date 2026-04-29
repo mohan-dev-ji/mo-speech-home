@@ -7,15 +7,17 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { QuickSettings } from '@/app/components/app/shared/QuickSettings';
 import { BreadcrumbViewModeDropdown } from '@/app/components/app/shared/BreadcrumbViewModeDropdown';
 import { useState } from 'react';
-import { Menu, X, Home, Search, Tag, List, Settings } from 'lucide-react';
+import { Menu, X, Home, Search, Tag, List, MessageSquare, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProfile } from '@/app/contexts/ProfileContext';
 
 const mobileNavItems = [
-  { segment: 'home',       icon: Home     },
-  { segment: 'search',     icon: Search   },
-  { segment: 'categories', icon: Tag      },
-  { segment: 'lists',      icon: List     },
-  { segment: 'settings',   icon: Settings },
+  { segment: 'home',       icon: Home,          flag: 'home_visible'       },
+  { segment: 'search',     icon: Search,        flag: 'search_visible'     },
+  { segment: 'categories', icon: Tag,           flag: 'categories_visible' },
+  { segment: 'lists',      icon: List,          flag: 'lists_visible'      },
+  { segment: 'sentences',  icon: MessageSquare, flag: 'sentences_visible'  },
+  { segment: 'settings',   icon: Settings,      flag: 'settings_visible'   },
 ] as const;
 
 const linkStyle = { color: 'var(--theme-secondary-alt-text)' } as const;
@@ -28,6 +30,13 @@ export function TopBar() {
   const tNav = useTranslations('nav');
   const { breadcrumbExtra } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { viewMode, stateFlags } = useProfile();
+  const isStudent = viewMode === 'student-view';
+
+  // Mobile nav respects student-view permission flags; instructor sees all.
+  const visibleMobileNavItems = isStudent
+    ? mobileNavItems.filter((item) => stateFlags[item.flag])
+    : mobileNavItems;
 
   const segments = pathname.replace(`/${locale}`, '').split('/').filter(Boolean);
   const currentSegment = segments[0] ?? 'home';
@@ -159,7 +168,7 @@ export function TopBar() {
           </div>
 
           <nav className="flex flex-col gap-3 p-5">
-            {mobileNavItems.map(({ segment, icon: Icon }) => (
+            {visibleMobileNavItems.map(({ segment, icon: Icon }) => (
               <Link
                 key={segment}
                 href={`/${locale}/${segment}`}

@@ -168,9 +168,8 @@ export default defineSchema({
       symbol_text_size: v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"), v.literal("xs"))), // h2/h4/p-bold/s-bold; defaults to 'small'
       // ── Student-facing permission flags (set by instructor) ──
       lists_visible:        v.optional(v.boolean()), // Lists nav item; default true
-      sentences_visible:    v.optional(v.boolean()), // Sentences nav item; default true
+      sentences_visible:    v.optional(v.boolean()), // Sentences feature toggle; default true
       student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
-      first_thens_visible:  v.optional(v.boolean()), // First Thens nav item; default true
     }),
     studentViewLocked: v.optional(v.boolean()),  // when true on a student-view device, the breadcrumb dropdown is fully disabled. Toggled remotely by instructor.
     updatedAt: v.number(),

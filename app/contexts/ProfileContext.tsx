@@ -106,15 +106,20 @@ const ProfileContext = createContext<ProfileContextValue>({
 
 const VIEW_MODE_STORAGE_KEY = 'mo-view-mode';
 
-function readStoredViewMode(): ViewMode {
-  if (typeof window === 'undefined') return 'instructor';
-  const stored = window.sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
-  return stored === 'student-view' ? 'student-view' : 'instructor';
-}
-
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  // Lazy initializer reads sessionStorage on first client render; SSR sees 'instructor'
-  const [viewMode, setViewModeState] = useState<ViewMode>(readStoredViewMode);
+  // Always start as 'instructor' so SSR and the client's first render match.
+  // After mount, hydrate from sessionStorage — this avoids a hydration mismatch
+  // where the dropdown renders "Instructor" on the server but the student name
+  // on the client during the first paint.
+  const [viewMode, setViewModeState] = useState<ViewMode>('instructor');
+
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    // Hydrating from sessionStorage post-mount is the legitimate use case the
+    // react-hooks/set-state-in-effect rule has to allow.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored === 'student-view') setViewModeState('student-view');
+  }, []);
 
   const setViewMode = (mode: ViewMode) => {
     setViewModeState(mode);
