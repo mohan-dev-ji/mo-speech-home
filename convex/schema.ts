@@ -547,6 +547,21 @@ export default defineSchema({
   }).index("by_query_and_page", ["query", "page"]),
 
   /**
+   * Global cache of AI-generated images, keyed by sha256(style|prompt).
+   * Shared across all Max users — repeated "tree → iconic" hits R2, not Imagen.
+   * No expiry; entries are intentionally permanent. `hits` is bumped on cache reads
+   * so a future "community library" phase can surface popular generations.
+   * r2Key points to ai-cache/{uuid}.png (PNG, ~1MB, untouched from Imagen).
+   */
+  aiImageCache: defineTable({
+    hash: v.string(),    // sha256 of `${style}|${prompt.toLowerCase().trim()}`
+    prompt: v.string(),  // original user prompt (pre-style-wrap), for analytics
+    style: v.string(),   // 'photorealistic' | 'iconic' | 'storybook' | 'claymation'
+    r2Key: v.string(),   // ai-cache/{uuid}.png — global, shared across users
+    hits: v.number(),    // incremented on cache hit
+  }).index("by_hash", ["hash"]),
+
+  /**
    * Per-user per-day quota counters for metered features.
    * Day key is YYYY-MM-DD UTC. One row per (userId, feature, day).
    * Shared infra — image search uses 'imageSearch'; AI gen will use 'aiImageGenerate'.

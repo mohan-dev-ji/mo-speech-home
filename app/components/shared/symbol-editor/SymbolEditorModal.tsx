@@ -12,6 +12,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { SymbolStixTab } from './SymbolStixTab';
 import { UploadTab } from './UploadTab';
 import { ImagesTab } from './ImagesTab';
+import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -450,12 +451,9 @@ export function SymbolEditorModal({
 
     setIsSaving(true);
     try {
-      // 1. Upload pending image (upload tab OR Image Search proxy result)
+      // 1. Upload pending image (upload tab, Image Search proxy, or AI Generate)
       let resolvedImagePath = draft.resolvedImagePath;
-      if (
-        pendingImageBlob &&
-        (draft.imageSourceTab === 'upload' || draft.imageSourceTab === 'image-search')
-      ) {
+      if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
         const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
@@ -488,6 +486,8 @@ export function SymbolEditorModal({
               attribution: draft.wikimediaAttribution,
               license: draft.wikimediaLicense,
             }
+          : draft.imageSourceTab === 'ai-generate'
+          ? { type: 'aiGenerated', imagePath: resolvedImagePath! }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
       // 4. Build audio override using the active-source model.
@@ -752,11 +752,11 @@ export function SymbolEditorModal({
               />
             )}
             {draft.imageSourceTab === 'ai-generate' && (
-              <div className="flex items-center justify-center h-full p-6">
-                <p className="text-theme-s text-center" style={{ color: 'var(--theme-secondary-text)' }}>
-                  {t('aiComingSoon')}
-                </p>
-              </div>
+              <AiGenerateTab
+                draft={draft}
+                patch={patch}
+                onImageSelected={handleImageSelected}
+              />
             )}
           </div>
         </div>

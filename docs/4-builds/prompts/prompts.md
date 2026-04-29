@@ -102,3 +102,6 @@ I'm building Mo Speech Home, a full AAC (Augmentative and Alternative Communicat
   6. Add Google Images, AI Generate, and TTS Generate tabs last (need new server routes)                                                               
                                                                                                                                                        
   Start by reading the spec files listed above. Then write a build plan and confirm before writing any code.             
+
+
+   Building the AI Generate tab (tab 4) of the Symbol Editor per ADR-005. Credentials are sorted: mo-speech-app@mo-speech-prod SA, key at ~/.gcloud/mo-speech-app-prod.json GOOGLE_SERVICE_ACCOUNT_JSON in .env.local (TTS already migrated and smoke-tested green). Read ADR-005 §"AI Generate" and app/api/tts/route.ts for the auth pattern, then propose the build steps. Two open decisions to confirm: (1) skip sharp, accept Imagen's native ~1MB PNG; (2) skip @google-cloud/aiplatform SDK, use REST + google-auth-library like TTS does.

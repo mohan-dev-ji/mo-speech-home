@@ -5,6 +5,7 @@ import type { Doc, Id } from '@/convex/_generated/dataModel';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { ModellingOverlayWrapper } from '@/app/components/shared/ModellingOverlayWrapper';
 
 type Props = {
   category: Doc<'profileCategories'>;
@@ -39,10 +40,14 @@ export function CategoryTile({
   const Tag = isEditing ? ('div' as const) : ('button' as const);
 
   return (
+    <ModellingOverlayWrapper
+      componentKey={`category-tile-${category._id}`}
+      className="w-full aspect-square"
+    >
     <Tag
       {...(!isEditing && { type: 'button', onClick })}
       className={[
-        'relative w-full aspect-square',
+        'relative w-full h-full',
         !isEditing && 'cursor-pointer group',
       ].filter(Boolean).join(' ')}
     >
@@ -149,5 +154,6 @@ export function CategoryTile({
         </div>
       </div>
     </Tag>
+    </ModellingOverlayWrapper>
   );
 }

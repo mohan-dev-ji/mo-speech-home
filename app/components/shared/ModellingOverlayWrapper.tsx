@@ -4,7 +4,7 @@
 // Reads ModellingSessionContext to highlight/pulse when this componentKey is active.
 // This is the ONLY shared component with a context dependency — intentional.
 //
-// componentKey convention: "symbol-{symbolId}" | "category-{categoryId}" | "talker-bar"
+// componentKey convention: "symbol-{symbolId}" | "category-tile-{categoryId}" | "categories-nav-button"
 
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
 
@@ -23,7 +23,7 @@ export function ModellingOverlayWrapper({
   const highlighted = isHighlighted(componentKey);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} data-component-key={componentKey}>
       {children}
       {highlighted && (
         <div

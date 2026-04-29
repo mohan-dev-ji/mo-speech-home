@@ -116,7 +116,7 @@ export function ListItemPlayModal({
           </span>
         )}
         <div
-          className="w-full aspect-square rounded-theme overflow-hidden flex items-center justify-center p-4"
+          className="w-full aspect-square rounded-theme overflow-hidden flex items-center justify-center"
           style={{ background: 'var(--theme-symbol-bg)' }}
         >
           {item.imagePath ? (
@@ -124,7 +124,7 @@ export function ListItemPlayModal({
             <img
               src={`/api/assets?key=${item.imagePath}`}
               alt={item.description ?? ''}
-              className="w-[78%] h-[78%] object-contain"
+              className="w-[90%] h-[90%] object-contain"
               draggable={false}
             />
           ) : (
@@ -198,7 +198,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
           <img
             src={`/api/assets?key=${item.imagePath}`}
             alt={item.description ?? ''}
-            className="w-[78%] h-[78%] object-contain"
+            className="w-[90%] h-[90%] object-contain"
             draggable={false}
           />
         ) : (

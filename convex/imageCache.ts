@@ -75,3 +75,72 @@ export const writeSearch = mutation({
     }
   },
 });
+
+// ─── AI image cache (Imagen 4 Fast) ──────────────────────────────────────────
+
+/**
+ * Look up a cached AI image by hash. Returns null on miss.
+ * No expiry — the AI cache is permanent.
+ */
+export const lookupAi = query({
+  args: { hash: v.string() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query("aiImageCache")
+      .withIndex("by_hash", (q) => q.eq("hash", args.hash))
+      .unique();
+
+    if (!row) return null;
+    return { r2Key: row.r2Key, prompt: row.prompt, style: row.style };
+  },
+});
+
+/**
+ * Persist a freshly generated image. Inserts on miss; replaces on (rare) race.
+ */
+export const writeAi = mutation({
+  args: {
+    hash: v.string(),
+    prompt: v.string(),
+    style: v.string(),
+    r2Key: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("aiImageCache")
+      .withIndex("by_hash", (q) => q.eq("hash", args.hash))
+      .unique();
+
+    if (existing) {
+      // Race: another concurrent request landed first. Keep the existing row
+      // (its r2Key is already referenced by the response that won the race) and
+      // bump hits so this generation isn't lost from analytics.
+      await ctx.db.patch(existing._id, { hits: existing.hits + 1 });
+      return;
+    }
+
+    await ctx.db.insert("aiImageCache", {
+      hash: args.hash,
+      prompt: args.prompt,
+      style: args.style,
+      r2Key: args.r2Key,
+      hits: 0,
+    });
+  },
+});
+
+/**
+ * Increment the hit counter on a cached entry. Called from the route on a
+ * cache hit so the hits counter stays free of side-effects in the query.
+ */
+export const recordAiHit = mutation({
+  args: { hash: v.string() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query("aiImageCache")
+      .withIndex("by_hash", (q) => q.eq("hash", args.hash))
+      .unique();
+    if (!row) return;
+    await ctx.db.patch(row._id, { hits: row.hits + 1 });
+  },
+});

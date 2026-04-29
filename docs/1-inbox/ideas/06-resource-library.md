@@ -32,17 +32,30 @@ All symbol references within a pack point to `symbolId` values in the SymbolStix
 
 ---
 
-## Admin Management
+## Authoring Model (Hybrid)
 
-Packs are created and managed via the Mo Speech admin dashboard. Admins can:
+Admins author resource pack content directly in the main Mo Speech app, using their own student profile as the working surface. When a Clerk user has `publicMetadata.role === "admin"`, the app exposes additional affordances:
 
-- Create a new pack from scratch — adding symbols, lists, sentences, first-thens
-- Preview the pack as a user would see it before publishing
-- Set a `publishedAt` date (null = draft, not visible to users)
-- Set an `expiresAt` date — pack automatically hides after this date (Halloween pack goes live 1 October, expires 1 November)
-- Mark as `featured` — appears in the home dashboard promotional section
-- Add `season` and `tags` for discoverability
-- Unpublish or delete at any time
+- "Save category to library" — appears in category edit-mode toolbar
+- "Save list to library" — appears in list editor
+- "Save sentence to library" — appears in sentence editor
+- "Save first-then to library" — appears in first-then editor
+
+Tapping any of these takes a snapshot of the current item and creates or updates a `resourcePack` document. This approach reuses every existing UI component — no duplicate authoring surface inside the admin dashboard. The trade-off (mixing creator and consumer modes in one app) is gated cleanly by the role check; regular users never see these buttons.
+
+---
+
+## Admin CMS (Thin)
+
+The admin dashboard's Library section handles only metadata and lifecycle, not content authoring:
+
+- Pack listing (filter by season, status, featured)
+- Set `publishedAt` / unpublish (null = draft, not visible to users)
+- Set `expiresAt` (e.g. Halloween pack expires 1 November)
+- Toggle `featured` for home dashboard promotion
+- Set `season` and `tags` for discoverability
+- Reorder packs within season groupings
+- Delete packs
 
 No code deploy is required to publish, update, or expire a pack.
 
@@ -53,6 +66,17 @@ No code deploy is required to publish, update, or expire a pack.
 Featured and current seasonal packs are surfaced on the Home dashboard. The home screen fetches a lightweight metadata index on load — just name, cover image, season, and featured flag — not the full pack content. Full content only fetches when the user taps to preview or load.
 
 The promotional section updates automatically as packs are published and expired by the admin team.
+
+---
+
+## Public Browse Surface
+
+The library has two browse surfaces, both built with the design system:
+
+- **Marketing-site library** — public, unauthenticated, SEO-indexed. Lives on the marketing site (e.g. `/library` or `/resources`). Shows pack covers, seasonal context, preview content. No load action — call-to-action is "Sign up to load this pack". Functions as a sales asset and discovery surface.
+- **Authed app library** — at `/[locale]/library`. Same browse experience but adds the "Load into profile" action and surfaces personal load history. Drives the actual loading flow.
+
+Pack metadata is queried by both surfaces. The marketing-site version uses ISR / static generation where possible to keep latency low; the authed version uses live Convex queries.
 
 ---
 

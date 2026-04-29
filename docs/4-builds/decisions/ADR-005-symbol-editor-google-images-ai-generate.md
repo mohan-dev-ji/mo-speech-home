@@ -1,7 +1,13 @@
 # ADR-005 — Symbol Editor: Image Search + AI Generate Tabs
 
-**Date:** 2026-04-27 (revised 2026-04-28 — pivoted from Google CSE to Wikimedia Commons)
+**Date:** 2026-04-27 (revised 2026-04-28 — pivoted from Google CSE to Wikimedia Commons; revised 2026-04-29 — AI Generate build deviations)
 **Status:** Accepted
+
+> **2026-04-29 update (AI Generate build):** When implementing the Imagen route, two §3 dependencies were dropped:
+> 1. **No `sharp`.** Imagen 4 Fast has no upstream resize parameter (it's `1K`-only), so the route stores the native ~1MB PNG. With a 10/user/day cap the R2 cost is rounding-error; `sharp` is a heavy native dep that slows Vercel cold starts. Tradeoff: every play-modal render of an AI symbol ships ~1MB instead of ~80KB. If mobile bandwidth complaints surface, add `sharp` (or browser-side `createImageBitmap` resize at display time) — both are localised follow-ups.
+> 2. **No `@google-cloud/aiplatform` SDK.** The route uses REST + `google-auth-library`, mirroring `app/api/tts/route.ts:15-50`. The SDK adds ~100MB of grpc/proto deps and gives nothing here (no streaming, no useful retry logic). Same auth code path as TTS.
+>
+> Schema consequence: `aiImageCache.r2Key` ends in `.png` not `.webp` (cache helper `R2_PATHS.aiCache` returns `ai-cache/{uuid}.png`).
 
 > **2026-04-28 update:** Google Custom Search JSON API turned out to be unusable on this Google account regardless of project, billing, key, or restriction state — the failure is account-scoped, not project-scoped (full diagnostic trail in [§ Google Cloud diagnostic trail](#google-cloud-diagnostic-trail)). The Image Search tab now uses **Wikimedia Commons** directly as v1, with **multi-source merge** (Pixabay + Unsplash + Pexels) as a follow-up if real-world testing shows gaps. AI Generate (Vertex AI Imagen) is unaffected — it uses service-account auth which works fine.
 

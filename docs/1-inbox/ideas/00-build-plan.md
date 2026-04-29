@@ -343,24 +343,124 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 
 ---
 
-## Phase 5 — Resource Library
+## Phase 5 — Modelling Mode
 
-**Goal:** Admin can publish packs; users can load them from the home dashboard.
+**Goal:** Instructor can push a real-time guided walkthrough to student's device.
 
-### 5.1 Admin resource pack management
+All places a symbol can be modelled from (categories list, category detail page) are now built. Modelling is tightly scoped — only available in category-page edit mode — but ships a major marketing differentiator. It also forces the dual-profile testing rig into a solid state, which Resource Library benefits from.
 
-- Extend existing admin dashboard with Library section
-- Create/edit/publish `resourcePacks` in Convex
-- Season, date range, featured flag, translation status
-- Admin uses shared components (`CategoryBoardGrid`, `SymbolCard`, `PlayModal`) to preview packs
+### 5.0 Dual-profile foundation
 
-### 5.2 Home dashboard promotions
+Two browser windows on the same login must independently render instructor and student experiences.
+
+- `setViewMode` already exists in `ProfileContext.tsx` but has no UI caller — surface a small instructor-only toggle (settings page or topbar badge)
+- When `viewMode === 'student-view'`, all edit affordances must be suppressed regardless of role
+- Sweep `stateFlags.*` reads across the app — verify `talker_visible`, `talker_banner_toggle`, `audio_autoplay`, `modelling_push` actually gate UI live
+- Test rig: open two windows on the same login → window A in instructor mode, window B in student-view → confirm Convex subscription propagates settings live
+
+### 5.0a Component-key gap fix (pre-flight)
+
+Audit confirmed three known gaps that block highlighting:
+
+- `app/components/app/categories/ui/CategoryTile.tsx` — wrap with `ModellingOverlayWrapper componentKey={"category-tile-" + category._id}`
+- `app/components/app/shared/Sidebar.tsx` — wrap categories nav item with `componentKey="categories-nav-button"`
+- `app/components/shared/ModellingOverlayWrapper.tsx` — convention comment drift; doc says `category-tile-{categoryId}`, code comment says `category-{categoryId}`. Fix the comment.
+
+### 5.1 Convex session infrastructure
+
+- `modellingSession` table already in schema
+- `createModellingSession` mutation — pre-computes steps from symbol's category location; cancels any existing active session for the profile first
+- `advanceStep` mutation — student taps; increments `currentStep`
+- `cancelModellingSession` mutation
+- `getActiveModellingSession(profileId)` query — student subscribes
+- `getModellingSessionById(sessionId)` query — instructor mirror view subscribes
+
+### 5.2 ModellingSessionContext
+
+- Already wrapping the app (set up in Phase 0)
+- Now wire in the Convex subscription
+- Expose `activeSession`, `currentStep`, `isHighlighted(componentKey)`, `advanceStep()`
+
+### 5.3 ModellingOverlayWrapper
+
+- Already wrapping highlightable components (set up in Phase 0)
+- Now wire in the actual overlay behaviour:
+  - Inactive: black div at `opacity-80`, `pointer-events-none`
+  - Active target: black div at `opacity-0`, glow ring applied
+- Set `data-component-key={componentKey}` on outer div so `ModellingAnnotation` can locate targets
+
+### 5.4 ModellingAnnotation
+
+- Arrow + symbol image + label
+- Positioned via single `getBoundingClientRect()` call per step change
+- Left/right based on target centre vs 50% viewport width
+- Vertical centre aligned with target
+- Respects `reduce_motion` state flag and OS `prefers-reduced-motion`
+
+### 5.5 Instructor trigger UI
+
+- Modelling trigger from Category Board edit mode (instructor only)
+- Gated by `viewMode === 'instructor'` AND `useSubscription().hasModelling` AND `stateFlags.modelling_push`
+- Symbol picker → confirm modal → session created
+
+### 5.6 Mirror view and success animation
+
+- Instructor screen subscribes to `getModellingSessionById`
+- Shows student's current step in real time
+- Success animation on `status = "completed"`; both devices return to previous screen
+
+**Reference:** `04-modelling-mode.md`, ADR-006
+
+---
+
+## Phase 6 — Resource Library
+
+**Goal:** Admin can publish packs; users can load them from a real home dashboard and a public library surface.
+
+### 6.1 Authoring (in main app, admin-only)
+
+Admins author resource pack content directly in the main Mo Speech app, using their own student profile as the working surface. When a Clerk user has `publicMetadata.role === "admin"`, the app exposes additional affordances:
+
+- "Save category to library" — in category edit-mode toolbar
+- "Save list to library" — in list editor
+- "Save sentence to library" — in sentence editor
+- "Save first-then to library" — in first-then editor
+
+Tapping any of these snapshots the current item and creates or updates a `resourcePack` document. Reuses every existing UI component — no duplicate authoring surface inside the admin dashboard.
+
+### 6.2 Admin CMS (thin)
+
+The admin dashboard gets a Library section that handles only metadata and lifecycle:
+
+- Pack listing (filter by season, status, featured)
+- Set `publishedAt` / unpublish (null = draft)
+- Set `expiresAt` (e.g. Halloween pack expires 1 November)
+- Toggle `featured` for home dashboard promotion
+- Set `season` and `tags`
+- Reorder packs within season groupings
+- Delete packs
+
+No content authoring lives here. No code deploy required to publish, update, or expire a pack.
+
+### 6.3 Public browse surface
+
+Two browse surfaces, both built with the design system:
+
+- **Marketing-site library** — public, unauthenticated, SEO-indexed. Lives on the marketing site (e.g. `/library` or `/resources`). Shows pack covers, seasonal context, preview content. No load action — call-to-action is "Sign up to load this pack". Sales asset and discovery surface.
+- **Authed app library** — at `/[locale]/library`. Same browse experience plus the "Load into profile" action.
+
+Marketing-side uses ISR / static generation; authed side uses live Convex queries.
+
+### 6.4 Home dashboard build
+
+The home page is currently a stub. Phase 6 ships a real one:
 
 - `ResourceLibraryContext` fetches featured/seasonal pack metadata on app load
 - Home screen renders promotional cards for featured and current seasonal packs
+- Quick links to key features (categories, search, settings)
 - Full pack content only fetches when user taps to preview or load
 
-### 5.3 Load pack flow
+### 6.5 Load pack flow
 
 `loadResourcePack(profileId, packId)` mutation:
 1. Creates `profileCategory` from pack category
@@ -369,7 +469,9 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 4. Sets `librarySourceId` on all created records
 5. Content is now fully in user's profile — library not touched again
 
-### 5.4 Reload defaults
+`loadStarterTemplate` (called on profile creation, currently stubbed by `seedDefaultProfile`) wires through the same path against the canonical starter pack.
+
+### 6.6 Reload defaults
 
 `reloadFromLibrary(profileCategoryId)` mutation:
 - Checks `librarySourceId`
@@ -378,53 +480,6 @@ Nothing writes to Convex until "Save to [Category]" is tapped:
 - Recreates from library source
 
 **Reference:** `06-resource-library.md`
-
----
-
-## Phase 6 — Modelling Mode
-
-**Goal:** Instructor can push a real-time guided walkthrough to student's device.
-
-### 6.1 Convex session infrastructure
-
-- `modellingSession` table already in schema
-- `createModellingSession` mutation — pre-computes steps from symbol's category location
-- `advanceStep` mutation — student taps; increments `currentStep`
-- `cancelModellingSession` mutation
-- `getActiveModellingSession(profileId)` query — student subscribes
-
-### 6.2 ModellingSessionContext
-
-- Already wrapping the app (set up in Phase 0)
-- Now wire in the Convex subscription
-- Expose `activeSession`, `currentStep`, `isHighlighted(componentKey)`, `advanceStep()`
-
-### 6.3 ModellingOverlayWrapper
-
-- Already wrapping highlightable components (set up in Phase 0)
-- Now wire in the actual overlay behaviour:
-  - Inactive: black div at `opacity-80`, `pointer-events-none`
-  - Active target: black div at `opacity-0`, glow ring applied
-
-### 6.4 ModellingAnnotation
-
-- Arrow + symbol image + label
-- Positioned via single `getBoundingClientRect()` call per step change
-- Left/right based on target centre vs 50% viewport width
-- Vertical centre aligned with target
-
-### 6.5 Instructor trigger UI
-
-- Modelling trigger from Category Board (instructor only)
-- Symbol picker → confirm modal → session created
-
-### 6.6 Mirror view and success animation
-
-- Instructor screen subscribes to `getModellingSessionById`
-- Shows student's current step in real time
-- Success animation on `status = "completed"`; both devices return to previous screen
-
-**Reference:** `04-modelling-mode.md`, ADR-006
 
 ---
 
@@ -551,6 +606,10 @@ These were made deliberately after significant discussion. Do not change them wi
 **Two-tier audio is deliberate** — mechanical Google Standard TTS for individual symbols; natural Google Chirp 3 HD for sentences; this is a product decision, not a cost compromise
 
 **Cross-project Convex calls via HTTP actions** — not direct client queries to another project; prototype the `convex-home` ↔ `convex-identity` HTTP action early before building sharing inbox around it
+
+**Resource Library uses hybrid authoring** — admins author content in the main app via admin-only "Save to library" buttons (full component reuse); a thin admin CMS handles only publish/unpublish, season, featured, and ordering. Do not duplicate authoring UI inside the admin dashboard.
+
+**Library has two surfaces** — public marketing-site browse page (SEO, unauthenticated) and authed `/[locale]/library` (load into profile). Both use the same design system.
 
 ---
 

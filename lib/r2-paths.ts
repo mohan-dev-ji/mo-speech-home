@@ -25,4 +25,8 @@ export const R2_PATHS = {
 
   profileAudio: (profileId: string, uuid: string, ext = "mp3") =>
     `profiles/${profileId}/audio/${uuid}.${ext}`,
+
+  // Global AI image cache — shared across all users, never deleted on profile delete.
+  // PNG because we accept Imagen's native output (no sharp resize).
+  aiCache: (uuid: string) => `ai-cache/${uuid}.png`,
 } as const;

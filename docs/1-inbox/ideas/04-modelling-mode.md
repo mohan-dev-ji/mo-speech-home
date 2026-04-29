@@ -8,6 +8,12 @@ This is the most technically complex feature in Mo Speech Home.
 
 ---
 
+## Prerequisite: Dual-Profile Testing Setup
+
+Modelling mode cannot be developed or tested without a working dual-profile rig. The same logged-in account must be able to run an instructor window and a student-view window simultaneously, with permission flags (`stateFlags.*`) and edit-mode visibility taking effect live. `setViewMode` exists in `ProfileContext.tsx` and must have a UI caller before any modelling work begins.
+
+---
+
 ## The Flow
 
 ### Instructor side
@@ -29,6 +35,12 @@ This is the most technically complex feature in Mo Speech Home.
 7. Steps continue until the student reaches the target symbol
 8. Success animation fires on both screens
 9. Both devices return to where they were
+
+---
+
+## Where Modelling is Available
+
+Modelling mode is only available from a category page in instructor edit mode. It is not available from search, the home dashboard, or any other surface. The trigger is gated by three conditions, all required: `viewMode === 'instructor'` AND `useSubscription().hasModelling` AND `stateFlags.modelling_push`.
 
 ---
 
@@ -115,6 +127,18 @@ Every tappable element the walkthrough needs to highlight must have a stable `co
 - `categories-nav-button`
 - `category-tile-{categoryId}`
 - `symbol-{symbolId}`
+
+---
+
+## Component Key Wiring Checklist
+
+Every highlightable element must be wrapped in `ModellingOverlayWrapper` with a stable `componentKey`, set in Phase 0 and audited each phase:
+
+- `categories-nav-button` — sidebar categories nav item (`app/components/app/shared/Sidebar.tsx`)
+- `category-tile-{categoryId}` — category list tile (`app/components/app/categories/ui/CategoryTile.tsx`)
+- `symbol-{symbolId}` — symbol card (`app/components/shared/SymbolCard.tsx`) ✓ already wired
+
+The wrapper also exposes `data-component-key={componentKey}` on its outer div so `ModellingAnnotation` can locate the target via a single `document.querySelector` per step change.
 
 ---
 
