@@ -5,6 +5,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { QuickSettings } from '@/app/components/app/shared/QuickSettings';
+import { BreadcrumbViewModeDropdown } from '@/app/components/app/shared/BreadcrumbViewModeDropdown';
 import { useState } from 'react';
 import { Menu, X, Home, Search, Tag, List, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,7 +26,6 @@ export function TopBar() {
   const params = useParams();
   const locale = params.locale as string;
   const tNav = useTranslations('nav');
-  const tCommon = useTranslations('common');
   const { breadcrumbExtra } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -125,16 +125,10 @@ export function TopBar() {
           {mobileLabel}
         </span>
 
-        {/* Instructor badge — desktop only */}
-        <span
-          className="hidden md:inline text-small font-medium px-2.5 py-1 rounded-md shrink-0"
-          style={{
-            color: 'var(--theme-secondary-alt-text)',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        >
-          {tCommon('instructor')}
-        </span>
+        {/* View-mode dropdown — desktop only */}
+        <div className="hidden md:block">
+          <BreadcrumbViewModeDropdown />
+        </div>
 
         {/* Full breadcrumb trail — desktop only */}
         <span className="hidden md:inline text-small" style={linkStyle}>›</span>
@@ -158,15 +152,7 @@ export function TopBar() {
             style={{ borderBottom: '1px solid var(--theme-line)' }}
           >
             <div className="flex items-center gap-2">
-              <span
-                className="text-small font-medium px-2.5 py-1 rounded-md"
-                style={{
-                  color: 'var(--theme-secondary-alt-text)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                }}
-              >
-                {tCommon('instructor')}
-              </span>
+              <BreadcrumbViewModeDropdown />
               <span className="text-small" style={linkStyle}>›</span>
               {breadcrumbs}
             </div>

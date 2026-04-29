@@ -17,6 +17,8 @@ import type * as profileLists from "../profileLists.js";
 import type * as profileSentences from "../profileSentences.js";
 import type * as profileSymbols from "../profileSymbols.js";
 import type * as studentProfiles from "../studentProfiles.js";
+import type * as studentViewLock from "../studentViewLock.js";
+import type * as studentViewSessions from "../studentViewSessions.js";
 import type * as symbols from "../symbols.js";
 import type * as themes from "../themes.js";
 import type * as ttsCache from "../ttsCache.js";
@@ -38,6 +40,8 @@ declare const fullApi: ApiFromModules<{
   profileSentences: typeof profileSentences;
   profileSymbols: typeof profileSymbols;
   studentProfiles: typeof studentProfiles;
+  studentViewLock: typeof studentViewLock;
+  studentViewSessions: typeof studentViewSessions;
   symbols: typeof symbols;
   themes: typeof themes;
   ttsCache: typeof ttsCache;

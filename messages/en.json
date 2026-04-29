@@ -103,7 +103,17 @@
   "common": {
     "talker": "Talker",
     "instructor": "Instructor",
-    "student": "Student"
+    "student": "Student",
+    "studentView": "Student"
+  },
+  "studentViewLock": {
+    "instructorDescription": "Full access — edit profile, settings, content",
+    "studentDescription": "What the student sees on their device",
+    "studentProfileDescription": "Switch to this student's view",
+    "lockStudentView": "Lock student view",
+    "unlockStudentView": "Unlock student view",
+    "toastUnlockedTitle": "Student is using their profile",
+    "toastUnlockedBody": "The student-view dropdown is unlocked. Lock it from the breadcrumb to prevent the student leaving their profile."
   },
   "topBar": {
     "header": "Header",

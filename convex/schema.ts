@@ -172,6 +172,7 @@ export default defineSchema({
       student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
       first_thens_visible:  v.optional(v.boolean()), // First Thens nav item; default true
     }),
+    studentViewLocked: v.optional(v.boolean()),  // when true on a student-view device, the breadcrumb dropdown is fully disabled. Toggled remotely by instructor.
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"]),
@@ -572,4 +573,19 @@ export default defineSchema({
     day: v.string(),     // 'YYYY-MM-DD' UTC
     count: v.number(),
   }).index("by_user_and_feature_and_day", ["userId", "feature", "day"]),
+
+  /**
+   * Live student-view sessions for presence-based instructor toast.
+   * One row per browser tab currently rendering a profile in student-view.
+   * Heartbeat refreshes lastSeen every 15s; rows with lastSeen > 30s old are stale.
+   * Cron drops rows older than 5 minutes.
+   */
+  studentViewSessions: defineTable({
+    profileId: v.id("studentProfiles"),
+    sessionId: v.string(),       // random uuid generated per browser tab (sessionStorage)
+    clerkUserId: v.string(),     // identity.subject — who's holding the session
+    lastSeen: v.number(),        // ms timestamp; heartbeat updates this
+  })
+    .index("by_profile", ["profileId"])
+    .index("by_session", ["sessionId"]),
 });

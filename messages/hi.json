@@ -102,7 +102,17 @@
   "common": {
     "talker": "टॉकर",
     "instructor": "प्रशिक्षक",
-    "student": "छात्र"
+    "student": "छात्र",
+    "studentView": "Student (hi)"
+  },
+  "studentViewLock": {
+    "instructorDescription": "Full access — edit profile, settings, content (hi)",
+    "studentDescription": "What the student sees on their device (hi)",
+    "studentProfileDescription": "Switch to this student's view (hi)",
+    "lockStudentView": "Lock student view (hi)",
+    "unlockStudentView": "Unlock student view (hi)",
+    "toastUnlockedTitle": "Student is using their profile (hi)",
+    "toastUnlockedBody": "The student-view dropdown is unlocked. Lock it from the breadcrumb to prevent the student leaving their profile. (hi)"
   },
   "topBar": {
     "header": "Header (hi)",

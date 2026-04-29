@@ -61,9 +61,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // ─── Locale mismatch redirect — returning users only ─────────────────────────
   // If the stored locale differs from the current URL locale, redirect.
   // This handles sign-in which always lands on /en/home regardless of preference.
+  // In student-view, StudentViewLocaleSync owns the URL locale, so this skips.
 
   useEffect(() => {
     if (!userRecord || !urlLocale || !router) return;
+    const isStudentView =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("mo-view-mode") === "student-view";
+    if (isStudentView) return;
     const storedLocale = userRecord.locale;
     if (storedLocale && storedLocale !== urlLocale) {
       // Swap the locale segment in the current path so the user stays on the same page.

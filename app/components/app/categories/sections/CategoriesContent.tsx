@@ -36,6 +36,17 @@ import {
   DialogClose,
 } from '@/app/components/shared/ui/Dialog';
 
+// Categories list grid columns — mirrors CategoryBoardGrid's symbol-card scale
+// but one step coarser so category tiles stay legible.
+//   large  → 1 / 2 / 4    (default; matches old layout)
+//   medium → 2 / 4 / 6
+//   small  → 3 / 6 / 8
+const CATEGORIES_GRID_CLASSES = {
+  large:  'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+  medium: 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6',
+  small:  'grid-cols-3 md:grid-cols-6 lg:grid-cols-8',
+} as const;
+
 // ─── Sortable wrapper ─────────────────────────────────────────────────────────
 // Owns the useSortable hook and passes drag handle props down to CategoryTile.
 
@@ -211,7 +222,7 @@ export function CategoriesContent() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={localOrder} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-theme-mobile-gap md:gap-theme-gap">
+            <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
               {orderedCategories.map((cat) => (
                 <SortableCategoryTile
                   key={cat._id}

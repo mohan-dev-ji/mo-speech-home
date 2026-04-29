@@ -6,6 +6,16 @@ import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ModellingOverlayWrapper } from '@/app/components/shared/ModellingOverlayWrapper';
+import { useProfile } from '@/app/contexts/ProfileContext';
+
+// Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container
+// (the aspect-square wrapper marked @container), so the label scales smoothly as
+// the tile resizes with viewport, breakpoint, or grid_size column count.
+const NAME_FONT_SIZE = {
+  large:  'clamp(0.875rem, 6cqi, 1.5rem)',
+  medium: 'clamp(0.75rem,  7cqi, 1.125rem)',
+  small:  'clamp(0.625rem, 8cqi, 0.875rem)',
+} as const;
 
 type Props = {
   category: Doc<'profileCategories'>;
@@ -39,10 +49,13 @@ export function CategoryTile({
   const colourPair = getCategoryColour(category.colour);
   const Tag = isEditing ? ('div' as const) : ('button' as const);
 
+  const { stateFlags } = useProfile();
+  const nameFontSize = NAME_FONT_SIZE[stateFlags.grid_size ?? 'large'];
+
   return (
     <ModellingOverlayWrapper
       componentKey={`category-tile-${category._id}`}
-      className="w-full aspect-square"
+      className="w-full aspect-square @container"
     >
     <Tag
       {...(!isEditing && { type: 'button', onClick })}
@@ -88,24 +101,37 @@ export function CategoryTile({
           isEditing && 'p-theme-folder',
         ].filter(Boolean).join(' ')}
       >
-        {/* Folder tab */}
+        {/* Folder tab — height scales with tile via cqi, clamped for very small/large tiles */}
         <div
-          className="self-start h-6 w-[30%] shrink-0 rounded-t-theme-sm"
-          style={{ backgroundColor: colourPair.c500 }}
+          className="self-start w-[30%] shrink-0 rounded-t-theme-sm"
+          style={{
+            height: 'clamp(0.75rem, 8cqi, 1.75rem)',
+            backgroundColor: colourPair.c500,
+          }}
         />
 
         {/* Card body — dark bg matches the design */}
         <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
 
-          {/* Category name — top of card, text scales up on smaller screens */}
-          <div className="shrink-0 px-3 pt-3 pb-2 flex items-center justify-center">
-            <p className="text-theme-h3 md:text-theme-h4 lg:text-theme-large font-semibold text-theme-alt-text text-center truncate w-full leading-tight">
+          {/* Category name — fluid font + padding scale with the tile's container size */}
+          <div
+            className="shrink-0 flex items-center justify-center"
+            style={{ padding: '3cqi 3cqi 2cqi 3cqi' }}
+          >
+            <p
+              className="font-semibold text-theme-alt-text text-center truncate w-full leading-tight"
+              style={{ fontSize: nameFontSize }}
+            >
               {name}
             </p>
           </div>
 
-          {/* Symbol — square coloured box, height-first sizing */}
-          <div className="flex-1 min-h-0 p-3 flex items-center justify-center overflow-hidden">
+          {/* Symbol — square coloured box, height-first sizing.
+              Extra bottom padding gives breathing room between the image and the folder edge. */}
+          <div
+            className="flex-1 min-h-0 flex items-center justify-center overflow-hidden"
+            style={{ padding: '3cqi 3cqi 6cqi' }}
+          >
             <div
               className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: colourPair.c100 }}
@@ -115,7 +141,8 @@ export function CategoryTile({
                 <img
                   src={`/api/assets?key=${category.imagePath}`}
                   alt={name}
-                  className="w-full h-full object-contain p-2"
+                  className="w-full h-full object-contain"
+                  style={{ padding: '2cqi' }}
                   draggable={false}
                 />
               ) : (

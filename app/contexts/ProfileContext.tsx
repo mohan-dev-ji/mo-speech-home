@@ -104,8 +104,25 @@ const ProfileContext = createContext<ProfileContextValue>({
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
+const VIEW_MODE_STORAGE_KEY = 'mo-view-mode';
+
+function readStoredViewMode(): ViewMode {
+  if (typeof window === 'undefined') return 'instructor';
+  const stored = window.sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
+  return stored === 'student-view' ? 'student-view' : 'instructor';
+}
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [viewMode, setViewMode] = useState<ViewMode>('instructor');
+  // Lazy initializer reads sessionStorage on first client render; SSR sees 'instructor'
+  const [viewMode, setViewModeState] = useState<ViewMode>(readStoredViewMode);
+
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    }
+  };
+
   const { setTheme } = useTheme();
 
   // ── Data queries ────────────────────────────────────────────────────────────
@@ -131,15 +148,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const updateStudentProfileMutation = useMutation(api.studentProfiles.updateStudentProfile);
   const setActiveProfileMutation     = useMutation(api.studentProfiles.setActiveProfile);
 
-  // ── Apply instructor theme from Convex on load ──────────────────────────────
+  // ── Apply theme from Convex — viewMode-aware ────────────────────────────────
+  // Instructor view → users.themeSlug; student-view → studentProfile.themeSlug.
+
+  const activeThemeSlug =
+    viewMode === 'student-view'
+      ? (studentProfile?.themeSlug ?? userRecord?.themeSlug)
+      : userRecord?.themeSlug;
 
   useEffect(() => {
-    if (!userRecord?.themeSlug) return;
-    const slug = userRecord.themeSlug as ThemeSlug;
+    if (!activeThemeSlug) return;
+    const slug = activeThemeSlug as ThemeSlug;
     if (THEME_TOKENS[slug]) {
       setTheme(slug, THEME_TOKENS[slug]);
     }
-  }, [userRecord?.themeSlug]);
+  }, [activeThemeSlug]);
 
   // ── Compute active stateFlags ────────────────────────────────────────────────
 

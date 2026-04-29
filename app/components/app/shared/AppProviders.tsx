@@ -8,6 +8,9 @@ import { ResourceLibraryProvider } from '@/app/contexts/ResourceLibraryContext';
 import { BreadcrumbProvider } from '@/app/contexts/BreadcrumbContext';
 import { AppStateProvider } from '@/app/components/AppStateProvider';
 import { StudentOnboardingGate } from '@/app/components/app/onboarding/StudentOnboardingGate';
+import { ToastProvider } from '@/app/components/shared/Toast';
+import { InstructorPresenceWatcher } from '@/app/components/app/shared/InstructorPresenceWatcher';
+import { StudentViewLocaleSync } from '@/app/components/app/shared/StudentViewLocaleSync';
 import type { ReactNode } from 'react';
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -19,8 +22,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <ModellingSessionProvider>
               <ResourceLibraryProvider>
                 <BreadcrumbProvider>
-                  <StudentOnboardingGate />
-                  {children}
+                  <ToastProvider>
+                    <StudentOnboardingGate />
+                    <InstructorPresenceWatcher />
+                    <StudentViewLocaleSync />
+                    {children}
+                  </ToastProvider>
                 </BreadcrumbProvider>
               </ResourceLibraryProvider>
             </ModellingSessionProvider>
