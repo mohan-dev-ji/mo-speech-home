@@ -29,7 +29,7 @@ export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
   const router = useRouter();
   const { setBreadcrumbExtra } = useBreadcrumb();
-  const { language, activeProfileId, stateFlags, studentProfile } = useProfile();
+  const { language, accountId, stateFlags, studentProfile } = useProfile();
   const { talkerMode } = useTalker();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -294,10 +294,10 @@ export function ListDetailContent({ listId }: Props) {
         onClose={() => setPlayModal(null)}
       />
 
-      {symbolPickerForIndex !== null && activeProfileId && (
+      {symbolPickerForIndex !== null && accountId && (
         <SymbolEditorModal
           isOpen={true}
-          profileId={activeProfileId as Id<'studentProfiles'>}
+          accountId={accountId}
           language={language}
           editorMode="listItem"
           voiceId={studentProfile?.voiceId ?? 'en-GB-News-M'}

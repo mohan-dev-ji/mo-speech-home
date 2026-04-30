@@ -8,10 +8,11 @@ import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { type ThemeSlug } from "@/app/contexts/ThemeContext";
 import {
-  DialogHeader, DialogTitle, DialogFooter, DialogClose,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
 } from "@/app/components/shared/ui/Dialog";
 import { Button } from "@/app/components/shared/ui/Button";
 import { Input } from "@/app/components/shared/ui/Input";
+import { HeaderModeControl } from "@/app/components/app/shared/HeaderModeControl";
 import { ChevronDown } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
@@ -37,12 +38,13 @@ const PAGE_PERMISSIONS = [
   { flag: "search_visible",     labelKey: "permSearch",     defaultVal: true  },
   { flag: "categories_visible", labelKey: "permCategories", defaultVal: true  },
   { flag: "lists_visible",      labelKey: "permLists",      defaultVal: true  },
+  { flag: "sentences_visible",  labelKey: "permSentences",    defaultVal: true  },
   { flag: "settings_visible",   labelKey: "permSettings",   defaultVal: false },
 ] as const;
 
 const EDITING_PERMISSIONS = [
-  { flag: "sentences_visible",  labelKey: "permSentences",    defaultVal: true  },
-  { flag: "student_can_edit",   labelKey: "permAllowEditing", defaultVal: false },
+  { flag: "quick_settings_visible", labelKey: "permQuickSettings", defaultVal: false },
+  { flag: "student_can_edit",       labelKey: "permAllowEditing",  defaultVal: false },
 ] as const;
 
 // ─── Profile tab content ──────────────────────────────────────────────────────
@@ -67,6 +69,7 @@ function ProfileTabContent({
   const [origName,    setOrigName]    = useState(profile.name);
   const [savingName,  setSavingName]  = useState(false);
   const [deleteOpen,  setDeleteOpen]  = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [error,       setError]       = useState("");
 
@@ -141,6 +144,7 @@ function ProfileTabContent({
     } catch {
       setError(t("errorGeneric"));
       setDeleting(false);
+      setConfirmOpen(false);
       setDeleteOpen(false);
     }
   };
@@ -279,6 +283,14 @@ function ProfileTabContent({
         </div>
       </div>
 
+      {/* Header (talker/banner) */}
+      <HeaderModeControl
+        headerOn={flags.talker_visible !== undefined ? !!flags.talker_visible : true}
+        inBannerMode={!!flags.header_in_banner_mode}
+        onToggleHeader={(next) => setFlag({ profileId: profile._id, flag: "talker_visible", value: next })}
+        onSetBannerMode={(next) => setFlag({ profileId: profile._id, flag: "header_in_banner_mode", value: next })}
+      />
+
       {/* Permissions */}
       <div>
         <p className="text-small font-semibold text-foreground mb-3">
@@ -345,12 +357,30 @@ function ProfileTabContent({
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${deleteOpen ? "rotate-180" : ""}`} />
           </button>
           {deleteOpen && (
-            <div className="mt-2">
-              <Button variant="destructive" size="sm" loading={deleting} onClick={handleDelete}>
+            <div className="mt-2 space-y-2">
+              <p className="text-small text-destructive">{t("deleteWarning")}</p>
+              <Button variant="destructive" size="sm" onClick={() => setConfirmOpen(true)}>
                 {t("deleteConfirmButton")}
               </Button>
             </div>
           )}
+
+          <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("deleteModalTitle", { name: profile.name })}</DialogTitle>
+                <DialogDescription>{t("deleteModalBody")}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="secondary" disabled={deleting}>{t("cancelButton")}</Button>
+                </DialogClose>
+                <Button variant="destructive" loading={deleting} onClick={handleDelete}>
+                  {t("deleteConfirmButton")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </div>

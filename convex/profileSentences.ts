@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 
 const displayPropsSchema = v.optional(
   v.object({
@@ -15,12 +16,15 @@ const displayPropsSchema = v.optional(
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 export const getProfileSentences = query({
-  args: { profileId: v.id("studentProfiles") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+
     const sentences = await ctx.db
       .query("profileSentences")
-      .withIndex("by_profile_id_and_order", (q) =>
-        q.eq("profileId", args.profileId)
+      .withIndex("by_account_id_and_order", (q) =>
+        q.eq("accountId", resolved.accountId)
       )
       .order("asc")
       .collect();
@@ -40,23 +44,19 @@ export const getProfileSentences = query({
 
 export const createProfileSentence = mutation({
   args: {
-    profileId: v.id("studentProfiles"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
 
     const last = await ctx.db
       .query("profileSentences")
-      .withIndex("by_profile_id_and_order", (q) =>
-        q.eq("profileId", args.profileId)
-      )
+      .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
       .order("desc")
       .first();
 
     return ctx.db.insert("profileSentences", {
-      profileId:  args.profileId,
+      accountId,
       name:       args.name,
       order:      last ? last.order + 1 : 0,
       slots:      [],
@@ -71,8 +71,9 @@ export const updateProfileSentenceName = mutation({
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
   },
 });
@@ -89,8 +90,9 @@ export const updateProfileSentenceSlots = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
       slots:     args.slots,
       updatedAt: Date.now(),
@@ -105,8 +107,9 @@ export const updateProfileSentenceAudio = mutation({
     audioPath: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
       text:      args.text,
       audioPath: args.audioPath,
@@ -118,22 +121,24 @@ export const updateProfileSentenceAudio = mutation({
 export const deleteProfileSentence = mutation({
   args: { profileSentenceId: v.id("profileSentences") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.delete(args.profileSentenceId);
   },
 });
 
 export const reorderProfileSentences = mutation({
   args: {
-    profileId:  v.id("studentProfiles"),
     orderedIds: v.array(v.id("profileSentences")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
+      const sentence = await ctx.db.get(args.orderedIds[i]);
+      if (!sentence || sentence.accountId !== accountId)
+        throw new Error("Sentence not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
   },

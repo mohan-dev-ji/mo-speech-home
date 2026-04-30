@@ -127,7 +127,7 @@ type Props = {
 export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
-  const { language, stateFlags, activeProfileId } = useProfile();
+  const { language, stateFlags, accountId } = useProfile();
   const { talkerMode, addToTalker } = useTalker();
   const { setBreadcrumbExtra } = useBreadcrumb();
 
@@ -268,7 +268,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
     .map((id) => symbolMap[id])
     .filter(Boolean) as SymbolRow[];
 
-  if (!activeProfileId) {
+  if (!accountId) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-body" style={{ color: 'var(--theme-secondary-text)' }}>{t('noProfile')}</p>
@@ -388,12 +388,12 @@ export function CategoryDetailContent({ categoryId }: Props) {
       </div>
 
       {/* Symbol editor modal */}
-      {symbolEditorState.isOpen && activeProfileId && (
+      {symbolEditorState.isOpen && accountId && (
         <SymbolEditorModal
           isOpen={true}
           profileSymbolId={symbolEditorState.profileSymbolId}
           profileCategoryId={profileCategoryId}
-          profileId={activeProfileId as Id<'studentProfiles'>}
+          accountId={accountId}
           language={language}
           onClose={() => setSymbolEditorState({ isOpen: false })}
           onSave={() => setSymbolEditorState({ isOpen: false })}
@@ -401,10 +401,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
       )}
 
       {/* Folder image picker modal */}
-      {folderImageModalOpen && activeProfileId && (
+      {folderImageModalOpen && accountId && (
         <SymbolEditorModal
           isOpen={true}
-          profileId={activeProfileId as Id<'studentProfiles'>}
+          accountId={accountId}
           language={language}
           folderImageMode={true}
           initialImagePath={draftImagePath}

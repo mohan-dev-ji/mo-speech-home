@@ -17,7 +17,7 @@ import {
 type Props = {
   isOpen: boolean;
   sentenceId: Id<'profileSentences'> | null;
-  profileId: Id<'studentProfiles'>;
+  accountId: Id<'users'>;
   initialValue?: string;   // single sentence field — used as both display name and TTS text
   initialAudioPath?: string;
   onClose: () => void;
@@ -34,7 +34,7 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
 export function SentenceAudioModal({
   isOpen,
   sentenceId,
-  profileId,
+  accountId,
   initialValue = '',
   initialAudioPath,
   onClose,
@@ -155,7 +155,7 @@ export function SentenceAudioModal({
       let audioPath: string | undefined = ttsKey;
       if (recordedBlob) {
         const ext = recordedBlob.type.includes('ogg') ? 'ogg' : 'webm';
-        const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
+        const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
         await uploadBlobToR2(recordedBlob, key);
         audioPath = key;
       }

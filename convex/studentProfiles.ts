@@ -36,6 +36,8 @@ const DEFAULT_STATE_FLAGS = {
   lists_visible: true,
   sentences_visible: true,
   student_can_edit: false,
+  quick_settings_visible: false,
+  header_in_banner_mode: false,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -151,12 +153,13 @@ export const createStudentProfile = mutation({
     // New profile becomes active immediately
     await ctx.db.patch(user._id, { activeProfileId: profileId });
 
-    // Seed default categories + symbols in the background — runs right after
-    // this mutation commits so the profile exists before seeding starts.
+    // Seed default categories + symbols at the ACCOUNT level — idempotent, only
+    // seeds if the account has no categories yet. New student profiles share
+    // the existing account library; first profile creation triggers the seed.
     await ctx.scheduler.runAfter(
       0,
-      internal.profileCategories.seedDefaultProfile,
-      { profileId }
+      internal.profileCategories.seedDefaultAccount,
+      { accountId: user._id }
     );
 
     return profileId;
@@ -225,6 +228,19 @@ export const deleteStudentProfile = mutation({
       const next = allProfiles.find((p) => p._id !== args.profileId);
       if (next) await ctx.db.patch(user._id, { activeProfileId: next._id });
     }
+
+    // Clean up per-student tracking (content lives at account level — never deleted here)
+    const sessions = await ctx.db
+      .query("modellingSessions")
+      .withIndex("by_profile_id", (q) => q.eq("profileId", args.profileId))
+      .collect();
+    for (const s of sessions) await ctx.db.delete(s._id);
+
+    const presence = await ctx.db
+      .query("studentViewSessions")
+      .withIndex("by_profile", (q) => q.eq("profileId", args.profileId))
+      .collect();
+    for (const p of presence) await ctx.db.delete(p._id);
 
     await ctx.db.delete(args.profileId);
   },

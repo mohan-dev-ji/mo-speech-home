@@ -44,7 +44,7 @@ export type SymbolEditorModalProps = {
   isOpen: boolean;
   profileSymbolId?: Id<'profileSymbols'>;        // edit mode (categoryBoard)
   profileCategoryId?: Id<'profileCategories'>;    // create mode default category
-  profileId: Id<'studentProfiles'>;
+  accountId: Id<'users'>;                         // R2 key prefix + ownership context
   language: string;
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
   editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot';  // defaults to 'categoryBoard'
@@ -94,7 +94,7 @@ export function SymbolEditorModal({
   isOpen,
   profileSymbolId,
   profileCategoryId: initCategoryId,
-  profileId,
+  accountId,
   language,
   voiceId = DEFAULT_VOICE_ID,
   editorMode = 'categoryBoard',
@@ -194,7 +194,7 @@ export function SymbolEditorModal({
 
   const categories = useQuery(
     api.profileCategories.getProfileCategories,
-    editorMode === 'categoryBoard' ? { profileId } : 'skip'
+    editorMode === 'categoryBoard' ? {} : 'skip'
   );
 
   const createProfileSymbol = useMutation(api.profileSymbols.createProfileSymbol);
@@ -334,7 +334,7 @@ export function SymbolEditorModal({
       try {
         let imagePath = draft.resolvedImagePath;
         if (pendingImageBlob && draft.imageSourceTab === 'upload') {
-          const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+          const key = `accounts/${accountId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
@@ -359,7 +359,7 @@ export function SymbolEditorModal({
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
         } else if (pendingImageBlob) {
-          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+          const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
@@ -395,7 +395,7 @@ export function SymbolEditorModal({
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
         } else if (pendingImageBlob) {
-          const key = `profiles/${profileId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+          const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
           imageSourceType =
@@ -408,7 +408,7 @@ export function SymbolEditorModal({
         let recordedAudioPath = draft.recordedAudioPath;
         if (pendingAudioBlob && draft.activeAudioSource === 'record') {
           const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
-          const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
+          const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
           await uploadBlobToR2(pendingAudioBlob, key);
           recordedAudioPath = key;
         }
@@ -454,7 +454,7 @@ export function SymbolEditorModal({
       // 1. Upload pending image (upload tab, Image Search proxy, or AI Generate)
       let resolvedImagePath = draft.resolvedImagePath;
       if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
-        const key = `profiles/${profileId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+        const key = `accounts/${accountId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
       }
@@ -463,7 +463,7 @@ export function SymbolEditorModal({
       let recordedAudioPath = draft.recordedAudioPath;
       if (pendingAudioBlob && draft.activeAudioSource === 'record') {
         const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
-        const key = `profiles/${profileId}/audio/${crypto.randomUUID()}.${ext}`;
+        const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
         await uploadBlobToR2(pendingAudioBlob, key);
         recordedAudioPath = key;
       }
@@ -558,7 +558,6 @@ export function SymbolEditorModal({
         })) as Id<'profileSymbols'>;
       } else {
         savedId = await createProfileSymbol({
-          profileId,
           profileCategoryId: catId,
           imageSource,
           label,

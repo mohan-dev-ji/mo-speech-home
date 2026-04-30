@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useProfile } from '@/app/contexts/ProfileContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,8 +37,15 @@ export function useTalker() {
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function TalkerProvider({ children }: { children: ReactNode }) {
+  const { stateFlags, setHeaderInBannerMode } = useProfile();
+
   const [talkerSymbols, setTalkerSymbols] = useState<TalkerSymbolItem[]>([]);
-  const [talkerMode, setTalkerMode] = useState<TalkerMode>('talker');
+
+  const talkerMode: TalkerMode = stateFlags.header_in_banner_mode ? 'banner' : 'talker';
+
+  function setTalkerMode(mode: TalkerMode) {
+    setHeaderInBannerMode(mode === 'banner');
+  }
 
   function addToTalker(item: Omit<TalkerSymbolItem, 'instanceId'>) {
     setTalkerSymbols((prev) => [

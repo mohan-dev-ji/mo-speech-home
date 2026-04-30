@@ -201,7 +201,7 @@ export function ListsModeContent() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const { language, activeProfileId, stateFlags } = useProfile();
+  const { language, stateFlags } = useProfile();
   const { talkerMode } = useTalker();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -212,12 +212,7 @@ export function ListsModeContent() {
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
-  const profileId = activeProfileId as Id<'studentProfiles'> | undefined;
-
-  const lists = useQuery(
-    api.profileLists.getProfileLists,
-    profileId ? { profileId } : 'skip'
-  );
+  const lists = useQuery(api.profileLists.getProfileLists, {});
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const deleteList = useMutation(api.profileLists.deleteProfileList);
@@ -238,19 +233,18 @@ export function ListsModeContent() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id || !profileId) return;
+    if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
       const oldIdx = prev.indexOf(active.id as string);
       const newIdx = prev.indexOf(over.id as string);
       const next = arrayMove(prev, oldIdx, newIdx);
-      reorderLists({ profileId, orderedIds: next as Id<'profileLists'>[] });
+      reorderLists({ orderedIds: next as Id<'profileLists'>[] });
       return next;
     });
   }
 
   async function handleCreate(name: string, steps: string[]) {
-    if (!profileId) return;
-    const id = await createList({ profileId, name: { eng: name } });
+    const id = await createList({ name: { eng: name } });
     const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
     if (nonEmpty.length > 0) {
       await updateListItems({

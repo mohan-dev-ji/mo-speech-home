@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useRouter, usePathname } from '@/i18n/navigation';
 import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
@@ -28,6 +31,23 @@ export function DevTestPanel({ currentLocale }: { currentLocale: string }) {
   const { activeThemeId, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+
+  const migrate = useMutation(api.migrations.migrateContentToAccount);
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<string | null>(null);
+
+  async function handleMigrate() {
+    setMigrating(true);
+    setMigrateResult(null);
+    try {
+      const result = await migrate({});
+      setMigrateResult(JSON.stringify(result, null, 2));
+    } catch (e) {
+      setMigrateResult(e instanceof Error ? e.message : String(e));
+    } finally {
+      setMigrating(false);
+    }
+  }
 
   return (
     <section className="rounded-theme-sm border-2 border-dashed border-theme-enter-mode p-theme-modal">
@@ -68,6 +88,23 @@ export function DevTestPanel({ currentLocale }: { currentLocale: string }) {
             );
           })}
         </div>
+      </div>
+
+      {/* Content migration — one-shot */}
+      <div className="mb-theme-modal-gap">
+        <p className="text-theme-text text-theme-s font-semibold mb-2">Content migration</p>
+        <button
+          onClick={handleMigrate}
+          disabled={migrating}
+          className="px-theme-btn-x py-theme-btn-y rounded-theme-sm text-theme-s font-medium bg-theme-primary text-theme-alt-text hover:opacity-90 disabled:opacity-50"
+        >
+          {migrating ? 'Migrating…' : 'Backfill accountId on content (recover orphans)'}
+        </button>
+        {migrateResult && (
+          <pre className="mt-2 p-2 rounded-theme-sm bg-theme-alt-card text-theme-s overflow-auto whitespace-pre-wrap" style={{ maxHeight: 200 }}>
+            {migrateResult}
+          </pre>
+        )}
       </div>
 
       {/* Locale switcher */}

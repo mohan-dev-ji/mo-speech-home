@@ -12,6 +12,8 @@ import type * as accountMembers from "../accountMembers.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
 import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
+import type * as lib_account from "../lib/account.js";
+import type * as migrations from "../migrations.js";
 import type * as profileCategories from "../profileCategories.js";
 import type * as profileLists from "../profileLists.js";
 import type * as profileSentences from "../profileSentences.js";
@@ -35,6 +37,8 @@ declare const fullApi: ApiFromModules<{
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
   featureQuota: typeof featureQuota;
   imageCache: typeof imageCache;
+  "lib/account": typeof lib_account;
+  migrations: typeof migrations;
   profileCategories: typeof profileCategories;
   profileLists: typeof profileLists;
   profileSentences: typeof profileSentences;

@@ -1,19 +1,23 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
- * Returns all lists for a profile in display order.
+ * Returns all lists for the caller's account in display order.
  * Includes the first 4 item image paths as thumbnails.
  */
 export const getProfileLists = query({
-  args: { profileId: v.id("studentProfiles") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+
     const lists = await ctx.db
       .query("profileLists")
-      .withIndex("by_profile_id_and_order", (q) =>
-        q.eq("profileId", args.profileId)
+      .withIndex("by_account_id_and_order", (q) =>
+        q.eq("accountId", resolved.accountId)
       )
       .order("asc")
       .collect();
@@ -38,10 +42,6 @@ export const getProfileLists = query({
   },
 });
 
-/**
- * Returns a single list with all items sorted by order.
- * Items carry imagePath directly — no join needed.
- */
 export const getProfileListWithItems = query({
   args: { profileListId: v.id("profileLists") },
   handler: async (ctx, args) => {
@@ -66,23 +66,19 @@ export const getProfileListWithItems = query({
 
 export const createProfileList = mutation({
   args: {
-    profileId: v.id("studentProfiles"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
 
     const last = await ctx.db
       .query("profileLists")
-      .withIndex("by_profile_id_and_order", (q) =>
-        q.eq("profileId", args.profileId)
-      )
+      .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
       .order("desc")
       .first();
 
     return ctx.db.insert("profileLists", {
-      profileId: args.profileId,
+      accountId,
       name: args.name,
       order: last ? last.order + 1 : 0,
       items: [],
@@ -101,8 +97,9 @@ export const updateProfileListName = mutation({
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { name: args.name, updatedAt: Date.now() });
   },
@@ -131,18 +128,14 @@ export const updateProfileListItems = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { items: args.items, updatedAt: Date.now() });
   },
 });
 
-/**
- * Saves a symbol editor result into a list item.
- * Resolves the profileSymbol's imagePath server-side so items remain self-contained.
- * Pass insertAtIndex to replace an existing slot; omit to append.
- */
 export const addItemFromSymbol = mutation({
   args: {
     profileListId: v.id("profileLists"),
@@ -150,11 +143,11 @@ export const addItemFromSymbol = mutation({
     insertAtIndex: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
 
     const sym = await ctx.db.get(args.profileSymbolId);
     if (!sym) throw new Error("profileSymbol not found");
+    if (sym.accountId !== accountId) throw new Error("Not authorised");
 
     let imagePath: string | undefined;
     if (sym.imageSource.type === "symbolstix") {
@@ -167,6 +160,7 @@ export const addItemFromSymbol = mutation({
 
     const list = await ctx.db.get(args.profileListId);
     if (!list) throw new Error("profileList not found");
+    if (list.accountId !== accountId) throw new Error("Not authorised");
 
     const items = [...list.items].sort((a, b) => a.order - b.order);
 
@@ -190,8 +184,9 @@ export const updateProfileListDisplay = mutation({
     showFirstThen: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, {
       displayFormat: args.displayFormat,
@@ -206,8 +201,9 @@ export const updateProfileListDisplay = mutation({
 export const deleteProfileList = mutation({
   args: { profileListId: v.id("profileLists") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const { accountId } = await requireCallerAccountId(ctx);
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.delete(args.profileListId);
   },
@@ -215,15 +211,15 @@ export const deleteProfileList = mutation({
 
 export const reorderProfileLists = mutation({
   args: {
-    profileId: v.id("studentProfiles"),
     orderedIds: v.array(v.id("profileLists")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
+    const { accountId } = await requireCallerAccountId(ctx);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
+      const list = await ctx.db.get(args.orderedIds[i]);
+      if (!list || list.accountId !== accountId)
+        throw new Error("List not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
   },

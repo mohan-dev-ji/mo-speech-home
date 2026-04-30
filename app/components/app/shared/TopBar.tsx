@@ -147,7 +147,7 @@ export function TopBar() {
 
         <div className="flex-1" />
 
-        <QuickSettings />
+        {(!isStudent || stateFlags.quick_settings_visible) && <QuickSettings />}
       </header>
 
       {/* Mobile dropdown */}

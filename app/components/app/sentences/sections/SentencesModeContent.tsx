@@ -310,7 +310,7 @@ export function SentencesModeContent() {
   const t = useTranslations('sentences');
   const params = useParams();
   const locale = params.locale as string;
-  const { language, activeProfileId, stateFlags } = useProfile();
+  const { language, accountId, stateFlags } = useProfile();
   const { talkerMode } = useTalker();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -322,12 +322,7 @@ export function SentencesModeContent() {
   const [sentenceEditTarget, setSentenceEditTarget] = useState<SentenceEditTarget>(null);
   const [playTarget, setPlayTarget] = useState<SentenceRow | null>(null);
 
-  const profileId = activeProfileId as Id<'studentProfiles'> | undefined;
-
-  const sentences = useQuery(
-    api.profileSentences.getProfileSentences,
-    profileId ? { profileId } : 'skip'
-  );
+  const sentences = useQuery(api.profileSentences.getProfileSentences, {});
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
@@ -347,19 +342,18 @@ export function SentencesModeContent() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id || !profileId) return;
+    if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
       const oldIdx = prev.indexOf(active.id as string);
       const newIdx = prev.indexOf(over.id as string);
       const next = arrayMove(prev, oldIdx, newIdx);
-      reorderSentences({ profileId, orderedIds: next as Id<'profileSentences'>[] });
+      reorderSentences({ orderedIds: next as Id<'profileSentences'>[] });
       return next;
     });
   }
 
   async function handleCreate(name: string) {
-    if (!profileId) return;
-    await createSentence({ profileId, name: { eng: name } });
+    await createSentence({ name: { eng: name } });
   }
 
   async function handleDeleteConfirm() {
@@ -553,10 +547,10 @@ export function SentencesModeContent() {
       </Dialog>
 
       {/* Slot symbol editor */}
-      {slotEditTarget && profileId && (
+      {slotEditTarget && accountId && (
         <SymbolEditorModal
           isOpen
-          profileId={profileId}
+          accountId={accountId}
           language={language}
           editorMode="sentenceSlot"
           initialImagePath={existingSlotImagePath}
@@ -567,11 +561,11 @@ export function SentencesModeContent() {
       )}
 
       {/* Audio editor */}
-      {sentenceEditTarget && profileId && (
+      {sentenceEditTarget && accountId && (
         <SentenceAudioModal
           isOpen
           sentenceId={sentenceEditTarget.sentenceId}
-          profileId={profileId}
+          accountId={accountId}
           initialValue={sentenceEditTarget.value}
           initialAudioPath={sentenceEditTarget.audioPath}
           onClose={() => setSentenceEditTarget(null)}

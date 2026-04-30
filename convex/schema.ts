@@ -108,6 +108,7 @@ export default defineSchema({
       reduce_motion:        v.optional(v.boolean()),
       core_dropdown_visible: v.optional(v.boolean()),
       talker_visible:       v.optional(v.boolean()),
+      header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
     })),
   })
     .index("by_clerk_id", ["clerkUserId"])
@@ -170,6 +171,8 @@ export default defineSchema({
       lists_visible:        v.optional(v.boolean()), // Lists nav item; default true
       sentences_visible:    v.optional(v.boolean()), // Sentences feature toggle; default true
       student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
+      quick_settings_visible: v.optional(v.boolean()), // Quick-settings top-bar dropdown in student-view; default false
+      header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
     }),
     studentViewLocked: v.optional(v.boolean()),  // when true on a student-view device, the breadcrumb dropdown is fully disabled. Toggled remotely by instructor.
     updatedAt: v.number(),
@@ -181,7 +184,8 @@ export default defineSchema({
    * Categories are the root container for all AAC content.
    */
   profileCategories: defineTable({
-    profileId: v.id("studentProfiles"),
+    accountId: v.optional(v.id("users")), // owner account; populated by migration. New writes always set this.
+    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional so old docs validate. New writes omit.
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     icon: v.string(),
     colour: v.string(),
@@ -190,6 +194,8 @@ export default defineSchema({
     librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — reload defaults only
     updatedAt: v.number(),
   })
+    .index("by_account_id", ["accountId"])
+    .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"]),
 
@@ -200,7 +206,8 @@ export default defineSchema({
    * never raw symbolId. This ensures overrides apply consistently everywhere.
    */
   profileSymbols: defineTable({
-    profileId: v.id("studentProfiles"),
+    accountId: v.optional(v.id("users")), // owner account; populated by migration.
+    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     profileCategoryId: v.id("profileCategories"),
     order: v.number(),
 
@@ -261,6 +268,7 @@ export default defineSchema({
 
     updatedAt: v.number(),
   })
+    .index("by_account_id", ["accountId"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_category_id", ["profileCategoryId"])
     .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
@@ -282,7 +290,8 @@ export default defineSchema({
    * First Then is a display toggle, not a separate table.
    */
   profileLists: defineTable({
-    profileId: v.id("studentProfiles"),
+    accountId: v.optional(v.id("users")), // owner account; populated by migration.
+    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     order: v.number(),
     librarySourceId: v.optional(v.string()),
@@ -313,6 +322,8 @@ export default defineSchema({
     showFirstThen: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
+    .index("by_account_id", ["accountId"])
+    .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"]),
 
@@ -321,7 +332,8 @@ export default defineSchema({
    * Slots store imagePath + displayProps. Audio is at sentence level.
    */
   profileSentences: defineTable({
-    profileId: v.id("studentProfiles"),
+    accountId: v.optional(v.id("users")), // owner account; populated by migration.
+    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     order: v.number(),
     librarySourceId: v.optional(v.string()),
@@ -343,6 +355,8 @@ export default defineSchema({
     audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
     updatedAt: v.number(),
   })
+    .index("by_account_id", ["accountId"])
+    .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"]),
 

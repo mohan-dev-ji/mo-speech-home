@@ -96,7 +96,7 @@ type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 
 export function CategoriesContent() {
   const t = useTranslations('categories');
-  const { activeProfileId, language, stateFlags } = useProfile();
+  const { language, stateFlags } = useProfile();
   const { talkerMode } = useTalker();
   const router = useRouter();
   const params = useParams();
@@ -107,10 +107,7 @@ export function CategoriesContent() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
-  const categories = useQuery(
-    api.profileCategories.getProfileCategories,
-    activeProfileId ? { profileId: activeProfileId } : 'skip',
-  );
+  const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
@@ -139,7 +136,7 @@ export function CategoriesContent() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id || !activeProfileId) return;
+    if (!over || active.id === over.id) return;
 
     setLocalOrder((prev) => {
       const oldIndex = prev.indexOf(active.id as string);
@@ -147,7 +144,6 @@ export function CategoriesContent() {
       const newOrder = arrayMove(prev, oldIndex, newIndex);
 
       reorderCategoriesMutation({
-        profileId: activeProfileId,
         orderedIds: newOrder as Id<'profileCategories'>[],
       });
 
@@ -205,13 +201,8 @@ export function CategoriesContent() {
       )}
 
       {/* Loading */}
-      {categories === undefined && activeProfileId && (
+      {categories === undefined && (
         <p className="text-theme-s text-theme-secondary-alt-text">{t('loading')}</p>
-      )}
-
-      {/* No profile */}
-      {!activeProfileId && (
-        <p className="text-theme-s text-theme-secondary-alt-text">{t('noProfile')}</p>
       )}
 
       {/* Category grid */}

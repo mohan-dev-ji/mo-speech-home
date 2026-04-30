@@ -27,6 +27,8 @@ type StateFlags = {
   lists_visible: boolean;
   sentences_visible: boolean;
   student_can_edit: boolean;
+  quick_settings_visible: boolean;
+  header_in_banner_mode: boolean;
 };
 
 // Instructor defaults — all navigation/features always on, display prefs standard
@@ -49,6 +51,8 @@ const DEFAULT_FLAGS: StateFlags = {
   lists_visible: true,
   sentences_visible: true,
   student_can_edit: false,
+  quick_settings_visible: true, // instructor always sees quick settings
+  header_in_banner_mode: false, // false=talker mode, true=banner mode
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────────
@@ -61,6 +65,9 @@ type ProfileContextValue = {
   studentProfile: Doc<'studentProfiles'> | null;
   allProfiles: Doc<'studentProfiles'>[];
   profileLoading: boolean;
+
+  // Account ownership — for content-table writes (R2 key prefixes etc.)
+  accountId: Id<'users'> | null;
 
   // Active flags and language (viewMode-aware)
   stateFlags: StateFlags;
@@ -78,6 +85,7 @@ type ProfileContextValue = {
 
   // Active student profile setters (kept for talker/legacy use)
   setTalkerVisible: (value: boolean) => void;
+  setHeaderInBannerMode: (value: boolean) => void;
   setLanguage: (lang: string) => void;
   setActiveProfile: (profileId: Id<'studentProfiles'>) => void;
 };
@@ -89,6 +97,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   studentProfile: null,
   allProfiles: [],
   profileLoading: true,
+  accountId: null,
   stateFlags: DEFAULT_FLAGS,
   language: 'eng',
   viewMode: 'instructor',
@@ -98,6 +107,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   setSymbolTextSize: () => {},
   setInstructorTheme: () => {},
   setTalkerVisible: () => {},
+  setHeaderInBannerMode: () => {},
   setLanguage: () => {},
   setActiveProfile: () => {},
 });
@@ -180,6 +190,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     reduce_motion:         userRecord?.stateFlags?.reduce_motion        ?? DEFAULT_FLAGS.reduce_motion,
     core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
     talker_visible:        userRecord?.stateFlags?.talker_visible       ?? DEFAULT_FLAGS.talker_visible,
+    header_in_banner_mode: userRecord?.stateFlags?.header_in_banner_mode ?? DEFAULT_FLAGS.header_in_banner_mode,
   };
 
   // Student flags: from the active student profile
@@ -192,6 +203,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
         sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
         student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
+        quick_settings_visible: studentProfile.stateFlags.quick_settings_visible ?? false,
+        header_in_banner_mode: studentProfile.stateFlags.header_in_banner_mode ?? false,
       }
     : DEFAULT_FLAGS;
 
@@ -241,6 +254,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setStateFlagMutation({ profileId: studentProfile._id, flag: 'talker_visible', value });
   }
 
+  function setHeaderInBannerMode(value: boolean) {
+    if (viewMode === 'instructor') {
+      setMyInstructorFlagMutation({ flag: 'header_in_banner_mode', value });
+      return;
+    }
+    if (!studentProfile) return;
+    setStateFlagMutation({ profileId: studentProfile._id, flag: 'header_in_banner_mode', value });
+  }
+
   function setLanguage(lang: string) {
     if (!studentProfile) return;
     updateStudentProfileMutation({ profileId: studentProfile._id, language: lang });
@@ -259,6 +281,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         studentProfile: studentProfile ?? null,
         allProfiles,
         profileLoading,
+        accountId: (studentProfile?.accountId ?? userRecord?._id) ?? null,
         stateFlags,
         language,
         viewMode,
@@ -268,6 +291,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setSymbolTextSize,
         setInstructorTheme,
         setTalkerVisible,
+        setHeaderInBannerMode,
         setLanguage,
         setActiveProfile,
       }}
