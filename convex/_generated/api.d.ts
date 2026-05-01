@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as account from "../account.js";
 import type * as accountMembers from "../accountMembers.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
 import type * as featureQuota from "../featureQuota.js";
@@ -33,6 +34,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  account: typeof account;
   accountMembers: typeof accountMembers;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
   featureQuota: typeof featureQuota;

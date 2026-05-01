@@ -243,7 +243,21 @@
     "instructor": "Instructor Profile",
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
-    "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner."
+    "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner.",
+    "deleteAccount": {
+      "sectionTitle": "Danger zone",
+      "button": "Delete account",
+      "dialogTitle": "Delete your account?",
+      "dialogDescription": "This permanently removes your account, all student profiles, all content, and your subscription. This cannot be undone.",
+      "emailLabel": "Signed in as",
+      "confirmInstruction": "Type DELETE to confirm",
+      "confirmPlaceholder": "DELETE",
+      "cancel": "Cancel",
+      "confirmButton": "Delete my account",
+      "deleting": "Deleting…",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "errorCollaborator": "Only the account owner can delete this account. Contact support to leave a shared account."
+    }
   },
   "symbols": {
     "title": "Symbols",

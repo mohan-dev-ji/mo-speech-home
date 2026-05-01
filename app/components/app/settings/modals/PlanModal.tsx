@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useUser, useReverification } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/components/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
@@ -63,12 +61,10 @@ function PlanCard({ name, price, features, highlighted, children }: {
 function InstructorAccountSection() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const deleteMyUser = useMutation(api.users.deleteMyUser);
 
   const updatePasswordVerified = useReverification(
     async (newPassword: string) => user?.updatePassword({ newPassword })
   );
-  const deleteUserVerified = useReverification(async () => user?.delete());
 
   const [firstName,       setFirstName]       = useState("");
   const [lastName,        setLastName]        = useState("");
@@ -145,9 +141,7 @@ function InstructorAccountSection() {
     setDeleting(true);
     try {
       const res = await fetch("/api/delete-account", { method: "POST" });
-      if (!res.ok) throw new Error("Stripe cleanup failed");
-      await deleteMyUser();
-      await deleteUserVerified();
+      if (!res.ok) throw new Error("Account deletion failed");
       router.push("/");
     } catch {
       setError("Failed to delete account. Please try again.");

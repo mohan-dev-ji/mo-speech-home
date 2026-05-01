@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useTranslations, useLocale } from "next-intl";
 import { useAppState } from "@/app/components/AppStateProvider";
 import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
 import { InstructorProfileModal } from "@/app/components/app/settings/modals/InstructorProfileModal";
@@ -11,6 +9,7 @@ import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
+import { DevTestPanel }  from "@/app/components/app/settings/sections/DevTestPanel";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
@@ -32,25 +31,9 @@ const MODAL_SIZE: Partial<Record<SettingId, string>> = {
 
 export function SettingsContent() {
   const t = useTranslations("settings");
+  const locale = useLocale();
   const { isCollaborator } = useAppState();
   const [activeModal, setActiveModal] = useState<SettingId | null>(null);
-
-  const migrate = useMutation(api.migrations.migrateContentToAccount);
-  const [migrating, setMigrating] = useState(false);
-  const [migrateResult, setMigrateResult] = useState<string | null>(null);
-
-  async function handleMigrate() {
-    setMigrating(true);
-    setMigrateResult(null);
-    try {
-      const result = await migrate({});
-      setMigrateResult(JSON.stringify(result, null, 2));
-    } catch (e) {
-      setMigrateResult(e instanceof Error ? e.message : String(e));
-    } finally {
-      setMigrating(false);
-    }
-  }
 
   const open  = (id: SettingId) => setActiveModal(id);
   const close = () => setActiveModal(null);
@@ -98,32 +81,7 @@ export function SettingsContent() {
         </DialogContent>
       </Dialog>
 
-      {/* DEV — one-shot content migration (remove before production) */}
-      {!isCollaborator && (
-        <div className="rounded-theme-sm border-2 border-dashed border-theme-enter-mode p-4 mt-2">
-          <p className="text-theme-enter-mode text-theme-s font-semibold tracking-widest uppercase mb-2">
-            Dev — content migration
-          </p>
-          <p className="text-theme-secondary-text text-theme-s mb-3">
-            Backfills <code>accountId</code> on all categories, symbols, lists, sentences. Recovers orphans (rows whose profile was deleted) by attributing them to your account. Idempotent — safe to re-run.
-          </p>
-          <button
-            onClick={handleMigrate}
-            disabled={migrating}
-            className="px-theme-btn-x py-theme-btn-y rounded-theme-sm text-theme-s font-medium bg-theme-primary text-theme-alt-text hover:opacity-90 disabled:opacity-50"
-          >
-            {migrating ? "Migrating…" : "Backfill accountId & recover orphans"}
-          </button>
-          {migrateResult && (
-            <pre
-              className="mt-3 p-2 rounded-theme-sm bg-theme-alt-card text-theme-s overflow-auto whitespace-pre-wrap"
-              style={{ maxHeight: 240 }}
-            >
-              {migrateResult}
-            </pre>
-          )}
-        </div>
-      )}
+      {!isCollaborator && <DevTestPanel currentLocale={locale} />}
     </div>
   );
 }

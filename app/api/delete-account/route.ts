@@ -1,40 +1,75 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import { stripe } from "@/lib/stripe";
+import { r2Client, bucketName } from "@/lib/r2-storage";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
 export const dynamic = "force-dynamic";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const COLLABORATOR_ERROR_PREFIX = "Only the account owner";
 
 export async function POST() {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    // Get user from Convex to find Stripe customer ID
-    const user = await convex.query(api.users.getUserByClerkId, { clerkUserId: userId });
+  const token = await getToken({ template: "convex" });
+  if (!token) {
+    return NextResponse.json({ error: "Missing Convex token" }, { status: 401 });
+  }
 
-    if (user?.subscription.stripeCustomerId) {
-      // Cancel any active subscriptions before deleting the customer
-      const subscriptions = await stripe.subscriptions.list({
+  const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+  convex.setAuth(token);
+
+  try {
+    const user = await convex.query(api.users.getUserByClerkId, { clerkUserId: userId });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (user.subscription.stripeCustomerId) {
+      const subs = await stripe.subscriptions.list({
         customer: user.subscription.stripeCustomerId,
         status: "active",
       });
-      await Promise.all(
-        subscriptions.data.map((sub) => stripe.subscriptions.cancel(sub.id))
-      );
-
-      // Delete the Stripe customer (removes payment methods, history etc.)
+      await Promise.all(subs.data.map((s) => stripe.subscriptions.cancel(s.id)));
       await stripe.customers.del(user.subscription.stripeCustomerId);
     }
+
+    const { profileIds } = await convex.mutation(api.account.cascadeDeleteAccount, {});
+
+    if (r2Client && bucketName) {
+      for (const profileId of profileIds) {
+        const Prefix = `profiles/${profileId}/`;
+        let ContinuationToken: string | undefined;
+        do {
+          const listed = await r2Client.send(
+            new ListObjectsV2Command({ Bucket: bucketName, Prefix, ContinuationToken })
+          );
+          const keys = (listed.Contents ?? []).map((o) => ({ Key: o.Key! }));
+          if (keys.length > 0) {
+            await r2Client.send(
+              new DeleteObjectsCommand({
+                Bucket: bucketName,
+                Delete: { Objects: keys, Quiet: true },
+              })
+            );
+          }
+          ContinuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+        } while (ContinuationToken);
+      }
+    }
+
+    await (await clerkClient()).users.deleteUser(userId);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Delete account error:", err);
-    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Failed to delete account";
+    const status = message.startsWith(COLLABORATOR_ERROR_PREFIX) ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

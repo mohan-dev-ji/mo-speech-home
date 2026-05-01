@@ -107,3 +107,80 @@ I'm building Mo Speech Home, a full AAC (Augmentative and Alternative Communicat
    Building the AI Generate tab (tab 4) of the Symbol Editor per ADR-005. Credentials are sorted: mo-speech-app@mo-speech-prod SA, key at ~/.gcloud/mo-speech-app-prod.json GOOGLE_SERVICE_ACCOUNT_JSON in .env.local (TTS already migrated and smoke-tested green). Read ADR-005 §"AI Generate" and app/api/tts/route.ts for the auth pattern, then propose the build steps. Two open decisions to confirm: (1) skip sharp, accept Imagen's native ~1MB PNG; (2) skip @google-cloud/aiplatform SDK, use REST + google-auth-library like TTS does.
 
    A white school bus used in the uk for children with disabilities
+
+   
+I'm building Mo Speech Home (Next.js 16 / React 19 / Convex / Clerk /
+  Cloudflare R2 / Stripe). I need a "Delete Account" flow.
+
+  Where it lives now: add a red destructive button to
+  app/components/app/settings/sections/DevTestPanel.tsx for dev testing.
+  Eventually this same flow will be exposed to end users from a real
+  settings screen, so write the deletion logic as a clean Convex action
+  (or mutation + action pair) that can be called from anywhere — don't
+  bake it into the dev panel.
+
+  What "Delete Account" must remove:
+
+  1. Convex content tables (account-scoped — match by accountId === caller
+   user._id):
+    - profileCategories
+    - profileSymbols
+    - profileLists (and any list-item rows if a separate table exists —
+  check schema)
+    - profileSentences (and any sentence-item rows if separate)
+  2. Convex profile tables:
+    - All studentProfiles where accountId === user._id
+    - All modellingSessions and studentViewSessions for those profiles
+    - All accountMembers rows where accountId === user._id (collaborators)
+  3. Convex user record itself — the row in users for this Clerk user.
+  4. R2 storage — wipe both prefixes:
+    - accounts/{accountId}/... (current scheme — images, generated TTS
+  audio, recorded audio)
+    - profiles/{profileId}/... for every deleted student profile (legacy
+  scheme, may still hold older assets)
+  Use the R2 SDK (@aws-sdk/client-s3) ListObjectsV2 + DeleteObjects
+  paginated. There's an existing R2 helper somewhere in the repo — find
+  and reuse it rather than instantiating a new client.
+  5. Stripe — if the account has an active subscription, cancel it before
+  deleting Convex records. Check the users row for a stored
+  stripeCustomerId / subscription id.
+  6. Clerk — delete the Clerk user via the Clerk backend SDK as the last
+  step (so if it fails midway, the Convex records are already gone and we
+  don't leave a Clerk user with no data).
+
+  Order of operations matters. Suggest: Stripe cancel → R2 wipe → Convex
+  content → Convex profiles + sessions → Convex user record → Clerk user →
+   sign out client.
+
+  UX:
+  - Two-step confirm: button opens a Dialog with a typed-confirmation
+  input ("type DELETE to confirm") plus the user's email shown as a sanity
+   check.
+  - On success, sign the user out and redirect to the marketing home.
+  - Show progress / error messages inline.
+
+  Constraints from the project:
+  - Read convex/_generated/ai/guidelines.md first.
+  - Read CLAUDE.md (project root) — strict rules about translation keys
+  (en.json + hi.json placeholder), AAC theme tokens (bg-theme-*,
+  rounded-theme-sm etc., NO hardcoded colours), and component folder
+  structure.
+  - Use useTranslations for every string; add keys to both locale files.
+  - Use the existing Dialog wrapper at
+  app/components/shared/ui/Dialog.tsx.
+  - Do NOT skip type checking — run npx tsc --noEmit clean before
+  declaring done.
+
+  Investigate before writing:
+  - convex/schema.ts — confirm the full list of account-scoped tables and
+  any I haven't listed.
+  - convex/studentProfiles.ts — there's already a deleteStudentProfile
+  cascade you can mirror.
+  - lib/r2-paths.ts and any app/api/upload-asset / app/api/assets routes —
+   find the existing R2 client setup.
+  - Whatever Stripe webhook / customer code already exists in
+  app/api/stripe/... or convex/stripe.ts.
+
+  Deliver the Convex action(s), the dev panel button + confirmation modal,
+   and the locale keys. Keep the deletion logic reusable for the future
+  user-facing screen.
