@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
-import { useToast } from "@/app/components/shared/Toast";
+import { useToast } from "@/app/components/app/shared/ui/Toast";
 import { useStudentViewPresence, getOrCreateSessionId } from "@/app/hooks/useStudentViewPresence";
 
 /**

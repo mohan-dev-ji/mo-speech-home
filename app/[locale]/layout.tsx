@@ -4,10 +4,10 @@ import { notFound } from 'next/navigation';
 import { Noto_Sans } from 'next/font/google';
 import { Noto_Sans_Devanagari } from 'next/font/google';
 import { routing } from '@/i18n/routing';
-import { AppProviders } from '@/app/components/app/shared/AppProviders';
-import { Sidebar } from '@/app/components/app/shared/Sidebar';
-import { TopBar } from '@/app/components/app/shared/TopBar';
-import { PersistentTalker } from '@/app/components/app/shared/PersistentTalker';
+import { AppProviders } from '@/app/components/app/shared/sections/AppProviders';
+import { Sidebar } from '@/app/components/app/shared/sections/Sidebar';
+import { TopBar } from '@/app/components/app/shared/sections/TopBar';
+import { PersistentTalker } from '@/app/components/app/shared/sections/PersistentTalker';
 
 // Load per locale — not all at once.
 // notoSans is always loaded (Latin chars appear in Hindi UI too).

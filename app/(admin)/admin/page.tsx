@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { Card, CardContent } from "@/app/components/shared/ui/Card";
+import { Card, CardContent } from "@/app/components/app/shared/ui/Card";
 import { Users, TrendingUp, Star, Building2 } from "lucide-react";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);

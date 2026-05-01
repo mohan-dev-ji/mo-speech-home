@@ -1,7 +1,7 @@
 "use client";
 
-import { DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
+import { DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
 
 export function ScaffoldModal({ title, onClose }: { title: string; onClose: () => void }) {
   return (

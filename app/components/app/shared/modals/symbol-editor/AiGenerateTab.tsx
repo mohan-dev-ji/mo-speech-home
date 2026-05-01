@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { Sparkles, Lock, AlertCircle, X } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import { STYLE_PRESETS, STYLE_IDS, type StyleId } from "@/lib/ai-style-prompts";
 import type { Draft } from "./types";
 

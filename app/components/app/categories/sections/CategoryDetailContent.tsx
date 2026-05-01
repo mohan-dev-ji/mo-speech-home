@@ -23,13 +23,13 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
-import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
-import { SymbolCard } from '@/app/components/shared/SymbolCard';
+import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
+import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { CategoryPageHeader } from '@/app/components/app/categories/ui/CategoryPageHeader';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
-import { SymbolEditorModal } from '@/app/components/shared/SymbolEditorModal';
+import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/app/components/shared/ui/Dialog';
+} from '@/app/components/app/shared/ui/Dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

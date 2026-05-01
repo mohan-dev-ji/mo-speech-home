@@ -1,4 +1,4 @@
-import { Badge } from "@/app/components/shared/ui/Badge";
+import { Badge } from "@/app/components/app/shared/ui/Badge";
 import type { SubscriptionTier, SubscriptionStatus } from "@/types";
 
 export function AccessBadge({ tier, status }: { tier: SubscriptionTier; status: SubscriptionStatus }) {

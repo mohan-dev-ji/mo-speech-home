@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useAppState } from "@/app/components/AppStateProvider";
-import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
+import { useAppState } from "@/app/contexts/AppStateProvider";
+import { Dialog, DialogContent } from "@/app/components/app/shared/ui/Dialog";
 import { InstructorProfileModal } from "@/app/components/app/settings/modals/InstructorProfileModal";
 import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal";
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";

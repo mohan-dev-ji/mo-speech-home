@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, Pencil, Trash2, Move, Check, X, LogOut } from 'lucide-react';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -34,7 +34,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/app/components/shared/ui/Dialog';
+} from '@/app/components/app/shared/ui/Dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

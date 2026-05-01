@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Badge } from "@/app/components/shared/ui/Badge";
+import { Badge } from "@/app/components/app/shared/ui/Badge";
 import type { SubscriptionTier } from "@/types";
 
 const BADGE_VARIANT: Record<SubscriptionTier, "default" | "warning" | "success" | "outline"> = {

@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { Search, X, ExternalLink, Lock, AlertCircle } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import type { Draft } from "./types";
 
 const FEATURE = "imageSearch";

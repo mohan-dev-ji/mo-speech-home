@@ -7,9 +7,9 @@ import { Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
-import { CategoryBoardGrid } from '@/app/components/shared/CategoryBoardGrid';
-import { SymbolCard } from '@/app/components/shared/SymbolCard';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
+import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
 

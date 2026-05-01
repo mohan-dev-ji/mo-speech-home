@@ -12,6 +12,7 @@ All product design, feature specs, and build plans are in `docs/`:
 | `docs/1-inbox/ideas/00-overview.md` | Product vision, account model, doc index |
 | `docs/1-inbox/ideas/12-convex-schema.md` | Full schema across all 3 Convex projects |
 | `docs/1-inbox/ideas/` | All feature concepts — numbered 01–17 |
+| `docs/1-inbox/ideas/20-profile-lock-and-pin.md` | Profile lock edge case + proposed PIN-as-sudo confirmation gate |
 | `docs/3-design/screens/` | Figma screen exports by feature |
 | `docs/3-design/design-systems/` | Design system reference image and Tokenised themes |
 | `docs/4-builds/decisions/` | ADRs — read before changing architecture |

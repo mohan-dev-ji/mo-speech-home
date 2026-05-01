@@ -8,16 +8,16 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { ArrowLeft, ListOrdered, CheckSquare, Pencil, LogOut } from 'lucide-react';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
-import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/shared/SymbolEditorModal';
+import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
-} from '@/app/components/shared/ui/Dialog';
+} from '@/app/components/app/shared/ui/Dialog';
 import { FormatDropdown } from '@/app/components/app/lists/ui/ListItemAtoms';
 import { DisplayRows, DisplayColumns, DisplayGrid, ListItemPlayModal, type PlayModalState } from '@/app/components/app/lists/sections/ListDetailDisplay';
 import { EditRows, EditColumns, EditGrid } from '@/app/components/app/lists/sections/ListDetailEdit';

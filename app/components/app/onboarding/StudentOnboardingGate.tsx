@@ -6,9 +6,9 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useProfile } from "@/app/contexts/ProfileContext";
-import { useAppState } from "@/app/components/AppStateProvider";
-import { Button } from "@/app/components/shared/ui/Button";
-import { Input } from "@/app/components/shared/ui/Input";
+import { useAppState } from "@/app/contexts/AppStateProvider";
+import { Button } from "@/app/components/app/shared/ui/Button";
+import { Input } from "@/app/components/app/shared/ui/Input";
 
 /**
  * Blocks the app with a full-screen overlay until the instructor creates a student profile.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/app/components/shared/ui/Button";
+import { Button } from "@/app/components/app/shared/ui/Button";
 import { adminSetAccess } from "@/app/(admin)/admin/users/[userId]/actions";
 import type { SubscriptionTier, SubscriptionStatus } from "@/types";
 

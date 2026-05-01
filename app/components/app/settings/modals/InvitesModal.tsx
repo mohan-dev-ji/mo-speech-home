@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
-import { Input } from "@/app/components/shared/ui/Input";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
+import { Input } from "@/app/components/app/shared/ui/Input";
 import { UserPlus, Crown } from "lucide-react";
 
 // ─── Upgrade prompt (non-Max users) ──────────────────────────────────────────

@@ -6,11 +6,11 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useTheme, THEME_TOKENS, type ThemeSlug } from "@/app/contexts/ThemeContext";
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
 

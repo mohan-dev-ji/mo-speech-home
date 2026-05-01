@@ -6,8 +6,8 @@
 import { useState, useRef } from 'react';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
-import { Header } from '@/app/components/shared/Header';
-import { PlayModal } from '@/app/components/shared/PlayModal';
+import { Header } from '@/app/components/app/shared/ui/Header';
+import { PlayModal } from '@/app/components/app/shared/modals/PlayModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

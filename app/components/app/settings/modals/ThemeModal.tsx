@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useTheme, THEME_TOKENS, type ThemeSlug } from "@/app/contexts/ThemeContext";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
 
 const THEME_SWATCHES: { slug: ThemeSlug; swatch: string }[] = [
   { slug: "default", swatch: "#62748E" },

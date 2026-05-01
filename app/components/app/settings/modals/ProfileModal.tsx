@@ -9,10 +9,10 @@ import { useProfile } from "@/app/contexts/ProfileContext";
 import { type ThemeSlug } from "@/app/contexts/ThemeContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
-import { Input } from "@/app/components/shared/ui/Input";
-import { HeaderModeControl } from "@/app/components/app/shared/HeaderModeControl";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
+import { Input } from "@/app/components/app/shared/ui/Input";
+import { HeaderModeControl } from "@/app/components/app/shared/ui/HeaderModeControl";
 import { ChevronDown } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────

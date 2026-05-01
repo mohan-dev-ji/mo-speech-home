@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { Edit2, LogOut, Plus } from 'lucide-react';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import {
   DndContext,
   closestCenter,
@@ -34,7 +34,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/app/components/shared/ui/Dialog';
+} from '@/app/components/app/shared/ui/Dialog';
 
 // Categories list grid columns — mirrors CategoryBoardGrid's symbol-card scale
 // but one step coarser so category tiles stay legible.

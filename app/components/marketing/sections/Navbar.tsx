@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { ThemeToggle } from "@/app/components/shared/ui/ThemeToggle";
+import { ThemeToggle } from "@/app/components/marketing/ui/ThemeToggle";
 
 export function Navbar() {
   const { signOut } = useClerk();

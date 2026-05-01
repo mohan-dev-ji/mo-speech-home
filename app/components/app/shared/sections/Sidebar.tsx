@@ -4,9 +4,9 @@ import { Fragment } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Home, Search, Tag, List, MessageSquare, Settings } from 'lucide-react';
-import { NavTabButton } from '@/app/components/shared/ui/NavTabButton';
-import { LogoSvg } from '@/app/components/app/shared/LogoSvg';
-import { ModellingOverlayWrapper } from '@/app/components/shared/ModellingOverlayWrapper';
+import { NavTabButton } from '@/app/components/app/shared/ui/NavTabButton';
+import { LogoSvg } from '@/app/components/app/shared/ui/LogoSvg';
+import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
 type SidebarProps = {

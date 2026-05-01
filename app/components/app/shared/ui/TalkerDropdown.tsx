@@ -19,7 +19,7 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { SymbolCard } from './SymbolCard';
-import { NavTabButton } from './ui/NavTabButton';
+import { NavTabButton } from './NavTabButton';
 import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 import type { QuickSymbolItem } from './TalkerBar';
 

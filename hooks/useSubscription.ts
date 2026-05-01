@@ -1,4 +1,4 @@
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import type { SubscriptionTier } from "@/types";
 
 export type SubscriptionCapabilities = {

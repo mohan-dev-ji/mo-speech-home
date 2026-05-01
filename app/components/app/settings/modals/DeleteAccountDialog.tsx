@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/shared/ui/Dialog";
+} from "@/app/components/app/shared/ui/Dialog";
 
 const CONFIRM_PHRASE = "DELETE";
 

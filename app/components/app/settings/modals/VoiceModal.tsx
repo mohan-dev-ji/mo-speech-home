@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
 
 const LOCALE_KEY = "mo-speech-locale";
 

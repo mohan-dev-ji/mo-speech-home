@@ -4,7 +4,7 @@ import { Trash2, Pencil, Move } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
-import { SymbolCard, type SymbolDisplay } from '@/app/components/shared/SymbolCard';
+import { SymbolCard, type SymbolDisplay } from '@/app/components/app/shared/ui/SymbolCard';
 
 type Props = {
   imagePath?: string;

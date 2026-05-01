@@ -4,7 +4,7 @@
 // Separate from the global PersistentTalker (see ADR-004).
 
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { Banner } from '@/app/components/shared/Banner';
+import { Banner } from '@/app/components/app/shared/ui/Banner';
 
 type Props = {
   categoryName: string;

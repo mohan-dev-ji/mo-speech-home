@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ClerkProvider } from "@clerk/nextjs";
-import ConvexClientProvider from "@/app/components/ConvexClientProvider";
+import ConvexClientProvider from "@/app/contexts/ConvexClientProvider";
 import "./globals.css";
 
 // Anti-flash dark-mode bootstrapping. Lives in <head> as a plain inline

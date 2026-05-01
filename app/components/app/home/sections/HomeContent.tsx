@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 
 export function HomeContent() {
   const t = useTranslations('home');

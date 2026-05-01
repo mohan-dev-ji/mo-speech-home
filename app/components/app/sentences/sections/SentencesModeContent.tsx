@@ -27,7 +27,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { PageBanner } from '@/app/components/shared/PageBanner';
+import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -35,8 +35,8 @@ import { useTalker } from '@/app/contexts/TalkerContext';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
-import { SymbolEditorModal } from '@/app/components/shared/symbol-editor/SymbolEditorModal';
-import type { SentenceSlotSaveResult } from '@/app/components/shared/symbol-editor/SymbolEditorModal';
+import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
+import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/app/components/shared/ui/Dialog';
+} from '@/app/components/app/shared/ui/Dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

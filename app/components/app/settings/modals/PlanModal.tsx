@@ -4,13 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useUser, useReverification } from "@clerk/nextjs";
-import { useAppState } from "@/app/components/AppStateProvider";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Dialog, DialogContent } from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
-import { Input } from "@/app/components/shared/ui/Input";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Dialog, DialogContent } from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
+import { Input } from "@/app/components/app/shared/ui/Input";
 import { PricingToggle } from "@/app/components/marketing/ui/PricingToggle";
 import { Check, AlertCircle, CheckCircle, Camera } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";

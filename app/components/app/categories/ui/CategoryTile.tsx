@@ -5,7 +5,7 @@ import type { Doc, Id } from '@/convex/_generated/dataModel';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { ModellingOverlayWrapper } from '@/app/components/shared/ModellingOverlayWrapper';
+import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
 // Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container

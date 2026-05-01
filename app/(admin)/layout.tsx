@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { ThemeToggle } from "@/app/components/shared/ui/ThemeToggle";
+import { ThemeToggle } from "@/app/components/admin/ui/ThemeToggle";
 import { LayoutDashboard, Users } from "lucide-react";
 
 const adminNav = [

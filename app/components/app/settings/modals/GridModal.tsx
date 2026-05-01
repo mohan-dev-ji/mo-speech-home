@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/shared/ui/Dialog";
-import { Button } from "@/app/components/shared/ui/Button";
+} from "@/app/components/app/shared/ui/Dialog";
+import { Button } from "@/app/components/app/shared/ui/Button";
 
 type GridSize = 'large' | 'medium' | 'small';
 
