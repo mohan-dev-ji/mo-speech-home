@@ -112,20 +112,25 @@ The preview panel shows real shared components with the active theme applied. Th
 
 The admin library uses real app components throughout. This is only possible if components are built correctly from day one.
 
-### Components shared between app and admin
+### Components used by both the app shell and the admin library editor
+
+Per ADR-006, admin uses the same in-app surfaces with elevated permissions rather than a parallel component tree. These components therefore live under `app/components/app/shared/` (in-app shared), not under the top-level `app/components/shared/` (which is reserved for genuinely cross-domain UI like the future Resource Library viewer):
 
 ```
-/components/shared/
-  SymbolCard.tsx              ← symbol image, label, display overrides
-  CategoryBoardGrid.tsx       ← responsive symbol grid layout
-  ModeSwitcher.tsx            ← Board / Lists / Sentences / First Thens tabs
-  TalkerBar.tsx               ← sequence builder bar
-  PlayModal.tsx               ← sequential symbol playback
-  SymbolEditorModal.tsx       ← four-tab image picker, audio, display options
-  ListEditor.tsx              ← ordered symbol sequence editor
-  SentenceEditor.tsx          ← same as list with TTS audio generation
-  FirstThenEditor.tsx         ← two-symbol picker
-  CategoryHeader.tsx          ← see note below
+app/components/app/shared/
+  ui/
+    SymbolCard.tsx              ← symbol image, label, display overrides
+    CategoryBoardGrid.tsx       ← responsive symbol grid layout
+    TalkerBar.tsx               ← sequence builder bar
+    ModeSwitcher.tsx            ← Board / Lists / Sentences / First Thens tabs (planned)
+    CategoryHeader.tsx          ← see note below (planned)
+  modals/
+    PlayModal.tsx               ← sequential symbol playback
+    symbol-editor/
+      SymbolEditorModal.tsx     ← four-tab image picker, audio, display options
+    ListEditor.tsx              ← ordered symbol sequence editor (planned)
+    SentenceEditor.tsx          ← same as list with TTS audio generation (planned)
+    FirstThenEditor.tsx         ← two-symbol picker (planned)
 ```
 
 ### CategoryHeader.tsx — the key shared component

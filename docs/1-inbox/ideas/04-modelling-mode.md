@@ -134,9 +134,9 @@ Every tappable element the walkthrough needs to highlight must have a stable `co
 
 Every highlightable element must be wrapped in `ModellingOverlayWrapper` with a stable `componentKey`, set in Phase 0 and audited each phase:
 
-- `categories-nav-button` — sidebar categories nav item (`app/components/app/shared/Sidebar.tsx`)
+- `categories-nav-button` — sidebar categories nav item (`app/components/app/shared/sections/Sidebar.tsx`)
 - `category-tile-{categoryId}` — category list tile (`app/components/app/categories/ui/CategoryTile.tsx`)
-- `symbol-{symbolId}` — symbol card (`app/components/shared/SymbolCard.tsx`) ✓ already wired
+- `symbol-{symbolId}` — symbol card (`app/components/app/shared/ui/SymbolCard.tsx`) ✓ already wired
 
 The wrapper also exposes `data-component-key={componentKey}` on its outer div so `ModellingAnnotation` can locate the target via a single `document.querySelector` per step change.
 

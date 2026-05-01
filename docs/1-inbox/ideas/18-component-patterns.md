@@ -29,7 +29,7 @@ Large buttons (e.g. primary CTAs) use `py-theme-large-buttons-padding` instead.
 A shared `<NavTabButton>` component should be created at:
 
 ```
-app/components/shared/ui/NavTabButton.tsx
+app/components/app/shared/ui/NavTabButton.tsx
 ```
 
 Props:

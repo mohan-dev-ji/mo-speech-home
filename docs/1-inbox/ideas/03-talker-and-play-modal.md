@@ -60,7 +60,7 @@ The category name, colour, and folder image are displayed in a thin `CategoryPag
 
 ## Header Component
 
-`app/components/shared/Header.tsx` is a pure talker display. It no longer accepts category-specific props (`categoryName`, `categoryImagePath`, `categoryColour`, `onEditCategory`, `showToggle`, `mode`, `onToggleMode`). It renders the `TalkerBar`, the action button column, and the `TalkerDropdown`.
+`app/components/app/shared/ui/Header.tsx` is a pure talker display. It no longer accepts category-specific props (`categoryName`, `categoryImagePath`, `categoryColour`, `onEditCategory`, `showToggle`, `mode`, `onToggleMode`). It renders the `TalkerBar`, the action button column, and the `TalkerDropdown`.
 
 ---
 

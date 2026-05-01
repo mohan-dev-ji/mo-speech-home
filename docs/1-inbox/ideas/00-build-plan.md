@@ -143,22 +143,29 @@ Apply the correct font based on active locale.
 
 ### 0.9 Set up shared component directory
 
+Per ADR-006, in-app shared components live under `app/components/app/shared/{sections|ui|modals}/`. The top-level `app/components/shared/` is reserved for genuinely cross-domain UI (currently only the future Resource Library viewer).
+
 ```
-/components/shared/
-  SymbolCard.tsx
-  CategoryBoardGrid.tsx
-  ModeSwitcher.tsx
-  CategoryHeader.tsx      ← mode prop: "talker" | "banner" | "admin-metadata"
-  TalkerBar.tsx
-  PlayModal.tsx
-  SymbolEditorModal.tsx
-  ListEditor.tsx
-  SentenceEditor.tsx
-  FirstThenEditor.tsx
-  ModellingOverlayWrapper.tsx  ← wraps every highlightable element; reads ModellingSessionContext
+app/components/app/shared/
+  ui/
+    SymbolCard.tsx
+    CategoryBoardGrid.tsx
+    Header.tsx                   ← talker display
+    TalkerBar.tsx
+    NavTabButton.tsx
+    ModellingOverlayWrapper.tsx  ← wraps every highlightable element; reads ModellingSessionContext
+  sections/
+    Sidebar.tsx
+    TopBar.tsx
+    PersistentTalker.tsx
+    AppProviders.tsx
+  modals/
+    PlayModal.tsx
+    symbol-editor/
+      SymbolEditorModal.tsx
 ```
 
-**The rule:** Shared components accept props and callbacks only. No dependency on app-specific contexts inside the component. Contexts wrap them at the page level.
+**The rule:** `ui/` components accept props and callbacks only — no dependency on app-specific contexts. `sections/` components are the integration point that consumes contexts and composes `ui/` + `modals/`.
 
 Add `componentKey` props to every shared component that modelling mode needs to highlight. These must exist from day one:
 - `categories-nav-button`
@@ -363,8 +370,8 @@ Two browser windows on the same login must independently render instructor and s
 Audit confirmed three known gaps that block highlighting:
 
 - `app/components/app/categories/ui/CategoryTile.tsx` — wrap with `ModellingOverlayWrapper componentKey={"category-tile-" + category._id}`
-- `app/components/app/shared/Sidebar.tsx` — wrap categories nav item with `componentKey="categories-nav-button"`
-- `app/components/shared/ModellingOverlayWrapper.tsx` — convention comment drift; doc says `category-tile-{categoryId}`, code comment says `category-{categoryId}`. Fix the comment.
+- `app/components/app/shared/sections/Sidebar.tsx` — wrap categories nav item with `componentKey="categories-nav-button"`
+- `app/components/app/shared/ui/ModellingOverlayWrapper.tsx` — convention comment drift; doc says `category-tile-{categoryId}`, code comment says `category-{categoryId}`. Fix the comment.
 
 ### 5.1 Convex session infrastructure
 

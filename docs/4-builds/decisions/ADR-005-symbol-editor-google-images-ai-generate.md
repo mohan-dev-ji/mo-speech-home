@@ -138,14 +138,14 @@ featureQuota: defineTable({
 ```
 
 **Components**
-- `app/components/shared/symbol-editor/ImagesTab.tsx` — clones `SymbolStixTab.tsx` shape: debounced search input, 4-col grid, click-to-select, attribution line under each thumbnail (photographer + license, linkable to `sourceUrl`), "X searches left today" footer. On select: calls `/api/image-search/proxy`, gets Blob, calls `onImageSelected(blob, previewUrl)`. Shows upsell card if `tier !== 'max'`.
-- `app/components/shared/symbol-editor/AiGenerateTab.tsx` — large preview area, 4 style cards (`Photorealistic`, `Iconic Vector`, `Storybook`, `3D Claymation`), prompt input at bottom, "Discard changes / Add to Symbol" buttons. On Generate: calls `/api/ai-generate/imagen`, displays preview from `/api/assets?key={r2Key}`. On "Add to Symbol": fetches the r2Key as Blob, calls `onImageSelected(blob, previewUrl)`. Shows quota counter and upsell card.
+- `app/components/app/shared/modals/symbol-editor/ImagesTab.tsx` — clones `SymbolStixTab.tsx` shape: debounced search input, 4-col grid, click-to-select, attribution line under each thumbnail (photographer + license, linkable to `sourceUrl`), "X searches left today" footer. On select: calls `/api/image-search/proxy`, gets Blob, calls `onImageSelected(blob, previewUrl)`. Shows upsell card if `tier !== 'max'`.
+- `app/components/app/shared/modals/symbol-editor/AiGenerateTab.tsx` — large preview area, 4 style cards (`Photorealistic`, `Iconic Vector`, `Storybook`, `3D Claymation`), prompt input at bottom, "Discard changes / Add to Symbol" buttons. On Generate: calls `/api/ai-generate/imagen`, displays preview from `/api/assets?key={r2Key}`. On "Add to Symbol": fetches the r2Key as Blob, calls `onImageSelected(blob, previewUrl)`. Shows quota counter and upsell card.
 
 ### 3 — Files to modify
 
 - `convex/schema.ts` — add the three tables above.
-- `app/components/shared/symbol-editor/SymbolEditorModal.tsx:713–726` — replace the two "Coming soon" placeholders with `<ImagesTab>` and `<AiGenerateTab>`. Add `tier` and `userId` props read from `useAppState()` and `useAuth()` respectively (or look them up inside the new tabs — slightly cleaner). Rename the tab label from "Google Images" to "Image Search" in the modal's tab bar (and the matching translation keys).
-- `app/components/shared/symbol-editor/index.ts` — re-export the two new tab components.
+- `app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx:713–726` — replace the two "Coming soon" placeholders with `<ImagesTab>` and `<AiGenerateTab>`. Add `tier` and `userId` props read from `useAppState()` and `useAuth()` respectively (or look them up inside the new tabs — slightly cleaner). Rename the tab label from "Google Images" to "Image Search" in the modal's tab bar (and the matching translation keys).
+- `app/components/app/shared/modals/symbol-editor/index.ts` — re-export the two new tab components.
 - `messages/en.json` and `messages/hi.json` — add keys under `symbolEditor`:
   - `imageSearchPlaceholder`, `imageSearchAttribution`, `imageSearchesLeft`, `imageSearchTabLabel`
   - `aiPromptPlaceholder`, `aiStylePhotorealistic`, `aiStyleIconic`, `aiStyleStorybook`, `aiStyleClaymation`
@@ -278,7 +278,7 @@ Run in order. Each step is independently revertable.
 - [ ] Build `lib/image-providers/wikimedia.ts` — call the public API with the `User-Agent` header, map response to the unified `ImageResult` shape, filter SVGs.
 - [ ] Build `app/api/image-search/search/route.ts` and `app/api/image-search/proxy/route.ts`.
 - [ ] Build `convex/imageCache.ts` and add `imageSearchCache` + `aiImageCache` + `featureQuota` to the schema.
-- [ ] Build `app/components/shared/symbol-editor/ImagesTab.tsx`.
+- [ ] Build `app/components/app/shared/modals/symbol-editor/ImagesTab.tsx`.
 - [ ] Wire it into `SymbolEditorModal.tsx:713–726`. Update tab label to "Image Search".
 - [ ] Test end-to-end: search "apple" → see Wikimedia results → click → see preview → save symbol → confirm `imageSourceType: 'googleImages'` row in Convex (schema variant kept for continuity) and webp blob in R2.
 

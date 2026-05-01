@@ -33,7 +33,7 @@ The edit component handles position/order changes and deletion directly. It also
 
 ### Level 2 — Symbol editor modal (shared across the entire app)
 
-Pressing "Edit" on a symbol from **any context** (board, list, sentence, first-then, or anywhere else in the future) opens `SymbolEditorModal`. This is a single shared component in `app/components/shared/` that handles the full creative editing experience: image source, label, audio, and display overrides.
+Pressing "Edit" on a symbol from **any context** (board, list, sentence, first-then, or anywhere else in the future) opens `SymbolEditorModal`. This is a single in-app shared component in `app/components/app/shared/modals/symbol-editor/` that handles the full creative editing experience: image source, label, audio, and display overrides.
 
 `SymbolEditorModal` is never duplicated or specialised per-context. It receives a `profileSymbolId` (edit mode) or `profileCategoryId` (create mode) and handles everything internally.
 
