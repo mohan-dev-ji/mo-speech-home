@@ -30,6 +30,8 @@ export async function POST() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const accountId = user._id;
+
     if (user.subscription.stripeCustomerId) {
       const subs = await stripe.subscriptions.list({
         customer: user.subscription.stripeCustomerId,
@@ -39,28 +41,26 @@ export async function POST() {
       await stripe.customers.del(user.subscription.stripeCustomerId);
     }
 
-    const { profileIds } = await convex.mutation(api.account.cascadeDeleteAccount, {});
+    await convex.mutation(api.account.cascadeDeleteAccount, {});
 
     if (r2Client && bucketName) {
-      for (const profileId of profileIds) {
-        const Prefix = `profiles/${profileId}/`;
-        let ContinuationToken: string | undefined;
-        do {
-          const listed = await r2Client.send(
-            new ListObjectsV2Command({ Bucket: bucketName, Prefix, ContinuationToken })
+      const Prefix = `accounts/${accountId}/`;
+      let ContinuationToken: string | undefined;
+      do {
+        const listed = await r2Client.send(
+          new ListObjectsV2Command({ Bucket: bucketName, Prefix, ContinuationToken })
+        );
+        const keys = (listed.Contents ?? []).map((o) => ({ Key: o.Key! }));
+        if (keys.length > 0) {
+          await r2Client.send(
+            new DeleteObjectsCommand({
+              Bucket: bucketName,
+              Delete: { Objects: keys, Quiet: true },
+            })
           );
-          const keys = (listed.Contents ?? []).map((o) => ({ Key: o.Key! }));
-          if (keys.length > 0) {
-            await r2Client.send(
-              new DeleteObjectsCommand({
-                Bucket: bucketName,
-                Delete: { Objects: keys, Quiet: true },
-              })
-            );
-          }
-          ContinuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
-        } while (ContinuationToken);
-      }
+        }
+        ContinuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+      } while (ContinuationToken);
     }
 
     await (await clerkClient()).users.deleteUser(userId);

@@ -334,7 +334,7 @@ export function SymbolEditorModal({
       try {
         let imagePath = draft.resolvedImagePath;
         if (pendingImageBlob && draft.imageSourceTab === 'upload') {
-          const key = `accounts/${accountId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+          const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
@@ -454,7 +454,7 @@ export function SymbolEditorModal({
       // 1. Upload pending image (upload tab, Image Search proxy, or AI Generate)
       let resolvedImagePath = draft.resolvedImagePath;
       if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
-        const key = `accounts/${accountId}/symbols/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
+        const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
       }
