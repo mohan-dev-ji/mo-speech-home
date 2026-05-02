@@ -184,3 +184,47 @@ I'm building Mo Speech Home (Next.js 16 / React 19 / Convex / Clerk /
   Deliver the Convex action(s), the dev panel button + confirmation modal,
    and the locale keys. Keep the deletion logic reusable for the future
   user-facing screen.
+
+
+   I'm starting Modelling Mode (Phase 5 — the most technically complex feature in Mo Speech Home). Before suggesting anything or writing code, please read in this order:
+
+  1. CLAUDE.md (project rules — especially rule 5 on theme tokens and rule 6 on component folder layout)
+  2. docs/1-inbox/ideas/04-modelling-mode.md — full feature spec
+  3. docs/1-inbox/ideas/00-build-plan.md — Phase 5 section (around line 346) for ordered build steps and ADR references
+  4. docs/4-builds/decisions/ — any ADR mentioning modelling, overlays, or dual-profile (ADR-006 referenced in the build plan)
+  5. convex/_generated/ai/guidelines.md — Convex API patterns
+  6. convex/schema.ts — confirm modellingSession table state
+  7. app/contexts/ModellingSessionContext.tsx — see what's already scaffolded
+  8. app/components/shared/ModellingOverlayWrapper.tsx if present, plus SymbolCard.tsx (already wired with componentKey)
+
+  Key constraints to keep in mind:
+  - Prerequisite (gate this first): dual-profile testing rig — setViewMode in ProfileContext.tsx needs a UI caller before any modelling work begins. Confirm this exists or plan it as step 1.
+  - Wrappers needed on Sidebar.tsx categories nav button (categories-nav-button) and CategoryTile.tsx (category-tile-{categoryId}). SymbolCard is already wrapped.
+  - Trigger gating is three-fold: viewMode === 'instructor' AND useSubscription().hasModelling AND stateFlags.modelling_push.
+  - Every UI string goes through useTranslations with keys added to both en.json and hi.json (placeholder format "English value (hi)").
+  - AAC theme tokens only — no hard-coded colours / radii / spacing.
+  - Component placement: app/components/app/{domain}/{sections|ui|modals}/. Page files stay thin.
+
+  After reading, give me:
+  1. A short summary of what's already in place vs. what's missing for Phase 5.
+  2. The first concrete step to take (likely either the dual-profile rig UI or wiring the missing componentKey wrappers — your call based on what you find).
+  3. Any open questions before we start.
+
+  Don't write code yet — let's align on the entry point first.
+
+  ---
+  Memory context the new chat won't have but should: I just finished a major component-folder reorganisation. app/components/shared/ no longer exists at the top level; providers now live in app/contexts/
+  (including AppStateProvider, ConvexClientProvider, and ModellingSessionContext). If any doc references old paths like app/components/shared/SymbolCard.tsx, that path may have moved — verify before trusting.
+
+
+
+  To kick off slice 5.1, start a fresh Claude session with a prompt like:
+
+Phase 5 modelling-mode, slice 5.1 — Convex backend layer. Previous slice (foundation) is merged. Read docs/1-inbox/ideas/00-build-plan.md Phase 5.1 section and docs/1-inbox/ideas/04-modelling-mode.md for the spec. Write a plan covering createModellingSession, advanceStep, cancelModellingSession mutations and getActiveModellingSession, getModellingSessionById queries. Wire ModellingSessionContext to subscribe to the active session for the current student profile. Drop the dev-only __setFakeSession helper (it served its purpose). Don't write code yet — present the plan first.
+
+Three setup reminders for the new worktree:
+
+Symlink .env.local the same way as last time:
+ln -s /Users/mohanveraitch/projects/mo-speech-home/.env.local <new-worktree-path>/.env.local
+Rotate convex dev — kill any running instance in your main checkout first, then start it in the new worktree once you begin touching convex/ files. Slice 5.1 will push schema/function changes, so this matters more than last time.
+Don't start pnpm dev in the new worktree — your existing one on :3001 keeps running (memory note from last session).

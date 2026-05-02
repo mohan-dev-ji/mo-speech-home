@@ -388,13 +388,15 @@ Audit confirmed three known gaps that block highlighting:
 - Now wire in the Convex subscription
 - Expose `activeSession`, `currentStep`, `isHighlighted(componentKey)`, `advanceStep()`
 
-### 5.3 ModellingOverlayWrapper
+### 5.3 Dimming layer — backdrop + wrapper
 
-- Already wrapping highlightable components (set up in Phase 0)
-- Now wire in the actual overlay behaviour:
-  - Inactive: black div at `opacity-80`, `pointer-events-none`
-  - Active target: black div at `opacity-0`, glow ring applied
-- Set `data-component-key={componentKey}` on outer div so `ModellingAnnotation` can locate targets
+Architecture: viewport-level backdrop instead of per-component overlays. See **ADR-007**.
+
+- **`ModellingBackdrop`** (new) — single fixed-position div mounted in `AppProviders`; fades to 80% black across the whole viewport when a session is active; z-index 80; captures pointer events to block taps on unwrapped UI
+- **`ModellingOverlayWrapper`** — already wrapping highlightable components (set up in Phase 0); on highlight, bumps `z-index` to 90 (above the backdrop) and renders the glow ring
+- `data-component-key={componentKey}` stays on the wrapper's outer div so `ModellingAnnotation` can locate targets
+
+Z-index bands reserved for modelling: 80 (backdrop) – 95 (annotation). Modals and toasts at 100+ stay above the modelling layer.
 
 ### 5.4 ModellingAnnotation
 

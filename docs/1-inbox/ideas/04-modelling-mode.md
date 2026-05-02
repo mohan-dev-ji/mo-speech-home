@@ -28,8 +28,8 @@ Modelling mode cannot be developed or tested without a working dual-profile rig.
 
 1. Student's app is subscribed to active `modellingSession` for their profile
 2. Session arrives instantly via Convex — student's screen enters guided walkthrough
-3. All components are covered by their individual black overlay divs
-4. One component remains fully visible — the one the student needs to tap next — with an animated glow ring
+3. A viewport-level black backdrop fades in, covering the entire UI
+4. The component the student needs to tap next pokes through the backdrop via z-index, with an animated glow ring
 5. A `ModellingAnnotation` (arrow + symbol image + label) appears beside the target, pointing to it
 6. Student taps the highlighted component → `currentStep` advances in Convex → both screens update
 7. Steps continue until the student reaches the target symbol
@@ -58,17 +58,31 @@ steps: [
 
 ---
 
-## Dimming System — Per-Component Black Overlay Divs
+## Dimming System — Viewport Backdrop + Z-Index
 
-Every highlightable component in the app is wrapped in a `ModellingOverlayWrapper`. This wrapper renders an absolutely-positioned black div on top of the component.
+See **ADR-007** for the full decision and reasoning.
 
-- **Normal mode** — overlay div at `opacity-0` (invisible)
-- **Modelling active, this component is NOT the target** — overlay div raised to `opacity-80`; `pointer-events-none` applied to block taps
-- **Modelling active, this component IS the target** — overlay div stays at `opacity-0`; glow ring applied to wrapper
+A single fixed-position component, `ModellingBackdrop`, renders once near the root of the app. When a session is active, it fades to ~80% black opacity over the entire viewport (`position: fixed; inset: 0; z-index: 80`) and captures pointer events to block taps on all unwrapped UI.
 
-This approach is used instead of reducing opacity on the component itself, because opacity on a component causes colour bleed and unexpected visual mixing on colourful symbol grids.
+Highlightable components are still wrapped in `ModellingOverlayWrapper`, but the wrapper no longer renders a per-component dim overlay — the backdrop replaces it. The wrapper's responsibilities are:
 
-The `ModellingOverlayWrapper` never touches its children. All dimming and blocking logic is entirely the wrapper's responsibility.
+- Expose `data-component-key` on its outer div so `ModellingAnnotation` can locate the target via a single `document.querySelector` per step change
+- Render a glow ring around the highlighted target (using theme tokens)
+- Bump the wrapper's `z-index` to **90** when this `componentKey` is the active step's `highlight`, so the target pokes through the backdrop
+
+### Z-index bands
+
+```
+   0–70     app UI (TopBar uses inline z-index 70)
+   80       ModellingBackdrop
+   90       highlighted target (ModellingOverlayWrapper)
+   95       ModellingAnnotation (reserved; lands in slice 5.4)
+  100+      emergency UI — toasts, onboarding gate, modals
+```
+
+Modals (Dialog, PlayModal, SymbolEditorModal, etc.) sit at z-index ≥100 by convention. They retain priority over modelling so an instructor or student can dismiss an unrelated modal without exiting the session.
+
+The `ModellingOverlayWrapper` never touches its children. The backdrop is the single source of truth for dimming and pointer blocking; the wrapper only ever adds the glow ring and the z-index bump.
 
 ---
 
@@ -119,8 +133,9 @@ modellingSession: {
 
 ## React Architecture
 
-- **`ModellingSessionContext`** — wraps entire app; always present; normally invisible; activates overlay system when a session is pushed
-- **`ModellingOverlayWrapper`** — wraps every highlightable component; black overlay div + pointer-events control
+- **`ModellingSessionContext`** — wraps entire app; always present; normally invisible; activates the dimming layer when a session is pushed
+- **`ModellingBackdrop`** — single viewport-level dim layer mounted in `AppProviders`; fades in/out with the session (see ADR-007)
+- **`ModellingOverlayWrapper`** — wraps every highlightable component; on highlight, bumps z-index above the backdrop and renders the glow ring
 - **`ModellingAnnotation`** — arrow + symbol image + label; positioned via `getBoundingClientRect()`
 
 Every tappable element the walkthrough needs to highlight must have a stable `componentKey` from day one:
