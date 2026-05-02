@@ -167,9 +167,9 @@ export function CategoriesContent() {
   }
 
   return (
-    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
+    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
-      {/* Page header */}
+      {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
@@ -200,34 +200,35 @@ export function CategoriesContent() {
         </div>
       )}
 
-      {/* Loading */}
-      {categories === undefined && (
-        <p className="text-theme-s text-theme-secondary-alt-text">{t('loading')}</p>
-      )}
+      {/* Scrollable grid area — banner stays put above */}
+      <div className="flex-1 overflow-auto" data-modelling-content>
+        {categories === undefined && (
+          <p className="text-theme-s text-theme-secondary-alt-text">{t('loading')}</p>
+        )}
 
-      {/* Category grid */}
-      {orderedCategories.length > 0 && (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={localOrder} strategy={rectSortingStrategy}>
-            <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
-              {orderedCategories.map((cat) => (
-                <SortableCategoryTile
-                  key={cat._id}
-                  category={cat}
-                  language={language}
-                  isEditing={isEditing}
-                  onDeleteRequest={handleDeleteRequest}
-                  onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      )}
+        {orderedCategories.length > 0 && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={localOrder} strategy={rectSortingStrategy}>
+              <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
+                {orderedCategories.map((cat) => (
+                  <SortableCategoryTile
+                    key={cat._id}
+                    category={cat}
+                    language={language}
+                    isEditing={isEditing}
+                    onDeleteRequest={handleDeleteRequest}
+                    onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
 
       {/* Delete confirmation dialog */}
       <Dialog

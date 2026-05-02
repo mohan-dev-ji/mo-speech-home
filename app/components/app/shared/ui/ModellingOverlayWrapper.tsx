@@ -29,13 +29,19 @@ export function ModellingOverlayWrapper({
   children,
   className = '',
 }: ModellingOverlayWrapperProps) {
-  const { isActive, isHighlighted } = useModellingSession();
+  const { isActive, isHighlighted, advanceStep } = useModellingSession();
   const highlighted = isActive && isHighlighted(componentKey);
+
+  // When the wrapped target is the active step, advancing the session is part
+  // of clicking it. The original child handler (e.g. navigation) still runs —
+  // both events fire because the click bubbles up to this wrapper.
+  const handleClick = highlighted ? () => advanceStep() : undefined;
 
   return (
     <div
       className={`relative ${className}`}
       data-component-key={componentKey}
+      onClick={handleClick}
       style={{
         borderRadius: 'inherit',
         // Bump above the viewport backdrop so the target pokes through the dim.

@@ -15,6 +15,7 @@ import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
 import type * as lib_account from "../lib/account.js";
 import type * as migrations from "../migrations.js";
+import type * as modellingSessions from "../modellingSessions.js";
 import type * as profileCategories from "../profileCategories.js";
 import type * as profileLists from "../profileLists.js";
 import type * as profileSentences from "../profileSentences.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   imageCache: typeof imageCache;
   "lib/account": typeof lib_account;
   migrations: typeof migrations;
+  modellingSessions: typeof modellingSessions;
   profileCategories: typeof profileCategories;
   profileLists: typeof profileLists;
   profileSentences: typeof profileSentences;

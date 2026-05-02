@@ -33,6 +33,7 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { CategoryPageHeader } from '@/app/components/app/categories/ui/CategoryPageHeader';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
+import { ModellingPickerModal } from '@/app/components/app/categories/modals/ModellingPickerModal';
 import {
   Dialog,
   DialogContent,
@@ -152,12 +153,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
       : !hasModelling
         ? tBanner('modelDisabled.upgrade')
         : tBanner('modelDisabled.flag');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const handleModelClick = canModel
-    ? () => {
-        // Phase 5.5: open the symbol picker / confirmation modal.
-        // For now this just logs so the wiring can be verified end-to-end.
-        console.log('[modelling] trigger clicked — picker modal lands in 5.5');
-      }
+    ? () => setPickerOpen(true)
     : undefined;
 
   // ── Edit state ──────────────────────────────────────────────────────────────
@@ -342,7 +340,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
       )}
 
       {/* Board */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto" data-modelling-content>
         {symbols === undefined && (
           <div className="flex items-center justify-center py-16">
             <div
@@ -448,6 +446,23 @@ export function CategoryDetailContent({ categoryId }: Props) {
           onSave={() => {}}
           onFolderImageSave={handleFolderImageSave}
         />
+      )}
+
+      {/* Modelling picker */}
+      {studentProfile && (
+        <Dialog
+          open={pickerOpen}
+          onOpenChange={(open) => { if (!open) setPickerOpen(false); }}
+        >
+          <DialogContent className="max-w-2xl">
+            <ModellingPickerModal
+              profileId={studentProfile._id}
+              profileCategoryId={profileCategoryId}
+              language={language}
+              onClose={() => setPickerOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Symbol delete confirmation */}
