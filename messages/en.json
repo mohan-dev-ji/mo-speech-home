@@ -144,7 +144,12 @@
   "banner": {
     "backButton": "Back",
     "modelButton": "Model",
-    "editButton": "Edit"
+    "editButton": "Edit",
+    "modelDisabled": {
+      "studentView": "Switch to instructor view to use modelling.",
+      "upgrade": "Modelling is available on Pro and Max.",
+      "flag": "Enable Modelling Push in profile settings."
+    }
   },
   "talker": {
     "playLabel": "Play sentence",

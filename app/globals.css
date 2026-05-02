@@ -280,12 +280,6 @@ body {
   border-radius: calc(var(--theme-roundness) - var(--theme-symbol-card-padding));
 }
 
-/* Modelling mode — target symbol is highlighted */
-.symbol-card--modelling-target {
-  outline: 3px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
 /* Talker bar */
 .talker-bar {
   background: transparent;

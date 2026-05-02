@@ -1,12 +1,22 @@
 "use client";
 
 // Wraps any component that can be a modelling target.
-// Reads ModellingSessionContext to highlight/pulse when this componentKey is active.
-// This is the ONLY shared component with a context dependency — intentional.
+// Reads ModellingSessionContext to highlight when this componentKey is the active step.
+// Dimming is provided by ModellingBackdrop (a single viewport-level fixed div),
+// not by per-component overlays — that lets the entire UI dim, not just wrapped cards.
+//
+// Layering during an active session:
+//   page UI            — z-index auto / up to 70 (TopBar)
+//   ModellingBackdrop  — z-index 80 (fixed, covers all unwrapped UI incl. TopBar/Sidebar)
+//   highlighted target — z-index 90 (this wrapper bumps when isHighlighted)
+//   ModellingAnnotation (future) — z-index 95
+//   Toasts/Modals/Onboarding — z-index 100+ (always above modelling)
 //
 // componentKey convention: "symbol-{symbolId}" | "category-tile-{categoryId}" | "categories-nav-button"
 
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
+
+const HIGHLIGHTED_Z_INDEX = 90;
 
 type ModellingOverlayWrapperProps = {
   componentKey: string;
@@ -19,19 +29,31 @@ export function ModellingOverlayWrapper({
   children,
   className = '',
 }: ModellingOverlayWrapperProps) {
-  const { isHighlighted } = useModellingSession();
-  const highlighted = isHighlighted(componentKey);
+  const { isActive, isHighlighted } = useModellingSession();
+  const highlighted = isActive && isHighlighted(componentKey);
 
   return (
-    <div className={`relative ${className}`} data-component-key={componentKey}>
+    <div
+      className={`relative ${className}`}
+      data-component-key={componentKey}
+      style={{
+        borderRadius: 'inherit',
+        // Bump above the viewport backdrop so the target pokes through the dim.
+        // When not highlighted, the wrapper sits in normal flow and is covered by the backdrop.
+        zIndex: highlighted ? HIGHLIGHTED_Z_INDEX : undefined,
+      }}
+    >
       {children}
+
       {highlighted && (
         <div
-          className="absolute inset-0 rounded-xl pointer-events-none modelling-pulse"
-          style={{
-            boxShadow: `0 0 0 3px var(--theme-brand-primary), 0 0 16px 4px var(--theme-symbol-card-glow)`,
-          }}
           aria-hidden
+          className="absolute inset-0 pointer-events-none modelling-pulse"
+          style={{
+            borderRadius: 'inherit',
+            boxShadow:
+              '0 0 0 3px var(--theme-brand-primary), 0 0 16px 4px var(--theme-symbol-card-glow)',
+          }}
         />
       )}
     </div>

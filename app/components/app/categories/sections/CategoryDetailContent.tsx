@@ -23,8 +23,11 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
+import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
+import { useAppState } from '@/app/contexts/AppStateProvider';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
+import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { CategoryPageHeader } from '@/app/components/app/categories/ui/CategoryPageHeader';
@@ -127,9 +130,35 @@ type Props = {
 export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
-  const { language, stateFlags, accountId } = useProfile();
+  const { language, viewMode, stateFlags, accountId, studentProfile } = useProfile();
   const { talkerMode, addToTalker } = useTalker();
   const { setBreadcrumbExtra } = useBreadcrumb();
+  const { isActive: modellingActive } = useModellingSession();
+  const { subscription } = useAppState();
+  const tBanner = useTranslations('banner');
+
+  // Modelling trigger gate — instructor view + Pro/Max tier + the active student
+  // profile has modelling_push enabled. The flag is a per-student permission
+  // (controls whether modelling can be pushed TO that student), so it's read
+  // from the student profile directly rather than the viewMode-resolved stateFlags.
+  const hasModelling = subscription.tier !== 'free';
+  const studentAllowsPush = studentProfile?.stateFlags?.modelling_push === true;
+  const canModel =
+    viewMode === 'instructor' && hasModelling && studentAllowsPush;
+  const modelDisabledReason = canModel
+    ? undefined
+    : viewMode !== 'instructor'
+      ? tBanner('modelDisabled.studentView')
+      : !hasModelling
+        ? tBanner('modelDisabled.upgrade')
+        : tBanner('modelDisabled.flag');
+  const handleModelClick = canModel
+    ? () => {
+        // Phase 5.5: open the symbol picker / confirmation modal.
+        // For now this just logs so the wiring can be verified end-to-end.
+        console.log('[modelling] trigger clicked — picker modal lands in 5.5');
+      }
+    : undefined;
 
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [isEditing, setIsEditing] = useState(false);
@@ -305,6 +334,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
               imagePath={category?.imagePath}
               colour={category?.colour}
               onEdit={handleEditStart}
+              onModel={handleModelClick}
+              modelDisabledReason={modelDisabledReason}
             />
           )}
         </div>
@@ -328,7 +359,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
         )}
 
         {symbols && symbols.length > 0 && (
-          isEditing ? (
+          isEditing && !modellingActive ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -357,29 +388,34 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
 
                 return (
-                  <SymbolCard
+                  <ModellingOverlayWrapper
                     key={sym._id}
-                    symbolId={sym._id}
-                    imagePath={imageUrl}
-                    label={label}
-                    language={language}
-                    display={sym.display}
-                    categoryColour={category?.colour}
-                    onTap={() => {
-                      if (!audioPath) return;
-                      if (talkerMode === 'banner') {
-                        playAudio(audioPath);
-                      } else if (sym.imagePath) {
-                        playAudio(audioPath);
-                        addToTalker({
-                          symbolId: sym._id,
-                          imagePath: `/api/assets?key=${sym.imagePath}`,
-                          audioPath,
-                          label,
-                        });
-                      }
-                    }}
-                  />
+                    componentKey={`symbol-${sym._id}`}
+                    className="rounded-xl"
+                  >
+                    <SymbolCard
+                      symbolId={sym._id}
+                      imagePath={imageUrl}
+                      label={label}
+                      language={language}
+                      display={sym.display}
+                      categoryColour={category?.colour}
+                      onTap={() => {
+                        if (!audioPath) return;
+                        if (talkerMode === 'banner') {
+                          playAudio(audioPath);
+                        } else if (sym.imagePath) {
+                          playAudio(audioPath);
+                          addToTalker({
+                            symbolId: sym._id,
+                            imagePath: `/api/assets?key=${sym.imagePath}`,
+                            audioPath,
+                            label,
+                          });
+                        }
+                      }}
+                    />
+                  </ModellingOverlayWrapper>
                 );
               })}
             </CategoryBoardGrid>
