@@ -10,6 +10,10 @@ import { AppStateProvider } from '@/app/contexts/AppStateProvider';
 import { StudentOnboardingGate } from '@/app/components/app/onboarding/StudentOnboardingGate';
 import { ToastProvider } from '@/app/components/app/shared/ui/Toast';
 import { ModellingBackdrop } from '@/app/components/app/shared/ui/ModellingBackdrop';
+import { ModellingAnnotation } from '@/app/components/app/shared/ui/ModellingAnnotation';
+import { ModellingExitButton } from '@/app/components/app/shared/ui/ModellingExitButton';
+import { ModellingProgressIndicator } from '@/app/components/app/shared/ui/ModellingProgressIndicator';
+import { ModellingMirrorSync } from '@/app/components/app/shared/sections/ModellingMirrorSync';
 import { InstructorPresenceWatcher } from '@/app/components/app/shared/sections/InstructorPresenceWatcher';
 import { StudentViewLocaleSync } from '@/app/components/app/shared/sections/StudentViewLocaleSync';
 import { StudentViewRouteGuard } from '@/app/components/app/shared/sections/StudentViewRouteGuard';
@@ -29,7 +33,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
                     <InstructorPresenceWatcher />
                     <StudentViewLocaleSync />
                     <StudentViewRouteGuard />
+                    <ModellingMirrorSync />
                     <ModellingBackdrop />
+                    <ModellingAnnotation />
+                    <ModellingProgressIndicator />
+                    <ModellingExitButton />
                     {children}
                   </ToastProvider>
                 </BreadcrumbProvider>

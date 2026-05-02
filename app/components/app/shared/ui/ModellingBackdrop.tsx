@@ -15,6 +15,10 @@ const BACKDROP_Z_INDEX = 80;
 export function ModellingBackdrop() {
   const { isActive } = useModellingSession();
 
+  // pointerEvents stays 'none' even while active so the page scrolls through
+  // the dim — students often need to scroll to find the target symbol
+  // (learning the path is the whole point). The visual dim makes it clear
+  // which UI not to interact with.
   return (
     <div
       aria-hidden
@@ -22,7 +26,7 @@ export function ModellingBackdrop() {
       style={{
         opacity: isActive ? 0.8 : 0,
         zIndex: BACKDROP_Z_INDEX,
-        pointerEvents: isActive ? 'auto' : 'none',
+        pointerEvents: 'none',
       }}
     />
   );

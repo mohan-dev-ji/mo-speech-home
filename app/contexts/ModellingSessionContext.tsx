@@ -2,23 +2,26 @@
 
 // IMPORTANT: This context MUST wrap the entire app from day one.
 // ModellingOverlayWrapper components throughout the app require this context to exist
-// even before modelling mode is built in Phase 6.
+// even before modelling mode is fully built out.
 
 import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useProfile } from './ProfileContext';
 
 type ModellingStep = { screen: string; highlight: string };
 
 type ModellingSession = {
-  sessionId: string;
-  profileId: string;
+  sessionId: Id<'modellingSessions'>;
+  profileId: Id<'studentProfiles'>;
+  symbolPreview: { word: string; imagePath: string };
   steps: ModellingStep[];
   currentStep: number;
   status: 'active' | 'completed' | 'cancelled';
@@ -30,9 +33,7 @@ type ModellingSessionContextValue = {
   currentStep: number;
   isHighlighted: (componentKey: string) => boolean;
   advanceStep: () => void;
-  // Dev-only escape hatch — drives the visual layer before Convex is wired.
-  // No-op in production builds. Removed in Phase 5.1.
-  __setFakeSession: (steps: ModellingStep[] | null) => void;
+  cancelSession: () => void;
 };
 
 const ModellingSessionContext = createContext<ModellingSessionContextValue>({
@@ -41,13 +42,33 @@ const ModellingSessionContext = createContext<ModellingSessionContextValue>({
   currentStep: 0,
   isHighlighted: () => false,
   advanceStep: () => {},
-  __setFakeSession: () => {},
+  cancelSession: () => {},
 });
 
 export function ModellingSessionProvider({ children }: { children: ReactNode }) {
-  // Phase 5.1: replace this state with a Convex subscription to
-  // getActiveModellingSession(profileId).
-  const [session, setSession] = useState<ModellingSession | null>(null);
+  const { activeProfileId } = useProfile();
+
+  const sessionDoc = useQuery(
+    api.modellingSessions.getActiveModellingSession,
+    activeProfileId ? { profileId: activeProfileId } : 'skip',
+  );
+
+  const advanceStepMutation = useMutation(api.modellingSessions.advanceStep);
+  const cancelSessionMutation = useMutation(
+    api.modellingSessions.cancelModellingSession,
+  );
+
+  const session = useMemo<ModellingSession | null>(() => {
+    if (!sessionDoc) return null;
+    return {
+      sessionId: sessionDoc._id,
+      profileId: sessionDoc.profileId,
+      symbolPreview: sessionDoc.symbolPreview,
+      steps: sessionDoc.steps,
+      currentStep: sessionDoc.currentStep,
+      status: sessionDoc.status,
+    };
+  }, [sessionDoc]);
 
   const isActive = session?.status === 'active';
   const currentStep = session?.currentStep ?? 0;
@@ -62,31 +83,14 @@ export function ModellingSessionProvider({ children }: { children: ReactNode }) 
   );
 
   const advanceStep = useCallback(() => {
-    // Phase 5.1: call the Convex advanceStep mutation.
-    setSession((prev) => {
-      if (!prev || prev.status !== 'active') return prev;
-      const next = prev.currentStep + 1;
-      if (next >= prev.steps.length) {
-        return { ...prev, status: 'completed', currentStep: prev.steps.length - 1 };
-      }
-      return { ...prev, currentStep: next };
-    });
-  }, []);
+    if (!session || session.status !== 'active') return;
+    void advanceStepMutation({ sessionId: session.sessionId });
+  }, [session, advanceStepMutation]);
 
-  const __setFakeSession = useCallback((steps: ModellingStep[] | null) => {
-    if (process.env.NODE_ENV === 'production') return;
-    if (!steps) {
-      setSession(null);
-      return;
-    }
-    setSession({
-      sessionId: 'fake',
-      profileId: 'fake',
-      steps,
-      currentStep: 0,
-      status: 'active',
-    });
-  }, []);
+  const cancelSession = useCallback(() => {
+    if (!session || session.status !== 'active') return;
+    void cancelSessionMutation({ sessionId: session.sessionId });
+  }, [session, cancelSessionMutation]);
 
   const value = useMemo<ModellingSessionContextValue>(
     () => ({
@@ -95,20 +99,10 @@ export function ModellingSessionProvider({ children }: { children: ReactNode }) 
       currentStep,
       isHighlighted,
       advanceStep,
-      __setFakeSession,
+      cancelSession,
     }),
-    [session, isActive, currentStep, isHighlighted, advanceStep, __setFakeSession],
+    [session, isActive, currentStep, isHighlighted, advanceStep, cancelSession],
   );
-
-  // Dev-only: expose the helpers on window for console-driven testing.
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production') return;
-    (window as unknown as Record<string, unknown>).__modelling = {
-      setFake: __setFakeSession,
-      advance: advanceStep,
-      session,
-    };
-  }, [__setFakeSession, advanceStep, session]);
 
   return (
     <ModellingSessionContext.Provider value={value}>

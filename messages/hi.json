@@ -150,6 +150,22 @@
       "flag": "Enable Modelling Push in profile settings. (hi)"
     }
   },
+  "modelling": {
+    "picker": {
+      "title": "Choose a symbol to model (hi)",
+      "description": "Pick a symbol from this category to push to the student. (hi)",
+      "empty": "No symbols in this category yet. (hi)",
+      "cancel": "Cancel (hi)",
+      "confirm": "Start session (hi)",
+      "error": "Couldn't start the session. Try again. (hi)"
+    },
+    "exit": {
+      "ariaLabel": "Exit modelling session (hi)"
+    },
+    "progress": {
+      "stepCounter": "Step {current} of {total} (hi)"
+    }
+  },
   "talker": {
     "playLabel": "Play sentence (hi)",
     "clearLabel": "Clear sentence (hi)",
