@@ -11,9 +11,18 @@ type Props = {
   imagePath?: string;
   colour?: string;
   onEdit: () => void;
+  onModel?: () => void;
+  modelDisabledReason?: string;
 };
 
-export function CategoryPageHeader({ categoryName, imagePath, colour, onEdit }: Props) {
+export function CategoryPageHeader({
+  categoryName,
+  imagePath,
+  colour,
+  onEdit,
+  onModel,
+  modelDisabledReason,
+}: Props) {
   const bg = getCategoryColour(colour ?? 'orange').c700;
 
   return (
@@ -26,6 +35,8 @@ export function CategoryPageHeader({ categoryName, imagePath, colour, onEdit }: 
         imagePath={imagePath}
         colour={colour}
         onEdit={onEdit}
+        onModel={onModel}
+        modelDisabledReason={modelDisabledReason}
       />
     </div>
   );

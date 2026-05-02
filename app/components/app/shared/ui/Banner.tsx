@@ -9,9 +9,18 @@ type BannerProps = {
   imagePath?: string;
   colour?: string;
   onEdit?: () => void;
+  onModel?: () => void;
+  modelDisabledReason?: string;
 };
 
-export function Banner({ categoryName, imagePath, colour, onEdit }: BannerProps) {
+export function Banner({
+  categoryName,
+  imagePath,
+  colour,
+  onEdit,
+  onModel,
+  modelDisabledReason,
+}: BannerProps) {
   const t = useTranslations('banner');
 
   const colourPair = getCategoryColour(colour ?? 'orange');
@@ -43,8 +52,10 @@ export function Banner({ categoryName, imagePath, colour, onEdit }: BannerProps)
 
           <button
             type="button"
-            disabled
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium opacity-50 cursor-not-allowed"
+            onClick={onModel}
+            disabled={!onModel}
+            title={modelDisabledReason}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
           >
             <Layers className="w-3.5 h-3.5" />

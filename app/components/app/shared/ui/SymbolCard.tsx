@@ -24,7 +24,6 @@ type SymbolCardProps = {
   language: string;
   showLabel?: boolean;
   showImage?: boolean;
-  isModellingTarget?: boolean;
   display?: SymbolDisplay;
   categoryColour?: string;
   onTap: () => void;
@@ -71,7 +70,6 @@ export function SymbolCard({
   label,
   showLabel = true,
   showImage = true,
-  isModellingTarget = false,
   display,
   categoryColour,
   onTap,
@@ -127,7 +125,6 @@ export function SymbolCard({
         shapeClass,
         'p-2 w-full h-full cursor-pointer',
         'transition-transform active:scale-95',
-        isModellingTarget ? 'symbol-card--modelling-target' : '',
       ].join(' ')}
       style={{
         backgroundColor: display?.bgColour ?? defaultBg,
