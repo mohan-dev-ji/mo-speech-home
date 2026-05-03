@@ -172,7 +172,7 @@ Add `componentKey` props to every shared component that modelling mode needs to 
 - `category-tile-{categoryId}`
 - `symbol-{symbolId}`
 
-**Reference:** `04-modelling-mode.md`, `17-admin-library.md`
+**Reference:** `04-modelling-mode.md`, `17-admin-dashboard.md`
 
 ---
 
@@ -426,30 +426,20 @@ Z-index bands reserved for modelling: 80 (backdrop) – 95 (annotation). Modals 
 
 **Goal:** Admin can publish packs; users can load them from a real home dashboard and a public library surface.
 
-### 6.1 Authoring (in main app, admin-only)
+### 6.1 Authoring (in main app, admin view-mode)
 
-Admins author resource pack content directly in the main Mo Speech app, using their own student profile as the working surface. When a Clerk user has `publicMetadata.role === "admin"`, the app exposes additional affordances:
+Admins author resource pack content directly in the main Mo Speech app, using their own account's content (categories, lists, sentences) as the working surface. Admin chrome is gated on `viewMode === 'admin'` (the new third entry in the breadcrumb dropdown, available only when Clerk role is admin — see ADR-008). When the admin selects this view mode, the app exposes additional affordances:
 
 - "Save category to library" — in category edit-mode toolbar
 - "Save list to library" — in list editor
 - "Save sentence to library" — in sentence editor
-- "Save first-then to library" — in first-then editor
+- "Make Default" - Saves category, list or sentence to the default starter pack loaded on account creation
 
-Tapping any of these snapshots the current item and creates or updates a `resourcePack` document. Reuses every existing UI component — no duplicate authoring surface inside the admin dashboard.
+Switching back to `viewMode === 'instructor'` hides these buttons, so admins can preview their own content as a normal instructor would. Tapping any save action snapshots the current item and creates or updates a `resourcePack` document. Reuses every existing UI component — no duplicate authoring surface inside the admin dashboard.
 
-### 6.2 Admin CMS (thin)
+### 6.2 Admin CMS (thin) — built in Phase 7
 
-The admin dashboard gets a Library section that handles only metadata and lifecycle:
-
-- Pack listing (filter by season, status, featured)
-- Set `publishedAt` / unpublish (null = draft)
-- Set `expiresAt` (e.g. Halloween pack expires 1 November)
-- Toggle `featured` for home dashboard promotion
-- Set `season` and `tags`
-- Reorder packs within season groupings
-- Delete packs
-
-No content authoring lives here. No code deploy required to publish, update, or expire a pack.
+The metadata/lifecycle layer lives in the admin dashboard's Library section, built in **Phase 7 — Admin Dashboard**. Phase 6 ships in-app authoring + browse + load; Phase 7 ships the metadata controls (publishedAt, expiresAt, featured, season, tags, reorder, delete). The two phases together complete the resource library feature.
 
 ### 6.3 Public browse surface
 
@@ -465,7 +455,7 @@ Marketing-side uses ISR / static generation; authed side uses live Convex querie
 The home page is currently a stub. Phase 6 ships a real one:
 
 - `ResourceLibraryContext` fetches featured/seasonal pack metadata on app load
-- Home screen renders promotional cards for featured and current seasonal packs
+- Home screen renders promotional cards for featured and current seasonal packs in the Home banner
 - Quick links to key features (categories, search, settings)
 - Full pack content only fetches when user taps to preview or load
 
@@ -474,7 +464,7 @@ The home page is currently a stub. Phase 6 ships a real one:
 `loadResourcePack(profileId, packId)` mutation:
 1. Creates `profileCategory` from pack category
 2. Creates `profileSymbol` records (with any starter display overrides)
-3. Creates `profileList`, `profileSentence`, `profileFirstThen` records
+3. Creates `profileList`, `profileSentence` records
 4. Sets `librarySourceId` on all created records
 5. Content is now fully in user's profile — library not touched again
 
@@ -492,7 +482,62 @@ The home page is currently a stub. Phase 6 ships a real one:
 
 ---
 
-## Phase 7 — Themes
+## Phase 7 — Admin Dashboard
+
+**Goal:** Complete the existing `/admin` dashboard so admins can manage resource pack metadata, view user/usage data, and operate the platform without touching code.
+
+The `/admin` route already exists as scaffolding (Overview stats, Users list, User detail). Phase 7 completes it as one coherent surface, immediately following Phase 6 because the resource library feature isn't usable without metadata controls (publish, schedule, feature, expire). See **ADR-008** for the admin role and view-mode model.
+
+### 7.1 Library section (the original Phase 10 spec)
+
+Pack management surface. No content authoring here — content is authored in-app via Phase 6's view-mode gated affordances. This section handles only metadata and lifecycle:
+
+- Pack listing with filters (season, status, featured)
+- Set `publishedAt` / unpublish (null = draft, not visible to users)
+- Set `expiresAt` (e.g. Halloween pack expires 1 November)
+- Toggle `featured` for home dashboard promotion
+- Set `season` and `tags` for discoverability
+- Reorder packs within season groupings
+- Delete packs
+- Translation status indicator per pack (English ✅ / Hindi ⏳)
+
+No code deploy required to publish, update, or expire a pack.
+
+### 7.2 Users section
+
+Extend the existing users list with operational data mirrored from the MVP admin shape:
+
+- Start date (account creation)
+- Plan status (free / pro / max, monthly / yearly)
+- Usage signals (last active, sessions, profile count)
+- Drill-down to user detail with subscription history and grant-access controls (already partially scaffolded)
+
+### 7.3 Overview section
+
+Extend the existing 5 stat cards (total / free / pro / max counts) with day-to-day operational metrics. Specifics decided when building, based on what's actually needed.
+
+### 7.4 Recent symbols — data layer + admin velocity
+
+The MVP tracked each user's last 20 symbols used; the velocity signal was useful and worth carrying forward. Phase 7 introduces this end-to-end:
+
+- Schema: add `recentSymbols?: Array<{ profileSymbolId, usedAt }>` to `studentProfiles`. Capped at 20, FIFO (see `12-convex-schema.md` and `09-child-profile.md`).
+- Mutation: `recordSymbolTap(profileId, profileSymbolId)` — pushes onto `recentSymbols`, slices to last 20. Called from every place a symbol can be tapped (talker bar add, banner play, search result tap, modelling step).
+- Home dashboard surface: "Recent symbols" horizontal strip at the top of `/home`, scoped to the active profile. Tapping a recent symbol re-uses it (same as a regular symbol tap).
+- Admin dashboard surface (in Overview / Users sections): per-account velocity aggregation — symbols-per-day rolling 7d / 30d, computed from `recentSymbols.usedAt` timestamps across profiles on the account. Surfaces engagement trends without needing a separate analytics table.
+
+**Privacy boundary**: usage data reveals the student's communication patterns and is sensitive. Account-private — never exposed across accounts. Family-member collaborators see it (they share the active profile). Admins see aggregate counts and timestamps in the dashboard, never the symbol-level history.
+
+**Why deferred to Phase 7 rather than collected from Phase 6**: the data is bounded (last 20) so there's no historical loss from late start — the array fills within minutes of Phase 7 launch. Bundling collection with the admin observation surface keeps the feature shippable as one coherent unit. The home-dashboard "Recent symbols" strip ships as part of Phase 7, so Phase 6's home dashboard launches with featured packs and quick links, then Phase 7 adds the recent strip on top.
+
+### 7.5 Future slots
+
+Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into this dashboard as additional sections, not separate routes.
+
+**Reference:** `17-admin-dashboard.md`, `06-resource-library.md`, ADR-008
+
+---
+
+## Phase 8 — Themes
 
 **Goal:** Student profiles have selectable colour themes.
 
@@ -507,22 +552,22 @@ The home page is currently a stub. Phase 6 ships a real one:
 
 ---
 
-## Phase 8 — Home/School Connection
+## Phase 9 — Home/School Connection
 
 **Goal:** Student identity is portable between Mo Speech Home and Mo Speech School.
 
-### 8.1 convex-identity infrastructure
+### 9.1 convex-identity infrastructure
 
 - `createStudentIdentity` mutation — called on student profile creation
 - Generates invite code, links to `homeProfileId`
 - `switchContext` mutation — updates `activeContext`
 - `getActiveContext` query — student's device subscribes
 
-### 8.2 Cross-project HTTP action
+### 9.2 Cross-project HTTP action
 
 **Prototype this early.** Build a simple read-only HTTP endpoint in `convex-home` that returns a student's profile summary given a `homeProfileId` and a shared secret. Call it from a test context. Verify it works in production before building the full sharing inbox around it.
 
-### 8.3 Sharing inbox
+### 9.3 Sharing inbox
 
 - `shareRequest` table in `convex-identity`
 - Badge on inbox nav item driven by pending request count
@@ -533,12 +578,12 @@ The home page is currently a stub. Phase 6 ships a real one:
 
 ---
 
-## Phase 9 — Affiliates
+## Phase 10 — Affiliates
 
 **Goal:** Admin can grant affiliate status; Stripe Connect handles automatic payouts.
 
 - `affiliates` and `commissionEvents` tables already in schema
-- Admin User Settings page: affiliate section with four states (none / form / invited / active)
+- Admin User Settings page: affiliate section with four states (none / form / invited / active) — plugs into Phase 7's admin dashboard
 - Stripe Connect Express account creation via API
 - `account_link` generation and invite email
 - `account.updated` webhook handler → set status to `"active"`
@@ -547,18 +592,6 @@ The home page is currently a stub. Phase 6 ships a real one:
 - Automatic Stripe transfer to affiliate's connected account
 
 **Reference:** `16-affiliates.md`
-
----
-
-## Phase 10 — Admin Library
-
-**Goal:** Admin can create and publish resource packs, themes, core vocabulary, and starter templates.
-
-**This is the last phase. Build the main app first.**
-
-By the time this phase starts, all shared components exist in the codebase. The admin library is mostly composition — assembling existing components into a CMS interface. The coding agent can scaffold this from `17-admin-library.md` with minimal design input.
-
-**Reference:** `17-admin-library.md`
 
 ---
 

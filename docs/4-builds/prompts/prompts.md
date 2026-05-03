@@ -225,6 +225,10 @@ Phase 5 modelling-mode, slice 5.1 — Convex backend layer. Previous slice (foun
 Three setup reminders for the new worktree:
 
 Symlink .env.local the same way as last time:
-ln -s /Users/mohanveraitch/projects/mo-speech-home/.env.local <new-worktree-path>/.env.local
+ln -s /Users/mohanveraitch/projects/mo-speech-home/.env.local /Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/upbeat-swanson-31a8c6/.env.local
 Rotate convex dev — kill any running instance in your main checkout first, then start it in the new worktree once you begin touching convex/ files. Slice 5.1 will push schema/function changes, so this matters more than last time.
 Don't start pnpm dev in the new worktree — your existing one on :3001 keeps running (memory note from last session).
+
+
+.claude/worktrees/upbeat-swanson-31a8c6
+/Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/upbeat-swanson-31a8c6

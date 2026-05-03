@@ -34,6 +34,13 @@ studentProfile: {
     audio_autoplay: boolean
     modelling_push: boolean
   }
+
+  // Recent symbol usage — populated from Phase 7 onwards.
+  // Capped at 20, FIFO. Powers home dashboard "Recent symbols" strip and admin velocity views.
+  recentSymbols?: Array<{
+    profileSymbolId: Id<"profileSymbols">
+    usedAt: number
+  }>
 }
 ```
 
@@ -48,8 +55,7 @@ studentProfile
   ├── profileCategories[]          (all the student's categories)
   │     ├── profileSymbols[]       (symbols in each category with all overrides)
   │     ├── profileLists[]         (pre-compiled lists)
-  │     ├── profileSentences[]     (pre-built sentences)
-  │     └── profileFirstThens[]    (first/then schedules)
+  │     └── profileSentences[]     (pre-built sentences)
   └── modellingSession[]           (session history)
 ```
 

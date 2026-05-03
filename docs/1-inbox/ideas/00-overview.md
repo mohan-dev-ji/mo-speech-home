@@ -98,5 +98,5 @@ Start here before any other document: **`00-build-plan.md`**
 14-pricing-tiers.md             ← Free, Pro, Max tiers, Stripe setup, access control hook
 15-themes.md                    ← Colour theme system, tiled and animated themes, token architecture
 16-affiliates.md               ← Affiliate programme, Stripe Connect, commission models, admin UI
-17-admin-library.md            ← Admin library page, content types, shared components, layout
+17-admin-dashboard.md          ← Admin dashboard sections (Overview, Users, Library, Themes, Affiliates, Core Vocab, Starter Pack)
 ```

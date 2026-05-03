@@ -102,6 +102,15 @@ studentProfiles: {
     symbol_label_visible?: boolean          // show text label on symbol cards; default true
     symbol_text_size?: "large" | "medium" | "small" | "xs"  // h2/h4/p-bold/s-bold; auto-derived from grid_size
   }
+
+  // Recent symbol usage — populated from Phase 7 onwards.
+  // Pushed FIFO on every symbol tap, capped at 20 entries (oldest dropped).
+  // Surfaces in: home dashboard "Recent symbols" strip + admin dashboard velocity aggregation.
+  recentSymbols?: Array<{
+    profileSymbolId: Id<"profileSymbols">
+    usedAt: number
+  }>
+
   createdAt: number
   updatedAt: number
 }
@@ -256,19 +265,21 @@ resourcePacks: {
   season?: string
   tags: string[]
   featured: boolean
+  tier: "free" | "pro" | "max"           // controls who can load it; mirrors themes.tier. starter pack bypasses this check.
+  isStarter?: boolean                     // true for the canonical starter pack used by seedDefaultAccount; exactly one
   publishedAt?: number
   expiresAt?: number
   createdBy: string
   updatedAt: number
-  category: {
+  category?: {                            // optional — packs may be lists-only or sentences-only
     name: { eng: string, hin: string }
     icon: string
     colour: string
     symbols: Array<{ symbolId: string, labelOverride?: object, display?: object, order: number }>
   }
-  lists: Array<object>
-  sentences: Array<object>
-  firstThens: Array<object>
+  lists: Array<object>                    // may be empty
+  sentences: Array<object>                // may be empty
+  firstThens: Array<object>               // may be empty
 }
 ```
 
