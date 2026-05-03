@@ -589,5 +589,25 @@
     "errorNoCategory": "Please select a category. (hi)",
     "errorNoImage": "Please select an image source. (hi)",
     "errorSave": "Something went wrong. Please try again. (hi)"
+  },
+  "library": {
+    "title": "Resource Library (hi)",
+    "subtitle": "Ready-made symbol packs for every theme. (hi)",
+    "metaTitle": "Resource Library — Mo Speech (hi)",
+    "metaDescription": "Browse symbol packs, seasonal themes, and starter content for AAC. (hi)",
+    "itemsCategories": "{count} categories (hi)",
+    "itemsLists": "{count} lists (hi)",
+    "itemsSentences": "{count} sentences (hi)",
+    "ctaSignUp": "Sign up to load (hi)",
+    "ctaUpgrade": "Upgrade to load (hi)",
+    "ctaLoad": "Load into profile (hi)",
+    "ctaLoading": "Loading… (hi)",
+    "ctaAlreadyOnAccount": "Already on your account (hi)",
+    "loadSuccessToast": "Pack loaded into your profile. (hi)",
+    "loadErrorToast": "Couldn't load this pack. Try again. (hi)",
+    "empty": "No packs available yet — check back soon. (hi)",
+    "tierBadgeFree": "Free (hi)",
+    "tierBadgePro": "Pro (hi)",
+    "tierBadgeMax": "Max (hi)"
   }
 }

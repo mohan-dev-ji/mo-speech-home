@@ -1,0 +1,139 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useUser } from "@clerk/nextjs";
+import { useMutation, useQuery } from "convex/react";
+import { ConvexError } from "convex/values";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { Button } from "@/app/components/app/shared/ui/Button";
+import { useToast } from "@/app/components/app/shared/ui/Toast";
+
+type Props = {
+  packId: Id<"resourcePacks">;
+  packTier: "free" | "pro" | "max";
+  isStarter: boolean;
+  locale: string;
+};
+
+const RESUME_KEY = "library:resume";
+
+/**
+ * Auth-aware CTA for a library pack card. Renders one of:
+ * - "Sign up to load" (logged out)
+ * - "Already on your account" (signed in + starter pack)
+ * - "Upgrade to load" (signed in, free tier, gated pack)
+ * - "Load into profile" (signed in, tier sufficient)
+ *
+ * Reads access via getMyAccess directly — useSubscription is unavailable here
+ * because AppStateProvider lives inside the AAC shell, not the public route.
+ */
+export function LoadPackButton({ packId, packTier, isStarter, locale }: Props) {
+  const t = useTranslations("library");
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
+  const access = useQuery(
+    api.users.getMyAccess,
+    isSignedIn ? {} : "skip"
+  );
+  const loadPack = useMutation(api.resourcePacks.loadResourcePack);
+  const { showToast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!isLoaded || (isSignedIn && access === undefined)) {
+    return (
+      <Button variant="primary" size="md" disabled className="w-full">
+        {t("ctaLoading")}
+      </Button>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <Button
+        variant="primary"
+        size="md"
+        className="w-full"
+        onClick={() => {
+          try {
+            localStorage.setItem(
+              RESUME_KEY,
+              JSON.stringify({ packId, ts: Date.now() })
+            );
+          } catch {
+            // localStorage may be blocked (Safari private mode etc.) — non-fatal
+          }
+          router.push("/sign-up");
+        }}
+      >
+        {t("ctaSignUp")}
+      </Button>
+    );
+  }
+
+  if (isStarter) {
+    return (
+      <Button variant="secondary" size="md" disabled className="w-full">
+        {t("ctaAlreadyOnAccount")}
+      </Button>
+    );
+  }
+
+  const tier = access?.tier ?? "free";
+  const hasFullAccess = access?.hasFullAccess ?? false;
+  const tierSufficient =
+    packTier === "free" ||
+    (packTier === "pro" && hasFullAccess && (tier === "pro" || tier === "max")) ||
+    (packTier === "max" && hasFullAccess && tier === "max");
+
+  if (!tierSufficient) {
+    return (
+      <Button
+        variant="primary"
+        size="md"
+        className="w-full"
+        onClick={() =>
+          router.push(`/pricing?intent=load&packId=${packId}`)
+        }
+      >
+        {t("ctaUpgrade")}
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant="primary"
+      size="md"
+      loading={submitting}
+      disabled={submitting}
+      className="w-full"
+      onClick={async () => {
+        setSubmitting(true);
+        try {
+          await loadPack({ packId });
+          showToast({ tone: "info", title: t("loadSuccessToast") });
+          router.push(`/${locale}/categories`);
+        } catch (e: unknown) {
+          if (
+            e instanceof ConvexError &&
+            typeof e.data === "object" &&
+            e.data !== null &&
+            "code" in e.data &&
+            (e.data as { code: string }).code === "TIER_REQUIRED"
+          ) {
+            router.push(`/pricing?intent=load&packId=${packId}`);
+            return;
+          }
+          showToast({ tone: "warning", title: t("loadErrorToast") });
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+    >
+      {submitting ? t("ctaLoading") : t("ctaLoad")}
+    </Button>
+  );
+}

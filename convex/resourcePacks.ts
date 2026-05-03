@@ -1159,3 +1159,48 @@ export const getPacksForAdminStatus = query({
     return { starterPackId, libraryPacksById };
   },
 });
+
+/**
+ * Public catalogue query for the /[locale]/library page.
+ *
+ * Unauthenticated by design — the library is a discovery surface for cold visitors
+ * (SEO, marketing). Returns only metadata + counts; snapshot bodies (categories,
+ * lists, sentences arrays with symbol IDs and R2 paths) stay private to avoid
+ * exposing SymbolStix-licensed asset paths to anonymous clients.
+ *
+ * Filters:
+ * - Excludes drafts (publishedAt == null)
+ * - Excludes expired seasonals (expiresAt && expiresAt < now)
+ *
+ * The starter pack is included so logged-out visitors see it as the on-ramp;
+ * the client renders "Already on your account" for signed-in users since they
+ * were seeded with it.
+ */
+export const getPublicLibraryCatalogue = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const packs = await ctx.db.query("resourcePacks").collect();
+    return packs
+      .filter(
+        (p) => p.publishedAt != null && (!p.expiresAt || p.expiresAt > now)
+      )
+      .map((p) => ({
+        _id: p._id,
+        name: p.name,
+        description: p.description,
+        coverImagePath: p.coverImagePath,
+        season: p.season,
+        tags: p.tags,
+        featured: p.featured,
+        tier: (p.tier ?? "free") as "free" | "pro" | "max",
+        isStarter: p.isStarter ?? false,
+        publishedAt: p.publishedAt!,
+        counts: {
+          categories: p.categories?.length ?? 0,
+          lists: p.lists.length,
+          sentences: p.sentences.length,
+        },
+      }));
+  },
+});

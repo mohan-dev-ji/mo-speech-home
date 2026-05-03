@@ -8,6 +8,11 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/stripe/webhook",
   "/api/health",
+  "/(en|hi)/library(.*)",
+  // /api/assets is exposed at the middleware level; the route handler enforces
+  // its own allowlist (PUBLIC_KEY_PATTERN in app/api/assets/route.ts) and
+  // requires Clerk auth for any key outside it.
+  "/api/assets",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
