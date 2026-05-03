@@ -20,6 +20,7 @@ import type * as profileCategories from "../profileCategories.js";
 import type * as profileLists from "../profileLists.js";
 import type * as profileSentences from "../profileSentences.js";
 import type * as profileSymbols from "../profileSymbols.js";
+import type * as resourcePacks from "../resourcePacks.js";
 import type * as studentProfiles from "../studentProfiles.js";
 import type * as studentViewLock from "../studentViewLock.js";
 import type * as studentViewSessions from "../studentViewSessions.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   profileLists: typeof profileLists;
   profileSentences: typeof profileSentences;
   profileSymbols: typeof profileSymbols;
+  resourcePacks: typeof resourcePacks;
   studentProfiles: typeof studentProfiles;
   studentViewLock: typeof studentViewLock;
   studentViewSessions: typeof studentViewSessions;

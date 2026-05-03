@@ -27,8 +27,9 @@ export function InstructorPresenceWatcher() {
     profileId: activeProfileId,
   });
 
-  // (2) Watch for unlocked student sessions while in instructor view
-  const isInstructor = viewMode === "instructor";
+  // (2) Watch for unlocked student sessions while in instructor (or admin) view.
+  // Admin acts as instructor for in-app behaviour — see ADR-008.
+  const isInstructor = viewMode !== "student-view";
   const sessions = useQuery(
     api.studentViewSessions.getActiveStudentViewSessions,
     isInstructor && activeProfileId ? { profileId: activeProfileId } : "skip",

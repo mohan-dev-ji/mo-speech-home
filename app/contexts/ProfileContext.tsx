@@ -57,7 +57,11 @@ const DEFAULT_FLAGS: StateFlags = {
 
 // ─── Context type ─────────────────────────────────────────────────────────────
 
-type ViewMode = 'instructor' | 'student-view';
+// Admin viewMode behaves identically to instructor for all in-app UI in this
+// chunk. Admin-only chrome (save-to-library buttons, library-source labels,
+// link to /admin) gates on `viewMode === 'admin'` in the editor components
+// themselves — added in the next Phase 6 chunk. See ADR-008.
+type ViewMode = 'instructor' | 'student-view' | 'admin';
 
 type ProfileContextValue = {
   // Student profile
@@ -128,7 +132,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     // Hydrating from sessionStorage post-mount is the legitimate use case the
     // react-hooks/set-state-in-effect rule has to allow.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (stored === 'student-view') setViewModeState('student-view');
+    if (stored === 'student-view' || stored === 'admin') setViewModeState(stored);
   }, []);
 
   const setViewMode = (mode: ViewMode) => {
@@ -208,14 +212,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       }
     : DEFAULT_FLAGS;
 
-  // viewMode-aware stateFlags
-  const stateFlags: StateFlags = viewMode === 'instructor' ? instructorFlags : studentFlags;
+  // viewMode-aware stateFlags. Admin sees instructor flags (admin acts as
+  // instructor + extra chrome — see ADR-008).
+  const stateFlags: StateFlags = viewMode !== 'student-view' ? instructorFlags : studentFlags;
 
   // viewMode-aware language ('eng' | 'hin') for search index and TTS
   // Instructor locale is 'en' or 'hi'; map to 3-letter code for Convex search
   const instructorLocale = userRecord?.locale ?? 'en';
   const instructorLanguage = instructorLocale === 'hi' ? 'hin' : 'eng';
-  const language = viewMode === 'instructor'
+  const language = viewMode !== 'student-view'
     ? instructorLanguage
     : (studentProfile?.language ?? 'eng');
 
@@ -246,7 +251,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // ── Student setters (active profile) ─────────────────────────────────────────
 
   function setTalkerVisible(value: boolean) {
-    if (viewMode === 'instructor') {
+    // Admin writes to the instructor table same as instructor (see ADR-008).
+    if (viewMode !== 'student-view') {
       setMyInstructorFlagMutation({ flag: 'talker_visible', value });
       return;
     }
@@ -255,7 +261,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }
 
   function setHeaderInBannerMode(value: boolean) {
-    if (viewMode === 'instructor') {
+    if (viewMode !== 'student-view') {
       setMyInstructorFlagMutation({ flag: 'header_in_banner_mode', value });
       return;
     }

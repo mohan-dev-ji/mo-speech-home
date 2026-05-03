@@ -138,17 +138,18 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const { subscription } = useAppState();
   const tBanner = useTranslations('banner');
 
-  // Modelling trigger gate — instructor view + Pro/Max tier + the active student
-  // profile has modelling_push enabled. The flag is a per-student permission
-  // (controls whether modelling can be pushed TO that student), so it's read
-  // from the student profile directly rather than the viewMode-resolved stateFlags.
+  // Modelling trigger gate — instructor (or admin) view + Pro/Max tier + the
+  // active student profile has modelling_push enabled. The flag is a per-student
+  // permission (controls whether modelling can be pushed TO that student), so
+  // it's read from the student profile directly rather than the viewMode-resolved
+  // stateFlags. Admin acts as instructor here — see ADR-008.
   const hasModelling = subscription.tier !== 'free';
   const studentAllowsPush = studentProfile?.stateFlags?.modelling_push === true;
   const canModel =
-    viewMode === 'instructor' && hasModelling && studentAllowsPush;
+    viewMode !== 'student-view' && hasModelling && studentAllowsPush;
   const modelDisabledReason = canModel
     ? undefined
-    : viewMode !== 'instructor'
+    : viewMode === 'student-view'
       ? tBanner('modelDisabled.studentView')
       : !hasModelling
         ? tBanner('modelDisabled.upgrade')

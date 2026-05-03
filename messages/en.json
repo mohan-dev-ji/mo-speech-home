@@ -103,11 +103,13 @@
   "common": {
     "talker": "Talker",
     "instructor": "Instructor",
+    "admin": "Admin",
     "student": "Student",
     "studentView": "Student"
   },
   "studentViewLock": {
     "instructorDescription": "Full access — edit profile, settings, content",
+    "adminDescription": "Admin tooling — manage library, users, content",
     "studentDescription": "What the student sees on their device",
     "studentProfileDescription": "Switch to this student's view",
     "lockStudentView": "Lock student view",

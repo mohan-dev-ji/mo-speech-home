@@ -395,34 +395,46 @@ export default defineSchema({
     season: v.optional(v.string()),
     tags: v.array(v.string()),
     featured: v.boolean(),
+    // Exactly one row should have isStarter: true — this is the canonical starter pack
+    // used by loadStarterTemplate during seedDefaultAccount. Invariant enforced at the
+    // mutation layer (materialiseStarterPack queries before writing). See ADR-008.
+    isStarter: v.optional(v.boolean()),
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     createdBy: v.string(), // admin clerkUserId
     updatedAt: v.number(),
-    // Snapshot of category + content at publish time
-    category: v.object({
-      name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-      icon: v.string(),
-      colour: v.string(),
-      symbols: v.array(
+    // Snapshot of categories + content at publish time. Optional + array so a pack can be
+    // multi-category (starter pack, themed bundles), single-category, or content-only
+    // (lists/sentences without categories).
+    categories: v.optional(
+      v.array(
         v.object({
-          symbolId: v.string(), // loose ref — may be symbolstix ID or custom
-          labelOverride: v.optional(
+          name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+          icon: v.string(),
+          colour: v.string(),
+          imagePath: v.optional(v.string()), // R2 path for folder cover, mirrors profileCategories.imagePath
+          symbols: v.array(
             v.object({
-              eng: v.optional(v.string()),
-              hin: v.optional(v.string()),
+              symbolId: v.string(), // loose ref — may be symbolstix ID or custom
+              labelOverride: v.optional(
+                v.object({
+                  eng: v.optional(v.string()),
+                  hin: v.optional(v.string()),
+                })
+              ),
+              display: v.optional(v.any()), // mirrors profileSymbol.display shape
+              order: v.number(),
             })
           ),
-          display: v.optional(v.any()), // mirrors profileSymbol.display shape
-          order: v.number(),
         })
-      ),
-    }),
+      )
+    ),
     lists: v.array(v.any()),      // mirrors profileLists structure
     sentences: v.array(v.any()), // mirrors profileSentences structure
   })
     .index("by_featured", ["featured"])
-    .index("by_season", ["season"]),
+    .index("by_season", ["season"])
+    .index("by_isStarter", ["isStarter"]),
 
   /**
    * Colour themes. 6 starter flat themes seeded in Phase 0.

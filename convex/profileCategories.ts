@@ -1,15 +1,24 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
-import type { Id } from "./_generated/dataModel";
+import { loadStarterTemplateInline } from "./resourcePacks";
 
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
 /**
  * Seed the default categories + symbols onto an account.
  * Account-scoped: idempotent against re-runs — skips if the account already has any categories.
+ *
+ * Phase 6 foundation: this delegates to loadStarterTemplate, which materialises
+ * the canonical starter resourcePack (created by migrations.materialiseStarterPack)
+ * into the account. The DEFAULT_CATEGORIES module is no longer load-bearing at
+ * runtime — it's only used by materialiseStarterPack to build/refresh the starter
+ * pack. See convex/resourcePacks.ts and ADR-008.
+ *
+ * Pre-condition: migrations.materialiseStarterPack must have been run on this
+ * deployment. If it hasn't, loadStarterTemplate logs a warning and returns;
+ * the new account ends up with zero categories until the starter is materialised.
  */
 export const seedDefaultAccount = internalMutation({
   args: {
@@ -27,74 +36,7 @@ export const seedDefaultAccount = internalMutation({
       return;
     }
 
-    const now = Date.now();
-
-    for (let catIndex = 0; catIndex < DEFAULT_CATEGORIES.length; catIndex++) {
-      const cat = DEFAULT_CATEGORIES[catIndex];
-
-      let folderImagePath: string | undefined;
-      if (cat.folderWord) {
-        const folderSym = await ctx.db
-          .query("symbols")
-          .withIndex("by_words_eng", (q) => q.eq("words.eng", cat.folderWord!))
-          .first();
-        if (folderSym) folderImagePath = folderSym.imagePath;
-      }
-
-      const profileCategoryId = await ctx.db.insert("profileCategories", {
-        accountId: args.accountId,
-        name: cat.name,
-        icon: cat.icon,
-        colour: cat.colour,
-        ...(folderImagePath ? { imagePath: folderImagePath } : {}),
-        order: catIndex,
-        updatedAt: now,
-      });
-
-      let symbolOrder = 0;
-      let matched = 0;
-      let skipped = 0;
-
-      for (const word of cat.words) {
-        const candidates = await ctx.db
-          .query("symbols")
-          .withIndex("by_words_eng", (q) => q.eq("words.eng", word))
-          .take(3);
-
-        const wordLower = word.toLowerCase();
-        const match =
-          candidates.find(
-            (s) =>
-              s.words.eng.toLowerCase() === wordLower &&
-              s.categories.some((c) => cat.symbolstixCategories.includes(c))
-          ) ?? candidates.find((s) => s.words.eng.toLowerCase() === wordLower);
-
-        if (!match) {
-          skipped++;
-          continue;
-        }
-
-        matched++;
-
-        await ctx.db.insert("profileSymbols", {
-          accountId: args.accountId,
-          profileCategoryId,
-          order: symbolOrder++,
-          imageSource: { type: "symbolstix", symbolId: match._id },
-          label: {
-            eng: match.words.eng,
-            ...(match.words.hin ? { hin: match.words.hin } : {}),
-          },
-          updatedAt: now,
-        });
-      }
-
-      console.log(
-        `[seedDefaultAccount] "${cat.id}": ${matched} symbols seeded, ${skipped} not found`
-      );
-    }
-
-    console.log(`[seedDefaultAccount] done for accountId=${args.accountId}`);
+    await loadStarterTemplateInline(ctx, args.accountId);
   },
 });
 

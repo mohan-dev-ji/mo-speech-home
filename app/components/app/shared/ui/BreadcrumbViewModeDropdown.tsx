@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Check, ChevronDown, Lock, Unlock } from "lucide-react";
 import { useProfile } from "@/app/contexts/ProfileContext";
+import { useIsAdmin } from "@/app/hooks/useIsAdmin";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export function BreadcrumbViewModeDropdown() {
@@ -40,12 +41,16 @@ export function BreadcrumbViewModeDropdown() {
   }, [open]);
 
   const isStudent = viewMode === "student-view";
+  const isAdminMode = viewMode === "admin";
+  const isAdmin = useIsAdmin();
   const isActiveProfileLocked = !!lockState?.locked;
   const dropdownDisabled = isStudent && isActiveProfileLocked;
 
   const label = isStudent
     ? (studentProfile?.name ?? tCommon("studentView"))
-    : tCommon("instructor");
+    : isAdminMode
+      ? tCommon("admin")
+      : tCommon("instructor");
 
   // Student-view + profile is locked → render a disabled badge, no menu.
   if (dropdownDisabled) {
@@ -65,11 +70,20 @@ export function BreadcrumbViewModeDropdown() {
   }
 
   function selectInstructor() {
-    if (!isStudent) {
+    if (!isStudent && !isAdminMode) {
       setOpen(false);
       return;
     }
     setViewMode("instructor");
+    setOpen(false);
+  }
+
+  function selectAdmin() {
+    if (isAdminMode) {
+      setOpen(false);
+      return;
+    }
+    setViewMode("admin");
     setOpen(false);
   }
 
@@ -106,10 +120,18 @@ export function BreadcrumbViewModeDropdown() {
           role="menu"
           className="absolute top-full left-0 mt-1 min-w-[240px] rounded-theme bg-theme-card text-theme-alt-text shadow-lg border border-theme-line z-80 overflow-hidden"
         >
+          {isAdmin && (
+            <MenuItem
+              label={tCommon("admin")}
+              description={t("adminDescription")}
+              active={isAdminMode}
+              onClick={selectAdmin}
+            />
+          )}
           <MenuItem
             label={tCommon("instructor")}
             description={t("instructorDescription")}
-            active={!isStudent}
+            active={!isStudent && !isAdminMode}
             onClick={selectInstructor}
           />
 

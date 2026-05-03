@@ -102,11 +102,13 @@
   "common": {
     "talker": "टॉकर",
     "instructor": "प्रशिक्षक",
+    "admin": "Admin (hi)",
     "student": "छात्र",
     "studentView": "Student (hi)"
   },
   "studentViewLock": {
     "instructorDescription": "Full access — edit profile, settings, content (hi)",
+    "adminDescription": "Admin tooling — manage library, users, content (hi)",
     "studentDescription": "What the student sees on their device (hi)",
     "studentProfileDescription": "Switch to this student's view (hi)",
     "lockStudentView": "Lock student view (hi)",
