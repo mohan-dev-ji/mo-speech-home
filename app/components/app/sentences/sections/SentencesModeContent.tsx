@@ -20,6 +20,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
+  Bookmark,
+  Library,
   LogOut,
   Move,
   Pencil,
@@ -32,6 +34,11 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
+import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
+import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
+import { Badge } from '@/app/components/app/shared/ui/Badge';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
@@ -69,6 +76,7 @@ type SentenceRow = {
   text?: string;
   audioPath?: string;
   slots: Slot[];
+  publishedToPackId?: Id<'resourcePacks'>;
 };
 
 type PendingDelete = { id: Id<'profileSentences'>; name: string } | null;
@@ -194,6 +202,16 @@ type SortableSentenceRowProps = {
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
+  // Admin-only per-row affordances. Parent gates on viewMode === 'admin' && useIsAdmin().
+  // Pack-membership status is parameterised so the row toggle UI can reflect
+  // current state and the toggle handler knows which way to flip.
+  showAdminButtons?: boolean;
+  isDefault?: boolean;
+  isInLibrary?: boolean;
+  libraryTier?: 'free' | 'pro' | 'max';
+  onToggleDefault?: (sentence: SentenceRow) => void;
+  onToggleLibrary?: (sentence: SentenceRow) => void;
+  onSetTier?: (sentence: SentenceRow, tier: 'free' | 'pro' | 'max') => void;
 };
 
 function SortableSentenceRow({
@@ -201,6 +219,13 @@ function SortableSentenceRow({
   onDeleteRequest,
   onEditSlot, onRemoveSlot, onAddSlot,
   onEditSentence, onPlay,
+  showAdminButtons = false,
+  isDefault = false,
+  isInLibrary = false,
+  libraryTier = 'free',
+  onToggleDefault,
+  onToggleLibrary,
+  onSetTier,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -251,6 +276,23 @@ function SortableSentenceRow({
             )}
           </div>
 
+          {/* Admin status badge — visible in admin view regardless of edit mode */}
+          {showAdminButtons && (isDefault || isInLibrary) && (
+            <Badge
+              variant={
+                isDefault
+                  ? 'default'
+                  : libraryTier === 'free'
+                    ? 'outline'
+                    : libraryTier === 'max'
+                      ? 'success'
+                      : 'default'
+              }
+            >
+              {isDefault ? 'Default' : libraryTier === 'free' ? 'Free' : libraryTier === 'pro' ? 'Pro' : 'Max'}
+            </Badge>
+          )}
+
           {/* Sentence text — dashed card in edit mode, plain text in view mode */}
           {isEditing ? (
             <button
@@ -276,6 +318,40 @@ function SortableSentenceRow({
           {/* Edit mode action buttons */}
           {isEditing && (
             <div className="flex items-center gap-1 shrink-0">
+              {showAdminButtons && (
+                <div
+                  className="flex items-center gap-1 mr-1 px-1.5 py-1 rounded-theme-sm"
+                  style={{
+                    background: 'rgba(255,200,0,0.06)',
+                    border: '1px solid rgba(255,200,0,0.2)',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ToggleButton
+                    pressed={isDefault}
+                    disabled={isInLibrary}
+                    onClick={() => onToggleDefault?.(sentence)}
+                    icon={<Bookmark className="w-3.5 h-3.5" />}
+                  >
+                    {t('toggleDefault')}
+                  </ToggleButton>
+                  <ToggleButton
+                    pressed={isInLibrary}
+                    disabled={isDefault}
+                    onClick={() => onToggleLibrary?.(sentence)}
+                    icon={<Library className="w-3.5 h-3.5" />}
+                  >
+                    {t('toggleLibrary')}
+                  </ToggleButton>
+                  {isInLibrary && onSetTier && (
+                    <PlanTierPicker
+                      value={libraryTier}
+                      onChange={(tier) => onSetTier(sentence, tier)}
+                      translationNamespace="sentences"
+                    />
+                  )}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onDeleteRequest(sentence._id, name); }}
@@ -310,8 +386,11 @@ export function SentencesModeContent() {
   const t = useTranslations('sentences');
   const params = useParams();
   const locale = params.locale as string;
-  const { language, accountId, stateFlags } = useProfile();
+  const { language, viewMode, accountId, stateFlags } = useProfile();
   const { talkerMode } = useTalker();
+  const isAdmin = useIsAdmin();
+  const { showToast } = useToast();
+  const showAdminButtons = viewMode === 'admin' && isAdmin;
 
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -327,6 +406,22 @@ export function SentencesModeContent() {
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
+  const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefault);
+  const setSentenceInLibrary = useMutation(api.resourcePacks.setSentenceInLibrary);
+  const setLibraryPackTier   = useMutation(api.resourcePacks.setLibraryPackTier);
+
+  // Pack status — drives the per-row Default/Library toggle pressed states + tier.
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
+  function statusFor(sentence: SentenceRow) {
+    const pid = sentence.publishedToPackId;
+    const isDefault = !!(pid && packsStatus && pid === packsStatus.starterPackId);
+    const libraryPack = pid && packsStatus ? packsStatus.libraryPacksById[pid] : undefined;
+    return {
+      isDefault,
+      isInLibrary: !!libraryPack,
+      libraryTier: libraryPack?.tier ?? ('free' as const),
+    };
+  }
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -354,6 +449,51 @@ export function SentencesModeContent() {
 
   async function handleCreate(name: string) {
     await createSentence({ name: { eng: name } });
+  }
+
+  async function handleToggleDefault(sentence: SentenceRow) {
+    const { isDefault } = statusFor(sentence);
+    try {
+      await setSentenceDefault({ profileSentenceId: sentence._id, on: !isDefault });
+      showToast({
+        tone: 'info',
+        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
+      });
+    } catch (e) {
+      console.error('[SentencesModeContent] toggle default failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleToggleLibrary(sentence: SentenceRow) {
+    const { isInLibrary } = statusFor(sentence);
+    try {
+      if (isInLibrary) {
+        await setSentenceInLibrary({ profileSentenceId: sentence._id, on: false });
+        showToast({ tone: 'info', title: t('toastLibraryOff') });
+      } else {
+        await setSentenceInLibrary({
+          profileSentenceId: sentence._id,
+          on: true,
+          tier: 'free',
+        });
+        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      }
+    } catch (e) {
+      console.error('[SentencesModeContent] toggle library failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleSetTier(sentence: SentenceRow, tier: 'free' | 'pro' | 'max') {
+    if (!sentence.publishedToPackId) return;
+    try {
+      await setLibraryPackTier({ packId: sentence.publishedToPackId, tier });
+      showToast({ tone: 'info', title: t('toastTierUpdated') });
+    } catch (e) {
+      console.error('[SentencesModeContent] set tier failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
   }
 
   async function handleDeleteConfirm() {
@@ -481,24 +621,34 @@ export function SentencesModeContent() {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-3">
-              {orderedSentences.map((sentence) => (
-                <SortableSentenceRow
-                  key={sentence._id}
-                  sentence={sentence}
-                  language={language}
-                  isEditing={isEditing}
-                  onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
-                  onEditSlot={handleEditSlot}
-                  onRemoveSlot={handleRemoveSlot}
-                  onAddSlot={handleAddSlot}
-                  onEditSentence={(s) => setSentenceEditTarget({
-                    sentenceId: s._id,
-                    value: s.text || (language === 'hin' && s.name.hin ? s.name.hin : s.name.eng),
-                    audioPath: s.audioPath,
-                  })}
-                  onPlay={(s) => setPlayTarget(s)}
-                />
-              ))}
+              {orderedSentences.map((sentence) => {
+                const status = statusFor(sentence);
+                return (
+                  <SortableSentenceRow
+                    key={sentence._id}
+                    sentence={sentence}
+                    language={language}
+                    isEditing={isEditing}
+                    onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                    onEditSlot={handleEditSlot}
+                    onRemoveSlot={handleRemoveSlot}
+                    onAddSlot={handleAddSlot}
+                    onEditSentence={(s) => setSentenceEditTarget({
+                      sentenceId: s._id,
+                      value: s.text || (language === 'hin' && s.name.hin ? s.name.hin : s.name.eng),
+                      audioPath: s.audioPath,
+                    })}
+                    onPlay={(s) => setPlayTarget(s)}
+                    showAdminButtons={showAdminButtons}
+                    isDefault={status.isDefault}
+                    isInLibrary={status.isInLibrary}
+                    libraryTier={status.libraryTier}
+                    onToggleDefault={handleToggleDefault}
+                    onToggleLibrary={handleToggleLibrary}
+                    onSetTier={handleSetTier}
+                  />
+                );
+              })}
             </div>
           </SortableContext>
         </DndContext>
@@ -580,6 +730,9 @@ export function SentencesModeContent() {
         audioPath={playTarget?.audioPath}
         onClose={() => setPlayTarget(null)}
       />
+
+      {/* Make Default + Library are now toggle buttons in each row's edit
+          action group — no confirmation dialog needed. */}
     </div>
   );
 }

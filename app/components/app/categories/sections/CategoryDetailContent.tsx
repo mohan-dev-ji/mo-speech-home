@@ -25,6 +25,9 @@ import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
+import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
@@ -185,6 +188,23 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
   const deleteProfileSymbol = useMutation(api.profileSymbols.deleteProfileSymbol);
   const reorderProfileSymbols = useMutation(api.profileSymbols.reorderProfileSymbols);
+  const setCategoryDefault = useMutation(api.resourcePacks.setCategoryDefault);
+  const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibrary);
+  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTier);
+
+  // ── Admin gating + pack status ──────────────────────────────────────────────
+  const isAdmin = useIsAdmin();
+  const { showToast } = useToast();
+  const showAdminButtons = viewMode === 'admin' && isAdmin;
+
+  // Subscribe once at the page level — used by the toolbar to show pressed state
+  // on the Default/Library toggles + correct tier in the picker.
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
+  const linkedPackId = category?.publishedToPackId;
+  const isDefault = !!(linkedPackId && packsStatus && linkedPackId === packsStatus.starterPackId);
+  const linkedLibraryPack = linkedPackId && packsStatus ? packsStatus.libraryPacksById[linkedPackId] : undefined;
+  const isInLibrary = !!linkedLibraryPack;
+  const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
   // ── dnd-kit sensors ─────────────────────────────────────────────────────────
   const sensors = useSensors(
@@ -276,6 +296,49 @@ export function CategoryDetailContent({ categoryId }: Props) {
     setFolderImageModalOpen(false);
   }
 
+  async function handleToggleDefault() {
+    try {
+      await setCategoryDefault({ profileCategoryId, on: !isDefault });
+      showToast({
+        tone: 'info',
+        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
+      });
+    } catch (e) {
+      console.error('[CategoryDetailContent] toggle default failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleToggleLibrary() {
+    try {
+      if (isInLibrary) {
+        await setCategoryInLibrary({ profileCategoryId, on: false });
+        showToast({ tone: 'info', title: t('toastLibraryOff') });
+      } else {
+        await setCategoryInLibrary({
+          profileCategoryId,
+          on: true,
+          tier: 'free',
+        });
+        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      }
+    } catch (e) {
+      console.error('[CategoryDetailContent] toggle library failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleSetTier(tier: 'free' | 'pro' | 'max') {
+    if (!linkedPackId) return;
+    try {
+      await setLibraryPackTier({ packId: linkedPackId, tier });
+      showToast({ tone: 'info', title: t('toastTierUpdated') });
+    } catch (e) {
+      console.error('[CategoryDetailContent] set tier failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
   // ── Breadcrumb ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -311,7 +374,16 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
-        <div className="shrink-0">
+        <div className="shrink-0 relative">
+          {/* Admin status badge — top-right of the banner, both edit + view modes */}
+          {showAdminButtons && packsStatus && (
+            <div className="absolute top-2 right-2 z-30 pointer-events-none">
+              <AdminPackBadge
+                publishedToPackId={category?.publishedToPackId}
+                packs={packsStatus}
+              />
+            </div>
+          )}
           {isEditing ? (
             <div
               className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
@@ -325,6 +397,13 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 onExit={handleEditExit}
                 onAddSymbol={handleAddSymbol}
                 onEditFolderImage={handleEditFolderImage}
+                showAdminButtons={showAdminButtons}
+                isDefault={isDefault}
+                isInLibrary={isInLibrary}
+                libraryTier={libraryTier}
+                onToggleDefault={handleToggleDefault}
+                onToggleLibrary={handleToggleLibrary}
+                onSetTier={handleSetTier}
               />
             </div>
           ) : (
@@ -500,6 +579,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Make Default + Library are now toggle buttons in the admin row of
+          BannerEdit — no confirmation dialog needed. The toggle action is
+          reversible via the same toggle. */}
     </div>
   );
 }

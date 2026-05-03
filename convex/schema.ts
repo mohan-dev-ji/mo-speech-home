@@ -191,13 +191,19 @@ export default defineSchema({
     colour: v.string(),
     imagePath: v.optional(v.string()), // R2 path for the folder cover image
     order: v.number(),
-    librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — reload defaults only
+    librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — set when content was loaded from a pack (reload-defaults only)
+    // Admin-only: forward link to the resourcePack this category is the source-of-truth for.
+    // Set by setCategoryDefault / setCategoryInLibrary toggle mutations. When set, edits to
+    // this category auto-rebuild the pack snapshot. Cleared on toggle-off, on delete, and
+    // on starter pack restore. See ADR-008.
+    publishedToPackId: v.optional(v.id("resourcePacks")),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"]),
+    .index("by_profile_id_and_order", ["profileId", "order"])
+    .index("by_published_to_pack_id", ["publishedToPackId"]),
 
   /**
    * The most important table. Every symbol in a student's profile is a
@@ -320,12 +326,15 @@ export default defineSchema({
     showNumbers: v.optional(v.boolean()),
     showChecklist: v.optional(v.boolean()),
     showFirstThen: v.optional(v.boolean()),
+    // Admin-only forward link — see profileCategories.publishedToPackId.
+    publishedToPackId: v.optional(v.id("resourcePacks")),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"]),
+    .index("by_profile_id_and_order", ["profileId", "order"])
+    .index("by_published_to_pack_id", ["publishedToPackId"]),
 
   /**
    * A pre-built sentence. Profile-level — not tied to a category.
@@ -353,12 +362,15 @@ export default defineSchema({
       })
     ),
     audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
+    // Admin-only forward link — see profileCategories.publishedToPackId.
+    publishedToPackId: v.optional(v.id("resourcePacks")),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"]),
+    .index("by_profile_id_and_order", ["profileId", "order"])
+    .index("by_published_to_pack_id", ["publishedToPackId"]),
 
   /**
    * Real-time modelling session. Instructor pushes; student device subscribes.
@@ -399,6 +411,13 @@ export default defineSchema({
     // used by loadStarterTemplate during seedDefaultAccount. Invariant enforced at the
     // mutation layer (materialiseStarterPack queries before writing). See ADR-008.
     isStarter: v.optional(v.boolean()),
+    // Per-pack plan tier. Required for non-starter packs (gates loadResourcePack);
+    // starter pack is implicitly "free" regardless of this field. Optional in the schema
+    // for back-compat with existing rows pre-toggle-chunk; new toggle mutations always set it.
+    // Patch the existing starter pack to tier: "free" via Convex dashboard.
+    tier: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     createdBy: v.string(), // admin clerkUserId
@@ -409,6 +428,10 @@ export default defineSchema({
     categories: v.optional(
       v.array(
         v.object({
+          // Reverse link to the source profileCategory so toggle mutations can
+          // find-and-replace the correct entry without name-matching. Optional
+          // because pre-toggle-chunk entries (DEFAULT_CATEGORIES seed) lack it.
+          sourceProfileCategoryId: v.optional(v.id("profileCategories")),
           name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
           icon: v.string(),
           colour: v.string(),
@@ -429,8 +452,91 @@ export default defineSchema({
         })
       )
     ),
-    lists: v.array(v.any()),      // mirrors profileLists structure
-    sentences: v.array(v.any()), // mirrors profileSentences structure
+    lists: v.array(
+      v.object({
+        // Reverse link — see categories[].sourceProfileCategoryId.
+        sourceProfileListId: v.optional(v.id("profileLists")),
+        name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+        order: v.number(),
+        items: v.array(
+          v.object({
+            order: v.number(),
+            // Optional loose ref — present for symbolstix-sourced items so
+            // re-materialise can pick up updated images. Items from upload /
+            // imageSearch / aiGenerated rely on imagePath alone. V1 save
+            // mutations don't populate this; deferred to Phase 7 enhancement.
+            symbolId: v.optional(v.string()),
+            imagePath: v.optional(v.string()),
+            description: v.optional(v.string()),
+            audioPath: v.optional(v.string()),
+            activeAudioSource: v.optional(
+              v.union(
+                v.literal("default"),
+                v.literal("generate"),
+                v.literal("record")
+              )
+            ),
+            defaultAudioPath: v.optional(v.string()),
+            generatedAudioPath: v.optional(v.string()),
+            recordedAudioPath: v.optional(v.string()),
+            imageSourceType: v.optional(
+              v.union(
+                v.literal("symbolstix"),
+                v.literal("upload"),
+                v.literal("imageSearch"),
+                v.literal("aiGenerated")
+              )
+            ),
+          })
+        ),
+        displayFormat: v.optional(
+          v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))
+        ),
+        showNumbers: v.optional(v.boolean()),
+        showChecklist: v.optional(v.boolean()),
+        showFirstThen: v.optional(v.boolean()),
+      })
+    ),
+    sentences: v.array(
+      v.object({
+        // Reverse link — see categories[].sourceProfileCategoryId.
+        sourceProfileSentenceId: v.optional(v.id("profileSentences")),
+        name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+        order: v.number(),
+        text: v.optional(v.string()),
+        slots: v.array(
+          v.object({
+            order: v.number(),
+            symbolId: v.optional(v.string()),
+            imagePath: v.optional(v.string()),
+            displayProps: v.optional(
+              v.object({
+                bgColour: v.optional(v.string()),
+                textColour: v.optional(v.string()),
+                textSize: v.optional(
+                  v.union(
+                    v.literal("sm"),
+                    v.literal("md"),
+                    v.literal("lg"),
+                    v.literal("xl")
+                  )
+                ),
+                showLabel: v.optional(v.boolean()),
+                showImage: v.optional(v.boolean()),
+                cardShape: v.optional(
+                  v.union(
+                    v.literal("square"),
+                    v.literal("rounded"),
+                    v.literal("circle")
+                  )
+                ),
+              })
+            ),
+          })
+        ),
+        audioPath: v.optional(v.string()),
+      })
+    ),
   })
     .index("by_featured", ["featured"])
     .index("by_season", ["season"])

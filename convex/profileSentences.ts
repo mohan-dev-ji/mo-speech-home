@@ -1,6 +1,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import {
+  removeSentenceFromPack,
+  syncSentenceToPackIfPublished,
+} from "./resourcePacks";
 
 const displayPropsSchema = v.optional(
   v.object({
@@ -36,6 +40,7 @@ export const getProfileSentences = query({
       text:      s.text,
       audioPath: s.audioPath,
       slots:     [...s.slots].sort((a, b) => a.order - b.order),
+      publishedToPackId: s.publishedToPackId,
     }));
   },
 });
@@ -75,6 +80,7 @@ export const updateProfileSentenceName = mutation({
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
+    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
   },
 });
 
@@ -97,6 +103,7 @@ export const updateProfileSentenceSlots = mutation({
       slots:     args.slots,
       updatedAt: Date.now(),
     });
+    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
   },
 });
 
@@ -115,6 +122,7 @@ export const updateProfileSentenceAudio = mutation({
       audioPath: args.audioPath,
       updatedAt: Date.now(),
     });
+    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
   },
 });
 
@@ -124,6 +132,9 @@ export const deleteProfileSentence = mutation({
     const { accountId } = await requireCallerAccountId(ctx);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
+
+    // Auto-sync: remove from pack first.
+    await removeSentenceFromPack(ctx, args.profileSentenceId);
     await ctx.db.delete(args.profileSentenceId);
   },
 });
@@ -140,6 +151,11 @@ export const reorderProfileSentences = mutation({
       if (!sentence || sentence.accountId !== accountId)
         throw new Error("Sentence not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
+    }
+
+    // Auto-sync: rebuild any published sentences' snapshots so reorder reflects.
+    for (const id of args.orderedIds) {
+      await syncSentenceToPackIfPublished(ctx, id);
     }
   },
 });

@@ -1,6 +1,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import {
+  removeListFromPack,
+  syncListToPackIfPublished,
+} from "./resourcePacks";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +41,7 @@ export const getProfileLists = query({
         showFirstThen: list.showFirstThen ?? false,
         itemCount: list.items.length,
         thumbnails: firstFour.map((item) => ({ imagePath: item.imagePath })),
+        publishedToPackId: list.publishedToPackId,
       };
     });
   },
@@ -57,6 +62,7 @@ export const getProfileListWithItems = query({
       showNumbers: list.showNumbers ?? false,
       showChecklist: list.showChecklist ?? false,
       showFirstThen: list.showFirstThen ?? false,
+      publishedToPackId: list.publishedToPackId,
       items,
     };
   },
@@ -102,6 +108,7 @@ export const updateProfileListName = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { name: args.name, updatedAt: Date.now() });
+    await syncListToPackIfPublished(ctx, args.profileListId);
   },
 });
 
@@ -133,6 +140,7 @@ export const updateProfileListItems = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { items: args.items, updatedAt: Date.now() });
+    await syncListToPackIfPublished(ctx, args.profileListId);
   },
 });
 
@@ -172,6 +180,7 @@ export const addItemFromSymbol = mutation({
 
     const reindexed = items.map((item, i) => ({ ...item, order: i }));
     await ctx.db.patch(args.profileListId, { items: reindexed, updatedAt: Date.now() });
+    await syncListToPackIfPublished(ctx, args.profileListId);
   },
 });
 
@@ -195,6 +204,7 @@ export const updateProfileListDisplay = mutation({
       showFirstThen: args.showFirstThen,
       updatedAt: Date.now(),
     });
+    await syncListToPackIfPublished(ctx, args.profileListId);
   },
 });
 
@@ -205,6 +215,8 @@ export const deleteProfileList = mutation({
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
+    // Auto-sync: remove from pack first (and delete the pack if empty + non-starter).
+    await removeListFromPack(ctx, args.profileListId);
     await ctx.db.delete(args.profileListId);
   },
 });
@@ -221,6 +233,11 @@ export const reorderProfileLists = mutation({
       if (!list || list.accountId !== accountId)
         throw new Error("List not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
+    }
+
+    // Auto-sync: rebuild any published lists' snapshots so reorder reflects.
+    for (const id of args.orderedIds) {
+      await syncListToPackIfPublished(ctx, id);
     }
   },
 });

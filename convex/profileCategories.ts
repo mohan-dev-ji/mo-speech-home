@@ -2,7 +2,11 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
-import { loadStarterTemplateInline } from "./resourcePacks";
+import {
+  loadStarterTemplateInline,
+  removeCategoryFromPack,
+  syncCategoryToPackIfPublished,
+} from "./resourcePacks";
 
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
@@ -182,6 +186,12 @@ export const reorderCategories = mutation({
         throw new Error("Category not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
+
+    // Auto-sync: rebuild any published categories' snapshots so reorder
+    // reflects in the pack. Most categories aren't published — fast no-op.
+    for (const id of args.orderedIds) {
+      await syncCategoryToPackIfPublished(ctx, id);
+    }
   },
 });
 
@@ -204,6 +214,9 @@ export const updateCategoryMeta = mutation({
       updatedAt: Date.now(),
     });
 
+    // Auto-sync: if this category is published to a pack, rebuild the snapshot.
+    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+
     return args.profileCategoryId;
   },
 });
@@ -216,6 +229,11 @@ export const deleteCategory = mutation({
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");
     if (cat.accountId !== accountId) throw new Error("Not authorised");
+
+    // Auto-sync: if this category is published, remove the entry from the pack
+    // (and delete the pack if it becomes empty + non-starter). Done before the
+    // actual delete so the helper can still read the row.
+    await removeCategoryFromPack(ctx, args.profileCategoryId);
 
     const symbols = await ctx.db
       .query("profileSymbols")

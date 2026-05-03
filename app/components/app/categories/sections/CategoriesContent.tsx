@@ -25,6 +25,7 @@ import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { CategoryTile } from '@/app/components/app/categories/ui/CategoryTile';
 import {
   Dialog,
@@ -56,9 +57,16 @@ type SortableTileProps = {
   isEditing: boolean;
   onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
   onClick?: () => void;
+  adminPacks?: {
+    starterPackId: Id<'resourcePacks'> | null;
+    libraryPacksById: Record<
+      string,
+      { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+    >;
+  };
 };
 
-function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onClick }: SortableTileProps) {
+function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onClick, adminPacks }: SortableTileProps) {
   const {
     attributes,
     listeners,
@@ -85,6 +93,7 @@ function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, 
         onClick={onClick}
         onDeleteRequest={onDeleteRequest}
         dragHandleProps={{ listeners, attributes }}
+        adminPacks={adminPacks}
       />
     </div>
   );
@@ -96,8 +105,14 @@ type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 
 export function CategoriesContent() {
   const t = useTranslations('categories');
-  const { language, stateFlags } = useProfile();
+  const { language, stateFlags, viewMode } = useProfile();
   const { talkerMode } = useTalker();
+  const isAdmin = useIsAdmin();
+  const showAdminBadges = viewMode === 'admin' && isAdmin;
+  const adminPacks = useQuery(
+    api.resourcePacks.getPacksForAdminStatus,
+    showAdminBadges ? {} : 'skip',
+  );
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
@@ -222,6 +237,7 @@ export function CategoriesContent() {
                     isEditing={isEditing}
                     onDeleteRequest={handleDeleteRequest}
                     onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
+                    adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
                   />
                 ))}
               </div>

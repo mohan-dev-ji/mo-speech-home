@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown } from 'lucide-react';
+import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown, Bookmark, Library } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
+import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
+import { PlanTierPicker, type PlanTier } from '@/app/components/app/shared/ui/PlanTierPicker';
 
 // ─── Colour picker ────────────────────────────────────────────────────────────
 
@@ -136,6 +138,16 @@ export type BannerEditProps = {
   onExit: () => void;
   onAddSymbol: () => void;
   onEditFolderImage: () => void;
+  // Admin-only affordances. Parent decides visibility via `showAdminButtons`
+  // (gated on viewMode === 'admin' && useIsAdmin()). When false, the entire
+  // admin row is hidden. See ADR-008.
+  showAdminButtons?: boolean;
+  isDefault?: boolean;       // Currently in the starter pack
+  isInLibrary?: boolean;     // Currently in a non-starter library pack
+  libraryTier?: PlanTier;    // Tier of the library pack (only meaningful when isInLibrary)
+  onToggleDefault?: () => void;
+  onToggleLibrary?: () => void;
+  onSetTier?: (tier: PlanTier) => void;
 };
 
 export function BannerEdit({
@@ -146,6 +158,13 @@ export function BannerEdit({
   onExit,
   onAddSymbol,
   onEditFolderImage,
+  showAdminButtons = false,
+  isDefault = false,
+  isInLibrary = false,
+  libraryTier = 'free',
+  onToggleDefault,
+  onToggleLibrary,
+  onSetTier,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
@@ -161,43 +180,90 @@ export function BannerEdit({
           {categoryName}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-2 mt-3">
+        <div className="flex flex-col gap-2 mt-3">
 
-          {/* Exit Edit */}
-          <button
-            type="button"
-            onClick={onExit}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-semibold transition-opacity hover:opacity-90"
-            style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+          {/* Row 1: Edit controls — instructor affordances */}
+          <div
+            className="flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-theme"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
           >
-            <LogOut className="w-3.5 h-3.5" />
-            {t('bannerExitEdit')}
-          </button>
+            {/* Exit Edit */}
+            <button
+              type="button"
+              onClick={onExit}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-semibold transition-opacity hover:opacity-90"
+              style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              {t('bannerExitEdit')}
+            </button>
 
-          {/* Add Symbol */}
-          <button
-            type="button"
-            onClick={onAddSymbol}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-          >
-            <PlusSquare className="w-3.5 h-3.5" />
-            {t('bannerAddSymbol')}
-          </button>
+            {/* Add Symbol */}
+            <button
+              type="button"
+              onClick={onAddSymbol}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
+              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+            >
+              <PlusSquare className="w-3.5 h-3.5" />
+              {t('bannerAddSymbol')}
+            </button>
 
-          {/* Colour picker */}
-          <ColourPicker value={draftColour} onChange={onColourChange} />
+            {/* Colour picker */}
+            <ColourPicker value={draftColour} onChange={onColourChange} />
 
-          {/* Edit folder image */}
-          <button
-            type="button"
-            onClick={onEditFolderImage}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-          >
-            <FolderOpen className="w-3.5 h-3.5" />
-            {t('bannerEditFolderImage')}
-          </button>
+            {/* Edit folder image */}
+            <button
+              type="button"
+              onClick={onEditFolderImage}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
+              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              {t('bannerEditFolderImage')}
+            </button>
+          </div>
+
+          {/* Row 2: Admin controls — only visible to admins in admin viewMode.
+              Tinted amber to distinguish from the instructor row visually. */}
+          {showAdminButtons && (
+            <div
+              className="flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-theme"
+              style={{
+                background: 'rgba(255,200,0,0.06)',
+                border: '1px solid rgba(255,200,0,0.2)',
+              }}
+            >
+              <ToggleButton
+                pressed={isDefault}
+                disabled={isInLibrary}
+                onClick={() => onToggleDefault?.()}
+                icon={<Bookmark className="w-3.5 h-3.5" />}
+                title={t('bannerToggleDefaultHint')}
+              >
+                {t('bannerToggleDefault')}
+              </ToggleButton>
+              <ToggleButton
+                pressed={isInLibrary}
+                disabled={isDefault}
+                onClick={() => onToggleLibrary?.()}
+                icon={<Library className="w-3.5 h-3.5" />}
+                title={t('bannerToggleLibraryHint')}
+              >
+                {t('bannerToggleLibrary')}
+              </ToggleButton>
+              {isInLibrary && onSetTier && (
+                <PlanTierPicker
+                  value={libraryTier}
+                  onChange={onSetTier}
+                  translationNamespace="categoryDetail"
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireCallerAccountId } from "./lib/account";
+import { syncCategoryToPackIfPublished } from "./resourcePacks";
 
 const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
@@ -115,7 +116,7 @@ export const createProfileSymbol = mutation({
       existing.map((s) => ctx.db.patch(s._id, { order: s.order + 1, updatedAt: now }))
     );
 
-    return ctx.db.insert("profileSymbols", {
+    const newId = await ctx.db.insert("profileSymbols", {
       accountId,
       profileCategoryId: args.profileCategoryId,
       order: 0,
@@ -125,6 +126,12 @@ export const createProfileSymbol = mutation({
       display: args.display,
       updatedAt: now,
     });
+
+    // Auto-sync: if the parent category is published to a pack, rebuild the
+    // pack's snapshot of this category so the new symbol appears in the library.
+    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+
+    return newId;
   },
 });
 
@@ -147,6 +154,9 @@ export const reorderProfileSymbols = mutation({
         throw new Error("Symbol not found or not in this category");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
+
+    // Auto-sync: rebuild the parent category's snapshot once with the new order.
+    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
   },
 });
 
@@ -159,7 +169,12 @@ export const deleteProfileSymbol = mutation({
     if (!ps) throw new Error("Symbol not found");
     if (ps.accountId !== accountId) throw new Error("Not authorised");
 
+    const parentCategoryId = ps.profileCategoryId;
     await ctx.db.delete(args.profileSymbolId);
+
+    // Auto-sync: rebuild the parent category's snapshot without this symbol.
+    await syncCategoryToPackIfPublished(ctx, parentCategoryId);
+
     return args.profileSymbolId;
   },
 });
@@ -189,6 +204,8 @@ export const updateProfileSymbol = mutation({
     if (!targetCategory || targetCategory.accountId !== accountId)
       throw new Error("Target category not found or not authorised");
 
+    const previousCategoryId = ps.profileCategoryId;
+
     await ctx.db.patch(args.profileSymbolId, {
       profileCategoryId: args.profileCategoryId,
       imageSource: args.imageSource,
@@ -197,6 +214,13 @@ export const updateProfileSymbol = mutation({
       display: args.display,
       updatedAt: Date.now(),
     });
+
+    // Auto-sync: rebuild the affected category snapshot(s). If the symbol moved
+    // between categories, both the old and new parent need rebuilding.
+    if (previousCategoryId !== args.profileCategoryId) {
+      await syncCategoryToPackIfPublished(ctx, previousCategoryId);
+    }
+    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
 
     return args.profileSymbolId;
   },

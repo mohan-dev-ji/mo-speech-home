@@ -7,12 +7,17 @@ import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ArrowLeft, ListOrdered, CheckSquare, Pencil, LogOut } from 'lucide-react';
+import { ArrowLeft, ListOrdered, CheckSquare, Pencil, LogOut, Bookmark, Library } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
+import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
+import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
+import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -29,8 +34,11 @@ export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
   const router = useRouter();
   const { setBreadcrumbExtra } = useBreadcrumb();
-  const { language, accountId, stateFlags, studentProfile } = useProfile();
+  const { language, viewMode, accountId, stateFlags, studentProfile } = useProfile();
   const { talkerMode } = useTalker();
+  const isAdmin = useIsAdmin();
+  const { showToast } = useToast();
+  const showAdminButtons = viewMode === 'admin' && isAdmin;
 
   const [isEditing, setIsEditing] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -44,6 +52,17 @@ export function ListDetailContent({ listId }: Props) {
   const list = useQuery(api.profileLists.getProfileListWithItems, { profileListId: listId });
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
+  const setListDefault = useMutation(api.resourcePacks.setListDefault);
+  const setListInLibrary = useMutation(api.resourcePacks.setListInLibrary);
+  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTier);
+
+  // Pack status — drives Default/Library toggle pressed states + tier picker.
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
+  const linkedPackId = list?.publishedToPackId;
+  const isDefault = !!(linkedPackId && packsStatus && linkedPackId === packsStatus.starterPackId);
+  const linkedLibraryPack = linkedPackId && packsStatus ? packsStatus.libraryPacksById[linkedPackId] : undefined;
+  const isInLibrary = !!linkedLibraryPack;
+  const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
   useEffect(() => {
     if (!list) return;
@@ -154,6 +173,45 @@ export function ListDetailContent({ listId }: Props) {
     persistItems(next);
   }
 
+  async function handleToggleDefault() {
+    try {
+      await setListDefault({ profileListId: listId, on: !isDefault });
+      showToast({
+        tone: 'info',
+        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
+      });
+    } catch (e) {
+      console.error('[ListDetailContent] toggle default failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleToggleLibrary() {
+    try {
+      if (isInLibrary) {
+        await setListInLibrary({ profileListId: listId, on: false });
+        showToast({ tone: 'info', title: t('toastLibraryOff') });
+      } else {
+        await setListInLibrary({ profileListId: listId, on: true, tier: 'free' });
+        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      }
+    } catch (e) {
+      console.error('[ListDetailContent] toggle library failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
+  async function handleSetTier(tier: 'free' | 'pro' | 'max') {
+    if (!linkedPackId) return;
+    try {
+      await setLibraryPackTier({ packId: linkedPackId, tier });
+      showToast({ tone: 'info', title: t('toastTierUpdated') });
+    } catch (e) {
+      console.error('[ListDetailContent] set tier failed', e);
+      showToast({ tone: 'warning', title: t('toastAdminError') });
+    }
+  }
+
   function toggleChecked(localId: string) {
     setCheckedIds((prev) => {
       const next = new Set(prev);
@@ -225,7 +283,16 @@ export function ListDetailContent({ listId }: Props) {
 
       {/* Header — banner mode only; talker mode renders nothing so no empty div creates phantom gap */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
-        <div className="shrink-0">
+        <div className="shrink-0 relative">
+          {/* Admin status badge — top-right of the banner */}
+          {showAdminButtons && packsStatus && (
+            <div className="absolute top-2 right-2 z-30 pointer-events-none">
+              <AdminPackBadge
+                publishedToPackId={list.publishedToPackId}
+                packs={packsStatus}
+              />
+            </div>
+          )}
           <PageBanner title={listName}>
             <button type="button" onClick={() => router.back()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90" style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}>
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -255,6 +322,43 @@ export function ListDetailContent({ listId }: Props) {
             )}
             <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
           </PageBanner>
+
+          {/* Admin row — separate bounding box below the PageBanner so the
+              instructor toolbar stays visually distinct. Only rendered for
+              admins in admin viewMode. See ADR-008. */}
+          {showAdminButtons && (
+            <div
+              className="mt-2 flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-theme"
+              style={{
+                background: 'rgba(255,200,0,0.06)',
+                border: '1px solid rgba(255,200,0,0.2)',
+              }}
+            >
+              <ToggleButton
+                pressed={isDefault}
+                disabled={isInLibrary}
+                onClick={handleToggleDefault}
+                icon={<Bookmark className="w-3.5 h-3.5" />}
+              >
+                {t('toggleDefault')}
+              </ToggleButton>
+              <ToggleButton
+                pressed={isInLibrary}
+                disabled={isDefault}
+                onClick={handleToggleLibrary}
+                icon={<Library className="w-3.5 h-3.5" />}
+              >
+                {t('toggleLibrary')}
+              </ToggleButton>
+              {isInLibrary && (
+                <PlanTierPicker
+                  value={libraryTier}
+                  onChange={handleSetTier}
+                  translationNamespace="lists"
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
       {!stateFlags.talker_visible && (
@@ -333,6 +437,9 @@ export function ListDetailContent({ listId }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Make Default + Library are now toggle buttons in the admin row above
+          the PageBanner — no confirmation dialog needed. */}
     </div>
   );
 }

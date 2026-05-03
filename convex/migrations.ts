@@ -1,8 +1,9 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
+import { STARTER_BACKUPS } from "./data/starter_backups";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -189,8 +190,8 @@ export const materialiseStarterPack = mutation({
       createdBy: adminClerkUserId,
       updatedAt: now,
       categories: categoriesPayload,
-      lists: [] as unknown[],
-      sentences: [] as unknown[],
+      lists: [],
+      sentences: [],
     };
 
     const existing = await ctx.db
@@ -199,9 +200,14 @@ export const materialiseStarterPack = mutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, payload);
+      // Clear forward links from any profile rows currently published to this
+      // pack — overwriting the contents would leave stale "Default" badges
+      // pointing at categories no longer in the pack.
+      const linksCleared = await clearForwardLinksToPack(ctx, existing._id);
+
+      await ctx.db.patch(existing._id, { ...payload, tier: "free" as const });
       console.log(
-        `[materialiseStarterPack] updated existing starter pack ${existing._id}`
+        `[materialiseStarterPack] updated existing starter pack ${existing._id}; cleared ${linksCleared} forward links`
       );
       return {
         packId: existing._id,
@@ -209,9 +215,13 @@ export const materialiseStarterPack = mutation({
         categoriesProcessed: categoriesPayload.length,
         symbolsMatched: totalSymbolsMatched,
         symbolsSkipped: totalSymbolsSkipped,
+        linksCleared,
       };
     } else {
-      const packId = await ctx.db.insert("resourcePacks", payload);
+      const packId = await ctx.db.insert("resourcePacks", {
+        ...payload,
+        tier: "free" as const,
+      });
       console.log(
         `[materialiseStarterPack] inserted new starter pack ${packId}`
       );
@@ -221,7 +231,202 @@ export const materialiseStarterPack = mutation({
         categoriesProcessed: categoriesPayload.length,
         symbolsMatched: totalSymbolsMatched,
         symbolsSkipped: totalSymbolsSkipped,
+        linksCleared: 0,
       };
     }
+  },
+});
+
+// ─── Backup helpers + restore ─────────────────────────────────────────────────
+
+/**
+ * Clear publishedToPackId on every profile row currently linked to this pack.
+ * Used by materialiseStarterPack and restoreStarterPackFromBackup before they
+ * overwrite pack contents — otherwise stale "Default" badges show on items
+ * no longer in the pack.
+ */
+async function clearForwardLinksToPack(
+  ctx: MutationCtx,
+  packId: Id<"resourcePacks">
+): Promise<number> {
+  let cleared = 0;
+
+  const linkedCats = await ctx.db
+    .query("profileCategories")
+    .withIndex("by_published_to_pack_id", (q) =>
+      q.eq("publishedToPackId", packId)
+    )
+    .collect();
+  for (const c of linkedCats) {
+    await ctx.db.patch(c._id, { publishedToPackId: undefined });
+    cleared++;
+  }
+
+  const linkedLists = await ctx.db
+    .query("profileLists")
+    .withIndex("by_published_to_pack_id", (q) =>
+      q.eq("publishedToPackId", packId)
+    )
+    .collect();
+  for (const l of linkedLists) {
+    await ctx.db.patch(l._id, { publishedToPackId: undefined });
+    cleared++;
+  }
+
+  const linkedSentences = await ctx.db
+    .query("profileSentences")
+    .withIndex("by_published_to_pack_id", (q) =>
+      q.eq("publishedToPackId", packId)
+    )
+    .collect();
+  for (const s of linkedSentences) {
+    await ctx.db.patch(s._id, { publishedToPackId: undefined });
+    cleared++;
+  }
+
+  return cleared;
+}
+
+/**
+ * List available starter pack backups. Returns metadata only (name, label,
+ * createdAt, item counts) — not the full snapshot. Used by the restore UI in
+ * the Convex dashboard.
+ */
+export const listStarterBackups = query({
+  args: {},
+  handler: async () => {
+    return Object.entries(STARTER_BACKUPS).map(([name, backup]) => ({
+      name,
+      label: backup.label,
+      createdAt: backup.createdAt,
+      categoriesCount: backup.categories.length,
+      listsCount: backup.lists.length,
+      sentencesCount: backup.sentences.length,
+    }));
+  },
+});
+
+/**
+ * Restore the canonical starter pack from a JSON backup in
+ * `convex/data/starter_backups/`. Distinct from `materialiseStarterPack` which
+ * is a factory reset to the DEFAULT_CATEGORIES recipe.
+ *
+ * Steps:
+ *  1. Look up the backup by name in the static registry.
+ *  2. Find the starter pack via the by_isStarter index.
+ *  3. Clear forward links from any profile rows currently linked to it
+ *     (otherwise stale "Default" badges show on items no longer in the pack).
+ *  4. Replace the starter pack's content with the backup snapshot.
+ *  5. Restore forward links where possible: for each entry with a
+ *     sourceProfile*Id whose source row still exists on the admin's account,
+ *     re-set publishedToPackId to the starter ID.
+ *
+ * Trust-only adminClerkUserId per the existing migration pattern. Run from
+ * the Convex dashboard.
+ */
+export const restoreStarterPackFromBackup = mutation({
+  args: {
+    backupName: v.string(),
+    adminClerkUserId: v.string(),
+  },
+  handler: async (ctx, { backupName, adminClerkUserId }) => {
+    const backup = STARTER_BACKUPS[backupName];
+    if (!backup) {
+      throw new Error(
+        `Backup "${backupName}" not found. Available: ${Object.keys(STARTER_BACKUPS).join(", ")}`
+      );
+    }
+
+    const starter = await ctx.db
+      .query("resourcePacks")
+      .withIndex("by_isStarter", (q) => q.eq("isStarter", true))
+      .first();
+    if (!starter) {
+      throw new Error(
+        "No starter pack exists. Run materialiseStarterPack first."
+      );
+    }
+
+    // 1. Clear all current forward links to the starter pack.
+    const linksCleared = await clearForwardLinksToPack(ctx, starter._id);
+
+    // 2. Replace pack contents with the backup snapshot.
+    await ctx.db.patch(starter._id, {
+      categories: backup.categories as never,
+      lists: backup.lists as never,
+      sentences: backup.sentences as never,
+      updatedAt: Date.now(),
+    });
+
+    // 3. Restore forward links: for each entry whose sourceProfile*Id still
+    //    points to an existing row on the admin's account, re-set publishedToPackId.
+    let linksRestored = 0;
+    let linksMissed = 0;
+
+    for (const cat of backup.categories) {
+      if (!cat.sourceProfileCategoryId) {
+        linksMissed++;
+        continue;
+      }
+      const row = await ctx.db.get(
+        cat.sourceProfileCategoryId as Id<"profileCategories">
+      );
+      if (row) {
+        await ctx.db.patch(row._id, { publishedToPackId: starter._id });
+        linksRestored++;
+      } else {
+        linksMissed++;
+      }
+    }
+
+    for (const list of backup.lists) {
+      if (!list.sourceProfileListId) {
+        linksMissed++;
+        continue;
+      }
+      const row = await ctx.db.get(
+        list.sourceProfileListId as Id<"profileLists">
+      );
+      if (row) {
+        await ctx.db.patch(row._id, { publishedToPackId: starter._id });
+        linksRestored++;
+      } else {
+        linksMissed++;
+      }
+    }
+
+    for (const sentence of backup.sentences) {
+      if (!sentence.sourceProfileSentenceId) {
+        linksMissed++;
+        continue;
+      }
+      const row = await ctx.db.get(
+        sentence.sourceProfileSentenceId as Id<"profileSentences">
+      );
+      if (row) {
+        await ctx.db.patch(row._id, { publishedToPackId: starter._id });
+        linksRestored++;
+      } else {
+        linksMissed++;
+      }
+    }
+
+    console.log(
+      `[restoreStarterPackFromBackup] restored "${backupName}" by ${adminClerkUserId}: cleared ${linksCleared} links, restored ${linksRestored}, missed ${linksMissed}`
+    );
+
+    return {
+      starterPackId: starter._id,
+      backupName,
+      label: backup.label,
+      restored: {
+        categories: backup.categories.length,
+        lists: backup.lists.length,
+        sentences: backup.sentences.length,
+      },
+      linksCleared,
+      linksRestored,
+      linksMissed,
+    };
   },
 });

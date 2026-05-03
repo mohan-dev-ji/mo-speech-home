@@ -7,6 +7,7 @@ import type { DraggableAttributes } from '@dnd-kit/core';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
 
 // Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container
 // (the aspect-square wrapper marked @container), so the label scales smoothly as
@@ -16,6 +17,14 @@ const NAME_FONT_SIZE = {
   medium: 'clamp(0.75rem,  7cqi, 1.125rem)',
   small:  'clamp(0.625rem, 8cqi, 0.875rem)',
 } as const;
+
+type AdminPacksStatus = {
+  starterPackId: Id<'resourcePacks'> | null;
+  libraryPacksById: Record<
+    string,
+    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+  >;
+};
 
 type Props = {
   category: Doc<'profileCategories'>;
@@ -27,6 +36,9 @@ type Props = {
     listeners?: SyntheticListenerMap;
     attributes?: DraggableAttributes;
   };
+  // Optional — only passed when viewMode === 'admin'. When set, renders a small
+  // pack-status badge in the top-right corner of the tile.
+  adminPacks?: AdminPacksStatus;
 };
 
 // Semi-transparent card-colour strip — keeps text readable over the light symbol bg
@@ -40,6 +52,7 @@ export function CategoryTile({
   onClick,
   onDeleteRequest,
   dragHandleProps,
+  adminPacks,
 }: Props) {
   const name =
     language === 'hin' && category.name.hin
@@ -64,6 +77,17 @@ export function CategoryTile({
         !isEditing && 'cursor-pointer group',
       ].filter(Boolean).join(' ')}
     >
+      {/* Admin-view pack-status badge (top-right corner, above all other layers
+          including the edit-mode dashed border). */}
+      {adminPacks && (
+        <div className="absolute top-2 right-2 z-30 pointer-events-none">
+          <AdminPackBadge
+            publishedToPackId={category.publishedToPackId}
+            packs={adminPacks}
+          />
+        </div>
+      )}
+
       {/* Edit mode: SVG dashed border around the full square tile */}
       {isEditing && (
         <svg

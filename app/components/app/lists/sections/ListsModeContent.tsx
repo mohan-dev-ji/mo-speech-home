@@ -25,6 +25,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
@@ -44,6 +46,15 @@ type ListRow = {
   order: number;
   itemCount: number;
   thumbnails: { imagePath?: string }[];
+  publishedToPackId?: Id<'resourcePacks'>;
+};
+
+type AdminPacksStatus = {
+  starterPackId: Id<'resourcePacks'> | null;
+  libraryPacksById: Record<
+    string,
+    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+  >;
 };
 
 type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
@@ -87,6 +98,7 @@ type SortableListRowProps = {
   onEditNameCancel: () => void;
   onDeleteRequest: (id: Id<'profileLists'>, name: string) => void;
   onOpen: (id: Id<'profileLists'>) => void;
+  adminPacks?: AdminPacksStatus;
 };
 
 function SortableListRow({
@@ -94,6 +106,7 @@ function SortableListRow({
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
   onDeleteRequest, onOpen,
+  adminPacks,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -122,6 +135,13 @@ function SortableListRow({
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
         <ThumbnailStrip thumbnails={list.thumbnails} />
+
+        {adminPacks && (
+          <AdminPackBadge
+            publishedToPackId={list.publishedToPackId}
+            packs={adminPacks}
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           {isEditingThisName ? (
@@ -201,8 +221,14 @@ export function ListsModeContent() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const { language, stateFlags } = useProfile();
+  const { language, stateFlags, viewMode } = useProfile();
   const { talkerMode } = useTalker();
+  const isAdmin = useIsAdmin();
+  const showAdminBadges = viewMode === 'admin' && isAdmin;
+  const adminPacks = useQuery(
+    api.resourcePacks.getPacksForAdminStatus,
+    showAdminBadges ? {} : 'skip',
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -354,6 +380,7 @@ export function ListsModeContent() {
                   onEditNameCancel={() => setEditingNameId(null)}
                   onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
                   onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
+                  adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
                 />
               ))}
             </div>
