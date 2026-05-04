@@ -126,15 +126,20 @@ export function QuickSettings() {
             </button>
           </div>
 
-          {/* Sign out — routes to bare `/`. The splash dispatcher then sends
-              the now-anonymous user to /<NEXT_LOCALE>/ if a cookie is set
-              (the typical case for any signed-in user), otherwise renders
-              the welcome splash. */}
+          {/* Sign out — hard-navigates to `/` after Clerk clears the session.
+              We can't use signOut({ redirectUrl: '/' }) here: that does a
+              client-side router.push which keeps the AAC React tree mounted
+              while auth flips to false. The tree's Convex queries and auth-
+              dependent contexts then break mid-render before the redirect
+              fires. window.location.assign discards the tree entirely so the
+              next navigation starts cold. The splash dispatcher then reads
+              the user's NEXT_LOCALE cookie and sends them to /<locale>/. */}
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               setOpen(false);
-              signOut({ redirectUrl: '/' });
+              await signOut();
+              window.location.assign('/');
             }}
             className="w-full px-3 py-2.5 flex items-center gap-3 text-left transition-colors hover:bg-theme-banner"
             style={{
