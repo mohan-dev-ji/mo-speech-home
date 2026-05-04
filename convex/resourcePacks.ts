@@ -1169,8 +1169,12 @@ export const getPacksForAdminStatus = query({
  * exposing SymbolStix-licensed asset paths to anonymous clients.
  *
  * Filters:
- * - Excludes drafts (publishedAt == null)
  * - Excludes expired seasonals (expiresAt && expiresAt < now)
+ *
+ * V1 has no draft/publish state: pack creation IS the publish action. Convex's
+ * built-in `_creationTime` IS the publish time. When Phase 7 introduces an
+ * explicit draft/published workflow, add a `status` field rather than layering
+ * meaning on a nullable timestamp.
  *
  * The starter pack is included so logged-out visitors see it as the on-ramp;
  * the client renders "Already on your account" for signed-in users since they
@@ -1182,9 +1186,7 @@ export const getPublicLibraryCatalogue = query({
     const now = Date.now();
     const packs = await ctx.db.query("resourcePacks").collect();
     return packs
-      .filter(
-        (p) => p.publishedAt != null && (!p.expiresAt || p.expiresAt > now)
-      )
+      .filter((p) => !p.expiresAt || p.expiresAt > now)
       .map((p) => ({
         _id: p._id,
         name: p.name,
@@ -1195,7 +1197,6 @@ export const getPublicLibraryCatalogue = query({
         featured: p.featured,
         tier: (p.tier ?? "free") as "free" | "pro" | "max",
         isStarter: p.isStarter ?? false,
-        publishedAt: p.publishedAt!,
         counts: {
           categories: p.categories?.length ?? 0,
           lists: p.lists.length,

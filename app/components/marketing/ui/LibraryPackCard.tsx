@@ -15,7 +15,6 @@ export type LibraryPack = {
   featured: boolean;
   tier: "free" | "pro" | "max";
   isStarter: boolean;
-  publishedAt: number;
   counts: { categories: number; lists: number; sentences: number };
 };
 
