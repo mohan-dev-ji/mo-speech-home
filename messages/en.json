@@ -148,7 +148,8 @@
     "headerToggle": "Header",
     "headerToggleLabel": "Toggle header visibility",
     "modeToggle": "Talker",
-    "modeToggleLabel": "Toggle talker mode"
+    "modeToggleLabel": "Toggle talker mode",
+    "signOut": "Sign out"
   },
   "home": {
     "title": "Home",

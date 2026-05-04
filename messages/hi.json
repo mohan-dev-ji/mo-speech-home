@@ -147,7 +147,8 @@
     "headerToggle": "Header (hi)",
     "headerToggleLabel": "Toggle header visibility (hi)",
     "modeToggle": "Talker (hi)",
-    "modeToggleLabel": "Toggle talker mode (hi)"
+    "modeToggleLabel": "Toggle talker mode (hi)",
+    "signOut": "Sign out (hi)"
   },
   "home": {
     "title": "होम",

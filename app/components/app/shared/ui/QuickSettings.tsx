@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, LogOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useClerk } from '@clerk/nextjs';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 
@@ -12,6 +13,7 @@ export function QuickSettings() {
   const t = useTranslations('quickSettings');
   const { stateFlags, setTalkerVisible } = useProfile();
   const { talkerMode, setTalkerMode } = useTalker();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     if (!open) return;
@@ -123,6 +125,26 @@ export function QuickSettings() {
               />
             </button>
           </div>
+
+          {/* Sign out — routes to bare `/`. The splash dispatcher then sends
+              the now-anonymous user to /<NEXT_LOCALE>/ if a cookie is set
+              (the typical case for any signed-in user), otherwise renders
+              the welcome splash. */}
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              signOut({ redirectUrl: '/' });
+            }}
+            className="w-full px-3 py-2.5 flex items-center gap-3 text-left transition-colors hover:bg-theme-banner"
+            style={{
+              borderTop: '1px solid var(--theme-line)',
+              color: 'var(--theme-alt-text)',
+            }}
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className="text-small font-medium">{t('signOut')}</span>
+          </button>
         </div>
       )}
     </div>

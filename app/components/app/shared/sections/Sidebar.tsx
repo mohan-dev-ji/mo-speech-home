@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Home, Search, Tag, List, MessageSquare, Settings } from 'lucide-react';
@@ -43,9 +44,17 @@ export function Sidebar({ locale }: SidebarProps) {
   return (
     <aside className="hidden md:flex flex-col shrink-0 h-full bg-theme-card">
 
-      <div className="p-theme-general">
+      {/* Logo links to the marketing landing in the current locale.
+          Signed-in users can reach the Hero/Features/Pricing surface from here.
+          Note: not the bare `/` splash dispatcher — that redirects authenticated
+          users back to /<locale>/home, which would create a loop. */}
+      <Link
+        href={`/${locale}`}
+        className="p-theme-general block"
+        aria-label="Mo Speech Home — marketing"
+      >
         <LogoSvg className="w-[155px] text-theme-alt-text" />
-      </div>
+      </Link>
 
       <nav className="flex flex-col flex-1 gap-theme-general px-theme-general">
         {visibleNavItems.map(({ segment, icon: Icon }) => {
