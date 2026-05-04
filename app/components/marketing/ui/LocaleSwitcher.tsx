@@ -70,6 +70,9 @@ export function LocaleSwitcher() {
                 aria-selected={false}
                 onClick={() => {
                   setOpen(false);
+                  // Persist via NEXT_LOCALE cookie so future visits to bare `/`
+                  // skip the splash and respect this choice.
+                  document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
                   router.replace(pathname, { locale });
                 }}
                 className="w-full text-left px-3 py-2 text-small text-foreground hover:bg-muted transition-colors"

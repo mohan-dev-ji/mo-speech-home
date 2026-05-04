@@ -91,7 +91,11 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         mutations.push(setMyLocale({ locale }));
       }
       await Promise.all(mutations);
-      // If locale changed, AppStateProvider's mismatch redirect handles navigation automatically.
+      if (locale !== currentLocale) {
+        // Persist via NEXT_LOCALE cookie so future visits to bare `/` respect
+        // this choice. AppStateProvider's mismatch redirect handles the URL swap.
+        document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
+      }
       onClose();
     } finally {
       setSaving(false);

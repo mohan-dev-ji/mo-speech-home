@@ -2,12 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
+import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
+
+// See Hero.tsx for the dual-Link rationale.
 
 export function CTABanner() {
   const t = useTranslations("marketingCta");
   const { isSignedIn } = useUser();
-  const appHref = isSignedIn ? "/start?pick=true" : "/sign-in";
 
   return (
     <section className="py-20 px-6">
@@ -18,12 +20,21 @@ export function CTABanner() {
         <p className="text-muted-foreground mb-8">
           {t("body")}
         </p>
-        <Link
-          href={appHref}
-          className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
-        >
-          {t("cta")}
-        </Link>
+        {isSignedIn ? (
+          <Link
+            href="/home"
+            className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            {t("ctaGoToApp")}
+          </Link>
+        ) : (
+          <NextLink
+            href="/sign-up"
+            className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            {t("cta")}
+          </NextLink>
+        )}
       </div>
     </section>
   );

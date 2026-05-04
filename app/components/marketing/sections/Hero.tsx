@@ -2,12 +2,16 @@
 
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
+import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
+
+// `Link` from i18n/navigation auto-prefixes the locale (/en/...). Use it for
+// localised destinations (/pricing, /home). Use plain NextLink for un-localised
+// destinations (/sign-up) — otherwise next-intl prefixes them and 404s.
 
 export function Hero() {
   const t = useTranslations("marketingHero");
   const { isSignedIn } = useUser();
-  const appHref = isSignedIn ? "/start?pick=true" : "/sign-in";
 
   return (
     <section className="py-24 md:py-32 px-6 text-center">
@@ -24,12 +28,21 @@ export function Hero() {
           {t("tagline")}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href={appHref}
-            className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
-          >
-            {t("ctaPrimary")}
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/home"
+              className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+            >
+              {t("ctaGoToApp")}
+            </Link>
+          ) : (
+            <NextLink
+              href="/sign-up"
+              className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+            >
+              {t("ctaPrimary")}
+            </NextLink>
+          )}
           <Link
             href="/pricing"
             className="w-full sm:w-auto px-8 py-3 border border-border rounded-lg font-medium hover:bg-muted transition-colors text-foreground"

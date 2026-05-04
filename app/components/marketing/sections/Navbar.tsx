@@ -2,15 +2,20 @@
 
 import { useTranslations } from "next-intl";
 import { useClerk, useUser } from "@clerk/nextjs";
+import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
 import { ThemeToggle } from "@/app/components/marketing/ui/ThemeToggle";
 import { LocaleSwitcher } from "@/app/components/marketing/ui/LocaleSwitcher";
+
+// Mixed Link strategy: `Link` from i18n/navigation auto-prefixes the locale
+// (/en/...) for localised destinations like /, /library, /pricing, /home.
+// Plain NextLink for un-localised /sign-in and /sign-up — otherwise
+// next-intl prefixes them and 404s.
 
 export function Navbar() {
   const t = useTranslations("marketingNav");
   const { signOut } = useClerk();
   const { isSignedIn } = useUser();
-  const appHref = isSignedIn ? "/start?pick=true" : "/sign-in";
 
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
@@ -39,19 +44,28 @@ export function Navbar() {
               {t("signOut")}
             </button>
           ) : (
-            <Link
+            <NextLink
               href="/sign-in"
               className="text-small text-muted-foreground hover:text-foreground transition-colors"
             >
               {t("signIn")}
-            </Link>
+            </NextLink>
           )}
-          <Link
-            href={appHref}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-small font-medium hover:opacity-90 transition-opacity"
-          >
-            {t("getStarted")}
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/home"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-small font-medium hover:opacity-90 transition-opacity"
+            >
+              {t("goToApp")}
+            </Link>
+          ) : (
+            <NextLink
+              href="/sign-up"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-small font-medium hover:opacity-90 transition-opacity"
+            >
+              {t("getStarted")}
+            </NextLink>
+          )}
         </div>
       </div>
     </header>

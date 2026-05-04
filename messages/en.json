@@ -302,6 +302,10 @@
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner.",
+    "language": {
+      "title": "Language",
+      "helperText": "App display language"
+    },
     "deleteAccount": {
       "sectionTitle": "Danger zone",
       "button": "Delete account",
@@ -618,7 +622,8 @@
     "titleLine2": "AAC built for the world",
     "tagline": "Replace this with your product's value proposition. One sentence that makes your ideal customer say \"yes, that's exactly what I need.\"",
     "ctaPrimary": "Start for free",
-    "ctaSecondary": "See pricing"
+    "ctaSecondary": "See pricing",
+    "ctaGoToApp": "Go to App"
   },
   "marketingFeatures": {
     "sectionTitle": "Everything you need",
@@ -636,7 +641,8 @@
     "pricing": "Pricing",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "goToApp": "Go to App"
   },
   "marketingFooter": {
     "copyright": "© {year} Mo Speech Home. All rights reserved.",
@@ -646,7 +652,8 @@
   "marketingCta": {
     "heading": "Ready to get started?",
     "body": "Join thousands of teams already using Mo Speech Home. Free to start, no credit card required.",
-    "cta": "Start for free"
+    "cta": "Start for free",
+    "ctaGoToApp": "Go to App"
   },
   "marketingPricing": {
     "pageTitle": "Simple, transparent pricing",

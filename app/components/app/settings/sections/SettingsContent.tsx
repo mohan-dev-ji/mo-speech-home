@@ -10,6 +10,7 @@ import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
 import { DevTestPanel }  from "@/app/components/app/settings/sections/DevTestPanel";
+import { LanguageRow }   from "@/app/components/app/settings/sections/LanguageRow";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
@@ -55,6 +56,8 @@ export function SettingsContent() {
       <div className="rounded-theme bg-theme-primary px-6 py-8">
         <h1 className="text-theme-h4 font-semibold text-theme-alt-text">{t("title")}</h1>
       </div>
+
+      <LanguageRow />
 
       {isCollaborator && (
         <div className="flex items-center gap-3 rounded-theme bg-theme-card px-5 py-3">

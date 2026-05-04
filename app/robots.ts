@@ -24,7 +24,9 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   // Disallow the AAC app shell under each locale, plus auth/admin/api surfaces.
-  const disallow: string[] = ["/sign-in", "/sign-up", "/start", "/admin", "/api/"];
+  // /post-signup is invisible plumbing (Clerk redirect target) — not user-facing,
+  // not indexed.
+  const disallow: string[] = ["/sign-in", "/sign-up", "/post-signup", "/admin", "/api/"];
   for (const locale of routing.locales) {
     for (const path of APP_PATHS) {
       disallow.push(`/${locale}/${path}`);

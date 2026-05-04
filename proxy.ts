@@ -5,14 +5,12 @@ import { routing } from "@/i18n/routing";
 
 const intl = createIntlMiddleware(routing);
 
-// Routes that next-intl is responsible for: bare root, locale-prefixed paths,
-// AND bare un-prefixed paths that map to a localised route (so /pricing redirects
-// to /en/pricing). Excludes only routes that must stay un-localised:
-// /sign-in, /sign-up, /start, /api/*, /admin/*. The default in next-intl with
-// localePrefix:'always' is to redirect any un-prefixed path that has a localised
-// equivalent — we just need to make sure those paths reach intl().
+// Routes that next-intl is responsible for: locale-prefixed paths AND bare
+// un-prefixed paths that map to a localised route (so /pricing redirects to
+// /en/pricing). Bare `/` is NOT in this matcher — it's owned by app/page.tsx
+// which renders the welcome splash for first-time visitors and redirects
+// returning visitors to /<their-locale> server-side.
 const isLocaleScopedRoute = createRouteMatcher([
-  "/",
   "/(en|hi)",
   "/(en|hi)/(.*)",
   "/pricing",
@@ -30,7 +28,10 @@ const isPublicRoute = createRouteMatcher([
   "/library(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/start",
+  // /post-signup is reached during Clerk's redirect after sign-up. Marked public
+  // so the middleware doesn't race Clerk's session-cookie write; the page itself
+  // gates its work behind useUser().isLoaded && isSignedIn.
+  "/post-signup",
   "/api/stripe/webhook",
   "/api/health",
   // /api/assets is exposed at the middleware level; the route handler enforces
@@ -47,8 +48,8 @@ const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
   // Admin routes — need role verification (defence in depth with layout redirect).
-  // AppStateProvider rewrites this to /<userRecord.locale>/home for returning users;
-  // new sign-ups go via /start which sets locale before reaching /home.
+  // AppStateProvider rewrites /en/home to /<userRecord.locale>/home for returning users;
+  // new sign-ups go via /post-signup which dispatches to home or library:resume target.
   if (isAdminRoute(request)) {
     const { userId, sessionClaims } = await auth();
     const role = (sessionClaims?.metadata as Record<string, string> | undefined)
@@ -71,9 +72,10 @@ export default clerkMiddleware(async (auth, request) => {
 
   // For locale-scoped routes, ALWAYS return next-intl's response. This is the
   // canonical Clerk + next-intl composition: intl needs to either redirect
-  // (e.g. / → /en) OR pass through with locale headers set for downstream
-  // useTranslations / getMessages calls. Returning anything else (or returning
-  // undefined) drops the locale signal and breaks client-side translations.
+  // (e.g. /pricing → /en/pricing) OR pass through with locale headers set for
+  // downstream useTranslations / getMessages calls. Returning anything else
+  // (or returning undefined) drops the locale signal and breaks client-side
+  // translations.
   if (isLocaleScopedRoute(request)) {
     return intl(request);
   }

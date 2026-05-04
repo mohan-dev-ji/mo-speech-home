@@ -1,5 +1,8 @@
 import { useTranslations } from "next-intl";
+import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
+
+// /pricing is locale-prefixed (use Link). /sign-in is un-localised (use NextLink).
 
 export function Footer() {
   const t = useTranslations("marketingFooter");
@@ -15,9 +18,9 @@ export function Footer() {
           <Link href="/pricing" className="text-caption text-muted-foreground hover:text-foreground transition-colors">
             {t("pricing")}
           </Link>
-          <Link href="/sign-in" className="text-caption text-muted-foreground hover:text-foreground transition-colors">
+          <NextLink href="/sign-in" className="text-caption text-muted-foreground hover:text-foreground transition-colors">
             {t("signIn")}
-          </Link>
+          </NextLink>
         </nav>
       </div>
     </footer>

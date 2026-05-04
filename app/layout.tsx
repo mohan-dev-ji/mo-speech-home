@@ -30,9 +30,11 @@ export default function RootLayout({
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       // AppStateProvider rewrites /en/home to /<userRecord.locale>/home for returning
-      // users; new sign-ups go via /start which sets locale before reaching /home.
+      // users. New sign-ups go via /post-signup which reads library:resume from
+      // localStorage (queued by LoadPackButton) and dispatches to /<locale>/categories
+      // or /<locale>/home.
       signInFallbackRedirectUrl="/en/home"
-      signUpFallbackRedirectUrl="/start"
+      signUpFallbackRedirectUrl="/post-signup"
     >
       <html
         lang="en"
