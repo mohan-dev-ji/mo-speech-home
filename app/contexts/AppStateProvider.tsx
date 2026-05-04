@@ -81,6 +81,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userRecord?.locale, urlLocale]);
 
+  // ─── NEXT_LOCALE cookie sync ─────────────────────────────────────────────────
+  // Mirror users.locale (the instructor's preference) to the NEXT_LOCALE cookie
+  // on every authed page load. Closes the gap where a user signs in on a new
+  // device with no cookie set, or where the cookie drifted (e.g. browsed
+  // /hi/library while logged out, set cookie=hi via Accept-Language fallback,
+  // but their actual users.locale=en). Without this sync, signing out on the
+  // new device would route them via the splash dispatcher to the wrong locale.
+  // The cookie tracks the INSTRUCTOR locale only — student profile language is
+  // a separate concern handled by StudentViewLocaleSync and never touches it.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const storedLocale = userRecord?.locale;
+    if (storedLocale !== "en" && storedLocale !== "hi") return;
+    const cookieMatch = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]+)/);
+    if (cookieMatch?.[1] === storedLocale) return;
+    document.cookie = `NEXT_LOCALE=${storedLocale};path=/;max-age=31536000;samesite=lax`;
+  }, [userRecord?.locale]);
+
   // ─── Derived subscription status ─────────────────────────────────────────────
 
   const subscription: UserSubscription = {

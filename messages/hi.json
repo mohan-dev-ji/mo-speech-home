@@ -304,7 +304,7 @@
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner. (hi)",
     "language": {
       "title": "Language (hi)",
-      "helperText": "App display language (hi)"
+      "helperText": "Your instructor language — each student profile has its own language. (hi)"
     },
     "deleteAccount": {
       "sectionTitle": "Danger zone (hi)",
