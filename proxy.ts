@@ -24,6 +24,10 @@ const isPublicRoute = createRouteMatcher([
   "/(en|hi)",
   "/(en|hi)/pricing",
   "/(en|hi)/library(.*)",
+  // Bare un-prefixed marketing paths must be public so intl can redirect them
+  // to the right /<locale>/... — without this, the auth check rejects them.
+  "/pricing",
+  "/library(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/start",
@@ -52,28 +56,26 @@ export default clerkMiddleware(async (auth, request) => {
     if (!userId || role !== "admin") {
       return NextResponse.redirect(new URL("/en/home", request.url));
     }
-    return;
+    // Admin auth passed — fall through to intl handler below so locale headers
+    // are still set for downstream rendering of /<locale>/admin pages.
   }
 
-  // Hand locale-scoped paths to next-intl FIRST. It handles `/` → `/<locale>`
-  // redirect via Accept-Language and rewrites locale-prefixed URLs as needed.
-  // If next-intl returns a redirect, we honour it immediately (no point running
-  // the auth check on a URL that's about to change). Otherwise we fall through
-  // to the public-route check + Clerk auth gate.
-  if (isLocaleScopedRoute(request)) {
-    const intlResponse = intl(request);
-    if (intlResponse?.headers.get("location")) {
-      return intlResponse;
+  // Auth gate FIRST for protected routes — short-circuit before next-intl runs.
+  // Public routes skip auth() entirely (no Clerk network round-trip).
+  if (!isPublicRoute(request) && !isAdminRoute(request)) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.redirect(new URL("/sign-in", request.url));
     }
   }
 
-  // Public routes — skip auth() entirely (no Clerk network round-trip)
-  if (isPublicRoute(request)) return;
-
-  // Protected routes — must be authenticated
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+  // For locale-scoped routes, ALWAYS return next-intl's response. This is the
+  // canonical Clerk + next-intl composition: intl needs to either redirect
+  // (e.g. / → /en) OR pass through with locale headers set for downstream
+  // useTranslations / getMessages calls. Returning anything else (or returning
+  // undefined) drops the locale signal and breaks client-side translations.
+  if (isLocaleScopedRoute(request)) {
+    return intl(request);
   }
 });
 
