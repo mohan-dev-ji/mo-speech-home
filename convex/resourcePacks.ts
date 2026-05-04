@@ -5,10 +5,12 @@ import {
   mutation,
   query,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
 import {
   requireCallerAccountId,
   requireCallerIsAdmin,
+  resolveCallerAccountId,
 } from "./lib/account";
 import { tierFromPlan } from "./users";
 
@@ -314,6 +316,38 @@ export async function loadStarterTemplateInline(
   return { skipped: false, ...result };
 }
 
+/**
+ * Collect the set of resourcePack IDs (as raw strings) the account already has
+ * at least one materialised row linked to, across profileCategories,
+ * profileLists, and profileSentences. `librarySourceId` is stored as
+ * `v.optional(v.string())` so we keep raw strings here and let callers cast.
+ */
+async function collectLoadedPackIds(
+  ctx: QueryCtx,
+  accountId: Id<"users">
+): Promise<Set<string>> {
+  const [categories, lists, sentences] = await Promise.all([
+    ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect(),
+    ctx.db
+      .query("profileLists")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect(),
+    ctx.db
+      .query("profileSentences")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect(),
+  ]);
+
+  const ids = new Set<string>();
+  for (const c of categories) if (c.librarySourceId) ids.add(c.librarySourceId);
+  for (const l of lists) if (l.librarySourceId) ids.add(l.librarySourceId);
+  for (const s of sentences) if (s.librarySourceId) ids.add(s.librarySourceId);
+  return ids;
+}
+
 // ─── Public mutations ─────────────────────────────────────────────────────────
 
 /**
@@ -323,6 +357,11 @@ export async function loadStarterTemplateInline(
  * The starter pack is loadable through this mutation too, but only by Pro+ —
  * free-tier accounts get the starter via loadStarterTemplate at signup, never
  * through this public path.
+ *
+ * Dedup gate: rejects with ALREADY_LOADED if the account has any
+ * profileCategory/List/Sentence already linked back to this pack via
+ * librarySourceId. Account-scoped per ADR-008 — re-loading on a fresh profile
+ * is currently out of scope.
  */
 export const loadResourcePack = mutation({
   args: { packId: v.id("resourcePacks") },
@@ -335,6 +374,14 @@ export const loadResourcePack = mutation({
         required: "pro",
         message:
           "Resource library requires Pro or Max plan. Upgrade to load this pack.",
+      });
+    }
+
+    const loadedPackIds = await collectLoadedPackIds(ctx, accountId);
+    if (loadedPackIds.has(packId)) {
+      throw new ConvexError({
+        code: "ALREADY_LOADED",
+        message: "This pack is already loaded into your account.",
       });
     }
 
@@ -368,6 +415,26 @@ export const loadStarterTemplate = internalMutation({
 });
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
+
+/**
+ * Return the set of resourcePack IDs the caller has already loaded into their
+ * account. Used by LoadPackButton to disable the "Load into profile" CTA for
+ * packs the user (or DEFAULT_CATEGORIES seeding via the toggle-publish flow)
+ * has materialised content from.
+ *
+ * Returns an empty array for unauthenticated callers — the public library
+ * page renders before sign-in too. Order is not meaningful; consumers should
+ * treat the result as a set.
+ */
+export const getMyLoadedPackIds = query({
+  args: {},
+  handler: async (ctx): Promise<Id<"resourcePacks">[]> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const ids = await collectLoadedPackIds(ctx, resolved.accountId);
+    return Array.from(ids) as Id<"resourcePacks">[];
+  },
+});
 
 /**
  * Get the canonical starter pack, or null if none exists.

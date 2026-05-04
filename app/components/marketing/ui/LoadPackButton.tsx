@@ -40,11 +40,18 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
     api.users.getMyAccess,
     isSignedIn ? {} : "skip"
   );
+  const loadedPackIds = useQuery(
+    api.resourcePacks.getMyLoadedPackIds,
+    isSignedIn ? {} : "skip"
+  );
   const loadPack = useMutation(api.resourcePacks.loadResourcePack);
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
-  if (!isLoaded || (isSignedIn && access === undefined)) {
+  if (
+    !isLoaded ||
+    (isSignedIn && (access === undefined || loadedPackIds === undefined))
+  ) {
     return (
       <Button variant="primary" size="md" disabled className="w-full">
         {t("ctaLoading")}
@@ -75,7 +82,10 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
     );
   }
 
-  if (isStarter) {
+  const alreadyLoaded =
+    isStarter || (loadedPackIds?.includes(packId) ?? false);
+
+  if (alreadyLoaded) {
     return (
       <Button variant="secondary" size="md" disabled className="w-full">
         {t("ctaAlreadyOnAccount")}
@@ -123,11 +133,17 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
             e instanceof ConvexError &&
             typeof e.data === "object" &&
             e.data !== null &&
-            "code" in e.data &&
-            (e.data as { code: string }).code === "TIER_REQUIRED"
+            "code" in e.data
           ) {
-            router.push(`/pricing?intent=load&packId=${packId}`);
-            return;
+            const code = (e.data as { code: string }).code;
+            if (code === "TIER_REQUIRED") {
+              router.push(`/pricing?intent=load&packId=${packId}`);
+              return;
+            }
+            if (code === "ALREADY_LOADED") {
+              showToast({ tone: "info", title: t("errorAlreadyLoaded") });
+              return;
+            }
           }
           showToast({ tone: "warning", title: t("loadErrorToast") });
         } finally {

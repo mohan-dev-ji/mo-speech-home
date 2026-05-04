@@ -606,6 +606,7 @@
     "ctaAlreadyOnAccount": "Already on your account",
     "loadSuccessToast": "Pack loaded into your profile.",
     "loadErrorToast": "Couldn't load this pack. Try again.",
+    "errorAlreadyLoaded": "This pack is already in your profile.",
     "empty": "No packs available yet — check back soon.",
     "tierBadgeFree": "Free",
     "tierBadgePro": "Pro",
