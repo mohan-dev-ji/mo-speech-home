@@ -192,6 +192,11 @@ export default defineSchema({
     imagePath: v.optional(v.string()), // R2 path for the folder cover image
     order: v.number(),
     librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — set when content was loaded from a pack (reload-defaults only)
+    // Snapshot's original name.eng captured at load time. Used by
+    // reloadCategoryFromLibrary to find the matching snapshot inside the pack
+    // even after the instructor renames the category. Optional for back-compat
+    // with rows loaded before this field existed.
+    librarySourceCategoryKey: v.optional(v.string()),
     // Admin-only: forward link to the resourcePack this category is the source-of-truth for.
     // Set by setCategoryDefault / setCategoryInLibrary toggle mutations. When set, edits to
     // this category auto-rebuild the pack snapshot. Cleared on toggle-off, on delete, and

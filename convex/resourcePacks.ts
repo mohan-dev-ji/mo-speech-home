@@ -62,6 +62,72 @@ function userHasFullAccess(user: Doc<"users">): boolean {
 }
 
 /**
+ * Type alias for the symbols-array shape inside a category snapshot.
+ */
+type CategorySnapshotSymbols = NonNullable<
+  Doc<"resourcePacks">["categories"]
+>[number]["symbols"];
+
+/**
+ * Materialise a category snapshot's symbols into an existing profileCategory.
+ * Shared by:
+ *   - materialisePackIntoAccount (initial pack load)
+ *   - reloadCategoryFromLibrary (per-category reset)
+ *
+ * Symbol skipping: if a snapshot references a global symbols row that has
+ * since been deleted, that single symbol is skipped (no fail). Partial loads
+ * are preferred over no-load.
+ */
+export async function materialiseSymbolsFromCategorySnapshot(
+  ctx: MutationCtx,
+  accountId: Id<"users">,
+  profileCategoryId: Id<"profileCategories">,
+  snapshotSymbols: CategorySnapshotSymbols,
+  now: number
+): Promise<{ symbolsAdded: number; symbolsSkipped: number }> {
+  let symbolsAdded = 0;
+  let symbolsSkipped = 0;
+  let symbolOrder = 0;
+
+  for (const sym of snapshotSymbols) {
+    // pack.categories[].symbols[].symbolId is a loose string ref. For SymbolStix
+    // packs (the only shape supported today per docs/1-inbox/ideas/06-resource-library.md)
+    // it points at convex-home's symbols table.
+    const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
+    if (!symbolDoc) {
+      // Symbol was deleted from the global library since the pack was authored.
+      // Skip rather than fail — partial loads are better than no load.
+      symbolsSkipped++;
+      continue;
+    }
+
+    // Build label: pack-level override beats SymbolStix words.
+    const label = {
+      eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
+      ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
+        ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
+        : {}),
+    };
+
+    await ctx.db.insert("profileSymbols", {
+      accountId,
+      profileCategoryId,
+      order: symbolOrder++,
+      imageSource: {
+        type: "symbolstix",
+        symbolId: symbolDoc._id,
+      },
+      label,
+      ...(sym.display ? { display: sym.display } : {}),
+      updatedAt: now,
+    });
+    symbolsAdded++;
+  }
+
+  return { symbolsAdded, symbolsSkipped };
+}
+
+/**
  * Materialise a resource pack's snapshot content into an account.
  * Creates profileCategory + profileSymbol + profileList + profileSentence
  * records scoped to accountId, with librarySourceId set to the pack's _id.
@@ -111,45 +177,22 @@ export async function materialisePackIntoAccount(
       ...(cat.imagePath ? { imagePath: cat.imagePath } : {}),
       order: nextCategoryOrder++,
       librarySourceId: pack._id,
+      // Capture the snapshot's original name as a stable join key for
+      // reloadCategoryFromLibrary — survives instructor renames.
+      librarySourceCategoryKey: cat.name.eng,
       updatedAt: now,
     });
     categoriesAdded++;
 
-    let symbolOrder = 0;
-    for (const sym of cat.symbols) {
-      // pack.categories[].symbols[].symbolId is a loose string ref. For SymbolStix
-      // packs (the only shape supported today per docs/1-inbox/ideas/06-resource-library.md)
-      // it points at convex-home's symbols table.
-      const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
-      if (!symbolDoc) {
-        // Symbol was deleted from the global library since the pack was authored.
-        // Skip rather than fail — partial loads are better than no load.
-        symbolsSkipped++;
-        continue;
-      }
-
-      // Build label: pack-level override beats SymbolStix words.
-      const label = {
-        eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
-        ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
-          ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
-          : {}),
-      };
-
-      await ctx.db.insert("profileSymbols", {
-        accountId,
-        profileCategoryId,
-        order: symbolOrder++,
-        imageSource: {
-          type: "symbolstix",
-          symbolId: symbolDoc._id,
-        },
-        label,
-        ...(sym.display ? { display: sym.display } : {}),
-        updatedAt: now,
-      });
-      symbolsAdded++;
-    }
+    const result = await materialiseSymbolsFromCategorySnapshot(
+      ctx,
+      accountId,
+      profileCategoryId,
+      cat.symbols,
+      now
+    );
+    symbolsAdded += result.symbolsAdded;
+    symbolsSkipped += result.symbolsSkipped;
   }
 
   // ── Lists ───────────────────────────────────────────────────────────────

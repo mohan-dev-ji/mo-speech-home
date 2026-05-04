@@ -3,6 +3,7 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -77,4 +78,17 @@ export async function getFile(
   );
   const buffer = await response.Body!.transformToByteArray();
   return { buffer, contentType: response.ContentType ?? "application/octet-stream" };
+}
+
+/**
+ * Delete an R2 object. Used by reload-category-defaults to clean up an
+ * instructor's personal uploads/recordings/image-search picks. Shared caches
+ * (ai-cache/, audio/<voice>/tts/) are NEVER passed here — they're reusable
+ * across users and represent real regen cost.
+ */
+export async function deleteFile(key: string): Promise<void> {
+  if (!r2Client || !bucketName) throw new Error("R2 not configured");
+  await r2Client.send(
+    new DeleteObjectCommand({ Bucket: bucketName, Key: key })
+  );
 }

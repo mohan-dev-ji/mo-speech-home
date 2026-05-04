@@ -3,6 +3,7 @@
 import { Layers, Pencil, ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 
 type BannerProps = {
   categoryName: string;
@@ -11,6 +12,10 @@ type BannerProps = {
   onEdit?: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
+  // When set, renders a "From pack" badge next to the category name.
+  // Used to signal pack-loaded categories so instructors discover the
+  // Reload Defaults action available in edit mode.
+  librarySourceId?: string;
 };
 
 export function Banner({
@@ -20,6 +25,7 @@ export function Banner({
   onEdit,
   onModel,
   modelDisabledReason,
+  librarySourceId,
 }: BannerProps) {
   const t = useTranslations('banner');
 
@@ -31,12 +37,15 @@ export function Banner({
 
       {/* Left: name + action buttons */}
       <div className="flex-1 flex flex-col justify-center min-w-0">
-        <h1
-          className="text-theme-h3 font-bold leading-tight truncate"
-          style={{ color: 'var(--theme-text-primary)' }}
-        >
-          {categoryName}
-        </h1>
+        <div className="flex items-center gap-2 min-w-0">
+          <h1
+            className="text-theme-h3 font-bold leading-tight truncate"
+            style={{ color: 'var(--theme-text-primary)' }}
+          >
+            {categoryName}
+          </h1>
+          {librarySourceId && <LibrarySourceBadge />}
+        </div>
 
         <div className="flex items-center gap-2 mt-3">
           <button

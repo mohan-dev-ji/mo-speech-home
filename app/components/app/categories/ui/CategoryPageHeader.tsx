@@ -13,6 +13,7 @@ type Props = {
   onEdit: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
+  librarySourceId?: string;
 };
 
 export function CategoryPageHeader({
@@ -22,6 +23,7 @@ export function CategoryPageHeader({
   onEdit,
   onModel,
   modelDisabledReason,
+  librarySourceId,
 }: Props) {
   const bg = getCategoryColour(colour ?? 'orange').c700;
 
@@ -37,6 +39,7 @@ export function CategoryPageHeader({
         onEdit={onEdit}
         onModel={onModel}
         modelDisabledReason={modelDisabledReason}
+        librarySourceId={librarySourceId}
       />
     </div>
   );

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from 'react';
-import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown, Bookmark, Library } from 'lucide-react';
+import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown, Bookmark, Library, RotateCcw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { PlanTierPicker, type PlanTier } from '@/app/components/app/shared/ui/PlanTierPicker';
+import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 
 // ─── Colour picker ────────────────────────────────────────────────────────────
 
@@ -148,6 +149,11 @@ export type BannerEditProps = {
   onToggleDefault?: () => void;
   onToggleLibrary?: () => void;
   onSetTier?: (tier: PlanTier) => void;
+  // Reload Defaults — instructor-facing reset for pack-loaded categories.
+  // Visible only when both are set (the parent sets librarySourceId from
+  // category.librarySourceId and onReloadDefaults from its dialog opener).
+  librarySourceId?: string;
+  onReloadDefaults?: () => void;
 };
 
 export function BannerEdit({
@@ -165,6 +171,8 @@ export function BannerEdit({
   onToggleDefault,
   onToggleLibrary,
   onSetTier,
+  librarySourceId,
+  onReloadDefaults,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
@@ -173,12 +181,15 @@ export function BannerEdit({
 
       {/* Left: name + edit controls */}
       <div className="flex-1 flex flex-col justify-center min-w-0">
-        <h1
-          className="text-theme-h3 font-bold leading-tight truncate"
-          style={{ color: 'var(--theme-text-primary)' }}
-        >
-          {categoryName}
-        </h1>
+        <div className="flex items-center gap-2 min-w-0">
+          <h1
+            className="text-theme-h3 font-bold leading-tight truncate"
+            style={{ color: 'var(--theme-text-primary)' }}
+          >
+            {categoryName}
+          </h1>
+          {librarySourceId && <LibrarySourceBadge />}
+        </div>
 
         <div className="flex flex-col gap-2 mt-3">
 
@@ -225,6 +236,25 @@ export function BannerEdit({
               <FolderOpen className="w-3.5 h-3.5" />
               {t('bannerEditFolderImage')}
             </button>
+
+            {/* Reload Defaults — visible only when this category was loaded
+                from a library pack and the parent supplied a handler. Destructive
+                styling matches the Delete pattern in other modals. */}
+            {librarySourceId && onReloadDefaults && (
+              <button
+                type="button"
+                onClick={onReloadDefaults}
+                title={t('bannerReloadDefaultsHint')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
+                style={{
+                  background: 'var(--theme-card)',
+                  color: 'var(--theme-warning)',
+                }}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                {t('bannerReloadDefaults')}
+              </button>
+            )}
           </div>
 
           {/* Row 2: Admin controls — only visible to admins in admin viewMode.

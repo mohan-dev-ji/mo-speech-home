@@ -38,6 +38,10 @@ import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { ModellingPickerModal } from '@/app/components/app/categories/modals/ModellingPickerModal';
 import {
+  ReloadDefaultsDialog,
+  type ReloadDefaultsResult,
+} from '@/app/components/app/categories/modals/ReloadDefaultsDialog';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -170,6 +174,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [folderImageModalOpen, setFolderImageModalOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   // ── Convex ──────────────────────────────────────────────────────────────────
@@ -404,6 +409,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 onToggleDefault={handleToggleDefault}
                 onToggleLibrary={handleToggleLibrary}
                 onSetTier={handleSetTier}
+                librarySourceId={category?.librarySourceId}
+                onReloadDefaults={() => setReloadDialogOpen(true)}
               />
             </div>
           ) : (
@@ -414,6 +421,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
               onEdit={handleEditStart}
               onModel={handleModelClick}
               modelDisabledReason={modelDisabledReason}
+              librarySourceId={category?.librarySourceId}
             />
           )}
         </div>
@@ -583,6 +591,34 @@ export function CategoryDetailContent({ categoryId }: Props) {
       {/* Make Default + Library are now toggle buttons in the admin row of
           BannerEdit — no confirmation dialog needed. The toggle action is
           reversible via the same toggle. */}
+
+      {/* Reload Defaults — destructive confirmation modal. Only mountable
+          when the category was loaded from a library pack (button hidden
+          otherwise via BannerEdit's librarySourceId guard). */}
+      {category?.librarySourceId && profileCategoryId && (
+        <ReloadDefaultsDialog
+          open={reloadDialogOpen}
+          onOpenChange={setReloadDialogOpen}
+          profileCategoryId={profileCategoryId}
+          categoryName={categoryName}
+          onSuccess={(result: ReloadDefaultsResult) => {
+            const successMsg =
+              result.symbolsSkipped > 0
+                ? t('reloadDefaultsSuccessWithSkipped', {
+                    count: result.symbolsAdded,
+                    skipped: result.symbolsSkipped,
+                  })
+                : t('reloadDefaultsSuccess', { count: result.symbolsAdded });
+            showToast({ tone: 'info', title: successMsg });
+            if (result.filesFailed > 0) {
+              showToast({
+                tone: 'warning',
+                title: t('reloadDefaultsMediaCleanupWarning'),
+              });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
