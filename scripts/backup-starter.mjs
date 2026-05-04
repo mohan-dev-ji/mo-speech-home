@@ -18,22 +18,27 @@
  * the `convex/` tree.
  */
 
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "../convex/_generated/api.js";
-import { writeFileSync, readFileSync, existsSync } from "node:fs";
+// Fetch the starter pack via `npx convex run` instead of the JS HTTP client.
+// Reasons:
+//   1. convex/_generated/api.js uses ESM syntax but Convex's codegen prunes any
+//      package.json we drop alongside it, so Node can't be coaxed into loading
+//      api.js as ESM from a .mjs script. Dynamic import doesn't help.
+//   2. The CLI is already a hard dependency (npx convex dev runs continuously)
+//      and handles auth/URL resolution from .env.local automatically.
+//
+// Output is redirected to a temp file rather than captured via execFileSync
+// stdout — the convex CLI doesn't drain its stdout pipe quickly enough and
+// truncates around ~8KB when piped, but shell-redirect to a file is reliable.
+import { execSync } from "node:child_process";
+import { writeFileSync, readFileSync, existsSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
 const BACKUPS_DIR = join(REPO_ROOT, "convex", "data", "starter_backups");
 const INDEX_PATH = join(BACKUPS_DIR, "index.ts");
-
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-if (!convexUrl) {
-  console.error("❌ Missing NEXT_PUBLIC_CONVEX_URL — run with --env-file=.env.local");
-  process.exit(1);
-}
 
 const labelArg = process.argv[2]?.trim();
 if (!labelArg) {
@@ -65,10 +70,29 @@ if (existsSync(filePath)) {
   process.exit(1);
 }
 
-console.log(`📦 Fetching current starter pack from ${convexUrl}…`);
+console.log("📦 Fetching current starter pack via npx convex run…");
 
-const client = new ConvexHttpClient(convexUrl);
-const starter = await client.query(api.resourcePacks.getStarterPack, {});
+const tmpFile = join(
+  tmpdir(),
+  `starter_pack_${Date.now()}_${Math.random().toString(36).slice(2)}.json`
+);
+
+let starter;
+try {
+  execSync(
+    `npx convex run resourcePacks:getStarterPack --no-push > "${tmpFile}"`,
+    { cwd: REPO_ROOT, stdio: ["ignore", "ignore", "inherit"], shell: "/bin/bash" }
+  );
+  starter = JSON.parse(readFileSync(tmpFile, "utf8"));
+} catch (e) {
+  console.error("❌ Failed to fetch starter pack via convex CLI.");
+  console.error(e.message);
+  process.exit(1);
+} finally {
+  if (existsSync(tmpFile)) {
+    try { unlinkSync(tmpFile); } catch { /* ignore */ }
+  }
+}
 
 if (!starter) {
   console.error(

@@ -89,12 +89,14 @@ export type StarterBackup = {
 // when it writes a new backup.
 //
 // AUTOGEN-START: imports
-// (no backups yet — first will be added by scripts/backup-starter.ts)
+import backup_2026_05_04_after_per_category_default_curation from "./2026_05_04_after_per_category_default_curation.json";
+
 // AUTOGEN-END: imports
 
 export const STARTER_BACKUPS: Record<string, StarterBackup> = {
   // AUTOGEN-START: entries
-  // (no backups yet)
+  "2026_05_04_after_per_category_default_curation": backup_2026_05_04_after_per_category_default_curation as StarterBackup,
+
   // AUTOGEN-END: entries
 };
 

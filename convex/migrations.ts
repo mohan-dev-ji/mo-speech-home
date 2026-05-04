@@ -430,3 +430,54 @@ export const restoreStarterPackFromBackup = mutation({
     };
   },
 });
+
+/**
+ * One-shot helper: set `publishedAt` on every resourcePack that lacks it,
+ * making them visible in the public library catalogue. Optionally also patches
+ * `tier` to a default for any pack missing one.
+ *
+ * Idempotent — packs that already have `publishedAt` are skipped.
+ *
+ * Run from the Convex dashboard:
+ *   migrations.publishAllUnpublishedPacks({})
+ */
+export const publishAllUnpublishedPacks = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const all = await ctx.db.query("resourcePacks").collect();
+    const published: { id: Id<"resourcePacks">; name: string }[] = [];
+    const tierBackfilled: { id: Id<"resourcePacks">; name: string }[] = [];
+    let alreadyPublished = 0;
+
+    for (const pack of all) {
+      const patch: { publishedAt?: number; tier?: "free" | "pro" | "max" } = {};
+      if (pack.publishedAt == null) {
+        patch.publishedAt = now;
+        published.push({ id: pack._id, name: pack.name.eng });
+      } else {
+        alreadyPublished++;
+      }
+      if (pack.tier == null) {
+        // Starter pack defaults to free; everything else also defaults to free
+        // unless the admin has explicitly set a different tier.
+        patch.tier = "free";
+        tierBackfilled.push({ id: pack._id, name: pack.name.eng });
+      }
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(pack._id, patch);
+      }
+    }
+
+    console.log(
+      `[publishAllUnpublishedPacks] published ${published.length} packs, backfilled tier on ${tierBackfilled.length}, ${alreadyPublished} were already published`
+    );
+
+    return {
+      published,
+      tierBackfilled,
+      alreadyPublished,
+      totalPacks: all.length,
+    };
+  },
+});
