@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
+import { Link } from "@/i18n/navigation";
 
 export function Hero() {
+  const t = useTranslations("marketingHero");
   const { isSignedIn } = useUser();
   const appHref = isSignedIn ? "/start?pick=true" : "/sign-in";
 
@@ -11,30 +13,28 @@ export function Hero() {
     <section className="py-24 md:py-32 px-6 text-center">
       <div className="max-w-3xl mx-auto">
         <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-caption font-medium mb-6">
-          Now in beta
+          {t("betaBadge")}
         </span>
         <h1 className="text-display font-bold tracking-tight mb-6">
-          Mo Speech Home
+          {t("titleLine1")}
           <br />
-          <span className="text-primary">AAC built for the world</span>
+          <span className="text-primary">{t("titleLine2")}</span>
         </h1>
         <p className="text-subheading text-muted-foreground max-w-xl mx-auto mb-10">
-          Replace this with your product&apos;s value proposition. One sentence
-          that makes your ideal customer say &ldquo;yes, that&apos;s exactly
-          what I need.&rdquo;
+          {t("tagline")}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href={appHref}
             className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
           >
-            Start for free
+            {t("ctaPrimary")}
           </Link>
           <Link
             href="/pricing"
             className="w-full sm:w-auto px-8 py-3 border border-border rounded-lg font-medium hover:bg-muted transition-colors text-foreground"
           >
-            See pricing
+            {t("ctaSecondary")}
           </Link>
         </div>
       </div>

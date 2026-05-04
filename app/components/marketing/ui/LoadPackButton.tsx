@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
@@ -15,7 +15,9 @@ type Props = {
   packId: Id<"resourcePacks">;
   packTier: "free" | "pro" | "max";
   isStarter: boolean;
-  locale: string;
+  // `locale` no longer needed — the locale-aware router auto-prefixes — but
+  // kept for callers (LibraryPackCard) that may still pass it; ignored here.
+  locale?: string;
 };
 
 const RESUME_KEY = "library:resume";
@@ -30,7 +32,7 @@ const RESUME_KEY = "library:resume";
  * Reads access via getMyAccess directly — useSubscription is unavailable here
  * because AppStateProvider lives inside the AAC shell, not the public route.
  */
-export function LoadPackButton({ packId, packTier, isStarter, locale }: Props) {
+export function LoadPackButton({ packId, packTier, isStarter }: Props) {
   const t = useTranslations("library");
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
@@ -115,7 +117,7 @@ export function LoadPackButton({ packId, packTier, isStarter, locale }: Props) {
         try {
           await loadPack({ packId });
           showToast({ tone: "info", title: t("loadSuccessToast") });
-          router.push(`/${locale}/categories`);
+          router.push("/categories");
         } catch (e: unknown) {
           if (
             e instanceof ConvexError &&

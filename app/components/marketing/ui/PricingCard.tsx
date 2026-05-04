@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 interface PricingCardProps {
   name: string;
@@ -13,6 +13,11 @@ interface PricingCardProps {
   ctaHref: string;
   highlighted?: boolean;
   plan: "monthly" | "yearly";
+  // Localised chrome — passed in from parent (PricingPage) which owns the translations.
+  mostPopularLabel: string;
+  perMonthSuffix: string;
+  perYearSuffix: string;
+  freePriceLabel: string;
 }
 
 export function PricingCard({
@@ -24,6 +29,10 @@ export function PricingCard({
   ctaHref,
   highlighted = false,
   plan,
+  mostPopularLabel,
+  perMonthSuffix,
+  perYearSuffix,
+  freePriceLabel,
 }: PricingCardProps) {
   return (
     <div
@@ -36,7 +45,7 @@ export function PricingCard({
     >
       {highlighted && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-caption font-medium rounded-full">
-          Most popular
+          {mostPopularLabel}
         </span>
       )}
 
@@ -52,11 +61,11 @@ export function PricingCard({
               {plan === "monthly" ? price.monthly : price.yearly}
             </span>
             <span className="text-muted-foreground text-small ml-1">
-              / {plan === "monthly" ? "month" : "year"}
+              / {plan === "monthly" ? perMonthSuffix : perYearSuffix}
             </span>
           </>
         ) : (
-          <span className="text-display font-bold">Free</span>
+          <span className="text-display font-bold">{freePriceLabel}</span>
         )}
       </div>
 

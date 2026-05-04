@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
+import { Link } from "@/i18n/navigation";
 
 export function CTABanner() {
+  const t = useTranslations("marketingCta");
   const { isSignedIn } = useUser();
   const appHref = isSignedIn ? "/start?pick=true" : "/sign-in";
 
@@ -11,17 +13,16 @@ export function CTABanner() {
     <section className="py-20 px-6">
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-heading font-bold mb-4">
-          Ready to get started?
+          {t("heading")}
         </h2>
         <p className="text-muted-foreground mb-8">
-          Join thousands of teams already using YourProduct.
-          Free to start, no credit card required.
+          {t("body")}
         </p>
         <Link
           href={appHref}
           className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
         >
-          Start for free
+          {t("cta")}
         </Link>
       </div>
     </section>

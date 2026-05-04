@@ -29,6 +29,8 @@ export default function RootLayout({
     <ClerkProvider
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
+      // AppStateProvider rewrites /en/home to /<userRecord.locale>/home for returning
+      // users; new sign-ups go via /start which sets locale before reaching /home.
       signInFallbackRedirectUrl="/en/home"
       signUpFallbackRedirectUrl="/start"
     >
