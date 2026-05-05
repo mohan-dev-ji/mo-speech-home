@@ -7,15 +7,16 @@ import type { DraggableAttributes } from '@dnd-kit/core';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 
 // Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container
 // (the aspect-square wrapper marked @container), so the label scales smoothly as
 // the tile resizes with viewport, breakpoint, or grid_size column count.
+// Tuned for the folder-tab band (smaller than the old in-body label area).
 const NAME_FONT_SIZE = {
-  large:  'clamp(0.875rem, 6cqi, 1.5rem)',
-  medium: 'clamp(0.75rem,  7cqi, 1.125rem)',
-  small:  'clamp(0.625rem, 8cqi, 0.875rem)',
+  large:  'clamp(0.625rem, 5cqi,   1rem)',
+  medium: 'clamp(0.5rem,   5.5cqi, 0.875rem)',
+  small:  'clamp(0.5rem,   6cqi,   0.75rem)',
 } as const;
 
 type AdminPacksStatus = {
@@ -77,17 +78,6 @@ export function CategoryTile({
         !isEditing && 'cursor-pointer group',
       ].filter(Boolean).join(' ')}
     >
-      {/* Admin-view pack-status badge (top-right corner, above all other layers
-          including the edit-mode dashed border). */}
-      {adminPacks && (
-        <div className="absolute top-2 right-2 z-30 pointer-events-none">
-          <AdminPackBadge
-            publishedToPackId={category.publishedToPackId}
-            packs={adminPacks}
-          />
-        </div>
-      )}
-
       {/* Edit mode: SVG dashed border around the full square tile */}
       {isEditing && (
         <svg
@@ -125,36 +115,34 @@ export function CategoryTile({
           isEditing && 'p-theme-folder',
         ].filter(Boolean).join(' ')}
       >
-        {/* Folder tab — height scales with tile via cqi, clamped for very small/large tiles */}
+        {/* Folder tab — holds the category name; width auto-sizes to text within
+            min/max bounds so the folder-tab silhouette is preserved. Height + font
+            scale with tile via cqi. */}
         <div
-          className="self-start w-[30%] shrink-0 rounded-t-theme-sm"
+          className="self-start w-fit min-w-[40%] max-w-[85%] shrink-0 rounded-t-theme-sm flex items-center justify-center"
           style={{
-            height: 'clamp(0.75rem, 8cqi, 1.75rem)',
+            height: 'clamp(1rem, 10cqi, 2rem)',
+            padding: '0 4cqi',
             backgroundColor: colourPair.c500,
           }}
-        />
+        >
+          <p
+            className="font-semibold text-white text-center truncate leading-tight"
+            style={{ fontSize: nameFontSize }}
+          >
+            {name}
+          </p>
+        </div>
 
         {/* Card body — dark bg matches the design */}
         <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
 
-          {/* Category name — fluid font + padding scale with the tile's container size */}
-          <div
-            className="shrink-0 flex items-center justify-center"
-            style={{ padding: '3cqi 3cqi 2cqi 3cqi' }}
-          >
-            <p
-              className="font-semibold text-theme-alt-text text-center truncate w-full leading-tight"
-              style={{ fontSize: nameFontSize }}
-            >
-              {name}
-            </p>
-          </div>
-
           {/* Symbol — square coloured box, height-first sizing.
-              Extra bottom padding gives breathing room between the image and the folder edge. */}
+              Symbol flex-shrinks when the admin pack-status label is rendered
+              below it, so the label always has room. */}
           <div
             className="flex-1 min-h-0 flex items-center justify-center overflow-hidden"
-            style={{ padding: '3cqi 3cqi 6cqi' }}
+            style={{ padding: '7cqi 3cqi 3cqi' }}
           >
             <div
               className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"
@@ -174,6 +162,21 @@ export function CategoryTile({
               )}
             </div>
           </div>
+
+          {/* Admin-only pack-status label — sits inside the folder card under
+              the symbol. Symbol flex-shrinks above to make room. */}
+          {adminPacks && (
+            <div
+              className="shrink-0 flex items-center justify-center"
+              style={{ padding: '0 3cqi 4cqi' }}
+            >
+              <PackStatusLabel
+                publishedToPackId={category.publishedToPackId}
+                packs={adminPacks}
+                language={language}
+              />
+            </div>
+          )}
 
           {/* Edit mode action buttons */}
           {isEditing && (

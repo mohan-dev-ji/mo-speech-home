@@ -129,6 +129,32 @@
     "student": "Student",
     "studentView": "Student"
   },
+  "packStatus": {
+    "default": "Default",
+    "free": "Free",
+    "pro": "Pro",
+    "max": "Max"
+  },
+  "packPicker": {
+    "title": "Save {kind} to library",
+    "itemCategory": "category",
+    "itemList": "list",
+    "itemSentence": "sentence",
+    "tabCreate": "New pack",
+    "tabAppend": "Add to existing",
+    "nameLabel": "Pack name",
+    "namePlaceholder": "e.g. Religion Pack",
+    "tierLabel": "Tier",
+    "planTierFree": "Free",
+    "planTierPro": "Pro",
+    "planTierMax": "Max",
+    "packSelectLabel": "Choose a pack",
+    "packSelectPlaceholder": "Select a pack…",
+    "noExistingPacks": "You don't have any library packs yet. Switch to New pack to create one.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…"
+  },
   "studentViewLock": {
     "instructorDescription": "Full access — edit profile, settings, content",
     "adminDescription": "Admin tooling — manage library, users, content",

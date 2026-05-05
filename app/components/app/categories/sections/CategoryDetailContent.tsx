@@ -27,7 +27,7 @@ import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
-import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
@@ -41,6 +41,10 @@ import {
   ReloadDefaultsDialog,
   type ReloadDefaultsResult,
 } from '@/app/components/app/categories/modals/ReloadDefaultsDialog';
+import {
+  LibraryPackPickerModal,
+  type PackPickerTarget,
+} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
 import {
   Dialog,
   DialogContent,
@@ -175,6 +179,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
+  const [packPickerOpen, setPackPickerOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   // ── Convex ──────────────────────────────────────────────────────────────────
@@ -315,21 +320,32 @@ export function CategoryDetailContent({ categoryId }: Props) {
   }
 
   async function handleToggleLibrary() {
-    try {
-      if (isInLibrary) {
+    if (isInLibrary) {
+      try {
         await setCategoryInLibrary({ profileCategoryId, on: false });
         showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } else {
-        await setCategoryInLibrary({
-          profileCategoryId,
-          on: true,
-          tier: 'free',
-        });
-        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      } catch (e) {
+        console.error('[CategoryDetailContent] toggle library off failed', e);
+        showToast({ tone: 'warning', title: t('toastAdminError') });
       }
+      return;
+    }
+    // ON path is async + needs admin to choose target — defer to the modal.
+    setPackPickerOpen(true);
+  }
+
+  async function handlePackPickerConfirm(target: PackPickerTarget) {
+    try {
+      await setCategoryInLibrary({
+        profileCategoryId,
+        on: true,
+        target,
+      });
+      showToast({ tone: 'info', title: t('toastLibraryOn') });
     } catch (e) {
-      console.error('[CategoryDetailContent] toggle library failed', e);
+      console.error('[CategoryDetailContent] save to library failed', e);
       showToast({ tone: 'warning', title: t('toastAdminError') });
+      throw e; // let the modal stay open on failure
     }
   }
 
@@ -380,12 +396,13 @@ export function CategoryDetailContent({ categoryId }: Props) {
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0 relative">
-          {/* Admin status badge — top-right of the banner, both edit + view modes */}
+          {/* Admin status label — top-right of the banner, both edit + view modes */}
           {showAdminButtons && packsStatus && (
             <div className="absolute top-2 right-2 z-30 pointer-events-none">
-              <AdminPackBadge
+              <PackStatusLabel
                 publishedToPackId={category?.publishedToPackId}
                 packs={packsStatus}
+                language={language}
               />
             </div>
           )}
@@ -617,6 +634,18 @@ export function CategoryDetailContent({ categoryId }: Props) {
               });
             }
           }}
+        />
+      )}
+
+      {/* Library save dialogue — admin-only. Opens when toggling Library ON;
+          lets admin create a new pack or append to one they already own. */}
+      {showAdminButtons && (
+        <LibraryPackPickerModal
+          isOpen={packPickerOpen}
+          onClose={() => setPackPickerOpen(false)}
+          itemKind="category"
+          defaultName={categoryName}
+          onConfirm={handlePackPickerConfirm}
         />
       )}
     </div>

@@ -856,6 +856,82 @@ const TIER_VALIDATOR = v.union(
   v.literal("max")
 );
 
+// Discriminated target for setItemInLibrary toggle-on. Either mints a new pack
+// with the given name + tier, or appends the snapshot to an existing pack the
+// admin owns. Cover image is derived from the source item on 'create'; on
+// 'append' the existing pack's cover is left alone.
+const TARGET_VALIDATOR = v.union(
+  v.object({
+    mode: v.literal("create"),
+    name: v.object({
+      eng: v.string(),
+      hin: v.optional(v.string()),
+    }),
+    tier: TIER_VALIDATOR,
+  }),
+  v.object({
+    mode: v.literal("append"),
+    packId: v.id("resourcePacks"),
+  })
+);
+
+/**
+ * Resolve a `target` to a packId — either create a new pack (empty arrays;
+ * snapshot is appended afterwards by the caller's sync helper) or validate
+ * the admin owns the chosen existing pack and return its id.
+ */
+async function resolveTargetPack(
+  ctx: MutationCtx,
+  target:
+    | {
+        mode: "create";
+        name: { eng: string; hin?: string };
+        tier: "free" | "pro" | "max";
+      }
+    | { mode: "append"; packId: Id<"resourcePacks"> },
+  fallbackCoverImagePath: string,
+  clerkUserId: string
+): Promise<Id<"resourcePacks">> {
+  if (target.mode === "create") {
+    const now = Date.now();
+    return await ctx.db.insert("resourcePacks", {
+      name: target.name,
+      description: { eng: `Curated by an admin` },
+      coverImagePath: fallbackCoverImagePath,
+      tags: [],
+      featured: false,
+      tier: target.tier,
+      createdBy: clerkUserId,
+      updatedAt: now,
+      categories: [],
+      lists: [],
+      sentences: [],
+    });
+  }
+
+  // mode === 'append'
+  const pack = await ctx.db.get(target.packId);
+  if (!pack) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: "Target pack not found.",
+    });
+  }
+  if (pack.isStarter) {
+    throw new ConvexError({
+      code: "STARTER_NOT_APPENDABLE",
+      message: "Use the Default toggle to add to the starter pack.",
+    });
+  }
+  if (pack.createdBy !== clerkUserId) {
+    throw new ConvexError({
+      code: "NOT_OWNER",
+      message: "You don't own this pack.",
+    });
+  }
+  return pack._id;
+}
+
 /**
  * Toggle "Default" — starter-pack membership for a category.
  *
@@ -909,15 +985,16 @@ export const setCategoryDefault = mutation({
 /**
  * Toggle "Library" — non-starter pack membership for a category.
  *
- * On: creates a new resourcePack containing just this category, with the
- * chosen tier; sets publishedToPackId. Rejects if already in any pack.
- * Off: removes from the linked pack (which deletes the pack since it's empty).
+ * On: requires `target`. Either mints a new pack (mode: 'create') with the
+ * chosen name + tier, or appends the snapshot to an existing pack the admin
+ * owns (mode: 'append'). Rejects if the category is already in any pack.
+ * Off: removes from the linked pack (which deletes the pack if it goes empty).
  */
 export const setCategoryInLibrary = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
     on: v.boolean(),
-    tier: v.optional(TIER_VALIDATOR),
+    target: v.optional(TARGET_VALIDATOR),
   },
   handler: async (ctx, args) => {
     const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
@@ -928,10 +1005,10 @@ export const setCategoryInLibrary = mutation({
     }
 
     if (args.on) {
-      if (!args.tier) {
+      if (!args.target) {
         throw new ConvexError({
-          code: "TIER_REQUIRED",
-          message: "Tier required when toggling Library on.",
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
         });
       }
       if (category.publishedToPackId) {
@@ -942,24 +1019,18 @@ export const setCategoryInLibrary = mutation({
         });
       }
 
-      const snapshot = await buildCategorySnapshot(ctx, category);
-      const now = Date.now();
-      const packId = await ctx.db.insert("resourcePacks", {
-        name: category.name,
-        description: { eng: `Saved from ${category.name.eng}` },
-        coverImagePath: category.imagePath ?? DEFAULT_PACK_COVER,
-        tags: [],
-        featured: false,
-        tier: args.tier,
-        createdBy: clerkUserId,
-        updatedAt: now,
-        categories: [snapshot],
-        lists: [],
-        sentences: [],
-      });
-
+      const packId = await resolveTargetPack(
+        ctx,
+        args.target,
+        category.imagePath ?? DEFAULT_PACK_COVER,
+        clerkUserId
+      );
       await ctx.db.patch(args.profileCategoryId, { publishedToPackId: packId });
-      return { packId, tier: args.tier, action: "added" as const };
+      // syncCategoryToPackIfPublished reads back, builds a fresh snapshot,
+      // and appends (replacing any prior entry for this source). Works for
+      // both create (empty pack) and append (pack with prior content).
+      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+      return { packId, action: "added" as const };
     } else {
       // Validate: not the starter pack
       if (!category.publishedToPackId) {
@@ -1021,13 +1092,13 @@ export const setListDefault = mutation({
 });
 
 /**
- * Toggle "Library" for a list.
+ * Toggle "Library" for a list. See setCategoryInLibrary for target shape.
  */
 export const setListInLibrary = mutation({
   args: {
     profileListId: v.id("profileLists"),
     on: v.boolean(),
-    tier: v.optional(TIER_VALIDATOR),
+    target: v.optional(TARGET_VALIDATOR),
   },
   handler: async (ctx, args) => {
     const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
@@ -1038,10 +1109,10 @@ export const setListInLibrary = mutation({
     }
 
     if (args.on) {
-      if (!args.tier) {
+      if (!args.target) {
         throw new ConvexError({
-          code: "TIER_REQUIRED",
-          message: "Tier required when toggling Library on.",
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
         });
       }
       if (list.publishedToPackId) {
@@ -1052,24 +1123,15 @@ export const setListInLibrary = mutation({
         });
       }
 
-      const snapshot = buildListSnapshot(list, 0);
-      const now = Date.now();
-      const packId = await ctx.db.insert("resourcePacks", {
-        name: list.name,
-        description: { eng: `Saved from ${list.name.eng}` },
-        coverImagePath: list.items[0]?.imagePath ?? DEFAULT_PACK_COVER,
-        tags: [],
-        featured: false,
-        tier: args.tier,
-        createdBy: clerkUserId,
-        updatedAt: now,
-        categories: [],
-        lists: [snapshot],
-        sentences: [],
-      });
-
+      const packId = await resolveTargetPack(
+        ctx,
+        args.target,
+        list.items[0]?.imagePath ?? DEFAULT_PACK_COVER,
+        clerkUserId
+      );
       await ctx.db.patch(args.profileListId, { publishedToPackId: packId });
-      return { packId, tier: args.tier, action: "added" as const };
+      await syncListToPackIfPublished(ctx, args.profileListId);
+      return { packId, action: "added" as const };
     } else {
       if (!list.publishedToPackId) {
         return { action: "noop" as const };
@@ -1133,13 +1195,13 @@ export const setSentenceDefault = mutation({
 });
 
 /**
- * Toggle "Library" for a sentence.
+ * Toggle "Library" for a sentence. See setCategoryInLibrary for target shape.
  */
 export const setSentenceInLibrary = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
     on: v.boolean(),
-    tier: v.optional(TIER_VALIDATOR),
+    target: v.optional(TARGET_VALIDATOR),
   },
   handler: async (ctx, args) => {
     const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
@@ -1150,10 +1212,10 @@ export const setSentenceInLibrary = mutation({
     }
 
     if (args.on) {
-      if (!args.tier) {
+      if (!args.target) {
         throw new ConvexError({
-          code: "TIER_REQUIRED",
-          message: "Tier required when toggling Library on.",
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
         });
       }
       if (sentence.publishedToPackId) {
@@ -1164,26 +1226,17 @@ export const setSentenceInLibrary = mutation({
         });
       }
 
-      const snapshot = buildSentenceSnapshot(sentence, 0);
-      const now = Date.now();
-      const packId = await ctx.db.insert("resourcePacks", {
-        name: sentence.name,
-        description: { eng: `Saved from ${sentence.name.eng}` },
-        coverImagePath: sentence.slots[0]?.imagePath ?? DEFAULT_PACK_COVER,
-        tags: [],
-        featured: false,
-        tier: args.tier,
-        createdBy: clerkUserId,
-        updatedAt: now,
-        categories: [],
-        lists: [],
-        sentences: [snapshot],
-      });
-
+      const packId = await resolveTargetPack(
+        ctx,
+        args.target,
+        sentence.slots[0]?.imagePath ?? DEFAULT_PACK_COVER,
+        clerkUserId
+      );
       await ctx.db.patch(args.profileSentenceId, {
         publishedToPackId: packId,
       });
-      return { packId, tier: args.tier, action: "added" as const };
+      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+      return { packId, action: "added" as const };
     } else {
       if (!sentence.publishedToPackId) {
         return { action: "noop" as const };
@@ -1267,6 +1320,36 @@ export const getPacksForAdminStatus = query({
     }
 
     return { starterPackId, libraryPacksById };
+  },
+});
+
+/**
+ * Pack picker source — non-starter packs the calling admin owns. Used by the
+ * shared LibraryPackPickerModal "Add to existing" tab. Returns a sorted array
+ * (newest first by _creationTime) — the dialogue renders straight from this.
+ *
+ * Returns `[]` (never errors) when the caller isn't an admin so client code
+ * can safely subscribe before opening the dialogue.
+ */
+export const getMyLibraryPacksForPicker = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const all = await ctx.db.query("resourcePacks").collect();
+    const mine = all.filter(
+      (p) => !p.isStarter && p.createdBy === identity.subject
+    );
+
+    // Newest first
+    mine.sort((a, b) => b._creationTime - a._creationTime);
+
+    return mine.map((p) => ({
+      _id: p._id,
+      name: p.name,
+      tier: (p.tier ?? "free") as "free" | "pro" | "max",
+    }));
   },
 });
 

@@ -45,6 +45,10 @@ import { SentencePlayModal } from '@/app/components/app/sentences/modals/Sentenc
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
+  LibraryPackPickerModal,
+  type PackPickerTarget,
+} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -400,6 +404,7 @@ export function SentencesModeContent() {
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
   const [sentenceEditTarget, setSentenceEditTarget] = useState<SentenceEditTarget>(null);
   const [playTarget, setPlayTarget] = useState<SentenceRow | null>(null);
+  const [packPickerSentence, setPackPickerSentence] = useState<SentenceRow | null>(null);
 
   const sentences = useQuery(api.profileSentences.getProfileSentences, {});
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
@@ -467,21 +472,32 @@ export function SentencesModeContent() {
 
   async function handleToggleLibrary(sentence: SentenceRow) {
     const { isInLibrary } = statusFor(sentence);
-    try {
-      if (isInLibrary) {
+    if (isInLibrary) {
+      try {
         await setSentenceInLibrary({ profileSentenceId: sentence._id, on: false });
         showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } else {
-        await setSentenceInLibrary({
-          profileSentenceId: sentence._id,
-          on: true,
-          tier: 'free',
-        });
-        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      } catch (e) {
+        console.error('[SentencesModeContent] toggle library off failed', e);
+        showToast({ tone: 'warning', title: t('toastAdminError') });
       }
+      return;
+    }
+    setPackPickerSentence(sentence);
+  }
+
+  async function handlePackPickerConfirm(target: PackPickerTarget) {
+    if (!packPickerSentence) return;
+    try {
+      await setSentenceInLibrary({
+        profileSentenceId: packPickerSentence._id,
+        on: true,
+        target,
+      });
+      showToast({ tone: 'info', title: t('toastLibraryOn') });
     } catch (e) {
-      console.error('[SentencesModeContent] toggle library failed', e);
+      console.error('[SentencesModeContent] save to library failed', e);
       showToast({ tone: 'warning', title: t('toastAdminError') });
+      throw e;
     }
   }
 
@@ -733,6 +749,24 @@ export function SentencesModeContent() {
 
       {/* Make Default + Library are now toggle buttons in each row's edit
           action group — no confirmation dialog needed. */}
+
+      {/* Library save dialogue — admin-only. Opens when toggling a sentence's
+          Library button ON; pick or create the target pack. */}
+      {showAdminButtons && (
+        <LibraryPackPickerModal
+          isOpen={packPickerSentence !== null}
+          onClose={() => setPackPickerSentence(null)}
+          itemKind="sentence"
+          defaultName={
+            packPickerSentence
+              ? language === 'hin' && packPickerSentence.name.hin
+                ? packPickerSentence.name.hin
+                : packPickerSentence.name.eng
+              : ''
+          }
+          onConfirm={handlePackPickerConfirm}
+        />
+      )}
     </div>
   );
 }

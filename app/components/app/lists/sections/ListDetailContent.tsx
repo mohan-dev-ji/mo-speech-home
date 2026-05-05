@@ -20,6 +20,10 @@ import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
+  LibraryPackPickerModal,
+  type PackPickerTarget,
+} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
+import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
 } from '@/app/components/app/shared/ui/Dialog';
@@ -48,6 +52,7 @@ export function ListDetailContent({ listId }: Props) {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
+  const [packPickerOpen, setPackPickerOpen] = useState(false);
 
   const list = useQuery(api.profileLists.getProfileListWithItems, { profileListId: listId });
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
@@ -187,17 +192,27 @@ export function ListDetailContent({ listId }: Props) {
   }
 
   async function handleToggleLibrary() {
-    try {
-      if (isInLibrary) {
+    if (isInLibrary) {
+      try {
         await setListInLibrary({ profileListId: listId, on: false });
         showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } else {
-        await setListInLibrary({ profileListId: listId, on: true, tier: 'free' });
-        showToast({ tone: 'info', title: t('toastLibraryOn') });
+      } catch (e) {
+        console.error('[ListDetailContent] toggle library off failed', e);
+        showToast({ tone: 'warning', title: t('toastAdminError') });
       }
+      return;
+    }
+    setPackPickerOpen(true);
+  }
+
+  async function handlePackPickerConfirm(target: PackPickerTarget) {
+    try {
+      await setListInLibrary({ profileListId: listId, on: true, target });
+      showToast({ tone: 'info', title: t('toastLibraryOn') });
     } catch (e) {
-      console.error('[ListDetailContent] toggle library failed', e);
+      console.error('[ListDetailContent] save to library failed', e);
       showToast({ tone: 'warning', title: t('toastAdminError') });
+      throw e;
     }
   }
 
@@ -440,6 +455,20 @@ export function ListDetailContent({ listId }: Props) {
 
       {/* Make Default + Library are now toggle buttons in the admin row above
           the PageBanner — no confirmation dialog needed. */}
+
+      {/* Library save dialogue — admin-only. Opens when toggling Library ON;
+          lets admin create a new pack or append to one they already own. */}
+      {showAdminButtons && list && (
+        <LibraryPackPickerModal
+          isOpen={packPickerOpen}
+          onClose={() => setPackPickerOpen(false)}
+          itemKind="list"
+          defaultName={
+            language === 'hin' && list.name.hin ? list.name.hin : list.name.eng
+          }
+          onConfirm={handlePackPickerConfirm}
+        />
+      )}
     </div>
   );
 }
