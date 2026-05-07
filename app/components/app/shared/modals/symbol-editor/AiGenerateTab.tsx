@@ -16,6 +16,8 @@ type Props = {
   draft: Draft;
   patch: (partial: Partial<Draft>) => void;
   onImageSelected: (blob: Blob, previewUrl: string) => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 };
 
 const STYLE_TRANSLATION_KEYS: Record<StyleId, string> = {
@@ -25,13 +27,22 @@ const STYLE_TRANSLATION_KEYS: Record<StyleId, string> = {
   claymation: "aiStyleClaymation",
 };
 
-export function AiGenerateTab({ patch, onImageSelected }: Props) {
+export function AiGenerateTab({
+  draft,
+  patch,
+  onImageSelected,
+  searchQuery,
+  setSearchQuery,
+}: Props) {
   const t = useTranslations("symbolEditor");
   const { subscription } = useAppState();
   const isMax = subscription.tier === "max";
 
   const [style, setStyle] = useState<StyleId>("iconic");
-  const [prompt, setPrompt] = useState("");
+  // The AI prompt IS the shared search query — typing here updates the same
+  // string that SymbolStix and Image Search read from.
+  const prompt = searchQuery;
+  const setPrompt = setSearchQuery;
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -88,12 +99,19 @@ export function AiGenerateTab({ patch, onImageSelected }: Props) {
   function handleAddToSymbol() {
     if (!generatedBlob || !previewUrl) return;
     onImageSelected(generatedBlob, previewUrl);
+    // Pre-populate the label from the prompt — only if the admin hasn't
+    // already typed their own. After this, editing the label is independent
+    // of the prompt.
+    const trimmedPrompt = prompt.trim();
     patch({
       resolvedImagePath: undefined,
       // Clear any prior Wikimedia attribution from a different tab.
       wikimediaSourceUrl: undefined,
       wikimediaAttribution: undefined,
       wikimediaLicense: undefined,
+      ...(draft.labelEng || !trimmedPrompt
+        ? {}
+        : { labelEng: trimmedPrompt }),
     });
   }
 

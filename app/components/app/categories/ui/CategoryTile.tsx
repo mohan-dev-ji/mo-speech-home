@@ -139,10 +139,12 @@ export function CategoryTile({
 
           {/* Symbol — square coloured box, height-first sizing.
               Symbol flex-shrinks when the admin pack-status label is rendered
-              below it, so the label always has room. */}
+              below it, so the label always has room. Top padding bumps when
+              the admin label is present to visually balance the extra space
+              the label adds below; in instructor view top + bottom match. */}
           <div
             className="flex-1 min-h-0 flex items-center justify-center overflow-hidden"
-            style={{ padding: '7cqi 3cqi 3cqi' }}
+            style={{ padding: adminPacks ? '7cqi 3cqi 3cqi' : '5cqi 3cqi 5cqi' }}
           >
             <div
               className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"

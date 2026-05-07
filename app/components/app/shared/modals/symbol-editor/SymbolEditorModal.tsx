@@ -14,6 +14,7 @@ import { UploadTab } from './UploadTab';
 import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -185,6 +186,15 @@ export function SymbolEditorModal({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Shared search query — persists as the user jumps between SymbolStix,
+  // Image Search and AI Generate tabs. Each tab still runs its own debounce
+  // + results pipeline against this single source of truth. Resets when the
+  // modal closes so it doesn't bleed into the next open.
+  const [searchQuery, setSearchQuery] = useState('');
+  useEffect(() => {
+    if (!isOpen) setSearchQuery('');
+  }, [isOpen]);
+
   // ── Convex ─────────────────────────────────────────────────────────────────
 
   const existingSymbol = useQuery(
@@ -263,6 +273,41 @@ export function SymbolEditorModal({
       profileCategoryId: ps.profileCategoryId,
     });
   }, [existingSymbol]);
+
+  // ── Auto-match bg/border to the category's palette (NEW symbols only) ──────
+  //
+  // For category-board new symbols we seed bgColour from the category's c100
+  // (light tint) and borderColour from c500 (saturated), so a freshly added
+  // symbol visually belongs to its parent category by default. If the admin
+  // manually overrides either colour after this fires, it sticks — the effect
+  // only re-runs when the picked category changes (tracked via a ref).
+  //
+  // Edit mode is intentionally exempt — the existing-symbol pre-populate
+  // effect above already pulls saved colours and we don't want to clobber
+  // them on open.
+  const matchedCategoryRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isEditMode) return;
+    if (editorMode !== 'categoryBoard') return;
+    if (!categories) return;
+    const cid = draft.profileCategoryId;
+    if (!cid) return;
+    if (matchedCategoryRef.current === cid) return;
+
+    const cat = categories.find((c) => c._id === cid);
+    if (!cat) return;
+
+    const pair = getCategoryColour(cat.colour);
+    setDraft((d) => ({ ...d, bgColour: pair.c100, borderColour: pair.c500 }));
+    matchedCategoryRef.current = cid;
+  }, [isEditMode, editorMode, categories, draft.profileCategoryId]);
+
+  // Reset the ref each time the modal closes, so reopening for a NEW symbol
+  // re-applies the match cleanly (state is preserved across open/close cycles
+  // in some parents).
+  useEffect(() => {
+    if (!isOpen) matchedCategoryRef.current = null;
+  }, [isOpen]);
 
   // Revoke image preview URL on unmount only
   useEffect(() => {
@@ -733,7 +778,13 @@ export function SymbolEditorModal({
           {/* Tab content */}
           <div className="flex-1 min-h-0 overflow-y-auto">
             {draft.imageSourceTab === 'symbolstix' && (
-              <SymbolStixTab language={language} draft={draft} patch={patch} />
+              <SymbolStixTab
+                language={language}
+                draft={draft}
+                patch={patch}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+              />
             )}
             {draft.imageSourceTab === 'upload' && (
               <UploadTab
@@ -748,6 +799,8 @@ export function SymbolEditorModal({
                 draft={draft}
                 patch={patch}
                 onImageSelected={handleImageSelected}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             )}
             {draft.imageSourceTab === 'ai-generate' && (
@@ -755,6 +808,8 @@ export function SymbolEditorModal({
                 draft={draft}
                 patch={patch}
                 onImageSelected={handleImageSelected}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             )}
           </div>

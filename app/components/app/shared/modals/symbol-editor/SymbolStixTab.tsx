@@ -11,18 +11,25 @@ type Props = {
   language: string;
   draft: Draft;
   patch: (partial: Partial<Draft>) => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 };
 
-export function SymbolStixTab({ language, draft, patch }: Props) {
+export function SymbolStixTab({
+  language,
+  draft,
+  patch,
+  searchQuery,
+  setSearchQuery,
+}: Props) {
   const t = useTranslations('symbolEditor');
 
-  const [rawSearch, setRawSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(rawSearch), 300);
+    const id = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(id);
-  }, [rawSearch]);
+  }, [searchQuery]);
 
   const results = useQuery(
     api.symbols.searchSymbols,
@@ -30,6 +37,9 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
   );
 
   function handleSelect(sym: NonNullable<typeof results>[number]) {
+    // Pre-populate label only if blank: prefer the user's search-bar text
+    // (their own framing of the concept), fall back to the SymbolStix word.
+    const trimmedQuery = searchQuery.trim();
     patch({
       symbolstixId: sym._id,
       symbolstixImagePath: sym.imagePath,
@@ -39,8 +49,7 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
       // Adopt 'default' as the active source only if nothing is active yet —
       // swapping the symbol mid-edit must not clobber a generated/recorded clip.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
-      // Pre-populate label only if blank
-      labelEng: draft.labelEng || sym.words.eng,
+      labelEng: draft.labelEng || trimmedQuery || sym.words.eng,
       labelHin: draft.labelHin || (sym.words.hin ?? ''),
     });
   }
@@ -56,16 +65,16 @@ export function SymbolStixTab({ language, draft, patch }: Props) {
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-secondary-text)' }} />
           <input
             type="text"
-            value={rawSearch}
-            onChange={(e) => setRawSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchPlaceholder')}
             className="flex-1 bg-transparent text-theme-s outline-none"
             style={{ color: 'var(--theme-text)' }}
           />
-          {rawSearch && (
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => { setRawSearch(''); setDebouncedSearch(''); }}
+              onClick={() => { setSearchQuery(''); setDebouncedSearch(''); }}
               style={{ color: 'var(--theme-secondary-text)' }}
             >
               <X className="w-4 h-4" />

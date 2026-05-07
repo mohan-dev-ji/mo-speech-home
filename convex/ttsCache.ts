@@ -14,18 +14,27 @@ export const lookup = query({
   handler: async (ctx, { text, voiceId }) => {
     // Match against SymbolStix case-insensitively. The exact-match index
     // (by_words_eng) is case-sensitive — "pringles" wouldn't find "Pringles" —
-    // so we hit the tokenised search index and confirm the top result's label
+    // so we hit the tokenised search index and confirm a result's label
     // matches when lowercased. Confirmation guards against false positives
     // ("apple" → "Apple Pie") that the search index would otherwise rank.
-    const candidate = await ctx.db
+    //
+    // Take a small batch instead of just `.first()`: the relevance ranker can
+    // surface a longer/multi-word symbol above the exact single-word match
+    // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
+    // at the top result would cause us to miss a perfectly valid SymbolStix
+    // recording and fall through to fresh TTS synthesis.
+    const candidates = await ctx.db
       .query("symbols")
       .withSearchIndex("search_words_eng", (q) => q.search("words.eng", text))
-      .first();
+      .take(10);
 
-    if (candidate && candidate.words.eng.toLowerCase().trim() === text) {
+    const exact = candidates.find(
+      (c) => c.words.eng.toLowerCase().trim() === text
+    );
+    if (exact) {
       return {
         source: "symbolstix" as const,
-        audioDefault: candidate.audio.eng.default,
+        audioDefault: exact.audio.eng.default,
       };
     }
 

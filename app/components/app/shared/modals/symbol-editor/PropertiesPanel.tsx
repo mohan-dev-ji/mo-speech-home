@@ -41,8 +41,10 @@ export function PropertiesPanel({
 }: Props) {
   const t = useTranslations('symbolEditor');
 
+  // Audio is open by default so non-SymbolStix flows (uploads, AI gen, image
+  // search) make it visually obvious there's no audio yet.
   const [openSections, setOpenSections] = useState<Set<string>>(
-    new Set(['label', 'category'])
+    new Set(['label', 'audio', 'category'])
   );
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

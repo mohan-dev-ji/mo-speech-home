@@ -34,15 +34,22 @@ type Props = {
   draft: Draft;
   patch: (partial: Partial<Draft>) => void;
   onImageSelected: (blob: Blob, previewUrl: string) => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 };
 
-export function ImagesTab({ patch, onImageSelected }: Props) {
+export function ImagesTab({
+  draft,
+  patch,
+  onImageSelected,
+  searchQuery,
+  setSearchQuery,
+}: Props) {
   const t = useTranslations("symbolEditor");
   const { subscription } = useAppState();
   const isMax = subscription.tier === "max";
 
-  const [rawSearch, setRawSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery.trim());
   const [results, setResults] = useState<ImageSearchResult[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -56,9 +63,9 @@ export function ImagesTab({ patch, onImageSelected }: Props) {
 
   // ── Debounce ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(rawSearch.trim()), 350);
+    const id = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
     return () => clearTimeout(id);
-  }, [rawSearch]);
+  }, [searchQuery]);
 
   // ── Search ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -123,11 +130,18 @@ export function ImagesTab({ patch, onImageSelected }: Props) {
       const blob = await res.blob();
       const previewUrl = URL.createObjectURL(blob);
       onImageSelected(blob, previewUrl);
+      // Pre-populate the label from the search-bar text — only if the admin
+      // hasn't already typed their own. Decoupled afterwards: editing the
+      // label doesn't echo back into the search bar.
+      const trimmedQuery = searchQuery.trim();
       patch({
         resolvedImagePath: undefined,
         wikimediaSourceUrl: result.sourceUrl,
         wikimediaAttribution: result.attribution,
         wikimediaLicense: result.license,
+        ...(draft.labelEng || !trimmedQuery
+          ? {}
+          : { labelEng: trimmedQuery }),
       });
     } catch {
       setSearchError(t("imageSearchError"));
@@ -174,17 +188,17 @@ export function ImagesTab({ patch, onImageSelected }: Props) {
           <Search className="w-4 h-4 shrink-0" style={{ color: "var(--theme-secondary-text)" }} />
           <input
             type="text"
-            value={rawSearch}
-            onChange={(e) => setRawSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t("imageSearchPlaceholder")}
             className="flex-1 bg-transparent text-theme-s outline-none"
             style={{ color: "var(--theme-text)" }}
           />
-          {rawSearch && (
+          {searchQuery && (
             <button
               type="button"
               onClick={() => {
-                setRawSearch("");
+                setSearchQuery("");
                 setDebouncedSearch("");
               }}
               style={{ color: "var(--theme-secondary-text)" }}
