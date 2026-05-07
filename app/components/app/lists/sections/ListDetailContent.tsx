@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ArrowLeft, ListOrdered, CheckSquare, Pencil, LogOut, Bookmark, Library } from 'lucide-react';
+import { ArrowLeft, ListOrdered, CheckSquare, Bookmark, Library } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -16,8 +16,10 @@ import { useTalker } from '@/app/contexts/TalkerContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
+import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
-import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   LibraryPackPickerModal,
@@ -37,6 +39,7 @@ type Props = { listId: Id<'profileLists'> };
 export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const { language, viewMode, accountId, stateFlags, studentProfile } = useProfile();
   const { talkerMode } = useTalker();
@@ -44,7 +47,12 @@ export function ListDetailContent({ listId }: Props) {
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
 
-  const [isEditing, setIsEditing] = useState(false);
+  // Honour `?edit=1` on first mount — set by ListsModeContent's create flow
+  // so brand-new lists land in edit mode and the user is nudged to pick
+  // symbols for the descriptions they just typed.
+  const [isEditing, setIsEditing] = useState(
+    () => searchParams.get('edit') === '1'
+  );
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [localItems, setLocalItems] = useState<ListItem[]>([]);
   const localItemsRef = useRef<ListItem[]>([]);
@@ -259,6 +267,13 @@ export function ListDetailContent({ listId }: Props) {
     (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
   }
 
+  // Small screens force a 'rows' layout regardless of saved displayFormat —
+  // columns/grid don't fit comfortably on mobile and the dropdown is hidden
+  // there too. The saved value is preserved so the user's choice returns
+  // when they're back on desktop. Called before the early return below to
+  // keep hook order stable across renders.
+  const isSmallScreen = useIsSmallScreen();
+
   if (!list) {
     return (
       <div className="flex justify-center py-12">
@@ -268,7 +283,8 @@ export function ListDetailContent({ listId }: Props) {
   }
 
   const listName = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
-  const isColumns = list.displayFormat === 'columns';
+  const effectiveDisplayFormat = isSmallScreen ? 'rows' : list.displayFormat;
+  const isColumns = effectiveDisplayFormat === 'columns';
 
   const editProps = {
     items: localItems,
@@ -299,43 +315,46 @@ export function ListDetailContent({ listId }: Props) {
       {/* Header — banner mode only; talker mode renders nothing so no empty div creates phantom gap */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0 relative">
-          {/* Admin status badge — top-right of the banner */}
+          {/* Admin status label — top-right of the banner */}
           {showAdminButtons && packsStatus && (
             <div className="absolute top-2 right-2 z-30 pointer-events-none">
-              <AdminPackBadge
+              <PackStatusLabel
                 publishedToPackId={list.publishedToPackId}
                 packs={packsStatus}
+                language={language}
               />
             </div>
           )}
           <PageBanner title={listName}>
-            <button type="button" onClick={() => router.back()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90" style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}>
-              <ArrowLeft className="w-3.5 h-3.5" />
-              {t('back')}
-            </button>
-            <button type="button" onClick={toggleNumbers} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: list.showNumbers ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showNumbers ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
-              <ListOrdered className="w-3.5 h-3.5" />
-              {t('numberedList')}
-            </button>
-            <button type="button" onClick={toggleChecklist} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: list.showChecklist ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showChecklist ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
-              <CheckSquare className="w-3.5 h-3.5" />
-              {t('checklist')}
-            </button>
-            <button type="button" onClick={toggleFirstThen} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: showFirstThen ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: showFirstThen ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
-              {t('firstThen')}
-            </button>
-            {isEditing ? (
-              <button type="button" onClick={() => setIsEditing(false)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90" style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}>
-                <LogOut className="w-3.5 h-3.5" />
-                {t('exitEdit')}
+            {/* Row 1 — list-mode toggles. `w-full` forces the next group
+                onto its own row inside the PageBanner's flex-wrap container. */}
+            <div className="w-full flex items-center flex-wrap gap-2">
+              <button type="button" onClick={toggleNumbers} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: list.showNumbers ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showNumbers ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
+                <ListOrdered className="w-3.5 h-3.5" />
+                {t('numberedList')}
               </button>
-            ) : (
-              <button type="button" onClick={() => setIsEditing(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}>
-                <Pencil className="w-3.5 h-3.5" />
-                {t('editList')}
+              <button type="button" onClick={toggleChecklist} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: list.showChecklist ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: list.showChecklist ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
+                <CheckSquare className="w-3.5 h-3.5" />
+                {t('checklist')}
               </button>
-            )}
-            <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
+              <button type="button" onClick={toggleFirstThen} className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80" style={{ background: showFirstThen ? 'var(--theme-button-highlight)' : 'var(--theme-card)', color: showFirstThen ? 'var(--theme-text)' : 'var(--theme-text-primary)' }}>
+                {t('firstThen')}
+              </button>
+            </div>
+
+            {/* Row 2 — edit affordance + display-format dropdown. */}
+            <div className="w-full flex items-center flex-wrap gap-2">
+              <EditButton
+                isEditing={isEditing}
+                onClick={() => setIsEditing(!isEditing)}
+                editLabel={t('editList')}
+                exitLabel={t('exitEdit')}
+              />
+              {/* Format dropdown is desktop-only — small screens force rows. */}
+              {!isSmallScreen && (
+                <FormatDropdown value={list.displayFormat} onChange={handleFormatChange} />
+              )}
+            </div>
           </PageBanner>
 
           {/* Admin row — separate bounding box below the PageBanner so the
@@ -389,18 +408,19 @@ export function ListDetailContent({ listId }: Props) {
         </div>
       )}
 
-      {/* Edit mode — layout matches display format */}
+      {/* Edit mode — layout matches effective display format (forced to
+          rows on small screens). */}
       {isEditing && (
-        list.displayFormat === 'columns' ? <EditColumns {...editProps} /> :
-        list.displayFormat === 'grid'    ? <EditGrid    {...editProps} /> :
-                                           <EditRows    {...editProps} />
+        effectiveDisplayFormat === 'columns' ? <EditColumns {...editProps} /> :
+        effectiveDisplayFormat === 'grid'    ? <EditGrid    {...editProps} /> :
+                                               <EditRows    {...editProps} />
       )}
 
       {/* Display mode */}
       {!isEditing && localItems.length > 0 && (
-        list.displayFormat === 'columns' ? <DisplayColumns {...displayProps} /> :
-        list.displayFormat === 'grid'    ? <DisplayGrid    {...displayProps} /> :
-                                           <DisplayRows    {...displayProps} />
+        effectiveDisplayFormat === 'columns' ? <DisplayColumns {...displayProps} /> :
+        effectiveDisplayFormat === 'grid'    ? <DisplayGrid    {...displayProps} /> :
+                                               <DisplayRows    {...displayProps} />
       )}
 
       <ListItemPlayModal

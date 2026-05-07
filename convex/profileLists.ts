@@ -10,7 +10,8 @@ import {
 
 /**
  * Returns all lists for the caller's account in display order.
- * Includes the first 4 item image paths as thumbnails.
+ * Includes the first 4 item image paths as thumbnails — the row UI shows
+ * them and renders an overflow "…" tile when `itemCount > 4`.
  */
 export const getProfileLists = query({
   args: {},

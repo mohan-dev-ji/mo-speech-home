@@ -19,14 +19,16 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Pencil, Trash2, Move, Check, X, LogOut } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X } from 'lucide-react';
+import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
-import { AdminPackBadge } from '@/app/components/app/shared/ui/packStatusBadge';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
@@ -61,10 +63,20 @@ type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
 
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
-function ThumbnailStrip({ thumbnails }: { thumbnails: { imagePath?: string }[] }) {
+function ThumbnailStrip({
+  thumbnails,
+  itemCount,
+}: {
+  thumbnails: { imagePath?: string }[];
+  itemCount: number;
+}) {
   const filled = thumbnails.filter((t) => t.imagePath);
+  // Overflow indicator: query caps thumbnails at 4 — anything beyond that
+  // shows a subtle "…" sitting flush with the bottom of the last symbol
+  // card, no chrome or background of its own.
+  const hasOverflow = itemCount > thumbnails.length;
   return (
-    <div className="flex gap-2 shrink-0">
+    <div className="flex items-end gap-2 shrink-0">
       {filled.map((t, i) => (
         <div
           key={i}
@@ -80,6 +92,15 @@ function ThumbnailStrip({ thumbnails }: { thumbnails: { imagePath?: string }[] }
           />
         </div>
       ))}
+      {hasOverflow && (
+        <span
+          className="text-theme-p font-bold leading-none pb-1 shrink-0"
+          style={{ color: 'var(--theme-secondary-text)' }}
+          aria-label={`${itemCount - thumbnails.length} more`}
+        >
+          …
+        </span>
+      )}
     </div>
   );
 }
@@ -126,7 +147,7 @@ function SortableListRow({
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className="relative flex items-center gap-4 rounded-theme px-4 py-3 cursor-pointer transition-opacity"
+        className="relative flex flex-col md:flex-row md:items-center gap-3 md:gap-4 rounded-theme px-4 py-3 cursor-pointer transition-opacity"
         style={{
           background: 'var(--theme-card)',
           outline: isEditing ? '2px dashed var(--theme-enter-mode)' : 'none',
@@ -134,81 +155,86 @@ function SortableListRow({
         }}
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
-        <ThumbnailStrip thumbnails={list.thumbnails} />
+        <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
 
-        {adminPacks && (
-          <AdminPackBadge
-            publishedToPackId={list.publishedToPackId}
-            packs={adminPacks}
-          />
-        )}
+        {/* Meta row — pack-status pill, title, edit buttons. Drops beneath
+            the thumbnails on small screens; sits inline on md+ widths. */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {adminPacks && (
+            <PackStatusLabel
+              publishedToPackId={list.publishedToPackId}
+              packs={adminPacks}
+              language={language}
+            />
+          )}
 
-        <div className="flex-1 min-w-0">
-          {isEditingThisName ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={editingNameValue}
-                onChange={(e) => onEditNameChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onEditNameSave();
-                  if (e.key === 'Escape') onEditNameCancel();
-                }}
-                autoFocus
-                className="flex-1 px-2 py-1 rounded-theme-sm text-theme-s outline-none"
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  color: 'var(--theme-text-primary)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <button type="button" onClick={onEditNameSave} className="p-1 rounded" style={{ color: 'var(--theme-success, #22c55e)' }}>
-                <Check className="w-4 h-4" />
+          <div className="flex-1 min-w-0">
+            {isEditingThisName ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editingNameValue}
+                  onChange={(e) => onEditNameChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onEditNameSave();
+                    if (e.key === 'Escape') onEditNameCancel();
+                  }}
+                  autoFocus
+                  className="flex-1 px-2 py-1 rounded-theme-sm text-theme-s outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'var(--theme-text-primary)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <button type="button" onClick={onEditNameSave} className="p-1 rounded" style={{ color: 'var(--theme-success, #22c55e)' }}>
+                  <Check className="w-4 h-4" />
+                </button>
+                <button type="button" onClick={onEditNameCancel} className="p-1 rounded" style={{ color: 'var(--theme-text-secondary)' }}>
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
+                {name}
+              </p>
+            )}
+          </div>
+
+          {isEditing && (
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
+                className="p-1.5 rounded transition-colors hover:bg-red-100/10"
+                style={{ color: 'var(--theme-warning)' }}
+                aria-label={t('rowDelete')}
+              >
+                <Trash2 className="w-4 h-4" />
               </button>
-              <button type="button" onClick={onEditNameCancel} className="p-1 rounded" style={{ color: 'var(--theme-text-secondary)' }}>
-                <X className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onEditNameStart(list._id, name); }}
+                className="p-1.5 rounded transition-colors hover:bg-black/10"
+                style={{ color: 'var(--theme-alt-text)' }}
+                aria-label={t('rowEdit')}
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none"
+                style={{ color: 'var(--theme-alt-text)' }}
+                aria-label={t('rowMove')}
+                {...listeners}
+                {...attributes}
+              >
+                <Move className="w-4 h-4" />
               </button>
             </div>
-          ) : (
-            <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-              {name}
-            </p>
           )}
         </div>
-
-        {isEditing && (
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
-              className="p-1.5 rounded transition-colors hover:bg-red-100/10"
-              style={{ color: 'var(--theme-warning)' }}
-              aria-label={t('rowDelete')}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onEditNameStart(list._id, name); }}
-              className="p-1.5 rounded transition-colors hover:bg-black/10"
-              style={{ color: 'var(--theme-alt-text)' }}
-              aria-label={t('rowEdit')}
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none"
-              style={{ color: 'var(--theme-alt-text)' }}
-              aria-label={t('rowMove')}
-              {...listeners}
-              {...attributes}
-            >
-              <Move className="w-4 h-4" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -278,7 +304,10 @@ export function ListsModeContent() {
         items: nonEmpty.map((description, i) => ({ order: i, description })),
       });
     }
-    router.push(`/${locale}/lists/${id}`);
+    // ?edit=1 lands the detail page in edit mode so the new symbol slots
+    // are immediately visible — nudges the user to pick imagery for the
+    // descriptions they just typed.
+    router.push(`/${locale}/lists/${id}?edit=1`);
   }
 
   async function handleDeleteConfirm() {
@@ -311,36 +340,19 @@ export function ListsModeContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            {isEditing ? (
-              <button
-                type="button"
-                onClick={() => { setIsEditing(false); setEditingNameId(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
-                style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                {t('exitEdit')}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-                style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                {t('edit')}
-              </button>
-            )}
-            <button
-              type="button"
+            <EditButton
+              isEditing={isEditing}
+              onClick={() => {
+                if (isEditing) setEditingNameId(null);
+                setIsEditing(!isEditing);
+              }}
+              editLabel={t('edit')}
+              exitLabel={t('exitEdit')}
+            />
+            <CreateButton
               onClick={() => setCreateModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {t('create')}
-            </button>
+              label={t('create')}
+            />
           </PageBanner>
         </div>
       )}

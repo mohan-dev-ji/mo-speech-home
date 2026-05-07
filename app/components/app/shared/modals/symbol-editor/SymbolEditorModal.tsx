@@ -188,9 +188,14 @@ export function SymbolEditorModal({
 
   // Shared search query — persists as the user jumps between SymbolStix,
   // Image Search and AI Generate tabs. Each tab still runs its own debounce
-  // + results pipeline against this single source of truth. Resets when the
-  // modal closes so it doesn't bleed into the next open.
-  const [searchQuery, setSearchQuery] = useState('');
+  // + results pipeline against this single source of truth.
+  //
+  // Lazy-init from `initialLabel` so opening the editor on a list item that
+  // already has a description (e.g. "wash hands") auto-populates the search
+  // bar — the SymbolStix results land instantly without the user retyping.
+  // The user can then refine the search independently of the label field.
+  // Resets when the modal closes so it doesn't bleed into the next open.
+  const [searchQuery, setSearchQuery] = useState(() => initialLabel ?? '');
   useEffect(() => {
     if (!isOpen) setSearchQuery('');
   }, [isOpen]);

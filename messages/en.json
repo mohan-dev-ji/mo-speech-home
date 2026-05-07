@@ -1,7 +1,7 @@
 {
   "lists": {
     "title": "Lists",
-    "create": "New list",
+    "create": "Create list",
     "edit": "Edit",
     "exitEdit": "Exit Edit",
     "empty": "No lists yet",

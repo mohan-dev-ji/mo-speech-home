@@ -52,6 +52,7 @@
   --theme-line:               #1E293B;  /* slate/800  — Default */
   --theme-enter-mode:         #FF6900;  /* orange/500 — all flat themes except Sky */
   --theme-success:            #00C951;  /* green/500  — all themes */
+  --theme-create:             #16A34A;  /* green/600  — solid create/add affordance bg, all themes */
   --theme-warning:            #FB2C36;  /* red/500    — all themes */
 
   /* ── Spacing (shared across all flat themes) ── */
@@ -170,6 +171,7 @@
   --color-theme-line:               var(--theme-line);
   --color-theme-enter-mode:         var(--theme-enter-mode);
   --color-theme-success:            var(--theme-success);
+  --color-theme-create:             var(--theme-create);
   --color-theme-warning:            var(--theme-warning);
 
   /* ─── AAC Border Radius Tokens ──────────────────────────────────

@@ -147,7 +147,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               type="submit"
               disabled={!name.trim() || isCreating}
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
-              style={{ background: '#16a34a', color: '#fff' }}
+              style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
               {isCreating ? t('creating') : t('createModalCreate')}
             </button>
