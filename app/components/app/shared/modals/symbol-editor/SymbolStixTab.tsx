@@ -37,9 +37,10 @@ export function SymbolStixTab({
   );
 
   function handleSelect(sym: NonNullable<typeof results>[number]) {
-    // Pre-populate label only if blank: prefer the user's search-bar text
-    // (their own framing of the concept), fall back to the SymbolStix word.
-    const trimmedQuery = searchQuery.trim();
+    // Picking a symbol always overwrites the description label with the
+    // SymbolStix word — the user can edit it after if they want a custom
+    // phrasing, but the default is "what I just picked = what shows on
+    // the symbol".
     patch({
       symbolstixId: sym._id,
       symbolstixImagePath: sym.imagePath,
@@ -49,8 +50,8 @@ export function SymbolStixTab({
       // Adopt 'default' as the active source only if nothing is active yet —
       // swapping the symbol mid-edit must not clobber a generated/recorded clip.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
-      labelEng: draft.labelEng || trimmedQuery || sym.words.eng,
-      labelHin: draft.labelHin || (sym.words.hin ?? ''),
+      labelEng: sym.words.eng,
+      ...(sym.words.hin ? { labelHin: sym.words.hin } : {}),
     });
   }
 

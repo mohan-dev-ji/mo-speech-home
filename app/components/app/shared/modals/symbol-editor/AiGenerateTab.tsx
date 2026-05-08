@@ -28,7 +28,6 @@ const STYLE_TRANSLATION_KEYS: Record<StyleId, string> = {
 };
 
 export function AiGenerateTab({
-  draft,
   patch,
   onImageSelected,
   searchQuery,
@@ -99,9 +98,9 @@ export function AiGenerateTab({
   function handleAddToSymbol() {
     if (!generatedBlob || !previewUrl) return;
     onImageSelected(generatedBlob, previewUrl);
-    // Pre-populate the label from the prompt — only if the admin hasn't
-    // already typed their own. After this, editing the label is independent
-    // of the prompt.
+    // Adding the generated image always overwrites the description label
+    // with the prompt — the prompt IS the word/concept the user generated
+    // for. Decoupled afterwards: editing the label doesn't echo back.
     const trimmedPrompt = prompt.trim();
     patch({
       resolvedImagePath: undefined,
@@ -109,9 +108,7 @@ export function AiGenerateTab({
       wikimediaSourceUrl: undefined,
       wikimediaAttribution: undefined,
       wikimediaLicense: undefined,
-      ...(draft.labelEng || !trimmedPrompt
-        ? {}
-        : { labelEng: trimmedPrompt }),
+      ...(trimmedPrompt ? { labelEng: trimmedPrompt } : {}),
     });
   }
 

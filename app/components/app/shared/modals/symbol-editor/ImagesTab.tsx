@@ -39,7 +39,6 @@ type Props = {
 };
 
 export function ImagesTab({
-  draft,
   patch,
   onImageSelected,
   searchQuery,
@@ -130,18 +129,17 @@ export function ImagesTab({
       const blob = await res.blob();
       const previewUrl = URL.createObjectURL(blob);
       onImageSelected(blob, previewUrl);
-      // Pre-populate the label from the search-bar text — only if the admin
-      // hasn't already typed their own. Decoupled afterwards: editing the
-      // label doesn't echo back into the search bar.
+      // Picking an image always overwrites the description label with the
+      // search query (Image Search has no canonical "word" — the query that
+      // surfaced the image is the closest equivalent). Decoupled afterwards:
+      // editing the label doesn't echo back into the search bar.
       const trimmedQuery = searchQuery.trim();
       patch({
         resolvedImagePath: undefined,
         wikimediaSourceUrl: result.sourceUrl,
         wikimediaAttribution: result.attribution,
         wikimediaLicense: result.license,
-        ...(draft.labelEng || !trimmedQuery
-          ? {}
-          : { labelEng: trimmedQuery }),
+        ...(trimmedQuery ? { labelEng: trimmedQuery } : {}),
       });
     } catch {
       setSearchError(t("imageSearchError"));
