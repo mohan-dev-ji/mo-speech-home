@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import {
@@ -23,6 +23,19 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
   const [name, setName] = useState('');
   const [steps, setSteps] = useState<string[]>(INITIAL_STEPS);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Per-step input refs so we can focus the newly-added field after addStep.
+  const stepInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const prevStepsLengthRef = useRef(steps.length);
+
+  // When the steps array grows (i.e. the user clicked "Add steps"), focus
+  // the new last input. Shrinks (reset on close, submit) are ignored.
+  useEffect(() => {
+    if (steps.length > prevStepsLengthRef.current) {
+      stepInputRefs.current[steps.length - 1]?.focus();
+    }
+    prevStepsLengthRef.current = steps.length;
+  }, [steps.length]);
 
   function updateStep(index: number, value: string) {
     setSteps((prev) => prev.map((s, i) => (i === index ? value : s)));
@@ -103,6 +116,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
                     {i + 1}
                   </div>
                   <input
+                    ref={(el) => { stepInputRefs.current[i] = el; }}
                     type="text"
                     value={step}
                     onChange={(e) => updateStep(i, e.target.value)}

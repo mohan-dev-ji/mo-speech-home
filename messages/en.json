@@ -59,9 +59,11 @@
   "sentences": {
     "title": "Sentences",
     "empty": "No sentences yet",
-    "create": "New sentence",
+    "create": "Create sentence",
     "edit": "Edit",
     "exitEdit": "Done",
+    "audioGenerated": "Audio ready",
+    "audioNeedsGeneration": "No audio — tap to generate",
     "rowDelete": "Delete sentence",
     "rowEdit": "Rename",
     "rowMove": "Move",

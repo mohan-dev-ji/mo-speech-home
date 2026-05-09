@@ -22,11 +22,11 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Bookmark,
   Library,
-  LogOut,
   Move,
-  Pencil,
   Plus,
   Trash2,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
@@ -38,7 +38,9 @@ import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
-import { Badge } from '@/app/components/app/shared/ui/Badge';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
@@ -81,6 +83,14 @@ type SentenceRow = {
   audioPath?: string;
   slots: Slot[];
   publishedToPackId?: Id<'resourcePacks'>;
+};
+
+type AdminPacksStatus = {
+  starterPackId: Id<'resourcePacks'> | null;
+  libraryPacksById: Record<
+    string,
+    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+  >;
 };
 
 type PendingDelete = { id: Id<'profileSentences'>; name: string } | null;
@@ -216,6 +226,9 @@ type SortableSentenceRowProps = {
   onToggleDefault?: (sentence: SentenceRow) => void;
   onToggleLibrary?: (sentence: SentenceRow) => void;
   onSetTier?: (sentence: SentenceRow, tier: 'free' | 'pro' | 'max') => void;
+  // Pack-status data — only passed in admin viewMode. Drives the
+  // PackStatusLabel pill on the right edge of the sentence text row.
+  adminPacks?: AdminPacksStatus;
 };
 
 function SortableSentenceRow({
@@ -230,6 +243,7 @@ function SortableSentenceRow({
   onToggleDefault,
   onToggleLibrary,
   onSetTier,
+  adminPacks,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -280,24 +294,9 @@ function SortableSentenceRow({
             )}
           </div>
 
-          {/* Admin status badge — visible in admin view regardless of edit mode */}
-          {showAdminButtons && (isDefault || isInLibrary) && (
-            <Badge
-              variant={
-                isDefault
-                  ? 'default'
-                  : libraryTier === 'free'
-                    ? 'outline'
-                    : libraryTier === 'max'
-                      ? 'success'
-                      : 'default'
-              }
-            >
-              {isDefault ? 'Default' : libraryTier === 'free' ? 'Free' : libraryTier === 'pro' ? 'Pro' : 'Max'}
-            </Badge>
-          )}
-
-          {/* Sentence text — dashed card in edit mode, plain text in view mode */}
+          {/* Sentence text — grows to fill the outer row, pushing the
+              pack-status label (and the edit-mode action cluster) to the
+              right edge. */}
           {isEditing ? (
             <button
               type="button"
@@ -312,6 +311,25 @@ function SortableSentenceRow({
               <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
                 {sentenceText}
               </p>
+              {/* Audio-status nudge — visible inside the click area so it
+                  doubles as a call to action: "click here to add audio". */}
+              {sentence.audioPath ? (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs"
+                  style={{ color: 'var(--theme-secondary-text)' }}
+                >
+                  <Volume2 className="w-3 h-3" />
+                  {t('audioGenerated')}
+                </span>
+              ) : (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs font-semibold"
+                  style={{ color: 'var(--theme-warning)' }}
+                >
+                  <VolumeX className="w-3 h-3" />
+                  {t('audioNeedsGeneration')}
+                </span>
+              )}
             </button>
           ) : (
             <p className="flex-1 min-w-0 text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
@@ -319,9 +337,24 @@ function SortableSentenceRow({
             </p>
           )}
 
-          {/* Edit mode action buttons */}
+          {/* Admin pack-status label — sits at the right edge of the text
+              zone. With the text element grown via flex-1, this is naturally
+              flush right in non-edit mode; in edit mode the action cluster
+              follows with extra left-margin for visual separation. */}
+          {adminPacks && (
+            <div className="shrink-0">
+              <PackStatusLabel
+                publishedToPackId={sentence.publishedToPackId}
+                packs={adminPacks}
+                language={language}
+              />
+            </div>
+          )}
+
+          {/* Edit mode action buttons — `ml-4` gives visible separation
+              from the pack-status label. */}
           {isEditing && (
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 ml-4">
               {showAdminButtons && (
                 <div
                   className="flex items-center gap-1 mr-1 px-1.5 py-1 rounded-theme-sm"
@@ -454,6 +487,10 @@ export function SentencesModeContent() {
 
   async function handleCreate(name: string) {
     await createSentence({ name: { eng: name } });
+    // Drop straight into edit mode so the new sentence's empty slots and
+    // audio affordances are visible immediately — same pattern as list
+    // creation, just no navigation since sentences live inline on this page.
+    setIsEditing(true);
   }
 
   async function handleToggleDefault(sentence: SentenceRow) {
@@ -582,36 +619,16 @@ export function SentencesModeContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            {isEditing ? (
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-semibold transition-opacity hover:opacity-90"
-                style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                {t('exitEdit')}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-                style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                {t('edit')}
-              </button>
-            )}
-            <button
-              type="button"
+            <EditButton
+              isEditing={isEditing}
+              onClick={() => setIsEditing(!isEditing)}
+              editLabel={t('edit')}
+              exitLabel={t('exitEdit')}
+            />
+            <CreateButton
               onClick={() => setCreateModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {t('create')}
-            </button>
+              label={t('create')}
+            />
           </PageBanner>
         </div>
       )}
@@ -662,6 +679,7 @@ export function SentencesModeContent() {
                     onToggleDefault={handleToggleDefault}
                     onToggleLibrary={handleToggleLibrary}
                     onSetTier={handleSetTier}
+                    adminPacks={showAdminButtons && packsStatus ? packsStatus : undefined}
                   />
                 );
               })}

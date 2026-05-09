@@ -157,17 +157,11 @@ function SortableListRow({
       >
         <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
 
-        {/* Meta row — pack-status pill, title, edit buttons. Drops beneath
-            the thumbnails on small screens; sits inline on md+ widths. */}
+        {/* Meta row — title (grows), pack-status pill (flush right of title),
+            edit buttons (further right, with ml-4 for visual separation).
+            Drops beneath the thumbnails on small screens; sits inline on
+            md+ widths. */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {adminPacks && (
-            <PackStatusLabel
-              publishedToPackId={list.publishedToPackId}
-              packs={adminPacks}
-              language={language}
-            />
-          )}
-
           <div className="flex-1 min-w-0">
             {isEditingThisName ? (
               <div className="flex items-center gap-2">
@@ -202,8 +196,18 @@ function SortableListRow({
             )}
           </div>
 
+          {adminPacks && (
+            <div className="shrink-0">
+              <PackStatusLabel
+                publishedToPackId={list.publishedToPackId}
+                packs={adminPacks}
+                language={language}
+              />
+            </div>
+          )}
+
           {isEditing && (
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 ml-4">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}

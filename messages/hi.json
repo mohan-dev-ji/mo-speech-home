@@ -58,9 +58,11 @@
   "sentences": {
     "title": "Sentences (hi)",
     "empty": "No sentences yet (hi)",
-    "create": "New sentence (hi)",
+    "create": "Create sentence (hi)",
     "edit": "Edit (hi)",
     "exitEdit": "Done (hi)",
+    "audioGenerated": "Audio ready (hi)",
+    "audioNeedsGeneration": "No audio — tap to generate (hi)",
     "rowDelete": "Delete sentence (hi)",
     "rowEdit": "Rename (hi)",
     "rowMove": "Move (hi)",
