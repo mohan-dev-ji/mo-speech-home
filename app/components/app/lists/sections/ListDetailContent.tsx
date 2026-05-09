@@ -17,6 +17,7 @@ import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
@@ -99,6 +100,7 @@ export function ListDetailContent({ listId }: Props) {
   async function persistItems(items: ListItem[]) {
     await updateItems({
       profileListId: listId,
+      propagateToPack: showAdminButtons,
       items: items.map((item, i) => ({
         imagePath: item.imagePath,
         order: i,
@@ -249,22 +251,22 @@ export function ListDetailContent({ listId }: Props) {
   function toggleNumbers() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
   }
   function toggleChecklist() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist, showFirstThen });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
   }
   function toggleFirstThen() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen: !showFirstThen });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen: !showFirstThen, propagateToPack: showAdminButtons });
   }
   function handleFormatChange(fmt: 'rows' | 'columns' | 'grid') {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
   }
 
   // Small screens force a 'rows' layout regardless of saved displayFormat —
@@ -311,6 +313,17 @@ export function ListDetailContent({ listId }: Props) {
 
   return (
     <div className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}>
+
+      {/* Admin disclaimer — visible only when admin in admin viewMode is
+          editing a list that's published to a pack. */}
+      <AdminPackEditingBanner
+        visible={showAdminButtons && (isDefault || isInLibrary)}
+        packLabel={
+          isDefault
+            ? 'Default'
+            : (linkedLibraryPack?.name.eng ?? undefined)
+        }
+      />
 
       {/* Header — banner mode only; talker mode renders nothing so no empty div creates phantom gap */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (

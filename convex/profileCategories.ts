@@ -177,6 +177,12 @@ export const getProfileSymbolsWithImages = query({
 export const reorderCategories = mutation({
   args: {
     orderedIds: v.array(v.id("profileCategories")),
+    // When true (admin in admin viewMode), edits to published rows propagate
+    // back to the resource pack snapshot. Default false: admin editing in
+    // instructor / student view treats edits as personal, leaving the pack
+    // untouched. Normal users never have publishedToPackId set anyway, so
+    // sync is a no-op for them regardless of the flag.
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -189,10 +195,10 @@ export const reorderCategories = mutation({
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
 
-    // Auto-sync: rebuild any published categories' snapshots so reorder
-    // reflects in the pack. Most categories aren't published — fast no-op.
-    for (const id of args.orderedIds) {
-      await syncCategoryToPackIfPublished(ctx, id);
+    if (args.propagateToPack) {
+      for (const id of args.orderedIds) {
+        await syncCategoryToPackIfPublished(ctx, id);
+      }
     }
   },
 });
@@ -200,8 +206,12 @@ export const reorderCategories = mutation({
 export const updateCategoryMeta = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
+    name: v.optional(
+      v.object({ eng: v.string(), hin: v.optional(v.string()) })
+    ),
     colour: v.optional(v.string()),
     imagePath: v.optional(v.string()),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -211,13 +221,15 @@ export const updateCategoryMeta = mutation({
     if (cat.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileCategoryId, {
+      ...(args.name !== undefined && { name: args.name }),
       ...(args.colour !== undefined && { colour: args.colour }),
       ...(args.imagePath !== undefined && { imagePath: args.imagePath }),
       updatedAt: Date.now(),
     });
 
-    // Auto-sync: if this category is published to a pack, rebuild the snapshot.
-    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    if (args.propagateToPack) {
+      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    }
 
     return args.profileCategoryId;
   },

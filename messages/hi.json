@@ -136,6 +136,10 @@
     "pro": "Pro (hi)",
     "max": "Max (hi)"
   },
+  "adminPackEditing": {
+    "default": "You're editing the default pack — changes will apply to all new sign-ups. (hi)",
+    "withPack": "You're editing the {pack} pack — changes will apply to all new sign-ups that load this pack. (hi)"
+  },
   "packPicker": {
     "title": "Save {kind} to library (hi)",
     "itemCategory": "category (hi)",
@@ -176,6 +180,9 @@
     "headerToggleLabel": "Toggle header visibility (hi)",
     "modeToggle": "Talker (hi)",
     "modeToggleLabel": "Toggle talker mode (hi)",
+    "gridSizeLabel": "Grid size (hi)",
+    "gridSizeInstructor": "Grid size (hi)",
+    "gridSizeStudent": "Student grid size (hi)",
     "signOut": "Sign out (hi)"
   },
   "home": {
@@ -234,6 +241,7 @@
     "loading": "Loading symbols… (hi)",
     "empty": "No symbols in this category yet. (hi)",
     "noProfile": "No student profile found. (hi)",
+    "editNameLabel": "Edit category name (hi)",
     "modeBoard": "Board (hi)",
     "modeLists": "Lists (hi)",
     "modeFirstThens": "First Thens (hi)",

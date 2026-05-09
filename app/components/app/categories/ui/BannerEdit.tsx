@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { LogOut, PlusSquare, FolderOpen, ImageIcon, ChevronDown, Bookmark, Library, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { FolderOpen, ImageIcon, ChevronDown, Bookmark, Library, RotateCcw } from 'lucide-react';
+import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { useTranslations } from 'next-intl';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
@@ -133,6 +135,10 @@ function EditableImageCard({
 
 export type BannerEditProps = {
   categoryName: string;
+  /** Called when the user commits a name edit (blur or Enter). Empty
+   *  strings are ignored by the caller. Optional — when omitted, the
+   *  banner renders the name as plain text instead of an input. */
+  onCategoryNameChange?: (name: string) => void;
   imagePath?: string;
   draftColour: string;
   onColourChange: (colour: string) => void;
@@ -158,6 +164,7 @@ export type BannerEditProps = {
 
 export function BannerEdit({
   categoryName,
+  onCategoryNameChange,
   imagePath,
   draftColour,
   onColourChange,
@@ -176,18 +183,62 @@ export function BannerEdit({
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
+  // Local draft for the name input — committed on blur / Enter via the
+  // parent's onCategoryNameChange callback. Re-syncs whenever the parent's
+  // categoryName prop changes (e.g. another tab edits the same category).
+  const [nameDraft, setNameDraft] = useState(categoryName);
+  useEffect(() => {
+    setNameDraft(categoryName);
+  }, [categoryName]);
+
+  function commitName() {
+    const trimmed = nameDraft.trim();
+    if (!trimmed || trimmed === categoryName) {
+      setNameDraft(categoryName);
+      return;
+    }
+    onCategoryNameChange?.(trimmed);
+  }
+
   return (
     <div className="flex items-center gap-4 min-h-[136px] p-1">
 
       {/* Left: name + edit controls */}
       <div className="flex-1 flex flex-col justify-center min-w-0">
         <div className="flex items-center gap-2 min-w-0">
-          <h1
-            className="text-theme-h3 font-bold leading-tight truncate"
-            style={{ color: 'var(--theme-text-primary)' }}
-          >
-            {categoryName}
-          </h1>
+          {onCategoryNameChange ? (
+            <input
+              type="text"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.blur();
+                } else if (e.key === 'Escape') {
+                  setNameDraft(categoryName);
+                  e.currentTarget.blur();
+                }
+              }}
+              aria-label={t('editNameLabel')}
+              className="text-theme-h3 font-bold leading-tight truncate min-w-0 flex-1 bg-transparent outline-none rounded-theme-sm px-1.5 -mx-1.5 transition-colors focus:bg-white/8"
+              style={{
+                color: 'var(--theme-text-primary)',
+                // Persistent dashed border whenever the editable input is
+                // mounted (i.e. edit mode is on) — signals "this is editable"
+                // before the user clicks. The orange `--theme-enter-mode`
+                // token matches the rest of the edit-mode visual language.
+                border: '1px dashed var(--theme-enter-mode)',
+              }}
+            />
+          ) : (
+            <h1
+              className="text-theme-h3 font-bold leading-tight truncate"
+              style={{ color: 'var(--theme-text-primary)' }}
+            >
+              {categoryName}
+            </h1>
+          )}
           {librarySourceId && <LibrarySourceBadge />}
         </div>
 
@@ -201,27 +252,22 @@ export function BannerEdit({
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            {/* Exit Edit */}
-            <button
-              type="button"
+            {/* Exit Edit — uses the shared EditButton in its `isEditing`
+                state. The "edit" label is unused here since this banner
+                is only mounted while editing, but the prop is still
+                required by the component shape. */}
+            <EditButton
+              isEditing={true}
               onClick={onExit}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-semibold transition-opacity hover:opacity-90"
-              style={{ background: 'var(--theme-button-highlight)', color: 'var(--theme-text)' }}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              {t('bannerExitEdit')}
-            </button>
+              editLabel={t('bannerExitEdit')}
+              exitLabel={t('bannerExitEdit')}
+            />
 
-            {/* Add Symbol */}
-            <button
-              type="button"
+            {/* Add Symbol — shared green CreateButton */}
+            <CreateButton
               onClick={onAddSymbol}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-            >
-              <PlusSquare className="w-3.5 h-3.5" />
-              {t('bannerAddSymbol')}
-            </button>
+              label={t('bannerAddSymbol')}
+            />
 
             {/* Colour picker */}
             <ColourPicker value={draftColour} onChange={onColourChange} />

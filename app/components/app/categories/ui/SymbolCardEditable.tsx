@@ -30,9 +30,14 @@ export function SymbolCardEditable({
   const t = useTranslations('categoryDetail');
 
   return (
-    <div className="relative w-full aspect-square">
+    // Wrapper grows taller than the SymbolCard's square footprint to fit
+    // the action row below — matches the CategoryTile edit-mode pattern so
+    // the symbol image gets the full square space rather than being
+    // squeezed to make room for the buttons. `@container` anchors the
+    // cqi-based fluid sizing on the action buttons to the tile's width.
+    <div className="relative w-full @container">
 
-      {/* Orange dashed edit-mode border */}
+      {/* Orange dashed edit-mode border — wraps the whole wrapper */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         style={{
@@ -57,56 +62,70 @@ export function SymbolCardEditable({
         />
       </svg>
 
-      {/* Inner layout: card above, action strip below */}
-      <div className="absolute inset-2 flex flex-col gap-1">
+      {/* Inner layout: square card above, action strip below */}
+      <div className="flex flex-col gap-2 p-3">
 
-        {/* Card — square, sized to the height available above the action strip */}
-        <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="h-full aspect-square max-w-full">
-            <SymbolCard
-              symbolId="edit-mode"
-              imagePath={imagePath}
-              label={label}
-              language="eng"
-              display={display}
-              categoryColour={categoryColour}
-              onTap={() => {}}
-            />
-          </div>
+        {/* Card — full square footprint */}
+        <div className="w-full aspect-square">
+          <SymbolCard
+            symbolId="edit-mode"
+            imagePath={imagePath}
+            label={label}
+            language="eng"
+            display={display}
+            categoryColour={categoryColour}
+            onTap={() => {}}
+          />
         </div>
 
-        {/* Action strip */}
+        {/* Action strip — sits BELOW the card, inside the dashed border.
+            Gap, padding, and icon size scale with tile width via cqi:
+            - Lower bound keeps the row inside the dashed border on small
+              grid sizes (icons / padding / gap don't collapse below tap-
+              target minimums).
+            - Upper bound lets the icons scale up proportionally with the
+              card on large tiles, so they look right at every grid size
+              instead of staying tiny inside a big folder. */}
         <div
-          className="shrink-0 flex items-center justify-center gap-3 py-1 rounded-lg"
-          
+          className="shrink-0 flex items-center justify-center"
+          style={{ gap: 'clamp(0.25rem, 3cqi, 1rem)' }}
         >
           <button
             type="button"
             onClick={onDelete}
-            className="p-1 rounded transition-colors hover:bg-red-100"
-            style={{ color: 'var(--theme-warning)' }}
+            className="rounded-theme-sm transition-colors hover:bg-white/10"
+            style={{
+              color: 'var(--theme-warning)',
+              padding: 'clamp(0.125rem, 2cqi, 0.5rem)',
+            }}
             aria-label={t('symbolDelete')}
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 style={{ width: 'clamp(0.75rem, 6cqi, 2rem)', height: 'clamp(0.75rem, 6cqi, 2rem)' }} />
           </button>
           <button
             type="button"
             onClick={onEdit}
-            className="p-1 rounded transition-colors hover:bg-black/10"
-            style={{ color: 'var(--theme-alt-text)' }}
+            className="rounded-theme-sm transition-colors hover:bg-white/10"
+            style={{
+              color: 'var(--theme-text-primary)',
+              padding: 'clamp(0.125rem, 2cqi, 0.5rem)',
+            }}
             aria-label={t('symbolEdit')}
           >
-            <Pencil className="w-3.5 h-3.5" />
+            <Pencil style={{ width: 'clamp(0.75rem, 6cqi, 2rem)', height: 'clamp(0.75rem, 6cqi, 2rem)' }} />
           </button>
           <button
             type="button"
-            className="p-1 rounded transition-colors hover:bg-black/10 cursor-grab active:cursor-grabbing touch-none"
-            style={{ color: 'var(--theme-alt-text)' }}
+            className="rounded-theme-sm transition-colors hover:bg-white/10 cursor-grab active:cursor-grabbing touch-none"
+            style={{
+              color: 'var(--theme-text-primary)',
+              padding: 'clamp(0.125rem, 2cqi, 0.5rem)',
+            }}
             aria-label={t('symbolMove')}
             {...dragHandleListeners}
             {...dragHandleAttributes}
           >
-            <Move className="w-3.5 h-3.5" />
+            <Move style={{ width: 'clamp(0.75rem, 6cqi, 2rem)', height: 'clamp(0.75rem, 6cqi, 2rem)' }} />
           </button>
         </div>
       </div>

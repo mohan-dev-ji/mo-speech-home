@@ -45,6 +45,7 @@ import {
   LibraryPackPickerModal,
   type PackPickerTarget,
 } from '@/app/components/app/shared/modals/LibraryPackPickerModal';
+import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
   Dialog,
   DialogContent,
@@ -196,7 +197,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   );
 
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
-  const deleteProfileSymbol = useMutation(api.profileSymbols.deleteProfileSymbol);
+  // deleteProfileSymbol now routed through /api/delete-profile-symbol so
+  // the server can also clean up R2 personal media on delete. See
+  // handleDeleteConfirm below.
   const reorderProfileSymbols = useMutation(api.profileSymbols.reorderProfileSymbols);
   const setCategoryDefault = useMutation(api.resourcePacks.setCategoryDefault);
   const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibrary);
@@ -246,6 +249,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
       reorderProfileSymbols({
         profileCategoryId,
         orderedIds: newOrder as Id<'profileSymbols'>[],
+        propagateToPack: showAdminButtons,
       });
 
       return newOrder;
@@ -266,8 +270,27 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleColourChange(colour: string) {
     setDraftColour(colour);
-    updateCategoryMeta({ profileCategoryId, colour }).catch((e) =>
+    updateCategoryMeta({
+      profileCategoryId,
+      colour,
+      propagateToPack: showAdminButtons,
+    }).catch((e) =>
       console.error('[CategoryDetailContent] colour update failed', e)
+    );
+  }
+
+  function handleCategoryNameChange(nextName: string) {
+    if (!category) return;
+    // Preserve the existing Hindi label when editing the English one. If
+    // the category had no `hin` set, leave it unset.
+    const next: { eng: string; hin?: string } = { eng: nextName };
+    if (category.name.hin) next.hin = category.name.hin;
+    updateCategoryMeta({
+      profileCategoryId,
+      name: next,
+      propagateToPack: showAdminButtons,
+    }).catch((e) =>
+      console.error('[CategoryDetailContent] name update failed', e)
     );
   }
 
@@ -279,7 +302,23 @@ export function CategoryDetailContent({ categoryId }: Props) {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteProfileSymbol({ profileSymbolId: pendingDelete.id });
+      // Route through /api/delete-profile-symbol so the server can also
+      // sweep personal R2 media (uploads, image-search picks, recorded
+      // audio) tied to this symbol. Shared caches (ai-cache/, tts/) are
+      // preserved — same policy as Reload Defaults.
+      const res = await fetch('/api/delete-profile-symbol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileSymbolId: pendingDelete.id,
+          propagateToPack: showAdminButtons,
+        }),
+      });
+      if (!res.ok) {
+        console.error('[CategoryDetailContent] delete failed', await res.text());
+      }
+    } catch (e) {
+      console.error('[CategoryDetailContent] delete request errored', e);
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -300,7 +339,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleFolderImageSave(imagePath: string) {
     setDraftImagePath(imagePath);
-    updateCategoryMeta({ profileCategoryId, imagePath }).catch((e) =>
+    updateCategoryMeta({
+      profileCategoryId,
+      imagePath,
+      propagateToPack: showAdminButtons,
+    }).catch((e) =>
       console.error('[CategoryDetailContent] folder image update failed', e)
     );
     setFolderImageModalOpen(false);
@@ -393,54 +436,73 @@ export function CategoryDetailContent({ categoryId }: Props) {
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
+      {/* Admin disclaimer — visible only when admin in admin viewMode is
+          editing content that's published to a pack. Reminds the admin
+          that their edits will reach every new sign-up loading this pack. */}
+      <AdminPackEditingBanner
+        visible={showAdminButtons && (isDefault || isInLibrary)}
+        packLabel={
+          isDefault
+            ? 'Default'
+            : (linkedLibraryPack?.name.eng ?? undefined)
+        }
+      />
+
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
-        <div className="shrink-0 relative">
-          {/* Admin status label — top-right of the banner, both edit + view modes */}
-          {showAdminButtons && packsStatus && (
-            <div className="absolute top-2 right-2 z-30 pointer-events-none">
+        <div className="shrink-0">
+          {/* Admin pack-status label rendered above the title inside the
+              banner card — visible only in admin view, both edit and
+              view modes. */}
+          {(() => {
+            const packLabel = showAdminButtons && packsStatus ? (
               <PackStatusLabel
                 publishedToPackId={category?.publishedToPackId}
                 packs={packsStatus}
                 language={language}
               />
-            </div>
-          )}
-          {isEditing ? (
-            <div
-              className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
-              style={{ background: getCategoryColour(draftColour).c700 }}
-            >
-              <BannerEdit
+            ) : null;
+            return isEditing ? (
+              <div
+                className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
+                style={{ background: getCategoryColour(draftColour).c700 }}
+              >
+                {packLabel && (
+                  <div className="mb-2 self-start">{packLabel}</div>
+                )}
+                <BannerEdit
+                  categoryName={categoryName}
+                  onCategoryNameChange={handleCategoryNameChange}
+                  imagePath={draftImagePath}
+                  draftColour={draftColour}
+                  onColourChange={handleColourChange}
+                  onExit={handleEditExit}
+                  onAddSymbol={handleAddSymbol}
+                  onEditFolderImage={handleEditFolderImage}
+                  showAdminButtons={showAdminButtons}
+                  isDefault={isDefault}
+                  isInLibrary={isInLibrary}
+                  libraryTier={libraryTier}
+                  onToggleDefault={handleToggleDefault}
+                  onToggleLibrary={handleToggleLibrary}
+                  onSetTier={handleSetTier}
+                  librarySourceId={category?.librarySourceId}
+                  onReloadDefaults={() => setReloadDialogOpen(true)}
+                />
+              </div>
+            ) : (
+              <CategoryPageHeader
                 categoryName={categoryName}
-                imagePath={draftImagePath}
-                draftColour={draftColour}
-                onColourChange={handleColourChange}
-                onExit={handleEditExit}
-                onAddSymbol={handleAddSymbol}
-                onEditFolderImage={handleEditFolderImage}
-                showAdminButtons={showAdminButtons}
-                isDefault={isDefault}
-                isInLibrary={isInLibrary}
-                libraryTier={libraryTier}
-                onToggleDefault={handleToggleDefault}
-                onToggleLibrary={handleToggleLibrary}
-                onSetTier={handleSetTier}
+                imagePath={category?.imagePath}
+                colour={category?.colour}
+                onEdit={handleEditStart}
+                onModel={handleModelClick}
+                modelDisabledReason={modelDisabledReason}
                 librarySourceId={category?.librarySourceId}
-                onReloadDefaults={() => setReloadDialogOpen(true)}
+                topSlot={packLabel}
               />
-            </div>
-          ) : (
-            <CategoryPageHeader
-              categoryName={categoryName}
-              imagePath={category?.imagePath}
-              colour={category?.colour}
-              onEdit={handleEditStart}
-              onModel={handleModelClick}
-              modelDisabledReason={modelDisabledReason}
-              librarySourceId={category?.librarySourceId}
-            />
-          )}
+            );
+          })()}
         </div>
       )}
 
@@ -539,7 +601,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
         />
       )}
 
-      {/* Folder image picker modal */}
+      {/* Folder image picker modal — opens on the SymbolStix tab with the
+          category name pre-filled in the search bar so the user lands on
+          a relevant symbol grid immediately. */}
       {folderImageModalOpen && accountId && (
         <SymbolEditorModal
           isOpen={true}
@@ -547,6 +611,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
           language={language}
           folderImageMode={true}
           initialImagePath={draftImagePath}
+          initialLabel={categoryName}
           onClose={() => setFolderImageModalOpen(false)}
           onSave={() => {}}
           onFolderImageSave={handleFolderImageSave}

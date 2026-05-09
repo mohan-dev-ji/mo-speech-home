@@ -7,6 +7,8 @@ import { Loader2, Mic, Play, RefreshCw, Square as StopIcon, Trash2, Volume2 } fr
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
+import { useProfile } from '@/app/contexts/ProfileContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +44,9 @@ export function SentenceAudioModal({
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const renameSentence = useMutation(api.profileSentences.updateProfileSentenceName);
+  const { viewMode } = useProfile();
+  const isAdmin = useIsAdmin();
+  const propagateToPack = viewMode === 'admin' && isAdmin;
 
   const [value, setValue] = useState(initialValue);
   const [ttsKey, setTtsKey] = useState<string | undefined>(initialAudioPath);
@@ -161,9 +166,9 @@ export function SentenceAudioModal({
       }
       const trimmedValue = value.trim();
       if (trimmedValue) {
-        await renameSentence({ profileSentenceId: sentenceId, name: { eng: trimmedValue } });
+        await renameSentence({ profileSentenceId: sentenceId, name: { eng: trimmedValue }, propagateToPack });
       }
-      await updateAudio({ profileSentenceId: sentenceId, text: trimmedValue || undefined, audioPath });
+      await updateAudio({ profileSentenceId: sentenceId, text: trimmedValue || undefined, audioPath, propagateToPack });
       onClose();
     } finally {
       setIsSaving(false);

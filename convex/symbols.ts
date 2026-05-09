@@ -81,6 +81,36 @@ export const searchSymbols = query({
 });
 
 /**
+ * Admin / curation helper: returns SymbolStix entries whose English label
+ * contains a space (multi-word phrases or sentences). Used to seed
+ * conversational chat categories with ready-made full-phrase symbols.
+ *
+ * Returns up to `limit` entries (default 2000), sorted by length ascending
+ * so shorter conversational phrases surface first. Each entry returns just
+ * the eng label and id — keeps the payload small.
+ */
+export const listMultiWordEng = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 32000;
+    const all = await ctx.db.query("symbols").take(limit);
+    const filtered = all
+      .filter((s) => s.words.eng.includes(" "))
+      .map((s) => ({ _id: s._id, eng: s.words.eng }))
+      .sort((a, b) => a.eng.length - b.eng.length);
+    // Cap return to stay under Convex's 8192 array-length validator.
+    // Shortest entries (= most conversational phrases) come first.
+    const items = filtered.slice(0, 5000);
+    return {
+      count: filtered.length,
+      totalScanned: all.length,
+      returned: items.length,
+      items,
+    };
+  },
+});
+
+/**
  * Batch-fetch symbols by exact word labels (eng).
  * Uses the by_words_eng index for O(1) per word.
  * Returns only found symbols — missing words are silently skipped.

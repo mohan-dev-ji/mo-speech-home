@@ -11,7 +11,7 @@ export function QuickSettings() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const t = useTranslations('quickSettings');
-  const { stateFlags, setTalkerVisible } = useProfile();
+  const { stateFlags, setTalkerVisible, setGridSize, viewMode } = useProfile();
   const { talkerMode, setTalkerMode } = useTalker();
   const { signOut } = useClerk();
 
@@ -91,6 +91,54 @@ export function QuickSettings() {
                 }}
               />
             </button>
+          </div>
+
+          {/* Grid size — viewMode-aware. Instructor / admin writes to the
+              instructor's grid size; student-view writes to the active
+              student profile (see ProfileContext.setGridSize). */}
+          <div className="px-3 py-2.5 flex items-center justify-between gap-3">
+            <span
+              className="text-small font-medium"
+              style={{ color: 'var(--theme-alt-text)' }}
+            >
+              {viewMode === 'student-view'
+                ? t('gridSizeStudent')
+                : t('gridSizeInstructor')}
+            </span>
+            <div
+              className="flex items-center gap-0.5 p-0.5 rounded-theme-sm"
+              style={{ background: 'rgba(0,0,0,0.25)' }}
+              role="radiogroup"
+              aria-label={t('gridSizeLabel')}
+            >
+              {(['large', 'medium', 'small'] as const).map((size) => {
+                const active = stateFlags.grid_size === size;
+                const letter = size === 'large' ? 'L' : size === 'medium' ? 'M' : 'S';
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setGridSize(size)}
+                    className="px-2 py-0.5 rounded-theme-sm text-caption font-semibold transition-colors"
+                    style={
+                      active
+                        ? {
+                            background: 'var(--theme-button-highlight)',
+                            color: 'var(--theme-text)',
+                          }
+                        : {
+                            background: 'transparent',
+                            color: 'var(--theme-secondary-alt-text)',
+                          }
+                    }
+                  >
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Direct play mode — only active when header is on */}

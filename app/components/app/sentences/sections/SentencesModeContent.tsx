@@ -41,6 +41,7 @@ import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
@@ -480,7 +481,7 @@ export function SentencesModeContent() {
       const oldIdx = prev.indexOf(active.id as string);
       const newIdx = prev.indexOf(over.id as string);
       const next = arrayMove(prev, oldIdx, newIdx);
-      reorderSentences({ orderedIds: next as Id<'profileSentences'>[] });
+      reorderSentences({ orderedIds: next as Id<'profileSentences'>[], propagateToPack: showAdminButtons });
       return next;
     });
   }
@@ -553,7 +554,7 @@ export function SentencesModeContent() {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteSentence({ profileSentenceId: pendingDelete.id });
+      await deleteSentence({ profileSentenceId: pendingDelete.id, propagateToPack: showAdminButtons });
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -574,7 +575,7 @@ export function SentencesModeContent() {
     const updated = sentence.slots
       .filter((_, i) => i !== slotIndex)
       .map((slot, i) => ({ ...slot, order: i }));
-    updateSlots({ profileSentenceId: sentenceId, slots: updated });
+    updateSlots({ profileSentenceId: sentenceId, slots: updated, propagateToPack: showAdminButtons });
   }
 
   function handleSlotSave(result: SentenceSlotSaveResult) {
@@ -593,7 +594,7 @@ export function SentencesModeContent() {
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));
-    updateSlots({ profileSentenceId: slotEditTarget.sentenceId, slots: reindexed });
+    updateSlots({ profileSentenceId: slotEditTarget.sentenceId, slots: reindexed, propagateToPack: showAdminButtons });
     setSlotEditTarget(null);
   }
 
@@ -612,8 +613,17 @@ export function SentencesModeContent() {
   // Only render sentences page if state flag allows it (same pattern as lists)
   if (stateFlags && !stateFlags.sentences_visible) return null;
 
+  // Show the admin disclaimer when at least one sentence on this page is
+  // published to a pack — admin in admin view editing those sentences will
+  // propagate to the pack.
+  const hasPublishedSentence = !!sentences?.some((s) => !!s.publishedToPackId);
+
   return (
     <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
+
+      <AdminPackEditingBanner
+        visible={showAdminButtons && hasPublishedSentence}
+      />
 
       {/* Header */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (

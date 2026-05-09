@@ -15,6 +15,8 @@ import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { useProfile } from '@/app/contexts/ProfileContext';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +120,14 @@ export function SymbolEditorModal({
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
 
+  // Admin in admin viewMode is the only flow that propagates edits back to
+  // the resource pack snapshot. Everything else (admin in instructor /
+  // student view, all non-admin users) edits the user's profileSymbols
+  // only — see ADR-008 + ADR-009 follow-up.
+  const { viewMode } = useProfile();
+  const isAdmin = useIsAdmin();
+  const propagateToPack = viewMode === 'admin' && isAdmin;
+
   // ── State ──────────────────────────────────────────────────────────────────
 
   // ── Initial draft ──────────────────────────────────────────────────────────
@@ -160,8 +170,17 @@ export function SymbolEditorModal({
     activeAudioSource: initialActive,
     profileCategoryId: initCategoryId ?? '',
     ...(initialLabel ? { labelEng: initialLabel } : {}),
-    // folderImage / sentenceSlot keep the simpler image rehydration (always upload tab)
-    ...((folderImageMode || editorMode === 'sentenceSlot') && initialImagePath
+    // folderImageMode opens on the SymbolStix tab so the admin/instructor
+    // can search for an iconic symbol matching the category name (the
+    // search bar lazy-inits from `initialLabel` — see searchQuery state).
+    // Existing folder image isn't seeded into the upload tab; if the user
+    // closes without picking anything, the parent's existing image is
+    // preserved untouched.
+    //
+    // sentenceSlot keeps the simpler upload-tab rehydration since slot
+    // imagery is rarely SymbolStix-sourced and the user usually wants to
+    // see/replace what's there.
+    ...(editorMode === 'sentenceSlot' && initialImagePath
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
       : {}),
     ...listItemImageSeed,
@@ -193,6 +212,9 @@ export function SymbolEditorModal({
   // Lazy-init from `initialLabel` so opening the editor on a list item that
   // already has a description (e.g. "wash hands") auto-populates the search
   // bar — the SymbolStix results land instantly without the user retyping.
+  // For edit mode, a separate effect below seeds the search bar with the
+  // existing symbol's saved label once it loads from Convex (initialLabel
+  // isn't always supplied by callers in edit flows).
   // The user can then refine the search independently of the label field.
   // Resets when the modal closes so it doesn't bleed into the next open.
   const [searchQuery, setSearchQuery] = useState(() => initialLabel ?? '');
@@ -211,6 +233,23 @@ export function SymbolEditorModal({
     api.profileCategories.getProfileCategories,
     editorMode === 'categoryBoard' ? {} : 'skip'
   );
+
+  // Edit-mode: once `existingSymbol` arrives, mirror its English label into
+  // the search bar so the SymbolStix / Image Search / AI Generate tabs all
+  // start with the symbol's current description as their query. Fires once
+  // per open — refreshing the symbol mid-edit doesn't re-seed.
+  const editSearchSeededRef = useRef(false);
+  useEffect(() => {
+    if (!isEditMode) return;
+    if (!existingSymbol) return;
+    if (editSearchSeededRef.current) return;
+    setSearchQuery(existingSymbol.label.eng);
+    editSearchSeededRef.current = true;
+  }, [isEditMode, existingSymbol]);
+
+  useEffect(() => {
+    if (!isOpen) editSearchSeededRef.current = false;
+  }, [isOpen]);
 
   const createProfileSymbol = useMutation(api.profileSymbols.createProfileSymbol);
   const updateProfileSymbol = useMutation(api.profileSymbols.updateProfileSymbol);
@@ -312,6 +351,53 @@ export function SymbolEditorModal({
   // in some parents).
   useEffect(() => {
     if (!isOpen) matchedCategoryRef.current = null;
+  }, [isOpen]);
+
+  // ── Edit-mode category-colour fallback ─────────────────────────────────────
+  //
+  // For EDIT mode: if a saved symbol has no display.bgColour / borderColour
+  // (legacy data, or symbols seeded before per-symbol colours existed), fall
+  // back to the parent category's c100 / c500 instead of the generic
+  // white / grey defaults from INITIAL_DRAFT. Symbols that DO have saved
+  // colours are left untouched. Fires once per open to avoid clobbering
+  // user edits to bg/border made later in the session.
+  const editFallbackAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!isEditMode) return;
+    if (editorMode !== 'categoryBoard') return;
+    if (!existingSymbol) return;
+    if (!categories) return;
+    if (editFallbackAppliedRef.current) return;
+
+    const savedBg = existingSymbol.display?.bgColour;
+    const savedBorder = existingSymbol.display?.borderColour;
+
+    // Both already saved → nothing to do.
+    if (savedBg !== undefined && savedBorder !== undefined) {
+      editFallbackAppliedRef.current = true;
+      return;
+    }
+
+    const cat = categories.find((c) => c._id === existingSymbol.profileCategoryId);
+    if (!cat) {
+      editFallbackAppliedRef.current = true;
+      return;
+    }
+
+    const pair = getCategoryColour(cat.colour);
+    setDraft((d) => ({
+      ...d,
+      ...(savedBg === undefined ? { bgColour: pair.c100 } : {}),
+      ...(savedBorder === undefined ? { borderColour: pair.c500 } : {}),
+    }));
+    editFallbackAppliedRef.current = true;
+  }, [isEditMode, editorMode, existingSymbol, categories]);
+
+  // Reset the edit-mode fallback ref on close (paired with the matched-ref
+  // reset above) so reopening on a different symbol re-applies the fallback
+  // logic.
+  useEffect(() => {
+    if (!isOpen) editFallbackAppliedRef.current = false;
   }, [isOpen]);
 
   // Revoke image preview URL on unmount only
@@ -578,10 +664,26 @@ export function SymbolEditorModal({
         };
       }
 
+      // Strip bgColour / borderColour from the saved display when they
+      // match the parent category's palette — this lets the symbol fall
+      // back to the live category colour at render time so future
+      // category-colour changes propagate automatically. Only explicit
+      // user customisations (values that differ from the category's c100
+      // / c500) are persisted.
+      const targetCatId = draft.profileCategoryId as Id<'profileCategories'>;
+      const targetCat = categories?.find((c) => c._id === targetCatId);
+      const targetPair = targetCat ? getCategoryColour(targetCat.colour) : null;
+      const bgMatchesCategory =
+        targetPair !== null &&
+        draft.bgColour.toLowerCase() === targetPair.c100.toLowerCase();
+      const borderMatchesCategory =
+        targetPair !== null &&
+        draft.borderColour.toLowerCase() === targetPair.c500.toLowerCase();
+
       const display = {
-        bgColour: draft.bgColour,
+        ...(bgMatchesCategory ? {} : { bgColour: draft.bgColour }),
         textColour: draft.textColour,
-        borderColour: draft.borderColour,
+        ...(borderMatchesCategory ? {} : { borderColour: draft.borderColour }),
         borderWidth: draft.borderWidth,
         showLabel: draft.showLabel,
         showImage: draft.showImage,
@@ -605,6 +707,7 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
+          propagateToPack,
         })) as Id<'profileSymbols'>;
       } else {
         savedId = await createProfileSymbol({
@@ -613,6 +716,7 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
+          propagateToPack,
         });
       }
 

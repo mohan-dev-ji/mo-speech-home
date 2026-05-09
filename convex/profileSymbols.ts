@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireCallerAccountId } from "./lib/account";
+import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
 import { syncCategoryToPackIfPublished } from "./resourcePacks";
 
 const audioSourceValidator = v.object({
@@ -81,6 +81,11 @@ export const getProfileSymbol = query({
 
 /**
  * Create a new profileSymbol in a category on the caller's account.
+ *
+ * `propagateToPack` opt-in: when true, edits to a published category re-sync
+ * the resource pack snapshot. Default false so admin editing in instructor /
+ * student view leaves the pack untouched. Normal users never have
+ * `publishedToPackId` on their rows, so sync is a no-op for them regardless.
  */
 export const createProfileSymbol = mutation({
   args: {
@@ -94,6 +99,7 @@ export const createProfileSymbol = mutation({
       })
     ),
     display: v.optional(displayValidator),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -127,9 +133,9 @@ export const createProfileSymbol = mutation({
       updatedAt: now,
     });
 
-    // Auto-sync: if the parent category is published to a pack, rebuild the
-    // pack's snapshot of this category so the new symbol appears in the library.
-    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    if (args.propagateToPack) {
+      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    }
 
     return newId;
   },
@@ -139,6 +145,7 @@ export const reorderProfileSymbols = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
     orderedIds: v.array(v.id("profileSymbols")),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -155,13 +162,64 @@ export const reorderProfileSymbols = mutation({
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
 
-    // Auto-sync: rebuild the parent category's snapshot once with the new order.
-    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    if (args.propagateToPack) {
+      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
+    }
+  },
+});
+
+/**
+ * Returns the personal R2 keys that should be deleted when this symbol is
+ * removed. Mirrors the logic of `getCategoryReloadOrphanKeys` — only
+ * uploads, image-search picks, and recorded audio are personal; SymbolStix
+ * defaults, AI-generated images (shared `ai-cache/`) and TTS clips
+ * (shared `audio/<voice>/tts/`) are kept.
+ *
+ * Auth-checked. Returns `[]` for missing / not-owned symbols rather than
+ * throwing — the orchestrating API route falls through to the mutation
+ * which throws its own NOT_FOUND.
+ */
+export const getProfileSymbolDeleteOrphanKeys = query({
+  args: { profileSymbolId: v.id("profileSymbols") },
+  handler: async (ctx, { profileSymbolId }) => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const { accountId } = resolved;
+
+    const sym = await ctx.db.get(profileSymbolId);
+    if (!sym || sym.accountId !== accountId) return [];
+
+    const keys: string[] = [];
+
+    // Image: delete only uploads + image-search. Skip symbolstix (no
+    // separate R2 path) and aiGenerated (lives in shared ai-cache/).
+    if (
+      sym.imageSource.type === "userUpload" ||
+      sym.imageSource.type === "imageSearch"
+    ) {
+      keys.push(sym.imageSource.imagePath);
+    }
+
+    // Audio: per-language. Delete `recorded` paths + `recorded` alternates.
+    // Keep `tts` (shared cache) and `r2` (SymbolStix default).
+    for (const lang of ["eng", "hin"] as const) {
+      const a = sym.audio?.[lang];
+      if (!a) continue;
+      if (a.type === "recorded") keys.push(a.path);
+      if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
+        keys.push(a.alternates.recorded);
+      }
+    }
+
+    return keys;
   },
 });
 
 export const deleteProfileSymbol = mutation({
-  args: { profileSymbolId: v.id("profileSymbols") },
+  args: {
+    profileSymbolId: v.id("profileSymbols"),
+    propagateToPack: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
 
@@ -172,8 +230,9 @@ export const deleteProfileSymbol = mutation({
     const parentCategoryId = ps.profileCategoryId;
     await ctx.db.delete(args.profileSymbolId);
 
-    // Auto-sync: rebuild the parent category's snapshot without this symbol.
-    await syncCategoryToPackIfPublished(ctx, parentCategoryId);
+    if (args.propagateToPack) {
+      await syncCategoryToPackIfPublished(ctx, parentCategoryId);
+    }
 
     return args.profileSymbolId;
   },
@@ -192,6 +251,7 @@ export const updateProfileSymbol = mutation({
       })
     ),
     display: v.optional(displayValidator),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -215,12 +275,12 @@ export const updateProfileSymbol = mutation({
       updatedAt: Date.now(),
     });
 
-    // Auto-sync: rebuild the affected category snapshot(s). If the symbol moved
-    // between categories, both the old and new parent need rebuilding.
-    if (previousCategoryId !== args.profileCategoryId) {
-      await syncCategoryToPackIfPublished(ctx, previousCategoryId);
+    if (args.propagateToPack) {
+      if (previousCategoryId !== args.profileCategoryId) {
+        await syncCategoryToPackIfPublished(ctx, previousCategoryId);
+      }
+      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
     }
-    await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
 
     return args.profileSymbolId;
   },

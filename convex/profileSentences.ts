@@ -70,17 +70,24 @@ export const createProfileSentence = mutation({
   },
 });
 
+// `propagateToPack` opt-in flag: pack snapshot only updates when caller is
+// admin AND in admin viewMode. Default false — admin in instructor / student
+// view leaves the pack untouched. See ADR-008 + ADR-009 follow-up.
+
 export const updateProfileSentenceName = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
-    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    if (args.propagateToPack) {
+      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    }
   },
 });
 
@@ -94,6 +101,7 @@ export const updateProfileSentenceSlots = mutation({
         displayProps: displayPropsSchema,
       })
     ),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -103,7 +111,9 @@ export const updateProfileSentenceSlots = mutation({
       slots:     args.slots,
       updatedAt: Date.now(),
     });
-    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    if (args.propagateToPack) {
+      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    }
   },
 });
 
@@ -112,6 +122,7 @@ export const updateProfileSentenceAudio = mutation({
     profileSentenceId: v.id("profileSentences"),
     text:      v.optional(v.string()),
     audioPath: v.optional(v.string()),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -122,19 +133,29 @@ export const updateProfileSentenceAudio = mutation({
       audioPath: args.audioPath,
       updatedAt: Date.now(),
     });
-    await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    if (args.propagateToPack) {
+      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    }
   },
 });
 
 export const deleteProfileSentence = mutation({
-  args: { profileSentenceId: v.id("profileSentences") },
+  args: {
+    profileSentenceId: v.id("profileSentences"),
+    propagateToPack: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
 
-    // Auto-sync: remove from pack first.
-    await removeSentenceFromPack(ctx, args.profileSentenceId);
+    // Only remove from pack snapshot when admin opted in. Without the
+    // flag, the profile row is deleted but the pack snapshot retains its
+    // entry (with a now-orphan sourceProfileSentenceId) until the admin
+    // returns to admin view to clean up.
+    if (args.propagateToPack) {
+      await removeSentenceFromPack(ctx, args.profileSentenceId);
+    }
     await ctx.db.delete(args.profileSentenceId);
   },
 });
@@ -142,6 +163,7 @@ export const deleteProfileSentence = mutation({
 export const reorderProfileSentences = mutation({
   args: {
     orderedIds: v.array(v.id("profileSentences")),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -153,9 +175,10 @@ export const reorderProfileSentences = mutation({
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
 
-    // Auto-sync: rebuild any published sentences' snapshots so reorder reflects.
-    for (const id of args.orderedIds) {
-      await syncSentenceToPackIfPublished(ctx, id);
+    if (args.propagateToPack) {
+      for (const id of args.orderedIds) {
+        await syncSentenceToPackIfPublished(ctx, id);
+      }
     }
   },
 });

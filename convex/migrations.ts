@@ -431,3 +431,139 @@ export const restoreStarterPackFromBackup = mutation({
   },
 });
 
+// ─── ADR-009 follow-up: stop persisting category-matching symbol colours ──────
+//
+// Symbols saved before/around this migration carry `display.bgColour` /
+// `display.borderColour` populated from the parent category's c100 / c500
+// (auto-match on creation, manual write on edit). With Option B, those
+// values should not be stored — render code falls back to the live
+// category palette via SymbolCard's `categoryColour` prop. This migration
+// nulls out matching saved colours so future category-colour changes
+// propagate to all child symbols without further mutations.
+//
+// Idempotent — safe to re-run. Only strips values that exactly match the
+// parent category's c100 / c500; explicit user customisations are
+// preserved untouched.
+
+// Inline copy of the category palette + hex aliases from
+// app/lib/categoryColours.ts. Kept here so the migration can run without
+// reaching across the app/convex boundary; values must stay in sync if
+// the palette ever changes (rare).
+const CATEGORY_COLOURS_SERVER: Record<string, { c500: string; c100: string }> = {
+  orange:  { c500: "#F97316", c100: "#FFEDD5" },
+  amber:   { c500: "#F59E0B", c100: "#FEF3C7" },
+  yellow:  { c500: "#EAB308", c100: "#FEF9C3" },
+  red:     { c500: "#EF4444", c100: "#FEE2E2" },
+  rose:    { c500: "#F43F5E", c100: "#FFE4E6" },
+  pink:    { c500: "#EC4899", c100: "#FCE7F3" },
+  fuchsia: { c500: "#D946EF", c100: "#FAE8FF" },
+  purple:  { c500: "#A855F7", c100: "#F3E8FF" },
+  violet:  { c500: "#8B5CF6", c100: "#EDE9FE" },
+  indigo:  { c500: "#6366F1", c100: "#E0E7FF" },
+  blue:    { c500: "#3B82F6", c100: "#DBEAFE" },
+  sky:     { c500: "#0EA5E9", c100: "#E0F2FE" },
+  cyan:    { c500: "#06B6D4", c100: "#CFFAFE" },
+  teal:    { c500: "#14B8A6", c100: "#CCFBF1" },
+  emerald: { c500: "#10B981", c100: "#D1FAE5" },
+  green:   { c500: "#22C55E", c100: "#DCFCE7" },
+  lime:    { c500: "#84CC16", c100: "#ECFCCB" },
+};
+
+const LEGACY_HEX_SERVER: Record<string, { c500: string; c100: string }> = {
+  "#F97316": CATEGORY_COLOURS_SERVER.orange,
+  "#F59E0B": CATEGORY_COLOURS_SERVER.amber,
+  "#D97706": CATEGORY_COLOURS_SERVER.amber,
+  "#EAB308": CATEGORY_COLOURS_SERVER.yellow,
+  "#EF4444": CATEGORY_COLOURS_SERVER.red,
+  "#F43F5E": CATEGORY_COLOURS_SERVER.rose,
+  "#EC4899": CATEGORY_COLOURS_SERVER.pink,
+  "#F472B6": CATEGORY_COLOURS_SERVER.pink,
+  "#D946EF": CATEGORY_COLOURS_SERVER.fuchsia,
+  "#A855F7": CATEGORY_COLOURS_SERVER.purple,
+  "#8B5CF6": CATEGORY_COLOURS_SERVER.violet,
+  "#7C3AED": CATEGORY_COLOURS_SERVER.violet,
+  "#6366F1": CATEGORY_COLOURS_SERVER.indigo,
+  "#3B82F6": CATEGORY_COLOURS_SERVER.blue,
+  "#0EA5E9": CATEGORY_COLOURS_SERVER.sky,
+  "#06B6D4": CATEGORY_COLOURS_SERVER.cyan,
+  "#14B8A6": CATEGORY_COLOURS_SERVER.teal,
+  "#10B981": CATEGORY_COLOURS_SERVER.emerald,
+  "#22C55E": CATEGORY_COLOURS_SERVER.green,
+};
+
+function resolveCategoryPalette(colour: string): { c500: string; c100: string } | null {
+  if (colour in CATEGORY_COLOURS_SERVER) return CATEGORY_COLOURS_SERVER[colour];
+  if (colour in LEGACY_HEX_SERVER) return LEGACY_HEX_SERVER[colour];
+  return null;
+}
+
+export const stripCategoryMatchingSymbolColours = mutation({
+  // Dashboard-runnable. No auth check — matches the pattern used by
+  // `materialiseStarterPack` / `restoreStarterPackFromBackup` (one-shot
+  // ops invoked manually by an operator). Idempotent; safe to re-run.
+  args: {},
+  handler: async (ctx) => {
+    const symbols = await ctx.db.query("profileSymbols").collect();
+
+    let scanned = 0;
+    let bgStripped = 0;
+    let borderStripped = 0;
+    let unchanged = 0;
+    let unknownPalette = 0;
+
+    for (const sym of symbols) {
+      scanned++;
+      const display = sym.display;
+      if (
+        !display ||
+        (display.bgColour === undefined && display.borderColour === undefined)
+      ) {
+        unchanged++;
+        continue;
+      }
+
+      const cat = await ctx.db.get(sym.profileCategoryId);
+      if (!cat) {
+        unchanged++;
+        continue;
+      }
+
+      const palette = resolveCategoryPalette(cat.colour);
+      if (!palette) {
+        unknownPalette++;
+        continue;
+      }
+
+      const bgMatches =
+        display.bgColour !== undefined &&
+        display.bgColour.toLowerCase() === palette.c100.toLowerCase();
+      const borderMatches =
+        display.borderColour !== undefined &&
+        display.borderColour.toLowerCase() === palette.c500.toLowerCase();
+
+      if (!bgMatches && !borderMatches) {
+        unchanged++;
+        continue;
+      }
+
+      const next = { ...display };
+      if (bgMatches) {
+        delete next.bgColour;
+        bgStripped++;
+      }
+      if (borderMatches) {
+        delete next.borderColour;
+        borderStripped++;
+      }
+
+      await ctx.db.patch(sym._id, { display: next });
+    }
+
+    console.log(
+      `[stripCategoryMatchingSymbolColours] scanned=${scanned} bgStripped=${bgStripped} borderStripped=${borderStripped} unchanged=${unchanged} unknownPalette=${unknownPalette}`
+    );
+
+    return { scanned, bgStripped, borderStripped, unchanged, unknownPalette };
+  },
+});
+

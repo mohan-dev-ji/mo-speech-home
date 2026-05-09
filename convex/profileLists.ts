@@ -102,6 +102,10 @@ export const updateProfileListName = mutation({
   args: {
     profileListId: v.id("profileLists"),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    // See ADR-008 + ADR-009 follow-up: pack snapshot only updates when the
+    // caller is admin AND in admin viewMode. Non-admin views (and normal
+    // users) never propagate to the pack.
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -109,7 +113,9 @@ export const updateProfileListName = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { name: args.name, updatedAt: Date.now() });
-    await syncListToPackIfPublished(ctx, args.profileListId);
+    if (args.propagateToPack) {
+      await syncListToPackIfPublished(ctx, args.profileListId);
+    }
   },
 });
 
@@ -134,6 +140,7 @@ export const updateProfileListItems = mutation({
         )),
       })
     ),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -141,7 +148,9 @@ export const updateProfileListItems = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { items: args.items, updatedAt: Date.now() });
-    await syncListToPackIfPublished(ctx, args.profileListId);
+    if (args.propagateToPack) {
+      await syncListToPackIfPublished(ctx, args.profileListId);
+    }
   },
 });
 
@@ -150,6 +159,7 @@ export const addItemFromSymbol = mutation({
     profileListId: v.id("profileLists"),
     profileSymbolId: v.id("profileSymbols"),
     insertAtIndex: v.optional(v.number()),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -181,7 +191,9 @@ export const addItemFromSymbol = mutation({
 
     const reindexed = items.map((item, i) => ({ ...item, order: i }));
     await ctx.db.patch(args.profileListId, { items: reindexed, updatedAt: Date.now() });
-    await syncListToPackIfPublished(ctx, args.profileListId);
+    if (args.propagateToPack) {
+      await syncListToPackIfPublished(ctx, args.profileListId);
+    }
   },
 });
 
@@ -192,6 +204,7 @@ export const updateProfileListDisplay = mutation({
     showNumbers: v.boolean(),
     showChecklist: v.boolean(),
     showFirstThen: v.boolean(),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -205,19 +218,29 @@ export const updateProfileListDisplay = mutation({
       showFirstThen: args.showFirstThen,
       updatedAt: Date.now(),
     });
-    await syncListToPackIfPublished(ctx, args.profileListId);
+    if (args.propagateToPack) {
+      await syncListToPackIfPublished(ctx, args.profileListId);
+    }
   },
 });
 
 export const deleteProfileList = mutation({
-  args: { profileListId: v.id("profileLists") },
+  args: {
+    profileListId: v.id("profileLists"),
+    propagateToPack: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
-    // Auto-sync: remove from pack first (and delete the pack if empty + non-starter).
-    await removeListFromPack(ctx, args.profileListId);
+    // Only remove from the pack snapshot when admin opted in. Without the
+    // flag, the profile row is deleted but the pack snapshot retains its
+    // entry (with a now-orphan sourceProfileListId). Deliberate: an admin
+    // in instructor / student view should not silently mutate the pack.
+    if (args.propagateToPack) {
+      await removeListFromPack(ctx, args.profileListId);
+    }
     await ctx.db.delete(args.profileListId);
   },
 });
@@ -225,6 +248,7 @@ export const deleteProfileList = mutation({
 export const reorderProfileLists = mutation({
   args: {
     orderedIds: v.array(v.id("profileLists")),
+    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -236,9 +260,10 @@ export const reorderProfileLists = mutation({
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
 
-    // Auto-sync: rebuild any published lists' snapshots so reorder reflects.
-    for (const id of args.orderedIds) {
-      await syncListToPackIfPublished(ctx, id);
+    if (args.propagateToPack) {
+      for (const id of args.orderedIds) {
+        await syncListToPackIfPublished(ctx, id);
+      }
     }
   },
 });

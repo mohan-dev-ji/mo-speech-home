@@ -42,10 +42,6 @@ type Props = {
   adminPacks?: AdminPacksStatus;
 };
 
-// Semi-transparent card-colour strip — keeps text readable over the light symbol bg
-// color-mix works with CSS variables in all modern browsers
-const OVERLAY_BG = 'color-mix(in srgb, var(--theme-card) 88%, transparent)';
-
 export function CategoryTile({
   category,
   language,
@@ -69,16 +65,21 @@ export function CategoryTile({
   return (
     <ModellingOverlayWrapper
       componentKey={`category-tile-${category._id}`}
-      className="w-full aspect-square @container"
+      // The wrapper is square in non-edit mode; in edit mode the wrapper
+      // grows taller to accommodate the action-button row below the folder
+      // (the symbol image keeps its full square space). The @container query
+      // anchors `cqi`-based sizing to inline-size (width), so font/symbol
+      // dimensions stay consistent across both modes.
+      className="w-full @container"
     >
     <Tag
       {...(!isEditing && { type: 'button', onClick })}
       className={[
-        'relative w-full h-full',
+        'relative w-full',
         !isEditing && 'cursor-pointer group',
       ].filter(Boolean).join(' ')}
     >
-      {/* Edit mode: SVG dashed border around the full square tile */}
+      {/* Edit mode: SVG dashed border wraps the entire tile (folder + button row) */}
       {isEditing && (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -108,106 +109,123 @@ export function CategoryTile({
         </svg>
       )}
 
-      {/* Inner content — folder padding in edit mode creates gap from dashed border */}
+      {/* Inner content — folder padding in edit mode creates gap from the
+          dashed border. The folder stays square; edit buttons sit below it. */}
       <div
         className={[
-          'w-full h-full flex flex-col',
-          isEditing && 'p-theme-folder',
+          'w-full flex flex-col',
+          isEditing && 'p-theme-folder px-3 py-3 gap-2',
         ].filter(Boolean).join(' ')}
       >
-        {/* Folder tab — holds the category name; width auto-sizes to text within
-            min/max bounds so the folder-tab silhouette is preserved. Height + font
-            scale with tile via cqi. */}
-        <div
-          className="self-start w-fit min-w-[40%] max-w-[85%] shrink-0 rounded-t-theme-sm flex items-center justify-center"
-          style={{
-            height: 'clamp(1rem, 10cqi, 2rem)',
-            padding: '0 4cqi',
-            backgroundColor: colourPair.c500,
-          }}
-        >
-          <p
-            className="font-semibold text-white text-center truncate leading-tight"
-            style={{ fontSize: nameFontSize }}
-          >
-            {name}
-          </p>
-        </div>
-
-        {/* Card body — dark bg matches the design */}
-        <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
-
-          {/* Symbol — square coloured box, height-first sizing.
-              Symbol flex-shrinks when the admin pack-status label is rendered
-              below it, so the label always has room. Top padding bumps when
-              the admin label is present to visually balance the extra space
-              the label adds below; in instructor view top + bottom match. */}
+        {/* Folder (always square) — tab + card body */}
+        <div className="w-full aspect-square flex flex-col">
+          {/* Folder tab — holds the category name; width auto-sizes to text within
+              min/max bounds so the folder-tab silhouette is preserved. Height + font
+              scale with tile via cqi.
+              Tab background mixes the saturated category colour with the
+              page bg so the white label keeps enough contrast on the
+              brighter palettes (yellow / lime / amber) — pure c500 was
+              too washed out under white text. */}
           <div
-            className="flex-1 min-h-0 flex items-center justify-center overflow-hidden"
-            style={{ padding: adminPacks ? '7cqi 3cqi 3cqi' : '5cqi 3cqi 5cqi' }}
+            className="self-start w-fit min-w-[40%] max-w-[85%] shrink-0 rounded-t-theme-sm flex items-center justify-center"
+            style={{
+              height: 'clamp(1rem, 10cqi, 2rem)',
+              padding: '0 4cqi',
+              backgroundColor: `color-mix(in srgb, ${colourPair.c500} 50%, transparent)`,
+            }}
           >
-            <div
-              className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"
-              style={{ backgroundColor: colourPair.c100 }}
+            <p
+              className="font-semibold text-white text-center truncate leading-tight"
+              style={{ fontSize: nameFontSize }}
             >
-              {category.imagePath ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`/api/assets?key=${category.imagePath}`}
-                  alt={name}
-                  className="w-full h-full object-contain"
-                  style={{ padding: '2cqi' }}
-                  draggable={false}
-                />
-              ) : (
-                <ImageIcon className="w-1/2 h-1/2" style={{ color: colourPair.c500 }} />
-              )}
-            </div>
+              {name}
+            </p>
           </div>
 
-          {/* Admin-only pack-status label — sits inside the folder card under
-              the symbol. Symbol flex-shrinks above to make room. */}
-          {adminPacks && (
-            <div
-              className="shrink-0 flex items-center justify-center"
-              style={{ padding: '0 3cqi 4cqi' }}
-            >
-              <PackStatusLabel
-                publishedToPackId={category.publishedToPackId}
-                packs={adminPacks}
-                language={language}
-              />
-            </div>
-          )}
+          {/* Card body — dark bg matches the design */}
+          <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
 
-          {/* Edit mode action buttons */}
-          {isEditing && (
+            {/* Symbol — square coloured box, height-first sizing.
+                Symbol flex-shrinks when the admin pack-status label is rendered
+                below it, so the label always has room. Top padding bumps when
+                the admin label is present to visually balance the extra space
+                the label adds below; in instructor view top + bottom match. */}
             <div
-              className="shrink-0 px-2 py-1.5 flex items-center justify-center gap-3"
-              style={{ background: OVERLAY_BG }}
+              className="flex-1 min-h-0 flex items-center justify-center overflow-hidden"
+              style={{ padding: adminPacks ? '7cqi 3cqi 3cqi' : '5cqi 3cqi 5cqi' }}
             >
-              <button
-                type="button"
-                onClick={() => onDeleteRequest(category._id, name)}
-                className="p-1 rounded-theme-sm transition-colors hover:bg-white/20"
-                style={{ color: 'var(--theme-alt-text)' }}
-                aria-label={`Delete ${name}`}
+              <div
+                className="aspect-square h-full max-w-full rounded-theme flex items-center justify-center overflow-hidden"
+                style={{ backgroundColor: colourPair.c100 }}
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="p-1 rounded-theme-sm transition-colors hover:bg-white/20 cursor-grab active:cursor-grabbing touch-none"
-                style={{ color: 'var(--theme-alt-text)' }}
-                aria-label={`Move ${name}`}
-                {...dragHandleProps?.listeners}
-                {...dragHandleProps?.attributes}
-              >
-                <Move className="w-4 h-4" />
-              </button>
+                {category.imagePath ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/api/assets?key=${category.imagePath}`}
+                    alt={name}
+                    className="w-full h-full object-contain"
+                    style={{ padding: '2cqi' }}
+                    draggable={false}
+                  />
+                ) : (
+                  <ImageIcon className="w-1/2 h-1/2" style={{ color: colourPair.c500 }} />
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Admin-only pack-status label — sits inside the folder card under
+                the symbol. Symbol flex-shrinks above to make room. */}
+            {adminPacks && (
+              <div
+                className="shrink-0 flex items-center justify-center"
+                style={{ padding: '0 3cqi 4cqi' }}
+              >
+                <PackStatusLabel
+                  publishedToPackId={category.publishedToPackId}
+                  packs={adminPacks}
+                  language={language}
+                />
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Edit-mode action buttons — sit BELOW the folder so they don't
+            squeeze the symbol image. Wrapped by the dashed border above.
+            Gap, padding, and icon size scale with tile width via cqi so
+            they stay inside the dashed border on small grid sizes. */}
+        {isEditing && (
+          <div
+            className="shrink-0 flex items-center justify-center"
+            style={{ gap: 'clamp(0.25rem, 2cqi, 0.75rem)' }}
+          >
+            <button
+              type="button"
+              onClick={() => onDeleteRequest(category._id, name)}
+              className="rounded-theme-sm transition-colors hover:bg-white/10"
+              style={{
+                color: 'var(--theme-warning)',
+                padding: 'clamp(0.125rem, 1.5cqi, 0.375rem)',
+              }}
+              aria-label={`Delete ${name}`}
+            >
+              <Trash2 style={{ width: 'clamp(0.625rem, 4cqi, 1rem)', height: 'clamp(0.625rem, 4cqi, 1rem)' }} />
+            </button>
+            <button
+              type="button"
+              className="rounded-theme-sm transition-colors hover:bg-white/10 cursor-grab active:cursor-grabbing touch-none"
+              style={{
+                color: 'var(--theme-text-primary)',
+                padding: 'clamp(0.125rem, 1.5cqi, 0.375rem)',
+              }}
+              aria-label={`Move ${name}`}
+              {...dragHandleProps?.listeners}
+              {...dragHandleProps?.attributes}
+            >
+              <Move style={{ width: 'clamp(0.625rem, 4cqi, 1rem)', height: 'clamp(0.625rem, 4cqi, 1rem)' }} />
+            </button>
+          </div>
+        )}
       </div>
     </Tag>
     </ModellingOverlayWrapper>

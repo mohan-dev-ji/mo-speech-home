@@ -294,7 +294,10 @@ export function ListsModeContent() {
       const oldIdx = prev.indexOf(active.id as string);
       const newIdx = prev.indexOf(over.id as string);
       const next = arrayMove(prev, oldIdx, newIdx);
-      reorderLists({ orderedIds: next as Id<'profileLists'>[] });
+      reorderLists({
+        orderedIds: next as Id<'profileLists'>[],
+        propagateToPack: showAdminBadges,
+      });
       return next;
     });
   }
@@ -306,6 +309,7 @@ export function ListsModeContent() {
       await updateListItems({
         profileListId: id,
         items: nonEmpty.map((description, i) => ({ order: i, description })),
+        propagateToPack: showAdminBadges,
       });
     }
     // ?edit=1 lands the detail page in edit mode so the new symbol slots
@@ -318,7 +322,10 @@ export function ListsModeContent() {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteList({ profileListId: pendingDelete.id });
+      await deleteList({
+        profileListId: pendingDelete.id,
+        propagateToPack: showAdminBadges,
+      });
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -330,7 +337,11 @@ export function ListsModeContent() {
       setEditingNameId(null);
       return;
     }
-    await renameList({ profileListId: editingNameId, name: { eng: editingNameValue.trim() } });
+    await renameList({
+      profileListId: editingNameId,
+      name: { eng: editingNameValue.trim() },
+      propagateToPack: showAdminBadges,
+    });
     setEditingNameId(null);
   }
 

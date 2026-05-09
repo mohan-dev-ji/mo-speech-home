@@ -137,6 +137,10 @@
     "pro": "Pro",
     "max": "Max"
   },
+  "adminPackEditing": {
+    "default": "You're editing the default pack — changes will apply to all new sign-ups.",
+    "withPack": "You're editing the {pack} pack — changes will apply to all new sign-ups that load this pack."
+  },
   "packPicker": {
     "title": "Save {kind} to library",
     "itemCategory": "category",
@@ -177,6 +181,9 @@
     "headerToggleLabel": "Toggle header visibility",
     "modeToggle": "Talker",
     "modeToggleLabel": "Toggle talker mode",
+    "gridSizeLabel": "Grid size",
+    "gridSizeInstructor": "Grid size",
+    "gridSizeStudent": "Student grid size",
     "signOut": "Sign out"
   },
   "home": {
@@ -235,6 +242,7 @@
     "loading": "Loading symbols…",
     "empty": "No symbols in this category yet.",
     "noProfile": "No student profile found.",
+    "editNameLabel": "Edit category name",
     "modeBoard": "Board",
     "modeLists": "Lists",
     "modeFirstThens": "First Thens",

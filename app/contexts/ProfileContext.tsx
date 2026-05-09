@@ -164,6 +164,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // ── Mutations — student profiles (studentProfiles table) ───────────────────
 
   const setStateFlagMutation         = useMutation(api.studentProfiles.setStateFlag);
+  const setStudentGridSizeMutation   = useMutation(api.studentProfiles.setGridSize);
   const updateStudentProfileMutation = useMutation(api.studentProfiles.updateStudentProfile);
   const setActiveProfileMutation     = useMutation(api.studentProfiles.setActiveProfile);
 
@@ -227,10 +228,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // ── Instructor setters ───────────────────────────────────────────────────────
 
   function setGridSize(size: 'large' | 'medium' | 'small') {
-    // Derive text size: large→medium, medium→small, small→xs
-    const derived = size === 'large' ? 'medium' : size === 'medium' ? 'small' : 'xs';
-    setMyInstructorGridSizeMutation({ gridSize: size });
-    setMyInstructorSymbolTextSizeMutation({ textSize: derived });
+    // viewMode-aware: instructor / admin views write to the instructor's
+    // own grid size; student-view writes to the active student profile.
+    // Mirrors setTalkerVisible's pattern. See ADR-008 (admin acts as
+    // instructor — same writes).
+    if (viewMode !== 'student-view') {
+      // Derive text size: large→medium, medium→small, small→xs
+      const derived = size === 'large' ? 'medium' : size === 'medium' ? 'small' : 'xs';
+      setMyInstructorGridSizeMutation({ gridSize: size });
+      setMyInstructorSymbolTextSizeMutation({ textSize: derived });
+      return;
+    }
+    if (!studentProfile) return;
+    setStudentGridSizeMutation({ profileId: studentProfile._id, gridSize: size });
   }
 
   function setSymbolLabelVisible(value: boolean) {
