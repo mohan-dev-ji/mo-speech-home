@@ -340,14 +340,20 @@
     "title": "श्रेणियाँ",
     "edit": "Edit (hi)",
     "exitEdit": "Exit Edit (hi)",
-    "add": "Add (hi)",
+    "create": "Create category (hi)",
     "loading": "Loading categories… (hi)",
     "noProfile": "No student profile found. (hi)",
     "deleteTitle": "Delete Category (hi)",
     "deleteConfirm": "This will permanently delete \"{name}\" and all its symbols. This cannot be undone. (hi)",
     "cancel": "Cancel (hi)",
     "delete": "Delete (hi)",
-    "deleting": "Deleting… (hi)"
+    "deleting": "Deleting… (hi)",
+    "createModalTitle": "New category (hi)",
+    "createModalNameLabel": "Category name (hi)",
+    "createModalNamePlaceholder": "e.g. Outside, Animals, Music (hi)",
+    "createModalCancel": "Cancel (hi)",
+    "createModalCreate": "Create (hi)",
+    "creating": "Creating… (hi)"
   },
   "settings": {
     "title": "सेटिंग्स",

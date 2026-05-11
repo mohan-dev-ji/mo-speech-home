@@ -23,6 +23,7 @@ import { Pencil, Trash2, Move, Check, X } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
+import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -348,8 +349,14 @@ export function ListsModeContent() {
   const listMap = Object.fromEntries((lists ?? []).map((l) => [l._id, l]));
   const orderedLists = localOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
+  // Admin-view reminder: any list on screen that's published means
+  // reorder / rename / delete here propagates to the live pack.
+  const hasPublishedList = !!lists?.some((l) => !!l.publishedToPackId);
+
   return (
     <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
+
+      <AdminPackEditingBanner visible={showAdminBadges && hasPublishedList} />
 
       {/* Header */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (

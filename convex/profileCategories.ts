@@ -172,6 +172,40 @@ export const getProfileSymbolsWithImages = query({
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
 /**
+ * Create a new profileCategory on the caller's account. Mirrors createProfileList /
+ * createProfileSentence: a single-field add from the listing-page modal. Colour,
+ * icon, image, and symbols are set afterwards via the detail page (BannerEdit).
+ *
+ * View-mode agnostic — the row is a plain instructor-owned category regardless
+ * of whether the caller is in instructor or admin viewMode. Admins promote it to
+ * the starter pack or library afterwards via setCategoryDefault /
+ * setCategoryInLibrary on the detail page. See ADR-008.
+ */
+export const createProfileCategory = mutation({
+  args: {
+    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+  },
+  handler: async (ctx, args) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+
+    const last = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
+      .order("desc")
+      .first();
+
+    return ctx.db.insert("profileCategories", {
+      accountId,
+      name: args.name,
+      icon: "📁",
+      colour: "#6B7280",
+      order: last ? last.order + 1 : 0,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
  * Persist a new order for the categories on the caller's account.
  */
 export const reorderCategories = mutation({

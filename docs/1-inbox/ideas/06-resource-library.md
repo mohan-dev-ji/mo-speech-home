@@ -54,6 +54,53 @@ Tapping any save action takes a snapshot of the current item and creates or upda
 
 ---
 
+## Recommended Authoring Workflow — for Mo Speech Staff
+
+The view-mode toggle is also a propagation switch: once a row has been published to a pack (i.e. `publishedToPackId` is set), edits made **in admin view** auto-sync to the pack snapshot via `propagateToPack: true`; edits made **in instructor view** stay private to the admin's own account. Use this deliberately:
+
+### 1. Build in instructor view
+
+Create the category, list, sentence, or symbol the same way any instructor would — using the standard editor. No admin chrome, no toggles, no risk of accidentally promoting half-finished work. Choose imagery, colour, audio, ordering. Iterate freely; nothing leaves your account.
+
+> The create mutations are view-mode-agnostic: instructor and admin view produce identical rows. Working in instructor view is purely a discipline / safety choice — there's no admin chrome to mis-click.
+
+### 2. Flip to admin view to publish
+
+When the content is ready, switch to admin view via the breadcrumb dropdown. The admin chrome appears on the detail page:
+
+- **"Make Default"** — promotes the item into the canonical starter pack (seeds every new account from now on).
+- **"Save to library"** — opens the pack picker; choose an existing library pack ("Add to existing") or create a new one ("New pack").
+
+The toggle takes a snapshot of the current row state and writes it into the pack. The `AdminPackEditingBanner` now appears at the top of the editor as a reminder that this row is live.
+
+### 3. Edits after publishing
+
+Once a row is published, the view mode determines whether edits propagate:
+
+| View mode | Behaviour on edit | Use it when… |
+|---|---|---|
+| Admin | Edits auto-sync to the pack snapshot — visible to every new user who loads the pack from now on. | You want to update the live pack — fix a typo, swap an image, reorder symbols. |
+| Instructor | Edits stay on your account only; pack snapshot untouched. | You want to make a personal change (your own student's customisation) or preview how a regular instructor sees the pack. |
+
+The pack snapshot is **frozen for already-loaded users** — any user who loaded the pack before your edit keeps the older content. Propagation only affects future loads.
+
+### 4. Sanity-check before promoting
+
+Before clicking "Make Default" or "Save to library", flip to instructor view briefly. You'll see exactly what a regular family will see when they load the pack — no admin chrome, no toggles, just the content. If something looks off, flip back to admin view, fix it, then publish.
+
+### Mental model
+
+- **Admin view = author mode.** Chrome visible. Edits propagate. Use when committing changes to live packs.
+- **Instructor view = preview / private mode.** Chrome hidden. Edits are personal. Use when drafting, previewing, or making changes you don't want to ship.
+
+### Things to avoid
+
+- **Don't edit a published row in admin view unless you mean to update the pack.** Flip to instructor view first if you're just trying things out.
+- **Don't drag-reorder a long list of mixed published and unpublished items in admin view casually** — the reorder propagates to every pack that contains any of those items. The new listing-page disclaimer banner is your reminder.
+- **Don't "Make Default" something half-finished** to "save your progress." The snapshot is immediate. New accounts start seeding from that pack right away. Drafts stay unpublished until they're really ready.
+
+---
+
 ## Admin CMS (Thin) — Built in Phase 7
 
 The metadata/lifecycle layer lives in the admin dashboard's Library section, which is built as part of **Phase 7 — Admin Dashboard**. That section handles only metadata and lifecycle, not content authoring:

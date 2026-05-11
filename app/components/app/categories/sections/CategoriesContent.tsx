@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
-import { Edit2, LogOut, Plus } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
+import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import {
   DndContext,
   closestCenter,
@@ -27,6 +28,8 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { CategoryTile } from '@/app/components/app/categories/ui/CategoryTile';
+import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
+import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
   Dialog,
   DialogContent,
@@ -118,12 +121,14 @@ export function CategoriesContent() {
   const locale = params.locale as string;
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
+  const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
 
@@ -160,6 +165,7 @@ export function CategoriesContent() {
 
       reorderCategoriesMutation({
         orderedIds: newOrder as Id<'profileCategories'>[],
+        propagateToPack: showAdminBadges,
       });
 
       return newOrder;
@@ -181,36 +187,33 @@ export function CategoriesContent() {
     }
   }
 
+  async function handleCreate(name: string) {
+    await createCategoryMutation({ name: { eng: name } });
+  }
+
+  // Admin-view reminder: any category on screen that's published means
+  // reorder / delete here propagates to the live pack.
+  const hasPublishedCategory = !!categories?.some((c) => !!c.publishedToPackId);
+
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
+
+      <AdminPackEditingBanner visible={showAdminBadges && hasPublishedCategory} />
 
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            <button
-              type="button"
+            <EditButton
+              isEditing={isEditing}
               onClick={() => setIsEditing((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-90"
-              style={{
-                background: isEditing ? 'var(--theme-button-highlight)' : 'var(--theme-card)',
-                color: isEditing ? 'var(--theme-text)' : 'var(--theme-text-primary)',
-              }}
-            >
-              {isEditing ? (
-                <><LogOut className="w-3.5 h-3.5" />{t('exitEdit')}</>
-              ) : (
-                <><Edit2 className="w-3.5 h-3.5" />{t('edit')}</>
-              )}
-            </button>
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {t('add')}
-            </button>
+              editLabel={t('edit')}
+              exitLabel={t('exitEdit')}
+            />
+            <CreateButton
+              onClick={() => setIsCreateOpen(true)}
+              label={t('create')}
+            />
           </PageBanner>
         </div>
       )}
@@ -245,6 +248,13 @@ export function CategoriesContent() {
           </DndContext>
         )}
       </div>
+
+      {/* Create modal */}
+      <CreateCategoryModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreate={handleCreate}
+      />
 
       {/* Delete confirmation dialog */}
       <Dialog

@@ -341,14 +341,20 @@
     "title": "Categories",
     "edit": "Edit",
     "exitEdit": "Exit Edit",
-    "add": "Add",
+    "create": "Create category",
     "loading": "Loading categories…",
     "noProfile": "No student profile found.",
     "deleteTitle": "Delete Category",
     "deleteConfirm": "This will permanently delete \"{name}\" and all its symbols. This cannot be undone.",
     "cancel": "Cancel",
     "delete": "Delete",
-    "deleting": "Deleting…"
+    "deleting": "Deleting…",
+    "createModalTitle": "New category",
+    "createModalNameLabel": "Category name",
+    "createModalNamePlaceholder": "e.g. Outside, Animals, Music",
+    "createModalCancel": "Cancel",
+    "createModalCreate": "Create",
+    "creating": "Creating…"
   },
   "settings": {
     "title": "Settings",

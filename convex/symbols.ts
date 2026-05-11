@@ -90,20 +90,43 @@ export const searchSymbols = query({
  * the eng label and id — keeps the payload small.
  */
 export const listMultiWordEng = query({
-  args: { limit: v.optional(v.number()) },
+  args: {
+    /** Optional regex filter (case-insensitive) applied to words.eng. Used
+     *  to narrow down to conversational chat phrases vs the full 19k+
+     *  multi-word set. */
+    contains: v.optional(v.string()),
+    /** 1-indexed page number for the 32k-doc-per-call read limit. The
+     *  symbols table has ~52k rows, so page 1 + page 2 covers everything. */
+    page: v.optional(v.number()),
+    pageSize: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 32000;
-    const all = await ctx.db.query("symbols").take(limit);
-    const filtered = all
+    const pageSize = args.pageSize ?? 32000;
+    const page = args.page ?? 1;
+    const skip = (page - 1) * pageSize;
+
+    // Convex doesn't support .skip() — workaround: take(skip + pageSize)
+    // and slice off the head. For our two-page scan this keeps each call
+    // under the 32k read limit.
+    const window = await ctx.db.query("symbols").take(skip + pageSize);
+    const slice = window.slice(skip);
+
+    const re = args.contains
+      ? new RegExp(args.contains, "i")
+      : null;
+
+    const filtered = slice
       .filter((s) => s.words.eng.includes(" "))
+      .filter((s) => (re ? re.test(s.words.eng) : true))
       .map((s) => ({ _id: s._id, eng: s.words.eng }))
       .sort((a, b) => a.eng.length - b.eng.length);
-    // Cap return to stay under Convex's 8192 array-length validator.
-    // Shortest entries (= most conversational phrases) come first.
+
     const items = filtered.slice(0, 5000);
     return {
-      count: filtered.length,
-      totalScanned: all.length,
+      page,
+      pageSize,
+      sliceLength: slice.length,
+      multiWordCount: filtered.length,
       returned: items.length,
       items,
     };
