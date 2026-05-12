@@ -37,10 +37,11 @@ export function SymbolStixTab({
   );
 
   function handleSelect(sym: NonNullable<typeof results>[number]) {
-    // Picking a symbol always overwrites the description label with the
-    // SymbolStix word — the user can edit it after if they want a custom
-    // phrasing, but the default is "what I just picked = what shows on
-    // the symbol".
+    // Picking a symbol seeds the description label with the SymbolStix
+    // word ONLY when the user hasn't typed their own label yet. Swapping
+    // the symbol mid-edit must preserve any custom phrasing the user
+    // already entered — matches the behaviour of the Image Search and AI
+    // Generate tabs, which use conditional spread for the same reason.
     patch({
       symbolstixId: sym._id,
       symbolstixImagePath: sym.imagePath,
@@ -50,8 +51,8 @@ export function SymbolStixTab({
       // Adopt 'default' as the active source only if nothing is active yet —
       // swapping the symbol mid-edit must not clobber a generated/recorded clip.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
-      labelEng: sym.words.eng,
-      ...(sym.words.hin ? { labelHin: sym.words.hin } : {}),
+      ...(draft.labelEng.trim() === '' ? { labelEng: sym.words.eng } : {}),
+      ...(draft.labelHin.trim() === '' && sym.words.hin ? { labelHin: sym.words.hin } : {}),
     });
   }
 
