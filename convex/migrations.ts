@@ -567,3 +567,167 @@ export const stripCategoryMatchingSymbolColours = mutation({
   },
 });
 
+// ─── Resource library snapshot bloat cleanup ─────────────────────────────────
+//
+// Symbols saved before the SymbolEditorModal save-handler fix carry a full
+// `display` object even when every field matches the system default. The
+// original starter-pack entries (and post-fix entries) carry no `display`
+// field at all when on defaults. This migration strips matching fields on
+// both `profileSymbols` and `resourcePacks.categories[].symbols[]`,
+// converging existing data on the same clean shape.
+//
+// Idempotent — safe to re-run. Only strips values that exactly match the
+// system defaults; explicit user customisations are preserved untouched.
+// Does NOT touch `bgColour` / `borderColour` — those have category-relative
+// defaults handled by `stripCategoryMatchingSymbolColours` above.
+//
+// These constants must stay in sync with DEFAULT_DISPLAY in
+// app/components/app/shared/modals/symbol-editor/types.ts.
+
+const SYSTEM_DEFAULT_DISPLAY = {
+  textColour: "#111827",
+  borderWidth: 2,
+  showLabel: true,
+  showImage: true,
+  textSize: "sm",
+  shape: "rounded",
+} as const;
+
+type DisplayLike = {
+  bgColour?: string;
+  textColour?: string;
+  textSize?: "sm" | "md" | "lg" | "xl";
+  borderColour?: string;
+  borderWidth?: number;
+  showLabel?: boolean;
+  showImage?: boolean;
+  shape?: "square" | "rounded" | "circle";
+};
+
+/**
+ * Strip fields from `display` that match the system default. Returns the
+ * resulting object (or `undefined` if everything matched) plus the count
+ * of fields removed. Leaves bgColour / borderColour alone — those have
+ * category-relative defaults handled by a sibling migration.
+ */
+function stripDefaultDisplay(
+  display: DisplayLike | undefined
+): { next: DisplayLike | undefined; stripped: number } {
+  if (!display) return { next: undefined, stripped: 0 };
+  const next: DisplayLike = { ...display };
+  let stripped = 0;
+  if (next.textColour === SYSTEM_DEFAULT_DISPLAY.textColour) {
+    delete next.textColour;
+    stripped++;
+  }
+  if (next.borderWidth === SYSTEM_DEFAULT_DISPLAY.borderWidth) {
+    delete next.borderWidth;
+    stripped++;
+  }
+  if (next.showLabel === SYSTEM_DEFAULT_DISPLAY.showLabel) {
+    delete next.showLabel;
+    stripped++;
+  }
+  if (next.showImage === SYSTEM_DEFAULT_DISPLAY.showImage) {
+    delete next.showImage;
+    stripped++;
+  }
+  if (next.textSize === SYSTEM_DEFAULT_DISPLAY.textSize) {
+    delete next.textSize;
+    stripped++;
+  }
+  if (next.shape === SYSTEM_DEFAULT_DISPLAY.shape) {
+    delete next.shape;
+    stripped++;
+  }
+  const isEmpty = Object.keys(next).length === 0;
+  return { next: isEmpty ? undefined : next, stripped };
+}
+
+export const stripDefaultMatchingSymbolDisplay = mutation({
+  // Dashboard-runnable. No auth check — matches the pattern used by
+  // `materialiseStarterPack` / `stripCategoryMatchingSymbolColours`
+  // (one-shot ops invoked manually by an operator). Idempotent.
+  args: {},
+  handler: async (ctx) => {
+    // ── 1) profileSymbols ────────────────────────────────────────────────
+    const symbols = await ctx.db.query("profileSymbols").collect();
+    let symScanned = 0;
+    let symPatched = 0;
+    let symFieldsStripped = 0;
+    let symFullyCleared = 0;
+    let symUnchanged = 0;
+
+    for (const sym of symbols) {
+      symScanned++;
+      const { next, stripped } = stripDefaultDisplay(sym.display);
+      if (stripped === 0) {
+        symUnchanged++;
+        continue;
+      }
+      await ctx.db.patch(sym._id, { display: next });
+      symPatched++;
+      symFieldsStripped += stripped;
+      if (next === undefined) symFullyCleared++;
+    }
+
+    // ── 2) resourcePacks.categories[].symbols[] ──────────────────────────
+    const packs = await ctx.db.query("resourcePacks").collect();
+    let packsScanned = 0;
+    let packsTouched = 0;
+    let packSymFieldsStripped = 0;
+    let packSymFullyCleared = 0;
+
+    for (const pack of packs) {
+      packsScanned++;
+      if (!pack.categories || pack.categories.length === 0) continue;
+
+      let packChanged = false;
+      const nextCategories = pack.categories.map((cat) => {
+        const nextSymbols = cat.symbols.map((s) => {
+          const { next, stripped } = stripDefaultDisplay(
+            s.display as DisplayLike | undefined
+          );
+          if (stripped === 0) return s;
+          packChanged = true;
+          packSymFieldsStripped += stripped;
+          if (next === undefined) {
+            packSymFullyCleared++;
+            // Rebuild without the display field entirely.
+            const { display: _omit, ...rest } = s;
+            return rest;
+          }
+          return { ...s, display: next };
+        });
+        return { ...cat, symbols: nextSymbols };
+      });
+
+      if (packChanged) {
+        await ctx.db.patch(pack._id, { categories: nextCategories });
+        packsTouched++;
+      }
+    }
+
+    const summary = {
+      profileSymbols: {
+        scanned: symScanned,
+        patched: symPatched,
+        fieldsStripped: symFieldsStripped,
+        fullyCleared: symFullyCleared,
+        unchanged: symUnchanged,
+      },
+      resourcePacks: {
+        scanned: packsScanned,
+        touched: packsTouched,
+        symFieldsStripped: packSymFieldsStripped,
+        symFullyCleared: packSymFullyCleared,
+      },
+    };
+
+    console.log(
+      `[stripDefaultMatchingSymbolDisplay] ${JSON.stringify(summary)}`
+    );
+
+    return summary;
+  },
+});

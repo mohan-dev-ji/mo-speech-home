@@ -13,7 +13,7 @@ import { SymbolStixTab } from './SymbolStixTab';
 import { UploadTab } from './UploadTab';
 import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
-import { INITIAL_DRAFT, type Draft, type ImageSourceTab } from './types';
+import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -680,16 +680,23 @@ export function SymbolEditorModal({
         targetPair !== null &&
         draft.borderColour.toLowerCase() === targetPair.c500.toLowerCase();
 
-      const display = {
+      // Build display as a diff against system defaults — only persist
+      // fields the user actually overrode. Keeps profileSymbols and pack
+      // snapshots in the same clean shape as the original starter-pack
+      // entries (which carry no display object when on defaults). If no
+      // field deviates, pass undefined so the mutation clears the field
+      // entirely.
+      const displayDiff = {
         ...(bgMatchesCategory ? {} : { bgColour: draft.bgColour }),
-        textColour: draft.textColour,
+        ...(draft.textColour !== DEFAULT_DISPLAY.textColour ? { textColour: draft.textColour } : {}),
         ...(borderMatchesCategory ? {} : { borderColour: draft.borderColour }),
-        borderWidth: draft.borderWidth,
-        showLabel: draft.showLabel,
-        showImage: draft.showImage,
-        textSize: draft.textSize,
-        shape: draft.shape,
+        ...(draft.borderWidth !== DEFAULT_DISPLAY.borderWidth ? { borderWidth: draft.borderWidth } : {}),
+        ...(draft.showLabel !== DEFAULT_DISPLAY.showLabel ? { showLabel: draft.showLabel } : {}),
+        ...(draft.showImage !== DEFAULT_DISPLAY.showImage ? { showImage: draft.showImage } : {}),
+        ...(draft.textSize !== DEFAULT_DISPLAY.textSize ? { textSize: draft.textSize } : {}),
+        ...(draft.shape !== DEFAULT_DISPLAY.shape ? { shape: draft.shape } : {}),
       };
+      const display = Object.keys(displayDiff).length > 0 ? displayDiff : undefined;
 
       const label = {
         eng: draft.labelEng.trim(),

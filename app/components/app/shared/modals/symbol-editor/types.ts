@@ -59,3 +59,23 @@ export const INITIAL_DRAFT: Draft = {
   shape: 'rounded',
   profileCategoryId: '',
 };
+
+/**
+ * System-default display values. The save handler compares draft fields
+ * against these and OMITS any matching field from the persisted `display`
+ * object — so the saved profileSymbol (and any pack snapshot built from
+ * it) carries only true overrides. Matches the convention of the original
+ * starter-pack symbols, which have no `display` field at all.
+ *
+ * Does NOT include bgColour / borderColour — those use category-relative
+ * defaults (`getCategoryColour`) and are stripped by their own logic in
+ * the save handler.
+ */
+export const DEFAULT_DISPLAY = {
+  textColour: INITIAL_DRAFT.textColour,
+  borderWidth: INITIAL_DRAFT.borderWidth,
+  showLabel: INITIAL_DRAFT.showLabel,
+  showImage: INITIAL_DRAFT.showImage,
+  textSize: INITIAL_DRAFT.textSize,
+  shape: INITIAL_DRAFT.shape,
+} as const;

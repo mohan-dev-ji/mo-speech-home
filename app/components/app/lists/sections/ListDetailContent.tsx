@@ -62,10 +62,15 @@ export function ListDetailContent({ listId }: Props) {
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const [packPickerOpen, setPackPickerOpen] = useState(false);
+  // Draft for the editable banner title. Synced from the server name on
+  // load + on every server change so a remote rename (or an Escape revert)
+  // restores the canonical value.
+  const [nameDraft, setNameDraft] = useState('');
 
   const list = useQuery(api.profileLists.getProfileListWithItems, { profileListId: listId });
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
+  const renameList = useMutation(api.profileLists.updateProfileListName);
   const setListDefault = useMutation(api.resourcePacks.setListDefault);
   const setListInLibrary = useMutation(api.resourcePacks.setListInLibrary);
   const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTier);
@@ -96,6 +101,15 @@ export function ListDetailContent({ listId }: Props) {
     setBreadcrumbExtra({ label });
     return () => setBreadcrumbExtra(null);
   }, [list, language, setBreadcrumbExtra]);
+
+  // Keep the editable-title draft in sync with the server name. Runs on
+  // load and on any remote rename / locale switch; also restores the
+  // canonical value if the user reverts an in-progress edit via Escape.
+  useEffect(() => {
+    if (!list) return;
+    const next = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
+    setNameDraft(next);
+  }, [list, language]);
 
   async function persistItems(items: ListItem[]) {
     await updateItems({
@@ -288,6 +302,30 @@ export function ListDetailContent({ listId }: Props) {
   const effectiveDisplayFormat = isSmallScreen ? 'rows' : list.displayFormat;
   const isColumns = effectiveDisplayFormat === 'columns';
 
+  // Commit the editable banner title. Mirrors BannerEdit's category
+  // pattern: ignore empty/unchanged values, preserve the Hindi label if
+  // present, propagate to the pack snapshot only when admin in admin view.
+  async function commitName() {
+    if (!list) return;
+    const trimmed = nameDraft.trim();
+    if (!trimmed || trimmed === listName) {
+      setNameDraft(listName);
+      return;
+    }
+    const nextName: { eng: string; hin?: string } = { eng: trimmed };
+    if (list.name.hin) nextName.hin = list.name.hin;
+    try {
+      await renameList({
+        profileListId: listId,
+        name: nextName,
+        propagateToPack: showAdminButtons,
+      });
+    } catch (e) {
+      console.error('[ListDetailContent] rename failed', e);
+      setNameDraft(listName);
+    }
+  }
+
   const editProps = {
     items: localItems,
     showNumbers: list.showNumbers,
@@ -338,7 +376,34 @@ export function ListDetailContent({ listId }: Props) {
               />
             </div>
           )}
-          <PageBanner title={listName}>
+          <PageBanner
+            title={listName}
+            titleSlot={isEditing ? (
+              <input
+                type="text"
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  } else if (e.key === 'Escape') {
+                    setNameDraft(listName);
+                    e.currentTarget.blur();
+                  }
+                }}
+                aria-label={t('editNameLabel')}
+                className="text-theme-h3 font-bold leading-tight truncate min-w-0 w-full bg-transparent outline-none rounded-theme-sm px-1.5 -mx-1.5 transition-colors focus:bg-white/8"
+                style={{
+                  color: 'var(--theme-text-primary)',
+                  // Persistent dashed border whenever the editable input is
+                  // mounted (i.e. edit mode is on) — signals "this is editable"
+                  // before the user clicks. Matches BannerEdit on categories.
+                  border: '1px dashed var(--theme-enter-mode)',
+                }}
+              />
+            ) : undefined}
+          >
             {/* Row 1 — list-mode toggles. `w-full` forces the next group
                 onto its own row inside the PageBanner's flex-wrap container. */}
             <div className="w-full flex items-center flex-wrap gap-2">
