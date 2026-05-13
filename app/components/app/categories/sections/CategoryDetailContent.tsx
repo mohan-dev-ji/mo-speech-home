@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -172,7 +173,13 @@ export function CategoryDetailContent({ categoryId }: Props) {
     : undefined;
 
   // ── Edit state ──────────────────────────────────────────────────────────────
-  const [isEditing, setIsEditing] = useState(false);
+  // Honour `?edit=1` on first mount — set by CategoriesContent's create flow
+  // so brand-new categories land in edit mode and the user can tap each
+  // placeholder symbol to fill in an image.
+  const searchParams = useSearchParams();
+  const [isEditing, setIsEditing] = useState(
+    () => searchParams.get('edit') === '1'
+  );
   const [draftColour, setDraftColour] = useState('orange');
   const [draftImagePath, setDraftImagePath] = useState<string | undefined>(undefined);
   const [symbolEditorState, setSymbolEditorState] = useState<SymbolEditorState>({ isOpen: false });

@@ -246,6 +246,15 @@ export default defineSchema({
       v.object({
         type: v.literal("userUpload"),
         imagePath: v.string(), // R2 path
+      }),
+      // Empty/placeholder state — used by the category-create modal to
+      // seed slots with just a label. The instructor opens each placeholder
+      // in SymbolEditorModal; the saved label drives the SymbolStix search,
+      // so picking the matching symbol is a one-tap action. Placeholders
+      // are filtered out by buildCategorySnapshot, so they never end up in
+      // a published pack.
+      v.object({
+        type: v.literal("placeholder"),
       })
     ),
 

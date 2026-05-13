@@ -147,6 +147,13 @@ export const getProfileSymbolsWithImages = query({
             audioEng = ps.audio?.eng?.path ?? sym.audio.eng.default;
             audioHin = ps.audio?.hin?.path ?? sym.audio.hin?.default;
           }
+        } else if (ps.imageSource.type === "placeholder") {
+          // No image yet — left undefined so SymbolCard renders its empty
+          // state. Label still resolves; tapping the tile opens the editor
+          // with the label seeded into the SymbolStix search.
+          imagePath = undefined;
+          audioEng = ps.audio?.eng?.path;
+          audioHin = ps.audio?.hin?.path;
         } else {
           const src = ps.imageSource as { imagePath: string };
           imagePath = src.imagePath;
@@ -184,6 +191,12 @@ export const getProfileSymbolsWithImages = query({
 export const createProfileCategory = mutation({
   args: {
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    // Optional list of labels — one placeholder profileSymbol is created per
+    // non-empty entry, ordered as given. Empty / whitespace-only entries are
+    // skipped. The instructor opens each placeholder via SymbolEditorModal;
+    // the saved label drives the SymbolStix search so picking a matching
+    // symbol is a one-tap action.
+    symbolLabels: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -194,14 +207,34 @@ export const createProfileCategory = mutation({
       .order("desc")
       .first();
 
-    return ctx.db.insert("profileCategories", {
+    const now = Date.now();
+    const categoryId = await ctx.db.insert("profileCategories", {
       accountId,
       name: args.name,
       icon: "📁",
       colour: "#6B7280",
       order: last ? last.order + 1 : 0,
-      updatedAt: Date.now(),
+      updatedAt: now,
     });
+
+    // Seed placeholder symbols, if any. The category is brand new so there
+    // are no existing rows to shift — assign explicit order = index.
+    // Empty / whitespace-only entries are skipped.
+    const cleaned = (args.symbolLabels ?? [])
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    for (let i = 0; i < cleaned.length; i++) {
+      await ctx.db.insert("profileSymbols", {
+        accountId,
+        profileCategoryId: categoryId,
+        order: i,
+        imageSource: { type: "placeholder" },
+        label: { eng: cleaned[i] },
+        updatedAt: now,
+      });
+    }
+
+    return categoryId;
   },
 });
 

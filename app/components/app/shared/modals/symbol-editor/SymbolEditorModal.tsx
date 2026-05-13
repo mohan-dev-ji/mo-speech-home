@@ -274,17 +274,23 @@ export function SymbolEditorModal({
     const recordedAudioPath =
       eng?.alternates?.recorded  ?? (eng?.type === 'recorded' ? eng.path : undefined);
 
+    // Placeholder type (created by the category-create modal) lands on the
+    // SymbolStix tab. The label has already been pre-populated above into
+    // searchQuery, so the search auto-runs and the user picks a match in
+    // one tap. No image path / wikimedia metadata to rehydrate.
+    const isPlaceholder = ps.imageSource.type === 'placeholder';
     setDraft({
       imageSourceTab:
         ps.imageSource.type === 'symbolstix' ? 'symbolstix' :
         ps.imageSource.type === 'userUpload' ? 'upload' :
-        ps.imageSource.type === 'imageSearch' ? 'image-search' : 'ai-generate',
+        ps.imageSource.type === 'imageSearch' ? 'image-search' :
+        ps.imageSource.type === 'aiGenerated' ? 'ai-generate' : 'symbolstix',
       symbolstixId: ps.imageSource.type === 'symbolstix' ? ps.imageSource.symbolId : undefined,
       symbolstixImagePath: ps.symbolRecord?.imagePath,
       symbolstixAudioEng: defaultPath,
       symbolstixAudioHin: ps.symbolRecord?.audio.hin?.default,
       resolvedImagePath:
-        ps.imageSource.type !== 'symbolstix'
+        ps.imageSource.type !== 'symbolstix' && !isPlaceholder
           ? (ps.imageSource as { imagePath: string }).imagePath
           : undefined,
       wikimediaSourceUrl:

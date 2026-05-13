@@ -352,6 +352,9 @@
     "createModalTitle": "New category (hi)",
     "createModalNameLabel": "Category name (hi)",
     "createModalNamePlaceholder": "e.g. Outside, Animals, Music (hi)",
+    "createModalSymbolsLabel": "Symbols (hi)",
+    "createModalSymbolPlaceholder": "Type a word, e.g. dog (hi)",
+    "createModalAddSymbols": "Add more symbols (hi)",
     "createModalCancel": "Cancel (hi)",
     "createModalCreate": "Create (hi)",
     "creating": "Creating… (hi)"

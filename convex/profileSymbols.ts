@@ -31,7 +31,10 @@ const imageSourceValidator = v.union(
     imagePath: v.string(),
     aiPrompt: v.optional(v.string()),
   }),
-  v.object({ type: v.literal("userUpload"), imagePath: v.string() })
+  v.object({ type: v.literal("userUpload"), imagePath: v.string() }),
+  // Empty/placeholder — symbol has a label but no image yet. Mirrors the
+  // schema; see profileSymbols.imageSource in convex/schema.ts.
+  v.object({ type: v.literal("placeholder") })
 );
 
 const displayValidator = v.object({

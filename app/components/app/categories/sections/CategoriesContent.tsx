@@ -187,8 +187,15 @@ export function CategoriesContent() {
     }
   }
 
-  async function handleCreate(name: string) {
-    await createCategoryMutation({ name: { eng: name } });
+  async function handleCreate(name: string, symbolLabels: string[]) {
+    const id = await createCategoryMutation({
+      name: { eng: name },
+      symbolLabels,
+    });
+    // ?edit=1 lands the detail page in edit mode so the newly-seeded
+    // placeholder symbols are tappable right away — nudges the user to
+    // pick an image for each label they just typed.
+    router.push(`/${locale}/categories/${id}?edit=1`);
   }
 
   // Admin-view reminder: any category on screen that's published means
