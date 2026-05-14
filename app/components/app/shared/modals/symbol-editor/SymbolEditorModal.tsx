@@ -177,11 +177,15 @@ export function SymbolEditorModal({
     // closes without picking anything, the parent's existing image is
     // preserved untouched.
     //
-    // sentenceSlot keeps the simpler upload-tab rehydration since slot
-    // imagery is rarely SymbolStix-sourced and the user usually wants to
-    // see/replace what's there.
+    // sentenceSlot opens on the SymbolStix tab so editing a slot mirrors
+    // editing a list item — the common case is "find a better symbol",
+    // not "replace with an upload". The existing image stays seeded as
+    // `resolvedImagePath`, which is both shown by the live preview (via
+    // the `pendingImagePreviewUrl ?? resolvedImagePath` fallback in
+    // `previewImageSrc`) AND used by the save handler when the user
+    // doesn't pick a new SymbolStix result.
     ...(editorMode === 'sentenceSlot' && initialImagePath
-      ? { resolvedImagePath: initialImagePath, imageSourceTab: 'upload' as const }
+      ? { resolvedImagePath: initialImagePath, imageSourceTab: 'symbolstix' as const }
       : {}),
     ...listItemImageSeed,
     ...(editorMode === 'listItem'
@@ -336,6 +340,15 @@ export function SymbolEditorModal({
   // effect above already pulls saved colours and we don't want to clobber
   // them on open.
   const matchedCategoryRef = useRef<string | null>(null);
+
+  // Track where the backdrop click originated so a text-selection drag
+  // that starts inside the modal and releases on the backdrop doesn't
+  // count as a "click outside". Without this, highlighting a word and
+  // dragging past the edge of the content fires a click on the backdrop
+  // (the common ancestor of the mousedown / mouseup targets) and closes
+  // the modal — confusing behaviour vs. the other modals (which use
+  // Radix Dialog and get this right out of the box).
+  const backdropPointerDownRef = useRef(false);
   useEffect(() => {
     if (isEditMode) return;
     if (editorMode !== 'categoryBoard') return;
@@ -777,7 +790,15 @@ export function SymbolEditorModal({
     <div
       className="fixed inset-0 z-[200] flex items-end md:items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.6)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onMouseDown={(e) => {
+        backdropPointerDownRef.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && backdropPointerDownRef.current) {
+          onClose();
+        }
+        backdropPointerDownRef.current = false;
+      }}
     >
       <div
         className="relative flex flex-col md:flex-row w-full md:max-w-5xl h-[92dvh] md:h-[85vh] rounded-t-2xl md:rounded-2xl overflow-hidden"
