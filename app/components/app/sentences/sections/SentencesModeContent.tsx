@@ -15,6 +15,7 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
   arrayMove,
   useSortable,
 } from '@dnd-kit/sortable';
@@ -141,67 +142,148 @@ type SlotStripProps = {
   onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
+  // Persist a new slot order. Parent re-numbers `order` to match the
+  // new array index and forwards to `updateProfileSentenceSlots` with
+  // `propagateToPack` set per current viewMode.
+  onReorderSlots: (sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) => void;
   rowEditLabel: string;
   rowRemoveLabel: string;
   rowAddLabel: string;
 };
 
-function SlotStrip({
-  sentenceId, slots,
-  onEditSlot, onRemoveSlot, onAddSlot,
-  rowEditLabel, rowRemoveLabel, rowAddLabel,
-}: SlotStripProps) {
+// Each rendered slot. The whole tile is a drag handle — press-and-drag
+// past 8px starts a sort; a clean tap fires the click-to-edit. The X
+// delete button stops propagation so it stays a tap target.
+type SortableSlotProps = {
+  id: string;
+  slot: Slot;
+  slotIndex: number;
+  sentenceId: Id<'profileSentences'>;
+  onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
+  onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
+  rowEditLabel: string;
+  rowRemoveLabel: string;
+};
+
+function SortableSlot({
+  id, slot, slotIndex, sentenceId,
+  onEditSlot, onRemoveSlot,
+  rowEditLabel, rowRemoveLabel,
+}: SortableSlotProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  };
+
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      {slots.map((slot, i) => (
-        <div key={i} className="relative group">
-          <button
-            type="button"
-            onClick={() => onEditSlot(sentenceId, i)}
-            aria-label={rowEditLabel}
-            className="w-[60px] h-[60px] rounded-theme-sm overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
-            style={{
-              background: 'var(--theme-symbol-card-bg, rgba(255,255,255,0.12))',
-              border: '1.5px dashed var(--theme-brand-primary)',
-            }}
-          >
-            {slot.imagePath ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`/api/assets?key=${slot.imagePath}`}
-                alt=""
-                className="w-full h-full object-contain p-1"
-                draggable={false}
-              />
-            ) : (
-              <div className="w-8 h-8 rounded bg-white/10" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onRemoveSlot(sentenceId, i); }}
-            aria-label={rowRemoveLabel}
-            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-            style={{ background: 'var(--theme-warning)', color: '#fff' }}
-          >
-            <X className="w-3 h-3" />
-          </button>
-        </div>
-      ))}
+    <div ref={setNodeRef} style={style} className="relative group">
       <button
         type="button"
-        onClick={() => onAddSlot(sentenceId)}
-        aria-label={rowAddLabel}
-        className="w-[60px] h-[60px] rounded-theme-sm flex items-center justify-center transition-opacity hover:opacity-80"
+        onClick={() => onEditSlot(sentenceId, slotIndex)}
+        aria-label={rowEditLabel}
+        className="w-[60px] h-[60px] rounded-theme-sm overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80 touch-none cursor-grab active:cursor-grabbing"
         style={{
-          background: 'transparent',
+          background: 'var(--theme-symbol-card-bg, rgba(255,255,255,0.12))',
           border: '1.5px dashed var(--theme-brand-primary)',
-          color: 'var(--theme-brand-primary)',
         }}
+        {...listeners}
+        {...attributes}
       >
-        <Plus className="w-5 h-5" />
+        {slot.imagePath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/assets?key=${slot.imagePath}`}
+            alt=""
+            className="w-full h-full object-contain p-1"
+            draggable={false}
+          />
+        ) : (
+          <div className="w-8 h-8 rounded bg-white/10" />
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onRemoveSlot(sentenceId, slotIndex); }}
+        // Block pointer-down from reaching the slot's drag listeners so
+        // tapping the X never starts a drag, even on touch devices where
+        // a tiny pixel jitter could cross the 8px activation threshold.
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label={rowRemoveLabel}
+        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+        style={{ background: 'var(--theme-warning)', color: '#fff' }}
+      >
+        <X className="w-3 h-3" />
       </button>
     </div>
+  );
+}
+
+function SlotStrip({
+  sentenceId, slots,
+  onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
+  rowEditLabel, rowRemoveLabel, rowAddLabel,
+}: SlotStripProps) {
+  // Independent sensor for the slot DndContext — same 8px activation as
+  // the outer sentence-row sensor so click-to-edit on the slot tile and
+  // tap-to-delete on the X both stay reliable.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  // Stable IDs per position. Index-based is fine here because slot data
+  // is the visual we reorder, not the IDs themselves — see arrayMove
+  // call in handleDragEnd which produces a new slots array.
+  const itemIds = slots.map((_, i) => `slot-${i}`);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIdx = itemIds.indexOf(active.id as string);
+    const newIdx = itemIds.indexOf(over.id as string);
+    if (oldIdx < 0 || newIdx < 0) return;
+    const next = arrayMove(slots, oldIdx, newIdx).map((s, i) => ({ ...s, order: i }));
+    onReorderSlots(sentenceId, next);
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
+        <div className="flex flex-wrap gap-2 items-center">
+          {slots.map((slot, i) => (
+            <SortableSlot
+              key={itemIds[i]}
+              id={itemIds[i]}
+              slot={slot}
+              slotIndex={i}
+              sentenceId={sentenceId}
+              onEditSlot={onEditSlot}
+              onRemoveSlot={onRemoveSlot}
+              rowEditLabel={rowEditLabel}
+              rowRemoveLabel={rowRemoveLabel}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => onAddSlot(sentenceId)}
+            aria-label={rowAddLabel}
+            className="w-[60px] h-[60px] rounded-theme-sm flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{
+              background: 'transparent',
+              border: '1.5px dashed var(--theme-brand-primary)',
+              color: 'var(--theme-brand-primary)',
+            }}
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 
@@ -215,6 +297,7 @@ type SortableSentenceRowProps = {
   onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
+  onReorderSlots: (sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
   // Admin-only per-row affordances. Parent gates on viewMode === 'admin' && useIsAdmin().
@@ -235,7 +318,7 @@ type SortableSentenceRowProps = {
 function SortableSentenceRow({
   sentence, language, isEditing,
   onDeleteRequest,
-  onEditSlot, onRemoveSlot, onAddSlot,
+  onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditSentence, onPlay,
   showAdminButtons = false,
   isDefault = false,
@@ -286,6 +369,7 @@ function SortableSentenceRow({
                 onEditSlot={onEditSlot}
                 onRemoveSlot={onRemoveSlot}
                 onAddSlot={onAddSlot}
+                onReorderSlots={onReorderSlots}
                 rowEditLabel={t('rowEditSlot')}
                 rowRemoveLabel={t('rowRemoveSlot')}
                 rowAddLabel={t('rowAddSlot')}
@@ -578,6 +662,22 @@ export function SentencesModeContent() {
     updateSlots({ profileSentenceId: sentenceId, slots: updated, propagateToPack: showAdminButtons });
   }
 
+  function handleReorderSlots(sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) {
+    // `nextSlots` already carries reindexed `order` values from SlotStrip.
+    // Re-shape to the mutation arg type so optional displayProps default
+    // to undefined when absent.
+    const slotsArg = nextSlots.map((s, i) => ({
+      order: i,
+      imagePath: s.imagePath,
+      displayProps: s.displayProps,
+    }));
+    updateSlots({
+      profileSentenceId: sentenceId,
+      slots: slotsArg,
+      propagateToPack: showAdminButtons,
+    });
+  }
+
   function handleSlotSave(result: SentenceSlotSaveResult) {
     if (!slotEditTarget) return;
     const sentence = sentences?.find((s) => s._id === slotEditTarget.sentenceId);
@@ -619,13 +719,14 @@ export function SentencesModeContent() {
   const hasPublishedSentence = !!sentences?.some((s) => !!s.publishedToPackId);
 
   return (
-    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
+    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
       <AdminPackEditingBanner
         visible={showAdminButtons && hasPublishedSentence}
       />
 
-      {/* Header */}
+      {/* Header — banner + talker stay fixed at the top of the viewport
+          while the rows below scroll. Mirrors the categories listing. */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
@@ -643,60 +744,65 @@ export function SentencesModeContent() {
         </div>
       )}
 
-      {sentences === undefined && (
-        <div className="flex justify-center py-12">
-          <div
-            className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
-          />
-        </div>
-      )}
+      {/* Scrollable content area — banner above + modals below stay in
+          their own non-scrolling slots. */}
+      <div className="flex-1 overflow-auto">
+        {sentences === undefined && (
+          <div className="flex justify-center py-12">
+            <div
+              className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
+            />
+          </div>
+        )}
 
-      {sentences?.length === 0 && (
-        <div className="flex items-center justify-center py-16">
-          <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-            {t('empty')}
-          </p>
-        </div>
-      )}
+        {sentences?.length === 0 && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('empty')}
+            </p>
+          </div>
+        )}
 
-      {sentences && sentences.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-3">
-              {orderedSentences.map((sentence) => {
-                const status = statusFor(sentence);
-                return (
-                  <SortableSentenceRow
-                    key={sentence._id}
-                    sentence={sentence}
-                    language={language}
-                    isEditing={isEditing}
-                    onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
-                    onEditSlot={handleEditSlot}
-                    onRemoveSlot={handleRemoveSlot}
-                    onAddSlot={handleAddSlot}
-                    onEditSentence={(s) => setSentenceEditTarget({
-                      sentenceId: s._id,
-                      value: s.text || (language === 'hin' && s.name.hin ? s.name.hin : s.name.eng),
-                      audioPath: s.audioPath,
-                    })}
-                    onPlay={(s) => setPlayTarget(s)}
-                    showAdminButtons={showAdminButtons}
-                    isDefault={status.isDefault}
-                    isInLibrary={status.isInLibrary}
-                    libraryTier={status.libraryTier}
-                    onToggleDefault={handleToggleDefault}
-                    onToggleLibrary={handleToggleLibrary}
-                    onSetTier={handleSetTier}
-                    adminPacks={showAdminButtons && packsStatus ? packsStatus : undefined}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
-      )}
+        {sentences && sentences.length > 0 && (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-3">
+                {orderedSentences.map((sentence) => {
+                  const status = statusFor(sentence);
+                  return (
+                    <SortableSentenceRow
+                      key={sentence._id}
+                      sentence={sentence}
+                      language={language}
+                      isEditing={isEditing}
+                      onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                      onEditSlot={handleEditSlot}
+                      onRemoveSlot={handleRemoveSlot}
+                      onAddSlot={handleAddSlot}
+                      onReorderSlots={handleReorderSlots}
+                      onEditSentence={(s) => setSentenceEditTarget({
+                        sentenceId: s._id,
+                        value: s.text || (language === 'hin' && s.name.hin ? s.name.hin : s.name.eng),
+                        audioPath: s.audioPath,
+                      })}
+                      onPlay={(s) => setPlayTarget(s)}
+                      showAdminButtons={showAdminButtons}
+                      isDefault={status.isDefault}
+                      isInLibrary={status.isInLibrary}
+                      libraryTier={status.libraryTier}
+                      onToggleDefault={handleToggleDefault}
+                      onToggleLibrary={handleToggleLibrary}
+                      onSetTier={handleSetTier}
+                      adminPacks={showAdminButtons && packsStatus ? packsStatus : undefined}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
 
       {/* Create modal */}
       <CreateSentenceModal

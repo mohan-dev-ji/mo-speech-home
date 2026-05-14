@@ -106,7 +106,14 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               {t('createModalListLabel')}
             </label>
 
-            <div className="flex flex-col gap-2">
+            {/* Cap the visible input list at ~5 rows; anything beyond
+                scrolls inside this container so the footer Create button
+                stays anchored at the bottom of the dialog. `pr-1` gives
+                the scrollbar a little breathing room next to the inputs.
+                Browsers auto-scroll the focused input into view when
+                "Add more steps" inserts and focuses a new field below the
+                fold. Mirrors CreateCategoryModal. */}
+            <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto pr-1">
               {steps.map((step, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div

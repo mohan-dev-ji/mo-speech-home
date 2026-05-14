@@ -354,11 +354,12 @@ export function ListsModeContent() {
   const hasPublishedList = !!lists?.some((l) => !!l.publishedToPackId);
 
   return (
-    <div className="p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap">
+    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
 
       <AdminPackEditingBanner visible={showAdminBadges && hasPublishedList} />
 
-      {/* Header */}
+      {/* Header — banner + talker stay fixed at the top of the viewport
+          while the rows below scroll. Mirrors the categories listing. */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
@@ -379,48 +380,52 @@ export function ListsModeContent() {
         </div>
       )}
 
-      {lists === undefined && (
-        <div className="flex justify-center py-12">
-          <div
-            className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
-          />
-        </div>
-      )}
+      {/* Scrollable content area — banner above + modals below stay in
+          their own non-scrolling slots. */}
+      <div className="flex-1 overflow-auto">
+        {lists === undefined && (
+          <div className="flex justify-center py-12">
+            <div
+              className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }}
+            />
+          </div>
+        )}
 
-      {lists?.length === 0 && (
-        <div className="flex items-center justify-center py-16">
-          <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-            {t('empty')}
-          </p>
-        </div>
-      )}
+        {lists?.length === 0 && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('empty')}
+            </p>
+          </div>
+        )}
 
-      {lists && lists.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-3">
-              {orderedLists.map((list) => (
-                <SortableListRow
-                  key={list._id}
-                  list={list}
-                  language={language}
-                  isEditing={isEditing}
-                  editingNameId={editingNameId}
-                  editingNameValue={editingNameValue}
-                  onEditNameStart={(id, name) => { setEditingNameId(id); setEditingNameValue(name); }}
-                  onEditNameChange={setEditingNameValue}
-                  onEditNameSave={handleEditNameSave}
-                  onEditNameCancel={() => setEditingNameId(null)}
-                  onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
-                  onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
-                  adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      )}
+        {lists && lists.length > 0 && (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-3">
+                {orderedLists.map((list) => (
+                  <SortableListRow
+                    key={list._id}
+                    list={list}
+                    language={language}
+                    isEditing={isEditing}
+                    editingNameId={editingNameId}
+                    editingNameValue={editingNameValue}
+                    onEditNameStart={(id, name) => { setEditingNameId(id); setEditingNameValue(name); }}
+                    onEditNameChange={setEditingNameValue}
+                    onEditNameSave={handleEditNameSave}
+                    onEditNameCancel={() => setEditingNameId(null)}
+                    onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                    onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
+                    adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
 
       <CreateListModal
         isOpen={createModalOpen}

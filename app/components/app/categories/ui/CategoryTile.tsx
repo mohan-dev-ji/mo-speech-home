@@ -142,8 +142,16 @@ export function CategoryTile({
             </p>
           </div>
 
-          {/* Card body — dark bg matches the design */}
-          <div className="w-full flex-1 min-h-0 bg-theme-card rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90">
+          {/* Card body — same 50%-saturated category-colour mix as the
+              folder tab above, so the tab and body read as one continuous
+              coloured surface. The inner symbol box keeps its pale c100
+              tint so the image still pops against the body. */}
+          <div
+            className="w-full flex-1 min-h-0 rounded-theme rounded-tl-none overflow-hidden flex flex-col transition-opacity group-hover:opacity-90"
+            style={{
+              backgroundColor: `color-mix(in srgb, ${colourPair.c500} 50%, transparent)`,
+            }}
+          >
 
             {/* Symbol — square coloured box, height-first sizing.
                 Symbol flex-shrinks when the admin pack-status label is rendered
