@@ -104,10 +104,11 @@ export function AiGenerateTab({
     const trimmedPrompt = prompt.trim();
     patch({
       resolvedImagePath: undefined,
-      // Clear any prior Wikimedia attribution from a different tab.
-      wikimediaSourceUrl: undefined,
-      wikimediaAttribution: undefined,
-      wikimediaLicense: undefined,
+      // Clear any prior image-search attribution from a different tab.
+      imageSourceUrl: undefined,
+      imageAttribution: undefined,
+      imageLicense: undefined,
+      imageProvider: undefined,
       ...(trimmedPrompt ? { labelEng: trimmedPrompt } : {}),
     });
   }

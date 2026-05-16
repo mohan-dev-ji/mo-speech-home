@@ -26,19 +26,19 @@ Drift check: if a pack feels equally at home in two tiers, ask: "would a family 
 
 ## Catalogue
 
-| Pack | Tier | Status | Season | Notes |
-|---|---|---|---|---|
-| Religion & Faith | Free | Live | — | Cross-faith neutral — ship before any single-faith pack; balanced symbol set |
-| Fun | Free | Live | — | |
-| Dinosaurs | Pro | Planned | — | Kids' obsession classic — high upgrade-driver |
-| Cars & Vehicles | Pro | Planned | — | |
-| Computers & Gaming | Pro | Planned | — | Older-kid appeal; controllers, screens, characters |
-| Space & Planets | Pro | Planned | — | |
-| Animals | Pro | Planned | — | Consider splitting later: Farm / Wild / Sea |
-| Music & Instruments | Pro | Planned | — | |
-| Diwali | Max | Planned | Oct / Nov | Expire ~2 weeks after; re-publish each year. Fully illustrated |
-| Christmas | Max | Planned | Dec | Fully illustrated story pack |
-| Chinese New Year | Max | Planned | Jan / Feb | Fully illustrated; consider zodiac variant per year |
+| Pack | Slug | Tier | Status | Season | Notes |
+|---|---|---|---|---|---|
+| Religion & Faith | `religion` | Free | Live | — | Cross-faith neutral — ship before any single-faith pack; balanced symbol set |
+| Fun | `fun` | Free | Live | — | |
+| Dinosaurs | `dinosaurs` | Pro | Planned | — | Kids' obsession classic — high upgrade-driver |
+| Cars & Vehicles | `vehicles` | Pro | Planned | — | |
+| Computers & Gaming | `computers-gaming` *(draft)* | Pro | Planned | — | Older-kid appeal; controllers, screens, characters |
+| Space & Planets | `space-planets` *(draft)* | Pro | Planned | — | |
+| Animals | `animals` *(draft)* | Pro | Planned | — | Consider splitting later: Farm / Wild / Sea |
+| Music & Instruments | `music-instruments` *(draft)* | Pro | Planned | — | |
+| Diwali | `diwali` | Max | Planned | Oct / Nov | Expire ~2 weeks after; re-publish each year. Fully illustrated |
+| Christmas | `christmas` | Max | Planned | Dec | Fully illustrated story pack |
+| Chinese New Year | `chinese-new-year` *(draft)* | Max | Planned | Jan / Feb | Fully illustrated; consider zodiac variant per year |
 
 ---
 
@@ -102,3 +102,4 @@ Captured here so they're not lost; promote into the table when ready.
 - When a seasonal pack expires, change Status → Archived rather than deleting the row — keeps the rationale and outline available for the next year's edition.
 - When tier strategy shifts (rare), update the "Tier rationale" section first, then re-tier individual packs.
 - Per-pack outlines can stay rough. They're a scratch surface, not a feature spec. Promote a pack to its own doc in `docs/4-builds/features/` only if it grows complex (e.g. dedicated illustration brief, voice talent procurement).
+- Slug is the canonical identifier: it's the JSON filename in `convex/data/library_packs/<slug>.json`, the `packLifecycle.slug` key, and the argument to `loadResourcePackV2`. Once a pack is Authoring or Live, treat its slug as immutable — renaming requires a file move, a lifecycle row update, and a backfill of `librarySourceId` on every loaded copy. Draft slugs (marked *(draft)* in the table) can be edited freely until authoring starts.

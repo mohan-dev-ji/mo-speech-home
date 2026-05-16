@@ -2,24 +2,48 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { getWikimediaFullImage } from "@/lib/image-providers/wikimedia";
+import { recordUnsplashDownload } from "@/lib/image-providers/unsplash";
+import type { ImageProvider } from "@/lib/image-providers/types";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_HOSTS = new Set(["upload.wikimedia.org"]);
-const PROXY_WIDTH = 640; // saved-image size — see plan §"Image sizing"
+/**
+ * Hosts we're willing to fetch image bytes from. The client passes the URL
+ * back to us (it was previously cached in our `imageSearchCache` table), but
+ * we re-validate so a malicious cache row or modified client request can't
+ * pull bytes from arbitrary URLs through our authenticated proxy.
+ */
+const ALLOWED_HOSTS = new Set([
+  "upload.wikimedia.org",
+  "pixabay.com",
+  "cdn.pixabay.com",
+  "images.unsplash.com",
+  "images.pexels.com",
+]);
+
+const KNOWN_PROVIDERS = new Set<ImageProvider>([
+  "wikimedia",
+  "pixabay",
+  "unsplash",
+  "pexels",
+]);
+
+const USER_AGENT =
+  "mo-speech (https://mospeech.com; support@mospeech.com)";
 
 /**
  * POST /api/image-search/proxy
- * Body: { pageId: number }
+ * Body: { fullImageUrl: string, provider: ImageProvider, providerId: string }
  *
- * Resolves the full image URL via a fresh imageinfo call (so we ask for the
- * upload size, not the grid thumbnail size we cached earlier), then streams
- * the bytes back. No transform, no R2 write — the modal Save flow handles R2
- * via the existing /api/upload-asset path.
+ * Streams image bytes from the provider CDN back to the client. The client
+ * uses the bytes to populate the symbol editor preview; the eventual R2 write
+ * happens via the existing /api/upload-asset path.
  *
- * Doesn't count against the quota — selecting a result is a follow-on action
- * to a search that already incremented.
+ * For Unsplash, we also fire a (non-blocking) download tracking ping —
+ * required by Unsplash API ToS when an image is "used" (saved).
+ *
+ * Doesn't count against the user's daily quota — selecting a result is a
+ * follow-on action to a search that already incremented.
  */
 export async function POST(request: Request) {
   const { userId, getToken } = await auth();
@@ -27,16 +51,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { pageId?: number };
+  let body: { fullImageUrl?: string; provider?: string; providerId?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const pageId = body.pageId;
-  if (typeof pageId !== "number" || !Number.isFinite(pageId) || pageId <= 0) {
-    return NextResponse.json({ error: "Missing pageId" }, { status: 400 });
+  const { fullImageUrl, provider, providerId } = body;
+  if (!fullImageUrl || typeof fullImageUrl !== "string") {
+    return NextResponse.json({ error: "Missing fullImageUrl" }, { status: 400 });
+  }
+  if (!provider || !KNOWN_PROVIDERS.has(provider as ImageProvider)) {
+    return NextResponse.json({ error: "Unknown provider" }, { status: 400 });
+  }
+  if (!providerId || typeof providerId !== "string") {
+    return NextResponse.json({ error: "Missing providerId" }, { status: 400 });
   }
 
   // ── Tier gate ────────────────────────────────────────────────────────────
@@ -58,35 +88,28 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Resolve full image URL ───────────────────────────────────────────────
-  let resolved;
-  try {
-    resolved = await getWikimediaFullImage(pageId, PROXY_WIDTH);
-  } catch (err) {
-    console.error("[image-proxy] resolve error", err);
-    return NextResponse.json({ error: "provider_error" }, { status: 502 });
-  }
-
-  // Whitelist host so a malicious cache or provider response can't pull
-  // bytes from arbitrary URLs through our auth.
+  // ── Host allowlist ───────────────────────────────────────────────────────
   let parsed: URL;
   try {
-    parsed = new URL(resolved.url);
+    parsed = new URL(fullImageUrl);
   } catch {
-    return NextResponse.json({ error: "invalid_upstream_url" }, { status: 502 });
+    return NextResponse.json({ error: "invalid_url" }, { status: 400 });
   }
   if (!ALLOWED_HOSTS.has(parsed.hostname)) {
     return NextResponse.json(
       { error: "upstream_host_not_allowed", host: parsed.hostname },
-      { status: 502 }
+      { status: 400 }
     );
   }
 
+  // ── Unsplash tracking ping (fire-and-forget per Unsplash ToS) ────────────
+  if (provider === "unsplash") {
+    void recordUnsplashDownload(providerId);
+  }
+
   // ── Stream bytes back ────────────────────────────────────────────────────
-  const upstream = await fetch(resolved.url, {
-    headers: {
-      "User-Agent": "mo-speech (https://mospeech.com; support@mospeech.com)",
-    },
+  const upstream = await fetch(fullImageUrl, {
+    headers: { "User-Agent": USER_AGENT },
   });
   if (!upstream.ok || !upstream.body) {
     return NextResponse.json(

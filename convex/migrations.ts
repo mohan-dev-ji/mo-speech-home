@@ -1051,3 +1051,82 @@ export const disableV1ResourcePacks = mutation({
     return { deleted };
   },
 });
+
+/**
+ * One-time: wipe imageSearchCache rows after reshaping the result schema for
+ * multi-provider support. Old rows (with `pageId: number`) fail the new
+ * validator. Cache rebuilds organically on next search; 24h TTL means we'd
+ * have rotated through anyway.
+ */
+export const wipeImageSearchCache = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("imageSearchCache").collect();
+    for (const row of rows) await ctx.db.delete(row._id);
+    console.log(`[wipeImageSearchCache] deleted ${rows.length} rows`);
+    return { wiped: rows.length };
+  },
+});
+
+/**
+ * Seed packLifecycle rows for every JSON pack in convex/data/library_packs/.
+ * Use after a dev Convex wipe to bring `/library` back online in one click —
+ * the alternative is re-toggling "Save to library" / "Make Default" per pack.
+ *
+ * The starter pack (`_starter`) is intentionally skipped: it's seeded into
+ * profiles on signup via `loadStarterTemplate`, not exposed on `/library`,
+ * so it doesn't need a lifecycle row.
+ *
+ * Defaults per row:
+ *  - `publishedAt = now` so packs are visible immediately.
+ *  - `featured = false` — admin opts in later.
+ *  - `tierOverride` left unset; reads resolve `tierOverride ?? defaultTier`.
+ *  - `name` / `description` / `coverImagePath` copied from JSON so the
+ *    picker + admin dashboard can read straight from the lifecycle row.
+ *
+ * Idempotent: skips slugs that already have a lifecycle row.
+ */
+export const seedLifecycleFromJSON = mutation({
+  args: { adminClerkUserId: v.string() },
+  handler: async (ctx, { adminClerkUserId }) => {
+    const now = Date.now();
+    let scanned = 0;
+    let seeded = 0;
+    let skippedStarter = 0;
+    let alreadyHadRow = 0;
+
+    for (const [slug, pack] of Object.entries(LIBRARY_PACKS)) {
+      scanned++;
+
+      if (pack.isStarter || slug === "_starter") {
+        skippedStarter++;
+        continue;
+      }
+
+      const existing = await ctx.db
+        .query("packLifecycle")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (existing) {
+        alreadyHadRow++;
+        continue;
+      }
+
+      await ctx.db.insert("packLifecycle", {
+        slug,
+        name: pack.name,
+        description: pack.description,
+        coverImagePath: pack.coverImagePath,
+        publishedAt: now,
+        featured: false,
+        createdBy: adminClerkUserId,
+        updatedAt: now,
+      });
+      seeded++;
+    }
+
+    const summary = { scanned, seeded, alreadyHadRow, skippedStarter };
+    console.log(`[seedLifecycleFromJSON] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});

@@ -8,23 +8,14 @@
  * https://meta.wikimedia.org/wiki/User-Agent_policy
  */
 
+import type { ImageSearchResult, ProviderSearchFn } from "./types";
+
 const WIKIMEDIA_API = "https://commons.wikimedia.org/w/api.php";
 const USER_AGENT =
   "mo-speech (https://mospeech.com; support@mospeech.com)";
 const PAGE_SIZE = 20;
-
-export type WikimediaResult = {
-  pageId: number;
-  title: string;
-  thumbnailUrl: string;
-  sourceUrl: string;
-  attribution: string;
-  license: string;
-  width: number;
-  height: number;
-  mime: string;
-  provider: "wikimedia";
-};
+const THUMB_WIDTH = 320;
+const FULL_WIDTH = 640;
 
 type ApiPage = {
   pageid: number;
@@ -59,13 +50,28 @@ function readMeta(
 }
 
 /**
+ * Derive a wider thumbnail URL by swapping the `/{N}px-` segment in the
+ * Wikimedia thumb URL for `/{FULL_WIDTH}px-`. Wikimedia auto-serves any
+ * width on demand from its thumbnail factory, so the wider URL is reliably
+ * fetchable without a second imageinfo call. If the source image is smaller
+ * than THUMB_WIDTH, Wikimedia returns the original URL (no `/{N}px-` segment);
+ * we fall back to the same URL in that case.
+ */
+function widenThumbUrl(thumbUrl: string): string {
+  // Anchor to the URL tail: replace the FINAL `/<width>px-<filename>` segment
+  // only. Some Wikimedia filenames legitimately contain a `<digits>px-` token
+  // (e.g. screenshots of width markers) and we don't want to rewrite those.
+  return thumbUrl.replace(/\/\d+px-([^/]+)$/, `/${FULL_WIDTH}px-$1`);
+}
+
+/**
  * Search Wikimedia Commons. Returns up to 20 results per page; SVG results
  * are filtered out (mostly diagrams/logos, low value for AAC).
  */
-export async function searchWikimedia(
+export const searchWikimedia: ProviderSearchFn = async (
   query: string,
   page = 0
-): Promise<WikimediaResult[]> {
+): Promise<ImageSearchResult[]> => {
   const params = new URLSearchParams({
     action: "query",
     format: "json",
@@ -80,74 +86,47 @@ export async function searchWikimedia(
     gsroffset: String(page * PAGE_SIZE),
     prop: "imageinfo",
     iiprop: "url|size|extmetadata|mime",
-    iiurlwidth: "320", // grid thumbnail size — standard cached width
+    iiurlwidth: String(THUMB_WIDTH),
     origin: "*",
   });
 
-  const res = await fetch(`${WIKIMEDIA_API}?${params}`, {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${WIKIMEDIA_API}?${params}`, {
+      headers: { "User-Agent": USER_AGENT },
+    });
+  } catch (err) {
+    console.error("[image-providers/wikimedia] fetch failed", err);
+    return [];
+  }
   if (!res.ok) {
-    throw new Error(`Wikimedia API error: ${res.status}`);
+    console.error(`[image-providers/wikimedia] API error: ${res.status}`);
+    return [];
   }
 
   const json = (await res.json()) as SearchResponse;
   const pages = json.query?.pages ?? [];
 
   return pages
-    .map((p): WikimediaResult | null => {
+    .map((p): ImageSearchResult | null => {
       const info = p.imageinfo?.[0];
       if (!info) return null;
       if (info.mime === "image/svg+xml") return null;
       if (!info.thumburl) return null;
 
       return {
-        pageId: p.pageid,
+        providerId: String(p.pageid),
+        provider: "wikimedia",
         title: p.title,
         thumbnailUrl: info.thumburl,
+        fullImageUrl: widenThumbUrl(info.thumburl),
         sourceUrl: info.descriptionurl,
         attribution: readMeta(info.extmetadata, "Artist") || "Unknown",
         license: readMeta(info.extmetadata, "LicenseShortName") || "Unknown",
         width: info.width,
         height: info.height,
         mime: info.mime,
-        provider: "wikimedia",
       };
     })
-    .filter((r): r is WikimediaResult => r !== null);
-}
-
-/**
- * Resolve a single file's full image URL at a given width via a second
- * imageinfo call. Used by the proxy route to fetch the bytes we save to R2.
- */
-export async function getWikimediaFullImage(
-  pageId: number,
-  width = 640
-): Promise<{ url: string; mime: string }> {
-  const params = new URLSearchParams({
-    action: "query",
-    format: "json",
-    formatversion: "2",
-    pageids: String(pageId),
-    prop: "imageinfo",
-    iiprop: "url|mime",
-    iiurlwidth: String(width),
-    origin: "*",
-  });
-
-  const res = await fetch(`${WIKIMEDIA_API}?${params}`, {
-    headers: { "User-Agent": USER_AGENT },
-  });
-  if (!res.ok) {
-    throw new Error(`Wikimedia API error: ${res.status}`);
-  }
-
-  const json = (await res.json()) as SearchResponse;
-  const info = json.query?.pages?.[0]?.imageinfo?.[0];
-  if (!info?.thumburl) {
-    throw new Error(`Wikimedia: no thumbnail for pageId ${pageId}`);
-  }
-
-  return { url: info.thumburl, mime: info.mime };
-}
+    .filter((r): r is ImageSearchResult => r !== null);
+};

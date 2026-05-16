@@ -4,16 +4,17 @@ import { v } from "convex/values";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const resultValidator = v.object({
-  pageId: v.number(),
+  providerId: v.string(),
+  provider: v.string(),
   title: v.string(),
   thumbnailUrl: v.string(),
+  fullImageUrl: v.string(),
   sourceUrl: v.string(),
   attribution: v.string(),
   license: v.string(),
   width: v.number(),
   height: v.number(),
   mime: v.string(),
-  provider: v.string(),
 });
 
 /**

@@ -297,15 +297,15 @@ export function SymbolEditorModal({
         ps.imageSource.type !== 'symbolstix' && !isPlaceholder
           ? (ps.imageSource as { imagePath: string }).imagePath
           : undefined,
-      wikimediaSourceUrl:
+      imageSourceUrl:
         ps.imageSource.type === 'imageSearch'
           ? (ps.imageSource as { imageSourceUrl?: string }).imageSourceUrl
           : undefined,
-      wikimediaAttribution:
+      imageAttribution:
         ps.imageSource.type === 'imageSearch'
           ? (ps.imageSource as { attribution?: string }).attribution
           : undefined,
-      wikimediaLicense:
+      imageLicense:
         ps.imageSource.type === 'imageSearch'
           ? (ps.imageSource as { license?: string }).license
           : undefined,
@@ -637,9 +637,9 @@ export function SymbolEditorModal({
           ? {
               type: 'imageSearch',
               imagePath: resolvedImagePath!,
-              imageSourceUrl: draft.wikimediaSourceUrl,
-              attribution: draft.wikimediaAttribution,
-              license: draft.wikimediaLicense,
+              imageSourceUrl: draft.imageSourceUrl,
+              attribution: draft.imageAttribution,
+              license: draft.imageLicense,
             }
           : draft.imageSourceTab === 'ai-generate'
           ? { type: 'aiGenerated', imagePath: resolvedImagePath! }

@@ -16,11 +16,15 @@ export type Draft = {
   symbolstixAudioHin?: string;
   // Custom image (upload / google / ai) — resolved R2 path
   resolvedImagePath?: string;
-  // Wikimedia Commons attribution — populated when Image Search picks a result,
-  // persisted on the saved symbol so credit can be surfaced wherever it shows.
-  wikimediaSourceUrl?: string;
-  wikimediaAttribution?: string;
-  wikimediaLicense?: string;
+  // External-image attribution — populated when Image Search picks a result.
+  // Provider-agnostic: works for Wikimedia, Pixabay, Unsplash, Pexels. The
+  // first three persist (mapped onto profileSymbols.imageSource fields);
+  // imageProvider is draft-only and is implicit from the licence string +
+  // source URL once persisted.
+  imageSourceUrl?: string;
+  imageAttribution?: string;
+  imageLicense?: string;
+  imageProvider?: string;
   // Labels
   labelEng: string;
   labelHin: string;

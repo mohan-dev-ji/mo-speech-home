@@ -736,16 +736,17 @@ export default defineSchema({
     page: v.number(),  // 0-indexed
     results: v.array(
       v.object({
-        pageId: v.number(),
+        providerId: v.string(), // native provider ID; Wikimedia pageId coerced via String()
+        provider: v.string(),   // 'wikimedia' | 'pixabay' | 'unsplash' | 'pexels'
         title: v.string(),
-        thumbnailUrl: v.string(),
+        thumbnailUrl: v.string(), // ~320px target
+        fullImageUrl: v.string(), // ~640px target — proxy streams this directly
         sourceUrl: v.string(),
         attribution: v.string(),
         license: v.string(),
         width: v.number(),
         height: v.number(),
         mime: v.string(),
-        provider: v.string(), // 'wikimedia' for now
       })
     ),
     expiresAt: v.number(),

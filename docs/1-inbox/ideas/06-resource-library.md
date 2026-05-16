@@ -20,21 +20,34 @@ The library also solves the cold-start problem. A new instructor does not need t
 
 ## Pack Structure
 
-A pack is any combination of categories, lists, and sentences — none are individually required. A pack might be a full category bundle (Halloween: category + 3 lists + 5 sentences), or just a single list (a Diwali greetings list), or a single sentence (a back-to-school sentence). The shape is flexible:
+A pack is any combination of categories, lists, and sentences — none individually required. A Halloween pack might be a category + 3 lists + 5 sentences. A Diwali pack might be a single greetings list. A back-to-school pack might be a single sentence.
 
+Each pack is a versioned JSON file in [`convex/data/library_packs/`](../../../convex/data/library_packs/), slug-keyed (one file per pack: `religion.json`, `fun.json`, `_starter.json`, etc.). The shape is defined by the `LibraryPack` TypeScript type at [`convex/data/library_packs/types.ts`](../../../convex/data/library_packs/types.ts):
+
+```ts
+type LibraryPack = {
+  slug: string;             // 'religion' — filename without `.json`
+  name: { eng: string; hin?: string };
+  description: { eng: string; hin?: string };
+  coverImagePath: string;   // R2 key under library-packs/<slug>/...
+  defaultTier: 'free' | 'pro' | 'max';
+  isStarter?: boolean;
+  categories?: Array<{ /* category snapshot */ }>;
+  lists: Array<{ /* list snapshot */ }>;
+  sentences: Array<{ /* sentence snapshot */ }>;
+};
 ```
-resourcePack
-  ├── tier         ("free" | "pro" | "max" — controls who can load it)
-  ├── category? (optional — name, icon, colour, ordered symbols with optional display overrides)
-  ├── lists[]      (may be empty)
-  └── sentences[]  (may be empty)
-```
 
-All symbol references within a pack point to `symbolId` values in the SymbolStix library. The pack does not contain custom images — it uses the existing library.
+Runtime visibility and lifecycle controls live in a small Convex table, `packLifecycle`, keyed by slug. A pack appears on `/library` only when both conditions hold:
 
-**Schema notes for Phase 6 build**:
-- Today's `resourcePacks.category` field in [convex/schema.ts](../../../convex/schema.ts) is a single non-optional object. Phase 6 makes it optional so lists-only and sentences-only packs are valid. If packs should bundle multiple categories, change `category` → `categories: v.array(...)` at the same time.
-- Add `tier: v.union(v.literal('free'), v.literal('pro'), v.literal('max'))` to mirror the existing `themes.tier` field. See "Tier Gating" below.
+1. A JSON file exists for the slug.
+2. A `packLifecycle` row exists for the slug with `publishedAt <= now` and `expiresAt` unset or in the future.
+
+Tier resolution: `tierOverride ?? pack.defaultTier`. The lifecycle row also carries `featured`, `seasonOverride`, and audit fields. Editing a `packLifecycle` row (publish/expire/feature/re-tier) requires no code deploy. Editing pack content (categories, lists, sentences) requires a JSON commit + deploy.
+
+All symbol references within a pack point to `symbolId` values in the SymbolStix library. Custom imagery (folder covers, story-pack illustrations, voice recordings) is stored under `library-packs/<slug>/…` in shared R2 and referenced from the JSON by R2 key.
+
+Authoritative reference: **[ADR-010](../../4-builds/decisions/ADR-010-pack-storage-shift.md)** §1–4.
 
 ---
 
@@ -105,17 +118,22 @@ Before clicking "Make Default" or "Save to library", flip to instructor view bri
 
 ## Admin CMS (Thin) — Built in Phase 7
 
-The metadata/lifecycle layer lives in the admin dashboard's Library section, which is built as part of **Phase 7 — Admin Dashboard**. That section handles only metadata and lifecycle, not content authoring:
+The admin dashboard's Library section is the lifecycle surface for live packs. It edits `packLifecycle` rows, not pack content. Per ADR-010, content authoring stays in the main app via the `LibraryPackPickerModal` → JSON publish flow; the dashboard handles only what should be deploy-free:
 
-- Pack listing (filter by season, status, featured)
-- Set `publishedAt` / unpublish (null = draft, not visible to users)
-- Set `expiresAt` (e.g. Halloween pack expires 1 November)
-- Toggle `featured` for home dashboard promotion
-- Set `season` and `tags` for discoverability
-- Reorder packs within season groupings
-- Delete packs
+- Pack listing — every `packLifecycle` row joined with its JSON metadata (filter by season, status, featured, tier).
+- Set `publishedAt` / clear it (null = drafted, not visible to users on `/library`).
+- Set `expiresAt` (e.g. Halloween pack expires 1 November).
+- Toggle `featured` for home dashboard promotion.
+- Set `tierOverride` to re-tier a pack without editing its JSON (`tierOverride ?? pack.defaultTier` resolves at read time).
+- Set `seasonOverride` and notes for discoverability.
+- Reorder featured packs within season groupings.
+- Delete a `packLifecycle` row — removes the pack from `/library` but leaves the JSON file intact, so the pack can be re-published later by recreating the row.
 
-No code deploy is required to publish, update, or expire a pack. Full spec for the admin dashboard surface lives in `17-admin-dashboard.md`.
+No code deploy is required for any of these operations.
+
+Content edits (rename, swap symbols, add a list, etc.) go through the existing in-app authoring flow: build in profile tables in admin view, click "Republish to JSON" or re-trigger Save on the `LibraryPackPickerModal`, review the JSON diff in `git diff convex/data/library_packs/`, commit, deploy. See ADR-010 §5 for the full round-trip.
+
+Full spec for the admin dashboard surface lives in `17-admin-dashboard.md`.
 
 ---
 

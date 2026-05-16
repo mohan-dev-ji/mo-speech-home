@@ -6,29 +6,36 @@ import { useTranslations } from "next-intl";
 import { Search, X, ExternalLink, Lock, AlertCircle } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
+import type { ImageProvider, ImageSearchResult } from "@/lib/image-providers/types";
 import type { Draft } from "./types";
 
 const FEATURE = "imageSearch";
 const DAILY_LIMIT = 30;
 
-type ImageSearchResult = {
-  pageId: number;
-  title: string;
-  thumbnailUrl: string;
-  sourceUrl: string;
-  attribution: string;
-  license: string;
-  width: number;
-  height: number;
-  mime: string;
-  provider: string;
-};
-
 type SearchResponse = {
   results: ImageSearchResult[];
   cached: boolean;
+  providersUsed: ImageProvider[];
+  providersEnabled: ImageProvider[];
   remaining: number | null;
 };
+
+/**
+ * Visual identity per provider. Letter + colour pair appears as a small badge
+ * on each thumbnail so the admin can tell at a glance which source they're
+ * about to pick. Colours are intentionally fixed (not theme-mapped) so the
+ * badge stays legible against any image, on any theme.
+ */
+const PROVIDER_BADGES: Record<ImageProvider, { letter: string; bg: string }> = {
+  wikimedia: { letter: "W", bg: "#555555" },
+  pixabay: { letter: "P", bg: "#2EC66B" },
+  unsplash: { letter: "U", bg: "#111111" },
+  pexels: { letter: "X", bg: "#05A081" },
+};
+
+function resultKey(r: ImageSearchResult): string {
+  return `${r.provider}:${r.providerId}`;
+}
 
 type Props = {
   draft: Draft;
@@ -50,9 +57,11 @@ export function ImagesTab({
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery.trim());
   const [results, setResults] = useState<ImageSearchResult[] | null>(null);
+  const [providersUsed, setProvidersUsed] = useState<ImageProvider[]>([]);
+  const [providersEnabled, setProvidersEnabled] = useState<ImageProvider[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [selectedPageId, setSelectedPageId] = useState<number | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isFetchingFull, setIsFetchingFull] = useState(false);
 
   const remaining = useQuery(
@@ -71,6 +80,8 @@ export function ImagesTab({
     if (!isMax) return;
     if (!debouncedSearch) {
       setResults(null);
+      setProvidersUsed([]);
+      setProvidersEnabled([]);
       setSearchError(null);
       return;
     }
@@ -98,6 +109,8 @@ export function ImagesTab({
         }
         const json = (await res.json()) as SearchResponse;
         setResults(json.results);
+        setProvidersUsed(json.providersUsed ?? []);
+        setProvidersEnabled(json.providersEnabled ?? []);
       })
       .catch(() => {
         if (!cancelled) setSearchError(t("imageSearchError"));
@@ -113,14 +126,18 @@ export function ImagesTab({
 
   // ── Select ─────────────────────────────────────────────────────────────────
   async function handleSelect(result: ImageSearchResult) {
-    setSelectedPageId(result.pageId);
+    setSelectedKey(resultKey(result));
     setIsFetchingFull(true);
     setSearchError(null);
     try {
       const res = await fetch("/api/image-search/proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageId: result.pageId }),
+        body: JSON.stringify({
+          fullImageUrl: result.fullImageUrl,
+          provider: result.provider,
+          providerId: result.providerId,
+        }),
       });
       if (!res.ok) {
         setSearchError(t("imageSearchError"));
@@ -136,9 +153,10 @@ export function ImagesTab({
       const trimmedQuery = searchQuery.trim();
       patch({
         resolvedImagePath: undefined,
-        wikimediaSourceUrl: result.sourceUrl,
-        wikimediaAttribution: result.attribution,
-        wikimediaLicense: result.license,
+        imageSourceUrl: result.sourceUrl,
+        imageAttribution: result.attribution,
+        imageLicense: result.license,
+        imageProvider: result.provider,
         ...(trimmedQuery ? { labelEng: trimmedQuery } : {}),
       });
     } catch {
@@ -170,6 +188,9 @@ export function ImagesTab({
       </div>
     );
   }
+
+  const someProvidersUnavailable =
+    providersEnabled.length > 0 && providersUsed.length < providersEnabled.length;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -242,57 +263,76 @@ export function ImagesTab({
         )}
 
         {results && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pb-3">
-            {results.map((r) => {
-              const isSelected = selectedPageId === r.pageId;
-              return (
-                <div
-                  key={r.pageId}
-                  className="flex flex-col gap-1 rounded-theme-sm p-2"
-                  style={{
-                    background: isSelected
-                      ? "color-mix(in srgb, var(--theme-brand-primary) 12%, transparent)"
-                      : "var(--theme-symbol-bg)",
-                    border: `2px solid ${isSelected ? "var(--theme-brand-primary)" : "transparent"}`,
-                    opacity: isFetchingFull && !isSelected ? 0.5 : 1,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(r)}
-                    disabled={isFetchingFull}
-                    className="flex flex-col items-center gap-1 w-full"
+          <>
+            <div
+              className="text-theme-xs pb-2"
+              style={{ color: "var(--theme-secondary-text)" }}
+            >
+              {results.length} results · {providersUsed.length} provider
+              {providersUsed.length === 1 ? "" : "s"}
+              {someProvidersUnavailable ? " · some providers unavailable" : ""}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pb-3">
+              {results.map((r) => {
+                const key = resultKey(r);
+                const isSelected = selectedKey === key;
+                const badge = PROVIDER_BADGES[r.provider];
+                return (
+                  <div
+                    key={key}
+                    className="flex flex-col gap-1 rounded-theme-sm p-2"
+                    style={{
+                      background: isSelected
+                        ? "color-mix(in srgb, var(--theme-brand-primary) 12%, transparent)"
+                        : "var(--theme-symbol-bg)",
+                      border: `2px solid ${isSelected ? "var(--theme-brand-primary)" : "transparent"}`,
+                      opacity: isFetchingFull && !isSelected ? 0.5 : 1,
+                    }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={r.thumbnailUrl}
-                      alt={r.title}
-                      className="w-full aspect-square object-contain rounded bg-white"
-                    />
-                  </button>
-                  <div className="flex items-center justify-between gap-1 min-w-0">
-                    <span
-                      className="text-theme-xs truncate"
-                      style={{ color: "var(--theme-secondary-text)" }}
-                      title={`${r.license} · ${r.attribution}`}
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(r)}
+                      disabled={isFetchingFull}
+                      className="relative flex flex-col items-center gap-1 w-full"
                     >
-                      {r.license} · {r.attribution}
-                    </span>
-                    <a
-                      href={r.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0"
-                      style={{ color: "var(--theme-secondary-text)" }}
-                      title={t("imageSearchAttributionLink")}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={r.thumbnailUrl}
+                        alt={r.title}
+                        className="w-full aspect-square object-contain rounded bg-white"
+                      />
+                      <span
+                        aria-label={`Source: ${r.provider}`}
+                        className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold leading-none"
+                        style={{ background: badge.bg, color: "#ffffff" }}
+                      >
+                        {badge.letter}
+                      </span>
+                    </button>
+                    <div className="flex items-center justify-between gap-1 min-w-0">
+                      <span
+                        className="text-theme-xs truncate"
+                        style={{ color: "var(--theme-secondary-text)" }}
+                        title={`${r.license} · ${r.attribution}`}
+                      >
+                        {r.license} · {r.attribution}
+                      </span>
+                      <a
+                        href={r.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0"
+                        style={{ color: "var(--theme-secondary-text)" }}
+                        title={t("imageSearchAttributionLink")}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

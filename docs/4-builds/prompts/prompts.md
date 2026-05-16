@@ -242,3 +242,7 @@ Don't start pnpm dev in the new worktree — your existing one on :3001 keeps ru
 
 .claude/worktrees/upbeat-swanson-31a8c6
 /Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/upbeat-swanson-31a8c6
+
+
+
+I am making an AAC program to help non verbal people communicate and I have an image search engine incase they can't find the symbols they want.
