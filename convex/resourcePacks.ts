@@ -1758,6 +1758,505 @@ export const setLibraryPackTier = mutation({
   },
 });
 
+// ─── V2 (ADR-010): JSON-pack-shaped toggle mutations ─────────────────────────
+//
+// These replace the V1 toggle mutations above for the new JSON-first authoring
+// flow. They:
+//  - Write `packSlug` (string) on the profile row instead of `publishedToPackId`
+//    (Convex Id).
+//  - Create / look up a `packLifecycle` row by slug for visibility metadata.
+//  - **Do not touch `resourcePacks`** — content is owned by JSON files, written
+//    by the `/api/admin/pack-publish` Next.js route after the modal Save click.
+//  - Have no sync helpers — there's nothing to sync because no Convex row holds
+//    the content snapshot.
+//
+// V1 mutations stay in place during the cutover as a rollback safety net (per
+// ADR-010 §2). They will be deleted in the deferred Phase X.
+
+const TARGET_VALIDATOR_V2 = v.union(
+  v.object({
+    mode: v.literal("create"),
+    slug: v.string(),
+    name: v.object({
+      eng: v.string(),
+      hin: v.optional(v.string()),
+    }),
+    description: v.optional(
+      v.object({
+        eng: v.string(),
+        hin: v.optional(v.string()),
+      })
+    ),
+    tier: TIER_VALIDATOR,
+  }),
+  v.object({
+    mode: v.literal("append"),
+    slug: v.string(),
+  })
+);
+
+const STARTER_SLUG = "_starter";
+
+/**
+ * Look up or create the starter lifecycle row. Returns the slug. The starter
+ * is special: `loadResourcePackV2` bypasses the lifecycle check for it, so
+ * the row only matters for admin-status lookups. We create it lazily so
+ * fresh deployments don't need a separate seed step.
+ */
+async function ensureStarterLifecycle(
+  ctx: MutationCtx,
+  clerkUserId: string
+): Promise<string> {
+  const existing = await ctx.db
+    .query("packLifecycle")
+    .withIndex("by_slug", (q) => q.eq("slug", STARTER_SLUG))
+    .first();
+  if (existing) return STARTER_SLUG;
+
+  // Pull name / description / cover from the JSON starter so the lifecycle
+  // row is self-describing even if the picker reads it before next publish.
+  const starterJson = getStarterLibraryPack();
+  const now = Date.now();
+  await ctx.db.insert("packLifecycle", {
+    slug: STARTER_SLUG,
+    ...(starterJson ? { name: starterJson.name } : {}),
+    ...(starterJson ? { description: starterJson.description } : {}),
+    ...(starterJson ? { coverImagePath: starterJson.coverImagePath } : {}),
+    publishedAt: now,
+    featured: false,
+    createdBy: clerkUserId,
+    updatedAt: now,
+  });
+  return STARTER_SLUG;
+}
+
+/**
+ * Resolve a V2 target to a slug. For 'create', validates the slug isn't
+ * taken and inserts a new lifecycle row. For 'append', validates the
+ * caller owns the existing lifecycle row.
+ */
+async function resolveTargetLifecycleV2(
+  ctx: MutationCtx,
+  target:
+    | {
+        mode: "create";
+        slug: string;
+        name: { eng: string; hin?: string };
+        description?: { eng: string; hin?: string };
+        tier: "free" | "pro" | "max";
+      }
+    | { mode: "append"; slug: string },
+  clerkUserId: string
+): Promise<string> {
+  if (target.mode === "create") {
+    // Validate slug shape — must be Convex-path-safe (alphanumeric +
+    // underscores + periods, no hyphens) and not collide with the starter.
+    if (!/^[a-z0-9_]+(?:\.[a-z0-9_]+)*$/.test(target.slug)) {
+      throw new ConvexError({
+        code: "INVALID_SLUG",
+        message:
+          "Slug must be lowercase alphanumeric with underscores only — no hyphens or spaces.",
+      });
+    }
+    if (target.slug === STARTER_SLUG) {
+      throw new ConvexError({
+        code: "RESERVED_SLUG",
+        message: "Slug '_starter' is reserved for the starter pack.",
+      });
+    }
+    const collision = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", target.slug))
+      .first();
+    if (collision) {
+      throw new ConvexError({
+        code: "SLUG_TAKEN",
+        message: `Slug "${target.slug}" already exists. Pick a different one.`,
+      });
+    }
+
+    const now = Date.now();
+    await ctx.db.insert("packLifecycle", {
+      slug: target.slug,
+      name: target.name,
+      ...(target.description ? { description: target.description } : {}),
+      // Set publishedAt = now so the pack is immediately visible on /library
+      // post-publish. Phase 7 admin dashboard will let the admin override
+      // (e.g. schedule a Halloween pack to go live on Oct 25).
+      publishedAt: now,
+      featured: false,
+      tierOverride: target.tier,
+      createdBy: clerkUserId,
+      updatedAt: now,
+    });
+    return target.slug;
+  }
+
+  // mode === 'append'
+  const lifecycle = await ctx.db
+    .query("packLifecycle")
+    .withIndex("by_slug", (q) => q.eq("slug", target.slug))
+    .first();
+  if (!lifecycle) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: `Pack "${target.slug}" not found.`,
+    });
+  }
+  if (lifecycle.slug === STARTER_SLUG) {
+    throw new ConvexError({
+      code: "STARTER_NOT_APPENDABLE",
+      message: "Use the Default toggle to add to the starter pack.",
+    });
+  }
+  if (lifecycle.createdBy !== clerkUserId) {
+    throw new ConvexError({
+      code: "NOT_OWNER",
+      message: "You don't own this pack.",
+    });
+  }
+  return lifecycle.slug;
+}
+
+/**
+ * V2: Toggle "Default" — starter-pack membership for a category. Writes
+ * the slug to `packSlug` instead of touching `resourcePacks`. JSON publish
+ * happens via the API route after the modal closes.
+ */
+export const setCategoryDefaultV2 = mutation({
+  args: {
+    profileCategoryId: v.id("profileCategories"),
+    on: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category || category.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Category not found." });
+    }
+
+    if (args.on) {
+      if (category.packSlug && category.packSlug !== STARTER_SLUG) {
+        throw new ConvexError({
+          code: "ALREADY_IN_LIBRARY",
+          message:
+            "Toggle Library off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await ensureStarterLifecycle(ctx, clerkUserId);
+      await ctx.db.patch(args.profileCategoryId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (category.packSlug !== STARTER_SLUG) {
+        return { slug: STARTER_SLUG, action: "noop" as const };
+      }
+      await ctx.db.patch(args.profileCategoryId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { slug: STARTER_SLUG, action: "removed" as const };
+    }
+  },
+});
+
+/**
+ * V2: Toggle "Library" — non-starter pack membership for a category.
+ *
+ * On: requires `target`. Either creates a new lifecycle row (mode: 'create')
+ * with the chosen slug + name + tier, or links to an existing lifecycle row
+ * the admin owns (mode: 'append'). Rejects if the category is already
+ * published to any pack.
+ *
+ * Off: clears `packSlug` (the JSON pack content remains until the next
+ * `pack-publish` runs and observes no source rows).
+ */
+export const setCategoryInLibraryV2 = mutation({
+  args: {
+    profileCategoryId: v.id("profileCategories"),
+    on: v.boolean(),
+    target: v.optional(TARGET_VALIDATOR_V2),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category || category.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Category not found." });
+    }
+
+    if (args.on) {
+      if (!args.target) {
+        throw new ConvexError({
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
+        });
+      }
+      if (category.packSlug) {
+        throw new ConvexError({
+          code: "ALREADY_PUBLISHED",
+          message:
+            "Toggle Default off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+      await ctx.db.patch(args.profileCategoryId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (!category.packSlug) {
+        return { action: "noop" as const };
+      }
+      if (category.packSlug === STARTER_SLUG) {
+        throw new ConvexError({
+          code: "USE_DEFAULT_TOGGLE",
+          message:
+            "This category is in the starter pack — use the Default toggle to remove.",
+        });
+      }
+      await ctx.db.patch(args.profileCategoryId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { action: "removed" as const };
+    }
+  },
+});
+
+/** V2: Toggle "Default" for a list. Mirrors `setCategoryDefaultV2`. */
+export const setListDefaultV2 = mutation({
+  args: {
+    profileListId: v.id("profileLists"),
+    on: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "List not found." });
+    }
+
+    if (args.on) {
+      if (list.packSlug && list.packSlug !== STARTER_SLUG) {
+        throw new ConvexError({
+          code: "ALREADY_IN_LIBRARY",
+          message:
+            "Toggle Library off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await ensureStarterLifecycle(ctx, clerkUserId);
+      await ctx.db.patch(args.profileListId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (list.packSlug !== STARTER_SLUG) {
+        return { slug: STARTER_SLUG, action: "noop" as const };
+      }
+      await ctx.db.patch(args.profileListId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { slug: STARTER_SLUG, action: "removed" as const };
+    }
+  },
+});
+
+/** V2: Toggle "Library" for a list. Mirrors `setCategoryInLibraryV2`. */
+export const setListInLibraryV2 = mutation({
+  args: {
+    profileListId: v.id("profileLists"),
+    on: v.boolean(),
+    target: v.optional(TARGET_VALIDATOR_V2),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "List not found." });
+    }
+
+    if (args.on) {
+      if (!args.target) {
+        throw new ConvexError({
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
+        });
+      }
+      if (list.packSlug) {
+        throw new ConvexError({
+          code: "ALREADY_PUBLISHED",
+          message:
+            "Toggle Default off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+      await ctx.db.patch(args.profileListId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (!list.packSlug) return { action: "noop" as const };
+      if (list.packSlug === STARTER_SLUG) {
+        throw new ConvexError({
+          code: "USE_DEFAULT_TOGGLE",
+          message:
+            "This list is in the starter pack — use the Default toggle to remove.",
+        });
+      }
+      await ctx.db.patch(args.profileListId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { action: "removed" as const };
+    }
+  },
+});
+
+/** V2: Toggle "Default" for a sentence. Mirrors `setCategoryDefaultV2`. */
+export const setSentenceDefaultV2 = mutation({
+  args: {
+    profileSentenceId: v.id("profileSentences"),
+    on: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Sentence not found." });
+    }
+
+    if (args.on) {
+      if (sentence.packSlug && sentence.packSlug !== STARTER_SLUG) {
+        throw new ConvexError({
+          code: "ALREADY_IN_LIBRARY",
+          message:
+            "Toggle Library off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await ensureStarterLifecycle(ctx, clerkUserId);
+      await ctx.db.patch(args.profileSentenceId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (sentence.packSlug !== STARTER_SLUG) {
+        return { slug: STARTER_SLUG, action: "noop" as const };
+      }
+      await ctx.db.patch(args.profileSentenceId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { slug: STARTER_SLUG, action: "removed" as const };
+    }
+  },
+});
+
+/** V2: Toggle "Library" for a sentence. Mirrors `setCategoryInLibraryV2`. */
+export const setSentenceInLibraryV2 = mutation({
+  args: {
+    profileSentenceId: v.id("profileSentences"),
+    on: v.boolean(),
+    target: v.optional(TARGET_VALIDATOR_V2),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Sentence not found." });
+    }
+
+    if (args.on) {
+      if (!args.target) {
+        throw new ConvexError({
+          code: "TARGET_REQUIRED",
+          message: "Target required when toggling Library on.",
+        });
+      }
+      if (sentence.packSlug) {
+        throw new ConvexError({
+          code: "ALREADY_PUBLISHED",
+          message:
+            "Toggle Default off first — items can only be in one pack at a time.",
+        });
+      }
+      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+      await ctx.db.patch(args.profileSentenceId, {
+        packSlug: slug,
+        updatedAt: Date.now(),
+      });
+      return { slug, action: "added" as const };
+    } else {
+      if (!sentence.packSlug) return { action: "noop" as const };
+      if (sentence.packSlug === STARTER_SLUG) {
+        throw new ConvexError({
+          code: "USE_DEFAULT_TOGGLE",
+          message:
+            "This sentence is in the starter pack — use the Default toggle to remove.",
+        });
+      }
+      await ctx.db.patch(args.profileSentenceId, {
+        packSlug: undefined,
+        updatedAt: Date.now(),
+      });
+      return { action: "removed" as const };
+    }
+  },
+});
+
+/**
+ * V2: Update tier override on a packLifecycle row. Mirrors `setLibraryPackTier`
+ * but writes to the lifecycle table instead of `resourcePacks`. Starter pack
+ * tier remains fixed at free (the JSON `defaultTier` is the source of truth).
+ */
+export const setLibraryPackTierV2 = mutation({
+  args: {
+    slug: v.string(),
+    tier: TIER_VALIDATOR,
+  },
+  handler: async (ctx, { slug, tier }) => {
+    const { clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!lifecycle) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Pack not found." });
+    }
+    if (lifecycle.slug === STARTER_SLUG) {
+      throw new ConvexError({
+        code: "STARTER_TIER_FIXED",
+        message: "Starter pack tier is fixed at free.",
+      });
+    }
+    if (lifecycle.createdBy !== clerkUserId) {
+      throw new ConvexError({
+        code: "NOT_OWNER",
+        message: "You don't own this pack.",
+      });
+    }
+
+    await ctx.db.patch(lifecycle._id, {
+      tierOverride: tier,
+      updatedAt: Date.now(),
+    });
+    return { slug, tier };
+  },
+});
+
 // ─── Admin status query ───────────────────────────────────────────────────────
 
 /**
@@ -1791,6 +2290,40 @@ export const getPacksForAdminStatus = query({
 });
 
 /**
+ * V2: Admin badge data for items in the JSON catalogue world. Joins
+ * `packLifecycle` rows with the bundled JSON to surface pack name + tier
+ * keyed by slug. Page-level subscriber pattern — pass derived status down
+ * to children to avoid one-query-per-item.
+ *
+ * Always includes a `starterSlug` (the literal `"_starter"`) since the
+ * starter pack is a fixed identifier — even if its lifecycle row hasn't
+ * been created yet, components can still recognise a row's `packSlug ===
+ * "_starter"` as "in the default pack".
+ */
+export const getPacksForAdminStatusV2 = query({
+  args: {},
+  handler: async (ctx) => {
+    const lifecycleRows = await ctx.db.query("packLifecycle").collect();
+    const libraryPacksBySlug: Record<
+      string,
+      { tier: "free" | "pro" | "max"; name: { eng: string; hin?: string } }
+    > = {};
+
+    for (const row of lifecycleRows) {
+      if (row.slug === STARTER_SLUG) continue;
+      const pack = getLibraryPackBySlug(row.slug);
+      if (!pack) continue;
+      libraryPacksBySlug[row.slug] = {
+        tier: (row.tierOverride ?? pack.defaultTier) as "free" | "pro" | "max",
+        name: row.name ?? pack.name,
+      };
+    }
+
+    return { starterSlug: STARTER_SLUG, libraryPacksBySlug };
+  },
+});
+
+/**
  * Pack picker source — non-starter packs the calling admin owns. Used by the
  * shared LibraryPackPickerModal "Add to existing" tab. Returns a sorted array
  * (newest first by _creationTime) — the dialogue renders straight from this.
@@ -1817,6 +2350,176 @@ export const getMyLibraryPacksForPicker = query({
       name: p.name,
       tier: (p.tier ?? "free") as "free" | "pro" | "max",
     }));
+  },
+});
+
+/**
+ * Read everything the `/api/admin/pack-publish` route needs to build the
+ * JSON snapshot for a slug, in one round-trip:
+ *
+ *   - The `packLifecycle` row (for name / description / cover / tier).
+ *   - Every `profileCategory` + `profileSymbol` + `profileList` + `profileSentence`
+ *     across the caller's admin account where `packSlug` matches.
+ *
+ * Admin-only. Returns `null` if no lifecycle row exists for the slug — the
+ * publish route handles that as a "create new lifecycle row first" error.
+ *
+ * The shape is intentionally "raw" — the API route does the snapshot
+ * assembly on the Node side, which keeps the Convex query simple and
+ * avoids encoding the `LibraryPack` shape twice. The route is the only
+ * caller; not a general-purpose query.
+ */
+export const getPackContentForPublish = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const { accountId } = await requireCallerIsAdmin(ctx);
+
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!lifecycle) return null;
+
+    const allCategories = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const categories = allCategories.filter((c) => c.packSlug === slug);
+
+    // For each category, fetch the profileSymbols + resolve symbolstix image
+    // paths (the JSON pack stores symbolId; the migration / publish path
+    // doesn't store the SymbolStix imagePath because materialise re-resolves
+    // it at load time). Skip non-symbolstix symbols per ADR-010 §1 (V1 packs
+    // are SymbolStix-only — same constraint applies to V2).
+    const categoryPayloads = await Promise.all(
+      categories.map(async (cat) => {
+        const symbols = await ctx.db
+          .query("profileSymbols")
+          .withIndex("by_profile_category_id_and_order", (q) =>
+            q.eq("profileCategoryId", cat._id)
+          )
+          .order("asc")
+          .collect();
+        const stixSymbols = symbols.filter(
+          (s) => s.imageSource.type === "symbolstix"
+        );
+        return {
+          name: cat.name,
+          icon: cat.icon,
+          colour: cat.colour,
+          imagePath: cat.imagePath,
+          symbols: stixSymbols.map((s, i) => ({
+            symbolId:
+              s.imageSource.type === "symbolstix"
+                ? (s.imageSource.symbolId as string)
+                : "",
+            ...(s.label.eng !== "" || s.label.hin
+              ? { labelOverride: s.label }
+              : {}),
+            ...(s.display ? { display: s.display } : {}),
+            order: i,
+          })),
+        };
+      })
+    );
+
+    const allLists = await ctx.db
+      .query("profileLists")
+      .withIndex("by_account_id_and_order", (q) =>
+        q.eq("accountId", accountId)
+      )
+      .order("asc")
+      .collect();
+    const lists = allLists
+      .filter((l) => l.packSlug === slug)
+      .map((l, i) => ({
+        name: l.name,
+        order: i,
+        items: [...l.items].sort((a, b) => a.order - b.order),
+        ...(l.displayFormat !== undefined
+          ? { displayFormat: l.displayFormat }
+          : {}),
+        ...(l.showNumbers !== undefined
+          ? { showNumbers: l.showNumbers }
+          : {}),
+        ...(l.showChecklist !== undefined
+          ? { showChecklist: l.showChecklist }
+          : {}),
+        ...(l.showFirstThen !== undefined
+          ? { showFirstThen: l.showFirstThen }
+          : {}),
+      }));
+
+    const allSentences = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_account_id_and_order", (q) =>
+        q.eq("accountId", accountId)
+      )
+      .order("asc")
+      .collect();
+    const sentences = allSentences
+      .filter((s) => s.packSlug === slug)
+      .map((s, i) => ({
+        name: s.name,
+        order: i,
+        ...(s.text !== undefined ? { text: s.text } : {}),
+        slots: [...s.slots].sort((a, b) => a.order - b.order),
+        ...(s.audioPath !== undefined ? { audioPath: s.audioPath } : {}),
+      }));
+
+    return {
+      lifecycle: {
+        slug: lifecycle.slug,
+        name: lifecycle.name,
+        description: lifecycle.description,
+        coverImagePath: lifecycle.coverImagePath,
+        tierOverride: lifecycle.tierOverride,
+      },
+      categories: categoryPayloads,
+      lists,
+      sentences,
+    };
+  },
+});
+
+/**
+ * V2: Pack picker source for the LibraryPackPickerModal "Add to existing"
+ * tab. Reads from `packLifecycle` + JSON catalogue: returns every non-starter
+ * pack the caller has authored (lifecycle.createdBy === clerkUserId), joined
+ * with the pack's name from the bundled JSON.
+ *
+ * Returns `[]` for non-admin / unauthenticated callers so client code can
+ * subscribe before opening the dialogue.
+ */
+export const getMyLifecyclePacksForPicker = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const lifecycleRows = await ctx.db.query("packLifecycle").collect();
+    const mine = lifecycleRows.filter(
+      (r) => r.slug !== STARTER_SLUG && r.createdBy === identity.subject
+    );
+
+    // Newest first
+    mine.sort((a, b) => b._creationTime - a._creationTime);
+
+    return mine
+      .map((r) => {
+        const pack = getLibraryPackBySlug(r.slug);
+        return pack
+          ? {
+              slug: r.slug,
+              name: pack.name,
+              tier: (r.tierOverride ?? pack.defaultTier) as
+                | "free"
+                | "pro"
+                | "max",
+            }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
   },
 });
 

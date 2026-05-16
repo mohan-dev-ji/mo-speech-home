@@ -1,12 +1,16 @@
 "use client";
 
-import type { Id } from "@/convex/_generated/dataModel";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 
-type PackStatusInfo = {
-  starterPackId: Id<"resourcePacks"> | null;
-  libraryPacksById: Record<
+/**
+ * V2 (ADR-010): pack status shape keyed by slug. The starter pack is a
+ * fixed slug literal (`"_starter"`); library packs are looked up from the
+ * page-level `getPacksForAdminStatusV2` query.
+ */
+export type PackStatusInfo = {
+  starterSlug: string;
+  libraryPacksBySlug: Record<
     string,
     { tier: "free" | "pro" | "max"; name: { eng: string; hin?: string } }
   >;
@@ -18,25 +22,22 @@ type DerivedStatus = {
 };
 
 /**
- * Derive a badge label + variant from an item's `publishedToPackId` and the
+ * Derive a badge label + variant from an item's `packSlug` and the
  * page-level pack status. Returns null when the item is unpublished.
  *
  * Used by CategoryTile, list rows, sentence rows, and banner editors. The
- * caller should subscribe to `api.resourcePacks.getPacksForAdminStatus` once
- * at the page level and pass it in here for each item.
- *
- * Translation keys for the labels live in `common.badge*` (see translation
- * keys for this chunk).
+ * caller should subscribe to `api.resourcePacks.getPacksForAdminStatusV2`
+ * once at the page level and pass it in here for each item.
  */
 export function deriveAdminPackStatus(
-  publishedToPackId: Id<"resourcePacks"> | undefined,
+  packSlug: string | undefined,
   packs: PackStatusInfo | undefined
 ): DerivedStatus | null {
-  if (!publishedToPackId || !packs) return null;
-  if (packs.starterPackId && publishedToPackId === packs.starterPackId) {
+  if (!packSlug || !packs) return null;
+  if (packSlug === packs.starterSlug) {
     return { label: "Default", variant: "default" };
   }
-  const libraryPack = packs.libraryPacksById[publishedToPackId];
+  const libraryPack = packs.libraryPacksBySlug[packSlug];
   if (!libraryPack) return null;
   switch (libraryPack.tier) {
     case "free":
@@ -49,22 +50,17 @@ export function deriveAdminPackStatus(
 }
 
 type AdminPackBadgeProps = {
-  publishedToPackId: Id<"resourcePacks"> | undefined;
+  packSlug: string | undefined;
   packs: PackStatusInfo | undefined;
   className?: string;
 };
 
-/**
- * Convenience wrapper — renders nothing if there's no status. The label text
- * is plain English ("Default", "Free", "Pro", "Max"). For localised labels,
- * pass `getLabel` and call `deriveAdminPackStatus` directly.
- */
 export function AdminPackBadge({
-  publishedToPackId,
+  packSlug,
   packs,
   className,
 }: AdminPackBadgeProps) {
-  const status = deriveAdminPackStatus(publishedToPackId, packs);
+  const status = deriveAdminPackStatus(packSlug, packs);
   if (!status) return null;
   return (
     <Badge variant={status.variant} className={className}>
@@ -74,7 +70,7 @@ export function AdminPackBadge({
 }
 
 type PackStatusLabelProps = {
-  publishedToPackId: Id<"resourcePacks"> | undefined;
+  packSlug: string | undefined;
   packs: PackStatusInfo | undefined;
   language: string;
   className?: string;
@@ -86,27 +82,19 @@ type PackStatusLabelProps = {
  * - Starter pack → "Default"
  * - Library pack → "{Pack Name} · {Tier}" (localised pack name + tier)
  * - No pack / loading → renders nothing
- *
- * Uses AAC theme tokens via inline style + CSS vars (matches the existing
- * `OVERLAY_BG` pattern in CategoryTile). Caller controls placement; the
- * component just renders an inline-flex pill.
  */
 export function PackStatusLabel({
-  publishedToPackId,
+  packSlug,
   packs,
   language,
   className,
 }: PackStatusLabelProps) {
   const t = useTranslations("packStatus");
 
-  if (!publishedToPackId || !packs) return null;
+  if (!packSlug || !packs) return null;
 
-  const isStarter =
-    packs.starterPackId !== null && publishedToPackId === packs.starterPackId;
-
-  const libraryPack = isStarter
-    ? null
-    : packs.libraryPacksById[publishedToPackId];
+  const isStarter = packSlug === packs.starterSlug;
+  const libraryPack = isStarter ? null : packs.libraryPacksBySlug[packSlug];
 
   if (!isStarter && !libraryPack) return null;
 

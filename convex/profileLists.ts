@@ -43,6 +43,7 @@ export const getProfileLists = query({
         itemCount: list.items.length,
         thumbnails: firstFour.map((item) => ({ imagePath: item.imagePath })),
         publishedToPackId: list.publishedToPackId,
+        packSlug: list.packSlug,
         librarySourceId: list.librarySourceId,
       };
     });
@@ -65,6 +66,7 @@ export const getProfileListWithItems = query({
       showChecklist: list.showChecklist ?? false,
       showFirstThen: list.showFirstThen ?? false,
       publishedToPackId: list.publishedToPackId,
+      packSlug: list.packSlug,
       items,
     };
   },

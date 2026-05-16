@@ -51,11 +51,13 @@ type ListRow = {
   itemCount: number;
   thumbnails: { imagePath?: string }[];
   publishedToPackId?: Id<'resourcePacks'>;
+  packSlug?: string;
+  librarySourceId?: string;
 };
 
 type AdminPacksStatus = {
-  starterPackId: Id<'resourcePacks'> | null;
-  libraryPacksById: Record<
+  starterSlug: string;
+  libraryPacksBySlug: Record<
     string,
     { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
   >;
@@ -201,7 +203,7 @@ function SortableListRow({
           {adminPacks && (
             <div className="shrink-0">
               <PackStatusLabel
-                publishedToPackId={list.publishedToPackId}
+                packSlug={list.packSlug}
                 packs={adminPacks}
                 language={language}
               />
@@ -260,7 +262,7 @@ export function ListsModeContent() {
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
   const adminPacks = useQuery(
-    api.resourcePacks.getPacksForAdminStatus,
+    api.resourcePacks.getPacksForAdminStatusV2,
     showAdminBadges ? {} : 'skip',
   );
   const loadedPacks = useQuery(
@@ -378,8 +380,8 @@ export function ListsModeContent() {
   // ── Filter visibility + options ──────────────────────────────────────────
   const filterVisible = showAdminBadges
     ? !!adminPacks && (
-        !!adminPacks.starterPackId ||
-        Object.keys(adminPacks.libraryPacksById).length > 0
+        !!adminPacks.starterSlug ||
+        Object.keys(adminPacks.libraryPacksBySlug).length > 0
       )
     : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
       && !!loadedPacks && loadedPacks.length > 0;
@@ -388,10 +390,10 @@ export function ListsModeContent() {
     if (!filterVisible) return [];
     const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
     if (showAdminBadges && adminPacks) {
-      if (adminPacks.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [id, pack] of Object.entries(adminPacks.libraryPacksById)) {
+      if (adminPacks.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
         opts.push({
-          value: id,
+          value: slug,
           label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
         });
       }
@@ -415,21 +417,21 @@ export function ListsModeContent() {
       const row = listMap[id];
       if (!row) return false;
       if (showAdminBadges) {
-        if (packFilter === 'default') return row.publishedToPackId === adminPacks?.starterPackId;
-        if (packFilter === 'unpublished') return !row.publishedToPackId;
-        return row.publishedToPackId === packFilter;
+        if (packFilter === 'default') return row.packSlug === adminPacks?.starterSlug;
+        if (packFilter === 'unpublished') return !row.packSlug;
+        return row.packSlug === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
       }
     });
-  }, [packFilter, localOrder, listMap, showAdminBadges, adminPacks?.starterPackId]);
+  }, [packFilter, localOrder, listMap, showAdminBadges, adminPacks?.starterSlug]);
 
   const filteredLists = filteredOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
   // Admin-view reminder: any list on screen that's published means
   // reorder / rename / delete here propagates to the live pack.
-  const hasPublishedList = !!lists?.some((l) => !!l.publishedToPackId);
+  const hasPublishedList = !!lists?.some((l) => !!l.packSlug);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

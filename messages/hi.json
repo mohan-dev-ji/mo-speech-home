@@ -162,6 +162,12 @@
     "tabAppend": "Add to existing (hi)",
     "nameLabel": "Pack name (hi)",
     "namePlaceholder": "e.g. Religion Pack (hi)",
+    "slugLabel": "Slug (filename) (hi)",
+    "slugPlaceholder": "e.g. religion_pack (hi)",
+    "slugHelp": "Used as the pack's filename. Lowercase, underscores only. (hi)",
+    "slugRequired": "Slug is required. (hi)",
+    "slugInvalid": "Use lowercase letters, numbers, and underscores only — no hyphens or spaces. (hi)",
+    "slugReserved": "Slug \"_starter\" is reserved for the starter pack. (hi)",
     "tierLabel": "Tier (hi)",
     "planTierFree": "Free (hi)",
     "planTierPro": "Pro (hi)",
@@ -171,7 +177,9 @@
     "noExistingPacks": "You don't have any library packs yet. Switch to New pack to create one. (hi)",
     "cancel": "Cancel (hi)",
     "save": "Save (hi)",
-    "saving": "Saving… (hi)"
+    "saving": "Saving… (hi)",
+    "savedAndPublishedToast": "Pack saved — review the JSON diff and commit. (hi)",
+    "publishGenericError": "Pack saved, but couldn't write the JSON file. (hi)"
   },
   "studentViewLock": {
     "instructorDescription": "Full access — edit profile, settings, content (hi)",

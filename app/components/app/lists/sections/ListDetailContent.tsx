@@ -21,6 +21,7 @@ import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPack
 import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   LibraryPackPickerModal,
@@ -71,15 +72,17 @@ export function ListDetailContent({ listId }: Props) {
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
-  const setListDefault = useMutation(api.resourcePacks.setListDefault);
-  const setListInLibrary = useMutation(api.resourcePacks.setListInLibrary);
-  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTier);
+  const setListDefault = useMutation(api.resourcePacks.setListDefaultV2);
+  const setListInLibrary = useMutation(api.resourcePacks.setListInLibraryV2);
+  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
   // Pack status — drives Default/Library toggle pressed states + tier picker.
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
-  const linkedPackId = list?.publishedToPackId;
-  const isDefault = !!(linkedPackId && packsStatus && linkedPackId === packsStatus.starterPackId);
-  const linkedLibraryPack = linkedPackId && packsStatus ? packsStatus.libraryPacksById[linkedPackId] : undefined;
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
+  const linkedSlug = list?.packSlug;
+  const isDefault = linkedSlug === '_starter';
+  const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
+    ? packsStatus.libraryPacksBySlug[linkedSlug]
+    : undefined;
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
@@ -241,9 +244,9 @@ export function ListDetailContent({ listId }: Props) {
   }
 
   async function handleSetTier(tier: 'free' | 'pro' | 'max') {
-    if (!linkedPackId) return;
+    if (!linkedSlug || linkedSlug === '_starter') return;
     try {
-      await setLibraryPackTier({ packId: linkedPackId, tier });
+      await setLibraryPackTier({ slug: linkedSlug, tier });
       showToast({ tone: 'info', title: t('toastTierUpdated') });
     } catch (e) {
       console.error('[ListDetailContent] set tier failed', e);
@@ -370,7 +373,7 @@ export function ListDetailContent({ listId }: Props) {
           {showAdminButtons && packsStatus && (
             <div className="absolute top-2 right-2 z-30 pointer-events-none">
               <PackStatusLabel
-                publishedToPackId={list.publishedToPackId}
+                packSlug={list.packSlug}
                 packs={packsStatus}
                 language={language}
               />
@@ -468,6 +471,9 @@ export function ListDetailContent({ listId }: Props) {
                   onChange={handleSetTier}
                   translationNamespace="lists"
                 />
+              )}
+              {list.packSlug && (
+                <RepublishButton packSlug={list.packSlug} />
               )}
             </div>
           )}

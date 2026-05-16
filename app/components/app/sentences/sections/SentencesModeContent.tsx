@@ -86,11 +86,13 @@ type SentenceRow = {
   audioPath?: string;
   slots: Slot[];
   publishedToPackId?: Id<'resourcePacks'>;
+  packSlug?: string;
+  librarySourceId?: string;
 };
 
 type AdminPacksStatus = {
-  starterPackId: Id<'resourcePacks'> | null;
-  libraryPacksById: Record<
+  starterSlug: string;
+  libraryPacksBySlug: Record<
     string,
     { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
   >;
@@ -430,7 +432,7 @@ function SortableSentenceRow({
           {adminPacks && (
             <div className="shrink-0">
               <PackStatusLabel
-                publishedToPackId={sentence.publishedToPackId}
+                packSlug={sentence.packSlug}
                 packs={adminPacks}
                 language={language}
               />
@@ -543,21 +545,23 @@ export function SentencesModeContent() {
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
-  const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefault);
-  const setSentenceInLibrary = useMutation(api.resourcePacks.setSentenceInLibrary);
-  const setLibraryPackTier   = useMutation(api.resourcePacks.setLibraryPackTier);
+  const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefaultV2);
+  const setSentenceInLibrary = useMutation(api.resourcePacks.setSentenceInLibraryV2);
+  const setLibraryPackTier   = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
   // Pack status — drives the per-row Default/Library toggle pressed states + tier.
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
   // Loaded-from packs — instructor / student-view filter options.
   const loadedPacks = useQuery(
     api.resourcePacks.getLoadedPacksForCurrentAccount,
     showAdminButtons ? 'skip' : {},
   );
   function statusFor(sentence: SentenceRow) {
-    const pid = sentence.publishedToPackId;
-    const isDefault = !!(pid && packsStatus && pid === packsStatus.starterPackId);
-    const libraryPack = pid && packsStatus ? packsStatus.libraryPacksById[pid] : undefined;
+    const slug = sentence.packSlug;
+    const isDefault = slug === '_starter';
+    const libraryPack = slug && slug !== '_starter' && packsStatus
+      ? packsStatus.libraryPacksBySlug[slug]
+      : undefined;
     return {
       isDefault,
       isInLibrary: !!libraryPack,
@@ -652,9 +656,9 @@ export function SentencesModeContent() {
   }
 
   async function handleSetTier(sentence: SentenceRow, tier: 'free' | 'pro' | 'max') {
-    if (!sentence.publishedToPackId) return;
+    if (!sentence.packSlug || sentence.packSlug === '_starter') return;
     try {
-      await setLibraryPackTier({ packId: sentence.publishedToPackId, tier });
+      await setLibraryPackTier({ slug: sentence.packSlug, tier });
       showToast({ tone: 'info', title: t('toastTierUpdated') });
     } catch (e) {
       console.error('[SentencesModeContent] set tier failed', e);
@@ -732,8 +736,8 @@ export function SentencesModeContent() {
   // ── Filter visibility + options ──────────────────────────────────────────
   const filterVisible = showAdminButtons
     ? !!packsStatus && (
-        !!packsStatus.starterPackId ||
-        Object.keys(packsStatus.libraryPacksById).length > 0
+        !!packsStatus.starterSlug ||
+        Object.keys(packsStatus.libraryPacksBySlug).length > 0
       )
     : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
       && !!loadedPacks && loadedPacks.length > 0;
@@ -742,10 +746,10 @@ export function SentencesModeContent() {
     if (!filterVisible) return [];
     const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
     if (showAdminButtons && packsStatus) {
-      if (packsStatus.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [id, pack] of Object.entries(packsStatus.libraryPacksById)) {
+      if (packsStatus.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [slug, pack] of Object.entries(packsStatus.libraryPacksBySlug)) {
         opts.push({
-          value: id,
+          value: slug,
           label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
         });
       }
@@ -769,15 +773,15 @@ export function SentencesModeContent() {
       const row = sentenceMap[id];
       if (!row) return false;
       if (showAdminButtons) {
-        if (packFilter === 'default') return row.publishedToPackId === packsStatus?.starterPackId;
-        if (packFilter === 'unpublished') return !row.publishedToPackId;
-        return row.publishedToPackId === packFilter;
+        if (packFilter === 'default') return row.packSlug === packsStatus?.starterSlug;
+        if (packFilter === 'unpublished') return !row.packSlug;
+        return row.packSlug === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
       }
     });
-  }, [packFilter, localOrder, sentenceMap, showAdminButtons, packsStatus?.starterPackId]);
+  }, [packFilter, localOrder, sentenceMap, showAdminButtons, packsStatus?.starterSlug]);
 
   const filteredSentences = filteredOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
@@ -796,7 +800,7 @@ export function SentencesModeContent() {
   // Show the admin disclaimer when at least one sentence on this page is
   // published to a pack — admin in admin view editing those sentences will
   // propagate to the pack.
-  const hasPublishedSentence = !!sentences?.some((s) => !!s.publishedToPackId);
+  const hasPublishedSentence = !!sentences?.some((s) => !!s.packSlug);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

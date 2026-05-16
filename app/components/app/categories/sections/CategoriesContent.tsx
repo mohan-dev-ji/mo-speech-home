@@ -62,8 +62,8 @@ type SortableTileProps = {
   onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
   onClick?: () => void;
   adminPacks?: {
-    starterPackId: Id<'resourcePacks'> | null;
-    libraryPacksById: Record<
+    starterSlug: string;
+    libraryPacksBySlug: Record<
       string,
       { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
     >;
@@ -114,7 +114,7 @@ export function CategoriesContent() {
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
   const adminPacks = useQuery(
-    api.resourcePacks.getPacksForAdminStatus,
+    api.resourcePacks.getPacksForAdminStatusV2,
     showAdminBadges ? {} : 'skip',
   );
   const router = useRouter();
@@ -173,8 +173,8 @@ export function CategoriesContent() {
   // ── Filter visibility + options ──────────────────────────────────────────
   const filterVisible = showAdminBadges
     ? !!adminPacks && (
-        !!adminPacks.starterPackId ||
-        Object.keys(adminPacks.libraryPacksById).length > 0
+        !!adminPacks.starterSlug ||
+        Object.keys(adminPacks.libraryPacksBySlug).length > 0
       )
     : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
       && !!loadedPacks && loadedPacks.length > 0;
@@ -183,10 +183,10 @@ export function CategoriesContent() {
     if (!filterVisible) return [];
     const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
     if (showAdminBadges && adminPacks) {
-      if (adminPacks.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [id, pack] of Object.entries(adminPacks.libraryPacksById)) {
+      if (adminPacks.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
         opts.push({
-          value: id,
+          value: slug,
           label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
         });
       }
@@ -210,15 +210,15 @@ export function CategoriesContent() {
       const row = categoryMap[id];
       if (!row) return false;
       if (showAdminBadges) {
-        if (packFilter === 'default') return row.publishedToPackId === adminPacks?.starterPackId;
-        if (packFilter === 'unpublished') return !row.publishedToPackId;
-        return row.publishedToPackId === packFilter;
+        if (packFilter === 'default') return row.packSlug === adminPacks?.starterSlug;
+        if (packFilter === 'unpublished') return !row.packSlug;
+        return row.packSlug === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
       }
     });
-  }, [packFilter, localOrder, categoryMap, showAdminBadges, adminPacks?.starterPackId]);
+  }, [packFilter, localOrder, categoryMap, showAdminBadges, adminPacks?.starterSlug]);
 
   const filteredCategories = filteredOrder
     .map((id) => categoryMap[id])
@@ -287,7 +287,7 @@ export function CategoriesContent() {
 
   // Admin-view reminder: any category on screen that's published means
   // reorder / delete here propagates to the live pack.
-  const hasPublishedCategory = !!categories?.some((c) => !!c.publishedToPackId);
+  const hasPublishedCategory = !!categories?.some((c) => !!c.packSlug);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

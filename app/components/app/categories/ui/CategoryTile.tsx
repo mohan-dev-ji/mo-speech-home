@@ -20,8 +20,8 @@ const NAME_FONT_SIZE = {
 } as const;
 
 type AdminPacksStatus = {
-  starterPackId: Id<'resourcePacks'> | null;
-  libraryPacksById: Record<
+  starterSlug: string;
+  libraryPacksBySlug: Record<
     string,
     { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
   >;
@@ -189,7 +189,7 @@ export function CategoryTile({
                 style={{ padding: '0 3cqi 4cqi' }}
               >
                 <PackStatusLabel
-                  publishedToPackId={category.publishedToPackId}
+                  packSlug={category.packSlug}
                   packs={adminPacks}
                   language={language}
                 />

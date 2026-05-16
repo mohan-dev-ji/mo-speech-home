@@ -4,6 +4,7 @@ import type { Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
 import { STARTER_BACKUPS } from "./data/starter_backups";
+import { LIBRARY_PACKS } from "./data/library_packs/_index";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -874,5 +875,179 @@ export const seedLifecycleFromResourcePacks = mutation({
     const summary = { scanned, seeded, alreadyHadRow, skippedNoSlug };
     console.log(`[seedLifecycleFromResourcePacks] ${JSON.stringify(summary)}`);
     return summary;
+  },
+});
+
+/**
+ * Backfill `name` / `description` / `coverImagePath` on existing `packLifecycle`
+ * rows from the bundled JSON catalogue. Run once after the schema gains these
+ * fields (Phase 6 of ADR-010) so already-seeded rows (from
+ * `seedLifecycleFromResourcePacks`) are self-describing — the picker, the
+ * publish API, and Phase 7 admin dashboard can read straight from the
+ * lifecycle row without falling back to JSON every time.
+ *
+ * Idempotent: skips rows that already have a `name`.
+ */
+export const backfillLifecycleMetadata = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("packLifecycle").collect();
+
+    let scanned = 0;
+    let backfilled = 0;
+    let alreadyHadName = 0;
+    let noJsonMatch = 0;
+
+    for (const row of rows) {
+      scanned++;
+      if (row.name) {
+        alreadyHadName++;
+        continue;
+      }
+      const pack = LIBRARY_PACKS[row.slug];
+      if (!pack) {
+        noJsonMatch++;
+        continue;
+      }
+      await ctx.db.patch(row._id, {
+        name: pack.name,
+        description: pack.description,
+        coverImagePath: pack.coverImagePath,
+        updatedAt: Date.now(),
+      });
+      backfilled++;
+    }
+
+    const summary = { scanned, backfilled, alreadyHadName, noJsonMatch };
+    console.log(`[backfillLifecycleMetadata] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
+/**
+ * Backfill `packSlug` on every profile row that's still linked to V1's
+ * `publishedToPackId`. Reads the slug from the matching `resourcePacks`
+ * row and writes it to the new V2 field, so existing published categories
+ * / lists / sentences light up in the V2 admin status badges + picker
+ * without needing to re-toggle each one.
+ *
+ * Idempotent: skips rows that already have `packSlug`. Rows without a
+ * `publishedToPackId` OR where the linked pack has no slug are reported
+ * as `skipped`.
+ *
+ * Per ADR-010 Phase 6. Run after `backfillResourcePackSlugs` (so every
+ * `resourcePacks` row has a slug to copy from).
+ */
+export const backfillProfilePackSlugs = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const categories = await ctx.db.query("profileCategories").collect();
+    const lists = await ctx.db.query("profileLists").collect();
+    const sentences = await ctx.db.query("profileSentences").collect();
+
+    const now = Date.now();
+
+    type Summary = {
+      scanned: number;
+      backfilled: number;
+      alreadyHadSlug: number;
+      noPublishLink: number;
+      orphanedPack: number;
+      packMissingSlug: number;
+    };
+
+    async function backfillOne<TName extends "profileCategories" | "profileLists" | "profileSentences">(
+      tableName: TName,
+      rows: Array<{
+        _id: Id<TName>;
+        publishedToPackId?: Id<"resourcePacks">;
+        packSlug?: string;
+      }>
+    ): Promise<Summary> {
+      const result: Summary = {
+        scanned: 0,
+        backfilled: 0,
+        alreadyHadSlug: 0,
+        noPublishLink: 0,
+        orphanedPack: 0,
+        packMissingSlug: 0,
+      };
+
+      for (const row of rows) {
+        result.scanned++;
+        if (row.packSlug) {
+          result.alreadyHadSlug++;
+          continue;
+        }
+        if (!row.publishedToPackId) {
+          result.noPublishLink++;
+          continue;
+        }
+        const pack = await ctx.db.get(row.publishedToPackId);
+        if (!pack) {
+          result.orphanedPack++;
+          continue;
+        }
+        if (!pack.slug) {
+          result.packMissingSlug++;
+          continue;
+        }
+        // Cast the patch object back to `any` because TypeScript can't narrow
+        // the union to a single table here; the runtime patch is type-safe.
+        await ctx.db.patch(row._id as Id<TName>, {
+          packSlug: pack.slug,
+          updatedAt: now,
+        } as never);
+        result.backfilled++;
+      }
+
+      return result;
+    }
+
+    const summary = {
+      profileCategories: await backfillOne("profileCategories", categories),
+      profileLists: await backfillOne("profileLists", lists),
+      profileSentences: await backfillOne("profileSentences", sentences),
+    };
+
+    console.log(
+      `[backfillProfilePackSlugs] ${JSON.stringify(summary)}`
+    );
+    return summary;
+  },
+});
+
+/**
+ * Truncate the V1 `resourcePacks` table — deletes every row but leaves
+ * the schema definition in place. After running:
+ *
+ *   - V2 reads keep working (they're JSON-backed; this doesn't touch the
+ *     bundled `library_packs` catalogue or `packLifecycle` rows).
+ *   - Any V1 code path that still reads `resourcePacks` returns `null` /
+ *     empty / NOT_FOUND, making accidental V1 calls fail loudly during
+ *     fresh-account testing.
+ *   - Data is preserved in the repo (`convex/data/library_packs/*.json`)
+ *     and in the `packLifecycle` overlay table; nothing is irreversibly
+ *     lost.
+ *
+ * Useful when you want to test a fresh non-admin account end-to-end and
+ * be confident the load / signup / catalogue paths aren't quietly falling
+ * back to the old table.
+ *
+ * The full schema drop is the deferred Phase X of ADR-010 — defer until
+ * V2 has soaked for a meaningful period. This migration is a softer
+ * mid-step.
+ */
+export const disableV1ResourcePacks = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("resourcePacks").collect();
+    let deleted = 0;
+    for (const row of rows) {
+      await ctx.db.delete(row._id);
+      deleted++;
+    }
+    console.log(`[disableV1ResourcePacks] deleted ${deleted} rows`);
+    return { deleted };
   },
 });

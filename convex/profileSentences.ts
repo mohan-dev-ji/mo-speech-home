@@ -41,6 +41,7 @@ export const getProfileSentences = query({
       audioPath: s.audioPath,
       slots:     [...s.slots].sort((a, b) => a.order - b.order),
       publishedToPackId: s.publishedToPackId,
+      packSlug: s.packSlug,
       librarySourceId: s.librarySourceId,
     }));
   },

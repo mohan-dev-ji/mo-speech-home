@@ -203,13 +203,22 @@ export default defineSchema({
     // this category auto-rebuild the pack snapshot. Cleared on toggle-off, on delete, and
     // on starter pack restore. See ADR-008.
     publishedToPackId: v.optional(v.id("resourcePacks")),
+    // Admin-only: V2 (ADR-010) forward link — points at the slug of the JSON
+    // pack this category is the source-of-truth for. Set by the V2 toggle
+    // mutations (`setCategoryDefaultV2`, `setCategoryInLibraryV2`). The
+    // `/api/admin/pack-publish` route reads rows by this field to rebuild
+    // `convex/data/library_packs/<slug>.json`. Cleared on toggle-off, on
+    // delete, and on starter pack restore. Coexists with `publishedToPackId`
+    // during the cutover; the latter is dropped in the deferred Phase X.
+    packSlug: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
-    .index("by_published_to_pack_id", ["publishedToPackId"]),
+    .index("by_published_to_pack_id", ["publishedToPackId"])
+    .index("by_pack_slug", ["packSlug"]),
 
   /**
    * The most important table. Every symbol in a student's profile is a
@@ -343,13 +352,16 @@ export default defineSchema({
     showFirstThen: v.optional(v.boolean()),
     // Admin-only forward link — see profileCategories.publishedToPackId.
     publishedToPackId: v.optional(v.id("resourcePacks")),
+    // V2 (ADR-010) — see profileCategories.packSlug.
+    packSlug: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
-    .index("by_published_to_pack_id", ["publishedToPackId"]),
+    .index("by_published_to_pack_id", ["publishedToPackId"])
+    .index("by_pack_slug", ["packSlug"]),
 
   /**
    * A pre-built sentence. Profile-level — not tied to a category.
@@ -379,13 +391,16 @@ export default defineSchema({
     audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
     // Admin-only forward link — see profileCategories.publishedToPackId.
     publishedToPackId: v.optional(v.id("resourcePacks")),
+    // V2 (ADR-010) — see profileCategories.packSlug.
+    packSlug: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
-    .index("by_published_to_pack_id", ["publishedToPackId"]),
+    .index("by_published_to_pack_id", ["publishedToPackId"])
+    .index("by_pack_slug", ["packSlug"]),
 
   /**
    * Real-time modelling session. Instructor pushes; student device subscribes.
@@ -577,6 +592,15 @@ export default defineSchema({
    */
   packLifecycle: defineTable({
     slug: v.string(),
+    // Pack metadata stored here so the picker can show the pack name before
+    // the first publish (the JSON file doesn't exist yet for brand-new
+    // packs). The `/api/admin/pack-publish` route copies these into the
+    // JSON; the JSON is the canonical store after first publish.
+    name: v.optional(v.object({ eng: v.string(), hin: v.optional(v.string()) })),
+    description: v.optional(
+      v.object({ eng: v.string(), hin: v.optional(v.string()) })
+    ),
+    coverImagePath: v.optional(v.string()),
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     featured: v.boolean(),

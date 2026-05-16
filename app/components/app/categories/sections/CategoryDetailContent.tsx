@@ -29,6 +29,7 @@ import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
@@ -208,9 +209,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   // the server can also clean up R2 personal media on delete. See
   // handleDeleteConfirm below.
   const reorderProfileSymbols = useMutation(api.profileSymbols.reorderProfileSymbols);
-  const setCategoryDefault = useMutation(api.resourcePacks.setCategoryDefault);
-  const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibrary);
-  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTier);
+  const setCategoryDefault = useMutation(api.resourcePacks.setCategoryDefaultV2);
+  const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibraryV2);
+  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
   // ── Admin gating + pack status ──────────────────────────────────────────────
   const isAdmin = useIsAdmin();
@@ -219,10 +220,12 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   // Subscribe once at the page level — used by the toolbar to show pressed state
   // on the Default/Library toggles + correct tier in the picker.
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
-  const linkedPackId = category?.publishedToPackId;
-  const isDefault = !!(linkedPackId && packsStatus && linkedPackId === packsStatus.starterPackId);
-  const linkedLibraryPack = linkedPackId && packsStatus ? packsStatus.libraryPacksById[linkedPackId] : undefined;
+  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
+  const linkedSlug = category?.packSlug;
+  const isDefault = linkedSlug === '_starter';
+  const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
+    ? packsStatus.libraryPacksBySlug[linkedSlug]
+    : undefined;
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
@@ -400,9 +403,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   }
 
   async function handleSetTier(tier: 'free' | 'pro' | 'max') {
-    if (!linkedPackId) return;
+    if (!linkedSlug || linkedSlug === '_starter') return;
     try {
-      await setLibraryPackTier({ packId: linkedPackId, tier });
+      await setLibraryPackTier({ slug: linkedSlug, tier });
       showToast({ tone: 'info', title: t('toastTierUpdated') });
     } catch (e) {
       console.error('[CategoryDetailContent] set tier failed', e);
@@ -463,11 +466,16 @@ export function CategoryDetailContent({ categoryId }: Props) {
               view modes. */}
           {(() => {
             const packLabel = showAdminButtons && packsStatus ? (
-              <PackStatusLabel
-                publishedToPackId={category?.publishedToPackId}
-                packs={packsStatus}
-                language={language}
-              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <PackStatusLabel
+                  packSlug={category?.packSlug}
+                  packs={packsStatus}
+                  language={language}
+                />
+                {category?.packSlug && (
+                  <RepublishButton packSlug={category.packSlug} />
+                )}
+              </div>
             ) : null;
             return isEditing ? (
               <div
