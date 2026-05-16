@@ -1,0 +1,295 @@
+{
+  "slug": "religion",
+  "name": {
+    "eng": "Religion"
+  },
+  "description": {
+    "eng": "Curated by an admin"
+  },
+  "coverImagePath": "symbols/pray.png",
+  "defaultTier": "free",
+  "categories": [
+    {
+      "colour": "#D97706",
+      "icon": "🙏",
+      "imagePath": "symbols/pray.png",
+      "name": {
+        "eng": "Religion",
+        "hin": "Religion (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "Vishnu"
+          },
+          "order": 0,
+          "symbolId": "kn7egffqwfqmx3j97hwsdkk5mx84nf9b"
+        },
+        {
+          "labelOverride": {
+            "eng": "gurdwara"
+          },
+          "order": 1,
+          "symbolId": "kn7eex6hs690mj8webrxb9pnah84n0pg"
+        },
+        {
+          "labelOverride": {
+            "eng": "Muslim"
+          },
+          "order": 2,
+          "symbolId": "kn75x2xxm8yyg3rrqpxmvzjt5d84mrdb"
+        },
+        {
+          "labelOverride": {
+            "eng": "Jewish temple"
+          },
+          "order": 3,
+          "symbolId": "kn74b2bm93tenkbzx6bff1jxv584mtss"
+        },
+        {
+          "labelOverride": {
+            "eng": "Hinduism"
+          },
+          "order": 4,
+          "symbolId": "kn7d5dnqevnb75ne6newaqrkmd84n1vg"
+        },
+        {
+          "labelOverride": {
+            "eng": "Sikh"
+          },
+          "order": 5,
+          "symbolId": "kn7963mmj48gvh3ene6vxp95gn84m541"
+        },
+        {
+          "labelOverride": {
+            "eng": "pray"
+          },
+          "order": 6,
+          "symbolId": "kn78p1519k7j7qrfdgc3rddg8x84nk9r"
+        },
+        {
+          "labelOverride": {
+            "eng": "prayer"
+          },
+          "order": 7,
+          "symbolId": "kn7b1vd6njyyegngmbve90eb6h84m1ph"
+        },
+        {
+          "labelOverride": {
+            "eng": "holy"
+          },
+          "order": 8,
+          "symbolId": "kn724110a3424yrn35gdac5bv584n5sw"
+        },
+        {
+          "labelOverride": {
+            "eng": "worship"
+          },
+          "order": 9,
+          "symbolId": "kn7981vq3mk3y4cpsew07w2am584m8b0"
+        },
+        {
+          "labelOverride": {
+            "eng": "miracle"
+          },
+          "order": 10,
+          "symbolId": "kn727ggdcd6zeqs3hd07s4awg984mnk2"
+        },
+        {
+          "labelOverride": {
+            "eng": "soul"
+          },
+          "order": 11,
+          "symbolId": "kn79gybcperxqm9jnth1pj8x3n84mcgh"
+        },
+        {
+          "labelOverride": {
+            "eng": "grace"
+          },
+          "order": 12,
+          "symbolId": "kn78q139e5vnkhpcrajv6rqegd84nfa8"
+        },
+        {
+          "labelOverride": {
+            "eng": "religion"
+          },
+          "order": 13,
+          "symbolId": "kn7dgafm5zhb0xf07egrs0kwdx84msdc"
+        },
+        {
+          "labelOverride": {
+            "eng": "angel"
+          },
+          "order": 14,
+          "symbolId": "kn7azpmz6ystazw6ga7ry0n9f984m1qb"
+        },
+        {
+          "labelOverride": {
+            "eng": "heaven"
+          },
+          "order": 15,
+          "symbolId": "kn7234yx8583h218q6ah7qnbg984nyz7"
+        },
+        {
+          "labelOverride": {
+            "eng": "church"
+          },
+          "order": 16,
+          "symbolId": "kn77d4k792a0c350bzdba9yxhd84nzx8"
+        },
+        {
+          "labelOverride": {
+            "eng": "cross"
+          },
+          "order": 17,
+          "symbolId": "kn7ddtdjxhvv6cj6g6tytyc5x584n3j5"
+        },
+        {
+          "labelOverride": {
+            "eng": "baptism"
+          },
+          "order": 18,
+          "symbolId": "kn70za4x16j29rgznrqa1qwmjx84mcfy"
+        },
+        {
+          "labelOverride": {
+            "eng": "saint"
+          },
+          "order": 19,
+          "symbolId": "kn798s6svv14mchrjnjmt0b4zx84mnaz"
+        },
+        {
+          "labelOverride": {
+            "eng": "hymn"
+          },
+          "order": 20,
+          "symbolId": "kn7105p1ne4k3kpjmnygy5kj6x84mrb6"
+        },
+        {
+          "labelOverride": {
+            "eng": "mosque"
+          },
+          "order": 21,
+          "symbolId": "kn77h06gj3ztmp7th62mpga9fx84meq1"
+        },
+        {
+          "labelOverride": {
+            "eng": "synagogue"
+          },
+          "order": 22,
+          "symbolId": "kn7cwj77wtmfbmdcnf7gktnnax84nyy9"
+        },
+        {
+          "labelOverride": {
+            "eng": "menorah"
+          },
+          "order": 23,
+          "symbolId": "kn74h8wz57gn75xv4emxyn39ns84nn6f"
+        },
+        {
+          "labelOverride": {
+            "eng": "temple"
+          },
+          "order": 24,
+          "symbolId": "kn7ecp3kcsvac1aehg32d955s584nnad"
+        }
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212646.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
+          "description": "shower",
+          "imagePath": "symbols/symbol00212646.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00066341.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
+          "description": "put on clean clothes",
+          "imagePath": "symbols/symbol00066341.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/193c0cb5-58c0-4d6c-9cbc-53e0ad991580.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00194236.mp3",
+          "description": "go to the gurdwara",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/193c0cb5-58c0-4d6c-9cbc-53e0ad991580.mp3",
+          "imagePath": "symbols/symbol00194236.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00056099.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00056099.mp3",
+          "description": "sit",
+          "imagePath": "symbols/symbol00056099.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00196084.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00196084.mp3",
+          "description": "pray",
+          "imagePath": "symbols/symbol00196084.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Going to the the Gurdwara"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/e62614ce-06ab-4d81-ae82-9a68b5d81c37.mp3",
+      "name": {
+        "eng": "Let's be quiet for the prayer"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/quiet_time.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00081191.png",
+          "order": 1
+        }
+      ],
+      "text": "Let's be quiet for the prayer"
+    }
+  ]
+}

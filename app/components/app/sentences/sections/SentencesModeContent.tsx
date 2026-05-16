@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -43,6 +43,7 @@ import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge'
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
+import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
@@ -507,12 +508,25 @@ function SortableSentenceRow({
 export function SentencesModeContent() {
   const t = useTranslations('sentences');
   const params = useParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, viewMode, accountId, stateFlags } = useProfile();
   const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
+
+  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
+  const packFilter = searchParams.get('pack') ?? 'all';
+  function setPackFilter(value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value === 'all') next.delete('pack');
+    else next.set('pack', value);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
 
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -535,6 +549,11 @@ export function SentencesModeContent() {
 
   // Pack status — drives the per-row Default/Library toggle pressed states + tier.
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatus, showAdminButtons ? {} : 'skip');
+  // Loaded-from packs — instructor / student-view filter options.
+  const loadedPacks = useQuery(
+    api.resourcePacks.getLoadedPacksForCurrentAccount,
+    showAdminButtons ? 'skip' : {},
+  );
   function statusFor(sentence: SentenceRow) {
     const pid = sentence.publishedToPackId;
     const isDefault = !!(pid && packsStatus && pid === packsStatus.starterPackId);
@@ -562,9 +581,18 @@ export function SentencesModeContent() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
-      const oldIdx = prev.indexOf(active.id as string);
-      const newIdx = prev.indexOf(over.id as string);
-      const next = arrayMove(prev, oldIdx, newIdx);
+      const visible = packFilter === 'all'
+        ? prev
+        : prev.filter((id) => filteredOrder.includes(id));
+      const oldVisIdx = visible.indexOf(active.id as string);
+      const newVisIdx = visible.indexOf(over.id as string);
+      if (oldVisIdx < 0 || newVisIdx < 0) return prev;
+      const reorderedVisible = arrayMove(visible, oldVisIdx, newVisIdx);
+
+      const visibleSet = new Set(visible);
+      let v = 0;
+      const next = prev.map((id) => visibleSet.has(id) ? reorderedVisible[v++] : id);
+
       reorderSentences({ orderedIds: next as Id<'profileSentences'>[], propagateToPack: showAdminButtons });
       return next;
     });
@@ -701,6 +729,58 @@ export function SentencesModeContent() {
   const sentenceMap = Object.fromEntries((sentences ?? []).map((s) => [s._id, s]));
   const orderedSentences = localOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
+  // ── Filter visibility + options ──────────────────────────────────────────
+  const filterVisible = showAdminButtons
+    ? !!packsStatus && (
+        !!packsStatus.starterPackId ||
+        Object.keys(packsStatus.libraryPacksById).length > 0
+      )
+    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
+      && !!loadedPacks && loadedPacks.length > 0;
+
+  const filterOptions: PackFilterOption[] = useMemo(() => {
+    if (!filterVisible) return [];
+    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
+    if (showAdminButtons && packsStatus) {
+      if (packsStatus.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [id, pack] of Object.entries(packsStatus.libraryPacksById)) {
+        opts.push({
+          value: id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
+    } else if (loadedPacks) {
+      for (const pack of loadedPacks) {
+        opts.push({
+          value: pack._id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'mine', label: t('filterMine') });
+    }
+    return opts;
+  }, [filterVisible, showAdminButtons, packsStatus, loadedPacks, language, t]);
+
+  // ── Apply filter ─────────────────────────────────────────────────────────
+  const filteredOrder = useMemo(() => {
+    if (packFilter === 'all') return localOrder;
+    return localOrder.filter((id) => {
+      const row = sentenceMap[id];
+      if (!row) return false;
+      if (showAdminButtons) {
+        if (packFilter === 'default') return row.publishedToPackId === packsStatus?.starterPackId;
+        if (packFilter === 'unpublished') return !row.publishedToPackId;
+        return row.publishedToPackId === packFilter;
+      } else {
+        if (packFilter === 'mine') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
+      }
+    });
+  }, [packFilter, localOrder, sentenceMap, showAdminButtons, packsStatus?.starterPackId]);
+
+  const filteredSentences = filteredOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
+
   const slotEditorSentence = slotEditTarget
     ? sentences?.find((s) => s._id === slotEditTarget.sentenceId)
     : undefined;
@@ -730,16 +810,28 @@ export function SentencesModeContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            <EditButton
-              isEditing={isEditing}
-              onClick={() => setIsEditing(!isEditing)}
-              editLabel={t('edit')}
-              exitLabel={t('exitEdit')}
-            />
-            <CreateButton
-              onClick={() => setCreateModalOpen(true)}
-              label={t('create')}
-            />
+            {viewMode !== 'student-view' && (
+              <>
+                <EditButton
+                  isEditing={isEditing}
+                  onClick={() => setIsEditing(!isEditing)}
+                  editLabel={t('edit')}
+                  exitLabel={t('exitEdit')}
+                />
+                <CreateButton
+                  onClick={() => setCreateModalOpen(true)}
+                  label={t('create')}
+                />
+              </>
+            )}
+            {filterVisible && (
+              <PackFilterDropdown
+                value={packFilter}
+                options={filterOptions}
+                onChange={setPackFilter}
+                ariaLabel={t('filterPackLabel')}
+              />
+            )}
           </PageBanner>
         </div>
       )}
@@ -764,11 +856,19 @@ export function SentencesModeContent() {
           </div>
         )}
 
-        {sentences && sentences.length > 0 && (
+        {sentences && sentences.length > 0 && filteredSentences.length === 0 && packFilter !== 'all' && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('filterEmpty')}
+            </p>
+          </div>
+        )}
+
+        {filteredSentences.length > 0 && (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
+            <SortableContext items={filteredOrder} strategy={verticalListSortingStrategy}>
               <div className="flex flex-col gap-3">
-                {orderedSentences.map((sentence) => {
+                {filteredSentences.map((sentence) => {
                   const status = statusFor(sentence);
                   return (
                     <SortableSentenceRow

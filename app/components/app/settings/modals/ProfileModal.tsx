@@ -43,8 +43,9 @@ const PAGE_PERMISSIONS = [
 ] as const;
 
 const EDITING_PERMISSIONS = [
-  { flag: "quick_settings_visible", labelKey: "permQuickSettings", defaultVal: false },
-  { flag: "student_can_edit",       labelKey: "permAllowEditing",  defaultVal: false },
+  { flag: "quick_settings_visible", labelKey: "permQuickSettings",  defaultVal: false },
+  { flag: "student_can_edit",       labelKey: "permAllowEditing",   defaultVal: false },
+  { flag: "student_can_filter",     labelKey: "permAllowFiltering", defaultVal: false },
 ] as const;
 
 // ─── Profile tab content ──────────────────────────────────────────────────────

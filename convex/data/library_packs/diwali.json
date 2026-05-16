@@ -1,0 +1,294 @@
+{
+  "slug": "diwali",
+  "name": {
+    "eng": "Diwali"
+  },
+  "description": {
+    "eng": "Curated by an admin"
+  },
+  "coverImagePath": "static/pack-cover-default.webp",
+  "defaultTier": "max",
+  "categories": [
+    {
+      "colour": "rose",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00204004.png",
+      "name": {
+        "eng": "Diwali"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "festival activities"
+          },
+          "order": 0,
+          "symbolId": "kn715c1fsv5pzff0n4dyhrt5k984n2fb"
+        },
+        {
+          "labelOverride": {
+            "eng": "Diwali lantern"
+          },
+          "order": 1,
+          "symbolId": "kn7ag5r5fp5f15pdvtjbhq1q2h84m14k"
+        },
+        {
+          "labelOverride": {
+            "eng": "Diwali festival"
+          },
+          "order": 2,
+          "symbolId": "kn7fd5h7cnhmb42rks582h2m9d84myb3"
+        },
+        {
+          "labelOverride": {
+            "eng": "Diwali"
+          },
+          "order": 3,
+          "symbolId": "kn7anb5dn392yr6swwcwb1fbrh84mrs8"
+        },
+        {
+          "labelOverride": {
+            "eng": "happy"
+          },
+          "order": 4,
+          "symbolId": "kn77edpvpxsk4vrww1k88ngb5h84mjrx"
+        },
+        {
+          "labelOverride": {
+            "eng": "diya"
+          },
+          "order": 5,
+          "symbolId": "kn7b0vhn8mmz51tbp4ebx7aae584nvc2"
+        },
+        {
+          "labelOverride": {
+            "eng": "rangoli"
+          },
+          "order": 6,
+          "symbolId": "kn77dds5gn088y4gdavg76tbc984n51a"
+        },
+        {
+          "labelOverride": {
+            "eng": "fireworks"
+          },
+          "order": 7,
+          "symbolId": "kn77hza6dr0atkrsaqfsqt2wss84n90a"
+        },
+        {
+          "labelOverride": {
+            "eng": "sweets"
+          },
+          "order": 8,
+          "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
+        },
+        {
+          "labelOverride": {
+            "eng": "gifts"
+          },
+          "order": 9,
+          "symbolId": "kn75nbjpjksbp1czsw9me2cfr584mjn9"
+        },
+        {
+          "labelOverride": {
+            "eng": "India"
+          },
+          "order": 10,
+          "symbolId": "kn79261k3jnw2jzeps1tztd4zh84mmrv"
+        },
+        {
+          "labelOverride": {
+            "eng": "new clothes"
+          },
+          "order": 11,
+          "symbolId": "kn724bxcxtk2mtc38ddbxdp3cn84mscq"
+        },
+        {
+          "labelOverride": {
+            "eng": "blessed"
+          },
+          "order": 12,
+          "symbolId": "kn7c6e0vr391z7hjrqxrtkdw2184n0q3"
+        },
+        {
+          "labelOverride": {
+            "eng": "lights"
+          },
+          "order": 13,
+          "symbolId": "kn75kxkw4rmbvzms1qaat9s3wx84ncb4"
+        },
+        {
+          "labelOverride": {
+            "eng": "family"
+          },
+          "order": 14,
+          "symbolId": "kn76k525dn6h32rd8w2nb10hv984men6"
+        },
+        {
+          "labelOverride": {
+            "eng": "prayer"
+          },
+          "order": 15,
+          "symbolId": "kn7bz6r742s7sm9p122rs7pze184mgfj"
+        },
+        {
+          "labelOverride": {
+            "eng": "sparkler"
+          },
+          "order": 16,
+          "symbolId": "kn76xgd99zdfak19xw2rapnzd984nv3f"
+        },
+        {
+          "labelOverride": {
+            "eng": "candle"
+          },
+          "order": 17,
+          "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
+        }
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212646.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
+          "description": "shower",
+          "imagePath": "symbols/symbol00212646.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
+          "description": "put on new clothes",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
+          "imagePath": "symbols/symbol00066341.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00188535.mp3",
+          "description": "light diyas",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
+          "imagePath": "symbols/symbol00188535.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00207426.mp3",
+          "description": "eat Indian food",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
+          "imagePath": "symbols/symbol00207426.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00188531.mp3",
+          "description": "go to Diwali festival",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
+          "imagePath": "symbols/symbol00188531.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Getting ready for Diwali"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/8b482bb7-1b95-4400-99a8-b9d4f1ebfb3a.mp3",
+      "name": {
+        "eng": "Let's light the candles"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/let_us.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00000326.png",
+          "order": 1
+        }
+      ],
+      "text": "Let's light the candles"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/b88a3173-2336-4e2b-925f-d71aaf29f24f.mp3",
+      "name": {
+        "eng": "Time to be quiet for prayers"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/it_is_time.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00200191.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00081191.png",
+          "order": 2
+        }
+      ],
+      "text": "Time to be quiet for prayers"
+    }
+  ]
+}

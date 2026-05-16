@@ -28,7 +28,7 @@ export default async function LibraryPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "library" });
 
   const preloaded = await preloadQuery(
-    api.resourcePacks.getPublicLibraryCatalogue,
+    api.resourcePacks.getPublicLibraryCatalogueV2,
     {}
   );
 

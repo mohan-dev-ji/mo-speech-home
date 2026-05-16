@@ -1,0 +1,288 @@
+{
+  "slug": "fun",
+  "name": {
+    "eng": "Fun"
+  },
+  "description": {
+    "eng": "Curated by an admin"
+  },
+  "coverImagePath": "symbols/fun.png",
+  "defaultTier": "free",
+  "categories": [
+    {
+      "colour": "rose",
+      "icon": "📁",
+      "imagePath": "symbols/fun.png",
+      "name": {
+        "eng": "Fun"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "puzzle"
+          },
+          "order": 0,
+          "symbolId": "kn7bezhnta9dh97cx6gdg3gcwx84m79v"
+        },
+        {
+          "labelOverride": {
+            "eng": "Google"
+          },
+          "order": 1,
+          "symbolId": "kn774djwg880nk52g3r2jz4gjx84nkyx"
+        },
+        {
+          "labelOverride": {
+            "eng": "send email"
+          },
+          "order": 2,
+          "symbolId": "kn761gqm3kcbthpf0jny35xp1s84mk4e"
+        },
+        {
+          "labelOverride": {
+            "eng": "Facebook"
+          },
+          "order": 3,
+          "symbolId": "kn78pfzm2h7w0c8091ttft88z584nsdj"
+        },
+        {
+          "labelOverride": {
+            "eng": "video game"
+          },
+          "order": 4,
+          "symbolId": "kn739knbmfya36dnm4hcqxhbjs84m18v"
+        },
+        {
+          "labelOverride": {
+            "eng": "trampoline"
+          },
+          "order": 5,
+          "symbolId": "kn7dtk9ree8arqben756f08m1x84nqst"
+        },
+        {
+          "labelOverride": {
+            "eng": "tablet"
+          },
+          "order": 6,
+          "symbolId": "kn79kjxmekdnw6hwr1hwm2xkp984nzab"
+        },
+        {
+          "labelOverride": {
+            "eng": "Play Doh"
+          },
+          "order": 7,
+          "symbolId": "kn74kx4thkg448n4m2tev8y9c184nqf1"
+        },
+        {
+          "labelOverride": {
+            "eng": "LEGO toys"
+          },
+          "order": 8,
+          "symbolId": "kn79f8t61vr9vfywx8y9dgp15984n94y"
+        },
+        {
+          "labelOverride": {
+            "eng": "headphones"
+          },
+          "order": 9,
+          "symbolId": "kn7djkxy5t5d8dvp6efma5vjwx84mavc"
+        },
+        {
+          "labelOverride": {
+            "eng": "TV show"
+          },
+          "order": 10,
+          "symbolId": "kn77sfyr7vpqj3yknwc48a9bh184m192"
+        },
+        {
+          "labelOverride": {
+            "eng": "games"
+          },
+          "order": 11,
+          "symbolId": "kn79y2t70pngxn8zc70e6wv6sh84nmdp"
+        },
+        {
+          "labelOverride": {
+            "eng": "computer"
+          },
+          "order": 12,
+          "symbolId": "kn74rsanh0ma7bgvvjdrjj7fzd84npb3"
+        },
+        {
+          "labelOverride": {
+            "eng": "read"
+          },
+          "order": 13,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+        },
+        {
+          "labelOverride": {
+            "eng": "playground"
+          },
+          "order": 14,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "eng": "swing"
+          },
+          "order": 15,
+          "symbolId": "kn7252ffx2v2gte85z8aez73zd84m5m0"
+        },
+        {
+          "labelOverride": {
+            "eng": "catch bounced ball"
+          },
+          "order": 16,
+          "symbolId": "kn736t1tvys8pcnksjkrev02r984n1fy"
+        },
+        {
+          "labelOverride": {
+            "eng": "walk"
+          },
+          "order": 17,
+          "symbolId": "kn7bt7t2hpqb50nn2ksnhcqmg984mkqc"
+        },
+        {
+          "labelOverride": {
+            "eng": "kick football"
+          },
+          "order": 18,
+          "symbolId": "kn774h1f1yb6xp64g4679c11s584nd0c"
+        },
+        {
+          "labelOverride": {
+            "eng": "play ball"
+          },
+          "order": 19,
+          "symbolId": "kn7at9hj48xnag726hv3f3e28184nkhc"
+        },
+        {
+          "labelOverride": {
+            "eng": "watch YouTube"
+          },
+          "order": 20,
+          "symbolId": "kn75cerz1snk8qyrn6akpvtfhd84npxj"
+        },
+        {
+          "labelOverride": {
+            "eng": "bubbles"
+          },
+          "order": 21,
+          "symbolId": "kn75e4c3vwddb9zpk8qh5pdqx184mbqf"
+        }
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
+          "defaultAudioPath": "audio/eng/default/toilet.mp3",
+          "description": "go to the toilet",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
+          "imagePath": "symbols/toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00105241.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00105241.mp3",
+          "description": "drive to trampoline park",
+          "imagePath": "symbols/symbol00105241.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00061831.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00061831.mp3",
+          "description": "put on special socks",
+          "imagePath": "symbols/symbol00061831.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00106261.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00106261.mp3",
+          "description": "jump on trampolines",
+          "imagePath": "symbols/symbol00106261.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        }
+      ],
+      "name": {
+        "eng": "Going to the trampoline park"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/06d16411-4307-4162-93f9-1a4ee315d262.mp3",
+      "name": {
+        "eng": "I want to watch YouTube"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/look.png",
+          "order": 2
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00192519.png",
+          "order": 3
+        }
+      ],
+      "text": "I want to watch YouTube"
+    }
+  ]
+}

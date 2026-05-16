@@ -43,6 +43,7 @@ export const getProfileLists = query({
         itemCount: list.items.length,
         thumbnails: firstFour.map((item) => ({ imagePath: item.imagePath })),
         publishedToPackId: list.publishedToPackId,
+        librarySourceId: list.librarySourceId,
       };
     });
   },

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -24,6 +24,7 @@ import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
+import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -251,6 +252,8 @@ export function ListsModeContent() {
   const t = useTranslations('lists');
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, stateFlags, viewMode } = useProfile();
   const { talkerMode } = useTalker();
@@ -260,6 +263,20 @@ export function ListsModeContent() {
     api.resourcePacks.getPacksForAdminStatus,
     showAdminBadges ? {} : 'skip',
   );
+  const loadedPacks = useQuery(
+    api.resourcePacks.getLoadedPacksForCurrentAccount,
+    showAdminBadges ? 'skip' : {},
+  );
+
+  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
+  const packFilter = searchParams.get('pack') ?? 'all';
+  function setPackFilter(value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value === 'all') next.delete('pack');
+    else next.set('pack', value);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
 
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -292,9 +309,18 @@ export function ListsModeContent() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
-      const oldIdx = prev.indexOf(active.id as string);
-      const newIdx = prev.indexOf(over.id as string);
-      const next = arrayMove(prev, oldIdx, newIdx);
+      const visible = packFilter === 'all'
+        ? prev
+        : prev.filter((id) => filteredOrder.includes(id));
+      const oldVisIdx = visible.indexOf(active.id as string);
+      const newVisIdx = visible.indexOf(over.id as string);
+      if (oldVisIdx < 0 || newVisIdx < 0) return prev;
+      const reorderedVisible = arrayMove(visible, oldVisIdx, newVisIdx);
+
+      const visibleSet = new Set(visible);
+      let v = 0;
+      const next = prev.map((id) => visibleSet.has(id) ? reorderedVisible[v++] : id);
+
       reorderLists({
         orderedIds: next as Id<'profileLists'>[],
         propagateToPack: showAdminBadges,
@@ -349,6 +375,58 @@ export function ListsModeContent() {
   const listMap = Object.fromEntries((lists ?? []).map((l) => [l._id, l]));
   const orderedLists = localOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
+  // ── Filter visibility + options ──────────────────────────────────────────
+  const filterVisible = showAdminBadges
+    ? !!adminPacks && (
+        !!adminPacks.starterPackId ||
+        Object.keys(adminPacks.libraryPacksById).length > 0
+      )
+    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
+      && !!loadedPacks && loadedPacks.length > 0;
+
+  const filterOptions: PackFilterOption[] = useMemo(() => {
+    if (!filterVisible) return [];
+    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
+    if (showAdminBadges && adminPacks) {
+      if (adminPacks.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [id, pack] of Object.entries(adminPacks.libraryPacksById)) {
+        opts.push({
+          value: id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
+    } else if (loadedPacks) {
+      for (const pack of loadedPacks) {
+        opts.push({
+          value: pack._id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'mine', label: t('filterMine') });
+    }
+    return opts;
+  }, [filterVisible, showAdminBadges, adminPacks, loadedPacks, language, t]);
+
+  // ── Apply filter ─────────────────────────────────────────────────────────
+  const filteredOrder = useMemo(() => {
+    if (packFilter === 'all') return localOrder;
+    return localOrder.filter((id) => {
+      const row = listMap[id];
+      if (!row) return false;
+      if (showAdminBadges) {
+        if (packFilter === 'default') return row.publishedToPackId === adminPacks?.starterPackId;
+        if (packFilter === 'unpublished') return !row.publishedToPackId;
+        return row.publishedToPackId === packFilter;
+      } else {
+        if (packFilter === 'mine') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
+      }
+    });
+  }, [packFilter, localOrder, listMap, showAdminBadges, adminPacks?.starterPackId]);
+
+  const filteredLists = filteredOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
+
   // Admin-view reminder: any list on screen that's published means
   // reorder / rename / delete here propagates to the live pack.
   const hasPublishedList = !!lists?.some((l) => !!l.publishedToPackId);
@@ -363,19 +441,31 @@ export function ListsModeContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            <EditButton
-              isEditing={isEditing}
-              onClick={() => {
-                if (isEditing) setEditingNameId(null);
-                setIsEditing(!isEditing);
-              }}
-              editLabel={t('edit')}
-              exitLabel={t('exitEdit')}
-            />
-            <CreateButton
-              onClick={() => setCreateModalOpen(true)}
-              label={t('create')}
-            />
+            {viewMode !== 'student-view' && (
+              <>
+                <EditButton
+                  isEditing={isEditing}
+                  onClick={() => {
+                    if (isEditing) setEditingNameId(null);
+                    setIsEditing(!isEditing);
+                  }}
+                  editLabel={t('edit')}
+                  exitLabel={t('exitEdit')}
+                />
+                <CreateButton
+                  onClick={() => setCreateModalOpen(true)}
+                  label={t('create')}
+                />
+              </>
+            )}
+            {filterVisible && (
+              <PackFilterDropdown
+                value={packFilter}
+                options={filterOptions}
+                onChange={setPackFilter}
+                ariaLabel={t('filterPackLabel')}
+              />
+            )}
           </PageBanner>
         </div>
       )}
@@ -400,11 +490,19 @@ export function ListsModeContent() {
           </div>
         )}
 
-        {lists && lists.length > 0 && (
+        {lists && lists.length > 0 && filteredLists.length === 0 && packFilter !== 'all' && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
+              {t('filterEmpty')}
+            </p>
+          </div>
+        )}
+
+        {filteredLists.length > 0 && (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
+            <SortableContext items={filteredOrder} strategy={verticalListSortingStrategy}>
               <div className="flex flex-col gap-3">
-                {orderedLists.map((list) => (
+                {filteredLists.map((list) => (
                   <SortableListRow
                     key={list._id}
                     list={list}

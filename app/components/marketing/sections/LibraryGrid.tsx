@@ -6,7 +6,7 @@ import type { api } from "@/convex/_generated/api";
 import { LibraryPackCard, type LibraryPack } from "@/app/components/marketing/ui/LibraryPackCard";
 
 type Props = {
-  preloaded: Preloaded<typeof api.resourcePacks.getPublicLibraryCatalogue>;
+  preloaded: Preloaded<typeof api.resourcePacks.getPublicLibraryCatalogueV2>;
   locale: string;
 };
 
@@ -25,7 +25,7 @@ export function LibraryGrid({ preloaded, locale }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {packs.map((pack) => (
-        <LibraryPackCard key={pack._id} pack={pack as LibraryPack} locale={locale} />
+        <LibraryPackCard key={pack.slug} pack={pack as LibraryPack} locale={locale} />
       ))}
     </div>
   );

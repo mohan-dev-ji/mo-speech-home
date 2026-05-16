@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import {
   DndContext,
   closestCenter,
@@ -118,6 +119,8 @@ export function CategoriesContent() {
   );
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
 
   const [isEditing, setIsEditing] = useState(false);
@@ -128,9 +131,27 @@ export function CategoriesContent() {
 
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
+  // Loaded-from packs — instructor/student-view filter options. Admin
+  // view uses adminPacks for the dropdown options instead, so skip the
+  // query when in admin view to save round-trips.
+  const loadedPacks = useQuery(
+    api.resourcePacks.getLoadedPacksForCurrentAccount,
+    showAdminBadges ? 'skip' : {},
+  );
+
   const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
+
+  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
+  const packFilter = searchParams.get('pack') ?? 'all';
+  function setPackFilter(value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value === 'all') next.delete('pack');
+    else next.set('pack', value);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
 
   // Sync localOrder from server: keep existing order, remove deleted, append new
   useEffect(() => {
@@ -149,6 +170,60 @@ export function CategoriesContent() {
     .map((id) => categoryMap[id])
     .filter(Boolean) as Doc<'profileCategories'>[];
 
+  // ── Filter visibility + options ──────────────────────────────────────────
+  const filterVisible = showAdminBadges
+    ? !!adminPacks && (
+        !!adminPacks.starterPackId ||
+        Object.keys(adminPacks.libraryPacksById).length > 0
+      )
+    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
+      && !!loadedPacks && loadedPacks.length > 0;
+
+  const filterOptions: PackFilterOption[] = useMemo(() => {
+    if (!filterVisible) return [];
+    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
+    if (showAdminBadges && adminPacks) {
+      if (adminPacks.starterPackId) opts.push({ value: 'default', label: t('filterDefault') });
+      for (const [id, pack] of Object.entries(adminPacks.libraryPacksById)) {
+        opts.push({
+          value: id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
+    } else if (loadedPacks) {
+      for (const pack of loadedPacks) {
+        opts.push({
+          value: pack._id,
+          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+        });
+      }
+      opts.push({ value: 'mine', label: t('filterMine') });
+    }
+    return opts;
+  }, [filterVisible, showAdminBadges, adminPacks, loadedPacks, language, t]);
+
+  // ── Apply filter ─────────────────────────────────────────────────────────
+  const filteredOrder = useMemo(() => {
+    if (packFilter === 'all') return localOrder;
+    return localOrder.filter((id) => {
+      const row = categoryMap[id];
+      if (!row) return false;
+      if (showAdminBadges) {
+        if (packFilter === 'default') return row.publishedToPackId === adminPacks?.starterPackId;
+        if (packFilter === 'unpublished') return !row.publishedToPackId;
+        return row.publishedToPackId === packFilter;
+      } else {
+        if (packFilter === 'mine') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
+      }
+    });
+  }, [packFilter, localOrder, categoryMap, showAdminBadges, adminPacks?.starterPackId]);
+
+  const filteredCategories = filteredOrder
+    .map((id) => categoryMap[id])
+    .filter(Boolean) as Doc<'profileCategories'>[];
+
   // dnd-kit sensors — 8px distance threshold prevents accidental drag on click
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -159,9 +234,21 @@ export function CategoriesContent() {
     if (!over || active.id === over.id) return;
 
     setLocalOrder((prev) => {
-      const oldIndex = prev.indexOf(active.id as string);
-      const newIndex = prev.indexOf(over.id as string);
-      const newOrder = arrayMove(prev, oldIndex, newIndex);
+      // Visible-subset reorder: drag operates inside the filtered list;
+      // hidden rows keep their slot positions in the full order. When the
+      // filter is "all", visibleSet covers every row and this collapses to
+      // a straight arrayMove on prev.
+      const visible = packFilter === 'all'
+        ? prev
+        : prev.filter((id) => filteredOrder.includes(id));
+      const oldVisIdx = visible.indexOf(active.id as string);
+      const newVisIdx = visible.indexOf(over.id as string);
+      if (oldVisIdx < 0 || newVisIdx < 0) return prev;
+      const reorderedVisible = arrayMove(visible, oldVisIdx, newVisIdx);
+
+      const visibleSet = new Set(visible);
+      let v = 0;
+      const newOrder = prev.map((id) => visibleSet.has(id) ? reorderedVisible[v++] : id);
 
       reorderCategoriesMutation({
         orderedIds: newOrder as Id<'profileCategories'>[],
@@ -211,16 +298,28 @@ export function CategoriesContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            <EditButton
-              isEditing={isEditing}
-              onClick={() => setIsEditing((v) => !v)}
-              editLabel={t('edit')}
-              exitLabel={t('exitEdit')}
-            />
-            <CreateButton
-              onClick={() => setIsCreateOpen(true)}
-              label={t('create')}
-            />
+            {viewMode !== 'student-view' && (
+              <>
+                <EditButton
+                  isEditing={isEditing}
+                  onClick={() => setIsEditing((v) => !v)}
+                  editLabel={t('edit')}
+                  exitLabel={t('exitEdit')}
+                />
+                <CreateButton
+                  onClick={() => setIsCreateOpen(true)}
+                  label={t('create')}
+                />
+              </>
+            )}
+            {filterVisible && (
+              <PackFilterDropdown
+                value={packFilter}
+                options={filterOptions}
+                onChange={setPackFilter}
+                ariaLabel={t('filterPackLabel')}
+              />
+            )}
           </PageBanner>
         </div>
       )}
@@ -231,15 +330,19 @@ export function CategoriesContent() {
           <p className="text-theme-s text-theme-secondary-alt-text">{t('loading')}</p>
         )}
 
-        {orderedCategories.length > 0 && (
+        {categories && categories.length > 0 && filteredCategories.length === 0 && packFilter !== 'all' && (
+          <p className="text-theme-s text-theme-secondary-alt-text">{t('filterEmpty')}</p>
+        )}
+
+        {filteredCategories.length > 0 && (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext items={localOrder} strategy={rectSortingStrategy}>
+            <SortableContext items={filteredOrder} strategy={rectSortingStrategy}>
               <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
-                {orderedCategories.map((cat) => (
+                {filteredCategories.map((cat) => (
                   <SortableCategoryTile
                     key={cat._id}
                     category={cat}

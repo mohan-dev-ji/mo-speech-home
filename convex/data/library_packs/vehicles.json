@@ -1,0 +1,165 @@
+{
+  "slug": "vehicles",
+  "name": {
+    "eng": "Vehicles"
+  },
+  "description": {
+    "eng": "Curated by an admin"
+  },
+  "coverImagePath": "symbols/symbol00109461.png",
+  "defaultTier": "pro",
+  "categories": [
+    {
+      "colour": "sky",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00109461.png",
+      "name": {
+        "eng": "Vehicles"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "car"
+          },
+          "order": 0,
+          "symbolId": "kn7cp3wan5gh76sqgwfq5jkkgs84ncsv"
+        },
+        {
+          "labelOverride": {
+            "eng": "bus"
+          },
+          "order": 1,
+          "symbolId": "kn75s6vbk6tcerwm51np0wx41n84m288"
+        },
+        {
+          "labelOverride": {
+            "eng": "bicycle"
+          },
+          "order": 2,
+          "symbolId": "kn72ejzd5xhanyyqnv7hrqevc184m8nh"
+        },
+        {
+          "labelOverride": {
+            "eng": "motorbike"
+          },
+          "order": 3,
+          "symbolId": "kn7cnv36kyaxeqgxnwfq0bnt2n84mrh5"
+        },
+        {
+          "labelOverride": {
+            "eng": "lorry"
+          },
+          "order": 4,
+          "symbolId": "kn75ntkhtchgc1p5ne51grm3nn84nr0q"
+        },
+        {
+          "labelOverride": {
+            "eng": "fire engine"
+          },
+          "order": 5,
+          "symbolId": "kn719t5yy028k04gv24vc517fx84n7fh"
+        },
+        {
+          "labelOverride": {
+            "eng": "helicopter"
+          },
+          "order": 6,
+          "symbolId": "kn7b5nwz7y467gnfth0b5c7pk984mkny"
+        },
+        {
+          "labelOverride": {
+            "eng": "police car"
+          },
+          "order": 7,
+          "symbolId": "kn78dcjfztp7cb345q6pptxqm184nryy"
+        },
+        {
+          "labelOverride": {
+            "eng": "school bus"
+          },
+          "order": 8,
+          "symbolId": "kn72r73hypq5hy92dx9eww9r6184nq7g"
+        },
+        {
+          "labelOverride": {
+            "eng": "space ship"
+          },
+          "order": 9,
+          "symbolId": "kn7czyctwr0bcrc52q9nszhcy984nj8x"
+        },
+        {
+          "labelOverride": {
+            "eng": "taxi"
+          },
+          "order": 10,
+          "symbolId": "kn742whb903wjthdvrrcjxm95x84m5w7"
+        },
+        {
+          "labelOverride": {
+            "eng": "uber"
+          },
+          "order": 11,
+          "symbolId": "kn7aey6g74nenxdwe3b05xn6fs84nn2s"
+        },
+        {
+          "labelOverride": {
+            "eng": "train"
+          },
+          "order": 12,
+          "symbolId": "kn70a01504kvyxdrvevkh4jvv184mmmf"
+        },
+        {
+          "labelOverride": {
+            "eng": "tube"
+          },
+          "order": 13,
+          "symbolId": "kn7e8e8bqxe6n3qe2h85fq5ezd84nvmx"
+        },
+        {
+          "labelOverride": {
+            "eng": "car boot"
+          },
+          "order": 14,
+          "symbolId": "kn7dcjjqkgve10t27pnfvp4w3d84nsmk"
+        },
+        {
+          "labelOverride": {
+            "eng": "car door"
+          },
+          "order": 15,
+          "symbolId": "kn72040ndrs2z3q1gqq8sn8rnn84n892"
+        },
+        {
+          "labelOverride": {
+            "eng": "car engine"
+          },
+          "order": 16,
+          "symbolId": "kn7bz74fedvt1j62hefr769aeh84msxs"
+        },
+        {
+          "labelOverride": {
+            "eng": "cruise ship"
+          },
+          "order": 17,
+          "symbolId": "kn7dnveke1typ63hmsm67zkxr184m971"
+        },
+        {
+          "labelOverride": {
+            "eng": "tractor"
+          },
+          "order": 18,
+          "symbolId": "kn741fv0t2v44ac0zc0hhpkvzx84nf9n"
+        },
+        {
+          "labelOverride": {
+            "eng": "rubbish truck"
+          },
+          "order": 19,
+          "symbolId": "kn75734twkxgz1bk0xh24ve9ad84ny0w"
+        }
+      ]
+    }
+  ],
+  "lists": [],
+  "sentences": []
+}

@@ -11,10 +11,13 @@
 import type * as account from "../account.js";
 import type * as accountMembers from "../accountMembers.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
+import type * as data_library_packs__index from "../data/library_packs/_index.js";
+import type * as data_library_packs_types from "../data/library_packs/types.js";
 import type * as data_starter_backups_index from "../data/starter_backups/index.js";
 import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
 import type * as lib_account from "../lib/account.js";
+import type * as lib_libraryPacks from "../lib/libraryPacks.js";
 import type * as migrations from "../migrations.js";
 import type * as modellingSessions from "../modellingSessions.js";
 import type * as profileCategories from "../profileCategories.js";
@@ -40,10 +43,13 @@ declare const fullApi: ApiFromModules<{
   account: typeof account;
   accountMembers: typeof accountMembers;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
+  "data/library_packs/_index": typeof data_library_packs__index;
+  "data/library_packs/types": typeof data_library_packs_types;
   "data/starter_backups/index": typeof data_starter_backups_index;
   featureQuota: typeof featureQuota;
   imageCache: typeof imageCache;
   "lib/account": typeof lib_account;
+  "lib/libraryPacks": typeof lib_libraryPacks;
   migrations: typeof migrations;
   modellingSessions: typeof modellingSessions;
   profileCategories: typeof profileCategories;

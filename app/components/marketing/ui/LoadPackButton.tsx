@@ -7,12 +7,11 @@ import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
 
 type Props = {
-  packId: Id<"resourcePacks">;
+  packSlug: string;
   packTier: "free" | "pro" | "max";
   isStarter: boolean;
   // `locale` no longer needed — the locale-aware router auto-prefixes — but
@@ -31,8 +30,10 @@ const RESUME_KEY = "library:resume";
  *
  * Reads access via getMyAccess directly — useSubscription is unavailable here
  * because AppStateProvider lives inside the AAC shell, not the public route.
+ *
+ * Per ADR-010 (Phase 5): packs are identified by slug, not Convex Id.
  */
-export function LoadPackButton({ packId, packTier, isStarter }: Props) {
+export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
   const t = useTranslations("library");
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
@@ -40,17 +41,17 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
     api.users.getMyAccess,
     isSignedIn ? {} : "skip"
   );
-  const loadedPackIds = useQuery(
-    api.resourcePacks.getMyLoadedPackIds,
+  const loadedPackSlugs = useQuery(
+    api.resourcePacks.getMyLoadedPackSlugs,
     isSignedIn ? {} : "skip"
   );
-  const loadPack = useMutation(api.resourcePacks.loadResourcePack);
+  const loadPack = useMutation(api.resourcePacks.loadResourcePackV2);
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
   if (
     !isLoaded ||
-    (isSignedIn && (access === undefined || loadedPackIds === undefined))
+    (isSignedIn && (access === undefined || loadedPackSlugs === undefined))
   ) {
     return (
       <Button variant="primary" size="md" disabled className="w-full">
@@ -69,7 +70,7 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
           try {
             localStorage.setItem(
               RESUME_KEY,
-              JSON.stringify({ packId, ts: Date.now() })
+              JSON.stringify({ packSlug, ts: Date.now() })
             );
           } catch {
             // localStorage may be blocked (Safari private mode etc.) — non-fatal
@@ -83,7 +84,7 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
   }
 
   const alreadyLoaded =
-    isStarter || (loadedPackIds?.includes(packId) ?? false);
+    isStarter || (loadedPackSlugs?.includes(packSlug) ?? false);
 
   if (alreadyLoaded) {
     return (
@@ -107,7 +108,7 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
         size="md"
         className="w-full"
         onClick={() =>
-          router.push(`/pricing?intent=load&packId=${packId}`)
+          router.push(`/pricing?intent=load&packSlug=${packSlug}`)
         }
       >
         {t("ctaUpgrade")}
@@ -125,7 +126,7 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
       onClick={async () => {
         setSubmitting(true);
         try {
-          await loadPack({ packId });
+          await loadPack({ packSlug });
           showToast({ tone: "info", title: t("loadSuccessToast") });
           router.push("/categories");
         } catch (e: unknown) {
@@ -137,7 +138,7 @@ export function LoadPackButton({ packId, packTier, isStarter }: Props) {
           ) {
             const code = (e.data as { code: string }).code;
             if (code === "TIER_REQUIRED") {
-              router.push(`/pricing?intent=load&packId=${packId}`);
+              router.push(`/pricing?intent=load&packSlug=${packSlug}`);
               return;
             }
             if (code === "ALREADY_LOADED") {

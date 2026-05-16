@@ -9,7 +9,6 @@ import { useMutation } from "convex/react";
 import { ConvexError } from "convex/values";
 import { Loader2 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { ToastProvider, useToast } from "@/app/components/app/shared/ui/Toast";
 
 const RESUME_KEY = "library:resume";
@@ -20,10 +19,14 @@ const RESUME_KEY = "library:resume";
  * Reads `library:resume` from localStorage (written by LoadPackButton when a
  * logged-out visitor clicks "Sign up to load") and the NEXT_LOCALE cookie,
  * then dispatches:
- *   - Resume queued → loadResourcePack → /<locale>/categories
+ *   - Resume queued → loadResourcePackV2 → /<locale>/categories
  *   - Otherwise → /<locale>/home
  *
  * User sees a centered spinner for ~200ms before the redirect fires.
+ *
+ * Per ADR-010 (Phase 5): the resume payload carries `packSlug` (string),
+ * not the legacy `packId`. Old entries written before the cutover are
+ * gracefully ignored (treated as "no resume queued").
  *
  * Wrapped in ToastProvider because the load-success toast must show through to
  * the destination page (the AAC shell's own ToastProvider takes over once the
@@ -33,7 +36,7 @@ const RESUME_KEY = "library:resume";
 function PostSignupDispatch() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
-  const loadPack = useMutation(api.resourcePacks.loadResourcePack);
+  const loadPack = useMutation(api.resourcePacks.loadResourcePackV2);
   const { showToast } = useToast();
   const dispatchedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,28 +53,26 @@ function PostSignupDispatch() {
       const locale = localeMatch?.[1] === "hi" ? "hi" : "en";
 
       // Read library:resume from localStorage.
-      let resumePackId: Id<"resourcePacks"> | null = null;
+      let resumePackSlug: string | null = null;
       try {
         const raw = localStorage.getItem(RESUME_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw) as { packId?: string };
-          if (parsed.packId) {
-            resumePackId = parsed.packId as Id<"resourcePacks">;
-          }
+          const parsed = JSON.parse(raw) as { packSlug?: string };
+          if (parsed.packSlug) resumePackSlug = parsed.packSlug;
         }
       } catch {
         // Malformed entry — ignore and fall through to /home.
       }
 
       // No resume queued → straight to home (locale-prefixed).
-      if (!resumePackId) {
+      if (!resumePackSlug) {
         if (!cancelled) router.replace(`/${locale}/home`);
         return;
       }
 
       // Resume queued → load + redirect to categories (locale-prefixed).
       try {
-        await loadPack({ packId: resumePackId });
+        await loadPack({ packSlug: resumePackSlug });
         try {
           localStorage.removeItem(RESUME_KEY);
         } catch {

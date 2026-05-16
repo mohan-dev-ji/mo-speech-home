@@ -1,5 +1,7 @@
 # Resource Library and Seasonal Packs
 
+> **Storage update (2026-05-14):** [ADR-010](../../4-builds/decisions/ADR-010-pack-storage-shift.md) shifts pack **content** from the `resourcePacks` Convex table to versioned JSON files in the repo (`convex/data/library_packs/`). The `resourcePacks` table is kept as a legacy backup through the cutover and dropped later. Lifecycle metadata (publish/expire/feature/tier overrides) moves to a small new `packLifecycle` table. The `LibraryPackPickerModal` UX stays unchanged; on Save it now writes JSON via a local-dev Next.js API route. Sections below describing `resourcePacks` writes should be read alongside ADR-010.
+
 ## What It Is
 
 The Mo Speech resource library is a collection of curated content packs managed by the Mo Speech team via the admin dashboard. Instructors can browse the library, preview packs, and load them into their student's profile as a starting point or supplement.
@@ -40,7 +42,7 @@ All symbol references within a pack point to `symbolId` values in the SymbolStix
 
 Admins author resource pack content directly in the main Mo Speech app, using their own account's content (categories, lists, sentences) as the working surface. Content is account-owned (the instructor owns it); student profiles only carry surface-level personalisation like theme, grid size, and language. So an admin curating a starter pack is just an instructor on an admin-flagged account, working with the same data shape as any other instructor.
 
-Admin chrome is gated on **`viewMode === 'admin'`** — the third entry in the breadcrumb dropdown, available only when Clerk role is admin. See **ADR-008** for the rationale (admin is a Clerk role + view-mode entry, not a profile type). When the admin selects this view mode, the app exposes additional affordances:
+Admin chrome is gated on **`viewMode === 'admin'`** — the third entry in the breadcrumb dropdown, available only when Clerk role is admin. See **ADR-008** for the rationale (admin is a Clerk role + view-mode entry, not a profile type) and **[ADR-010](../../4-builds/decisions/ADR-010-pack-storage-shift.md)** for how pack content is stored (JSON in the repo, not the Convex table). When the admin selects this view mode, the app exposes additional affordances:
 
 - "Save category to library" — appears in category edit-mode toolbar
 - "Save list to library" — appears in list editor

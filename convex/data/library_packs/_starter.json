@@ -1,0 +1,6238 @@
+{
+  "slug": "_starter",
+  "name": {
+    "eng": "Starter Pack",
+    "hin": "Starter Pack (hi)"
+  },
+  "description": {
+    "eng": "Default categories loaded into every new account on signup.",
+    "hin": "Default categories loaded into every new account on signup. (hi)"
+  },
+  "coverImagePath": "static/starter-cover.webp",
+  "defaultTier": "free",
+  "isStarter": true,
+  "categories": [
+    {
+      "colour": "cyan",
+      "icon": "⚡",
+      "imagePath": "symbols/play.png",
+      "name": {
+        "eng": "Actions",
+        "hin": "Actions (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "go"
+          },
+          "order": 0,
+          "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a"
+        },
+        {
+          "labelOverride": {
+            "eng": "want"
+          },
+          "order": 1,
+          "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1"
+        },
+        {
+          "labelOverride": {
+            "eng": "need"
+          },
+          "order": 2,
+          "symbolId": "kn7bqp8w7tn53a6dysev66hhp984nshr"
+        },
+        {
+          "labelOverride": {
+            "eng": "stop"
+          },
+          "order": 3,
+          "symbolId": "kn77vqh14r04s8rk8r7ng0y46n84nmk4"
+        },
+        {
+          "labelOverride": {
+            "eng": "eat"
+          },
+          "order": 4,
+          "symbolId": "kn76k6jpevb6hgghcn7qn31pw984mdvy"
+        },
+        {
+          "labelOverride": {
+            "eng": "drink"
+          },
+          "order": 5,
+          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
+        },
+        {
+          "labelOverride": {
+            "eng": "help"
+          },
+          "order": 6,
+          "symbolId": "kn76c4bbv7sk92vceyb1pegr1984nrje"
+        },
+        {
+          "labelOverride": {
+            "eng": "play"
+          },
+          "order": 7,
+          "symbolId": "kn77bjf6mgbnns10bxkar5tbj184m99m"
+        },
+        {
+          "labelOverride": {
+            "eng": "look"
+          },
+          "order": 8,
+          "symbolId": "kn73bwrrf4y9ys8fwyypmydgbs84m8jr"
+        },
+        {
+          "labelOverride": {
+            "eng": "come"
+          },
+          "order": 9,
+          "symbolId": "kn73fcp7jsscfb73q74kdwpcvd84ns0y"
+        },
+        {
+          "labelOverride": {
+            "eng": "get"
+          },
+          "order": 10,
+          "symbolId": "kn73g9e9svgf4vr7b07xj07n2n84m2re"
+        },
+        {
+          "labelOverride": {
+            "eng": "open"
+          },
+          "order": 11,
+          "symbolId": "kn70s0tv43aby8v1jdfm622y7x84n01n"
+        },
+        {
+          "labelOverride": {
+            "eng": "close"
+          },
+          "order": 12,
+          "symbolId": "kn7eejpzks7erwbt73es2ys3bn84nyev"
+        },
+        {
+          "labelOverride": {
+            "eng": "give"
+          },
+          "order": 13,
+          "symbolId": "kn745hgzrnmaqz6aeyxke9t6t584nw97"
+        },
+        {
+          "labelOverride": {
+            "eng": "put"
+          },
+          "order": 14,
+          "symbolId": "kn76jebnwzchvaf6kzanxpb76n84mkxw"
+        },
+        {
+          "labelOverride": {
+            "eng": "see"
+          },
+          "order": 15,
+          "symbolId": "kn735p07bj4aabn0vg8msvd3yd84na80"
+        },
+        {
+          "labelOverride": {
+            "eng": "finished"
+          },
+          "order": 16,
+          "symbolId": "kn738dd2fge139z2m9t809vgzs84nvf1"
+        },
+        {
+          "labelOverride": {
+            "eng": "like"
+          },
+          "order": 17,
+          "symbolId": "kn7bthxrdx9ss6nka0ye217mz984mjzh"
+        },
+        {
+          "labelOverride": {
+            "eng": "love"
+          },
+          "order": 18,
+          "symbolId": "kn7at2ysp6cvs5t0gd5pd5qgm184mkff"
+        },
+        {
+          "labelOverride": {
+            "eng": "sit"
+          },
+          "order": 19,
+          "symbolId": "kn7a90xq8dh5dj3np7c9rhshe184na1y"
+        },
+        {
+          "labelOverride": {
+            "eng": "walk"
+          },
+          "order": 20,
+          "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
+        },
+        {
+          "labelOverride": {
+            "eng": "watch"
+          },
+          "order": 21,
+          "symbolId": "kn7arzppbbk4basr3mbmxp8t1184mtg9"
+        },
+        {
+          "labelOverride": {
+            "eng": "sleep"
+          },
+          "order": 22,
+          "symbolId": "kn74szjezc2fnemzxzttxbm7vd84m4f2"
+        },
+        {
+          "labelOverride": {
+            "eng": "wash"
+          },
+          "order": 23,
+          "symbolId": "kn71hezkxcw0y00vcvs0pp6fed84n5b5"
+        },
+        {
+          "labelOverride": {
+            "eng": "read"
+          },
+          "order": 24,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+        },
+        {
+          "labelOverride": {
+            "eng": "listen"
+          },
+          "order": 25,
+          "symbolId": "kn7a183ssnwdk044x6zh6ynfeh84ne4d"
+        },
+        {
+          "labelOverride": {
+            "eng": "talk"
+          },
+          "order": 26,
+          "symbolId": "kn7av90qyr653ezef764f6se0584mfyd"
+        },
+        {
+          "labelOverride": {
+            "eng": "say"
+          },
+          "order": 27,
+          "symbolId": "kn7f8ztx8v2q0fnye39cxvta5x84mh0f"
+        },
+        {
+          "labelOverride": {
+            "eng": "make"
+          },
+          "order": 28,
+          "symbolId": "kn74w1km22htz4ztwck3ea6df184nt85"
+        },
+        {
+          "labelOverride": {
+            "eng": "take"
+          },
+          "order": 29,
+          "symbolId": "kn7avr67zy5bkx7hr08jkmfz8584m2wm"
+        },
+        {
+          "labelOverride": {
+            "eng": "have"
+          },
+          "order": 30,
+          "symbolId": "kn78dn60mpj7w3rc3da944zjn184mbwt"
+        },
+        {
+          "labelOverride": {
+            "eng": "feel"
+          },
+          "order": 31,
+          "symbolId": "kn7fgb31ekn67yrvrw8zhza6s984nfj8"
+        },
+        {
+          "labelOverride": {
+            "eng": "run"
+          },
+          "order": 32,
+          "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
+        },
+        {
+          "labelOverride": {
+            "eng": "jump"
+          },
+          "order": 33,
+          "symbolId": "kn7c5xx95apwrg10k2fp132jp584m40b"
+        },
+        {
+          "labelOverride": {
+            "eng": "throw"
+          },
+          "order": 34,
+          "symbolId": "kn79sey6cr3p7wgd4nab65y06n84na8f"
+        },
+        {
+          "labelOverride": {
+            "eng": "catch"
+          },
+          "order": 35,
+          "symbolId": "kn72snjvd4v0wkz5hwhvfddf1184n60m"
+        },
+        {
+          "labelOverride": {
+            "eng": "draw"
+          },
+          "order": 36,
+          "symbolId": "kn744d6bbh5py1wfk5x7dgnyhs84m2fr"
+        },
+        {
+          "labelOverride": {
+            "eng": "write"
+          },
+          "order": 37,
+          "symbolId": "kn73p5hmh97n8xqh7af3hda6g584maqh"
+        },
+        {
+          "labelOverride": {
+            "eng": "sing"
+          },
+          "order": 38,
+          "symbolId": "kn7dg927wyv18xy10ap3rp15a984mtmw"
+        },
+        {
+          "labelOverride": {
+            "eng": "dance"
+          },
+          "order": 39,
+          "symbolId": "kn7722kh6n7n6v73n7rhfspnrx84njnf"
+        },
+        {
+          "labelOverride": {
+            "eng": "try"
+          },
+          "order": 40,
+          "symbolId": "kn7e6zmccgbf6sn1gztjm2y05s84n19p"
+        },
+        {
+          "labelOverride": {
+            "eng": "wait"
+          },
+          "order": 41,
+          "symbolId": "kn70sz82dxqs87p75q6stv832984m023"
+        },
+        {
+          "labelOverride": {
+            "eng": "share"
+          },
+          "order": 42,
+          "symbolId": "kn786724xa145sx60xa1rxxrk984nrw7"
+        },
+        {
+          "labelOverride": {
+            "eng": "smile"
+          },
+          "order": 43,
+          "symbolId": "kn75dqs3nyk3ewmd0e9gj1s0c584n3r7"
+        },
+        {
+          "labelOverride": {
+            "eng": "laugh"
+          },
+          "order": 44,
+          "symbolId": "kn73m4jex2zrh0w0tq7thpkh7d84m8sy"
+        },
+        {
+          "labelOverride": {
+            "eng": "cry"
+          },
+          "order": 45,
+          "symbolId": "kn7e25vb7jf30ezjft5hmqarx584nr7y"
+        },
+        {
+          "labelOverride": {
+            "eng": "hug"
+          },
+          "order": 46,
+          "symbolId": "kn76v62y4fwcgymn5z39jdrqqh84mwgs"
+        },
+        {
+          "labelOverride": {
+            "eng": "turn"
+          },
+          "order": 47,
+          "symbolId": "kn70ngj1xdgkka55gcty81gzf584n7q1"
+        }
+      ]
+    },
+    {
+      "colour": "#A855F7",
+      "icon": "👥",
+      "imagePath": "symbols/family.png",
+      "name": {
+        "eng": "People",
+        "hin": "People (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "father"
+          },
+          "order": 0,
+          "symbolId": "kn754n819gr195822s9pphyxf184nh6x"
+        },
+        {
+          "labelOverride": {
+            "eng": "brother"
+          },
+          "order": 1,
+          "symbolId": "kn783skgpa2nkfqtacwdvah5ex84mmnm"
+        },
+        {
+          "labelOverride": {
+            "eng": "sister"
+          },
+          "order": 2,
+          "symbolId": "kn7cqgtxz868rwmbzdz4044m9584n99q"
+        },
+        {
+          "labelOverride": {
+            "eng": "baby"
+          },
+          "order": 3,
+          "symbolId": "kn76k2100sh8ajg84z1nmtyyns84m43n"
+        },
+        {
+          "labelOverride": {
+            "eng": "family"
+          },
+          "order": 4,
+          "symbolId": "kn74khvh60ahhq4ga867hfqbn584nxxp"
+        },
+        {
+          "labelOverride": {
+            "eng": "grandmother"
+          },
+          "order": 5,
+          "symbolId": "kn7fre6naq6aghzes3yqzksbh584mmw4"
+        },
+        {
+          "labelOverride": {
+            "eng": "grandfather"
+          },
+          "order": 6,
+          "symbolId": "kn77hf997nfxdbetncb1ppsynx84m03y"
+        },
+        {
+          "labelOverride": {
+            "eng": "aunt"
+          },
+          "order": 7,
+          "symbolId": "kn716d7n9437q7507fm9wdc1xs84mb3x"
+        },
+        {
+          "labelOverride": {
+            "eng": "uncle"
+          },
+          "order": 8,
+          "symbolId": "kn7cft94yre9rnk27wv431pesh84n5dk"
+        },
+        {
+          "labelOverride": {
+            "eng": "daughter"
+          },
+          "order": 9,
+          "symbolId": "kn709828txb73nb050r9vgv0cn84ngfe"
+        },
+        {
+          "labelOverride": {
+            "eng": "son"
+          },
+          "order": 10,
+          "symbolId": "kn7deths0g44kzs20fg9xfemb184nqxt"
+        },
+        {
+          "labelOverride": {
+            "eng": "husband"
+          },
+          "order": 11,
+          "symbolId": "kn72rs95nvf66jj9ssvyvw9x2984mbz5"
+        },
+        {
+          "labelOverride": {
+            "eng": "wife"
+          },
+          "order": 12,
+          "symbolId": "kn7ecw11c7pk8yk8nh7cwn0dbh84nsek"
+        },
+        {
+          "labelOverride": {
+            "eng": "parent"
+          },
+          "order": 13,
+          "symbolId": "kn79dard599vrx4ajtcbhkgx1584ns3p"
+        },
+        {
+          "labelOverride": {
+            "eng": "cousin"
+          },
+          "order": 14,
+          "symbolId": "kn71ktttjy45mwy8jegv3tjwy984nd6f"
+        },
+        {
+          "labelOverride": {
+            "eng": "twin"
+          },
+          "order": 15,
+          "symbolId": "kn76je92pfv0a6zvzxedypb1fn84mzga"
+        },
+        {
+          "labelOverride": {
+            "eng": "partner"
+          },
+          "order": 16,
+          "symbolId": "kn7dx3rfbcsnneske3z78pshv184m7bc"
+        },
+        {
+          "labelOverride": {
+            "eng": "friend"
+          },
+          "order": 17,
+          "symbolId": "kn72th2pdjmvq1g4xd6mj4fdcx84n36t"
+        },
+        {
+          "labelOverride": {
+            "eng": "boy"
+          },
+          "order": 18,
+          "symbolId": "kn77vk9mdttpjjzb5vfk7dzr3184nk09"
+        },
+        {
+          "labelOverride": {
+            "eng": "girl"
+          },
+          "order": 19,
+          "symbolId": "kn7b17b150am73pwk1nmcdg9k984mfs1"
+        },
+        {
+          "labelOverride": {
+            "eng": "man"
+          },
+          "order": 20,
+          "symbolId": "kn71enq6wetp188vkqxyaky4js84ncgg"
+        },
+        {
+          "labelOverride": {
+            "eng": "woman"
+          },
+          "order": 21,
+          "symbolId": "kn7bgy0e43bkrp0ndk0rh3sb5h84nznn"
+        },
+        {
+          "labelOverride": {
+            "eng": "child"
+          },
+          "order": 22,
+          "symbolId": "kn70hwx3wz2ejwz63mmdt09gb984nfac"
+        },
+        {
+          "labelOverride": {
+            "eng": "children"
+          },
+          "order": 23,
+          "symbolId": "kn72derk97t9v1fa6w0jj2s95h84n0z5"
+        },
+        {
+          "labelOverride": {
+            "eng": "adult"
+          },
+          "order": 24,
+          "symbolId": "kn7e4x511dtj61ttkbfjjz50pn84nwy2"
+        },
+        {
+          "labelOverride": {
+            "eng": "teenager"
+          },
+          "order": 25,
+          "symbolId": "kn7f3v7a55f6848v6zsdbekhhx84m6wz"
+        },
+        {
+          "labelOverride": {
+            "eng": "toddler"
+          },
+          "order": 26,
+          "symbolId": "kn7742b3ybcfg835jgn6e8g20184nwzm"
+        },
+        {
+          "labelOverride": {
+            "eng": "patient"
+          },
+          "order": 27,
+          "symbolId": "kn70f8bsmp9q66nfzk8kbwm97584nm2y"
+        },
+        {
+          "labelOverride": {
+            "eng": "student"
+          },
+          "order": 28,
+          "symbolId": "kn7fp8xc7tv60gjxewkwctdnzx84ngss"
+        },
+        {
+          "labelOverride": {
+            "eng": "stranger"
+          },
+          "order": 29,
+          "symbolId": "kn7f54zw22nsn9prxcggj35v4x84nq1z"
+        },
+        {
+          "labelOverride": {
+            "eng": "neighbor"
+          },
+          "order": 30,
+          "symbolId": "kn7ahbbrbqyc8kaf6ac7j0gzd184nntz"
+        },
+        {
+          "labelOverride": {
+            "eng": "helper"
+          },
+          "order": 31,
+          "symbolId": "kn70pda88g1yh46vh9hyn1fynx84nc6z"
+        },
+        {
+          "labelOverride": {
+            "eng": "volunteer"
+          },
+          "order": 32,
+          "symbolId": "kn7fd8rfn69gw88sp4b9dakxws84m6xx"
+        },
+        {
+          "labelOverride": {
+            "eng": "team"
+          },
+          "order": 33,
+          "symbolId": "kn7d4r4nmcjx1zwmzvaxw1rdbs84n6md"
+        },
+        {
+          "labelOverride": {
+            "eng": "anybody"
+          },
+          "order": 34,
+          "symbolId": "kn7e0m0hberfka2kewrd2z7zss84n1md"
+        },
+        {
+          "labelOverride": {
+            "eng": "teacher"
+          },
+          "order": 35,
+          "symbolId": "kn700ctrhasxj9kd1rw52sv9ah84mx3t"
+        },
+        {
+          "labelOverride": {
+            "eng": "doctor"
+          },
+          "order": 36,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "eng": "nurse"
+          },
+          "order": 37,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "eng": "firefighter"
+          },
+          "order": 38,
+          "symbolId": "kn74fg2zfnx4g43np32ve04a2184mxbf"
+        },
+        {
+          "labelOverride": {
+            "eng": "police officer"
+          },
+          "order": 39,
+          "symbolId": "kn7chs5fwa2xfkk9an41npz1gd84mjyg"
+        },
+        {
+          "labelOverride": {
+            "eng": "dentist"
+          },
+          "order": 40,
+          "symbolId": "kn78wjxsjnbtpgqw25crt4k4js84nvz4"
+        },
+        {
+          "labelOverride": {
+            "eng": "driver"
+          },
+          "order": 41,
+          "symbolId": "kn770hmt27b77qfj034n2gh4cs84ns0k"
+        },
+        {
+          "labelOverride": {
+            "eng": "hero"
+          },
+          "order": 42,
+          "symbolId": "kn7d1npf7svr4qs9gv0dq5xyp984nr88"
+        },
+        {
+          "labelOverride": {
+            "eng": "princess"
+          },
+          "order": 43,
+          "symbolId": "kn76x3pcbjdw934r38shbfj1w184mvdn"
+        },
+        {
+          "labelOverride": {
+            "eng": "prince"
+          },
+          "order": 44,
+          "symbolId": "kn72jvpk703h7ejdmsje0md85h84mnw9"
+        },
+        {
+          "labelOverride": {
+            "eng": "king"
+          },
+          "order": 45,
+          "symbolId": "kn74d8c7msh6rm381dr2c0203h84m735"
+        },
+        {
+          "labelOverride": {
+            "eng": "queen"
+          },
+          "order": 46,
+          "symbolId": "kn71kmf62451cjjjvswv9a0zgd84mxtp"
+        }
+      ]
+    },
+    {
+      "colour": "fuchsia",
+      "icon": "😊",
+      "imagePath": "symbols/feelings.png",
+      "name": {
+        "eng": "Feelings",
+        "hin": "Feelings (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "happy"
+          },
+          "order": 0,
+          "symbolId": "kn770fvp1mzrxej3xkd0xeyqtn84nf69"
+        },
+        {
+          "labelOverride": {
+            "eng": "sad"
+          },
+          "order": 1,
+          "symbolId": "kn7784v062saq80pg1jtv17cn584mpqp"
+        },
+        {
+          "labelOverride": {
+            "eng": "angry"
+          },
+          "order": 2,
+          "symbolId": "kn74ftd6mhctkj4ernswmds7k984mmb4"
+        },
+        {
+          "labelOverride": {
+            "eng": "scared"
+          },
+          "order": 3,
+          "symbolId": "kn7dcxeekpecq8gv9m3qf9gr3584m09p"
+        },
+        {
+          "labelOverride": {
+            "eng": "excited"
+          },
+          "order": 4,
+          "symbolId": "kn765219q82zgz2psyd1c1bdjs84na3d"
+        },
+        {
+          "labelOverride": {
+            "eng": "surprised"
+          },
+          "order": 5,
+          "symbolId": "kn7by20bdz72x5a4gfgm62wv5s84m5mx"
+        },
+        {
+          "labelOverride": {
+            "eng": "calm"
+          },
+          "order": 6,
+          "symbolId": "kn74f2dj2tg6d3xca5vwak7khs84ne2g"
+        },
+        {
+          "labelOverride": {
+            "eng": "confused"
+          },
+          "order": 7,
+          "symbolId": "kn71xpqeyt7vdxe4ma2bw5x70x84m24a"
+        },
+        {
+          "labelOverride": {
+            "eng": "worried"
+          },
+          "order": 8,
+          "symbolId": "kn719cbhw77r4ard71rvzthcyn84n61v"
+        },
+        {
+          "labelOverride": {
+            "eng": "frustrated"
+          },
+          "order": 9,
+          "symbolId": "kn70cfsy9ytfatp8emdjgzj0rs84mvpt"
+        },
+        {
+          "labelOverride": {
+            "eng": "overstimulated"
+          },
+          "order": 10,
+          "symbolId": "kn7eeadjya3c6gzv7ns9m594mx84ntd9"
+        },
+        {
+          "labelOverride": {
+            "eng": "bored"
+          },
+          "order": 11,
+          "symbolId": "kn75xkbw93zzt2rzzpnqjyezgh84n5wx"
+        },
+        {
+          "labelOverride": {
+            "eng": "nervous"
+          },
+          "order": 12,
+          "symbolId": "kn7fa4gqjs6n9p8w38zyxtp84184nt1x"
+        },
+        {
+          "labelOverride": {
+            "eng": "proud"
+          },
+          "order": 13,
+          "symbolId": "kn7beq8amxsgsbjvqxbjx2c7m584nhrc"
+        },
+        {
+          "labelOverride": {
+            "eng": "silly"
+          },
+          "order": 14,
+          "symbolId": "kn74y1byfnd0g4vz46gma3gj3584m225"
+        },
+        {
+          "labelOverride": {
+            "eng": "lonely"
+          },
+          "order": 15,
+          "symbolId": "kn72jq06j887gzdnqa0msex6rx84m2xe"
+        },
+        {
+          "labelOverride": {
+            "eng": "embarrassed"
+          },
+          "order": 16,
+          "symbolId": "kn76ec7tyrdyg0v3cys55ydrkn84mbqq"
+        },
+        {
+          "labelOverride": {
+            "eng": "shy"
+          },
+          "order": 17,
+          "symbolId": "kn766dmrfefjvdre512vn9fzzd84n25q"
+        },
+        {
+          "labelOverride": {
+            "eng": "curious"
+          },
+          "order": 18,
+          "symbolId": "kn77fzj7stpdpzkt4mfs6p7abh84m0v2"
+        },
+        {
+          "labelOverride": {
+            "eng": "jealous"
+          },
+          "order": 19,
+          "symbolId": "kn74rwr6nnp3za64wt6x8ctabx84mc9w"
+        },
+        {
+          "labelOverride": {
+            "eng": "disappointed"
+          },
+          "order": 20,
+          "symbolId": "kn789wwzmvwfdvtqwne9n5rsns84nbqz"
+        },
+        {
+          "labelOverride": {
+            "eng": "upset"
+          },
+          "order": 21,
+          "symbolId": "kn73a46936mn7qaz2jfyazfsxx84nrcm"
+        },
+        {
+          "labelOverride": {
+            "eng": "guilty"
+          },
+          "order": 22,
+          "symbolId": "kn79zz6s0ayhpkn8rfh7ea5jhs84mk8h"
+        },
+        {
+          "labelOverride": {
+            "eng": "amused"
+          },
+          "order": 23,
+          "symbolId": "kn798px8ws95zzyyezfan7zk6584mmm6"
+        },
+        {
+          "labelOverride": {
+            "eng": "hungry"
+          },
+          "order": 24,
+          "symbolId": "kn75eqcw6m7epm140jcfcap32h84m2m9"
+        },
+        {
+          "labelOverride": {
+            "eng": "sick"
+          },
+          "order": 25,
+          "symbolId": "kn7csda8zb5df60j1ved3kg8fh84n82t"
+        },
+        {
+          "labelOverride": {
+            "eng": "hurt feelings"
+          },
+          "order": 26,
+          "symbolId": "kn73j44kqjxg8c4d0dewfhrbw184mwqs"
+        },
+        {
+          "labelOverride": {
+            "eng": "okay"
+          },
+          "order": 27,
+          "symbolId": "kn7apqy79w8ky9qbb83txkvxps84m5xy"
+        },
+        {
+          "labelOverride": {
+            "eng": "good"
+          },
+          "order": 28,
+          "symbolId": "kn72f9q2wb5h5qw9c2abb75gwn84mddr"
+        },
+        {
+          "labelOverride": {
+            "eng": "bad"
+          },
+          "order": 29,
+          "symbolId": "kn7627040bv3gxerf984we3bf584ndt5"
+        },
+        {
+          "labelOverride": {
+            "eng": "glad"
+          },
+          "order": 30,
+          "symbolId": "kn780rdebd6jdckqr4a4bmvbq984m7c0"
+        },
+        {
+          "labelOverride": {
+            "eng": "mad"
+          },
+          "order": 31,
+          "symbolId": "kn7fbydc1y6wwq70rxfrvkn4y984nq5d"
+        },
+        {
+          "labelOverride": {
+            "eng": "grumpy"
+          },
+          "order": 32,
+          "symbolId": "kn72rnj4yhmgntxmz6asaashbn84mbff"
+        },
+        {
+          "labelOverride": {
+            "eng": "annoyed"
+          },
+          "order": 33,
+          "symbolId": "kn7be22nxpp1aydxdjhy7zdvkh84ngz7"
+        },
+        {
+          "labelOverride": {
+            "eng": "afraid"
+          },
+          "order": 34,
+          "symbolId": "kn7ezrzxk0rp9yans5wkfgxsx984nbme"
+        },
+        {
+          "labelOverride": {
+            "eng": "ashamed"
+          },
+          "order": 35,
+          "symbolId": "kn716wqfdhta52swbmwx20qvw184n1kh"
+        },
+        {
+          "labelOverride": {
+            "eng": "stressed"
+          },
+          "order": 36,
+          "symbolId": "kn7e5p8fzp4k1me4pc7b9gstt584nqca"
+        },
+        {
+          "labelOverride": {
+            "eng": "relieved"
+          },
+          "order": 37,
+          "symbolId": "kn790vs2c9cj7j0v6mkqpr4tcs84n7qy"
+        },
+        {
+          "labelOverride": {
+            "eng": "terrified"
+          },
+          "order": 38,
+          "symbolId": "kn7bdjvpvgfxvh73hzzq860j9n84mx3d"
+        },
+        {
+          "labelOverride": {
+            "eng": "meh"
+          },
+          "order": 39,
+          "symbolId": "kn7dm0akcggpbt34h1p7yet9fx84mqyw"
+        },
+        {
+          "labelOverride": {
+            "eng": "cheeky"
+          },
+          "order": 40,
+          "symbolId": "kn78ee7n8fy4t1yh39yrt3bvyx84mg00"
+        },
+        {
+          "labelOverride": {
+            "eng": "depressed"
+          },
+          "order": 41,
+          "symbolId": "kn7bjxv1k1w08katsdafx0sf7h84nq20"
+        },
+        {
+          "labelOverride": {
+            "eng": "discouraged"
+          },
+          "order": 42,
+          "symbolId": "kn787et0d9k7vsv33ww5s6xcwx84myz5"
+        },
+        {
+          "labelOverride": {
+            "eng": "irritated"
+          },
+          "order": 43,
+          "symbolId": "kn71jpaabfn59ssx9fnk7akd3584n5wv"
+        },
+        {
+          "labelOverride": {
+            "eng": "uncertain"
+          },
+          "order": 44,
+          "symbolId": "kn73m4mxd7vsz0cg91gdbbszds84mnyd"
+        },
+        {
+          "labelOverride": {
+            "eng": "brave"
+          },
+          "order": 45,
+          "symbolId": "kn73ve12gp82sebjw7eke9mh5d84nqrq"
+        },
+        {
+          "labelOverride": {
+            "eng": "homesick"
+          },
+          "order": 46,
+          "symbolId": "kn73n42se3rn2f1wph56s91rxh84m101"
+        }
+      ]
+    },
+    {
+      "colour": "#14B8A6",
+      "icon": "🔵",
+      "imagePath": "symbols/symbol00200090.png",
+      "name": {
+        "eng": "Descriptions",
+        "hin": "Describe (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "red"
+          },
+          "order": 0,
+          "symbolId": "kn75pzppak6tvh4rtz4v0rz2hs84n0df"
+        },
+        {
+          "labelOverride": {
+            "eng": "blue"
+          },
+          "order": 1,
+          "symbolId": "kn7dknztjyfd3tc17w68shjy8x84nrb7"
+        },
+        {
+          "labelOverride": {
+            "eng": "green"
+          },
+          "order": 2,
+          "symbolId": "kn71eyd8ead6p77qn7e2275g8h84nzb5"
+        },
+        {
+          "labelOverride": {
+            "eng": "yellow"
+          },
+          "order": 3,
+          "symbolId": "kn75fq49q23mcmhpwhrwc0jgms84mrek"
+        },
+        {
+          "labelOverride": {
+            "eng": "orange"
+          },
+          "order": 4,
+          "symbolId": "kn7f23g4za288b59nyf8zwqg0584m7gm"
+        },
+        {
+          "labelOverride": {
+            "eng": "purple"
+          },
+          "order": 5,
+          "symbolId": "kn73h7eccwh63pcn3smmvb9xch84n86g"
+        },
+        {
+          "labelOverride": {
+            "eng": "pink"
+          },
+          "order": 6,
+          "symbolId": "kn7baaagefm75v0es4vqzy8ags84n0q6"
+        },
+        {
+          "labelOverride": {
+            "eng": "black"
+          },
+          "order": 7,
+          "symbolId": "kn70ne0gfxsbqh8h5a4gfzd73184mkwq"
+        },
+        {
+          "labelOverride": {
+            "eng": "white"
+          },
+          "order": 8,
+          "symbolId": "kn765hzcdhwtfbeanymc3jfbyd84mq0c"
+        },
+        {
+          "labelOverride": {
+            "eng": "brown"
+          },
+          "order": 9,
+          "symbolId": "kn75mk5hsrr1k8dr13sxn6xcpd84m6t0"
+        },
+        {
+          "labelOverride": {
+            "eng": "big"
+          },
+          "order": 10,
+          "symbolId": "kn78t28gqxmp0tyz1q4m5ytfgx84nsj8"
+        },
+        {
+          "labelOverride": {
+            "eng": "small"
+          },
+          "order": 11,
+          "symbolId": "kn71spsfn3626n0scgdces3g7x84m1zw"
+        },
+        {
+          "labelOverride": {
+            "eng": "tall"
+          },
+          "order": 12,
+          "symbolId": "kn73ykf3pny468y1y5h7c50ytn84m72x"
+        },
+        {
+          "labelOverride": {
+            "eng": "short"
+          },
+          "order": 13,
+          "symbolId": "kn70x779pnked8gywzwzg62p9s84mvdj"
+        },
+        {
+          "labelOverride": {
+            "eng": "long"
+          },
+          "order": 14,
+          "symbolId": "kn77pmptv0nxyph3ktvnhqc20584n61s"
+        },
+        {
+          "labelOverride": {
+            "eng": "thin"
+          },
+          "order": 15,
+          "symbolId": "kn7efcbrh8g65c0evfsyy235b984nrvr"
+        },
+        {
+          "labelOverride": {
+            "eng": "hot"
+          },
+          "order": 16,
+          "symbolId": "kn71xew7n74gbbgjk6tnszbvy184mbmf"
+        },
+        {
+          "labelOverride": {
+            "eng": "cold"
+          },
+          "order": 17,
+          "symbolId": "kn75ym5rc7ehk94a6fe5tkgk6d84mwd5"
+        },
+        {
+          "labelOverride": {
+            "eng": "warm"
+          },
+          "order": 18,
+          "symbolId": "kn73e7zj57pfwxg1z1h6ndv20n84meb7"
+        },
+        {
+          "labelOverride": {
+            "eng": "soft"
+          },
+          "order": 19,
+          "symbolId": "kn7cg4segftdjn5b6zfmh6x9c984nraa"
+        },
+        {
+          "labelOverride": {
+            "eng": "hard"
+          },
+          "order": 20,
+          "symbolId": "kn7anajsk0ez9xr3e5xqky3gf584m6x5"
+        },
+        {
+          "labelOverride": {
+            "eng": "wet"
+          },
+          "order": 21,
+          "symbolId": "kn77nj173dktmab13ye4mfc08x84nb8y"
+        },
+        {
+          "labelOverride": {
+            "eng": "dry"
+          },
+          "order": 22,
+          "symbolId": "kn778dp671vhj929v0dxxk881984npp8"
+        },
+        {
+          "labelOverride": {
+            "eng": "heavy"
+          },
+          "order": 23,
+          "symbolId": "kn78nge6hryhxe4xjwmpnj1kg984myw3"
+        },
+        {
+          "labelOverride": {
+            "eng": "light"
+          },
+          "order": 24,
+          "symbolId": "kn7c61h8e6d1n047deyrc9zm9584nd63"
+        },
+        {
+          "labelOverride": {
+            "eng": "fast"
+          },
+          "order": 25,
+          "symbolId": "kn79ja1cekwxs5d9shs2fa0byd84m17e"
+        },
+        {
+          "labelOverride": {
+            "eng": "slow"
+          },
+          "order": 26,
+          "symbolId": "kn708wq7e2ekysvsxha4ph6tnx84msqh"
+        },
+        {
+          "labelOverride": {
+            "eng": "loud"
+          },
+          "order": 27,
+          "symbolId": "kn70ry9s36f8a6tw3q592rvy9s84n7ba"
+        },
+        {
+          "labelOverride": {
+            "eng": "quiet"
+          },
+          "order": 28,
+          "symbolId": "kn77f3r975mv7fj66vhse58m2184nnhd"
+        },
+        {
+          "labelOverride": {
+            "eng": "sweet"
+          },
+          "order": 29,
+          "symbolId": "kn73rcpskyv6qs9eyfj8xkmnyx84mqps"
+        },
+        {
+          "labelOverride": {
+            "eng": "sour"
+          },
+          "order": 30,
+          "symbolId": "kn71c0bvm7v7habcm0j4t53dth84n8fc"
+        },
+        {
+          "labelOverride": {
+            "eng": "spicy"
+          },
+          "order": 31,
+          "symbolId": "kn74r9ktgsf88w5sbv433pts9984nnx2"
+        },
+        {
+          "labelOverride": {
+            "eng": "yummy"
+          },
+          "order": 32,
+          "symbolId": "kn79mmdp7dky21hn0rmrrc88ax84mbxx"
+        },
+        {
+          "labelOverride": {
+            "eng": "good"
+          },
+          "order": 33,
+          "symbolId": "kn7arrhpvse84vtjakdemdnxad84n905"
+        },
+        {
+          "labelOverride": {
+            "eng": "nice"
+          },
+          "order": 34,
+          "symbolId": "kn77057gd5t05wpca121d7bcm584ntkd"
+        },
+        {
+          "labelOverride": {
+            "eng": "beautiful"
+          },
+          "order": 35,
+          "symbolId": "kn779kaktbwzz6gyp9p7573mqn84ny4f"
+        },
+        {
+          "labelOverride": {
+            "eng": "clean"
+          },
+          "order": 36,
+          "symbolId": "kn75dwxy9kem6be1n8cwkaqnwn84nxjh"
+        },
+        {
+          "labelOverride": {
+            "eng": "dirty"
+          },
+          "order": 37,
+          "symbolId": "kn77r2hz4fq7dx82wdxq505xgx84mq5s"
+        },
+        {
+          "labelOverride": {
+            "eng": "new"
+          },
+          "order": 38,
+          "symbolId": "kn73kd6j47eweawb89a0d6em4584nt8h"
+        },
+        {
+          "labelOverride": {
+            "eng": "old"
+          },
+          "order": 39,
+          "symbolId": "kn706nxcaje15wp7kxd7ydg9gh84n0e6"
+        },
+        {
+          "labelOverride": {
+            "eng": "special"
+          },
+          "order": 40,
+          "symbolId": "kn75fy1g4t4s4c217md5tgj3ex84msga"
+        },
+        {
+          "labelOverride": {
+            "eng": "same"
+          },
+          "order": 41,
+          "symbolId": "kn7f3pr79yqdmgd9gg24wxebvh84m2w6"
+        },
+        {
+          "labelOverride": {
+            "eng": "different"
+          },
+          "order": 42,
+          "symbolId": "kn7cc0vq1h6jbwnywwwehgp5e184nwc0"
+        },
+        {
+          "labelOverride": {
+            "eng": "more"
+          },
+          "order": 43,
+          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
+        },
+        {
+          "labelOverride": {
+            "eng": "less"
+          },
+          "order": 44,
+          "symbolId": "kn71c2r8r8qkgr1mmnrbtb8xgd84m2h5"
+        },
+        {
+          "labelOverride": {
+            "eng": "first"
+          },
+          "order": 45,
+          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
+        },
+        {
+          "labelOverride": {
+            "eng": "last"
+          },
+          "order": 46,
+          "symbolId": "kn75vac87h0ppax18z0mxh4bn984m5n2"
+        },
+        {
+          "labelOverride": {
+            "eng": "next"
+          },
+          "order": 47,
+          "symbolId": "kn7ee061xpaje5mvrrj3y5xx4x84nax3"
+        }
+      ]
+    },
+    {
+      "colour": "#EF4444",
+      "icon": "🍎",
+      "imagePath": "symbols/symbol00188596.png",
+      "name": {
+        "eng": "Food & Drink",
+        "hin": "Food & Drink (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "food"
+          },
+          "order": 0,
+          "symbolId": "kn76epmnwftswbswwn3wtb1z7s84mqhp"
+        },
+        {
+          "labelOverride": {
+            "eng": "drink"
+          },
+          "order": 1,
+          "symbolId": "kn7ehv1pp3askgswygsmqcyg8n84nsqr"
+        },
+        {
+          "labelOverride": {
+            "eng": "breakfast"
+          },
+          "order": 2,
+          "symbolId": "kn70789m7ga2y6fc3bbk4ehm2h84n1qb"
+        },
+        {
+          "labelOverride": {
+            "eng": "lunch"
+          },
+          "order": 3,
+          "symbolId": "kn7emrjk4gj62xeq5r8b57wv6h84mxr9"
+        },
+        {
+          "labelOverride": {
+            "eng": "dinner"
+          },
+          "order": 4,
+          "symbolId": "kn78fyqnb25x6qznh8khej4va984m0nk"
+        },
+        {
+          "labelOverride": {
+            "eng": "snack"
+          },
+          "order": 5,
+          "symbolId": "kn71rgnpy42sg88kbe6cnsbrq584m8mp"
+        },
+        {
+          "labelOverride": {
+            "eng": "water"
+          },
+          "order": 6,
+          "symbolId": "kn75zb9xxvc622tc9z998jk0p584mq5s"
+        },
+        {
+          "labelOverride": {
+            "eng": "juice"
+          },
+          "order": 7,
+          "symbolId": "kn79rex6bxcaebt1zzasq8evvn84n61z"
+        },
+        {
+          "labelOverride": {
+            "eng": "milk"
+          },
+          "order": 8,
+          "symbolId": "kn7ayj2kq5x9ygh7vy99802mp584m54a"
+        },
+        {
+          "labelOverride": {
+            "eng": "tea"
+          },
+          "order": 9,
+          "symbolId": "kn706kdhsmyrfrdynkyh46ztch84ntjz"
+        },
+        {
+          "labelOverride": {
+            "eng": "coffee"
+          },
+          "order": 10,
+          "symbolId": "kn74qaypjz6sd98e90kq23dpmx84mj1s"
+        },
+        {
+          "labelOverride": {
+            "eng": "hot chocolate"
+          },
+          "order": 11,
+          "symbolId": "kn7a8sa4jtyj9kwg7jvsyjhs0184nf92"
+        },
+        {
+          "labelOverride": {
+            "eng": "smoothie"
+          },
+          "order": 12,
+          "symbolId": "kn72wz76nb38b0mpchz6v56ndn84mhvm"
+        },
+        {
+          "labelOverride": {
+            "eng": "bread"
+          },
+          "order": 13,
+          "symbolId": "kn7dt3aqbsk6s19dctmrw8jjkd84mn2p"
+        },
+        {
+          "labelOverride": {
+            "eng": "toast"
+          },
+          "order": 14,
+          "symbolId": "kn79bwy7vjetah7jg4j6gs2xkd84n487"
+        },
+        {
+          "labelOverride": {
+            "eng": "cereal"
+          },
+          "order": 15,
+          "symbolId": "kn78aqyg3zfwy0ys0w91jtjv0184nper"
+        },
+        {
+          "labelOverride": {
+            "eng": "rice"
+          },
+          "order": 16,
+          "symbolId": "kn7dsvxxf1xk1thp5tn3s4hhtd84nyp4"
+        },
+        {
+          "labelOverride": {
+            "eng": "pasta"
+          },
+          "order": 17,
+          "symbolId": "kn72n7xwcyy0cz61wsv4yrp47d84mz1r"
+        },
+        {
+          "labelOverride": {
+            "eng": "egg"
+          },
+          "order": 18,
+          "symbolId": "kn75wn59eywc67xybzssxkgvdd84nws0"
+        },
+        {
+          "labelOverride": {
+            "eng": "cheese"
+          },
+          "order": 19,
+          "symbolId": "kn72y8a7r404xtamysyt12p22s84nqff"
+        },
+        {
+          "labelOverride": {
+            "eng": "butter"
+          },
+          "order": 20,
+          "symbolId": "kn79bxsjv5qwxwwrwnpgmvk5fh84n3rx"
+        },
+        {
+          "labelOverride": {
+            "eng": "chicken"
+          },
+          "order": 21,
+          "symbolId": "kn704y3rvwq1g3rhdq19r3hkvd84n8wd"
+        },
+        {
+          "labelOverride": {
+            "eng": "sausage"
+          },
+          "order": 22,
+          "symbolId": "kn78gyyx19grbvbchxmvje9kp984mzbc"
+        },
+        {
+          "labelOverride": {
+            "eng": "ham"
+          },
+          "order": 23,
+          "symbolId": "kn73fhhdqa71c1cw2wpx69c1jd84nznq"
+        },
+        {
+          "labelOverride": {
+            "eng": "bacon"
+          },
+          "order": 24,
+          "symbolId": "kn7d62y3aq3fb2ez2d0x8hae4h84mza6"
+        },
+        {
+          "labelOverride": {
+            "eng": "fish"
+          },
+          "order": 25,
+          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+        },
+        {
+          "labelOverride": {
+            "eng": "apple"
+          },
+          "order": 26,
+          "symbolId": "kn74gf55dbg7w96fsy67k66dxn84n3sw"
+        },
+        {
+          "labelOverride": {
+            "eng": "banana"
+          },
+          "order": 27,
+          "symbolId": "kn798msyn3fvv48bgg334hm01n84m6e6"
+        },
+        {
+          "labelOverride": {
+            "eng": "orange"
+          },
+          "order": 28,
+          "symbolId": "kn78gj32c6mqn03t1mhq7wz6x984n6xv"
+        },
+        {
+          "labelOverride": {
+            "eng": "grapes"
+          },
+          "order": 29,
+          "symbolId": "kn7e3cjzmvb6pj1sxd7jsm3rjs84m8zd"
+        },
+        {
+          "labelOverride": {
+            "eng": "strawberry"
+          },
+          "order": 30,
+          "symbolId": "kn79q9t5m3vpy3javca9dg3mq184npx0"
+        },
+        {
+          "labelOverride": {
+            "eng": "pear"
+          },
+          "order": 31,
+          "symbolId": "kn71vwhyv64g97df5515aapes584m1f3"
+        },
+        {
+          "labelOverride": {
+            "eng": "mango"
+          },
+          "order": 32,
+          "symbolId": "kn7d679bvteh1djce9cmcdg5g984nyy4"
+        },
+        {
+          "labelOverride": {
+            "eng": "carrot"
+          },
+          "order": 33,
+          "symbolId": "kn7ajsvz463qw926s0g37jy17h84n1zq"
+        },
+        {
+          "labelOverride": {
+            "eng": "peas"
+          },
+          "order": 34,
+          "symbolId": "kn790v8ejzg0anxxq3wd5d3ay184nc16"
+        },
+        {
+          "labelOverride": {
+            "eng": "broccoli"
+          },
+          "order": 35,
+          "symbolId": "kn7f5jy8bmvd4xyz3zf0j5d7as84nq92"
+        },
+        {
+          "labelOverride": {
+            "eng": "potato"
+          },
+          "order": 36,
+          "symbolId": "kn751989shaa1f164yrabr9j6n84nteq"
+        },
+        {
+          "labelOverride": {
+            "eng": "tomato"
+          },
+          "order": 37,
+          "symbolId": "kn752zhbkda55d6khxrrmcxb2n84nh3b"
+        },
+        {
+          "labelOverride": {
+            "eng": "pizza"
+          },
+          "order": 38,
+          "symbolId": "kn722g14qvwgzw2ssf5pm0ahz584ms7q"
+        },
+        {
+          "labelOverride": {
+            "eng": "sandwich"
+          },
+          "order": 39,
+          "symbolId": "kn78zv86xy4vx1m93g3hdphmy184n0w6"
+        },
+        {
+          "labelOverride": {
+            "eng": "soup"
+          },
+          "order": 40,
+          "symbolId": "kn70w0yg8n8nb9mczmkqcyeh3184mzwh"
+        },
+        {
+          "labelOverride": {
+            "eng": "salad"
+          },
+          "order": 41,
+          "symbolId": "kn7dv84p6dwyt5x9zhxnkysyfd84mxbj"
+        },
+        {
+          "labelOverride": {
+            "eng": "chips"
+          },
+          "order": 42,
+          "symbolId": "kn70f2x5pqtssbzyj0k4zekn4h84m1s8"
+        },
+        {
+          "labelOverride": {
+            "eng": "ice cream"
+          },
+          "order": 43,
+          "symbolId": "kn78d2zf8cqk5ng4zqez2yap7n84npqz"
+        },
+        {
+          "labelOverride": {
+            "eng": "cake"
+          },
+          "order": 44,
+          "symbolId": "kn7810cafq5fb68pa70ve0gf1n84nrpv"
+        },
+        {
+          "labelOverride": {
+            "eng": "cookie"
+          },
+          "order": 45,
+          "symbolId": "kn7fnxy003tn4madg92db5r9jn84nttw"
+        },
+        {
+          "labelOverride": {
+            "eng": "sweets"
+          },
+          "order": 46,
+          "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
+        },
+        {
+          "labelOverride": {
+            "eng": "donut"
+          },
+          "order": 47,
+          "symbolId": "kn7ccr5btshdfzmckaafava14h84ns1j"
+        }
+      ]
+    },
+    {
+      "colour": "#3B82F6",
+      "icon": "🏠",
+      "imagePath": "symbols/home.png",
+      "name": {
+        "eng": "Home",
+        "hin": "Home (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "bedroom"
+          },
+          "order": 0,
+          "symbolId": "kn7076g2te0akzdqhhkc1829rs84mdfz"
+        },
+        {
+          "labelOverride": {
+            "eng": "bathroom"
+          },
+          "order": 1,
+          "symbolId": "kn7fr001d0k0fw9ch1fmtnp7rn84mjg3"
+        },
+        {
+          "labelOverride": {
+            "eng": "kitchen"
+          },
+          "order": 2,
+          "symbolId": "kn74bej9crfw01p3w877bvejpd84ncm1"
+        },
+        {
+          "labelOverride": {
+            "eng": "living room"
+          },
+          "order": 3,
+          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+        },
+        {
+          "labelOverride": {
+            "eng": "toilet"
+          },
+          "order": 4,
+          "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
+        },
+        {
+          "labelOverride": {
+            "eng": "bed"
+          },
+          "order": 5,
+          "symbolId": "kn7ba1q9hajzjywasr7xa2sy6h84n1a5"
+        },
+        {
+          "labelOverride": {
+            "eng": "chair"
+          },
+          "order": 6,
+          "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
+        },
+        {
+          "labelOverride": {
+            "eng": "table"
+          },
+          "order": 7,
+          "symbolId": "kn72txh01jwmgczyh87033y0x984mp19"
+        },
+        {
+          "labelOverride": {
+            "eng": "desk"
+          },
+          "order": 8,
+          "symbolId": "kn74nz1pzpmmgnfvfs7bdjj3h584mnvb"
+        },
+        {
+          "labelOverride": {
+            "eng": "wardrobe"
+          },
+          "order": 9,
+          "symbolId": "kn7a3b97fmjk8ym16gc93c1wb584nv9e"
+        },
+        {
+          "labelOverride": {
+            "eng": "pillow"
+          },
+          "order": 10,
+          "symbolId": "kn733sskr8gxbxp8761hb2mk7n84mwa6"
+        },
+        {
+          "labelOverride": {
+            "eng": "blanket"
+          },
+          "order": 11,
+          "symbolId": "kn76dky0a78agsytm6pw53bfxs84mzky"
+        },
+        {
+          "labelOverride": {
+            "eng": "cup"
+          },
+          "order": 12,
+          "symbolId": "kn71x134zanvpxak5rth4bpcdx84n494"
+        },
+        {
+          "labelOverride": {
+            "eng": "plate"
+          },
+          "order": 13,
+          "symbolId": "kn73trhe8apbrdwfkpyrb4bjm184mh4d"
+        },
+        {
+          "labelOverride": {
+            "eng": "bowl"
+          },
+          "order": 14,
+          "symbolId": "kn774nh6d13j3azek9qrney09s84me0s"
+        },
+        {
+          "labelOverride": {
+            "eng": "spoon"
+          },
+          "order": 15,
+          "symbolId": "kn75kh9b4k56tfw0aacqbt3fqh84mpvx"
+        },
+        {
+          "labelOverride": {
+            "eng": "fork"
+          },
+          "order": 16,
+          "symbolId": "kn700kmzf95q2xfvkv6tnjpjys84nfzz"
+        },
+        {
+          "labelOverride": {
+            "eng": "knife"
+          },
+          "order": 17,
+          "symbolId": "kn7f5smwszaferq79bczsnd04n84n5c6"
+        },
+        {
+          "labelOverride": {
+            "eng": "oven"
+          },
+          "order": 18,
+          "symbolId": "kn78c7t7hw8w42437v641fmg0184nxkz"
+        },
+        {
+          "labelOverride": {
+            "eng": "microwave"
+          },
+          "order": 19,
+          "symbolId": "kn79xs5gtpwrtyfxhpq05h2xph84mpp3"
+        },
+        {
+          "labelOverride": {
+            "eng": "kettle"
+          },
+          "order": 20,
+          "symbolId": "kn789467c8wd5p5z5xyhn5eaq184mg1k"
+        },
+        {
+          "labelOverride": {
+            "eng": "toaster"
+          },
+          "order": 21,
+          "symbolId": "kn7f8970e575ybhcz01rbvzy2984mx2w"
+        },
+        {
+          "labelOverride": {
+            "eng": "sink"
+          },
+          "order": 22,
+          "symbolId": "kn7a4n6kbcfc1ztv0j3e5v105184n0ej"
+        },
+        {
+          "labelOverride": {
+            "eng": "dishwasher"
+          },
+          "order": 23,
+          "symbolId": "kn78e80ap5kw8v7xwzz6ng6zy584mpgd"
+        },
+        {
+          "labelOverride": {
+            "eng": "shower"
+          },
+          "order": 24,
+          "symbolId": "kn79bw0rhjfp9y17dkw3w5yf3x84mxv5"
+        },
+        {
+          "labelOverride": {
+            "eng": "toothbrush"
+          },
+          "order": 25,
+          "symbolId": "kn7bmdqffmkyb11y0zybvbgd3984mh6a"
+        },
+        {
+          "labelOverride": {
+            "eng": "toothpaste"
+          },
+          "order": 26,
+          "symbolId": "kn7088a2qjdggh9c2ar9tzhn3d84ntfw"
+        },
+        {
+          "labelOverride": {
+            "eng": "soap"
+          },
+          "order": 27,
+          "symbolId": "kn768rhe1c6r8ksb0hfq4j1cd984mgpf"
+        },
+        {
+          "labelOverride": {
+            "eng": "towel"
+          },
+          "order": 28,
+          "symbolId": "kn78f0hmeqmshq12snjt3w7mhn84nyjf"
+        },
+        {
+          "labelOverride": {
+            "eng": "toilet paper"
+          },
+          "order": 29,
+          "symbolId": "kn723xjv9a1cjypb8qq9zyzz8d84nr0a"
+        },
+        {
+          "labelOverride": {
+            "eng": "computer"
+          },
+          "order": 30,
+          "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
+        },
+        {
+          "labelOverride": {
+            "eng": "remote control"
+          },
+          "order": 31,
+          "symbolId": "kn729djqe2p96j5aez12v5t0d584nzfb"
+        },
+        {
+          "labelOverride": {
+            "eng": "washing machine"
+          },
+          "order": 32,
+          "symbolId": "kn7ckxry7as466e08rjhe8p9jh84mv7v"
+        },
+        {
+          "labelOverride": {
+            "eng": "vacuum"
+          },
+          "order": 33,
+          "symbolId": "kn7db072x376sw6z83zjqjmj6184n8ty"
+        },
+        {
+          "labelOverride": {
+            "eng": "iron"
+          },
+          "order": 34,
+          "symbolId": "kn7c2m89hkj2d4skam8hzj23bd84nst4"
+        },
+        {
+          "labelOverride": {
+            "eng": "door"
+          },
+          "order": 35,
+          "symbolId": "kn76akrq78heh531s9dqhdhpf984n33s"
+        },
+        {
+          "labelOverride": {
+            "eng": "window"
+          },
+          "order": 36,
+          "symbolId": "kn73ttsrdx2t2rw0xyjy4za63984nw4d"
+        },
+        {
+          "labelOverride": {
+            "eng": "stairs"
+          },
+          "order": 37,
+          "symbolId": "kn7ef6046nt75mbyksnwzdpxrn84n8js"
+        },
+        {
+          "labelOverride": {
+            "eng": "floor"
+          },
+          "order": 38,
+          "symbolId": "kn79a5ct8nr44rd38n8f849kdh84nzda"
+        },
+        {
+          "labelOverride": {
+            "eng": "wall"
+          },
+          "order": 39,
+          "symbolId": "kn75w83jjq82yt975vh0v4q0q984nrk1"
+        },
+        {
+          "labelOverride": {
+            "eng": "lamp"
+          },
+          "order": 40,
+          "symbolId": "kn70fjt5w1ctrmgnxrpq5j28rn84mjpc"
+        },
+        {
+          "labelOverride": {
+            "eng": "alarm clock"
+          },
+          "order": 41,
+          "symbolId": "kn7349r3g5veq5fkt915ekhppd84nv8z"
+        },
+        {
+          "labelOverride": {
+            "eng": "key"
+          },
+          "order": 42,
+          "symbolId": "kn73vn24gqyj4w2d672nbd9nx584mp9z"
+        },
+        {
+          "labelOverride": {
+            "eng": "bin"
+          },
+          "order": 43,
+          "symbolId": "kn72nx6spn8f3fwnsvm9n24crn84nvvp"
+        },
+        {
+          "labelOverride": {
+            "eng": "garden"
+          },
+          "order": 44,
+          "symbolId": "kn7fzcyzhrnfxt297rqcpws1yn84nf8g"
+        },
+        {
+          "labelOverride": {
+            "eng": "car"
+          },
+          "order": 45,
+          "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
+        },
+        {
+          "labelOverride": {
+            "eng": "book"
+          },
+          "order": 46,
+          "symbolId": "kn79e3vx3r0atqtmnk0sq4vjy584m95b"
+        }
+      ]
+    },
+    {
+      "colour": "#22C55E",
+      "icon": "⚽",
+      "imagePath": "symbols/symbol00102991.png",
+      "name": {
+        "eng": "Activities",
+        "hin": "Activities (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "swim"
+          },
+          "order": 0,
+          "symbolId": "kn70j879bzcm86fkbybffet1xh84nwrb"
+        },
+        {
+          "labelOverride": {
+            "eng": "run"
+          },
+          "order": 1,
+          "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
+        },
+        {
+          "labelOverride": {
+            "eng": "football"
+          },
+          "order": 2,
+          "symbolId": "kn7cgmt1vq59zb7e1z6bc1tgsn84mxp3"
+        },
+        {
+          "labelOverride": {
+            "eng": "basketball"
+          },
+          "order": 3,
+          "symbolId": "kn77p48be94ews8ykn0q1w569584mx21"
+        },
+        {
+          "labelOverride": {
+            "eng": "tennis"
+          },
+          "order": 4,
+          "symbolId": "kn71bavhpdfa32164h5x29rmsh84mq9z"
+        },
+        {
+          "labelOverride": {
+            "eng": "gymnastics"
+          },
+          "order": 5,
+          "symbolId": "kn771mwrdny20c9pe2c8010wan84nkc3"
+        },
+        {
+          "labelOverride": {
+            "eng": "karate"
+          },
+          "order": 6,
+          "symbolId": "kn7802mms4tkpdd2vy6w7zd6tn84mphv"
+        },
+        {
+          "labelOverride": {
+            "eng": "yoga"
+          },
+          "order": 7,
+          "symbolId": "kn73v22vq0zsk0ep7gg450c0qd84nsjn"
+        },
+        {
+          "labelOverride": {
+            "eng": "dance"
+          },
+          "order": 8,
+          "symbolId": "kn7d6t3y6tzrrvp2vwd5b65ge184nxep"
+        },
+        {
+          "labelOverride": {
+            "eng": "cycling"
+          },
+          "order": 9,
+          "symbolId": "kn70m22akxvyeae0zkgv033anx84myac"
+        },
+        {
+          "labelOverride": {
+            "eng": "surfing"
+          },
+          "order": 10,
+          "symbolId": "kn73cysb0zb1zn71fb0h85vz1h84m0rw"
+        },
+        {
+          "labelOverride": {
+            "eng": "race"
+          },
+          "order": 11,
+          "symbolId": "kn70sam6dmjed7w0z4v6errg4d84n0t1"
+        },
+        {
+          "labelOverride": {
+            "eng": "art"
+          },
+          "order": 12,
+          "symbolId": "kn7f64xyytd7ttq48ejdb1pwkd84mqc1"
+        },
+        {
+          "labelOverride": {
+            "eng": "craft"
+          },
+          "order": 13,
+          "symbolId": "kn7a5n9d2q93qnw6x1xw9rzags84m8mz"
+        },
+        {
+          "labelOverride": {
+            "eng": "painting"
+          },
+          "order": 14,
+          "symbolId": "kn7cy2eg8db5ptv58yq0y7h02n84mj5n"
+        },
+        {
+          "labelOverride": {
+            "eng": "drawing"
+          },
+          "order": 15,
+          "symbolId": "kn7e737vawq3affpe85cwf871h84mxhx"
+        },
+        {
+          "labelOverride": {
+            "eng": "music"
+          },
+          "order": 16,
+          "symbolId": "kn79bhs2gfbgm1xkx1r4h0cknd84n043"
+        },
+        {
+          "labelOverride": {
+            "eng": "sing"
+          },
+          "order": 17,
+          "symbolId": "kn7dg927wyv18xy10ap3rp15a984mtmw"
+        },
+        {
+          "labelOverride": {
+            "eng": "song"
+          },
+          "order": 18,
+          "symbolId": "kn73m96vgzmy726savpcgvmnyx84mxm4"
+        },
+        {
+          "labelOverride": {
+            "eng": "piano"
+          },
+          "order": 19,
+          "symbolId": "kn7an13qv15kfvkd8b4ydpsc9184m7xw"
+        },
+        {
+          "labelOverride": {
+            "eng": "game"
+          },
+          "order": 20,
+          "symbolId": "kn76a9t81pcy8pdc294yjc548984mggx"
+        },
+        {
+          "labelOverride": {
+            "eng": "video game"
+          },
+          "order": 21,
+          "symbolId": "kn739knbmfya36dnm4hcqxhbjs84m18v"
+        },
+        {
+          "labelOverride": {
+            "eng": "board game"
+          },
+          "order": 22,
+          "symbolId": "kn7f63re0sc10pmzxzahy82w5s84n2ef"
+        },
+        {
+          "labelOverride": {
+            "eng": "puzzle"
+          },
+          "order": 23,
+          "symbolId": "kn7bezhnta9dh97cx6gdg3gcwx84m79v"
+        },
+        {
+          "labelOverride": {
+            "eng": "chess"
+          },
+          "order": 24,
+          "symbolId": "kn7f0vb82qq7bd6gk8fnm6vc3d84nyrt"
+        },
+        {
+          "labelOverride": {
+            "eng": "hide and seek"
+          },
+          "order": 25,
+          "symbolId": "kn79az2t3gw1qbq7nfdfanwakd84ntkt"
+        },
+        {
+          "labelOverride": {
+            "eng": "doll"
+          },
+          "order": 26,
+          "symbolId": "kn75rmbv5rjfh9k1k4p4r6jmd984nsy2"
+        },
+        {
+          "labelOverride": {
+            "eng": "ball"
+          },
+          "order": 27,
+          "symbolId": "kn76jzbjhcr8t926sxaz7kz86d84n41y"
+        },
+        {
+          "labelOverride": {
+            "eng": "trampoline"
+          },
+          "order": 28,
+          "symbolId": "kn7dtk9ree8arqben756f08m1x84nqst"
+        },
+        {
+          "labelOverride": {
+            "eng": "party"
+          },
+          "order": 29,
+          "symbolId": "kn73rmc3kbthtk86zkm0r24vh584nc1z"
+        },
+        {
+          "labelOverride": {
+            "eng": "birthday"
+          },
+          "order": 30,
+          "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+        },
+        {
+          "labelOverride": {
+            "eng": "movie"
+          },
+          "order": 31,
+          "symbolId": "kn77q8s0ang619dn4yrgmye31184mp5b"
+        },
+        {
+          "labelOverride": {
+            "eng": "television"
+          },
+          "order": 32,
+          "symbolId": "kn74r9vm7n3ra4semdxr1mw5ns84mpnn"
+        },
+        {
+          "labelOverride": {
+            "eng": "park"
+          },
+          "order": 33,
+          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+        },
+        {
+          "labelOverride": {
+            "eng": "playground"
+          },
+          "order": 34,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "eng": "beach"
+          },
+          "order": 35,
+          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+        },
+        {
+          "labelOverride": {
+            "eng": "library"
+          },
+          "order": 36,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "eng": "camping"
+          },
+          "order": 37,
+          "symbolId": "kn78pedh9f8dfbd25n54tyqam584m120"
+        },
+        {
+          "labelOverride": {
+            "eng": "exercise"
+          },
+          "order": 38,
+          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+        },
+        {
+          "labelOverride": {
+            "eng": "sport"
+          },
+          "order": 39,
+          "symbolId": "kn726apnpbra0ryewwa9e8n73d84n44s"
+        },
+        {
+          "labelOverride": {
+            "eng": "walk"
+          },
+          "order": 40,
+          "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
+        },
+        {
+          "labelOverride": {
+            "eng": "hike"
+          },
+          "order": 41,
+          "symbolId": "kn7b1xz7jw7rdydg4xrntvbfzs84ndww"
+        },
+        {
+          "labelOverride": {
+            "eng": "gardening"
+          },
+          "order": 42,
+          "symbolId": "kn7a9dg5z58m551hxckrsh0pd184m59f"
+        },
+        {
+          "labelOverride": {
+            "eng": "outdoors"
+          },
+          "order": 43,
+          "symbolId": "kn7b525q8pxmts13x50n2jxyhh84mpqv"
+        },
+        {
+          "labelOverride": {
+            "eng": "trip"
+          },
+          "order": 44,
+          "symbolId": "kn7eg40dnv9mbp62pk9nzmfj1n84n86y"
+        },
+        {
+          "labelOverride": {
+            "eng": "holiday"
+          },
+          "order": 45,
+          "symbolId": "kn7ag03qbap8ht3ns7smr40g4x84nqm5"
+        }
+      ]
+    },
+    {
+      "colour": "green",
+      "icon": "📚",
+      "imagePath": "symbols/symbol00114621.png",
+      "name": {
+        "eng": "School",
+        "hin": "School (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "school"
+          },
+          "order": 0,
+          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+        },
+        {
+          "labelOverride": {
+            "eng": "classroom"
+          },
+          "order": 1,
+          "symbolId": "kn72p6xke1wzmfr3v1wbm3s01x84ntsr"
+        },
+        {
+          "labelOverride": {
+            "eng": "library"
+          },
+          "order": 2,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "eng": "playground"
+          },
+          "order": 3,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "eng": "gym"
+          },
+          "order": 4,
+          "symbolId": "kn74zmdrx0b5hy2ag6scd2a1qh84mx5j"
+        },
+        {
+          "labelOverride": {
+            "eng": "teacher"
+          },
+          "order": 5,
+          "symbolId": "kn700ctrhasxj9kd1rw52sv9ah84mx3t"
+        },
+        {
+          "labelOverride": {
+            "eng": "student"
+          },
+          "order": 6,
+          "symbolId": "kn7fp8xc7tv60gjxewkwctdnzx84ngss"
+        },
+        {
+          "labelOverride": {
+            "eng": "math"
+          },
+          "order": 7,
+          "symbolId": "kn77rrqzgnrytbjmf947nb8ct984n3hs"
+        },
+        {
+          "labelOverride": {
+            "eng": "science"
+          },
+          "order": 8,
+          "symbolId": "kn7drgm27tdqj15cjge8dt93m184m29e"
+        },
+        {
+          "labelOverride": {
+            "eng": "art"
+          },
+          "order": 9,
+          "symbolId": "kn7f64xyytd7ttq48ejdb1pwkd84mqc1"
+        },
+        {
+          "labelOverride": {
+            "eng": "music"
+          },
+          "order": 10,
+          "symbolId": "kn79bhs2gfbgm1xkx1r4h0cknd84n043"
+        },
+        {
+          "labelOverride": {
+            "eng": "history"
+          },
+          "order": 11,
+          "symbolId": "kn76vgch2qm6f4kfvv9he04rc984mtzd"
+        },
+        {
+          "labelOverride": {
+            "eng": "pencil"
+          },
+          "order": 12,
+          "symbolId": "kn75fv71eshp3zbrhz6ma5emkh84mzps"
+        },
+        {
+          "labelOverride": {
+            "eng": "pen"
+          },
+          "order": 13,
+          "symbolId": "kn75zjgehseqvn5skdryxsy7c984nexe"
+        },
+        {
+          "labelOverride": {
+            "eng": "scissors"
+          },
+          "order": 14,
+          "symbolId": "kn7afsqfsfe3tab36fgzhg5k8184mc2c"
+        },
+        {
+          "labelOverride": {
+            "eng": "paper"
+          },
+          "order": 15,
+          "symbolId": "kn79vzfpq205rhs410gth8t47184m14d"
+        },
+        {
+          "labelOverride": {
+            "eng": "glue"
+          },
+          "order": 16,
+          "symbolId": "kn75a2q0167f1mmgh5tymn32x984mdet"
+        },
+        {
+          "labelOverride": {
+            "eng": "book"
+          },
+          "order": 17,
+          "symbolId": "kn79e3vx3r0atqtmnk0sq4vjy584m95b"
+        },
+        {
+          "labelOverride": {
+            "eng": "notebook"
+          },
+          "order": 18,
+          "symbolId": "kn77ezjayekz664zzrbwsjvpwn84m3zt"
+        },
+        {
+          "labelOverride": {
+            "eng": "backpack"
+          },
+          "order": 19,
+          "symbolId": "kn7e67tsypsc7m9mcannrv7z9s84mw8g"
+        },
+        {
+          "labelOverride": {
+            "eng": "eraser"
+          },
+          "order": 20,
+          "symbolId": "kn7aq3bjhx0g7xc1rrnts7vdps84nnsj"
+        },
+        {
+          "labelOverride": {
+            "eng": "desk"
+          },
+          "order": 21,
+          "symbolId": "kn74nz1pzpmmgnfvfs7bdjj3h584mnvb"
+        },
+        {
+          "labelOverride": {
+            "eng": "chair"
+          },
+          "order": 22,
+          "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
+        },
+        {
+          "labelOverride": {
+            "eng": "whiteboard"
+          },
+          "order": 23,
+          "symbolId": "kn76zqymfaehjxv9sn2c7fg4x184md87"
+        },
+        {
+          "labelOverride": {
+            "eng": "computer"
+          },
+          "order": 24,
+          "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
+        },
+        {
+          "labelOverride": {
+            "eng": "tablet"
+          },
+          "order": 25,
+          "symbolId": "kn71a4nk9nkhfx8tyk15xhkr5d84ndq1"
+        },
+        {
+          "labelOverride": {
+            "eng": "alphabet"
+          },
+          "order": 26,
+          "symbolId": "kn783r8t2nsq5mhyjn9yn6mep584ndj0"
+        },
+        {
+          "labelOverride": {
+            "eng": "number"
+          },
+          "order": 27,
+          "symbolId": "kn7cxmc8npkta1vvee6tbe5jd584n7za"
+        },
+        {
+          "labelOverride": {
+            "eng": "letter"
+          },
+          "order": 28,
+          "symbolId": "kn74cwd9hv02773qrjpar4q7r184mfkf"
+        },
+        {
+          "labelOverride": {
+            "eng": "word"
+          },
+          "order": 29,
+          "symbolId": "kn75fws0qtsvh021vp44wy6hjd84mt4k"
+        },
+        {
+          "labelOverride": {
+            "eng": "sentence"
+          },
+          "order": 30,
+          "symbolId": "kn74fs3tvznkq5b5bx74sd16rd84nfs0"
+        },
+        {
+          "labelOverride": {
+            "eng": "question"
+          },
+          "order": 31,
+          "symbolId": "kn7emegfzk2krjr13aw7nwvzvh84n6wg"
+        },
+        {
+          "labelOverride": {
+            "eng": "answer"
+          },
+          "order": 32,
+          "symbolId": "kn7cw6rzezye50fhh9zfvsckhh84mqbp"
+        },
+        {
+          "labelOverride": {
+            "eng": "read"
+          },
+          "order": 33,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+        },
+        {
+          "labelOverride": {
+            "eng": "write"
+          },
+          "order": 34,
+          "symbolId": "kn73p5hmh97n8xqh7af3hda6g584maqh"
+        },
+        {
+          "labelOverride": {
+            "eng": "draw"
+          },
+          "order": 35,
+          "symbolId": "kn744d6bbh5py1wfk5x7dgnyhs84m2fr"
+        },
+        {
+          "labelOverride": {
+            "eng": "count"
+          },
+          "order": 36,
+          "symbolId": "kn7bsmy974zddafbsr2dztcjv184nghw"
+        },
+        {
+          "labelOverride": {
+            "eng": "learn"
+          },
+          "order": 37,
+          "symbolId": "kn789a6veh95c1t6ap2g314gnh84n447"
+        },
+        {
+          "labelOverride": {
+            "eng": "friend"
+          },
+          "order": 38,
+          "symbolId": "kn72th2pdjmvq1g4xd6mj4fdcx84n36t"
+        },
+        {
+          "labelOverride": {
+            "eng": "team"
+          },
+          "order": 39,
+          "symbolId": "kn7d4r4nmcjx1zwmzvaxw1rdbs84n6md"
+        },
+        {
+          "labelOverride": {
+            "eng": "school bus"
+          },
+          "order": 40,
+          "symbolId": "kn70dvj4sk7r35wtg54y577n1s84mnbm"
+        },
+        {
+          "labelOverride": {
+            "eng": "homework"
+          },
+          "order": 41,
+          "symbolId": "kn7a04tbrc2hj0crjy7jt8fwwh84mmf1"
+        },
+        {
+          "labelOverride": {
+            "eng": "test"
+          },
+          "order": 42,
+          "symbolId": "kn7c9qzkmyzdr3v8d3cr95wgkd84mpgx"
+        },
+        {
+          "labelOverride": {
+            "eng": "recess"
+          },
+          "order": 43,
+          "symbolId": "kn75rfbczdnwpdd6ej8d3br1b984mxdm"
+        },
+        {
+          "labelOverride": {
+            "eng": "lunch"
+          },
+          "order": 44,
+          "symbolId": "kn7emrjk4gj62xeq5r8b57wv6h84mxr9"
+        }
+      ]
+    },
+    {
+      "colour": "#F43F5E",
+      "icon": "❤️",
+      "imagePath": "symbols/doctor.png",
+      "name": {
+        "eng": "Health",
+        "hin": "Health (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "head"
+          },
+          "order": 0,
+          "symbolId": "kn7e3xk4d17s402ykfyrt00kqs84mq9v"
+        },
+        {
+          "labelOverride": {
+            "eng": "face"
+          },
+          "order": 1,
+          "symbolId": "kn78qa3km6534c75tk6h3ed02d84nex3"
+        },
+        {
+          "labelOverride": {
+            "eng": "eye"
+          },
+          "order": 2,
+          "symbolId": "kn78ge388s7hy58cyr0cp5n58h84mgnf"
+        },
+        {
+          "labelOverride": {
+            "eng": "ear"
+          },
+          "order": 3,
+          "symbolId": "kn7fecdak3gjben0mz6pbqz83d84m2qs"
+        },
+        {
+          "labelOverride": {
+            "eng": "nose"
+          },
+          "order": 4,
+          "symbolId": "kn7a56xhmx51hy7jdjr46vdkqx84n90y"
+        },
+        {
+          "labelOverride": {
+            "eng": "mouth"
+          },
+          "order": 5,
+          "symbolId": "kn7bp6awnansrbhtj7cz2xggk584n27q"
+        },
+        {
+          "labelOverride": {
+            "eng": "teeth"
+          },
+          "order": 6,
+          "symbolId": "kn7ffzgttpf44rw9ph8frxng7d84n5gn"
+        },
+        {
+          "labelOverride": {
+            "eng": "hand"
+          },
+          "order": 7,
+          "symbolId": "kn7fk3jp3ma2gc7g27ghh4qt5184n6d2"
+        },
+        {
+          "labelOverride": {
+            "eng": "arm"
+          },
+          "order": 8,
+          "symbolId": "kn723dfvpm27zehyrxxaq09s2584mffv"
+        },
+        {
+          "labelOverride": {
+            "eng": "leg"
+          },
+          "order": 9,
+          "symbolId": "kn7a0nm8yrapsd1f6wmx90h2k584nkgn"
+        },
+        {
+          "labelOverride": {
+            "eng": "foot"
+          },
+          "order": 10,
+          "symbolId": "kn703tkg01yw261exvemk49rq584nype"
+        },
+        {
+          "labelOverride": {
+            "eng": "tummy"
+          },
+          "order": 11,
+          "symbolId": "kn710k2j4j29rxks0x9jb0mc2n84m27v"
+        },
+        {
+          "labelOverride": {
+            "eng": "sick"
+          },
+          "order": 12,
+          "symbolId": "kn7csda8zb5df60j1ved3kg8fh84n82t"
+        },
+        {
+          "labelOverride": {
+            "eng": "pain"
+          },
+          "order": 13,
+          "symbolId": "kn75454qhnkv0sgrzfvzpw3vv584mn9k"
+        },
+        {
+          "labelOverride": {
+            "eng": "hurt"
+          },
+          "order": 14,
+          "symbolId": "kn79n9ecnnq0392k3vj7mf6jvx84m37x"
+        },
+        {
+          "labelOverride": {
+            "eng": "fever"
+          },
+          "order": 15,
+          "symbolId": "kn7c6jv06xrb8978q7ez2maek984m6k2"
+        },
+        {
+          "labelOverride": {
+            "eng": "headache"
+          },
+          "order": 16,
+          "symbolId": "kn75fhhya0ae0c3vr4fn9mp1bd84nwbb"
+        },
+        {
+          "labelOverride": {
+            "eng": "cold"
+          },
+          "order": 17,
+          "symbolId": "kn75ym5rc7ehk94a6fe5tkgk6d84mwd5"
+        },
+        {
+          "labelOverride": {
+            "eng": "cough"
+          },
+          "order": 18,
+          "symbolId": "kn773kd1tse4cdy42602t56emn84m76y"
+        },
+        {
+          "labelOverride": {
+            "eng": "sneeze"
+          },
+          "order": 19,
+          "symbolId": "kn722a0spedc33pgnsejq8rjsn84m2ss"
+        },
+        {
+          "labelOverride": {
+            "eng": "dizzy"
+          },
+          "order": 20,
+          "symbolId": "kn7br2rc0w54rxthsxxmhv0ajs84n6yg"
+        },
+        {
+          "labelOverride": {
+            "eng": "rash"
+          },
+          "order": 21,
+          "symbolId": "kn7fa8n5pqng4cc4gkwe2n3rws84n9xk"
+        },
+        {
+          "labelOverride": {
+            "eng": "doctor"
+          },
+          "order": 22,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "eng": "nurse"
+          },
+          "order": 23,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "eng": "hospital"
+          },
+          "order": 24,
+          "symbolId": "kn7cptdjskwjk162z6s0n2x9nn84mddy"
+        },
+        {
+          "labelOverride": {
+            "eng": "medicine"
+          },
+          "order": 25,
+          "symbolId": "kn7255zfhf1cy9nh8ngvcn913s84m448"
+        },
+        {
+          "labelOverride": {
+            "eng": "bandage"
+          },
+          "order": 26,
+          "symbolId": "kn75tsbxrvt0w3q772bwvsyyhs84mw6a"
+        },
+        {
+          "labelOverride": {
+            "eng": "injection"
+          },
+          "order": 27,
+          "symbolId": "kn7dshftzb26adxdsceetpm29d84m8q2"
+        },
+        {
+          "labelOverride": {
+            "eng": "ambulance"
+          },
+          "order": 28,
+          "symbolId": "kn7e5afbt877y8x4zxr47hmba984mxm6"
+        },
+        {
+          "labelOverride": {
+            "eng": "wheelchair"
+          },
+          "order": 29,
+          "symbolId": "kn7bjhrenqe616wzr1gxawp1wx84nhgn"
+        },
+        {
+          "labelOverride": {
+            "eng": "hearing aid"
+          },
+          "order": 30,
+          "symbolId": "kn7br1wxekpj2tdyk62htcp9rs84n2mx"
+        },
+        {
+          "labelOverride": {
+            "eng": "glasses"
+          },
+          "order": 31,
+          "symbolId": "kn7dnk9ry7rjvhdb33h1g524cx84nd19"
+        },
+        {
+          "labelOverride": {
+            "eng": "wash"
+          },
+          "order": 32,
+          "symbolId": "kn788hzg0ft3jwre65q4ent58984ndbj"
+        },
+        {
+          "labelOverride": {
+            "eng": "brush teeth"
+          },
+          "order": 33,
+          "symbolId": "kn79zgcjaabrxbed72qmtyg09s84ms2f"
+        },
+        {
+          "labelOverride": {
+            "eng": "brush hair"
+          },
+          "order": 34,
+          "symbolId": "kn79c7gnm30gw4hnh1bkj8b07584nnm8"
+        },
+        {
+          "labelOverride": {
+            "eng": "shower"
+          },
+          "order": 35,
+          "symbolId": "kn7d1qzaphpjjmpjp9z7arnxt584m8d9"
+        },
+        {
+          "labelOverride": {
+            "eng": "toilet"
+          },
+          "order": 36,
+          "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
+        },
+        {
+          "labelOverride": {
+            "eng": "sleep"
+          },
+          "order": 37,
+          "symbolId": "kn74szjezc2fnemzxzttxbm7vd84m4f2"
+        },
+        {
+          "labelOverride": {
+            "eng": "rest"
+          },
+          "order": 38,
+          "symbolId": "kn7bsy1rer5gm54v4p9b2deqeh84n4xj"
+        },
+        {
+          "labelOverride": {
+            "eng": "exercise"
+          },
+          "order": 39,
+          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+        },
+        {
+          "labelOverride": {
+            "eng": "relax"
+          },
+          "order": 40,
+          "symbolId": "kn71219gxfv8ctdw1vpt80dqvd84n2a1"
+        },
+        {
+          "labelOverride": {
+            "eng": "emergency"
+          },
+          "order": 41,
+          "symbolId": "kn7brsk1byhymtz9mq6s5g4qqh84mqwd"
+        },
+        {
+          "labelOverride": {
+            "eng": "hungry"
+          },
+          "order": 42,
+          "symbolId": "kn75eqcw6m7epm140jcfcap32h84m2m9"
+        },
+        {
+          "labelOverride": {
+            "eng": "thirsty"
+          },
+          "order": 43,
+          "symbolId": "kn72av2rh00wv6j2dmmvvxbzhx84nxgp"
+        },
+        {
+          "labelOverride": {
+            "eng": "tired"
+          },
+          "order": 44,
+          "symbolId": "kn77gz38x0ew3hh2v18zfevan584mzfy"
+        },
+        {
+          "labelOverride": {
+            "eng": "inhaler"
+          },
+          "order": 45,
+          "symbolId": "kn761sa4vfrpddw62jj6pdmbz984mpxm"
+        },
+        {
+          "labelOverride": {
+            "eng": "appointment"
+          },
+          "order": 46,
+          "symbolId": "kn7exawrqgmrm908fe7627jkk184nh0q"
+        },
+        {
+          "labelOverride": {
+            "eng": "thermometer"
+          },
+          "order": 47,
+          "symbolId": "kn79mawen4ygg7n168q5hm5d0984nf2n"
+        }
+      ]
+    },
+    {
+      "colour": "#F59E0B",
+      "icon": "🐾",
+      "imagePath": "symbols/symbol00000992.png",
+      "name": {
+        "eng": "Animals",
+        "hin": "Animals (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "dog"
+          },
+          "order": 0,
+          "symbolId": "kn7d44hengbb2pmq26a5bscnbd84njkp"
+        },
+        {
+          "labelOverride": {
+            "eng": "cat"
+          },
+          "order": 1,
+          "symbolId": "kn77knahbs1jy7gqr63mty7zph84ntbw"
+        },
+        {
+          "labelOverride": {
+            "eng": "rabbit"
+          },
+          "order": 2,
+          "symbolId": "kn7bhn4wk4fq7r5c99whdz25fd84ny90"
+        },
+        {
+          "labelOverride": {
+            "eng": "hamster"
+          },
+          "order": 3,
+          "symbolId": "kn742twceemdrgjrc15168j0vs84mjxj"
+        },
+        {
+          "labelOverride": {
+            "eng": "goldfish"
+          },
+          "order": 4,
+          "symbolId": "kn7egv8yvd1z578q433bjy7ajx84mn68"
+        },
+        {
+          "labelOverride": {
+            "eng": "horse"
+          },
+          "order": 5,
+          "symbolId": "kn75gpfz97bzv0k8qqb3p2748x84mff0"
+        },
+        {
+          "labelOverride": {
+            "eng": "cow"
+          },
+          "order": 6,
+          "symbolId": "kn732wx85whs2df7q7kwkaghjs84n2ns"
+        },
+        {
+          "labelOverride": {
+            "eng": "pig"
+          },
+          "order": 7,
+          "symbolId": "kn736v0wajxgz9d3714w00gnw584nqt8"
+        },
+        {
+          "labelOverride": {
+            "eng": "sheep"
+          },
+          "order": 8,
+          "symbolId": "kn7engteaawh7z8q9kbasph88s84nj61"
+        },
+        {
+          "labelOverride": {
+            "eng": "goat"
+          },
+          "order": 9,
+          "symbolId": "kn766q6fj18xj0mntasjbbgb3184nqzn"
+        },
+        {
+          "labelOverride": {
+            "eng": "chicken"
+          },
+          "order": 10,
+          "symbolId": "kn704zk4cmwfjqxyqat7h8j73h84m1rt"
+        },
+        {
+          "labelOverride": {
+            "eng": "duck"
+          },
+          "order": 11,
+          "symbolId": "kn72a5rfdkhpth2bkygzm0jf9n84nwrz"
+        },
+        {
+          "labelOverride": {
+            "eng": "lion"
+          },
+          "order": 12,
+          "symbolId": "kn72jcv4sbs5t0ag72tk4hkstn84mrht"
+        },
+        {
+          "labelOverride": {
+            "eng": "tiger"
+          },
+          "order": 13,
+          "symbolId": "kn79q5nhkdvyb7a2c2xzqr7fa184mwgk"
+        },
+        {
+          "labelOverride": {
+            "eng": "elephant"
+          },
+          "order": 14,
+          "symbolId": "kn71c4gt8et70njt5m5p48m13n84me1f"
+        },
+        {
+          "labelOverride": {
+            "eng": "giraffe"
+          },
+          "order": 15,
+          "symbolId": "kn71jsmzbdjxn1t6hy89y3kz0s84mpt9"
+        },
+        {
+          "labelOverride": {
+            "eng": "monkey"
+          },
+          "order": 16,
+          "symbolId": "kn74rk6jthgsf5g9rr0d5sfjzs84nhs3"
+        },
+        {
+          "labelOverride": {
+            "eng": "zebra"
+          },
+          "order": 17,
+          "symbolId": "kn7f0h7d6e9y5yehxkycq45p5n84mfmd"
+        },
+        {
+          "labelOverride": {
+            "eng": "fox"
+          },
+          "order": 18,
+          "symbolId": "kn75sweaejp49t29g5n087mav584n8ex"
+        },
+        {
+          "labelOverride": {
+            "eng": "deer"
+          },
+          "order": 19,
+          "symbolId": "kn752y3sa5x6av7nca9w06zyj984ne53"
+        },
+        {
+          "labelOverride": {
+            "eng": "wolf"
+          },
+          "order": 20,
+          "symbolId": "kn73te27p7v1h9bgrhs8nstb8s84mk86"
+        },
+        {
+          "labelOverride": {
+            "eng": "crocodile"
+          },
+          "order": 21,
+          "symbolId": "kn7fzta59e9d369dcq98s5kg4n84m57v"
+        },
+        {
+          "labelOverride": {
+            "eng": "rhinoceros"
+          },
+          "order": 22,
+          "symbolId": "kn7cvfde2kawd2k2801sxtt18184n985"
+        },
+        {
+          "labelOverride": {
+            "eng": "cheetah"
+          },
+          "order": 23,
+          "symbolId": "kn787nj8n3y7teypd6a4z2kf7d84np54"
+        },
+        {
+          "labelOverride": {
+            "eng": "shark"
+          },
+          "order": 24,
+          "symbolId": "kn79ke367weg5q4hwn1gx33pt984m4dz"
+        },
+        {
+          "labelOverride": {
+            "eng": "dolphin"
+          },
+          "order": 25,
+          "symbolId": "kn7dy7p58nqfxmd6shm9e6tvgs84mdkm"
+        },
+        {
+          "labelOverride": {
+            "eng": "fish"
+          },
+          "order": 26,
+          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+        },
+        {
+          "labelOverride": {
+            "eng": "crab"
+          },
+          "order": 27,
+          "symbolId": "kn76c7x7qp8h9j7r2bqxjd4j2h84n1zn"
+        },
+        {
+          "labelOverride": {
+            "eng": "octopus"
+          },
+          "order": 28,
+          "symbolId": "kn72vgz1bcpw568me0swargxcd84n5vp"
+        },
+        {
+          "labelOverride": {
+            "eng": "turtle"
+          },
+          "order": 29,
+          "symbolId": "kn7ancpf6wj3mcdndgs0z8vzr184nej5"
+        },
+        {
+          "labelOverride": {
+            "eng": "seahorse"
+          },
+          "order": 30,
+          "symbolId": "kn7dvd95whhzzvp4zb812031hn84nz81"
+        },
+        {
+          "labelOverride": {
+            "eng": "jellyfish"
+          },
+          "order": 31,
+          "symbolId": "kn7dwtzvm99z9n2yg9t8ypamt184nsj4"
+        },
+        {
+          "labelOverride": {
+            "eng": "eagle"
+          },
+          "order": 32,
+          "symbolId": "kn743djwbyqm6dxafgn37mdcfh84nq2x"
+        },
+        {
+          "labelOverride": {
+            "eng": "owl"
+          },
+          "order": 33,
+          "symbolId": "kn702ka9s6t1tpdtdykvd23qbd84nvvx"
+        },
+        {
+          "labelOverride": {
+            "eng": "penguin"
+          },
+          "order": 34,
+          "symbolId": "kn768nj61shrxrpmdt19c6s3ph84ncnd"
+        },
+        {
+          "labelOverride": {
+            "eng": "flamingo"
+          },
+          "order": 35,
+          "symbolId": "kn749fzy94dz77dkeqf6h1wez584nxhy"
+        },
+        {
+          "labelOverride": {
+            "eng": "robin"
+          },
+          "order": 36,
+          "symbolId": "kn7bzd2e3xhzjfh9kqh928rqnh84m7hm"
+        },
+        {
+          "labelOverride": {
+            "eng": "parrot"
+          },
+          "order": 37,
+          "symbolId": "kn76pb3wb4by1ze8xrwzzwbj4584mnsa"
+        },
+        {
+          "labelOverride": {
+            "eng": "peacock"
+          },
+          "order": 38,
+          "symbolId": "kn70hr5eg24e4kmfmz9g5tpvwn84m255"
+        },
+        {
+          "labelOverride": {
+            "eng": "crow"
+          },
+          "order": 39,
+          "symbolId": "kn785je0aefgsqh2vcta9xeg1d84m4ew"
+        },
+        {
+          "labelOverride": {
+            "eng": "butterfly"
+          },
+          "order": 40,
+          "symbolId": "kn7fekbv6cpc7fsp482mhf1x9s84m4d0"
+        },
+        {
+          "labelOverride": {
+            "eng": "bee"
+          },
+          "order": 41,
+          "symbolId": "kn7bkxzp37an8274btcsjcb12s84n4a0"
+        },
+        {
+          "labelOverride": {
+            "eng": "spider"
+          },
+          "order": 42,
+          "symbolId": "kn7bhd8yaf6wmt58wawaga0f3d84n7nq"
+        },
+        {
+          "labelOverride": {
+            "eng": "ladybug"
+          },
+          "order": 43,
+          "symbolId": "kn746n9pqmwq0tks693sa853cd84nm0f"
+        },
+        {
+          "labelOverride": {
+            "eng": "caterpillar"
+          },
+          "order": 44,
+          "symbolId": "kn774y9vq2nmfgw62rzc2bwkpx84mb4m"
+        },
+        {
+          "labelOverride": {
+            "eng": "dragonfly"
+          },
+          "order": 45,
+          "symbolId": "kn79arhrymwtey16dxahfeexcs84nzh8"
+        },
+        {
+          "labelOverride": {
+            "eng": "grasshopper"
+          },
+          "order": 46,
+          "symbolId": "kn7e63mqssjkms7hrmtm79azdn84mzd0"
+        },
+        {
+          "labelOverride": {
+            "eng": "moth"
+          },
+          "order": 47,
+          "symbolId": "kn7ejyv34bysh7t905dwjzv7xx84nsan"
+        }
+      ]
+    },
+    {
+      "colour": "cyan",
+      "icon": "🌿",
+      "imagePath": "symbols/symbol00202158.png",
+      "name": {
+        "eng": "Nature",
+        "hin": "Nature (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "Sun"
+          },
+          "order": 0,
+          "symbolId": "kn74qv7nq6hxf6ze5fdh4s6ynd84mwqc"
+        },
+        {
+          "labelOverride": {
+            "eng": "foggy"
+          },
+          "order": 1,
+          "symbolId": "kn79tpc0v6y85n83makv9cyhw584mk20"
+        },
+        {
+          "labelOverride": {
+            "eng": "rain"
+          },
+          "order": 2,
+          "symbolId": "kn7dgvgwz1nmbydhk6amrf0t8584mjgw"
+        },
+        {
+          "labelOverride": {
+            "eng": "snow"
+          },
+          "order": 3,
+          "symbolId": "kn792ypvapt87np41h5j43dxfh84mm6p"
+        },
+        {
+          "labelOverride": {
+            "eng": "cloud"
+          },
+          "order": 4,
+          "symbolId": "kn72afmcb6tq2z3etnvwwzd2vs84nx4y"
+        },
+        {
+          "labelOverride": {
+            "eng": "wind"
+          },
+          "order": 5,
+          "symbolId": "kn7akd50mjnz8xm2qt514tdq6184mswv"
+        },
+        {
+          "labelOverride": {
+            "eng": "rainbow"
+          },
+          "order": 6,
+          "symbolId": "kn78e9j8cpcbv7kv8kmqbg0h8n84m1db"
+        },
+        {
+          "labelOverride": {
+            "eng": "storm"
+          },
+          "order": 7,
+          "symbolId": "kn7chvmnc727pbd50cvhq7fm2d84mer4"
+        },
+        {
+          "labelOverride": {
+            "eng": "thunder"
+          },
+          "order": 8,
+          "symbolId": "kn73yc3pznydyzn48ap8sdvsbh84ntpv"
+        },
+        {
+          "labelOverride": {
+            "eng": "fog"
+          },
+          "order": 9,
+          "symbolId": "kn7drq53atbyvv8qqqr2wat9dn84nyng"
+        },
+        {
+          "labelOverride": {
+            "eng": "ice"
+          },
+          "order": 10,
+          "symbolId": "kn71d39exwg26x044p7bfrjzf984m9e1"
+        },
+        {
+          "labelOverride": {
+            "eng": "weather"
+          },
+          "order": 11,
+          "symbolId": "kn7f0s7zcjnv16c8q09s37j08584mcyy"
+        },
+        {
+          "labelOverride": {
+            "eng": "sky"
+          },
+          "order": 12,
+          "symbolId": "kn7f3tdpgq7nwnss23pjqj7z8184n1jm"
+        },
+        {
+          "labelOverride": {
+            "eng": "spring"
+          },
+          "order": 13,
+          "symbolId": "kn77at46yk8rrv86k9cba6tba584m2n6"
+        },
+        {
+          "labelOverride": {
+            "eng": "summer"
+          },
+          "order": 14,
+          "symbolId": "kn74zrft822mmaby971thnag6984mw1b"
+        },
+        {
+          "labelOverride": {
+            "eng": "autumn"
+          },
+          "order": 15,
+          "symbolId": "kn78gdhmb6rwxpax1ytspn4zrx84n7mg"
+        },
+        {
+          "labelOverride": {
+            "eng": "winter"
+          },
+          "order": 16,
+          "symbolId": "kn76822h893j53p57y13vjw7zn84n3f3"
+        },
+        {
+          "labelOverride": {
+            "eng": "mountain"
+          },
+          "order": 17,
+          "symbolId": "kn79m5zs9k5z2d8rr3x6dyb5h184n2n1"
+        },
+        {
+          "labelOverride": {
+            "eng": "hill"
+          },
+          "order": 18,
+          "symbolId": "kn71rhxc7w2gcy33rw6pjmhe4s84n70w"
+        },
+        {
+          "labelOverride": {
+            "eng": "river"
+          },
+          "order": 19,
+          "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
+        },
+        {
+          "labelOverride": {
+            "eng": "lake"
+          },
+          "order": 20,
+          "symbolId": "kn7dr90wzd0paknmz9b4y775bn84mga3"
+        },
+        {
+          "labelOverride": {
+            "eng": "ocean"
+          },
+          "order": 21,
+          "symbolId": "kn7a011kprcg1q6vehfr4657g984my5w"
+        },
+        {
+          "labelOverride": {
+            "eng": "sea"
+          },
+          "order": 22,
+          "symbolId": "kn706wyp3g3dtescg2qr56fddh84npmt"
+        },
+        {
+          "labelOverride": {
+            "eng": "beach"
+          },
+          "order": 23,
+          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+        },
+        {
+          "labelOverride": {
+            "eng": "waterfall"
+          },
+          "order": 24,
+          "symbolId": "kn7f3bccmvz6r5vc39qd1c9n3s84n7qy"
+        },
+        {
+          "labelOverride": {
+            "eng": "forest"
+          },
+          "order": 25,
+          "symbolId": "kn7bv6pmf2rz3fxj8e46xg8mmx84nw3n"
+        },
+        {
+          "labelOverride": {
+            "eng": "desert"
+          },
+          "order": 26,
+          "symbolId": "kn7bbtnvdqqy5y7t72t3fbhreh84n377"
+        },
+        {
+          "labelOverride": {
+            "eng": "cave"
+          },
+          "order": 27,
+          "symbolId": "kn778sa8m064yye4b8wrnmmn2984mx1f"
+        },
+        {
+          "labelOverride": {
+            "eng": "valley"
+          },
+          "order": 28,
+          "symbolId": "kn715r4w4htfyq1sxffn9qnvvd84nmfr"
+        },
+        {
+          "labelOverride": {
+            "eng": "rock"
+          },
+          "order": 29,
+          "symbolId": "kn7d5zyc28g95aq2zw3vy8fhh184nma5"
+        },
+        {
+          "labelOverride": {
+            "eng": "sand"
+          },
+          "order": 30,
+          "symbolId": "kn7anmva6wzzht348a6kfqhths84nmg3"
+        },
+        {
+          "labelOverride": {
+            "eng": "mud"
+          },
+          "order": 31,
+          "symbolId": "kn73yv9mvn6cxxhrxzpq3abhr984ncvm"
+        },
+        {
+          "labelOverride": {
+            "eng": "soil"
+          },
+          "order": 32,
+          "symbolId": "kn7acwhmjw5v05tsd725fdde9h84nhn1"
+        },
+        {
+          "labelOverride": {
+            "eng": "grass"
+          },
+          "order": 33,
+          "symbolId": "kn7a0xc33t5n85gtzrcq9dmgr584nq7v"
+        },
+        {
+          "labelOverride": {
+            "eng": "leaf"
+          },
+          "order": 34,
+          "symbolId": "kn79ta4dp1nx6g7ntebzv5m6r984mfrn"
+        },
+        {
+          "labelOverride": {
+            "eng": "tree"
+          },
+          "order": 35,
+          "symbolId": "kn77e2c6zkdpks64f5maajf4m584nhsa"
+        },
+        {
+          "labelOverride": {
+            "eng": "flower"
+          },
+          "order": 36,
+          "symbolId": "kn73p8ya7ppje976wjbq4gm28d84nf2k"
+        },
+        {
+          "labelOverride": {
+            "eng": "bush"
+          },
+          "order": 37,
+          "symbolId": "kn78qxhv6adenq1dj48ch107vh84nm2z"
+        },
+        {
+          "labelOverride": {
+            "eng": "seed"
+          },
+          "order": 38,
+          "symbolId": "kn7283fxg0ftyhqt09fna5rzrx84nx75"
+        },
+        {
+          "labelOverride": {
+            "eng": "garden"
+          },
+          "order": 39,
+          "symbolId": "kn7fzcyzhrnfxt297rqcpws1yn84nf8g"
+        },
+        {
+          "labelOverride": {
+            "eng": "jungle"
+          },
+          "order": 40,
+          "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
+        },
+        {
+          "labelOverride": {
+            "eng": "meadow"
+          },
+          "order": 41,
+          "symbolId": "kn74fazwcsycz2dg4wq7677fex84n9x5"
+        },
+        {
+          "labelOverride": {
+            "eng": "field"
+          },
+          "order": 42,
+          "symbolId": "kn7d7n2rsgpe1fy5k0th8xncpx84n6pb"
+        },
+        {
+          "labelOverride": {
+            "eng": "star"
+          },
+          "order": 43,
+          "symbolId": "kn7ffj2zxvdysgfzzc9yzw1h5x84msbk"
+        },
+        {
+          "labelOverride": {
+            "eng": "sunrise"
+          },
+          "order": 44,
+          "symbolId": "kn75angnzet9hca4azcxx8cgg584mgba"
+        },
+        {
+          "labelOverride": {
+            "eng": "sunset"
+          },
+          "order": 45,
+          "symbolId": "kn78qgxbagstgcr17p9d530rgh84naqt"
+        },
+        {
+          "labelOverride": {
+            "eng": "night"
+          },
+          "order": 46,
+          "symbolId": "kn70kkhhp242qgpmjp1dexgpn584nac4"
+        }
+      ]
+    },
+    {
+      "colour": "#6366F1",
+      "icon": "🏘️",
+      "imagePath": "symbols/community.png",
+      "name": {
+        "eng": "Community",
+        "hin": "Community (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "hospital"
+          },
+          "order": 0,
+          "symbolId": "kn7cptdjskwjk162z6s0n2x9nn84mddy"
+        },
+        {
+          "labelOverride": {
+            "eng": "school"
+          },
+          "order": 1,
+          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+        },
+        {
+          "labelOverride": {
+            "eng": "library"
+          },
+          "order": 2,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "eng": "park"
+          },
+          "order": 3,
+          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+        },
+        {
+          "labelOverride": {
+            "eng": "playground"
+          },
+          "order": 4,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "eng": "restaurant"
+          },
+          "order": 5,
+          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
+        },
+        {
+          "labelOverride": {
+            "eng": "shop"
+          },
+          "order": 6,
+          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
+        },
+        {
+          "labelOverride": {
+            "eng": "supermarket"
+          },
+          "order": 7,
+          "symbolId": "kn7axjv8ya02astax0tzvbmymd84ndw0"
+        },
+        {
+          "labelOverride": {
+            "eng": "church"
+          },
+          "order": 8,
+          "symbolId": "kn77d4k792a0c350bzdba9yxhd84nzx8"
+        },
+        {
+          "labelOverride": {
+            "eng": "police station"
+          },
+          "order": 9,
+          "symbolId": "kn76smafqg1sgeq3vwphwt4jpd84mq1t"
+        },
+        {
+          "labelOverride": {
+            "eng": "fire station"
+          },
+          "order": 10,
+          "symbolId": "kn714g44t2cfe80fbn68g6t1q984mc1k"
+        },
+        {
+          "labelOverride": {
+            "eng": "bank"
+          },
+          "order": 11,
+          "symbolId": "kn70ewnn74nz03dhxdm1vyya7184mcnf"
+        },
+        {
+          "labelOverride": {
+            "eng": "post office"
+          },
+          "order": 12,
+          "symbolId": "kn72q5e2qtfxvbfkx2a5mw3fg184m5q3"
+        },
+        {
+          "labelOverride": {
+            "eng": "pharmacy"
+          },
+          "order": 13,
+          "symbolId": "kn73zhygkmejxw4c3rv47f5sh184mmyt"
+        },
+        {
+          "labelOverride": {
+            "eng": "car"
+          },
+          "order": 14,
+          "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
+        },
+        {
+          "labelOverride": {
+            "eng": "bus"
+          },
+          "order": 15,
+          "symbolId": "kn748yfp678vxhv42gmfq4zp2984nx9h"
+        },
+        {
+          "labelOverride": {
+            "eng": "train"
+          },
+          "order": 16,
+          "symbolId": "kn7bzp8rma9refexp43f7s9zed84mk2x"
+        },
+        {
+          "labelOverride": {
+            "eng": "bicycle"
+          },
+          "order": 17,
+          "symbolId": "kn72ejzd5xhanyyqnv7hrqevc184m8nh"
+        },
+        {
+          "labelOverride": {
+            "eng": "airplane"
+          },
+          "order": 18,
+          "symbolId": "kn7c0xypx55pbe29e56ajyvnq184mehn"
+        },
+        {
+          "labelOverride": {
+            "eng": "helicopter"
+          },
+          "order": 19,
+          "symbolId": "kn7b5nwz7y467gnfth0b5c7pk984mkny"
+        },
+        {
+          "labelOverride": {
+            "eng": "boat"
+          },
+          "order": 20,
+          "symbolId": "kn7a7gbspbdxwyjqpxfhbwgjkx84mv4r"
+        },
+        {
+          "labelOverride": {
+            "eng": "ship"
+          },
+          "order": 21,
+          "symbolId": "kn74cj3gxg8ebg8nqce857fp1984mc33"
+        },
+        {
+          "labelOverride": {
+            "eng": "taxi"
+          },
+          "order": 22,
+          "symbolId": "kn79vwqw2xdeps78g2mz9hffas84nqv2"
+        },
+        {
+          "labelOverride": {
+            "eng": "ambulance"
+          },
+          "order": 23,
+          "symbolId": "kn7e5afbt877y8x4zxr47hmba984mxm6"
+        },
+        {
+          "labelOverride": {
+            "eng": "police car"
+          },
+          "order": 24,
+          "symbolId": "kn740vq84hhxym80de4pd92jws84m214"
+        },
+        {
+          "labelOverride": {
+            "eng": "lorry"
+          },
+          "order": 25,
+          "symbolId": "kn75ntkhtchgc1p5ne51grm3nn84nr0q"
+        },
+        {
+          "labelOverride": {
+            "eng": "truck"
+          },
+          "order": 26,
+          "symbolId": "kn75bc0amajg89h5d1fqd435m984nzh0"
+        },
+        {
+          "labelOverride": {
+            "eng": "van"
+          },
+          "order": 27,
+          "symbolId": "kn7as0bgy81wr13zkjjwkdnq2x84nx1a"
+        },
+        {
+          "labelOverride": {
+            "eng": "motorbike"
+          },
+          "order": 28,
+          "symbolId": "kn7cnv36kyaxeqgxnwfq0bnt2n84mrh5"
+        },
+        {
+          "labelOverride": {
+            "eng": "tractor"
+          },
+          "order": 29,
+          "symbolId": "kn741fv0t2v44ac0zc0hhpkvzx84nf9n"
+        },
+        {
+          "labelOverride": {
+            "eng": "police officer"
+          },
+          "order": 30,
+          "symbolId": "kn7chs5fwa2xfkk9an41npz1gd84mjyg"
+        },
+        {
+          "labelOverride": {
+            "eng": "firefighter"
+          },
+          "order": 31,
+          "symbolId": "kn74fg2zfnx4g43np32ve04a2184mxbf"
+        },
+        {
+          "labelOverride": {
+            "eng": "doctor"
+          },
+          "order": 32,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "eng": "nurse"
+          },
+          "order": 33,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "eng": "money"
+          },
+          "order": 34,
+          "symbolId": "kn7984vqkkbtkqvkbwqcsd8crx84nwgn"
+        },
+        {
+          "labelOverride": {
+            "eng": "coin"
+          },
+          "order": 35,
+          "symbolId": "kn7b0f5nmqkwbdd32wvbc91f3184mf9k"
+        },
+        {
+          "labelOverride": {
+            "eng": "pay"
+          },
+          "order": 36,
+          "symbolId": "kn7avv9kqg4ph8t31vpacxxg0584mbd6"
+        },
+        {
+          "labelOverride": {
+            "eng": "road"
+          },
+          "order": 37,
+          "symbolId": "kn76xnvk4g4jgtb35ffeprqmqn84msaf"
+        },
+        {
+          "labelOverride": {
+            "eng": "street"
+          },
+          "order": 38,
+          "symbolId": "kn7amr0rdshma2p0q16agy1f1184nrqq"
+        },
+        {
+          "labelOverride": {
+            "eng": "bridge"
+          },
+          "order": 39,
+          "symbolId": "kn75cv3523p7vz17fnrkms7nr984n2sv"
+        },
+        {
+          "labelOverride": {
+            "eng": "zoo"
+          },
+          "order": 40,
+          "symbolId": "kn7efvh1f17h92x3hrtvfsp15n84nmjs"
+        },
+        {
+          "labelOverride": {
+            "eng": "museum"
+          },
+          "order": 41,
+          "symbolId": "kn74fhnbd627m151z63ar96v7s84ncbe"
+        },
+        {
+          "labelOverride": {
+            "eng": "farm"
+          },
+          "order": 42,
+          "symbolId": "kn7dn0qdt3361ttymkmc36tfmh84nt7q"
+        },
+        {
+          "labelOverride": {
+            "eng": "town"
+          },
+          "order": 43,
+          "symbolId": "kn7d6rkxvhatvpawayz27ntpmd84mmk3"
+        },
+        {
+          "labelOverride": {
+            "eng": "city"
+          },
+          "order": 44,
+          "symbolId": "kn750xnxn9djmk5rg0rg95kkgn84mzhy"
+        },
+        {
+          "labelOverride": {
+            "eng": "swimming pool"
+          },
+          "order": 45,
+          "symbolId": "kn71x6aaj1hncp3vkfqck6wn3184mf11"
+        },
+        {
+          "labelOverride": {
+            "eng": "hotel"
+          },
+          "order": 46,
+          "symbolId": "kn73e5bqbbnswfg92z7r6scxnh84n2ag"
+        },
+        {
+          "labelOverride": {
+            "eng": "market"
+          },
+          "order": 47,
+          "symbolId": "kn71eny80w4prn779ysts1vmh984n9f3"
+        }
+      ]
+    },
+    {
+      "colour": "#0EA5E9",
+      "icon": "⏰",
+      "imagePath": "symbols/clock_blank.png",
+      "name": {
+        "eng": "Time",
+        "hin": "Time (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "April"
+          },
+          "order": 0,
+          "symbolId": "kn71aac8bfn5pszw6ffje7s23184nr5h"
+        },
+        {
+          "labelOverride": {
+            "eng": "spring"
+          },
+          "order": 1,
+          "symbolId": "kn77at46yk8rrv86k9cba6tba584m2n6"
+        },
+        {
+          "labelOverride": {
+            "eng": "summer"
+          },
+          "order": 2,
+          "symbolId": "kn74zrft822mmaby971thnag6984mw1b"
+        },
+        {
+          "labelOverride": {
+            "eng": "autumn"
+          },
+          "order": 3,
+          "symbolId": "kn78gdhmb6rwxpax1ytspn4zrx84n7mg"
+        },
+        {
+          "labelOverride": {
+            "eng": "winter"
+          },
+          "order": 4,
+          "symbolId": "kn76822h893j53p57y13vjw7zn84n3f3"
+        },
+        {
+          "labelOverride": {
+            "eng": "March"
+          },
+          "order": 5,
+          "symbolId": "kn790eeby896yecvty44qz025n84mdem"
+        },
+        {
+          "labelOverride": {
+            "eng": "May"
+          },
+          "order": 6,
+          "symbolId": "kn71qnsy4apb7y1m851k3fae5584mjsn"
+        },
+        {
+          "labelOverride": {
+            "eng": "morning"
+          },
+          "order": 7,
+          "symbolId": "kn7dszfm8xags4y3dy4kg4hnz984ngb4"
+        },
+        {
+          "labelOverride": {
+            "eng": "afternoon"
+          },
+          "order": 8,
+          "symbolId": "kn7cg88bfynmqc0kga1d5njtms84mqbr"
+        },
+        {
+          "labelOverride": {
+            "eng": "evening"
+          },
+          "order": 9,
+          "symbolId": "kn7ffkc6gtqb50reapwzrf93qn84mvdm"
+        },
+        {
+          "labelOverride": {
+            "eng": "night"
+          },
+          "order": 10,
+          "symbolId": "kn70kkhhp242qgpmjp1dexgpn584nac4"
+        },
+        {
+          "labelOverride": {
+            "eng": "bedtime"
+          },
+          "order": 11,
+          "symbolId": "kn70a2j4sm3y22e5q2w4qtattn84mbkd"
+        },
+        {
+          "labelOverride": {
+            "eng": "today"
+          },
+          "order": 12,
+          "symbolId": "kn78d5kdrxqvbhvns0pk1zrjm984m3fz"
+        },
+        {
+          "labelOverride": {
+            "eng": "tomorrow"
+          },
+          "order": 13,
+          "symbolId": "kn79qqnrf66epydj4njfxm85x984m63d"
+        },
+        {
+          "labelOverride": {
+            "eng": "yesterday"
+          },
+          "order": 14,
+          "symbolId": "kn7885k2f32wzhw3mc2fwccqzn84mg8j"
+        },
+        {
+          "labelOverride": {
+            "eng": "now"
+          },
+          "order": 15,
+          "symbolId": "kn7fcvvwthszkgm2qt3bcv5dq184ndd2"
+        },
+        {
+          "labelOverride": {
+            "eng": "soon"
+          },
+          "order": 16,
+          "symbolId": "kn7ek7trn00cc14m6qq06nynrx84n16h"
+        },
+        {
+          "labelOverride": {
+            "eng": "later"
+          },
+          "order": 17,
+          "symbolId": "kn7b04vk7wgbfqx1pg8crgy8px84n8z4"
+        },
+        {
+          "labelOverride": {
+            "eng": "before"
+          },
+          "order": 18,
+          "symbolId": "kn74096vxg71g3ba4axvfgrzhn84mm49"
+        },
+        {
+          "labelOverride": {
+            "eng": "after"
+          },
+          "order": 19,
+          "symbolId": "kn72wfzwmkjd7eg267jqwbxp9x84nkan"
+        },
+        {
+          "labelOverride": {
+            "eng": "first"
+          },
+          "order": 20,
+          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
+        },
+        {
+          "labelOverride": {
+            "eng": "last"
+          },
+          "order": 21,
+          "symbolId": "kn75vac87h0ppax18z0mxh4bn984m5n2"
+        },
+        {
+          "labelOverride": {
+            "eng": "next"
+          },
+          "order": 22,
+          "symbolId": "kn7ee061xpaje5mvrrj3y5xx4x84nax3"
+        },
+        {
+          "labelOverride": {
+            "eng": "early"
+          },
+          "order": 23,
+          "symbolId": "kn7efc5c49x85qafnyjp3gbwzh84m055"
+        },
+        {
+          "labelOverride": {
+            "eng": "always"
+          },
+          "order": 24,
+          "symbolId": "kn7f2fxkva09ftp17g9harn5yh84mrv6"
+        },
+        {
+          "labelOverride": {
+            "eng": "never"
+          },
+          "order": 25,
+          "symbolId": "kn7eprn7mkxr4h2b2rfy5ax1rd84mkx4"
+        },
+        {
+          "labelOverride": {
+            "eng": "sometimes"
+          },
+          "order": 26,
+          "symbolId": "kn73fzvbt8qdmn5nwarnx9xgtx84ma6n"
+        },
+        {
+          "labelOverride": {
+            "eng": "minute"
+          },
+          "order": 27,
+          "symbolId": "kn7dprmdt4jandjg8jx2d8d64h84n0rg"
+        },
+        {
+          "labelOverride": {
+            "eng": "hour"
+          },
+          "order": 28,
+          "symbolId": "kn76tdyrhc036mfrsvcwy10zf184m6ae"
+        },
+        {
+          "labelOverride": {
+            "eng": "week"
+          },
+          "order": 29,
+          "symbolId": "kn73bwghrb6v08wayzac0rbmt584npqr"
+        },
+        {
+          "labelOverride": {
+            "eng": "year"
+          },
+          "order": 30,
+          "symbolId": "kn7a93mxmbt0gxbsb1r8vbe12n84ne71"
+        },
+        {
+          "labelOverride": {
+            "eng": "birthday"
+          },
+          "order": 31,
+          "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+        }
+      ]
+    },
+    {
+      "colour": "#06B6D4",
+      "icon": "🔢",
+      "imagePath": "symbols/number.png",
+      "name": {
+        "eng": "Numbers",
+        "hin": "Numbers (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "0"
+          },
+          "order": 0,
+          "symbolId": "kn7ak0nr9e20mktrm3v7750ar984mmds"
+        },
+        {
+          "labelOverride": {
+            "eng": "1"
+          },
+          "order": 1,
+          "symbolId": "kn7c2bfym2mvrgy97twz2s473h84mwch"
+        },
+        {
+          "labelOverride": {
+            "eng": "2"
+          },
+          "order": 2,
+          "symbolId": "kn7d5vqxngbb6h5mk3hg7assa584mrng"
+        },
+        {
+          "labelOverride": {
+            "eng": "3"
+          },
+          "order": 3,
+          "symbolId": "kn73jtrhafnxmnkwnaxc388hc184mpxb"
+        },
+        {
+          "labelOverride": {
+            "eng": "4"
+          },
+          "order": 4,
+          "symbolId": "kn725q4p8pww3w9td0k5chzmdx84n48m"
+        },
+        {
+          "labelOverride": {
+            "eng": "5"
+          },
+          "order": 5,
+          "symbolId": "kn72b1cf4ymhf9yh1m7j38gnxd84nz58"
+        },
+        {
+          "labelOverride": {
+            "eng": "6"
+          },
+          "order": 6,
+          "symbolId": "kn7a29yzyhkqh5agkdrjq29z5184m2y1"
+        },
+        {
+          "labelOverride": {
+            "eng": "7"
+          },
+          "order": 7,
+          "symbolId": "kn71ayyrnespw9ny153jqchgps84nc05"
+        },
+        {
+          "labelOverride": {
+            "eng": "8"
+          },
+          "order": 8,
+          "symbolId": "kn74jx75nvpp8kxjje71xw1dxx84mwqs"
+        },
+        {
+          "labelOverride": {
+            "eng": "9"
+          },
+          "order": 9,
+          "symbolId": "kn7b62b3jjw6q23k3eze5bw2nh84nvh8"
+        },
+        {
+          "labelOverride": {
+            "eng": "10"
+          },
+          "order": 10,
+          "symbolId": "kn755b4kvqgqxwb2tkqbszqxax84mxf4"
+        },
+        {
+          "labelOverride": {
+            "eng": "11"
+          },
+          "order": 11,
+          "symbolId": "kn7eswggygpyt9w0sd6n1ne8zn84mahr"
+        },
+        {
+          "labelOverride": {
+            "eng": "12"
+          },
+          "order": 12,
+          "symbolId": "kn78gy1aq2zkavcr6yrs2r6nhd84n6fd"
+        },
+        {
+          "labelOverride": {
+            "eng": "15"
+          },
+          "order": 13,
+          "symbolId": "kn787e83e4wfsvf69f0jh7k4n584m6rc"
+        },
+        {
+          "labelOverride": {
+            "eng": "20"
+          },
+          "order": 14,
+          "symbolId": "kn76vvwnhkx6bdvndh6eeh5tss84ny0b"
+        },
+        {
+          "labelOverride": {
+            "eng": "25"
+          },
+          "order": 15,
+          "symbolId": "kn778n8paf3kazfcmghq6dh87184nv5e"
+        },
+        {
+          "labelOverride": {
+            "eng": "50"
+          },
+          "order": 16,
+          "symbolId": "kn7b4zf1dq0a18px2jjh8jsn9h84myhf"
+        },
+        {
+          "labelOverride": {
+            "eng": "100"
+          },
+          "order": 17,
+          "symbolId": "kn7exkd29q2jnpxwy5ch29fqex84n8tn"
+        },
+        {
+          "labelOverride": {
+            "eng": "add"
+          },
+          "order": 18,
+          "symbolId": "kn72sf89c9dva31802jqn0y27184nefp"
+        },
+        {
+          "labelOverride": {
+            "eng": "subtract"
+          },
+          "order": 19,
+          "symbolId": "kn7b13m81ree2bps4090c7tjfd84n0fr"
+        },
+        {
+          "labelOverride": {
+            "eng": "multiply"
+          },
+          "order": 20,
+          "symbolId": "kn7epxabs1382tzfj9t5e7yc1s84mvrj"
+        },
+        {
+          "labelOverride": {
+            "eng": "divide"
+          },
+          "order": 21,
+          "symbolId": "kn7bp5h6yvjtkw43f9n85xt83h84md5h"
+        },
+        {
+          "labelOverride": {
+            "eng": "count"
+          },
+          "order": 22,
+          "symbolId": "kn7bsmy974zddafbsr2dztcjv184nghw"
+        },
+        {
+          "labelOverride": {
+            "eng": "total"
+          },
+          "order": 23,
+          "symbolId": "kn77qw8hmjet9r9hyq6ffghdw184n022"
+        },
+        {
+          "labelOverride": {
+            "eng": "half"
+          },
+          "order": 24,
+          "symbolId": "kn7bhxv9sxedyzcwh952h6zz2184msgr"
+        },
+        {
+          "labelOverride": {
+            "eng": "quarter"
+          },
+          "order": 25,
+          "symbolId": "kn7a4pz2a4k8rwh3vg9cv87zf184nkhv"
+        },
+        {
+          "labelOverride": {
+            "eng": "fraction"
+          },
+          "order": 26,
+          "symbolId": "kn751p6trd0d7xpyh9ccr8jk2x84mtyk"
+        },
+        {
+          "labelOverride": {
+            "eng": "amount"
+          },
+          "order": 27,
+          "symbolId": "kn7bq02mmmzvypnqkr6bqjb6b184nd4t"
+        },
+        {
+          "labelOverride": {
+            "eng": "more"
+          },
+          "order": 28,
+          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
+        },
+        {
+          "labelOverride": {
+            "eng": "less"
+          },
+          "order": 29,
+          "symbolId": "kn71c2r8r8qkgr1mmnrbtb8xgd84m2h5"
+        },
+        {
+          "labelOverride": {
+            "eng": "some"
+          },
+          "order": 30,
+          "symbolId": "kn796k24es0e52x56v772mnczd84nqn0"
+        },
+        {
+          "labelOverride": {
+            "eng": "many"
+          },
+          "order": 31,
+          "symbolId": "kn767n9z2wyqapt0vxqd62hz3d84ns46"
+        },
+        {
+          "labelOverride": {
+            "eng": "few"
+          },
+          "order": 32,
+          "symbolId": "kn780szsgbd6sxsgkspvnekd8d84n0zv"
+        },
+        {
+          "labelOverride": {
+            "eng": "all"
+          },
+          "order": 33,
+          "symbolId": "kn779q2n2sp809fn230nkbwkd184m6kn"
+        },
+        {
+          "labelOverride": {
+            "eng": "none"
+          },
+          "order": 34,
+          "symbolId": "kn74s2sk181e14xner3j0ct7qn84n5rs"
+        },
+        {
+          "labelOverride": {
+            "eng": "first"
+          },
+          "order": 35,
+          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
+        },
+        {
+          "labelOverride": {
+            "eng": "second"
+          },
+          "order": 36,
+          "symbolId": "kn76y5gxdtnxafg7zz4d6m0qe184njzw"
+        },
+        {
+          "labelOverride": {
+            "eng": "third"
+          },
+          "order": 37,
+          "symbolId": "kn761mw7yph9208n23zqtkdhnd84ncms"
+        },
+        {
+          "labelOverride": {
+            "eng": "number"
+          },
+          "order": 38,
+          "symbolId": "kn7cxmc8npkta1vvee6tbe5jd584n7za"
+        },
+        {
+          "labelOverride": {
+            "eng": "money"
+          },
+          "order": 39,
+          "symbolId": "kn7984vqkkbtkqvkbwqcsd8crx84nwgn"
+        },
+        {
+          "labelOverride": {
+            "eng": "pound"
+          },
+          "order": 40,
+          "symbolId": "kn79rr5f1vcrhy6nb3jbch1mr984n655"
+        },
+        {
+          "labelOverride": {
+            "eng": "penny"
+          },
+          "order": 41,
+          "symbolId": "kn7aqg9j2at6gxq1tmra0c0b9h84nn7c"
+        },
+        {
+          "labelOverride": {
+            "eng": "coin"
+          },
+          "order": 42,
+          "symbolId": "kn7b0f5nmqkwbdd32wvbc91f3184mf9k"
+        },
+        {
+          "labelOverride": {
+            "eng": "pay"
+          },
+          "order": 43,
+          "symbolId": "kn7avv9kqg4ph8t31vpacxxg0584mbd6"
+        },
+        {
+          "labelOverride": {
+            "eng": "change"
+          },
+          "order": 44,
+          "symbolId": "kn7777c0bwrydtv1q6q4aedvt984mje4"
+        },
+        {
+          "labelOverride": {
+            "eng": "free"
+          },
+          "order": 45,
+          "symbolId": "kn7exfdpymf5yfn6vsd0mfmvpd84m2mp"
+        },
+        {
+          "labelOverride": {
+            "eng": "expensive"
+          },
+          "order": 46,
+          "symbolId": "kn70hj0ff7wttpb98pkf8p518n84mrgc"
+        },
+        {
+          "labelOverride": {
+            "eng": "cheap"
+          },
+          "order": 47,
+          "symbolId": "kn7f0v9x5kbhyar747ebw8t6p184mhy4"
+        }
+      ]
+    },
+    {
+      "colour": "#F472B6",
+      "icon": "💬",
+      "imagePath": "symbols/symbol00213947.png",
+      "name": {
+        "eng": "Chat",
+        "hin": "Chat (hi)"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "Hello"
+          },
+          "order": 0,
+          "symbolId": "kn7bsbcwdqzqde0mq3zr1xajxx84n9cq"
+        },
+        {
+          "labelOverride": {
+            "eng": "How are you?"
+          },
+          "order": 1,
+          "symbolId": "kn716yef2zjdsvssh1e90v9dvh84njfe"
+        },
+        {
+          "labelOverride": {
+            "eng": "I am okay."
+          },
+          "order": 2,
+          "symbolId": "kn7dnmdc7p5n8m7c3g6xcp3jd984msrb"
+        },
+        {
+          "labelOverride": {
+            "eng": "Good morning!"
+          },
+          "order": 3,
+          "symbolId": "kn7129kfy0189k5k0259gje4ns84nzcj"
+        },
+        {
+          "labelOverride": {
+            "eng": "Good night."
+          },
+          "order": 4,
+          "symbolId": "kn7c5f6m7t3g7a8p49b58zv0an84mqhn"
+        },
+        {
+          "labelOverride": {
+            "eng": "See you later!"
+          },
+          "order": 5,
+          "symbolId": "kn7fsqqkyhh6jfkdjyjf1r058h84m402"
+        },
+        {
+          "labelOverride": {
+            "eng": "Thank you!"
+          },
+          "order": 6,
+          "symbolId": "kn7bnwbxpakx3fjrxqeqv06gkn84m88c"
+        },
+        {
+          "labelOverride": {
+            "eng": "no thank you"
+          },
+          "order": 7,
+          "symbolId": "kn7cm2jkm8gtcpttwrec8r9kkd84nfwg"
+        },
+        {
+          "labelOverride": {
+            "eng": "I need help."
+          },
+          "order": 8,
+          "symbolId": "kn7dxmnaawyms6e64e4vvtcqe184mxwn"
+        },
+        {
+          "labelOverride": {
+            "eng": "I forgot."
+          },
+          "order": 9,
+          "symbolId": "kn754tkacbx7hvzz9kszkztk8984meak"
+        },
+        {
+          "labelOverride": {
+            "eng": "Give me that."
+          },
+          "order": 10,
+          "symbolId": "kn7828ph73c4sfxmyhrqv32km184ma9h"
+        },
+        {
+          "labelOverride": {
+            "eng": "I am lost."
+          },
+          "order": 11,
+          "symbolId": "kn757zbh0v9h9y3xpy3975rbzh84m5jx"
+        },
+        {
+          "labelOverride": {
+            "eng": "What are you doing tomorrow?"
+          },
+          "order": 12,
+          "symbolId": "kn7epv6w4b32dd438yb3vns7th84ntc0"
+        },
+        {
+          "labelOverride": {
+            "eng": "Are you tired?"
+          },
+          "order": 13,
+          "symbolId": "kn78164zccwxm4s7hg2ys5a3h184njc2"
+        },
+        {
+          "labelOverride": {
+            "eng": "I am having fun."
+          },
+          "order": 14,
+          "symbolId": "kn70nanjx6nm8cbm6cas7k0hds84n3jy"
+        },
+        {
+          "labelOverride": {
+            "eng": "I am joking."
+          },
+          "order": 15,
+          "symbolId": "kn78japq4ha7dbx0cas8ethdpx84md9s"
+        },
+        {
+          "labelOverride": {
+            "eng": "do not feel well"
+          },
+          "order": 16,
+          "symbolId": "kn762gc1xyy9qevjb0ry2zcnyx84n3g2"
+        },
+        {
+          "labelOverride": {
+            "eng": "It is time."
+          },
+          "order": 17,
+          "symbolId": "kn78k93rm2g11b49p3rpb7bv3584nskm"
+        },
+        {
+          "labelOverride": {
+            "eng": "yes"
+          },
+          "order": 18,
+          "symbolId": "kn7edcf1f58e661q54eych76pn84m0sp"
+        },
+        {
+          "labelOverride": {
+            "eng": "no"
+          },
+          "order": 19,
+          "symbolId": "kn7fdzrgq94ze8apwmmbms0bjn84nhms"
+        },
+        {
+          "labelOverride": {
+            "eng": "okay"
+          },
+          "order": 20,
+          "symbolId": "kn76e8b51w1k6q8bsgnhjda9y584n7j7"
+        },
+        {
+          "labelOverride": {
+            "eng": "please"
+          },
+          "order": 21,
+          "symbolId": "kn7b1x0z1n881hgz6zk3zd7bxn84nwjf"
+        },
+        {
+          "labelOverride": {
+            "eng": "sorry"
+          },
+          "order": 22,
+          "symbolId": "kn737gmeq524gr5ypke1pr9k5984nn04"
+        },
+        {
+          "labelOverride": {
+            "eng": "of course"
+          },
+          "order": 23,
+          "symbolId": "kn7agypne0pa0hppxyjs1ehb6s84m4wv"
+        },
+        {
+          "labelOverride": {
+            "eng": "amazing"
+          },
+          "order": 24,
+          "symbolId": "kn77343w3fq6zhaqprfh1bz3nh84neav"
+        },
+        {
+          "labelOverride": {
+            "eng": "awesome"
+          },
+          "order": 25,
+          "symbolId": "kn77brhtns6pp6k5wvm38qh9n184mb5a"
+        },
+        {
+          "labelOverride": {
+            "eng": "Where are we going?"
+          },
+          "order": 26,
+          "symbolId": "kn7eh44hfscfym8hgf9njgs9dd84mjv5"
+        },
+        {
+          "labelOverride": {
+            "eng": "really"
+          },
+          "order": 27,
+          "symbolId": "kn7bz62wy832fe6csb4fq28fcd84mrts"
+        },
+        {
+          "labelOverride": {
+            "eng": "what"
+          },
+          "order": 28,
+          "symbolId": "kn7dxc077h1xaq1tbp8ecqtdf184nyv0"
+        },
+        {
+          "labelOverride": {
+            "eng": "well"
+          },
+          "order": 29,
+          "symbolId": "kn7a9ak43jzzbmvw4v72kxt0g184makc"
+        },
+        {
+          "labelOverride": {
+            "eng": "come back"
+          },
+          "order": 30,
+          "symbolId": "kn73bm0tcx26rvyx5abyfv8e4x84nmb1"
+        }
+      ]
+    },
+    {
+      "colour": "lime",
+      "icon": "📁",
+      "imagePath": "symbols/places.png",
+      "name": {
+        "eng": "Places"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "city"
+          },
+          "order": 0,
+          "symbolId": "kn7d94vj1vw9gzy5kf4ykgnwvx84nth0"
+        },
+        {
+          "labelOverride": {
+            "eng": "countryside"
+          },
+          "order": 1,
+          "symbolId": "kn7b1qf8g84mh4zfk8vd4cb23h84n80f"
+        },
+        {
+          "labelOverride": {
+            "eng": "dentist's office"
+          },
+          "order": 2,
+          "symbolId": "kn7feb6vpqwgyhgd1zt11azxw584mbt5"
+        },
+        {
+          "labelOverride": {
+            "eng": "surgery room"
+          },
+          "order": 3,
+          "symbolId": "kn74xm5vqw4bjx0qvewmhqc7en84m7hc"
+        },
+        {
+          "labelOverride": {
+            "eng": "speech therapy"
+          },
+          "order": 4,
+          "symbolId": "kn7b536ckvwz1x12jjarkatjqn84n60s"
+        },
+        {
+          "labelOverride": {
+            "eng": "music therapy"
+          },
+          "order": 5,
+          "symbolId": "kn7cbm2dedqnyqcqp1xfk4qc1184mh9q"
+        },
+        {
+          "labelOverride": {
+            "eng": "therapy room"
+          },
+          "order": 6,
+          "symbolId": "kn7deaxcak4qxp73av27enfhpd84m4v0"
+        },
+        {
+          "labelOverride": {
+            "eng": "shop"
+          },
+          "order": 7,
+          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
+        },
+        {
+          "labelOverride": {
+            "eng": "restaurant"
+          },
+          "order": 8,
+          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
+        },
+        {
+          "labelOverride": {
+            "eng": "playground"
+          },
+          "order": 9,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "eng": "living room"
+          },
+          "order": 10,
+          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+        },
+        {
+          "labelOverride": {
+            "eng": "classroom"
+          },
+          "order": 11,
+          "symbolId": "kn72p6xke1wzmfr3v1wbm3s01x84ntsr"
+        },
+        {
+          "labelOverride": {
+            "eng": "car"
+          },
+          "order": 12,
+          "symbolId": "kn7cp3wan5gh76sqgwfq5jkkgs84ncsv"
+        },
+        {
+          "labelOverride": {
+            "eng": "cafeteria"
+          },
+          "order": 13,
+          "symbolId": "kn72as5vhqqpha19q35n5h6q2184nzqq"
+        },
+        {
+          "labelOverride": {
+            "eng": "bus"
+          },
+          "order": 14,
+          "symbolId": "kn748yfp678vxhv42gmfq4zp2984nx9h"
+        },
+        {
+          "labelOverride": {
+            "eng": "mini bus"
+          },
+          "order": 15,
+          "symbolId": "kn7753rkhwgeerxj20ywcpzzbs84m3s9"
+        },
+        {
+          "labelOverride": {
+            "eng": "bathroom"
+          },
+          "order": 16,
+          "symbolId": "kn72kxvzp8v15z63zy9gxncy5n84m7d1"
+        },
+        {
+          "labelOverride": {
+            "eng": "apartment"
+          },
+          "order": 17,
+          "symbolId": "kn7cx9eq8vbkd8gpfm36hzzejs84mj3m"
+        },
+        {
+          "labelOverride": {
+            "eng": "school"
+          },
+          "order": 18,
+          "symbolId": "kn7f9dtkyfvy0e2n8yeyppsggx84nevy"
+        },
+        {
+          "labelOverride": {
+            "eng": "home"
+          },
+          "order": 19,
+          "symbolId": "kn7e4b2m8jjpz4ydatz4x978m584mbp3"
+        },
+        {
+          "labelOverride": {
+            "eng": "outside"
+          },
+          "order": 20,
+          "symbolId": "kn790ca6hr8me6a7c08htde7s584m982"
+        },
+        {
+          "labelOverride": {
+            "eng": "inside"
+          },
+          "order": 21,
+          "symbolId": "kn7ayschda5jr6nxen41z9x62h84mqyf"
+        }
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00207295.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00207295.mp3",
+          "description": "Bath time",
+          "imagePath": "symbols/symbol00207295.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/brush_teeth.mp3",
+          "defaultAudioPath": "audio/eng/default/brush_teeth.mp3",
+          "description": "Brush your teeth",
+          "imagePath": "symbols/brush_teeth.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wear_pajamas.mp3",
+          "defaultAudioPath": "audio/eng/default/wear_pajamas.mp3",
+          "description": "Put on pyjamas",
+          "imagePath": "symbols/wear_pajamas.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/story_time.mp3",
+          "defaultAudioPath": "audio/eng/default/story_time.mp3",
+          "description": "Story time",
+          "imagePath": "symbols/story_time.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/sleep2.mp3",
+          "defaultAudioPath": "audio/eng/default/sleep2.mp3",
+          "description": "Sleep",
+          "imagePath": "symbols/sleep2.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Bedtime routine"
+      },
+      "order": 1,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wake_up.mp3",
+          "defaultAudioPath": "audio/eng/default/wake_up.mp3",
+          "description": "Wake up",
+          "imagePath": "symbols/wake_up.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/brush_teeth.mp3",
+          "defaultAudioPath": "audio/eng/default/brush_teeth.mp3",
+          "description": "brush your teeth",
+          "imagePath": "symbols/brush_teeth.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/shower_wash_face.mp3",
+          "defaultAudioPath": "audio/eng/default/shower_wash_face.mp3",
+          "description": "Have a shower",
+          "imagePath": "symbols/shower_wash_face.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00066341.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
+          "description": "put on clean clothes",
+          "imagePath": "symbols/symbol00066341.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00103761.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00103761.mp3",
+          "description": "Eat Breakfast",
+          "imagePath": "symbols/symbol00103761.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Morning Routine"
+      },
+      "order": 2,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190103.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190103.mp3",
+          "description": "rinse your toothbrush",
+          "imagePath": "symbols/symbol00190103.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055140.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055140.mp3",
+          "description": "put the toothpaste",
+          "imagePath": "symbols/symbol00055140.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00200281.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00200281.mp3",
+          "description": "brush your teeth",
+          "imagePath": "symbols/symbol00200281.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/rinse_mouth.mp3",
+          "defaultAudioPath": "audio/eng/default/rinse_mouth.mp3",
+          "description": "rinse your mouth",
+          "imagePath": "symbols/rinse_mouth.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00133501.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00133501.mp3",
+          "description": "spit water in sink",
+          "imagePath": "symbols/symbol00133501.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/dry_face.mp3",
+          "defaultAudioPath": "audio/eng/default/dry_face.mp3",
+          "description": "dry your face",
+          "imagePath": "symbols/dry_face.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/e2764ffd-7e15-492a-8d5c-5b9e3f5ae971.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": "Leave bathroom",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/e2764ffd-7e15-492a-8d5c-5b9e3f5ae971.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "eng": "Brushing teeth"
+      },
+      "order": 2,
+      "showChecklist": true,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055375.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055375.mp3",
+          "description": "underwear",
+          "imagePath": "symbols/symbol00055375.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/socks.mp3",
+          "defaultAudioPath": "audio/eng/default/socks.mp3",
+          "description": "socks",
+          "imagePath": "symbols/socks.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055357.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055357.mp3",
+          "description": "pants",
+          "imagePath": "symbols/symbol00055357.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055360.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055360.mp3",
+          "description": "T-shirt",
+          "imagePath": "symbols/symbol00055360.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00195571.mp3",
+          "description": "jumper",
+          "generatedAudioPath": "audio/eng/default/symbol00195571.mp3",
+          "imagePath": "accounts/j577z5p1bb8k9qqq4w3scewgsd85vw2f/images/69e1ffea-55d7-4ed1-b72a-8c62b0b78689.jpg",
+          "imageSourceType": "imageSearch",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00199429.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00001988.mp3",
+          "description": "shoes",
+          "generatedAudioPath": "audio/eng/default/symbol00199429.mp3",
+          "imagePath": "symbols/symbol00001988.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/jacket2.mp3",
+          "defaultAudioPath": "audio/eng/default/jacket2.mp3",
+          "description": "jacket",
+          "imagePath": "symbols/jacket2.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "eng": "Getting dressed"
+      },
+      "order": 4,
+      "showChecklist": true,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00183204.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00183204.mp3",
+          "description": "lift up toilet seat",
+          "imagePath": "symbols/symbol00183204.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055834.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055834.mp3",
+          "description": "use toilet",
+          "imagePath": "symbols/symbol00055834.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/flush_toilet.mp3",
+          "defaultAudioPath": "audio/eng/default/flush_toilet.mp3",
+          "description": "flush toilet",
+          "imagePath": "symbols/flush_toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00198122.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00198122.mp3",
+          "description": "wash hands",
+          "imagePath": "symbols/symbol00198122.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": "leave toilet",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Toilet routine - seat up"
+      },
+      "order": 5,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00183203.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00183203.mp3",
+          "description": "lower toilet seat",
+          "imagePath": "symbols/symbol00183203.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00191937.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00191937.mp3",
+          "description": "sit on toilet",
+          "imagePath": "symbols/symbol00191937.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00062181.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00062181.mp3",
+          "description": "wipe self",
+          "imagePath": "symbols/symbol00062181.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/flush_toilet.mp3",
+          "defaultAudioPath": "audio/eng/default/flush_toilet.mp3",
+          "description": "flush toilet",
+          "imagePath": "symbols/flush_toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00198122.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00198122.mp3",
+          "description": "wash hands",
+          "imagePath": "symbols/symbol00198122.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": "leave toilet",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "eng": "Toilet routine - seat down"
+      },
+      "order": 6,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00119151.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00119151.mp3",
+          "description": "sit down",
+          "imagePath": "symbols/symbol00119151.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00191925.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00191925.mp3",
+          "description": "put napkin on lap",
+          "imagePath": "symbols/symbol00191925.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/eat.mp3",
+          "defaultAudioPath": "audio/eng/default/eat.mp3",
+          "description": "eat",
+          "imagePath": "symbols/eat.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00195039.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00195039.mp3",
+          "description": "drink",
+          "imagePath": "symbols/symbol00195039.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00194802.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00194802.mp3",
+          "description": "finished",
+          "imagePath": "symbols/symbol00194802.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/clear_table.mp3",
+          "defaultAudioPath": "audio/eng/default/clear_table.mp3",
+          "description": "clear table",
+          "imagePath": "symbols/clear_table.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "eng": "Mealtime"
+      },
+      "order": 7,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/turn_water_on.mp3",
+          "defaultAudioPath": "audio/eng/default/turn_water_on.mp3",
+          "description": "turn water on (hi)",
+          "imagePath": "symbols/turn_water_on.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wash_hands2.mp3",
+          "defaultAudioPath": "audio/eng/default/wash_hands2.mp3",
+          "description": "wash hands",
+          "imagePath": "symbols/wash_hands2.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00056066.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00056066.mp3",
+          "description": "rinse soap",
+          "imagePath": "symbols/symbol00056066.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/dry_hands.mp3",
+          "defaultAudioPath": "audio/eng/default/dry_hands.mp3",
+          "description": "dry hands",
+          "imagePath": "symbols/dry_hands.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        }
+      ],
+      "name": {
+        "eng": "Handwashing"
+      },
+      "order": 7,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/undress.mp3",
+          "defaultAudioPath": "audio/eng/default/undress.mp3",
+          "description": "undress",
+          "imagePath": "symbols/undress.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/f8cddec7-2072-49e2-bae1-974d5b5aa450.mp3",
+          "defaultAudioPath": "audio/eng/default/bathtub.mp3",
+          "description": "water in bathtub",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/f8cddec7-2072-49e2-bae1-974d5b5aa450.mp3",
+          "imagePath": "symbols/bathtub.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00188605.mp3",
+          "defaultAudioPath": "audio/eng/default/bath_bubble.mp3",
+          "description": "wash",
+          "generatedAudioPath": "audio/eng/default/symbol00188605.mp3",
+          "imagePath": "symbols/bath_bubble.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/161ce087-a316-41d5-ab19-7a8a0eedb737.mp3",
+          "defaultAudioPath": "audio/eng/default/out.mp3",
+          "description": "get out the bath",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/161ce087-a316-41d5-ab19-7a8a0eedb737.mp3",
+          "imagePath": "symbols/out.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055149.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055149.mp3",
+          "description": "dry off",
+          "imagePath": "symbols/symbol00055149.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/c560f172-0514-464d-b45d-d84363d2e047.mp3",
+          "defaultAudioPath": "audio/eng/default/get_dressed.mp3",
+          "description": "pyjamas",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/c560f172-0514-464d-b45d-d84363d2e047.mp3",
+          "imagePath": "symbols/get_dressed.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "eng": "Bath time"
+      },
+      "order": 8,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00185696.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00185696.mp3",
+          "description": "put tablet into backpack",
+          "imagePath": "symbols/symbol00185696.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212450.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "description": "put on shoe",
+          "imagePath": "symbols/symbol00212450.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00167101.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
+          "description": "put on coat",
+          "imagePath": "symbols/symbol00167101.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00184311.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00184311.mp3",
+          "description": "Bye!",
+          "imagePath": "symbols/symbol00184311.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/8616ec1f-e178-4ddf-86e3-1ef6532852ea.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00137611.mp3",
+          "description": "get on school bus",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/8616ec1f-e178-4ddf-86e3-1ef6532852ea.mp3",
+          "imagePath": "symbols/symbol00137611.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Going to school"
+      },
+      "order": 9,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wash_hands2.mp3",
+          "defaultAudioPath": "audio/eng/default/wash_hands2.mp3",
+          "description": "wash hands",
+          "imagePath": "symbols/wash_hands2.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00203025.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00203025.mp3",
+          "description": "choose snacks",
+          "imagePath": "symbols/symbol00203025.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190597.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190597.mp3",
+          "description": "sit",
+          "imagePath": "symbols/symbol00190597.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/eat.mp3",
+          "defaultAudioPath": "audio/eng/default/eat.mp3",
+          "description": "eat",
+          "imagePath": "symbols/eat.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00194802.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00194802.mp3",
+          "description": "finished",
+          "imagePath": "symbols/symbol00194802.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Snack time"
+      },
+      "order": 10,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00167101.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
+          "description": "put on coat",
+          "imagePath": "symbols/symbol00167101.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212450.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "description": "put on shoe",
+          "imagePath": "symbols/symbol00212450.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190434.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
+          "description": "walk",
+          "imagePath": "symbols/symbol00190434.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/park_2.mp3",
+          "defaultAudioPath": "audio/eng/default/park_2.mp3",
+          "description": "park",
+          "imagePath": "symbols/park_2.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/home.mp3",
+          "defaultAudioPath": "audio/eng/default/home.mp3",
+          "description": "home",
+          "imagePath": "symbols/home.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "eng": "Going to the park"
+      },
+      "order": 11,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/df19507b-d9dd-4bbd-a695-649d13747cfd.mp3",
+      "name": {
+        "eng": "I want to go outside"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": "I want to go outside"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/c9360455-f32e-4f83-9361-b2776aa35369.mp3",
+      "name": {
+        "eng": "I don't want it"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/do_not_want.png",
+          "order": 1
+        }
+      ],
+      "text": "I don't want it"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/6f035756-5706-4113-9b7c-1ac376fb2438.mp3",
+      "name": {
+        "eng": "More music please"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/more.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00200772.png",
+          "order": 1
+        }
+      ],
+      "text": "More music please"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/07af06f9-e80f-434b-83e9-527c8cbfa94b.mp3",
+      "name": {
+        "eng": "Can I have some water"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00055288.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00195039.png",
+          "order": 1
+        }
+      ],
+      "text": "Can I have some water"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/cf001866-3b73-46d2-bbb7-a88aeb96776f.mp3",
+      "name": {
+        "eng": "I feel happy"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "order": 1
+        }
+      ],
+      "text": "I feel happy"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",
+      "name": {
+        "eng": "My stomach hurts"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00055155.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/stomach_ache.png",
+          "order": 1
+        }
+      ],
+      "text": "My stomach hurts"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/696e4df2-81a9-47e0-bad7-e3e272ad274e.mp3",
+      "name": {
+        "eng": "Look at me"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/look.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/me.png",
+          "order": 1
+        }
+      ],
+      "text": "Look at me"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/a5cc2c8b-bc52-4d95-a4ab-af947e48add9.mp3",
+      "name": {
+        "eng": "I like music"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/like_2.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00193569.png",
+          "order": 1
+        }
+      ],
+      "text": "I like music"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
+      "name": {
+        "eng": "I'm hungry"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/hungry_2.png",
+          "order": 1
+        }
+      ],
+      "text": "I'm hungry"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/1ccdf0a8-15b4-4827-8d3f-1bb7818963b3.mp3",
+      "name": {
+        "eng": "I'm not hungry"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_am_not_hungry.png",
+          "order": 1
+        }
+      ],
+      "text": "I'm not hungry"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/6080b5ed-151b-4f91-926d-48afe153a2aa.mp3",
+      "name": {
+        "eng": "I'm thirsty"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/thirsty.png",
+          "order": 1
+        }
+      ],
+      "text": "I'm thirsty"
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/66e9e7f2-8457-4bed-b07a-7476d422839d.mp3",
+      "name": {
+        "eng": "It's my turn"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my_turn.png",
+          "order": 0
+        }
+      ],
+      "text": "It's my turn"
+    }
+  ]
+}

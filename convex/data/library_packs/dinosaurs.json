@@ -1,0 +1,263 @@
+{
+  "slug": "dinosaurs",
+  "name": {
+    "eng": "Dinosaurs"
+  },
+  "description": {
+    "eng": "Curated by an admin"
+  },
+  "coverImagePath": "symbols/symbol00192671.png",
+  "defaultTier": "pro",
+  "categories": [
+    {
+      "colour": "yellow",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00192671.png",
+      "name": {
+        "eng": "Dinosaurs"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "eng": "tyrannosaurus rex"
+          },
+          "order": 0,
+          "symbolId": "kn7a94c6jakq68p0httwnjan5s84m9v2"
+        },
+        {
+          "labelOverride": {
+            "eng": "ancient footprints"
+          },
+          "order": 1,
+          "symbolId": "kn710bzj2fa7c4h3gg893ca3j984nwsm"
+        },
+        {
+          "labelOverride": {
+            "eng": "triceratops"
+          },
+          "order": 2,
+          "symbolId": "kn75pd4q99pgmthj9wv80xh0j584md65"
+        },
+        {
+          "labelOverride": {
+            "eng": "stegosaurus"
+          },
+          "order": 3,
+          "symbolId": "kn7avx0frxvkwdr7mena38tyb184mdg1"
+        },
+        {
+          "labelOverride": {
+            "eng": "velociraptor"
+          },
+          "order": 4,
+          "symbolId": "kn74ky8mxf7ed25wadmkhgwn8x84mmc5"
+        },
+        {
+          "labelOverride": {
+            "eng": "brachiosaurus"
+          },
+          "order": 5,
+          "symbolId": "kn7fqbwxkpstkxt9e2y4k722d184ng16"
+        },
+        {
+          "labelOverride": {
+            "eng": "pterodactyl"
+          },
+          "order": 6,
+          "symbolId": "kn7ap7n6rksw5axs6rwgdmeqf984mt67"
+        },
+        {
+          "labelOverride": {
+            "eng": "fossil"
+          },
+          "order": 7,
+          "symbolId": "kn72fayv75ynym9492402pt7r984nwfw"
+        },
+        {
+          "labelOverride": {
+            "eng": "dig"
+          },
+          "order": 8,
+          "symbolId": "kn7336efxhb04fnk3ggea45tmh84nrme"
+        },
+        {
+          "labelOverride": {
+            "eng": "museum"
+          },
+          "order": 9,
+          "symbolId": "kn7ck3ckft14raevrdxbqk22ax84m6z7"
+        },
+        {
+          "labelOverride": {
+            "eng": "jungle"
+          },
+          "order": 10,
+          "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
+        },
+        {
+          "labelOverride": {
+            "eng": "volcano"
+          },
+          "order": 11,
+          "symbolId": "kn7199z1erpv5fvbhgdcpsh8md84mgph"
+        },
+        {
+          "labelOverride": {
+            "eng": "river"
+          },
+          "order": 12,
+          "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
+        },
+        {
+          "labelOverride": {
+            "eng": "plants"
+          },
+          "order": 13,
+          "symbolId": "kn788bybwpwt5zcdeh9fpmmggh84nx3x"
+        },
+        {
+          "labelOverride": {
+            "eng": "fierce"
+          },
+          "order": 14,
+          "symbolId": "kn77xhhx1yysyg6r1qdceb5z3584mex9"
+        },
+        {
+          "labelOverride": {
+            "eng": "gentle"
+          },
+          "order": 15,
+          "symbolId": "kn7aser87f3trrx7zte4v77xp984nqpk"
+        }
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00204614.mp3",
+          "description": "Buy ticket online",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "imagePath": "symbols/symbol00204614.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00196752.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00196752.mp3",
+          "description": "Get on the train",
+          "imagePath": "symbols/symbol00196752.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "defaultAudioPath": "audio/eng/default/walk.mp3",
+          "description": "Walk to the Museum",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "imagePath": "symbols/walk.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00094721.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00094721.mp3",
+          "description": "Queue to get in",
+          "imagePath": "symbols/symbol00094721.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "defaultAudioPath": "audio/eng/default/look.mp3",
+          "description": "Look at the exhibition",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "imagePath": "symbols/look.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00109151.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00109151.mp3",
+          "description": "Snack",
+          "imagePath": "symbols/symbol00109151.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/let_us_go_home.mp3",
+          "defaultAudioPath": "audio/eng/default/let_us_go_home.mp3",
+          "description": "Go home",
+          "imagePath": "symbols/let_us_go_home.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "eng": "Museum visit"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/575860aa-cfdb-4825-9dc4-47b917ef8c11.mp3",
+      "name": {
+        "eng": "tyrannosaurus rex is the most fierce dinosaur"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00012459.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197400.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00192671.png",
+          "order": 2
+        }
+      ],
+      "text": "tyrannosaurus rex is the most fierce dinosaur"
+    }
+  ]
+}

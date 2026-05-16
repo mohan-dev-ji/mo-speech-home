@@ -13,6 +13,15 @@ import {
   resolveCallerAccountId,
 } from "./lib/account";
 import { tierFromPlan } from "./users";
+import {
+  getAllLibraryPacks,
+  getLibraryPackBySlug,
+  getStarterLibraryPack,
+} from "./lib/libraryPacks";
+import type {
+  LibraryPack,
+  LibraryPackCategorySymbol,
+} from "./data/library_packs/types";
 
 /**
  * Resource library mutations and queries.
@@ -315,6 +324,250 @@ export async function materialisePackIntoAccount(
   };
 }
 
+// ─── V2 (ADR-010): JSON pack materialisation ────────────────────────────────
+//
+// `materialisePackFromJson` mirrors `materialisePackIntoAccount` but consumes
+// the `LibraryPack` JSON shape (no Convex Ids) and uses the pack's `slug`
+// string as `librarySourceId` on the created profile rows. Replaces the V1
+// helper across all consumers in Phase 5; V1 stays in place until the
+// deferred Phase X cleanup so we can roll back if needed.
+//
+// Reload-defaults flow note: V1 callers pass a Convex `Id<"resourcePacks">`
+// to `librarySourceId`; V2 callers pass a slug string. The reload helper
+// in `convex/profileCategories.ts` will need to handle both shapes during
+// the transition (or be lifted to slug-only after Phase X). Captured here
+// to surface during Phase 6/X review.
+
+/**
+ * Materialise SymbolStix symbols from a JSON pack's category snapshot into
+ * an existing `profileCategory`. Mirrors `materialiseSymbolsFromCategorySnapshot`
+ * but consumes the JSON shape (slug-based, no Convex Ids in the snapshot).
+ *
+ * Symbols are looked up by `symbolId` (loose ref string → Convex `symbols` Id).
+ * Missing symbols are skipped, never thrown, so partial loads beat no load.
+ */
+async function materialiseSymbolsFromJson(
+  ctx: MutationCtx,
+  accountId: Id<"users">,
+  profileCategoryId: Id<"profileCategories">,
+  symbols: LibraryPackCategorySymbol[],
+  now: number
+): Promise<{ symbolsAdded: number; symbolsSkipped: number }> {
+  let symbolsAdded = 0;
+  let symbolsSkipped = 0;
+  let symbolOrder = 0;
+
+  for (const sym of symbols) {
+    const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
+    if (!symbolDoc) {
+      symbolsSkipped++;
+      continue;
+    }
+
+    const label = {
+      eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
+      ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
+        ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
+        : {}),
+    };
+
+    await ctx.db.insert("profileSymbols", {
+      accountId,
+      profileCategoryId,
+      order: symbolOrder++,
+      imageSource: {
+        type: "symbolstix",
+        symbolId: symbolDoc._id,
+      },
+      label,
+      ...(sym.display ? { display: sym.display } : {}),
+      updatedAt: now,
+    });
+    symbolsAdded++;
+  }
+
+  return { symbolsAdded, symbolsSkipped };
+}
+
+/**
+ * Materialise a JSON `LibraryPack`'s content into an account. Mirrors
+ * `materialisePackIntoAccount` exactly in shape; the only differences are
+ * (a) it consumes the JSON shape (no Convex Ids in the snapshot), and
+ * (b) it sets `librarySourceId = pack.slug` (string) on every created row.
+ *
+ * Same "loaded content is fully independent" semantics — loading the same
+ * pack twice creates duplicates intentionally.
+ */
+export async function materialisePackFromJson(
+  ctx: MutationCtx,
+  accountId: Id<"users">,
+  pack: LibraryPack
+): Promise<{
+  slug: string;
+  categoriesAdded: number;
+  symbolsAdded: number;
+  symbolsSkipped: number;
+  listsAdded: number;
+  sentencesAdded: number;
+}> {
+  const now = Date.now();
+  let categoriesAdded = 0;
+  let symbolsAdded = 0;
+  let symbolsSkipped = 0;
+  let listsAdded = 0;
+  let sentencesAdded = 0;
+
+  // ── Categories + symbols ────────────────────────────────────────────────
+  const lastCategory = await ctx.db
+    .query("profileCategories")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
+    .order("desc")
+    .first();
+  let nextCategoryOrder = lastCategory ? lastCategory.order + 1 : 0;
+
+  for (const cat of pack.categories ?? []) {
+    const profileCategoryId = await ctx.db.insert("profileCategories", {
+      accountId,
+      name: cat.name,
+      icon: cat.icon,
+      colour: cat.colour,
+      ...(cat.imagePath ? { imagePath: cat.imagePath } : {}),
+      order: nextCategoryOrder++,
+      librarySourceId: pack.slug,
+      librarySourceCategoryKey: cat.name.eng,
+      updatedAt: now,
+    });
+    categoriesAdded++;
+
+    const result = await materialiseSymbolsFromJson(
+      ctx,
+      accountId,
+      profileCategoryId,
+      cat.symbols,
+      now
+    );
+    symbolsAdded += result.symbolsAdded;
+    symbolsSkipped += result.symbolsSkipped;
+  }
+
+  // ── Lists ───────────────────────────────────────────────────────────────
+  const lastList = await ctx.db
+    .query("profileLists")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
+    .order("desc")
+    .first();
+  let nextListOrder = lastList ? lastList.order + 1 : 0;
+
+  for (const list of pack.lists) {
+    const items = await Promise.all(
+      list.items.map(async (item) => {
+        let imagePath = item.imagePath;
+        if (item.symbolId) {
+          const sym = await ctx.db.get(item.symbolId as Id<"symbols">);
+          if (sym) imagePath = sym.imagePath;
+        }
+        return {
+          order: item.order,
+          ...(imagePath !== undefined ? { imagePath } : {}),
+          ...(item.description !== undefined
+            ? { description: item.description }
+            : {}),
+          ...(item.audioPath !== undefined
+            ? { audioPath: item.audioPath }
+            : {}),
+          ...(item.activeAudioSource !== undefined
+            ? { activeAudioSource: item.activeAudioSource }
+            : {}),
+          ...(item.defaultAudioPath !== undefined
+            ? { defaultAudioPath: item.defaultAudioPath }
+            : {}),
+          ...(item.generatedAudioPath !== undefined
+            ? { generatedAudioPath: item.generatedAudioPath }
+            : {}),
+          ...(item.recordedAudioPath !== undefined
+            ? { recordedAudioPath: item.recordedAudioPath }
+            : {}),
+          ...(item.imageSourceType !== undefined
+            ? { imageSourceType: item.imageSourceType }
+            : {}),
+        };
+      })
+    );
+
+    await ctx.db.insert("profileLists", {
+      accountId,
+      name: list.name,
+      order: nextListOrder++,
+      items,
+      ...(list.displayFormat !== undefined
+        ? { displayFormat: list.displayFormat }
+        : {}),
+      ...(list.showNumbers !== undefined
+        ? { showNumbers: list.showNumbers }
+        : {}),
+      ...(list.showChecklist !== undefined
+        ? { showChecklist: list.showChecklist }
+        : {}),
+      ...(list.showFirstThen !== undefined
+        ? { showFirstThen: list.showFirstThen }
+        : {}),
+      librarySourceId: pack.slug,
+      updatedAt: now,
+    });
+    listsAdded++;
+  }
+
+  // ── Sentences ───────────────────────────────────────────────────────────
+  const lastSentence = await ctx.db
+    .query("profileSentences")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
+    .order("desc")
+    .first();
+  let nextSentenceOrder = lastSentence ? lastSentence.order + 1 : 0;
+
+  for (const sentence of pack.sentences) {
+    const slots = await Promise.all(
+      sentence.slots.map(async (slot) => {
+        let imagePath = slot.imagePath;
+        if (slot.symbolId) {
+          const sym = await ctx.db.get(slot.symbolId as Id<"symbols">);
+          if (sym) imagePath = sym.imagePath;
+        }
+        return {
+          order: slot.order,
+          ...(imagePath !== undefined ? { imagePath } : {}),
+          ...(slot.displayProps !== undefined
+            ? { displayProps: slot.displayProps }
+            : {}),
+        };
+      })
+    );
+
+    await ctx.db.insert("profileSentences", {
+      accountId,
+      name: sentence.name,
+      order: nextSentenceOrder++,
+      ...(sentence.text !== undefined ? { text: sentence.text } : {}),
+      slots,
+      ...(sentence.audioPath !== undefined
+        ? { audioPath: sentence.audioPath }
+        : {}),
+      librarySourceId: pack.slug,
+      updatedAt: now,
+    });
+    sentencesAdded++;
+  }
+
+  return {
+    slug: pack.slug,
+    categoriesAdded,
+    symbolsAdded,
+    symbolsSkipped,
+    listsAdded,
+    sentencesAdded,
+  };
+}
+
 /**
  * Fetch the canonical starter pack and materialise it into an account.
  * Exported so seedDefaultAccount can inline this without going through
@@ -355,6 +608,46 @@ export async function loadStarterTemplateInline(
   const result = await materialisePackIntoAccount(ctx, accountId, starter);
   console.log(
     `[loadStarterTemplate] account ${accountId}: ${result.categoriesAdded} categories, ${result.symbolsAdded} symbols (${result.symbolsSkipped} skipped), ${result.listsAdded} lists, ${result.sentencesAdded} sentences`
+  );
+  return { skipped: false, ...result };
+}
+
+/**
+ * V2: Fetch the JSON starter pack and materialise it into an account. Mirrors
+ * `loadStarterTemplateInline` but reads from the bundled JSON catalogue
+ * (`convex/data/library_packs/_starter.json`) rather than the `resourcePacks`
+ * table. Used by `seedDefaultAccount` post-cutover.
+ *
+ * Returns `{ skipped: true }` when no starter is in the catalogue — caller
+ * decides what to do (typically: log a warning, leave the account empty
+ * until a starter pack ships in the JSON).
+ */
+export async function loadStarterTemplateInlineV2(
+  ctx: MutationCtx,
+  accountId: Id<"users">
+): Promise<
+  | { skipped: true; reason: "no-starter-pack" }
+  | {
+      skipped: false;
+      slug: string;
+      categoriesAdded: number;
+      symbolsAdded: number;
+      symbolsSkipped: number;
+      listsAdded: number;
+      sentencesAdded: number;
+    }
+> {
+  const starter = getStarterLibraryPack();
+  if (!starter) {
+    console.warn(
+      "[loadStarterTemplateV2] no starter pack in JSON catalogue — check convex/data/library_packs/_starter.json"
+    );
+    return { skipped: true, reason: "no-starter-pack" };
+  }
+
+  const result = await materialisePackFromJson(ctx, accountId, starter);
+  console.log(
+    `[loadStarterTemplateV2] account ${accountId}: ${result.categoriesAdded} categories, ${result.symbolsAdded} symbols (${result.symbolsSkipped} skipped), ${result.listsAdded} lists, ${result.sentencesAdded} sentences`
   );
   return { skipped: false, ...result };
 }
@@ -457,6 +750,108 @@ export const loadStarterTemplate = internalMutation({
   },
 });
 
+/**
+ * V2: Internal-mutation wrapper exposing loadStarterTemplateInlineV2 for
+ * direct dashboard invocation (testing / one-off recovery). Production
+ * callers (seedDefaultAccount post-cutover) use the helper directly.
+ *
+ * No plan gate — the starter pack is universally available.
+ */
+export const loadStarterTemplateV2 = internalMutation({
+  args: { accountId: v.id("users") },
+  handler: async (ctx, { accountId }) => {
+    return await loadStarterTemplateInlineV2(ctx, accountId);
+  },
+});
+
+/**
+ * V2: Load a pack from the JSON catalogue into the calling user's account.
+ * Mirrors `loadResourcePack` but takes a slug + reads the bundled JSON
+ * instead of the `resourcePacks` table.
+ *
+ * Tier gating: free-tier users without `customAccess.isActive` are rejected
+ * unless the pack is the starter (which gets loaded via `loadStarterTemplateV2`
+ * during signup anyway). Tier override on the `packLifecycle` row takes
+ * precedence over the pack's `defaultTier`.
+ *
+ * Dedup gate: rejects with ALREADY_LOADED if the caller's account has at
+ * least one profile row linked back to this slug via `librarySourceId`.
+ * After Phase 5 cutover, V2 stores slug strings in `librarySourceId`; pre-
+ * cutover V1 loads stored Convex Ids — those won't match a V2 slug check,
+ * so a freshly-cut-over account could load V1-previously-loaded packs
+ * again under V2. Acceptable during the dev cutover window since the
+ * deployment is wipeable.
+ */
+export const loadResourcePackV2 = mutation({
+  args: { packSlug: v.string() },
+  handler: async (ctx, { packSlug }) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+
+    const pack = getLibraryPackBySlug(packSlug);
+    if (!pack) {
+      throw new ConvexError({
+        code: "PACK_NOT_FOUND",
+        message: `Resource pack "${packSlug}" not found in the JSON catalogue.`,
+      });
+    }
+
+    // Lifecycle row: required for non-starter packs to be loadable. Starter
+    // bypasses the gate so signup seeding works even before any lifecycle
+    // rows are created.
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", packSlug))
+      .first();
+
+    if (!pack.isStarter) {
+      if (!lifecycle) {
+        throw new ConvexError({
+          code: "PACK_NOT_PUBLISHED",
+          message: `Resource pack "${packSlug}" exists but has no lifecycle row — not yet published.`,
+        });
+      }
+      const now = Date.now();
+      if (lifecycle.publishedAt === undefined || lifecycle.publishedAt > now) {
+        throw new ConvexError({
+          code: "PACK_NOT_PUBLISHED",
+          message: `Resource pack "${packSlug}" is not yet published.`,
+        });
+      }
+      if (lifecycle.expiresAt !== undefined && lifecycle.expiresAt <= now) {
+        throw new ConvexError({
+          code: "PACK_EXPIRED",
+          message: `Resource pack "${packSlug}" has expired.`,
+        });
+      }
+    }
+
+    // Tier gate: starter bypasses; everything else requires Pro+ unless the
+    // effective tier (override beats default) is 'free'.
+    if (!pack.isStarter) {
+      const effectiveTier =
+        lifecycle?.tierOverride ?? pack.defaultTier;
+      if (effectiveTier !== "free" && !userHasFullAccess(user)) {
+        throw new ConvexError({
+          code: "TIER_REQUIRED",
+          required: effectiveTier,
+          message:
+            "Resource library requires Pro or Max plan. Upgrade to load this pack.",
+        });
+      }
+    }
+
+    const loadedPackIds = await collectLoadedPackIds(ctx, accountId);
+    if (loadedPackIds.has(packSlug)) {
+      throw new ConvexError({
+        code: "ALREADY_LOADED",
+        message: "This pack is already loaded into your account.",
+      });
+    }
+
+    return await materialisePackFromJson(ctx, accountId, pack);
+  },
+});
+
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
@@ -480,6 +875,55 @@ export const getMyLoadedPackIds = query({
 });
 
 /**
+ * V2 dedup query: every pack slug the caller's account has at least one
+ * profile row linked to via `librarySourceId`. Used by V2 `LoadPackButton`
+ * to disable the "Load into profile" CTA for already-loaded packs.
+ *
+ * Reads the same `librarySourceId` field as `getMyLoadedPackIds`; the
+ * value is `v.optional(v.string())` in the schema so it holds either a
+ * pre-cutover Convex Id (legacy V1 loads) or a post-cutover slug. Callers
+ * comparing slugs to this set work correctly post-cutover; pre-cutover
+ * legacy Ids show up here but won't match any slug, which is fine.
+ */
+export const getMyLoadedPackSlugs = query({
+  args: {},
+  handler: async (ctx): Promise<string[]> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const ids = await collectLoadedPackIds(ctx, resolved.accountId);
+    return Array.from(ids);
+  },
+});
+
+/**
+ * Pack metadata (id + name) for every pack the caller's account has at
+ * least one row loaded from. Powers the pack-filter dropdown on the
+ * categories / lists / sentences listings in instructor and student
+ * view. Returns `[]` for unauthenticated callers or accounts with no
+ * loaded packs — client gates rendering on length > 0.
+ *
+ * Sort: alphabetical by English pack name for stable display order.
+ */
+export const getLoadedPacksForCurrentAccount = query({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }>> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const ids = await collectLoadedPackIds(ctx, resolved.accountId);
+
+    const out: Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }> = [];
+    for (const id of ids) {
+      const pack = await ctx.db.get(id as Id<"resourcePacks">);
+      if (pack) out.push({ _id: pack._id, name: pack.name });
+    }
+    out.sort((a, b) => a.name.eng.localeCompare(b.name.eng));
+    return out;
+  },
+});
+
+/**
  * Get the canonical starter pack, or null if none exists.
  * Used by the materialisation tooling and (future) admin dashboard.
  */
@@ -490,6 +934,29 @@ export const getStarterPack = query({
       .query("resourcePacks")
       .withIndex("by_isStarter", (q) => q.eq("isStarter", true))
       .first();
+  },
+});
+
+/**
+ * Return every `resourcePacks` row in full — used by the ADR-010 migration
+ * script (`scripts/pack-migrate.mjs`) to dump existing pack content into
+ * JSON files. Sorted with the starter pack first, then alphabetical by
+ * English name for stable filenames in the catalogue.
+ *
+ * Public on purpose: pack content is meant to be public after publish, and
+ * this query is invoked via `npx convex run` from the dashboard or a local
+ * Node script. Mirrors `getStarterPack`'s exposure model.
+ */
+export const getAllResourcePacks = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("resourcePacks").collect();
+    rows.sort((a, b) => {
+      if (a.isStarter && !b.isStarter) return -1;
+      if (b.isStarter && !a.isStarter) return 1;
+      return a.name.eng.localeCompare(b.name.eng);
+    });
+    return rows;
   },
 });
 
@@ -1396,5 +1863,75 @@ export const getPublicLibraryCatalogue = query({
           sentences: p.sentences.length,
         },
       }));
+  },
+});
+
+/**
+ * V2: Public library catalogue from JSON + lifecycle overlay.
+ *
+ * Reads all `LibraryPack`s from the bundled JSON catalogue and merges them
+ * with the corresponding `packLifecycle` rows. A pack is visible iff:
+ *   1. A JSON file exists for the slug, AND
+ *   2. A `packLifecycle` row exists for the slug, AND
+ *   3. `publishedAt` is set and <= now, AND
+ *   4. `expiresAt` is unset OR > now.
+ *
+ * Card shape mirrors V1 with one addition (`slug`) so consumers can call
+ * `loadResourcePackV2` post-cutover. `_id` carries the lifecycle row's id
+ * for back-compat with any consumer that still tracks packs by Convex Id.
+ *
+ * The starter pack is included so logged-out visitors see it on the page —
+ * the client renders "Already on your account" for signed-in users.
+ */
+export const getPublicLibraryCatalogueV2 = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const jsonPacks = getAllLibraryPacks();
+    const lifecycleRows = await ctx.db.query("packLifecycle").collect();
+    const lifecycleBySlug = new Map(lifecycleRows.map((r) => [r.slug, r]));
+
+    return jsonPacks
+      .map((p) => {
+        const lifecycle = lifecycleBySlug.get(p.slug);
+        // Starter pack stays visible even without an explicit lifecycle row
+        // so it shows on /library for cold visitors as an on-ramp. Signed-in
+        // users see it labelled "Already on your account" via the client-side
+        // dedup overlay.
+        if (!lifecycle && !p.isStarter) return null;
+        if (lifecycle) {
+          if (
+            lifecycle.publishedAt === undefined ||
+            lifecycle.publishedAt > now
+          ) {
+            return null;
+          }
+          if (lifecycle.expiresAt !== undefined && lifecycle.expiresAt <= now) {
+            return null;
+          }
+        }
+
+        const effectiveTier = lifecycle?.tierOverride ?? p.defaultTier;
+        const effectiveSeason = lifecycle?.seasonOverride;
+
+        return {
+          _id: lifecycle?._id ?? null,
+          slug: p.slug,
+          name: p.name,
+          description: p.description,
+          coverImagePath: p.coverImagePath,
+          season: effectiveSeason,
+          tags: [] as string[], // legacy field; JSON shape doesn't carry tags yet
+          featured: lifecycle?.featured ?? false,
+          tier: effectiveTier,
+          isStarter: p.isStarter ?? false,
+          counts: {
+            categories: p.categories?.length ?? 0,
+            lists: p.lists.length,
+            sentences: p.sentences.length,
+          },
+        };
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null);
   },
 });

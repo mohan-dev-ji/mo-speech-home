@@ -4,7 +4,7 @@ import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import {
-  loadStarterTemplateInline,
+  loadStarterTemplateInlineV2,
   materialiseSymbolsFromCategorySnapshot,
   removeCategoryFromPack,
   syncCategoryToPackIfPublished,
@@ -13,18 +13,17 @@ import {
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
 /**
- * Seed the default categories + symbols onto an account.
- * Account-scoped: idempotent against re-runs — skips if the account already has any categories.
+ * Seed the default categories + symbols onto a fresh account at signup.
+ * Account-scoped: idempotent — skips if the account already has any categories.
  *
- * Phase 6 foundation: this delegates to loadStarterTemplate, which materialises
- * the canonical starter resourcePack (created by migrations.materialiseStarterPack)
- * into the account. The DEFAULT_CATEGORIES module is no longer load-bearing at
- * runtime — it's only used by materialiseStarterPack to build/refresh the starter
- * pack. See convex/resourcePacks.ts and ADR-008.
+ * Per ADR-010 (Phase 5): this delegates to `loadStarterTemplateInlineV2`, which
+ * materialises the JSON starter pack at `convex/data/library_packs/_starter.json`.
+ * The DEFAULT_CATEGORIES module is no longer load-bearing at runtime — it
+ * remains in the repo as the historical source-of-truth recipe.
  *
- * Pre-condition: migrations.materialiseStarterPack must have been run on this
- * deployment. If it hasn't, loadStarterTemplate logs a warning and returns;
- * the new account ends up with zero categories until the starter is materialised.
+ * Pre-condition: a starter pack JSON file exists in the catalogue with
+ * `isStarter: true`. If not, the helper logs a warning and returns; the
+ * new account ends up with zero categories until a starter is published.
  */
 export const seedDefaultAccount = internalMutation({
   args: {
@@ -42,7 +41,7 @@ export const seedDefaultAccount = internalMutation({
       return;
     }
 
-    await loadStarterTemplateInline(ctx, args.accountId);
+    await loadStarterTemplateInlineV2(ctx, args.accountId);
   },
 });
 

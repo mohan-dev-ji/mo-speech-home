@@ -731,3 +731,148 @@ export const stripDefaultMatchingSymbolDisplay = mutation({
     return summary;
   },
 });
+
+// ─── ADR-010: Pack storage shift (Convex table → JSON) ──────────────────────
+//
+// Two migrations support the rollout from Convex `resourcePacks` to JSON
+// files in the repo. They're idempotent and dashboard-runnable.
+//
+// 1. `backfillResourcePackSlugs` — assigns each existing pack a stable slug
+//    derived from its English name. The slug is used by the migration
+//    export script (Phase 3) to name the JSON file, and by the new
+//    `packLifecycle` table as the cross-store key.
+//
+// 2. `seedLifecycleFromResourcePacks` (Phase 4 of the rollout) — for every
+//    existing `resourcePacks` row, create a matching `packLifecycle` row
+//    so the JSON pack is visible on `/library` after the cutover. Lives
+//    further down once it's wired up.
+
+/**
+ * Slugify a name into a Convex-path-safe identifier. Lowercase, strip
+ * accents, collapse any non-alphanumeric run to a single underscore, trim
+ * leading/trailing underscores. Used as both the on-disk filename component
+ * (`convex/data/library_packs/<slug>.json`) and the cross-store key.
+ *
+ * Why underscores not hyphens: Convex rejects hyphens in any path component
+ * inside the `convex/` tree. Same constraint applies to filenames. Matches
+ * the `convex/data/starter_backups/` convention.
+ */
+function slugify(input: string): string {
+  return input
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip combining marks
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+export const backfillResourcePackSlugs = mutation({
+  // Dashboard-runnable. Idempotent — skips rows that already have a slug.
+  // Collision-safe: appends `_2`, `_3`, etc. if two packs happen to derive
+  // the same slug. Special-cases the starter pack to use `_starter` so
+  // it's easily greppable in the JSON catalogue.
+  args: {},
+  handler: async (ctx) => {
+    const packs = await ctx.db.query("resourcePacks").collect();
+
+    let scanned = 0;
+    let backfilled = 0;
+    let alreadyHadSlug = 0;
+
+    // Pre-compute existing slug occupancy so collision-suffixing is correct
+    // when multiple rows need backfilling in the same run.
+    const taken = new Set<string>();
+    for (const p of packs) {
+      if (p.slug) taken.add(p.slug);
+    }
+
+    for (const pack of packs) {
+      scanned++;
+      if (pack.slug) {
+        alreadyHadSlug++;
+        continue;
+      }
+
+      // Starter pack gets a stable underscore-prefixed slug.
+      let base = pack.isStarter ? "_starter" : slugify(pack.name.eng);
+      if (!base) base = "pack"; // defensive: empty name → "pack"
+
+      // Resolve collisions with `_2`, `_3`, …
+      let candidate = base;
+      let suffix = 2;
+      while (taken.has(candidate)) {
+        candidate = `${base}_${suffix}`;
+        suffix++;
+      }
+      taken.add(candidate);
+
+      await ctx.db.patch(pack._id, { slug: candidate, updatedAt: Date.now() });
+      backfilled++;
+    }
+
+    const summary = { scanned, backfilled, alreadyHadSlug };
+    console.log(`[backfillResourcePackSlugs] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
+/**
+ * Seed `packLifecycle` rows from existing `resourcePacks` rows. After this
+ * runs, every pack that was previously visible on the V1 `/library` will be
+ * visible on the V2 `/library` too — same publish window, same tier, same
+ * featured flag, same season — without any further config.
+ *
+ * Idempotent: skips slugs that already have a lifecycle row.
+ *
+ * Per ADR-010 Phase 4. Run from the Convex dashboard after
+ * `backfillResourcePackSlugs` and `pnpm pack:migrate` have completed.
+ */
+export const seedLifecycleFromResourcePacks = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const packs = await ctx.db.query("resourcePacks").collect();
+
+    let scanned = 0;
+    let seeded = 0;
+    let alreadyHadRow = 0;
+    let skippedNoSlug = 0;
+
+    for (const pack of packs) {
+      scanned++;
+
+      if (!pack.slug) {
+        skippedNoSlug++;
+        continue;
+      }
+
+      // Skip if a lifecycle row already exists for this slug.
+      const existing = await ctx.db
+        .query("packLifecycle")
+        .withIndex("by_slug", (q) => q.eq("slug", pack.slug!))
+        .first();
+      if (existing) {
+        alreadyHadRow++;
+        continue;
+      }
+
+      const now = Date.now();
+      await ctx.db.insert("packLifecycle", {
+        slug: pack.slug,
+        // Publish at the pack's original _creationTime so the cutover doesn't
+        // re-time anything from the user's perspective.
+        publishedAt: pack._creationTime,
+        ...(pack.expiresAt !== undefined ? { expiresAt: pack.expiresAt } : {}),
+        featured: pack.featured ?? false,
+        ...(pack.tier !== undefined ? { tierOverride: pack.tier } : {}),
+        ...(pack.season !== undefined ? { seasonOverride: pack.season } : {}),
+        createdBy: pack.createdBy,
+        updatedAt: now,
+      });
+      seeded++;
+    }
+
+    const summary = { scanned, seeded, alreadyHadRow, skippedNoSlug };
+    console.log(`[seedLifecycleFromResourcePacks] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});

@@ -171,6 +171,7 @@ export default defineSchema({
       lists_visible:        v.optional(v.boolean()), // Lists nav item; default true
       sentences_visible:    v.optional(v.boolean()), // Sentences feature toggle; default true
       student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
+      student_can_filter:   v.optional(v.boolean()), // Student can use the pack-filter dropdown on listings; default false
       quick_settings_visible: v.optional(v.boolean()), // Quick-settings top-bar dropdown in student-view; default false
       header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
     }),
@@ -415,6 +416,11 @@ export default defineSchema({
    * librarySourceId on profile records is a loose ref back here for reload-defaults only.
    */
   resourcePacks: defineTable({
+    // Transient slug field added in Phase 2 of the ADR-010 rollout. Used by
+    // the migration export script (Phase 3) to filename-key each pack's
+    // JSON file. Removed in the deferred Phase X cleanup along with the
+    // rest of this table.
+    slug: v.optional(v.string()),
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     description: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
     coverImagePath: v.string(),
@@ -554,7 +560,36 @@ export default defineSchema({
   })
     .index("by_featured", ["featured"])
     .index("by_season", ["season"])
-    .index("by_isStarter", ["isStarter"]),
+    .index("by_isStarter", ["isStarter"])
+    .index("by_slug", ["slug"]),
+
+  /**
+   * Pack lifecycle overlay — per ADR-010. Holds runtime catalogue metadata
+   * (publish window, featured flag, tier override, season override) for packs
+   * whose content lives in `convex/data/library_packs/<slug>.json`. The
+   * `/library` query merges this table with the bundled JSON to compute the
+   * visible catalogue. Admin dashboard (Phase 7) edits these rows to change
+   * lifecycle without a code deploy.
+   *
+   * A pack is visible iff a row here exists AND `publishedAt <= now` AND
+   * (`expiresAt` unset OR `expiresAt > now`). Tier comes from `tierOverride
+   * ?? pack.defaultTier`. Featured comes from `featured`.
+   */
+  packLifecycle: defineTable({
+    slug: v.string(),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    featured: v.boolean(),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    seasonOverride: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdBy: v.string(), // Clerk userId of the admin who first published the slug
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_createdBy", ["createdBy"]),
 
   /**
    * Colour themes. 6 starter flat themes seeded in Phase 0.

@@ -3,10 +3,13 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { LoadPackButton } from "./LoadPackButton";
-import type { Id } from "@/convex/_generated/dataModel";
 
 export type LibraryPack = {
-  _id: Id<"resourcePacks">;
+  // _id carries the packLifecycle row id (null for the starter pack if it
+  // has no lifecycle row yet). The slug is the canonical identifier post-
+  // ADR-010; load/dedup goes through `slug`.
+  _id: string | null;
+  slug: string;
   name: { eng: string; hin?: string };
   description: { eng: string; hin?: string };
   coverImagePath: string;
@@ -86,7 +89,7 @@ export function LibraryPackCard({
         </ul>
         <div className="mt-auto pt-2">
           <LoadPackButton
-            packId={pack._id}
+            packSlug={pack.slug}
             packTier={pack.tier}
             isStarter={pack.isStarter}
             locale={locale}
