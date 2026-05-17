@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useUser, useReverification } from "@clerk/nextjs";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
-import { Dialog, DialogContent } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { Input } from "@/app/components/app/shared/ui/Input";
 import { PricingToggle } from "@/app/components/marketing/ui/PricingToggle";
-import { Check, AlertCircle, CheckCircle, Camera } from "lucide-react";
+import { DeleteAccountDialog } from "@/app/components/app/settings/modals/DeleteAccountDialog";
+import { Check, AlertCircle, CheckCircle, Camera, ChevronDown } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -59,7 +58,6 @@ function PlanCard({ name, price, features, highlighted, children }: {
 // ─── Instructor account section ──────────────────────────────────────────────
 
 function InstructorAccountSection() {
-  const router = useRouter();
   const { user, isLoaded } = useUser();
 
   const updatePasswordVerified = useReverification(
@@ -78,8 +76,8 @@ function InstructorAccountSection() {
   const [photoLoading,    setPhotoLoading]    = useState(false);
   const [error,           setError]           = useState("");
   const [success,         setSuccess]         = useState("");
-  const [deleteOpen,      setDeleteOpen]      = useState(false);
-  const [deleting,        setDeleting]        = useState(false);
+  const [dangerOpen,      setDangerOpen]      = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordError,   setPasswordError]   = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,18 +133,6 @@ function InstructorAccountSection() {
     } catch (err: any) {
       setError(err?.errors?.[0]?.message ?? "Failed to save changes.");
     } finally { setSaving(false); }
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
-    try {
-      const res = await fetch("/api/delete-account", { method: "POST" });
-      if (!res.ok) throw new Error("Account deletion failed");
-      router.push("/");
-    } catch {
-      setError("Failed to delete account. Please try again.");
-      setDeleting(false); setDeleteOpen(false);
-    }
   };
 
   const initials =
@@ -205,23 +191,48 @@ function InstructorAccountSection() {
 
       <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges}>Save account</Button>
 
-      {/* Danger zone */}
+      {/* Danger zone — collapsed by default so the destructive button isn't
+          the first thing the user sees on the Account & Billing surface.
+          Expanding reveals the warning + button which opens the proper
+          typed-confirmation `DeleteAccountDialog` (was previously two
+          parallel implementations; consolidated here). */}
       <div className="pt-2 border-t border-border">
-        <p className="text-caption text-muted-foreground mb-2">Permanently deletes your account and cancels any active subscription.</p>
-        <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>Delete my account</Button>
+        <button
+          type="button"
+          onClick={() => setDangerOpen((o) => !o)}
+          aria-expanded={dangerOpen}
+          className="flex items-center justify-between w-full text-left py-1 group"
+        >
+          <span className="text-small font-medium text-destructive">
+            Danger zone
+          </span>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-muted-foreground transition-transform",
+              dangerOpen && "rotate-180",
+            )}
+          />
+        </button>
+        {dangerOpen && (
+          <div className="mt-2 space-y-2">
+            <p className="text-caption text-muted-foreground">
+              Permanently deletes your account and cancels any active subscription.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              Delete my account
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Delete account?</DialogTitle></DialogHeader>
-          <p className="text-small text-muted-foreground">This will cancel your subscription, delete all your data, and cannot be undone.</p>
-          <DialogFooter>
-            <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
-            <Button variant="destructive" loading={deleting} onClick={handleDeleteAccount}>Yes, delete my account</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
     </div>
   );
 }
@@ -385,7 +396,12 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
       }
     }
 
-    // Different tier — seamless upgrade or downgrade (no Stripe redirect)
+    // Different tier — seamless upgrade or downgrade (no Stripe redirect).
+    // Upgrade access is granted immediately via the subscription.updated
+    // webhook, even though the price change defers to the next billing
+    // date (proration_behavior: "none" in /api/stripe/switch-plan). So the
+    // toast copy differs: upgrades say "available now", downgrades say
+    // "next billing".
     const isUpgrade = tier === "pro" && targetTier === "max";
     return (
       <Button
@@ -394,7 +410,7 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
         onClick={() => callApi(
           "/api/stripe/switch-plan",
           { tier: targetTier, plan: billingInterval },
-          t("switchSuccess")
+          isUpgrade ? t("upgradeSuccess") : t("switchSuccess")
         )}
         loading={isLoading}
         className="w-full"

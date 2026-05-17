@@ -488,7 +488,12 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath = draft.resolvedImagePath;
-        if (pendingImageBlob && draft.imageSourceTab === 'upload') {
+        // Upload pending bytes for every non-SymbolStix tab — upload,
+        // image-search proxy, and AI generate all land a blob here that
+        // needs to go to R2 before we can persist a path. Previously only
+        // the upload tab was handled, which silently dropped image-search
+        // and AI picks on save.
+        if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;

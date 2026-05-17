@@ -112,6 +112,9 @@ export async function POST(request: Request) {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!upstream.ok || !upstream.body) {
+    console.error(
+      `[image-proxy] upstream_fetch_failed provider=${provider} status=${upstream.status} url=${fullImageUrl}`
+    );
     return NextResponse.json(
       { error: "upstream_fetch_failed", status: upstream.status },
       { status: 502 }
@@ -120,6 +123,9 @@ export async function POST(request: Request) {
 
   const contentType = upstream.headers.get("content-type") ?? "";
   if (!contentType.startsWith("image/")) {
+    console.error(
+      `[image-proxy] upstream_not_image provider=${provider} contentType=${contentType} url=${fullImageUrl}`
+    );
     return NextResponse.json(
       { error: "upstream_not_image", contentType },
       { status: 502 }

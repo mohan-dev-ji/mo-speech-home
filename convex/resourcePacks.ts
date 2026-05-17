@@ -2727,6 +2727,71 @@ export const getPublicLibraryCatalogue = query({
  * The starter pack is included so logged-out visitors see it on the page —
  * the client renders "Already on your account" for signed-in users.
  */
+// Cover-image fallback chain. Some legacy pack JSONs ship with placeholder
+// paths (e.g. `static/pack-cover-default.webp`) that don't exist in R2 and
+// render as broken images on /library. Walk the pack content for a usable
+// fallback rather than requiring each pack JSON to carry a real cover.
+//
+// Priority:
+//  1. Explicit `coverImagePath` (skipped if it's a known broken placeholder).
+//  2. First category's folder cover (`cat.imagePath`).
+//  3. First symbol in the first category — `imagePath` for custom-image
+//     symbols, otherwise resolved via the global `symbols` table.
+//  4. First list item.
+//  5. First sentence slot.
+//  6. Original `coverImagePath` as a last resort.
+const PLACEHOLDER_COVER_PATHS = new Set<string>([
+  "static/pack-cover-default.webp",
+  "static/starter-cover.webp",
+]);
+
+async function pickCoverImage(
+  ctx: QueryCtx,
+  p: LibraryPack
+): Promise<string> {
+  if (p.coverImagePath && !PLACEHOLDER_COVER_PATHS.has(p.coverImagePath)) {
+    return p.coverImagePath;
+  }
+
+  const resolveSymbol = async (symbolId: string): Promise<string | null> => {
+    const doc = await ctx.db.get(symbolId as Id<"symbols">);
+    return doc?.imagePath ?? null;
+  };
+
+  for (const cat of p.categories ?? []) {
+    if (cat.imagePath) return cat.imagePath;
+    for (const sym of cat.symbols) {
+      if (sym.imagePath) return sym.imagePath;
+      if (sym.symbolId) {
+        const path = await resolveSymbol(sym.symbolId);
+        if (path) return path;
+      }
+    }
+  }
+
+  for (const list of p.lists) {
+    for (const item of list.items) {
+      if (item.imagePath) return item.imagePath;
+      if (item.symbolId) {
+        const path = await resolveSymbol(item.symbolId);
+        if (path) return path;
+      }
+    }
+  }
+
+  for (const sentence of p.sentences) {
+    for (const slot of sentence.slots) {
+      if (slot.imagePath) return slot.imagePath;
+      if (slot.symbolId) {
+        const path = await resolveSymbol(slot.symbolId);
+        if (path) return path;
+      }
+    }
+  }
+
+  return p.coverImagePath;
+}
+
 export const getPublicLibraryCatalogueV2 = query({
   args: {},
   handler: async (ctx) => {
@@ -2735,8 +2800,8 @@ export const getPublicLibraryCatalogueV2 = query({
     const lifecycleRows = await ctx.db.query("packLifecycle").collect();
     const lifecycleBySlug = new Map(lifecycleRows.map((r) => [r.slug, r]));
 
-    return jsonPacks
-      .map((p) => {
+    const results = await Promise.all(
+      jsonPacks.map(async (p) => {
         const lifecycle = lifecycleBySlug.get(p.slug);
         // Starter pack stays visible even without an explicit lifecycle row
         // so it shows on /library for cold visitors as an on-ramp. Signed-in
@@ -2757,13 +2822,14 @@ export const getPublicLibraryCatalogueV2 = query({
 
         const effectiveTier = lifecycle?.tierOverride ?? p.defaultTier;
         const effectiveSeason = lifecycle?.seasonOverride;
+        const coverImagePath = await pickCoverImage(ctx, p);
 
         return {
           _id: lifecycle?._id ?? null,
           slug: p.slug,
           name: p.name,
           description: p.description,
-          coverImagePath: p.coverImagePath,
+          coverImagePath,
           season: effectiveSeason,
           tags: [] as string[], // legacy field; JSON shape doesn't carry tags yet
           featured: lifecycle?.featured ?? false,
@@ -2776,6 +2842,164 @@ export const getPublicLibraryCatalogueV2 = query({
           },
         };
       })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
+    );
+
+    return results.filter((p): p is NonNullable<typeof p> => p !== null);
+  },
+});
+
+/**
+ * Pack detail view — full content of a single pack with every symbolstix
+ * `symbolId` resolved to its global `imagePath` + canonical label. Powers
+ * the `/library/<slug>` page. Returns null for unknown / unpublished /
+ * expired slugs (the page renders a 404 in that case).
+ *
+ * Same visibility rules as `getPublicLibraryCatalogueV2`: a pack is shown
+ * when (a) it's the starter pack and has a JSON file, OR (b) it has a
+ * `packLifecycle` row with `publishedAt <= now` and `expiresAt` open.
+ *
+ * Custom-image symbols (image-search / AI / upload) pass through with their
+ * stored `imagePath`. Tier comes from `lifecycle.tierOverride` if set, else
+ * the JSON's `defaultTier`. The cover image goes through the same fallback
+ * chain as the catalogue listing.
+ */
+export const getPackDetailV2 = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const now = Date.now();
+    const pack = getLibraryPackBySlug(slug);
+    if (!pack) return null;
+
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+
+    if (!lifecycle && !pack.isStarter) return null;
+    if (lifecycle) {
+      if (
+        lifecycle.publishedAt === undefined ||
+        lifecycle.publishedAt > now
+      ) {
+        return null;
+      }
+      if (lifecycle.expiresAt !== undefined && lifecycle.expiresAt <= now) {
+        return null;
+      }
+    }
+
+    const effectiveTier = lifecycle?.tierOverride ?? pack.defaultTier;
+    const coverImagePath = await pickCoverImage(ctx, pack);
+
+    // Resolve a symbol reference (symbolId OR pre-resolved imagePath) into a
+    // common `{ imagePath, label }` shape the page can render.
+    const resolveSymbolRef = async (
+      symbolId: string | undefined,
+      labelOverride: { eng?: string; hin?: string } | undefined,
+      fallbackImagePath: string | undefined,
+      fallbackLabel: { eng: string; hin?: string } | undefined,
+    ): Promise<{ imagePath: string | null; label: { eng: string; hin?: string } }> => {
+      if (symbolId) {
+        const doc = await ctx.db.get(symbolId as Id<"symbols">);
+        if (doc) {
+          return {
+            imagePath: doc.imagePath,
+            label: {
+              eng: labelOverride?.eng ?? doc.words.eng,
+              ...(labelOverride?.hin ?? doc.words.hin
+                ? { hin: labelOverride?.hin ?? doc.words.hin }
+                : {}),
+            },
+          };
+        }
+      }
+      return {
+        imagePath: fallbackImagePath ?? null,
+        label: fallbackLabel ?? { eng: labelOverride?.eng ?? "" },
+      };
+    };
+
+    const categories = await Promise.all(
+      (pack.categories ?? []).map(async (cat) => {
+        const symbols = await Promise.all(
+          cat.symbols.map(async (sym, i) => {
+            const kind = sym.imageSourceType ?? "symbolstix";
+            if (kind === "symbolstix") {
+              const resolved = await resolveSymbolRef(
+                sym.symbolId,
+                sym.labelOverride,
+                undefined,
+                undefined,
+              );
+              return { order: i, ...resolved };
+            }
+            return {
+              order: i,
+              imagePath: sym.imagePath ?? null,
+              label: sym.label ?? { eng: sym.labelOverride?.eng ?? "" },
+            };
+          })
+        );
+        return {
+          name: cat.name,
+          icon: cat.icon,
+          colour: cat.colour,
+          imagePath: cat.imagePath ?? null,
+          symbols,
+        };
+      })
+    );
+
+    const lists = await Promise.all(
+      pack.lists.map(async (list) => ({
+        name: list.name,
+        items: await Promise.all(
+          list.items.map(async (item, i) => {
+            const resolved = await resolveSymbolRef(
+              item.symbolId,
+              undefined,
+              item.imagePath,
+              item.description ? { eng: item.description } : undefined,
+            );
+            return { order: i, ...resolved };
+          })
+        ),
+      }))
+    );
+
+    const sentences = await Promise.all(
+      pack.sentences.map(async (sent) => ({
+        name: sent.name,
+        text: sent.text ?? null,
+        slots: await Promise.all(
+          sent.slots.map(async (slot, i) => {
+            const resolved = await resolveSymbolRef(
+              slot.symbolId,
+              undefined,
+              slot.imagePath,
+              undefined,
+            );
+            return { order: i, ...resolved };
+          })
+        ),
+      }))
+    );
+
+    return {
+      slug: pack.slug,
+      name: pack.name,
+      description: pack.description,
+      coverImagePath,
+      tier: effectiveTier,
+      isStarter: pack.isStarter ?? false,
+      counts: {
+        categories: categories.length,
+        lists: lists.length,
+        sentences: sentences.length,
+      },
+      categories,
+      lists,
+      sentences,
+    };
   },
 });

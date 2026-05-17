@@ -50,18 +50,29 @@ function readMeta(
 }
 
 /**
- * Derive a wider thumbnail URL by swapping the `/{N}px-` segment in the
- * Wikimedia thumb URL for `/{FULL_WIDTH}px-`. Wikimedia auto-serves any
- * width on demand from its thumbnail factory, so the wider URL is reliably
- * fetchable without a second imageinfo call. If the source image is smaller
- * than THUMB_WIDTH, Wikimedia returns the original URL (no `/{N}px-` segment);
- * we fall back to the same URL in that case.
+ * Pick the URL to use for the "full size" (save) version of a result.
+ *
+ * Wikimedia's thumbnail factory will downscale on demand but **won't
+ * upscale** — requesting a 640px thumbnail of a 200px-wide original returns
+ * 404. License-mark icons (titles like "Public Domain Mark", "CC0 1.0") are
+ * a common case of small originals that crashed the click handler before
+ * this guard existed.
+ *
+ *  - Original width ≥ FULL_WIDTH → widen the thumb URL by swapping
+ *    `/<N>px-` → `/<FULL_WIDTH>px-` at the URL tail.
+ *  - Original width < FULL_WIDTH → return `info.url`, the raw original file
+ *    URL (also on `upload.wikimedia.org`, so the proxy allowlist passes).
+ *
+ * The regex anchors to the URL tail — some Wikimedia filenames legitimately
+ * contain a `<digits>px-` token (screenshots of width markers etc.) and we
+ * don't want to rewrite those mid-path.
  */
-function widenThumbUrl(thumbUrl: string): string {
-  // Anchor to the URL tail: replace the FINAL `/<width>px-<filename>` segment
-  // only. Some Wikimedia filenames legitimately contain a `<digits>px-` token
-  // (e.g. screenshots of width markers) and we don't want to rewrite those.
-  return thumbUrl.replace(/\/\d+px-([^/]+)$/, `/${FULL_WIDTH}px-$1`);
+function pickFullImageUrl(info: { url: string; thumburl?: string; width: number }): string {
+  if (!info.thumburl) return info.url;
+  if (info.width >= FULL_WIDTH) {
+    return info.thumburl.replace(/\/\d+px-([^/]+)$/, `/${FULL_WIDTH}px-$1`);
+  }
+  return info.url;
 }
 
 /**
@@ -111,6 +122,16 @@ export const searchWikimedia: ProviderSearchFn = async (
     .map((p): ImageSearchResult | null => {
       const info = p.imageinfo?.[0];
       if (!info) return null;
+      // Image-only filter. The `filetype:bitmap|drawing` search filter is
+      // leaky — PDFs, DjVu scans, and TIFFs sometimes leak through and they
+      // RENDER as PNG thumbnails (so the grid looks fine) but `info.url`
+      // points at the actual PDF/DjVu/etc., and clicking through to the
+      // proxy then fetches a non-image MIME and 502s. Drop anything that
+      // doesn't declare an image MIME on the file itself.
+      //
+      // Also drop SVGs explicitly — they tend to be diagrams/logos/license
+      // marks, low value for AAC.
+      if (!info.mime.startsWith("image/")) return null;
       if (info.mime === "image/svg+xml") return null;
       if (!info.thumburl) return null;
 
@@ -119,7 +140,7 @@ export const searchWikimedia: ProviderSearchFn = async (
         provider: "wikimedia",
         title: p.title,
         thumbnailUrl: info.thumburl,
-        fullImageUrl: widenThumbUrl(info.thumburl),
+        fullImageUrl: pickFullImageUrl(info),
         sourceUrl: info.descriptionurl,
         attribution: readMeta(info.extmetadata, "Artist") || "Unknown",
         license: readMeta(info.extmetadata, "LicenseShortName") || "Unknown",

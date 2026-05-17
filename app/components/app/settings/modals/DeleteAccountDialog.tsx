@@ -46,7 +46,18 @@ export function DeleteAccountDialog({
         setBusy(false);
         return;
       }
-      await signOut({ redirectUrl: "/" });
+
+      // The delete-account route has already removed the Clerk user
+      // server-side, so the session's user no longer exists. Calling
+      // `signOut` against a dead session can hang. Try the graceful path
+      // first; fall back to a hard navigation so the tab can't end up
+      // stuck holding a JWT for a deleted user.
+      try {
+        await signOut({ redirectUrl: "/" });
+      } catch {
+        // Fallthrough to hard redirect.
+      }
+      window.location.replace("/");
     } catch {
       setError(t("errorGeneric"));
       setBusy(false);

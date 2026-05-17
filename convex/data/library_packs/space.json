@@ -1,0 +1,191 @@
+{
+  "slug": "space",
+  "name": {
+    "eng": "Space"
+  },
+  "description": {
+    "eng": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there."
+  },
+  "coverImagePath": "static/pack-cover-default.webp",
+  "defaultTier": "free",
+  "categories": [
+    {
+      "colour": "indigo",
+      "icon": "📁",
+      "imagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
+      "name": {
+        "eng": "Space"
+      },
+      "symbols": [
+        {
+          "attribution": "Pixabay",
+          "imagePath": "library_packs/space/images/b84e5bb6-a944-412a-9c08-43298f4d3646.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/earth-illustration-355935/",
+          "label": {
+            "eng": "earth"
+          },
+          "license": "Pexels License",
+          "order": 0
+        },
+        {
+          "attribution": "Mike Petrucci",
+          "imagePath": "library_packs/space/images/a3132a4a-f3bb-48ed-ad1e-586a0db5c895.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/full-moon-photography-uIf6H1or1nE",
+          "label": {
+            "eng": "moon"
+          },
+          "license": "Unsplash License",
+          "order": 1
+        },
+        {
+          "attribution": "Jacob Spence",
+          "imagePath": "library_packs/space/images/042c4794-2369-40a9-8d06-e883353d09f1.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-Bolre_2dEZI",
+          "label": {
+            "eng": "stars"
+          },
+          "license": "Unsplash License",
+          "order": 2
+        },
+        {
+          "attribution": "51581",
+          "imagePath": "library_packs/space/images/42824c85-c2c1-427a-b7b4-cef79af3ec05.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/solar-system-sun-mercury-venus-439046/",
+          "label": {
+            "eng": "neptune"
+          },
+          "license": "Pixabay License",
+          "order": 3
+        },
+        {
+          "attribution": "Zelch Csaba",
+          "imagePath": "library_packs/space/images/babf602b-54ab-468d-9f57-317a63504dee.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/planet-of-solar-system-20376399/",
+          "label": {
+            "eng": "pluto"
+          },
+          "license": "Pexels License",
+          "order": 4
+        },
+        {
+          "attribution": "Zelch Csaba",
+          "imagePath": "library_packs/space/images/7a075323-03da-4914-8c73-e1540463027e.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/planet-in-cosmos-20337601/",
+          "label": {
+            "eng": "mars"
+          },
+          "license": "Pexels License",
+          "order": 5
+        },
+        {
+          "attribution": "NASA",
+          "imagePath": "library_packs/space/images/6269ced0-c8bf-4efe-a0ee-fa172a286feb.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/neptune-on-a-black-background-ScBkW9AKgcA",
+          "label": {
+            "eng": "neptune"
+          },
+          "license": "Unsplash License",
+          "order": 6
+        },
+        {
+          "attribution": "NASA",
+          "imagePath": "library_packs/space/images/cf303cbe-8484-4ced-956b-83f6cdb30d01.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/saturn-and-its-rings-2W-QWAC0mzI",
+          "label": {
+            "eng": "jupiter"
+          },
+          "license": "Unsplash License",
+          "order": 7
+        },
+        {
+          "attribution": "Zelch Csaba",
+          "imagePath": "library_packs/space/images/f17dea0b-af24-4c25-abcd-a48964f38dbf.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/planet-with-rings-20337604/",
+          "label": {
+            "eng": "uranus"
+          },
+          "license": "Pexels License",
+          "order": 8
+        },
+        {
+          "attribution": "NASA",
+          "imagePath": "library_packs/space/images/636c78b0-4b81-430b-9e34-2de3806659de.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/the-sun-with-a-corona-mass-ejection-JHyiw_dpALk",
+          "label": {
+            "eng": "sun"
+          },
+          "license": "Unsplash License",
+          "order": 9
+        },
+        {
+          "attribution": "Andy Holmes",
+          "imagePath": "library_packs/space/images/edf2603c-06b0-4717-ac3c-ff11eb8ee747.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-rCbdp8VCYhQ",
+          "label": {
+            "eng": "galaxy"
+          },
+          "license": "Unsplash License",
+          "order": 10
+        },
+        {
+          "attribution": "Alex",
+          "imagePath": "library_packs/space/images/d183be8f-9ed5-4094-946b-d5a62589439a.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/a-night-sky-filled-with-lots-of-stars-fxrwJGMCz_g",
+          "label": {
+            "eng": "milkyway"
+          },
+          "license": "Unsplash License",
+          "order": 11
+        },
+        {
+          "imagePath": "library_packs/space/images/7bc1787b-283f-4b79-be88-17a57ef470d8.png",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "eng": "space rocket"
+          },
+          "order": 12
+        },
+        {
+          "labelOverride": {
+            "eng": "NASA"
+          },
+          "order": 13,
+          "symbolId": "kn7c8pgzbsqm7786hp6yc770nx84m82d"
+        },
+        {
+          "imagePath": "library_packs/space/images/534c9d59-71bb-4d1f-ac16-39ecad7c24cb.png",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "eng": "satelite"
+          },
+          "order": 14
+        },
+        {
+          "attribution": "WikiImages",
+          "imagePath": "library_packs/space/images/48d45fc3-a0ec-4140-bf4c-f0fa6731759a.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/international-space-station-63128/",
+          "label": {
+            "eng": "space station"
+          },
+          "license": "Pixabay License",
+          "order": 15
+        }
+      ]
+    }
+  ],
+  "lists": [],
+  "sentences": []
+}

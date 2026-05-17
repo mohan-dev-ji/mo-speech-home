@@ -457,6 +457,7 @@
     "ctaSwitchToMonthly": "Switch to monthly (hi)",
     "ctaReactivate": "Reactivate (hi)",
     "switchSuccess": "Plan updated — changes take effect at your next billing date. (hi)",
+    "upgradeSuccess": "Plan upgraded — new features are available now. (hi)",
     "cancelSuccess": "Your plan will cancel at the end of the current billing period. (hi)",
     "reactivateSuccess": "Subscription reactivated. (hi)",
     "errorGeneric": "Something went wrong. Please try again. (hi)",
@@ -539,6 +540,7 @@
     "permAllowModelling": "Allow Modelling (hi)",
     "permQuickSettings": "Quick Settings (hi)",
     "sectionHeader": "Header (hi)",
+    "sectionTopBar": "Top bar (hi)",
     "headerOn": "Header on (hi)",
     "headerOff": "Header off (hi)",
     "headerTalkerMode": "Talker mode (hi)",
@@ -711,7 +713,13 @@
     "empty": "No packs available yet — check back soon. (hi)",
     "tierBadgeFree": "Free (hi)",
     "tierBadgePro": "Pro (hi)",
-    "tierBadgeMax": "Max (hi)"
+    "tierBadgeMax": "Max (hi)",
+    "detailBack": "All packs (hi)",
+    "detailSectionCategories": "Categories (hi)",
+    "detailSectionLists": "Lists (hi)",
+    "detailSectionSentences": "Sentences (hi)",
+    "detailEmpty": "This pack hasn't been published yet. (hi)",
+    "detailViewLink": "View pack (hi)"
   },
   "marketingHero": {
     "betaBadge": "Now in beta (hi)",

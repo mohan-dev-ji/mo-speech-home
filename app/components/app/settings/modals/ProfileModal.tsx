@@ -42,15 +42,25 @@ const PAGE_PERMISSIONS = [
   { flag: "settings_visible",   labelKey: "permSettings",   defaultVal: false },
 ] as const;
 
+// Always visible — surfaces in any header configuration.
 const EDITING_PERMISSIONS = [
   { flag: "quick_settings_visible", labelKey: "permQuickSettings",  defaultVal: false },
-  { flag: "student_can_edit",       labelKey: "permAllowEditing",   defaultVal: false },
-  { flag: "student_can_filter",     labelKey: "permAllowFiltering", defaultVal: false },
+] as const;
+
+// Only revealed when the header is in banner mode (`header_in_banner_mode`
+// is true). These three permissions all gate features that are accessible
+// from the banner — editing affordances, the pack filter, and the
+// student-view Model button. With banner off, none of them have anywhere
+// to render, so they're hidden to reduce noise. Toggling banner mode on
+// reveals them (with their stored values intact).
+const BANNER_MODE_EDITING_PERMISSIONS = [
+  { flag: "student_can_edit",   labelKey: "permAllowEditing",   defaultVal: false },
+  { flag: "student_can_filter", labelKey: "permAllowFiltering", defaultVal: false },
   // Opt the student in to self-initiating modelling sessions from
   // student-view (independent AAC users). Default off — most students
   // participate passively in instructor-pushed sessions. Doesn't gate the
   // instructor's own Model button, which is Pro+ only.
-  { flag: "modelling_push",         labelKey: "permAllowModelling", defaultVal: false },
+  { flag: "modelling_push",     labelKey: "permAllowModelling", defaultVal: false },
 ] as const;
 
 // ─── Profile tab content ──────────────────────────────────────────────────────
@@ -289,23 +299,15 @@ function ProfileTabContent({
         </div>
       </div>
 
-      {/* Header (talker/banner) */}
-      <HeaderModeControl
-        headerOn={flags.talker_visible !== undefined ? !!flags.talker_visible : true}
-        inBannerMode={!!flags.header_in_banner_mode}
-        onToggleHeader={(next) => setFlag({ profileId: profile._id, flag: "talker_visible", value: next })}
-        onSetBannerMode={(next) => setFlag({ profileId: profile._id, flag: "header_in_banner_mode", value: next })}
-      />
-
-      {/* Permissions */}
-      <div>
-        <p className="text-small font-semibold text-foreground mb-3">
-          {t("permissionsHeading")}
+      {/* Top bar — sits above Header so the layout reads top → bottom of
+          the actual student-view chrome. Contains permissions that live in
+          the top bar (Quick Settings dropdown) regardless of banner/talker. */}
+      <div className="space-y-2">
+        <p className="text-small font-semibold text-foreground">
+          {t("sectionTopBar")}
         </p>
-
-        {/* Page access — hides nav link and blocks route in student-view */}
         <div className="flex flex-wrap gap-2">
-          {PAGE_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+          {EDITING_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
             const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
             return (
               <button
@@ -323,13 +325,52 @@ function ProfileTabContent({
             );
           })}
         </div>
+      </div>
 
-        {/* Divider between page-access and editing permissions */}
-        <hr className="border-border my-3" />
+      {/* Header (talker/banner) + banner-mode permissions.
+          The three banner-only toggles (Allow Editing, Allow Filtering by
+          Pack, Allow Modelling) sit directly under the Talker | Banner
+          chooser so the relationship is obvious: turn banner on, the row
+          appears beneath it. */}
+      <div className="space-y-2">
+        <HeaderModeControl
+          headerOn={flags.talker_visible !== undefined ? !!flags.talker_visible : true}
+          inBannerMode={!!flags.header_in_banner_mode}
+          onToggleHeader={(next) => setFlag({ profileId: profile._id, flag: "talker_visible", value: next })}
+          onSetBannerMode={(next) => setFlag({ profileId: profile._id, flag: "header_in_banner_mode", value: next })}
+        />
 
-        {/* Editing permissions — feature-level toggles inside pages */}
+        {!!flags.header_in_banner_mode && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {BANNER_MODE_EDITING_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+              const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
+              return (
+                <button
+                  key={flag}
+                  type="button"
+                  onClick={() => handleToggleFlag(flag, value)}
+                  className={`px-3 py-1.5 rounded-md text-small font-medium border transition-colors ${
+                    value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {t(labelKey as Parameters<typeof t>[0])}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Permissions — page-access only. Feature-level (editing) toggles
+          now live inside their related sections above (Top bar, Header). */}
+      <div>
+        <p className="text-small font-semibold text-foreground mb-3">
+          {t("permissionsHeading")}
+        </p>
         <div className="flex flex-wrap gap-2">
-          {EDITING_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
+          {PAGE_PERMISSIONS.map(({ flag, labelKey, defaultVal }) => {
             const value = flags[flag] !== undefined ? !!flags[flag] : defaultVal;
             return (
               <button

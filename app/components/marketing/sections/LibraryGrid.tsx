@@ -23,7 +23,7 @@ export function LibraryGrid({ preloaded, locale }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
       {packs.map((pack) => (
         <LibraryPackCard key={pack.slug} pack={pack as LibraryPack} locale={locale} />
       ))}

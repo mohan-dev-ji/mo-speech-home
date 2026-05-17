@@ -5,8 +5,8 @@
     "hin": "Starter Pack (hi)"
   },
   "description": {
-    "eng": "Default categories loaded into every new account on signup.",
-    "hin": "Default categories loaded into every new account on signup. (hi)"
+    "eng": "The first vocabulary every account opens with. Greetings, feelings, asking for what they need. Loaded automatically when a profile is created.",
+    "hin": "The first vocabulary every account opens with. Greetings, feelings, asking for what they need. Loaded automatically when a profile is created. (hi)"
   },
   "coverImagePath": "static/starter-cover.webp",
   "defaultTier": "free",

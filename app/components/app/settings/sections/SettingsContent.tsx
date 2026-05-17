@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { Dialog, DialogContent } from "@/app/components/app/shared/ui/Dialog";
 import { InstructorProfileModal } from "@/app/components/app/settings/modals/InstructorProfileModal";
@@ -9,7 +9,6 @@ import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
-import { DevTestPanel }  from "@/app/components/app/settings/sections/DevTestPanel";
 import { LanguageRow }   from "@/app/components/app/settings/sections/LanguageRow";
 import { Users } from "lucide-react";
 
@@ -32,7 +31,6 @@ const MODAL_SIZE: Partial<Record<SettingId, string>> = {
 
 export function SettingsContent() {
   const t = useTranslations("settings");
-  const locale = useLocale();
   const { isCollaborator } = useAppState();
   const [activeModal, setActiveModal] = useState<SettingId | null>(null);
 
@@ -84,7 +82,6 @@ export function SettingsContent() {
         </DialogContent>
       </Dialog>
 
-      {!isCollaborator && <DevTestPanel currentLocale={locale} />}
     </div>
   );
 }
