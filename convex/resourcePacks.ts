@@ -339,14 +339,24 @@ export async function materialisePackIntoAccount(
 // to surface during Phase 6/X review.
 
 /**
- * Materialise SymbolStix symbols from a JSON pack's category snapshot into
- * an existing `profileCategory`. Mirrors `materialiseSymbolsFromCategorySnapshot`
- * but consumes the JSON shape (slug-based, no Convex Ids in the snapshot).
+ * Materialise symbols from a JSON pack's category snapshot into an existing
+ * `profileCategory`. Handles two kinds:
  *
- * Symbols are looked up by `symbolId` (loose ref string → Convex `symbols` Id).
- * Missing symbols are skipped, never thrown, so partial loads beat no load.
+ *  - SymbolStix-backed (default when `imageSourceType` is absent or
+ *    "symbolstix"): look up the global symbols row by `symbolId`; missing
+ *    rows are skipped (partial loads beat no load).
+ *  - Custom (upload / imageSearch / aiGenerated): create a profileSymbol with
+ *    the snapshot's `imagePath` (already pointing at `library_packs/<slug>/...`
+ *    after publish-time promotion), attribution where applicable, and a
+ *    recorded-voice override if one was published.
+ *
+ * Audio for custom symbols: only recorded voice is persisted into the pack,
+ * because TTS audio lives in the global cache and SymbolStix defaults belong
+ * to a different image source. For symbols without a recordedAudioPath, the
+ * loaded symbol has no audio override and falls back to the runtime
+ * synth-the-label playback path.
  */
-async function materialiseSymbolsFromJson(
+export async function materialiseSymbolsFromJson(
   ctx: MutationCtx,
   accountId: Id<"users">,
   profileCategoryId: Id<"profileCategories">,
@@ -358,28 +368,91 @@ async function materialiseSymbolsFromJson(
   let symbolOrder = 0;
 
   for (const sym of symbols) {
-    const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
-    if (!symbolDoc) {
+    const kind = sym.imageSourceType ?? "symbolstix";
+
+    if (kind === "symbolstix") {
+      if (!sym.symbolId) {
+        symbolsSkipped++;
+        continue;
+      }
+      const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
+      if (!symbolDoc) {
+        symbolsSkipped++;
+        continue;
+      }
+
+      const label = {
+        eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
+        ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
+          ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
+          : {}),
+      };
+
+      await ctx.db.insert("profileSymbols", {
+        accountId,
+        profileCategoryId,
+        order: symbolOrder++,
+        imageSource: {
+          type: "symbolstix",
+          symbolId: symbolDoc._id,
+        },
+        label,
+        ...(sym.display ? { display: sym.display } : {}),
+        updatedAt: now,
+      });
+      symbolsAdded++;
+      continue;
+    }
+
+    // Custom-image kinds.
+    if (!sym.imagePath) {
       symbolsSkipped++;
       continue;
     }
 
-    const label = {
-      eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
-      ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
-        ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
-        : {}),
-    };
+    const label = sym.label ?? { eng: sym.labelOverride?.eng ?? "" };
+
+    let imageSource;
+    if (kind === "imageSearch") {
+      imageSource = {
+        type: "imageSearch" as const,
+        imagePath: sym.imagePath,
+        ...(sym.imageSourceUrl !== undefined
+          ? { imageSourceUrl: sym.imageSourceUrl }
+          : {}),
+        ...(sym.attribution !== undefined ? { attribution: sym.attribution } : {}),
+        ...(sym.license !== undefined ? { license: sym.license } : {}),
+      };
+    } else if (kind === "aiGenerated") {
+      imageSource = {
+        type: "aiGenerated" as const,
+        imagePath: sym.imagePath,
+        ...(sym.aiPrompt !== undefined ? { aiPrompt: sym.aiPrompt } : {}),
+      };
+    } else {
+      // "upload" → profileSymbols schema literal is "userUpload"
+      imageSource = {
+        type: "userUpload" as const,
+        imagePath: sym.imagePath,
+      };
+    }
+
+    const audio = sym.recordedAudioPath
+      ? {
+          eng: {
+            type: "recorded" as const,
+            path: sym.recordedAudioPath,
+          },
+        }
+      : undefined;
 
     await ctx.db.insert("profileSymbols", {
       accountId,
       profileCategoryId,
       order: symbolOrder++,
-      imageSource: {
-        type: "symbolstix",
-        symbolId: symbolDoc._id,
-      },
+      imageSource,
       label,
+      ...(audio ? { audio } : {}),
       ...(sym.display ? { display: sym.display } : {}),
       updatedAt: now,
     });
@@ -911,12 +984,23 @@ export const getLoadedPacksForCurrentAccount = query({
   ): Promise<Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }>> => {
     const resolved = await resolveCallerAccountId(ctx);
     if (!resolved) return [];
-    const ids = await collectLoadedPackIds(ctx, resolved.accountId);
+    const slugs = await collectLoadedPackIds(ctx, resolved.accountId);
 
+    // Post-ADR-010 the `librarySourceId` field holds a pack slug, not a
+    // Convex Id. Resolve to the JSON catalogue rather than `db.get` (which
+    // would throw on slugs that don't decode as Ids). The return type still
+    // names `_id: Id<"resourcePacks">` because the field is consumed as an
+    // opaque string for filter values — refactoring the type would ripple
+    // through the consumer for no behavioural change.
     const out: Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }> = [];
-    for (const id of ids) {
-      const pack = await ctx.db.get(id as Id<"resourcePacks">);
-      if (pack) out.push({ _id: pack._id, name: pack.name });
+    for (const slug of slugs) {
+      const pack = getLibraryPackBySlug(slug);
+      if (pack) {
+        out.push({
+          _id: slug as unknown as Id<"resourcePacks">,
+          name: pack.name,
+        });
+      }
     }
     out.sort((a, b) => a.name.eng.localeCompare(b.name.eng));
     return out;
@@ -2386,11 +2470,16 @@ export const getPackContentForPublish = query({
       .collect();
     const categories = allCategories.filter((c) => c.packSlug === slug);
 
-    // For each category, fetch the profileSymbols + resolve symbolstix image
-    // paths (the JSON pack stores symbolId; the migration / publish path
-    // doesn't store the SymbolStix imagePath because materialise re-resolves
-    // it at load time). Skip non-symbolstix symbols per ADR-010 §1 (V1 packs
-    // are SymbolStix-only — same constraint applies to V2).
+    // For each category, fetch the profileSymbols and emit two shapes:
+    //  - SymbolStix: store `symbolId`; image + default audio re-resolved on
+    //    load (this matches the pre-ADR-010 behaviour).
+    //  - Custom (upload / imageSearch / aiGenerated): store `imagePath`,
+    //    attribution, recorded-audio path; the publish route promotes the
+    //    R2 keys from `accounts/<admin>/...` to `library_packs/<slug>/...`
+    //    before writing the JSON, so packs survive admin account deletion.
+    //
+    // Placeholder symbols are dropped — they're the unfinished output of the
+    // category-create modal and never belong in a published pack.
     const categoryPayloads = await Promise.all(
       categories.map(async (cat) => {
         const symbols = await ctx.db
@@ -2400,25 +2489,77 @@ export const getPackContentForPublish = query({
           )
           .order("asc")
           .collect();
-        const stixSymbols = symbols.filter(
-          (s) => s.imageSource.type === "symbolstix"
+        const nonPlaceholder = symbols.filter(
+          (s) => s.imageSource.type !== "placeholder"
         );
         return {
           name: cat.name,
           icon: cat.icon,
           colour: cat.colour,
           imagePath: cat.imagePath,
-          symbols: stixSymbols.map((s, i) => ({
-            symbolId:
-              s.imageSource.type === "symbolstix"
-                ? (s.imageSource.symbolId as string)
-                : "",
-            ...(s.label.eng !== "" || s.label.hin
-              ? { labelOverride: s.label }
-              : {}),
-            ...(s.display ? { display: s.display } : {}),
-            order: i,
-          })),
+          symbols: nonPlaceholder.map((s, i) => {
+            const base = {
+              order: i,
+              ...(s.display ? { display: s.display } : {}),
+            };
+
+            if (s.imageSource.type === "symbolstix") {
+              return {
+                ...base,
+                symbolId: s.imageSource.symbolId as string,
+                ...(s.label.eng !== "" || s.label.hin
+                  ? { labelOverride: s.label }
+                  : {}),
+              };
+            }
+
+            // Custom-image kinds: userUpload | imageSearch | aiGenerated.
+            // userUpload maps to "upload" in the JSON to match the existing
+            // LibraryPackListItem.imageSourceType naming.
+            const imageSourceType =
+              s.imageSource.type === "userUpload"
+                ? ("upload" as const)
+                : s.imageSource.type;
+
+            // Recorded voice — only persistable audio shape per ADR-010.
+            // TTS audio lives in the global ttsCache (durable across account
+            // deletion). Default audio belongs to a SymbolStix symbol which
+            // this symbol isn't.
+            const recordedAudioPath =
+              s.audio?.eng?.type === "recorded"
+                ? s.audio.eng.path
+                : s.audio?.eng?.alternates?.recorded;
+
+            return {
+              ...base,
+              imageSourceType,
+              imagePath:
+                s.imageSource.type === "imageSearch" ||
+                s.imageSource.type === "aiGenerated" ||
+                s.imageSource.type === "userUpload"
+                  ? s.imageSource.imagePath
+                  : "",
+              label: s.label,
+              ...(s.imageSource.type === "imageSearch"
+                ? {
+                    ...(s.imageSource.imageSourceUrl !== undefined
+                      ? { imageSourceUrl: s.imageSource.imageSourceUrl }
+                      : {}),
+                    ...(s.imageSource.attribution !== undefined
+                      ? { attribution: s.imageSource.attribution }
+                      : {}),
+                    ...(s.imageSource.license !== undefined
+                      ? { license: s.imageSource.license }
+                      : {}),
+                  }
+                : {}),
+              ...(s.imageSource.type === "aiGenerated" &&
+              s.imageSource.aiPrompt !== undefined
+                ? { aiPrompt: s.imageSource.aiPrompt }
+                : {}),
+              ...(recordedAudioPath ? { recordedAudioPath } : {}),
+            };
+          }),
         };
       })
     );

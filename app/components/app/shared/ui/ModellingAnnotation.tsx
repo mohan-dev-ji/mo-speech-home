@@ -32,7 +32,7 @@ type Position =
       mode: 'on-screen';
       left: number;
       top: number;
-      placement: 'left' | 'right';
+      placement: 'left' | 'right' | 'above' | 'below';
     }
   | {
       mode: 'off-screen';
@@ -44,6 +44,11 @@ type Position =
       contentCentreX: number;
       contentCentreY: number;
     };
+
+// Roughly: card maxWidth (160) + arrow (32) + gap (16) + margin (8).
+// Used to decide whether the target has enough horizontal room either side
+// for an inline left/right annotation, or whether to flip above/below.
+const ON_SCREEN_INLINE_MIN_WIDTH = 216;
 
 // The off-screen indicator pins to the bounds of the target's nearest
 // `[data-modelling-content]` ancestor — the page's scrollable grid area —
@@ -69,7 +74,21 @@ function getContentBounds(target: Element): {
 }
 
 function computePosition(highlightKey: string): Position | null {
-  const target = document.querySelector(`[data-component-key="${highlightKey}"]`);
+  // Multiple wrappers may share a componentKey across the responsive layout
+  // (e.g. the Sidebar's `categories-nav-button` is hidden below `md`, while
+  // a mirror exists in the mobile drawer). `display: none` ancestors yield
+  // a rect of all zeros, which would anchor the annotation at (0,0). Skip
+  // those by checking `offsetParent` — null means the element isn't laid out.
+  const candidates = document.querySelectorAll(
+    `[data-component-key="${highlightKey}"]`
+  );
+  let target: Element | null = null;
+  for (const el of Array.from(candidates)) {
+    if ((el as HTMLElement).offsetParent !== null) {
+      target = el;
+      break;
+    }
+  }
   if (!target) return null;
 
   const rect = target.getBoundingClientRect();
@@ -97,14 +116,37 @@ function computePosition(highlightKey: string): Position | null {
     };
   }
 
-  const targetCentreX = rect.left + rect.width / 2;
-  const placement: 'left' | 'right' =
-    targetCentreX < window.innerWidth / 2 ? 'right' : 'left';
-  const top = rect.top + rect.height / 2;
-  const left =
-    placement === 'right'
-      ? rect.right + TARGET_GAP_PX
-      : rect.left - TARGET_GAP_PX;
+  // Decide placement. Prefer left/right when either side has room for the
+  // card; otherwise (e.g. a full-width target like the mobile drawer's nav
+  // links) flip above/below.
+  const spaceLeft = rect.left;
+  const spaceRight = window.innerWidth - rect.right;
+  const hasHorizontalRoom =
+    spaceLeft >= ON_SCREEN_INLINE_MIN_WIDTH ||
+    spaceRight >= ON_SCREEN_INLINE_MIN_WIDTH;
+
+  if (hasHorizontalRoom) {
+    const targetCentreX = rect.left + rect.width / 2;
+    const placement: 'left' | 'right' =
+      targetCentreX < window.innerWidth / 2 ? 'right' : 'left';
+    const top = rect.top + rect.height / 2;
+    const left =
+      placement === 'right'
+        ? rect.right + TARGET_GAP_PX
+        : rect.left - TARGET_GAP_PX;
+    return { mode: 'on-screen', left, top, placement };
+  }
+
+  // Full-width target — anchor above or below, whichever has more room.
+  const spaceAbove = rect.top;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const placement: 'above' | 'below' =
+    spaceBelow >= spaceAbove ? 'below' : 'above';
+  const left = rect.left + rect.width / 2;
+  const top =
+    placement === 'below'
+      ? rect.bottom + TARGET_GAP_PX
+      : rect.top - TARGET_GAP_PX;
   return { mode: 'on-screen', left, top, placement };
 }
 
@@ -271,9 +313,42 @@ export function ModellingAnnotation() {
     );
   }
 
-  // on-screen mode
-  const transformX = position.placement === 'right' ? '0%' : '-100%';
-  const InlineArrow = position.placement === 'right' ? ChevronLeft : ChevronRight;
+  // on-screen mode — four placements. Left/right are inline (card beside
+  // target), above/below stack vertically (card above/below target with
+  // arrow pointing along the gap axis).
+  const InlineArrow =
+    position.placement === 'right'
+      ? ChevronLeft
+      : position.placement === 'left'
+        ? ChevronRight
+        : position.placement === 'above'
+          ? ChevronDown
+          : ChevronUp;
+
+  // Anchor → card translation:
+  //   right: anchor at rect.right; card extends to the right.
+  //   left:  anchor at rect.left; card extends to the left  (-100% x).
+  //   above: anchor at rect.top centred X; card extends upward (-100% y).
+  //   below: anchor at rect.bottom centred X; card extends downward.
+  const transform =
+    position.placement === 'right'
+      ? 'translate(0, -50%)'
+      : position.placement === 'left'
+        ? 'translate(-100%, -50%)'
+        : position.placement === 'above'
+          ? 'translate(-50%, -100%)'
+          : 'translate(-50%, 0)';
+
+  // Inline arrow ordering — arrow always points AT the target, so it sits
+  // on the side of the card closest to the target.
+  const flexDirection: React.CSSProperties['flexDirection'] =
+    position.placement === 'right'
+      ? 'row'
+      : position.placement === 'left'
+        ? 'row-reverse'
+        : position.placement === 'above'
+          ? 'column-reverse' // card on top, arrow below pointing down
+          : 'column'; //         arrow on top pointing up, card below
 
   return (
     <div
@@ -283,8 +358,8 @@ export function ModellingAnnotation() {
         zIndex: ANNOTATION_Z_INDEX,
         left: position.left,
         top: position.top,
-        transform: `translate(${transformX}, -50%)`,
-        flexDirection: position.placement === 'right' ? 'row' : 'row-reverse',
+        transform,
+        flexDirection,
         transition: reduceMotion
           ? undefined
           : 'left 200ms ease-out, top 200ms ease-out',

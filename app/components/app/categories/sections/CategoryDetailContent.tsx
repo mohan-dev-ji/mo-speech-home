@@ -152,22 +152,25 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const { subscription } = useAppState();
   const tBanner = useTranslations('banner');
 
-  // Modelling trigger gate — instructor (or admin) view + Pro/Max tier + the
-  // active student profile has modelling_push enabled. The flag is a per-student
-  // permission (controls whether modelling can be pushed TO that student), so
-  // it's read from the student profile directly rather than the viewMode-resolved
-  // stateFlags. Admin acts as instructor here — see ADR-008.
+  // Modelling trigger gate. Two paths:
+  //  - Instructor / admin view: Pro+ tier is the only requirement. The
+  //    instructor's button is unconditional once subscribed.
+  //  - Student view: Pro+ tier AND the per-student `modelling_push` flag is
+  //    explicitly true. This lets an independent AAC user self-initiate
+  //    modelling sessions when their instructor opts them in via profile
+  //    permissions. Default is off — most students participate passively
+  //    through instructor-pushed sessions.
   const hasModelling = subscription.tier !== 'free';
-  const studentAllowsPush = studentProfile?.stateFlags?.modelling_push === true;
+  const studentAllowsSelfModel =
+    studentProfile?.stateFlags?.modelling_push === true;
   const canModel =
-    viewMode !== 'student-view' && hasModelling && studentAllowsPush;
+    hasModelling &&
+    (viewMode !== 'student-view' || studentAllowsSelfModel);
   const modelDisabledReason = canModel
     ? undefined
-    : viewMode === 'student-view'
-      ? tBanner('modelDisabled.studentView')
-      : !hasModelling
-        ? tBanner('modelDisabled.upgrade')
-        : tBanner('modelDisabled.flag');
+    : !hasModelling
+      ? tBanner('modelDisabled.upgrade')
+      : tBanner('modelDisabled.studentView');
   const [pickerOpen, setPickerOpen] = useState(false);
   const handleModelClick = canModel
     ? () => setPickerOpen(true)
@@ -514,6 +517,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 onModel={handleModelClick}
                 modelDisabledReason={modelDisabledReason}
                 librarySourceId={category?.librarySourceId}
+                showAdminContext={showAdminButtons}
                 topSlot={packLabel}
               />
             );

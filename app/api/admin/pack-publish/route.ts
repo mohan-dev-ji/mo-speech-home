@@ -30,8 +30,167 @@ import { NextResponse } from "next/server";
 import { writeFile, readFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { CopyObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client, bucketName } from "@/lib/r2-storage";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Copy an account-scoped R2 key to the pack-scoped prefix so the asset
+ * survives admin account deletion. Returns the new key, or the original
+ * key unchanged for paths that aren't account-scoped (SymbolStix global
+ * imagery, TTS cache audio, already-promoted library_packs/<slug>/... keys).
+ *
+ * Filename is preserved from the source key. UUID-based filenames mean
+ * cross-account collisions are vanishingly unlikely; we'd notice in testing.
+ *
+ * Idempotent: copying an already-copied object is a no-op overwrite. The
+ * source object is left in place — the admin's own profile still references
+ * it; we duplicate rather than move.
+ */
+async function promoteAsset(
+  path: string | undefined,
+  slug: string,
+  kind: "images" | "audio",
+  stats: { copied: number; skipped: number; failed: number }
+): Promise<string | undefined> {
+  if (!path) return path;
+  if (!path.startsWith("accounts/")) {
+    stats.skipped++;
+    return path;
+  }
+  if (!r2Client || !bucketName) {
+    // R2 not configured — leave the path alone. The dev environment may not
+    // have R2 wired up; we don't want to fail publish in that case.
+    stats.skipped++;
+    return path;
+  }
+
+  const filename = path.split("/").pop();
+  if (!filename) {
+    stats.failed++;
+    return path;
+  }
+  const newKey = `library_packs/${slug}/${kind}/${filename}`;
+
+  if (path === newKey) {
+    stats.skipped++;
+    return newKey;
+  }
+
+  try {
+    await r2Client.send(
+      new CopyObjectCommand({
+        Bucket: bucketName,
+        CopySource: `${bucketName}/${path}`,
+        Key: newKey,
+      })
+    );
+    stats.copied++;
+    return newKey;
+  } catch (e) {
+    console.error(`[pack-publish] R2 copy failed: ${path} → ${newKey}`, e);
+    stats.failed++;
+    return path;
+  }
+}
+
+/**
+ * Walk every R2 path on the publish payload and copy account-scoped keys to
+ * `library_packs/<slug>/<kind>/...`. Mutates the payload in place so the JSON
+ * we write references the promoted keys, not the admin-scoped originals.
+ */
+async function promoteAssetsToPackPrefix(
+  slug: string,
+  payload: Awaited<
+    ReturnType<
+      typeof import("convex/browser").ConvexHttpClient.prototype.query<
+        typeof api.resourcePacks.getPackContentForPublish
+      >
+    >
+  >
+): Promise<{ images: number; audio: number; skipped: number; failed: number }> {
+  if (!payload) return { images: 0, audio: 0, skipped: 0, failed: 0 };
+
+  const imageStats = { copied: 0, skipped: 0, failed: 0 };
+  const audioStats = { copied: 0, skipped: 0, failed: 0 };
+
+  for (const cat of payload.categories) {
+    cat.imagePath = await promoteAsset(cat.imagePath, slug, "images", imageStats);
+    for (const sym of cat.symbols) {
+      const s = sym as Record<string, unknown>;
+      if (typeof s.imagePath === "string") {
+        s.imagePath = await promoteAsset(s.imagePath, slug, "images", imageStats);
+      }
+      if (typeof s.recordedAudioPath === "string") {
+        s.recordedAudioPath = await promoteAsset(
+          s.recordedAudioPath,
+          slug,
+          "audio",
+          audioStats
+        );
+      }
+    }
+  }
+
+  for (const list of payload.lists) {
+    for (const item of list.items) {
+      const i = item as Record<string, unknown>;
+      if (typeof i.imagePath === "string") {
+        i.imagePath = await promoteAsset(i.imagePath, slug, "images", imageStats);
+      }
+      if (typeof i.audioPath === "string") {
+        i.audioPath = await promoteAsset(i.audioPath, slug, "audio", audioStats);
+      }
+      if (typeof i.recordedAudioPath === "string") {
+        i.recordedAudioPath = await promoteAsset(
+          i.recordedAudioPath,
+          slug,
+          "audio",
+          audioStats
+        );
+      }
+      // defaultAudioPath / generatedAudioPath are global paths (SymbolStix /
+      // ttsCache) — promoteAsset short-circuits them via the prefix check.
+      if (typeof i.defaultAudioPath === "string") {
+        i.defaultAudioPath = await promoteAsset(
+          i.defaultAudioPath,
+          slug,
+          "audio",
+          audioStats
+        );
+      }
+      if (typeof i.generatedAudioPath === "string") {
+        i.generatedAudioPath = await promoteAsset(
+          i.generatedAudioPath,
+          slug,
+          "audio",
+          audioStats
+        );
+      }
+    }
+  }
+
+  for (const sentence of payload.sentences) {
+    const s = sentence as Record<string, unknown>;
+    if (typeof s.audioPath === "string") {
+      s.audioPath = await promoteAsset(s.audioPath, slug, "audio", audioStats);
+    }
+    for (const slot of sentence.slots) {
+      const sl = slot as Record<string, unknown>;
+      if (typeof sl.imagePath === "string") {
+        sl.imagePath = await promoteAsset(sl.imagePath, slug, "images", imageStats);
+      }
+    }
+  }
+
+  return {
+    images: imageStats.copied,
+    audio: audioStats.copied,
+    skipped: imageStats.skipped + audioStats.skipped,
+    failed: imageStats.failed + audioStats.failed,
+  };
+}
 
 // Absolute path to the JSON catalogue directory. `process.cwd()` is the
 // repo root in `pnpm dev`. In a built / serverless environment this points
@@ -224,10 +383,39 @@ export async function POST(request: Request) {
       | { eng: string; hin?: string }
       | undefined) ?? { eng: "" };
 
-  const coverImagePath =
+  let coverImagePath =
     payload.lifecycle.coverImagePath ??
     (existingJson?.coverImagePath as string | undefined) ??
     "static/pack-cover-default.webp";
+
+  // ── Promote account-scoped R2 assets into the pack-scoped prefix ─────────
+  // Custom images and recorded voice land at `accounts/<admin>/{images,audio}/...`
+  // during authoring; without this step, deleting the admin nukes those keys
+  // and breaks every test account that loaded the pack. We copy (not move)
+  // so the admin's own profile keeps working.
+  const promotionSummary = await promoteAssetsToPackPrefix(slug, payload);
+
+  // Cover image too — same rule. Mutate locally so the JSON points at the
+  // promoted key.
+  if (coverImagePath.startsWith("accounts/") && r2Client && bucketName) {
+    const filename = coverImagePath.split("/").pop();
+    if (filename) {
+      const newKey = `library_packs/${slug}/images/${filename}`;
+      try {
+        await r2Client.send(
+          new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${coverImagePath}`,
+            Key: newKey,
+          })
+        );
+        coverImagePath = newKey;
+        promotionSummary.images += 1;
+      } catch (e) {
+        console.error("[pack-publish] cover R2 copy failed", e);
+      }
+    }
+  }
 
   const libraryPack = {
     slug,
@@ -279,6 +467,7 @@ export async function POST(request: Request) {
       categories: payload.categories.length,
       lists: payload.lists.length,
       sentences: payload.sentences.length,
+      assetsPromoted: promotionSummary,
       barrelSlugs: barrelSummary.slugs,
     },
   });

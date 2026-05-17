@@ -46,6 +46,11 @@ const EDITING_PERMISSIONS = [
   { flag: "quick_settings_visible", labelKey: "permQuickSettings",  defaultVal: false },
   { flag: "student_can_edit",       labelKey: "permAllowEditing",   defaultVal: false },
   { flag: "student_can_filter",     labelKey: "permAllowFiltering", defaultVal: false },
+  // Opt the student in to self-initiating modelling sessions from
+  // student-view (independent AAC users). Default off — most students
+  // participate passively in instructor-pushed sessions. Doesn't gate the
+  // instructor's own Model button, which is Pro+ only.
+  { flag: "modelling_push",         labelKey: "permAllowModelling", defaultVal: false },
 ] as const;
 
 // ─── Profile tab content ──────────────────────────────────────────────────────

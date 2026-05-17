@@ -13,10 +13,12 @@ type BannerProps = {
   onEdit?: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
-  // When set, renders a "From pack" badge next to the category name.
-  // Used to signal pack-loaded categories so instructors discover the
-  // Reload Defaults action available in edit mode.
+  // Pack provenance. The "From pack" badge only renders in admin view
+  // (showAdminContext) — for normal instructors / students the badge is
+  // visual noise, and the Reload Defaults affordance is discoverable on its
+  // own from the edit toolbar.
   librarySourceId?: string;
+  showAdminContext?: boolean;
   /** Optional slot rendered above the title inside the left column.
    *  Sits tight to the title (small mb) so the right-column image stays
    *  vertically centered against the [slot + title + buttons] group as
@@ -32,6 +34,7 @@ export function Banner({
   onModel,
   modelDisabledReason,
   librarySourceId,
+  showAdminContext = false,
   topSlot,
 }: BannerProps) {
   const t = useTranslations('banner');
@@ -52,7 +55,7 @@ export function Banner({
           >
             {categoryName}
           </h1>
-          {librarySourceId && <LibrarySourceBadge />}
+          {showAdminContext && librarySourceId && <LibrarySourceBadge />}
         </div>
 
         <div className="flex items-center gap-2 mt-3">

@@ -229,7 +229,7 @@
     "modelDisabled": {
       "studentView": "Switch to instructor view to use modelling.",
       "upgrade": "Modelling is available on Pro and Max.",
-      "flag": "Enable Modelling Push in profile settings."
+      "flag": "Modelling is disabled for this student. Re-enable in profile permissions."
     }
   },
   "modelling": {
@@ -537,6 +537,7 @@
     "permSentences": "Sentences",
     "permAllowEditing": "Allow Editing",
     "permAllowFiltering": "Allow Filtering by Pack",
+    "permAllowModelling": "Allow Modelling",
     "permQuickSettings": "Quick Settings",
     "sectionHeader": "Header",
     "headerOn": "Header on",

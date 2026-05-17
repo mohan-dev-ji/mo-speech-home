@@ -5,10 +5,11 @@ import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import {
   loadStarterTemplateInlineV2,
-  materialiseSymbolsFromCategorySnapshot,
+  materialiseSymbolsFromJson,
   removeCategoryFromPack,
   syncCategoryToPackIfPublished,
 } from "./resourcePacks";
+import { getLibraryPackBySlug } from "./lib/libraryPacks";
 
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
@@ -358,9 +359,9 @@ export const reloadCategoryFromLibrary = mutation({
     if (!category.librarySourceId) {
       throw new ConvexError({ code: "NOT_FROM_LIBRARY" });
     }
-    const pack = await ctx.db.get(
-      category.librarySourceId as Id<"resourcePacks">
-    );
+    // Post-ADR-010: `librarySourceId` is a JSON pack slug, not a Convex Id.
+    // Resolve via the bundled catalogue.
+    const pack = getLibraryPackBySlug(category.librarySourceId);
     if (!pack) {
       throw new ConvexError({ code: "PACK_NOT_FOUND" });
     }
@@ -400,14 +401,16 @@ export const reloadCategoryFromLibrary = mutation({
       updatedAt: now,
     });
 
-    const { symbolsAdded, symbolsSkipped } =
-      await materialiseSymbolsFromCategorySnapshot(
-        ctx,
-        accountId,
-        profileCategoryId,
-        snapshot.symbols,
-        now
-      );
+    // materialiseSymbolsFromJson handles both SymbolStix and custom-image
+    // snapshot shapes — reload-from-library now reproduces image-search /
+    // AI / upload symbols too, not just SymbolStix.
+    const { symbolsAdded, symbolsSkipped } = await materialiseSymbolsFromJson(
+      ctx,
+      accountId,
+      profileCategoryId,
+      snapshot.symbols,
+      now
+    );
 
     return { symbolsAdded, symbolsSkipped };
   },

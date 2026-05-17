@@ -239,7 +239,7 @@ export function BannerEdit({
               {categoryName}
             </h1>
           )}
-          {librarySourceId && <LibrarySourceBadge />}
+          {showAdminButtons && librarySourceId && <LibrarySourceBadge />}
         </div>
 
         <div className="flex flex-col gap-2 mt-3">

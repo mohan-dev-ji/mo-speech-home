@@ -28,12 +28,41 @@ export type SymbolDisplay = {
   shape?: "square" | "rounded" | "circle";
 };
 
+/**
+ * A symbol inside a published category. Two shapes coexist:
+ *
+ *  1. SymbolStix-backed — has `symbolId` resolving to the global symbols
+ *     table; image + default audio are re-resolved on load.
+ *  2. Custom — image stored under `library_packs/<slug>/images/…` (uploaded,
+ *     image-searched, or AI-generated). Optional recorded voice override under
+ *     `library_packs/<slug>/audio/…`. Attribution kept for image-search.
+ *
+ * The discriminator is `imageSourceType`. Absent or `"symbolstix"` → kind 1.
+ * Anything else → kind 2. Existing JSONs predate the field; absence means
+ * SymbolStix, preserving back-compat.
+ */
 export type LibraryPackCategorySymbol = {
-  /** Loose ref — may be a symbolstix ID or a custom token. */
-  symbolId: string;
-  labelOverride?: { eng?: string; hin?: string };
-  display?: SymbolDisplay;
   order: number;
+  display?: SymbolDisplay;
+
+  /** SymbolStix kind. */
+  symbolId?: string;
+  labelOverride?: { eng?: string; hin?: string };
+
+  /** Custom-image kind. */
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imagePath?: string;
+  label?: { eng: string; hin?: string };
+  /** Image-search attribution. */
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+  /** AI generation prompt — kept for regen. */
+  aiPrompt?: string;
+  /** Custom voice recording (only). TTS audio is durable in the global TTS
+   * cache and is not persisted into the pack JSON — receivers regenerate
+   * from the label or use the SymbolStix default. */
+  recordedAudioPath?: string;
 };
 
 export type LibraryPackCategory = {
