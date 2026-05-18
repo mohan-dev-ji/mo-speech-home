@@ -50,19 +50,24 @@ const tiers: ReadonlyArray<{
   },
 ];
 
+// Rows are ordered so universals appear first, then Pro+ unlocks, then
+// Max-only. Reads top-to-bottom as a progression of what each tier adds.
 const comparisonRows: ReadonlyArray<{
   labelKey: string;
   free: boolean;
   pro: boolean;
   max: boolean;
 }> = [
-  { labelKey: "compareCoreFeatures", free: true, pro: true, max: true },
-  { labelKey: "compareUnlimited", free: false, pro: true, max: true },
-  { labelKey: "compareAnalytics", free: false, pro: true, max: true },
-  { labelKey: "comparePrioritySupport", free: false, pro: true, max: true },
-  { labelKey: "compareUnlimitedUsers", free: false, pro: false, max: true },
-  { labelKey: "compareCustomIntegrations", free: false, pro: false, max: true },
-  { labelKey: "compareSla", free: false, pro: false, max: true },
+  { labelKey: "compareSymbolSearch",      free: true,  pro: true, max: true },
+  { labelKey: "compareStarterPack",       free: true,  pro: true, max: true },
+  { labelKey: "compareCategories",        free: false, pro: true, max: true },
+  { labelKey: "compareModelling",         free: false, pro: true, max: true },
+  { labelKey: "compareProPacks",          free: false, pro: true, max: true },
+  { labelKey: "compareCustomSymbols",     free: false, pro: true, max: true },
+  { labelKey: "compareImageAi",           free: false, pro: false, max: true },
+  { labelKey: "comparePremiumThemes",     free: false, pro: false, max: true },
+  { labelKey: "compareFamilyInvites",     free: false, pro: false, max: true },
+  { labelKey: "compareUnlimitedProfiles", free: false, pro: false, max: true },
 ];
 
 export function PricingPageContent() {

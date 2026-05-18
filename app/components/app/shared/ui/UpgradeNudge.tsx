@@ -45,7 +45,10 @@ export function UpgradeNudge({
 
   const handleSeePlans = () => {
     onOpenChange(false);
-    router.push(`/${locale}/settings`);
+    // Deep-link the Account & Billing modal via `?modal=plan` — SettingsContent
+    // reads the param on mount, opens the PlanModal, then strips the query
+    // so refresh doesn't re-open.
+    router.push(`/${locale}/settings?modal=plan`);
   };
 
   return (

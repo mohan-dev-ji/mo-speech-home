@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { Dialog, DialogContent } from "@/app/components/app/shared/ui/Dialog";
@@ -32,12 +33,32 @@ const MODAL_SIZE: Partial<Record<SettingId, string>> = {
 export function SettingsContent() {
   const t = useTranslations("settings");
   const { isCollaborator } = useAppState();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [activeModal, setActiveModal] = useState<SettingId | null>(null);
 
   const open  = (id: SettingId) => setActiveModal(id);
   const close = () => setActiveModal(null);
 
   const settingsIds = isCollaborator ? COLLABORATOR_SETTINGS_IDS : OWNER_SETTINGS_IDS;
+
+  // Deep-link entry — open a specific modal via `?modal=<id>`. Used by the
+  // UpgradeNudge "See plans" CTA (and any future external link) to land
+  // straight on Account & Billing rather than requiring a second tap on
+  // the Plan tile. Strips the param after opening so a page refresh
+  // doesn't re-open the modal indefinitely.
+  useEffect(() => {
+    const requested = searchParams.get("modal");
+    if (!requested) return;
+    if ((settingsIds as readonly string[]).includes(requested)) {
+      setActiveModal(requested as SettingId);
+    }
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("modal");
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }, [searchParams, settingsIds, pathname, router]);
 
   const renderModal = () => {
     switch (activeModal) {

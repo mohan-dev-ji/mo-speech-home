@@ -9,13 +9,15 @@ Mo Speech Home has three tiers: Free, Pro, and Max.
 | Symbol search (voice + text) | ✅ | ✅ | ✅ |
 | Core vocabulary dropdown | ✅ | ✅ | ✅ |
 | Full SymbolStix library (58k) | ✅ | ✅ | ✅ |
+| Base colour themes | ✅ | ✅ | ✅ |
+| Starter pack + free resource library packs | ✅ | ✅ | ✅ |
 | Categories + all four modes | ❌ | ✅ | ✅ |
 | Modelling mode | ❌ | ✅ | ✅ |
-| Resource library packs | ❌ | ✅ | ✅ |
+| Pro resource library packs | ❌ | ✅ | ✅ |
 | Create/edit custom symbols | ❌ | ✅ | ✅ |
-| AI image generation | ❌ | ✅ | ✅ |
 | Natural voice sentences (Chirp 3 HD) | ❌ | ✅ | ✅ |
-| Base colour themes | ✅ | ✅ | ✅ |
+| Image search (royalty-free providers) | ❌ | ❌ | ✅ |
+| AI image generation | ❌ | ❌ | ✅ |
 | Premium themes | ❌ | ❌ | ✅ |
 | Family member invitations | ❌ | ❌ | ✅ |
 | Mo Speech School connection | ❌ | ❌ | ✅ |
@@ -30,7 +32,10 @@ The Free tier retains full access to the SymbolStix library and the core vocabul
 
 What is gated behind Pro is the structured, category-based navigation system and modelling — features that require significant setup investment from the instructor and represent the full platform experience.
 
-Max gates the social and connective features — family collaboration and School linking — which are infrastructure features with ongoing costs, rather than core AAC features.
+Max gates two groups of features that share a common property: ongoing per-use cost or infrastructure overhead.
+
+- **Social and connective features** — family collaboration and School linking — carry ongoing platform costs (invite emails, shared-account complexity, school-side accounts).
+- **Image search and AI image generation** — paid third-party APIs (Pixabay, Unsplash, Pexels for search; Google Imagen for AI gen) where each call costs us money. Free and Pro users still build vocabulary fully using the 58k-symbol SymbolStix library and the resource library packs.
 
 ---
 

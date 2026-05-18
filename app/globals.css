@@ -154,6 +154,18 @@
   --color-destructive:            rgb(var(--destructive));
   --color-destructive-foreground: rgb(var(--destructive-foreground));
 
+  /* ─── Tier identity tokens ──────────────────────────────────────
+     Tier-coloured chrome (badges, library card CTAs, future pricing
+     surface). Free / Pro / Max each get their own utility name so the
+     intent reads at the call site (`bg-tier-pro` is clearer than
+     `bg-primary` when the colour is communicating tier, not brand).
+     Aliased to the existing semantic tokens so a brand re-paint stays
+     coherent everywhere.
+  ──────────────────────────────────────────────────────────────── */
+  --color-tier-free: rgb(var(--success));
+  --color-tier-pro:  rgb(var(--primary));
+  --color-tier-max:  rgb(var(--warning));
+
   /* ─── AAC Theme Colour Tokens ───────────────────────────────────
      Changing any hex in :root above updates all utilities instantly.
   ──────────────────────────────────────────────────────────────── */

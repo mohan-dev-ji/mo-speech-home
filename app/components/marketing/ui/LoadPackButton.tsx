@@ -10,6 +10,26 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
 
+// Tint the active CTA by the pack's tier so the colour reinforces what the
+// user is unlocking (or already on). Free packs get green, Pro packs get
+// the brand colour, Max packs get amber.
+//
+// References the raw `:root` colour variables (`--success`, `--primary`,
+// `--warning`) directly. These are reliably exposed at runtime — the
+// `--color-tier-*` tokens defined in `@theme inline` in globals.css are
+// only guaranteed to generate Tailwind utilities, not always to surface
+// as document-level CSS custom properties. Using the underlying tokens
+// keeps the brand-repaint property (change one `:root` value and tier
+// colour follows) without depending on `@theme inline`'s var exposure.
+const TIER_BG_STYLE: Record<
+  "free" | "pro" | "max",
+  React.CSSProperties
+> = {
+  free: { backgroundColor: "rgb(var(--success))" },
+  pro:  { backgroundColor: "rgb(var(--primary))" },
+  max:  { backgroundColor: "rgb(var(--warning))" },
+};
+
 type Props = {
   packSlug: string;
   packTier: "free" | "pro" | "max";
@@ -66,6 +86,7 @@ export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
         variant="primary"
         size="md"
         className="w-full"
+        style={TIER_BG_STYLE[packTier]}
         onClick={() => {
           try {
             localStorage.setItem(
@@ -107,8 +128,9 @@ export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
         variant="primary"
         size="md"
         className="w-full"
+        style={TIER_BG_STYLE[packTier]}
         onClick={() =>
-          router.push(`/pricing?intent=load&packSlug=${packSlug}`)
+          router.push(`/settings?modal=plan`)
         }
       >
         {t("ctaUpgrade")}
@@ -123,6 +145,7 @@ export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
       loading={submitting}
       disabled={submitting}
       className="w-full"
+      style={TIER_BG_STYLE[packTier]}
       onClick={async () => {
         setSubmitting(true);
         try {
@@ -138,7 +161,7 @@ export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
           ) {
             const code = (e.data as { code: string }).code;
             if (code === "TIER_REQUIRED") {
-              router.push(`/pricing?intent=load&packSlug=${packSlug}`);
+              router.push(`/settings?modal=plan`);
               return;
             }
             if (code === "ALREADY_LOADED") {
