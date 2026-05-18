@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
+import { requireProTier } from "./lib/access";
 import { syncCategoryToPackIfPublished } from "./resourcePacks";
 
 const audioSourceValidator = v.object({
@@ -105,7 +106,8 @@ export const createProfileSymbol = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const category = await ctx.db.get(args.profileCategoryId);
     if (!category) throw new Error("Category not found");
@@ -151,7 +153,8 @@ export const reorderProfileSymbols = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const category = await ctx.db.get(args.profileCategoryId);
     if (!category || category.accountId !== accountId)
@@ -224,7 +227,8 @@ export const deleteProfileSymbol = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const ps = await ctx.db.get(args.profileSymbolId);
     if (!ps) throw new Error("Symbol not found");
@@ -257,7 +261,8 @@ export const updateProfileSymbol = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const ps = await ctx.db.get(args.profileSymbolId);
     if (!ps) throw new Error("Symbol not found");

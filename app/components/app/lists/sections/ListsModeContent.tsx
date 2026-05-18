@@ -29,6 +29,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useAppState } from '@/app/contexts/AppStateProvider';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
@@ -280,9 +282,25 @@ export function ListsModeContent() {
     router.replace(qs ? `${pathname}?${qs}` : pathname);
   }
 
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
+
+  // Free-tier intercepts. Gating the Edit toggle cascades — free users
+  // can't enter edit mode, so rename / delete / reorder rows are all
+  // unreachable.
+  const handleEditToggle = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    if (isEditing) setEditingNameId(null);
+    setIsEditing(!isEditing);
+  };
+  const handleCreateOpen = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setCreateModalOpen(true);
+  };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
@@ -447,15 +465,12 @@ export function ListsModeContent() {
               <>
                 <EditButton
                   isEditing={isEditing}
-                  onClick={() => {
-                    if (isEditing) setEditingNameId(null);
-                    setIsEditing(!isEditing);
-                  }}
+                  onClick={handleEditToggle}
                   editLabel={t('edit')}
                   exitLabel={t('exitEdit')}
                 />
                 <CreateButton
-                  onClick={() => setCreateModalOpen(true)}
+                  onClick={handleCreateOpen}
                   label={t('create')}
                 />
               </>
@@ -531,6 +546,14 @@ export function ListsModeContent() {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
+      />
+
+      {/* Free-tier upgrade nudge — fires from handleEditToggle and
+          handleCreateOpen when subscription.tier === 'free'. */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        locale={locale}
       />
 
       <Dialog

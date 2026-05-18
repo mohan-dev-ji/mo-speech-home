@@ -83,11 +83,26 @@ export const cascadeDeleteAccount = mutation({
       .collect();
     for (const row of sentences) await ctx.db.delete(row._id);
 
-    const members = await ctx.db
+    // Owner-side membership rows: every collaborator invited TO this account.
+    const ownerMembers = await ctx.db
       .query("accountMembers")
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
-    for (const m of members) await ctx.db.delete(m._id);
+    for (const m of ownerMembers) await ctx.db.delete(m._id);
+
+    // Collaborator-side membership rows: any seat where THIS user has been
+    // invited as a collaborator elsewhere. The precheck above only refuses
+    // when there's an `active` seat on another account; pending invites and
+    // seats whose host account has since been deleted (orphans) are left
+    // here. Clean them up so the table doesn't accumulate dangling rows
+    // across testing churn.
+    const collaboratorRows = await ctx.db
+      .query("accountMembers")
+      .withIndex("by_clerk_user_id", (q) =>
+        q.eq("clerkUserId", user.clerkUserId)
+      )
+      .collect();
+    for (const r of collaboratorRows) await ctx.db.delete(r._id);
 
     for (const p of profiles) await ctx.db.delete(p._id);
 

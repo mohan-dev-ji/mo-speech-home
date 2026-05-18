@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { requireProTier } from "./lib/access";
 import {
   removeListFromPack,
   syncListToPackIfPublished,
@@ -79,7 +80,8 @@ export const createProfileList = mutation({
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const last = await ctx.db
       .query("profileLists")
@@ -111,7 +113,8 @@ export const updateProfileListName = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -146,7 +149,8 @@ export const updateProfileListItems = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -165,7 +169,8 @@ export const addItemFromSymbol = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const sym = await ctx.db.get(args.profileSymbolId);
     if (!sym) throw new Error("profileSymbol not found");
@@ -209,6 +214,9 @@ export const updateProfileListDisplay = mutation({
     showFirstThen: v.boolean(),
     propagateToPack: v.optional(v.boolean()),
   },
+  // Note: NOT Pro+ gated. Display format toggles (rows/columns/grid/numbers
+  // /checklist) are accessibility-relevant and stay available to free users.
+  // See plan: "Free-tier scope for list display formatting" Q2 decision.
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
     const list = await ctx.db.get(args.profileListId);
@@ -233,7 +241,8 @@ export const deleteProfileList = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -254,7 +263,8 @@ export const reorderProfileLists = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
       const list = await ctx.db.get(args.orderedIds[i]);

@@ -722,6 +722,12 @@
     "detailEmpty": "This pack hasn't been published yet.",
     "detailViewLink": "View pack"
   },
+  "upgrade": {
+    "proFeatureTitle": "Pro feature",
+    "editAuthoringBody": "Creating and editing categories, lists, sentences and symbols is part of Pro and Max. Start a subscription to build your student's vocabulary.",
+    "ctaSeePlans": "See plans",
+    "ctaMaybeLater": "Maybe later"
+  },
   "marketingHero": {
     "betaBadge": "Now in beta",
     "titleLine1": "Mo Speech Home",

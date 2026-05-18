@@ -27,7 +27,9 @@ import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { CategoryTile } from '@/app/components/app/categories/ui/CategoryTile';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -123,8 +125,24 @@ export function CategoriesContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
 
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
   const [isEditing, setIsEditing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
+
+  // Edit toggle + Create button intercept on free tier — opens the upgrade
+  // nudge instead of running the original action. Gating the two entry
+  // points cascades: free users can't enter edit mode, so reorder / delete
+  // / rename inside edit mode are auto-unreachable.
+  const handleEditToggle = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setIsEditing((v) => !v);
+  };
+  const handleCreateOpen = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setIsCreateOpen(true);
+  };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -302,12 +320,12 @@ export function CategoriesContent() {
               <>
                 <EditButton
                   isEditing={isEditing}
-                  onClick={() => setIsEditing((v) => !v)}
+                  onClick={handleEditToggle}
                   editLabel={t('edit')}
                   exitLabel={t('exitEdit')}
                 />
                 <CreateButton
-                  onClick={() => setIsCreateOpen(true)}
+                  onClick={handleCreateOpen}
                   label={t('create')}
                 />
               </>
@@ -364,6 +382,14 @@ export function CategoriesContent() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onCreate={handleCreate}
+      />
+
+      {/* Free-tier upgrade nudge — fires from the Edit and Create handlers
+          when subscription.tier === 'free'. */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        locale={locale}
       />
 
       {/* Delete confirmation dialog */}

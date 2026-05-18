@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { requireProTier } from "./lib/access";
 import {
   removeSentenceFromPack,
   syncSentenceToPackIfPublished,
@@ -54,7 +55,8 @@ export const createProfileSentence = mutation({
     name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const last = await ctx.db
       .query("profileSentences")
@@ -83,7 +85,8 @@ export const updateProfileSentenceName = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
@@ -106,7 +109,8 @@ export const updateProfileSentenceSlots = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
@@ -127,7 +131,8 @@ export const updateProfileSentenceAudio = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
@@ -147,7 +152,8 @@ export const deleteProfileSentence = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
 
@@ -168,7 +174,8 @@ export const reorderProfileSentences = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
       const sentence = await ctx.db.get(args.orderedIds[i]);

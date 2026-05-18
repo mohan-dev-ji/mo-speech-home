@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { requireProTier } from "./lib/access";
 import {
   loadStarterTemplateInlineV2,
   materialiseSymbolsFromJson,
@@ -56,7 +57,8 @@ export const seedDefaultAccount = internalMutation({
 export const reseedAccount = mutation({
   args: {},
   handler: async (ctx) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const existingSymbols = await ctx.db
       .query("profileSymbols")
@@ -199,7 +201,8 @@ export const createProfileCategory = mutation({
     symbolLabels: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const last = await ctx.db
       .query("profileCategories")
@@ -252,7 +255,8 @@ export const reorderCategories = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
@@ -281,7 +285,8 @@ export const updateCategoryMeta = mutation({
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");
@@ -305,7 +310,8 @@ export const updateCategoryMeta = mutation({
 export const deleteCategory = mutation({
   args: { profileCategoryId: v.id("profileCategories") },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
 
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");
@@ -351,7 +357,8 @@ export const deleteCategory = mutation({
 export const reloadCategoryFromLibrary = mutation({
   args: { profileCategoryId: v.id("profileCategories") },
   handler: async (ctx, { profileCategoryId }) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
     const category = await ctx.db.get(profileCategoryId);
     if (!category || category.accountId !== accountId) {
       throw new ConvexError({ code: "NOT_FOUND" });

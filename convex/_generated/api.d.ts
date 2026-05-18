@@ -16,6 +16,7 @@ import type * as data_library_packs_types from "../data/library_packs/types.js";
 import type * as data_starter_backups_index from "../data/starter_backups/index.js";
 import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
+import type * as lib_access from "../lib/access.js";
 import type * as lib_account from "../lib/account.js";
 import type * as lib_libraryPacks from "../lib/libraryPacks.js";
 import type * as migrations from "../migrations.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   "data/starter_backups/index": typeof data_starter_backups_index;
   featureQuota: typeof featureQuota;
   imageCache: typeof imageCache;
+  "lib/access": typeof lib_access;
   "lib/account": typeof lib_account;
   "lib/libraryPacks": typeof lib_libraryPacks;
   migrations: typeof migrations;

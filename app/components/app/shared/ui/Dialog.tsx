@@ -14,12 +14,20 @@ export function DialogContent({
   children: React.ReactNode;
   className?: string;
 }) {
+  // z-index 100 puts modals above every other layered surface in the app:
+  //   page chrome             (TopBar z-70, Sidebar)
+  //   modelling backdrop      (z-80)
+  //   highlighted target      (z-90)
+  //   modelling annotation    (z-95)
+  //   modals / onboarding     (z-100+)  ← here
+  // Before this, both Overlay and Content sat at z-50, so the TopBar's z-70
+  // chrome leaked through on top of the modal and the dim didn't cover it.
   return (
     <RadixDialog.Portal>
-      <RadixDialog.Overlay className="fixed inset-0 bg-black/50 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+      <RadixDialog.Overlay className="fixed inset-0 bg-black/50 z-[100] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
       <RadixDialog.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+          "fixed left-1/2 top-1/2 z-[100] -translate-x-1/2 -translate-y-1/2",
           "w-full max-w-md bg-theme-alt-card text-theme-text border border-theme-line rounded-theme p-6 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

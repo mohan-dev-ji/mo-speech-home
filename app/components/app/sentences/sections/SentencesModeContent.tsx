@@ -35,6 +35,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { useAppState } from '@/app/contexts/AppStateProvider';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
@@ -530,9 +532,24 @@ export function SentencesModeContent() {
     router.replace(qs ? `${pathname}?${qs}` : pathname);
   }
 
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
+
+  // Free-tier intercepts. Gating Edit toggles cascades to slot edit /
+  // sentence text edit / reorder / delete — all of which only render
+  // inside edit mode.
+  const handleEditToggle = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setIsEditing(!isEditing);
+  };
+  const handleCreateOpen = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setCreateModalOpen(true);
+  };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
@@ -818,12 +835,12 @@ export function SentencesModeContent() {
               <>
                 <EditButton
                   isEditing={isEditing}
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={handleEditToggle}
                   editLabel={t('edit')}
                   exitLabel={t('exitEdit')}
                 />
                 <CreateButton
-                  onClick={() => setCreateModalOpen(true)}
+                  onClick={handleCreateOpen}
                   label={t('create')}
                 />
               </>
@@ -913,6 +930,14 @@ export function SentencesModeContent() {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
+      />
+
+      {/* Free-tier upgrade nudge — fires from handleEditToggle and
+          handleCreateOpen when subscription.tier === 'free'. */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        locale={locale}
       />
 
       {/* Delete confirm dialog */}

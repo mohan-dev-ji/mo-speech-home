@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import {
   DndContext,
   closestCenter,
@@ -271,7 +272,16 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   // ── Edit mode handlers ──────────────────────────────────────────────────────
 
+  // Free-tier gate on entering edit mode. Cascades: blocking the toggle
+  // means Add Symbol, Reorder, Reload Defaults, Folder Image, Rename, and
+  // Colour Picker (all only reachable inside BannerEdit) are auto-locked.
+  const isFree = subscription.tier === 'free';
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
+  const params = useParams();
+  const locale = (params?.locale as string | undefined) ?? 'en';
+
   function handleEditStart() {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
     setDraftColour(category?.colour ?? 'orange');
     setDraftImagePath(category?.imagePath);
     setIsEditing(true);
@@ -732,6 +742,14 @@ export function CategoryDetailContent({ categoryId }: Props) {
           onConfirm={handlePackPickerConfirm}
         />
       )}
+
+      {/* Free-tier upgrade nudge — fires from handleEditStart when the user
+          is on the free tier. */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        locale={locale}
+      />
     </div>
   );
 }

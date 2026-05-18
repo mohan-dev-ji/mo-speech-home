@@ -12,7 +12,7 @@ import {
   requireCallerIsAdmin,
   resolveCallerAccountId,
 } from "./lib/account";
-import { tierFromPlan } from "./users";
+import { userHasFullAccess } from "./lib/access";
 import {
   getAllLibraryPacks,
   getLibraryPackBySlug,
@@ -44,31 +44,8 @@ import type {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Plan-gate decision for resource library access.
- * Mirrors the hasFullAccess logic in users.getMyAccess (convex/users.ts:58–71)
- * plus the customAccess bypass pattern used in app/api/image-search/proxy/route.ts.
- *
- * Returns true when the user is on Pro or Max with active billing, OR has been
- * granted custom access by an admin.
- */
-function userHasFullAccess(user: Doc<"users">): boolean {
-  const { status, subscriptionEndsAt, plan, customAccess } = user.subscription;
-  const tier = tierFromPlan(plan);
-  const now = Date.now();
-
-  const isCancelledButActive =
-    status === "cancelled" &&
-    subscriptionEndsAt != null &&
-    subscriptionEndsAt > now;
-
-  const planAccess =
-    tier !== "free" && (status === "active" || isCancelledButActive);
-
-  const customAccessActive = customAccess?.isActive ?? false;
-
-  return planAccess || customAccessActive;
-}
+// `userHasFullAccess` lives in ./lib/access.ts so other mutation files can
+// share it without duplicating tier-gate logic.
 
 /**
  * Type alias for the symbols-array shape inside a category snapshot.

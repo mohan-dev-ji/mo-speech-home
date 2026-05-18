@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
+import { useAppState } from '@/app/contexts/AppStateProvider';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { ArrowLeft, ListOrdered, CheckSquare, Bookmark, Library } from 'lucide-react';
@@ -42,12 +44,25 @@ export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params?.locale as string | undefined) ?? 'en';
   const { setBreadcrumbExtra } = useBreadcrumb();
   const { language, viewMode, accountId, stateFlags, studentProfile } = useProfile();
   const { talkerMode } = useTalker();
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
+
+  // Free-tier intercept on entering edit mode. Cascades — once edit is
+  // gated, Add Item / Reorder / Delete / Rename are all locked since
+  // they only render inside edit mode.
+  const handleEditToggle = () => {
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
+    setIsEditing(!isEditing);
+  };
 
   // Honour `?edit=1` on first mount — set by ListsModeContent's create flow
   // so brand-new lists land in edit mode and the user is nudged to pick
@@ -427,7 +442,7 @@ export function ListDetailContent({ listId }: Props) {
             <div className="w-full flex items-center flex-wrap gap-2">
               <EditButton
                 isEditing={isEditing}
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={handleEditToggle}
                 editLabel={t('editList')}
                 exitLabel={t('exitEdit')}
               />
@@ -573,6 +588,14 @@ export function ListDetailContent({ listId }: Props) {
           onConfirm={handlePackPickerConfirm}
         />
       )}
+
+      {/* Free-tier upgrade nudge — fires from handleEditToggle when the
+          user is on the free tier. */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        locale={locale}
+      />
     </div>
   );
 }
