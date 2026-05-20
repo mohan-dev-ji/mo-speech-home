@@ -3,6 +3,26 @@ import type { Doc } from "../_generated/dataModel";
 import { tierFromPlan } from "../users";
 
 /**
+ * Whether a stored customAccess grant is currently in effect.
+ *
+ * A grant is effective iff `isActive === true` AND (no expiry OR expiry is
+ * in the future). The DB flag and the wall-clock check are both required —
+ * the daily `expireStaleCustomAccessGrants` cron flips `isActive: false`
+ * after expiry, but this check is the immediate gate so a grant stops
+ * working the second its expiry passes, regardless of cron cadence.
+ *
+ * Shared between `userHasFullAccess` and the client-facing `getMyAccess`
+ * query so the two stay in lockstep.
+ */
+export function isCustomAccessEffective(
+  customAccess: Doc<"users">["subscription"]["customAccess"]
+): boolean {
+  if (!customAccess?.isActive) return false;
+  if (customAccess.expiresAt == null) return true;
+  return customAccess.expiresAt > Date.now();
+}
+
+/**
  * Plan-gate decision for any Pro+ paid feature.
  *
  * Returns true when the user is on Pro or Max with active billing, OR has
@@ -30,9 +50,7 @@ export function userHasFullAccess(user: Doc<"users">): boolean {
   const planAccess =
     tier !== "free" && (status === "active" || isCancelledButActive);
 
-  const customAccessActive = customAccess?.isActive ?? false;
-
-  return planAccess || customAccessActive;
+  return planAccess || isCustomAccessEffective(customAccess);
 }
 
 /**

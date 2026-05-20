@@ -2318,6 +2318,172 @@ export const setLibraryPackTierV2 = mutation({
   },
 });
 
+// ─── Phase 7 admin dashboard — Library section ───────────────────────────────
+//
+// Per the plan at ~/.claude/plans/i-just-completed-this-ancient-floyd.md
+// (§2.2 – §2.4). These power /admin/library: list every JSON pack joined
+// with its packLifecycle row, patch lifecycle fields, and remove a pack
+// from the catalogue (JSON file untouched).
+
+type PackLifecycleStatus = "draft" | "scheduled" | "live" | "expired";
+
+function derivePackStatus(
+  lifecycle: Doc<"packLifecycle"> | null,
+  now: number
+): PackLifecycleStatus {
+  if (!lifecycle || lifecycle.publishedAt == null) return "draft";
+  if (lifecycle.publishedAt > now) return "scheduled";
+  if (lifecycle.expiresAt != null && lifecycle.expiresAt <= now) return "expired";
+  return "live";
+}
+
+/**
+ * Admin dashboard catalogue. Returns EVERY pack from the bundled JSON
+ * catalogue joined with its `packLifecycle` row (when present), regardless
+ * of publish window — drafts and expired packs are deliberately included.
+ *
+ * Sorted alphabetically by slug for stable rendering. Starter pack is
+ * included; the table marks it visually.
+ */
+export const listAllPacksForAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireCallerIsAdmin(ctx);
+    const lifecycleRows = await ctx.db.query("packLifecycle").collect();
+    const lifecycleBySlug = new Map(lifecycleRows.map((r) => [r.slug, r]));
+    const now = Date.now();
+    return getAllLibraryPacks().map((pack) => {
+      const lifecycle = lifecycleBySlug.get(pack.slug) ?? null;
+      return {
+        slug: pack.slug,
+        name: pack.name,
+        description: pack.description,
+        coverImagePath: pack.coverImagePath,
+        defaultTier: pack.defaultTier,
+        isStarter: pack.isStarter ?? false,
+        // Lifecycle overlay — null when no row exists (draft)
+        lifecycleId: lifecycle?._id ?? null,
+        publishedAt: lifecycle?.publishedAt ?? null,
+        expiresAt: lifecycle?.expiresAt ?? null,
+        featured: lifecycle?.featured ?? false,
+        tierOverride: lifecycle?.tierOverride ?? null,
+        seasonOverride: lifecycle?.seasonOverride ?? null,
+        notes: lifecycle?.notes ?? null,
+        updatedAt: lifecycle?.updatedAt ?? null,
+        createdBy: lifecycle?.createdBy ?? null,
+        // Derived for the UI
+        status: derivePackStatus(lifecycle, now),
+        effectiveTier: (lifecycle?.tierOverride ?? pack.defaultTier) as
+          | "free"
+          | "pro"
+          | "max",
+        // Counts for the table; matches getPublicLibraryCatalogueV2 shape
+        counts: {
+          categories: pack.categories?.length ?? 0,
+          lists: pack.lists.length,
+          sentences: pack.sentences.length,
+        },
+      };
+    });
+  },
+});
+
+/**
+ * Update a packLifecycle row in place — single consolidated mutation for
+ * every dashboard lifecycle action. Fields are optional; pass `null` to
+ * clear a field, omit to leave it alone. If no row exists for the slug
+ * yet, a new one is inserted (the slug is "promoted" from draft on first
+ * write).
+ *
+ * Differs from `setLibraryPackTierV2` (which throws when the row is
+ * missing): this mutation creates the lifecycle row on demand so admins
+ * can publish a draft pack with a single click.
+ */
+export const updatePackLifecycle = mutation({
+  args: {
+    slug: v.string(),
+    publishedAt: v.optional(v.union(v.number(), v.null())),
+    expiresAt: v.optional(v.union(v.number(), v.null())),
+    featured: v.optional(v.boolean()),
+    tierOverride: v.optional(v.union(TIER_VALIDATOR, v.null())),
+    seasonOverride: v.optional(v.union(v.string(), v.null())),
+    notes: v.optional(v.union(v.string(), v.null())),
+  },
+  handler: async (ctx, args) => {
+    const { clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    // Refuse writes to slugs that aren't in the bundled JSON catalogue.
+    if (!getLibraryPackBySlug(args.slug)) {
+      throw new ConvexError({
+        code: "PACK_NOT_FOUND",
+        message: `No JSON pack found for slug "${args.slug}".`,
+      });
+    }
+
+    const existing = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    const now = Date.now();
+
+    // Convert tri-state inputs (undefined / null / value) into a patch.
+    // `undefined` = leave alone; `null` = clear; value = set.
+    const patch: Partial<Doc<"packLifecycle">> & { updatedAt: number } = {
+      updatedAt: now,
+    };
+    if (args.publishedAt !== undefined) patch.publishedAt = args.publishedAt ?? undefined;
+    if (args.expiresAt !== undefined) patch.expiresAt = args.expiresAt ?? undefined;
+    if (args.featured !== undefined) patch.featured = args.featured;
+    if (args.tierOverride !== undefined) patch.tierOverride = args.tierOverride ?? undefined;
+    if (args.seasonOverride !== undefined) patch.seasonOverride = args.seasonOverride ?? undefined;
+    if (args.notes !== undefined) patch.notes = args.notes ?? undefined;
+
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      return { slug: args.slug, lifecycleId: existing._id };
+    }
+
+    const lifecycleId = await ctx.db.insert("packLifecycle", {
+      slug: args.slug,
+      featured: patch.featured ?? false,
+      createdBy: clerkUserId,
+      updatedAt: now,
+      ...(patch.publishedAt !== undefined && { publishedAt: patch.publishedAt }),
+      ...(patch.expiresAt !== undefined && { expiresAt: patch.expiresAt }),
+      ...(patch.tierOverride !== undefined && { tierOverride: patch.tierOverride }),
+      ...(patch.seasonOverride !== undefined && { seasonOverride: patch.seasonOverride }),
+      ...(patch.notes !== undefined && { notes: patch.notes }),
+    });
+    return { slug: args.slug, lifecycleId };
+  },
+});
+
+/**
+ * Delete a packLifecycle row, returning the slug to draft state. The JSON
+ * pack file in `convex/data/library_packs/` is NOT touched — the pack
+ * disappears from `/library` but its content stays in the repo and can
+ * be republished by inserting a fresh lifecycle row (a single click in
+ * the admin table).
+ *
+ * No-op if no row exists. The starter pack lifecycle row CAN be deleted
+ * (the JSON `isStarter: true` flag is still respected by signup seeding).
+ */
+export const deletePackLifecycle = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    await requireCallerIsAdmin(ctx);
+    const row = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (row) {
+      await ctx.db.delete(row._id);
+    }
+    return { slug };
+  },
+});
+
 // ─── Admin status query ───────────────────────────────────────────────────────
 
 /**

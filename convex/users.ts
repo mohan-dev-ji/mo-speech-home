@@ -1,5 +1,7 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { requireCallerIsAdmin } from "./lib/account";
+import { isCustomAccessEffective } from "./lib/access";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,7 +61,7 @@ export const getMyAccess = query({
       user.subscription;
     const now = Date.now();
 
-    const tier = tierFromPlan(plan);
+    const planTier = tierFromPlan(plan);
 
     // Cancelled users retain access until period end
     const isCancelledButActive =
@@ -67,8 +69,24 @@ export const getMyAccess = query({
       subscriptionEndsAt != null &&
       subscriptionEndsAt > now;
 
+    // Custom-access policy (set by admin decision, recorded in the Phase 7
+    // plan): an admin grant is always Max-equivalent. The granted user's
+    // tier lifts to "max" for the purposes of UI gating — every Pro and
+    // Max feature unlocks. Mirrors what the Max-only API routes already
+    // do (image-search, AI imagen, image-search proxy), which OR
+    // `customAccess.isActive` with their Max gate.
+    //
+    // Effectiveness check uses the shared `isCustomAccessEffective` helper
+    // (convex/lib/access.ts), which folds in the expiry timestamp — so a
+    // grant stops unlocking features the second its expiry passes, even
+    // before the daily `expireStaleCustomAccessGrants` cron writes the
+    // audit entry.
+    const customAccessActive = isCustomAccessEffective(customAccess);
+    const tier: "free" | "pro" | "max" = customAccessActive ? "max" : planTier;
+
     const hasFullAccess =
-      tier !== "free" && (status === "active" || isCancelledButActive);
+      customAccessActive ||
+      (planTier !== "free" && (status === "active" || isCancelledButActive));
 
     const isTrialing = status === "trial";
     const trialDaysRemaining =
@@ -255,33 +273,141 @@ export const updateSubscription = mutation({
 });
 
 /**
- * Grant or revoke custom admin access (bypasses Stripe subscription check).
+ * Grant custom admin access to a user — bypasses Stripe subscription checks
+ * for the duration of the grant. Writes the active grant to
+ * `subscription.customAccess` and appends a `"granted"` entry to
+ * `customAccessHistory` for audit purposes.
+ *
+ * Phase 7 admin dashboard — see plan at
+ * ~/.claude/plans/i-just-completed-this-ancient-floyd.md §3.2 and the MVP
+ * pattern at /Users/mohanveraitch/Projects/Mo_Speech/_code/mo-speech-mvp-2.0/convex/admin.ts.
+ *
+ * Caller must be a Clerk admin. The performing admin's clerkUserId is
+ * derived from `requireCallerIsAdmin`, not taken as an arg.
  */
-export const setCustomAccess = mutation({
+export const grantCustomAccess = mutation({
   args: {
     userId: v.id("users"),
-    isActive: v.boolean(),
     reason: v.string(),
-    grantedBy: v.string(), // admin clerkUserId
     expiresAt: v.optional(v.number()),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { userId, ...access } = args;
-    const user = await ctx.db.get(userId);
-    if (!user) throw new Error("User not found");
+    const { clerkUserId } = await requireCallerIsAdmin(ctx);
+    const target = await ctx.db.get(args.userId);
+    if (!target) throw new ConvexError({ code: "USER_NOT_FOUND" });
 
-    await ctx.db.patch(userId, {
+    const now = Date.now();
+    const historyEntry = {
+      action: "granted" as const,
+      reason: args.reason,
+      performedBy: clerkUserId,
+      performedAt: now,
+      ...(args.expiresAt !== undefined && { expiresAt: args.expiresAt }),
+      ...(args.notes !== undefined && { notes: args.notes }),
+    };
+
+    await ctx.db.patch(args.userId, {
       subscription: {
-        ...user.subscription,
+        ...target.subscription,
         customAccess: {
-          isActive: access.isActive,
-          reason: access.reason,
-          grantedBy: access.grantedBy,
-          grantedAt: Date.now(),
-          expiresAt: access.expiresAt,
+          isActive: true,
+          reason: args.reason,
+          grantedBy: clerkUserId,
+          grantedAt: now,
+          ...(args.expiresAt !== undefined && { expiresAt: args.expiresAt }),
         },
       },
+      customAccessHistory: [...(target.customAccessHistory ?? []), historyEntry],
     });
+  },
+});
+
+/**
+ * Revoke an active custom access grant. Clears `subscription.customAccess`
+ * and appends a `"revoked"` entry to `customAccessHistory`. No-op if the
+ * user has no active grant (returns silently rather than throwing —
+ * convenient for the UI's idempotent "revoke" button).
+ */
+export const revokeCustomAccess = mutation({
+  args: {
+    userId: v.id("users"),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { clerkUserId } = await requireCallerIsAdmin(ctx);
+    const target = await ctx.db.get(args.userId);
+    if (!target) throw new ConvexError({ code: "USER_NOT_FOUND" });
+    if (!target.subscription.customAccess) return;
+
+    const now = Date.now();
+    const historyEntry = {
+      action: "revoked" as const,
+      reason: target.subscription.customAccess.reason,
+      performedBy: clerkUserId,
+      performedAt: now,
+      ...(args.notes !== undefined && { notes: args.notes }),
+    };
+
+    // Strip customAccess off the subscription via destructure rather than
+    // patch — Convex's shallow patch keeps the existing customAccess unless
+    // we replace the whole subscription object.
+    const { customAccess: _drop, ...subscriptionRest } = target.subscription;
+    void _drop;
+
+    await ctx.db.patch(args.userId, {
+      subscription: subscriptionRest,
+      customAccessHistory: [...(target.customAccessHistory ?? []), historyEntry],
+    });
+  },
+});
+
+/**
+ * Cron-driven cleanup: flip expired custom-access grants to revoked.
+ *
+ * Read-time gates (`userHasFullAccess`, `getMyAccess`) already block
+ * expired grants the instant their expiry passes — this mutation is the
+ * audit-trail closure so the timeline shows when each grant ended, and
+ * `subscription.customAccess` doesn't accumulate stale rows.
+ *
+ * Idempotent: a row already revoked (or never expired) is skipped. Safe
+ * to run repeatedly. Called from `convex/crons.ts`.
+ *
+ * Scale note: `.collect()` on `users` is fine at current size; revisit
+ * past ~10K users by indexing on `subscription.customAccess.isActive`
+ * and paginating with `take()` + scheduler self-rescheduling.
+ */
+export const expireStaleCustomAccessGrants = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const allUsers = await ctx.db.query("users").collect();
+    let expired = 0;
+    for (const user of allUsers) {
+      const ca = user.subscription.customAccess;
+      if (!ca?.isActive) continue;
+      if (ca.expiresAt == null) continue;
+      if (ca.expiresAt > now) continue;
+
+      const { customAccess: _drop, ...subscriptionRest } = user.subscription;
+      void _drop;
+
+      await ctx.db.patch(user._id, {
+        subscription: subscriptionRest,
+        customAccessHistory: [
+          ...(user.customAccessHistory ?? []),
+          {
+            action: "revoked" as const,
+            reason: ca.reason,
+            performedBy: "system:expiry",
+            performedAt: now,
+            notes: `Auto-revoked at expiry (${new Date(ca.expiresAt).toISOString()})`,
+          },
+        ],
+      });
+      expired++;
+    }
+    return { expired };
   },
 });
 
@@ -392,5 +518,39 @@ export const listAllUsers = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     return await ctx.db.query("users").order("desc").take(limit);
+  },
+});
+
+/**
+ * List users with a derived `profileCount` per account. Single query —
+ * collects all studentProfiles once and groups by accountId, avoiding
+ * one round trip per user.
+ *
+ * Admin-only. Used by the extended Users list (Phase 7).
+ *
+ * Note on scale: studentProfiles `.collect()` is fine at current size;
+ * once the table grows past a few thousand rows, swap to a denormalised
+ * counter on `users` (per Convex guidelines on `.collect().length`).
+ */
+export const usersWithProfileCount = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, { limit }) => {
+    await requireCallerIsAdmin(ctx);
+
+    const users = await ctx.db
+      .query("users")
+      .order("desc")
+      .take(limit ?? 200);
+
+    const profiles = await ctx.db.query("studentProfiles").collect();
+    const counts = new Map<string, number>();
+    for (const p of profiles) {
+      counts.set(p.accountId, (counts.get(p.accountId) ?? 0) + 1);
+    }
+
+    return users.map((u) => ({
+      ...u,
+      profileCount: counts.get(u._id) ?? 0,
+    }));
   },
 });

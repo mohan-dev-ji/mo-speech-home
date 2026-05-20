@@ -3,11 +3,17 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/app/components/admin/ui/ThemeToggle";
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, Users, Library } from "lucide-react";
 
+// Admin UI is English only (per docs/1-inbox/ideas/17-admin-dashboard.md §
+// "Language Handling"). This is the one place in the app where the
+// `useTranslations` rule is deliberately bypassed — all strings below are
+// plain literals. Other sections (Themes, Affiliates, Core Vocab, Starter
+// Pack) ship in later phases and will be added to `adminNav` then.
 const adminNav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/library", label: "Library", icon: Library },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -28,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </span>
         </div>
         <Link href="/" className="px-3 mb-8 font-bold text-subheading">
-          YourProduct
+          Mo Speech
         </Link>
         <nav className="flex-1 space-y-1">
           {adminNav.map(({ href, label, icon: Icon }) => (

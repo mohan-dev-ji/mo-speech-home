@@ -95,6 +95,23 @@ export default defineSchema({
       stripeCustomerId: v.optional(v.string()),
       stripeSubscriptionId: v.optional(v.string()),
     }),
+    // Append-only audit trail for admin custom-access grants and revocations.
+    // Phase 7 — see docs/1-inbox/ideas/17-admin-dashboard.md §3 and the plan
+    // at ~/.claude/plans/i-just-completed-this-ancient-floyd.md.
+    // `performedBy` stores the admin's Clerk userId (resolve to display
+    // name/email at read time so renames don't drift).
+    customAccessHistory: v.optional(
+      v.array(
+        v.object({
+          action: v.union(v.literal("granted"), v.literal("revoked")),
+          reason: v.string(),
+          performedBy: v.string(), // admin clerkUserId
+          performedAt: v.number(),
+          expiresAt: v.optional(v.number()),
+          notes: v.optional(v.string()),
+        })
+      )
+    ),
     referredBy: v.optional(v.string()), // affiliate code captured on signup
     activeProfileId: v.optional(v.id("studentProfiles")), // which profile is active; null = fall back to first found
     lastActiveAt: v.number(),

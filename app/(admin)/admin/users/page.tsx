@@ -1,15 +1,22 @@
 import { ConvexHttpClient } from "convex/browser";
+import { auth } from "@clerk/nextjs/server";
 import { api } from "@/convex/_generated/api";
-import { deriveTier, type UserRecord } from "@/types";
-import { AccessBadge } from "@/app/components/admin/ui/AccessBadge";
-import { StripeLink } from "@/app/components/admin/ui/StripeLink";
-import { formatDate } from "@/lib/utils";
-import Link from "next/link";
+import { UsersAdminTable } from "@/app/components/admin/sections/UsersAdminTable";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
+/**
+ * Phase 7 admin Users list. Pulls users with derived `profileCount` via
+ * the admin-gated `usersWithProfileCount` query so each row shows the
+ * number of student profiles on that account. Per plan §3.5–§3.6.
+ *
+ * Client-side filtering, search, and pagination live in UsersAdminTable.
+ */
 export default async function AdminUsersPage() {
-  const users = await convex.query(api.users.listAllUsers, { limit: 100 });
+  const { getToken } = await auth();
+  const token = await getToken({ template: "convex" });
+  const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+  if (token) convex.setAuth(token);
+
+  const users = await convex.query(api.users.usersWithProfileCount, { limit: 200 });
 
   return (
     <div className="space-y-6">
@@ -18,56 +25,7 @@ export default async function AdminUsersPage() {
         <p className="text-muted-foreground mt-1">{users.length} total users</p>
       </div>
 
-      <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-small">
-          <thead>
-            <tr className="border-b border-border bg-muted/30">
-              <th className="text-left p-4 font-medium">User</th>
-              <th className="text-left p-4 font-medium hidden md:table-cell">Joined</th>
-              <th className="text-left p-4 font-medium">Plan</th>
-              <th className="text-left p-4 font-medium hidden lg:table-cell">Stripe</th>
-              <th className="p-4" />
-            </tr>
-          </thead>
-          <tbody>
-            {(users as UserRecord[]).map((user, i) => (
-              <tr
-                key={user._id}
-                className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}
-              >
-                <td className="p-4">
-                  <p className="font-medium">{user.name ?? "—"}</p>
-                  <p className="text-caption text-muted-foreground">{user.email}</p>
-                </td>
-                <td className="p-4 hidden md:table-cell text-muted-foreground">
-                  {formatDate(user._creationTime)}
-                </td>
-                <td className="p-4">
-                  <AccessBadge
-                    tier={deriveTier(user.subscription.plan)}
-                    status={user.subscription.status}
-                  />
-                </td>
-                <td className="p-4 hidden lg:table-cell">
-                  {user.subscription.stripeCustomerId ? (
-                    <StripeLink customerId={user.subscription.stripeCustomerId} />
-                  ) : (
-                    <span className="text-caption text-muted-foreground">—</span>
-                  )}
-                </td>
-                <td className="p-4 text-right">
-                  <Link
-                    href={`/admin/users/${user._id}`}
-                    className="text-caption text-primary hover:opacity-80 transition-opacity"
-                  >
-                    View →
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <UsersAdminTable users={users} />
     </div>
   );
 }

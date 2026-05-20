@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireCallerIsAdmin } from "./lib/account";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -442,5 +443,33 @@ export const cleanupDeprecatedFlags = mutation({
       cleaned += 1;
     }
     return { cleaned, total: profiles.length };
+  },
+});
+
+
+/**
+ * Admin-only: list studentProfiles for a given accountId. Used by the
+ * admin user-detail page (Phase 7 §3.7) to render a read-only summary
+ * of the account's student profiles.
+ *
+ * Caller must be a Clerk admin — enforced via `requireCallerIsAdmin`.
+ */
+export const listProfilesForAccount = query({
+  args: { accountId: v.id("users") },
+  handler: async (ctx, { accountId }) => {
+    await requireCallerIsAdmin(ctx);
+    const profiles = await ctx.db
+      .query("studentProfiles")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    return profiles.map((p) => ({
+      _id: p._id,
+      _creationTime: p._creationTime,
+      name: p.name,
+      language: p.language,
+      themeSlug: p.themeSlug ?? null,
+      updatedAt: p.updatedAt,
+      studentViewLocked: p.studentViewLocked ?? false,
+    }));
   },
 });

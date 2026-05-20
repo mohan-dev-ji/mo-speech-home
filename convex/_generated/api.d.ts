@@ -10,6 +10,8 @@
 
 import type * as account from "../account.js";
 import type * as accountMembers from "../accountMembers.js";
+import type * as admin_overviewStats from "../admin/overviewStats.js";
+import type * as crons from "../crons.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
 import type * as data_library_packs__index from "../data/library_packs/_index.js";
 import type * as data_library_packs_types from "../data/library_packs/types.js";
@@ -43,6 +45,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   account: typeof account;
   accountMembers: typeof accountMembers;
+  "admin/overviewStats": typeof admin_overviewStats;
+  crons: typeof crons;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
   "data/library_packs/_index": typeof data_library_packs__index;
   "data/library_packs/types": typeof data_library_packs_types;
