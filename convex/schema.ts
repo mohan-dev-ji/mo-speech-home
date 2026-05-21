@@ -624,7 +624,21 @@ export default defineSchema({
     tierOverride: v.optional(
       v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
     ),
+    /**
+     * @deprecated Use `tags` instead. Kept for read-fallback during the
+     * tag-system migration — when an admin edits a pack that still has
+     * `seasonOverride` set but no `tags`, the picker pre-fills with the
+     * legacy value as a single tag; saving migrates it. To be removed in
+     * a follow-up cleanup once all packs are tagged.
+     */
     seasonOverride: v.optional(v.string()),
+    /**
+     * Free-form tags driving the admin Library catalogue filters and (in
+     * a future iteration) instructor-facing browse. Server normalises to
+     * lowercase + trim + dedupe. New tags are created the moment an admin
+     * types them — the catalogue's vocabulary self-organises from use.
+     */
+    tags: v.optional(v.array(v.string())),
     notes: v.optional(v.string()),
     createdBy: v.string(), // Clerk userId of the admin who first published the slug
     updatedAt: v.number(),

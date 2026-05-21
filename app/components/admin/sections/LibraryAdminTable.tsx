@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 // Note: useTransition's first tuple element (the pending flag) isn't used —
 // busy state is tracked per-slug via `busySlug` so individual rows can show
 // a spinner while sibling rows stay interactive.
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
@@ -28,6 +29,7 @@ type PackRow = {
   featured: boolean;
   tierOverride: "free" | "pro" | "max" | null;
   seasonOverride: string | null;
+  tags: string[];
   notes: string | null;
   updatedAt: number | null;
   createdBy: string | null;
@@ -43,6 +45,13 @@ type Props = {
 type StatusFilter = "all" | PackLifecycleStatus;
 type TierFilter = "all" | "free" | "pro" | "max";
 type FeaturedFilter = "all" | "featured" | "not_featured";
+
+/** For each pack: union of its tags + legacy seasonOverride for filter coverage. */
+function packTagSet(p: PackRow): Set<string> {
+  const s = new Set(p.tags.map((t) => t.toLowerCase()));
+  if (p.seasonOverride) s.add(p.seasonOverride.toLowerCase().trim());
+  return s;
+}
 
 /**
  * Phase 7 admin Library CMS. Lists every pack in the JSON catalogue joined
@@ -70,19 +79,16 @@ export function LibraryAdminTable({ initialPacks }: Props) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [featuredFilter, setFeaturedFilter] = useState<FeaturedFilter>("all");
-  const [seasonFilter, setSeasonFilter] = useState<string>("");
+  /** Multi-select. Empty array = no tag filter. Match is OR (any selected). */
+  const [activeTags, setActiveTags] = useState<string[]>([]);
 
   const [editTarget, setEditTarget] = useState<PackRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PackRow | null>(null);
 
-  // Collect unique season values from current data for the filter dropdown.
-  const seasonOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const p of packs) {
-      if (p.seasonOverride) set.add(p.seasonOverride);
-    }
-    return Array.from(set).sort();
-  }, [packs]);
+  // Catalogue-wide tag union. Subscribed once at the table level; passed
+  // into both the filter chip row and the edit modal so they share one
+  // source of truth and update live when an admin adds a brand-new tag.
+  const tagSuggestions = useQuery(api.resourcePacks.getAllTagsInUse) ?? [];
 
   const filtered = useMemo(() => {
     return packs.filter((p) => {
@@ -90,10 +96,20 @@ export function LibraryAdminTable({ initialPacks }: Props) {
       if (tierFilter !== "all" && p.effectiveTier !== tierFilter) return false;
       if (featuredFilter === "featured" && !p.featured) return false;
       if (featuredFilter === "not_featured" && p.featured) return false;
-      if (seasonFilter !== "" && p.seasonOverride !== seasonFilter) return false;
+      if (activeTags.length > 0) {
+        const ts = packTagSet(p);
+        const hit = activeTags.some((t) => ts.has(t.toLowerCase()));
+        if (!hit) return false;
+      }
       return true;
     });
-  }, [packs, statusFilter, tierFilter, featuredFilter, seasonFilter]);
+  }, [packs, statusFilter, tierFilter, featuredFilter, activeTags]);
+
+  function toggleTag(tag: string) {
+    setActiveTags((curr) =>
+      curr.includes(tag) ? curr.filter((t) => t !== tag) : [...curr, tag]
+    );
+  }
 
   async function runQuickAction(
     slug: string,
@@ -146,18 +162,48 @@ export function LibraryAdminTable({ initialPacks }: Props) {
             { value: "not_featured", label: "Not featured" },
           ]}
         />
-        <FilterSelect
-          label="Season"
-          value={seasonFilter}
-          onChange={setSeasonFilter}
-          options={[
-            { value: "", label: "All seasons" },
-            ...seasonOptions.map((s) => ({ value: s, label: s })),
-          ]}
-        />
         <div className="ml-auto text-caption text-muted-foreground">
           {filtered.length} of {packs.length}
         </div>
+
+        {tagSuggestions.length > 0 && (
+          <div className="w-full space-y-1">
+            <label className="text-caption font-medium text-muted-foreground uppercase tracking-wider block">
+              Tags{" "}
+              <span className="normal-case font-normal text-muted-foreground/70">
+                (click to filter — multi-select, any-match)
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {tagSuggestions.map((tag) => {
+                const isActive = activeTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-caption transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+              {activeTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTags([])}
+                  className="inline-flex items-center rounded-full px-2.5 py-0.5 text-caption text-muted-foreground hover:text-foreground transition-colors underline"
+                >
+                  clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -190,6 +236,26 @@ export function LibraryAdminTable({ initialPacks }: Props) {
                   <p className="text-caption text-muted-foreground font-mono">
                     {p.slug}
                   </p>
+                  {(p.tags.length > 0 || p.seasonOverride) && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {p.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center rounded-full bg-primary/10 text-primary text-caption px-2 py-0.5"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {p.tags.length === 0 && p.seasonOverride && (
+                        <span
+                          className="inline-flex items-center rounded-full bg-warning/10 text-warning text-caption px-2 py-0.5"
+                          title="Legacy season value — will migrate to tags on next edit"
+                        >
+                          {p.seasonOverride} (legacy)
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="p-4">
                   <PackStatusBadge status={p.status} />
@@ -252,6 +318,7 @@ export function LibraryAdminTable({ initialPacks }: Props) {
       {editTarget && (
         <EditPackLifecycleModal
           pack={editTarget}
+          tagSuggestions={tagSuggestions}
           open
           onOpenChange={(open) => !open && setEditTarget(null)}
         />
@@ -360,107 +427,70 @@ function RowActions({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const isPublished = pack.status === "live" || pack.status === "scheduled";
 
+  // Radix DropdownMenu portals to <body>, so the menu escapes the table
+  // wrapper's `overflow-hidden` (which clips abs-positioned children).
+  // `collisionPadding` + the default flip behaviour also keeps the menu
+  // on-screen for rows near the viewport edge — fixes the bottom-row
+  // clipping that the hand-rolled `absolute right-0 mt-1` had.
   return (
-    <div className="relative inline-block">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => setOpen((o) => !o)}
-        loading={busy}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </Button>
-      {open && (
-        <>
-          {/* Backdrop to dismiss the menu on outside click */}
-          <button
-            type="button"
-            className="fixed inset-0 z-40 cursor-default"
-            onClick={() => setOpen(false)}
-            aria-label="Close menu"
-          />
-          <div
-            role="menu"
-            className="absolute right-0 mt-1 min-w-[12rem] z-50 rounded-md border border-border bg-card shadow-lg text-small overflow-hidden"
-          >
-            {isPublished ? (
-              <MenuItem
-                onClick={() => {
-                  setOpen(false);
-                  onUnpublish();
-                }}
-              >
-                Unpublish
-              </MenuItem>
-            ) : (
-              <MenuItem
-                onClick={() => {
-                  setOpen(false);
-                  onPublishNow();
-                }}
-              >
-                Publish now
-              </MenuItem>
-            )}
-            <MenuItem
-              onClick={() => {
-                setOpen(false);
-                onToggleFeatured();
-              }}
-            >
-              {pack.featured ? "Unfeature" : "Feature"}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          loading={busy}
+          aria-label="Row actions"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align="end"
+          sideOffset={4}
+          collisionPadding={8}
+          className="z-[100] min-w-[12rem] rounded-md border border-border bg-card shadow-lg text-small overflow-hidden"
+        >
+          {isPublished ? (
+            <MenuItem onSelect={onUnpublish}>Unpublish</MenuItem>
+          ) : (
+            <MenuItem onSelect={onPublishNow}>Publish now</MenuItem>
+          )}
+          <MenuItem onSelect={onToggleFeatured}>
+            {pack.featured ? "Unfeature" : "Feature"}
+          </MenuItem>
+          <MenuItem onSelect={onEdit}>Edit lifecycle…</MenuItem>
+          {pack.lifecycleId && (
+            <MenuItem destructive onSelect={onDelete}>
+              Remove from library
             </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setOpen(false);
-                onEdit();
-              }}
-            >
-              Edit lifecycle…
-            </MenuItem>
-            {pack.lifecycleId && (
-              <MenuItem
-                destructive
-                onClick={() => {
-                  setOpen(false);
-                  onDelete();
-                }}
-              >
-                Remove from library
-              </MenuItem>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+          )}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
 
 function MenuItem({
   children,
-  onClick,
+  onSelect,
   destructive = false,
 }: {
   children: React.ReactNode;
-  onClick: () => void;
+  onSelect: () => void;
   destructive?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onClick}
-      className={`block w-full text-left px-3 py-2 hover:bg-muted transition-colors ${
+    <DropdownMenu.Item
+      onSelect={onSelect}
+      className={`block w-full text-left px-3 py-2 hover:bg-muted focus:bg-muted focus:outline-none cursor-pointer transition-colors ${
         destructive ? "text-destructive" : ""
       }`}
     >
       {children}
-    </button>
+    </DropdownMenu.Item>
   );
 }

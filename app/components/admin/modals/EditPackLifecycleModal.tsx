@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { TagPicker } from "@/app/components/admin/ui/TagPicker";
 
 type PackRow = {
   slug: string;
@@ -22,11 +23,14 @@ type PackRow = {
   featured: boolean;
   tierOverride: "free" | "pro" | "max" | null;
   seasonOverride: string | null;
+  tags: string[];
   notes: string | null;
 };
 
 type Props = {
   pack: PackRow;
+  /** Catalogue-wide tag union, drives the TagPicker autocomplete. */
+  tagSuggestions: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -40,7 +44,12 @@ type Props = {
  * On Save, a single `updatePackLifecycle` mutation patches every changed
  * field. Cleared fields (empty inputs) write `null` to clear the override.
  */
-export function EditPackLifecycleModal({ pack, open, onOpenChange }: Props) {
+export function EditPackLifecycleModal({
+  pack,
+  tagSuggestions,
+  open,
+  onOpenChange,
+}: Props) {
   const updateLifecycle = useMutation(api.resourcePacks.updatePackLifecycle);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +60,20 @@ export function EditPackLifecycleModal({ pack, open, onOpenChange }: Props) {
   const [expiresAt, setExpiresAt] = useState(timestampToLocalInput(pack.expiresAt));
   const [featured, setFeatured] = useState(pack.featured);
   const [tierOverride, setTierOverride] = useState<string>(pack.tierOverride ?? "");
-  const [seasonOverride, setSeasonOverride] = useState(pack.seasonOverride ?? "");
+
+  // Pre-fill the picker with existing tags. If a pack only has the legacy
+  // `seasonOverride` value, surface it as the first tag so saving the
+  // modal migrates it forward — zero data loss with no migration script.
+  const initialTags =
+    pack.tags.length > 0
+      ? pack.tags
+      : pack.seasonOverride
+      ? [pack.seasonOverride.toLowerCase().trim()]
+      : [];
+  const [tags, setTags] = useState<string[]>(initialTags);
+  const hadLegacySeason =
+    pack.tags.length === 0 && pack.seasonOverride != null;
+
   const [notes, setNotes] = useState(pack.notes ?? "");
 
   function handleSave(e: React.FormEvent) {
@@ -65,7 +87,10 @@ export function EditPackLifecycleModal({ pack, open, onOpenChange }: Props) {
           expiresAt: localInputToTimestamp(expiresAt),
           featured,
           tierOverride: tierOverride === "" ? null : (tierOverride as "free" | "pro" | "max"),
-          seasonOverride: seasonOverride.trim() === "" ? null : seasonOverride.trim(),
+          tags,
+          // Clear the legacy field on save once we've folded it into tags.
+          // If the admin had nothing in seasonOverride this is a no-op.
+          ...(hadLegacySeason && { seasonOverride: null }),
           notes: notes.trim() === "" ? null : notes.trim(),
         });
         onOpenChange(false);
@@ -107,30 +132,36 @@ export function EditPackLifecycleModal({ pack, open, onOpenChange }: Props) {
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Tier override">
-              <select
-                value={tierOverride}
-                onChange={(e) => setTierOverride(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
-              >
-                <option value="">— Use default ({pack.defaultTier})</option>
-                <option value="free">Free</option>
-                <option value="pro">Pro</option>
-                <option value="max">Max</option>
-              </select>
-            </Field>
+          <Field label="Tier override">
+            <select
+              value={tierOverride}
+              onChange={(e) => setTierOverride(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="">— Use default ({pack.defaultTier})</option>
+              <option value="free">Free</option>
+              <option value="pro">Pro</option>
+              <option value="max">Max</option>
+            </select>
+          </Field>
 
-            <Field label="Season override">
-              <input
-                type="text"
-                value={seasonOverride}
-                onChange={(e) => setSeasonOverride(e.target.value)}
-                placeholder="e.g. halloween"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-            </Field>
-          </div>
+          <Field label="Tags">
+            <TagPicker
+              value={tags}
+              onChange={setTags}
+              suggestions={tagSuggestions}
+              placeholder="halloween, sports, sensory-friendly…"
+            />
+            {hadLegacySeason && (
+              <p className="text-caption text-muted-foreground mt-1">
+                Pre-filled from legacy season{" "}
+                <span className="font-mono">
+                  &ldquo;{pack.seasonOverride}&rdquo;
+                </span>
+                . Saving will migrate it.
+              </p>
+            )}
+          </Field>
 
           <div className="flex items-center gap-2">
             <input

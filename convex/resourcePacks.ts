@@ -2368,6 +2368,7 @@ export const listAllPacksForAdmin = query({
         featured: lifecycle?.featured ?? false,
         tierOverride: lifecycle?.tierOverride ?? null,
         seasonOverride: lifecycle?.seasonOverride ?? null,
+        tags: lifecycle?.tags ?? [],
         notes: lifecycle?.notes ?? null,
         updatedAt: lifecycle?.updatedAt ?? null,
         createdBy: lifecycle?.createdBy ?? null,
@@ -2399,6 +2400,18 @@ export const listAllPacksForAdmin = query({
  * missing): this mutation creates the lifecycle row on demand so admins
  * can publish a draft pack with a single click.
  */
+/**
+ * Normalise a tag for storage / equality. Lowercase, trim, collapse
+ * internal whitespace to a single hyphen. So "Key Stage 2" → "key-stage-2",
+ * " Halloween " → "halloween".
+ */
+function normaliseTag(raw: string): string {
+  return raw
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
 export const updatePackLifecycle = mutation({
   args: {
     slug: v.string(),
@@ -2407,6 +2420,7 @@ export const updatePackLifecycle = mutation({
     featured: v.optional(v.boolean()),
     tierOverride: v.optional(v.union(TIER_VALIDATOR, v.null())),
     seasonOverride: v.optional(v.union(v.string(), v.null())),
+    tags: v.optional(v.union(v.array(v.string()), v.null())),
     notes: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
@@ -2437,6 +2451,15 @@ export const updatePackLifecycle = mutation({
     if (args.featured !== undefined) patch.featured = args.featured;
     if (args.tierOverride !== undefined) patch.tierOverride = args.tierOverride ?? undefined;
     if (args.seasonOverride !== undefined) patch.seasonOverride = args.seasonOverride ?? undefined;
+    if (args.tags !== undefined) {
+      // Normalise + dedupe + drop empties. null clears to an empty array
+      // (not undefined) so the field stays defined once an admin has
+      // explicitly touched it.
+      const normalised = (args.tags ?? [])
+        .map(normaliseTag)
+        .filter((t) => t.length > 0);
+      patch.tags = Array.from(new Set(normalised));
+    }
     if (args.notes !== undefined) patch.notes = args.notes ?? undefined;
 
     if (existing) {
@@ -2453,9 +2476,40 @@ export const updatePackLifecycle = mutation({
       ...(patch.expiresAt !== undefined && { expiresAt: patch.expiresAt }),
       ...(patch.tierOverride !== undefined && { tierOverride: patch.tierOverride }),
       ...(patch.seasonOverride !== undefined && { seasonOverride: patch.seasonOverride }),
+      ...(patch.tags !== undefined && { tags: patch.tags }),
       ...(patch.notes !== undefined && { notes: patch.notes }),
     });
     return { slug: args.slug, lifecycleId };
+  },
+});
+
+/**
+ * Return every tag currently in use across the catalogue, deduped and
+ * alphabetically sorted. Powers the TagPicker autocomplete and the
+ * Library table's tag filter so vocabulary self-organises from use.
+ *
+ * Includes any legacy `seasonOverride` values so admins editing
+ * un-migrated packs see them as suggestions during the transition. Once
+ * `seasonOverride` is dropped this fallback can be removed.
+ */
+export const getAllTagsInUse = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireCallerIsAdmin(ctx);
+    const rows = await ctx.db.query("packLifecycle").collect();
+    const set = new Set<string>();
+    for (const r of rows) {
+      for (const t of r.tags ?? []) {
+        const norm = t.toLowerCase().trim();
+        if (norm) set.add(norm);
+      }
+      // Legacy fallback during migration
+      if (r.seasonOverride) {
+        const norm = r.seasonOverride.toLowerCase().trim();
+        if (norm) set.add(norm);
+      }
+    }
+    return Array.from(set).sort();
   },
 });
 
