@@ -115,6 +115,10 @@ export default defineSchema({
     referredBy: v.optional(v.string()), // affiliate code captured on signup
     activeProfileId: v.optional(v.id("studentProfiles")), // which profile is active; null = fall back to first found
     lastActiveAt: v.number(),
+    // Product-analytics opt-out (PostHog). Absent or false = opted in (default);
+    // true = opted out. Persisted server-side so the choice follows the user
+    // across devices. See plan §1 and docs/1-inbox/ideas/21-product-analytics-posthog.md.
+    analyticsOptOut: v.optional(v.boolean()),
     // ── Instructor-level preferences (saved here, not on student profile) ──
     locale: v.optional(v.string()),     // 'en' | 'hi' — drives UI locale routing
     themeSlug: v.optional(v.string()),  // flat theme key e.g. 'default' | 'sky'

@@ -29,6 +29,30 @@ The remaining docs (`03` through `17`) are reference material — read them when
 
 ---
 
+## Refined Execution Order — Current Direction
+
+This section supersedes the strict numerical phase order below for the post-launch roadmap. Phases 0–6 are shipped. Phase 7 (Admin Dashboard) is partially shipped — slice 1 (Library + Users + Overview + custom access + tags + expiry cron) is in production; slice 2 (Recent Symbols data layer) was aborted in favour of proper product analytics. The remaining work is sequenced around a unified plugin mentality (packs → languages → themes → future plugin types).
+
+Execute in this order:
+
+| # | Phase | Size | Notes |
+|---|---|---|---|
+| ✅ | Phases 0–6 | shipped | Main app, library authoring, free-tier gating, pricing, library detail page |
+| ✅ | Phase 7 — Admin Dashboard (slice 1) | shipped | Library + Users + Overview + custom access (grant/revoke + audit history + expiry cron) + tag system on packLifecycle |
+| ➡️ | **Phase 7.5 — Product Analytics (PostHog)** | 1–2 days | Funnel data, retention, feature usage, opt-out toggle, child-privacy hard rules. Unblocks evidence-based design for everything below. See `21-product-analytics-posthog.md`. |
+| ➡️ | **ADR-011 — Plugin architecture for content modules** | ~½ day, no code | Codify the "content-as-data, app-as-runtime" pattern (already true for packs via ADR-010). Applied to languages, themes, future plugin types (phonics, key-stage). |
+| ➡️ | **Phase 8 — Languages (dedicated plugin refactor)** | 1–2 weeks | The strategic differentiator. Refactor languages as a plugin module: JSON bundle per locale + voice registration + default-symbol translations + locale routing entry. Hindi proves the architecture; Punjabi / Bengali / Spanish / Arabic follow same rails. Adds a "Languages" section to the admin dashboard. |
+| ➡️ | **Phase 9 — Themes as pluggable packs** | 1–2 weeks | Same plugin pattern. JSON theme definitions + `themeLifecycle` overlay. User uploads as natural next step. Adds a "Themes" section to the admin dashboard. |
+| ➡️ | **Phase 10 — UI design polish pass** | design-led | Figma + Claude Design exploration. Polish AFTER architecture is right and AFTER real content (Devanagari, themes, multi-language) is rendering. PostHog data informs which surfaces deserve most attention. |
+| ➡️ | **Phase 11 — Home/School connection review** | ?? — see hypothesis | The original Phase 9 (convex-identity + convex-school separation) may have been **accidentally solved** by the existing student-profile + accountMembers invite architecture. This phase becomes a review and rescoping rather than a build. See "Home/School Hypothesis" inside Phase 11 below. |
+| ➡️ | **Phase 12 — Affiliates** | as spec'd | Last meaningful surface. Stripe Connect, commission events, admin affiliate management plugged into Phase 7's dashboard. |
+
+Phases inside the admin dashboard (Phase 7) are revisited as needed when new plugin types ship: e.g., when Languages lands, return to the dashboard to add a Languages-management section using the same shape as Library; same for Themes. These returns are part of the plugin-phase work, not separate phases.
+
+The "Language — Running Thread Throughout" section below remains valid as an **architectural discipline** (no component hard-codes `"eng"`, etc.). Phase 8 is the dedicated refactor that makes the running thread truly pluggable.
+
+---
+
 ## Phase 0 — Project Scaffold
 
 **Goal:** Working Next.js 16 app with all infrastructure connected, correct architecture in place before any feature is built.
@@ -484,6 +508,8 @@ The home page is currently a stub. Phase 6 ships a real one:
 
 ## Phase 7 — Admin Dashboard
 
+> **Status:** Slice 1 shipped (Library + Users + Overview + custom access + tag system). Slice 2 (Recent Symbols) aborted — superseded by Phase 7.5 (PostHog). Return here later to add Languages and Themes sections as those plugins ship.
+
 **Goal:** Complete the existing `/admin` dashboard so admins can manage resource pack metadata, view user/usage data, and operate the platform without touching code.
 
 The `/admin` route already exists as scaffolding (Overview stats, Users list, User detail). Phase 7 completes it as one coherent surface, immediately following Phase 6 because the resource library feature isn't usable without metadata controls (publish, schedule, feature, expire). See **ADR-008** for the admin role and view-mode model.
@@ -516,18 +542,58 @@ Extend the existing users list with operational data mirrored from the MVP admin
 
 Extend the existing 5 stat cards (total / free / pro / max counts) with day-to-day operational metrics. Specifics decided when building, based on what's actually needed.
 
-### 7.4 Recent symbols — data layer + admin velocity
+### 7.4 Recent symbols — ABORTED, see Phase 7.5
 
-The MVP tracked each user's last 20 symbols used; the velocity signal was useful and worth carrying forward. Phase 7 introduces this end-to-end:
+This sub-phase was originally planned to track each user's last N symbols on `studentProfiles.recentSymbols`, surface a strip on the home page, and aggregate velocity in the admin dashboard. **It was aborted before any code shipped** in favour of proper product analytics via PostHog (see Phase 7.5 below).
 
-- Schema: add `recentSymbols?: Array<{ profileSymbolId, usedAt }>` to `studentProfiles`. Capped at 20, FIFO (see `12-convex-schema.md` and `09-child-profile.md`).
-- Mutation: `recordSymbolTap(profileId, profileSymbolId)` — pushes onto `recentSymbols`, slices to last 20. Called from every place a symbol can be tapped (talker bar add, banner play, search result tap, modelling step).
-- Home dashboard surface: "Recent symbols" horizontal strip at the top of `/home`, scoped to the active profile. Tapping a recent symbol re-uses it (same as a regular symbol tap).
-- Admin dashboard surface (in Overview / Users sections): per-account velocity aggregation — symbols-per-day rolling 7d / 30d, computed from `recentSymbols.usedAt` timestamps across profiles on the account. Surfaces engagement trends without needing a separate analytics table.
+Reasons for the abort:
+- Per-profile arrays answer "what's recent for this one student" — useful for an SLP looking at a single child, but doesn't answer the harder questions (funnels, retention, bounce points, conversion paths, aggregate feature usage). Those are the questions that matter for growing the product post-launch.
+- The MVP shipped a similar feature and it proved valuable only as proof-of-life ("are people tapping things?"). Once that's confirmed, the analytics question changes shape entirely.
+- A third-party product analytics tool (PostHog) handles all of these properly with funnels, cohorts, paths, feature flags, and session replay — and does it across all users, not one student at a time.
 
-**Privacy boundary**: usage data reveals the student's communication patterns and is sensitive. Account-private — never exposed across accounts. Family-member collaborators see it (they share the active profile). Admins see aggregate counts and timestamps in the dashboard, never the symbol-level history.
+The student-facing "Recent symbols" home strip (a UX feature, not an analytics feature) is not replaced by analytics. It's deferred indefinitely — revisit only if there's user signal that it would be valuable. The existing talker bar and category grid already provide quick access to symbols.
 
-**Why deferred to Phase 7 rather than collected from Phase 6**: the data is bounded (last 20) so there's no historical loss from late start — the array fills within minutes of Phase 7 launch. Bundling collection with the admin observation surface keeps the feature shippable as one coherent unit. The home-dashboard "Recent symbols" strip ships as part of Phase 7, so Phase 6's home dashboard launches with featured packs and quick links, then Phase 7 adds the recent strip on top.
+### 7.5 Product Analytics (PostHog) — NEW, current phase
+
+> **Status:** Planned, doc written, ready to implement.
+
+The post-MVP correction: wire proper product analytics before any of the bigger architectural projects. Tool chosen: **PostHog** (open source, EU residency available, free up to 1M events/month, ships feature flags + experimentation, generous privacy controls).
+
+What this phase delivers:
+- `PostHogProvider` at the app root, autocapture disabled, session replay disabled by default
+- `lib/analytics.ts` — typed `track(event, properties)` helper with discriminated-union EventMap
+- `lib/analytics-server.ts` — server-side capture for Clerk + Stripe webhook events
+- Event catalogue: onboarding funnel, engagement, revenue & lifecycle (see `21-product-analytics-posthog.md` for full list)
+- Identify on Clerk auth; person properties refresh on profile switch
+- Opt-out toggle in Settings (`posthog.opt_out_capturing()`)
+- Privacy policy update to disclose analytics
+
+**Child-privacy hard rules** (non-negotiable):
+- No auto-capture (manual events only)
+- No session replay on student-view pages
+- Identify by Clerk userId, never by student profile
+- No symbol labels in event payloads — aggregate behaviour, never specific utterances
+- No pack / list / sentence content in payloads
+- IP anonymisation on; EU users routed to EU PostHog instance
+
+**Event shape discipline** (locks in plugin compatibility): `language`, `theme_slug`, `pack_slug`, and future plugin dimensions use open `string` types — never literal unions. New languages and themes flow through analytics with zero code change.
+
+**Reference:** `21-product-analytics-posthog.md`
+
+### 7.6 ADR-011 — Plugin architecture for content modules — NEW
+
+> **Status:** Planned, no code. Half-day write-up.
+
+Codify the "content-as-data, app-as-runtime" pattern that already underpins resource packs (per ADR-010) so the same shape applies to languages, themes, and future plugin types without re-deriving it twice.
+
+What the ADR captures:
+- **Shape:** JSON files in `convex/data/<plugin_type>/` are the source of truth for content. A thin Convex overlay table (`<pluginType>Lifecycle`) holds runtime metadata — publish window, tier override, featured flag, season, notes.
+- **Admin surface:** every plugin type gets a parallel admin section (matches Library), driven by `list<Type>ForAdmin` and `update<Type>Lifecycle` mutations. Same component shape; same lifecycle controls.
+- **Visibility rule:** plugin is visible iff JSON file exists AND lifecycle row exists with `publishedAt <= now` and `expiresAt` open.
+- **Authoring:** content lives in the repo. Lifecycle changes are deploy-free.
+- **What this enables:** adding a new language is `messages/pa.json + voices/pa.json + register("pa")`. Adding a new theme is `themes/sunset.json + admin publishes lifecycle row`. No schema migration; no architectural change.
+
+The ADR is the contract between Phase 8 (Languages) and Phase 9 (Themes). Both follow the same pattern; without it, they'd end up subtly different.
 
 ### 7.5 Future slots
 
@@ -537,48 +603,208 @@ Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into thi
 
 ---
 
-## Phase 8 — Themes
+## Phase 8 — Languages (dedicated plugin refactor)
 
-**Goal:** Student profiles have selectable colour themes.
+> **Status:** New dedicated phase. Replaces the "Languages as a running thread" approach for the specific work of making locales pluggable. The architectural discipline (no `"eng"` hard-coding etc.) remains a running thread — see the section below.
 
-- `themes` table already seeded with 6 starter themes (Phase 0)
+**Goal:** Make adding a new language a self-contained, pluggable operation — no schema changes, no architectural rework, no app-shell editing. Hindi proves the architecture; Punjabi, Bengali, Spanish, Arabic and others follow the same pattern.
+
+This is the strategic differentiator. No serious AAC platform treats Hindi (or any South Asian language) as first-class. Building this properly opens markets nobody else can serve.
+
+### 8.1 Language module shape (per ADR-011)
+
+A language is a self-contained module made of:
+
+- **UI bundle:** `messages/<locale>.json` — all `useTranslations` keys for the locale
+- **Voice registration:** `convex/data/voices/<locale>.json` — list of voice IDs available for the locale (Google Cloud TTS voice names + display labels)
+- **Default-symbol translations:** the symbols table's `words.<locale>` and `audio.<locale>` fields (already supported in schema; the addition is a bulk translation + TTS generation pass)
+- **Locale registration:** one entry in a `locales.ts` registry — code, display name, RTL flag, font stack, default voice ID
+
+Adding a new locale = add the JSON bundle + run the bulk symbol translation script + register. Zero schema changes; zero component changes (every component already uses `language` as an open string per ADR-009).
+
+### 8.2 Hindi as the first non-English pass-through
+
+Hindi is the proof-case for the architecture. Ship Hindi end-to-end as part of this phase — every step is the template for future languages:
+
+- Generate 58k symbol audio files in Hindi via Google TTS (`hi-IN`)
+- Translate 58k symbol labels via Google Cloud Translation API
+- Manually review the core 500 Hindi labels with a native speaker
+- Verify Noto Sans Devanagari loads correctly across devices
+- All UI message keys present in `messages/hi.json`
+- Symbol cards tested with Devanagari labels — no overflow
+- Theme colour palettes tested with Devanagari text weight
+- Sentences tested with Google Chirp 3 HD `hi-IN` voice
+
+### 8.3 Admin dashboard — Languages section
+
+Return to the admin dashboard (Phase 7) and add a Languages section using the same shape as Library:
+
+- List all registered locales with status (published / scheduled / draft)
+- Publish / schedule / unpublish a locale
+- Set tier (most should be free; rare premium-only locales possible)
+- Translation status indicator per locale (UI keys, symbol labels, voice availability) — distinct from per-pack translation status
+- Display name override per locale
+
+This is where PostHog data informs decisions: which locales actually get switched to? Which onboarding flows drop off in non-English locales?
+
+### 8.4 Locale onboarding flow
+
+Phase 0's `VoiceModal` chose voice at signup. With multi-locale, the onboarding flow becomes locale-first then voice-within-locale:
+
+1. Choose UI language (drives `users.locale`)
+2. Choose voice for the student profile (drives `studentProfiles.voiceId`)
+3. Hindi-locale users see Hindi voices first; English-locale users see English first
+
+A/B test this flow via PostHog feature flags if conversion data warrants.
+
+### 8.5 Future locale rollout (template)
+
+For each new locale after Hindi (Punjabi, Bengali, Spanish, Arabic, etc.):
+
+1. Generate `messages/<locale>.json` (Google Translation API + native-speaker review of core copy)
+2. Generate symbol audio + labels in the new locale (same scripts as Hindi)
+3. Register the locale + its voices
+4. Admin publishes the locale (dashboard click, no deploy)
+5. Native-speaker QA + community feedback loop
+6. PostHog tracks signup → completion funnel for the new locale
+
+**Reference:** `11-language-and-i18n.md`, ADR-009, ADR-011 (planned)
+
+---
+
+## Phase 9 — Themes as pluggable packs
+
+> **Status:** Reordered from original Phase 8. Same plugin pattern as Languages.
+
+**Goal:** Student profiles have selectable colour themes, and any admin (and eventually any Max user) can introduce a new theme without code changes.
+
+The existing `themes` table is seeded with 6 starter themes from Phase 0. This phase makes themes pluggable: JSON theme definitions in `convex/data/themes/*.json` + a `themeLifecycle` overlay table for runtime metadata. Matches ADR-011.
+
+### 9.1 Built-in functionality (the original Phase 8 spec)
+
 - Theme picker in Settings → Appearance
 - `setTheme(themeId)` updates `studentProfile.themeId` in Convex
 - `ThemeContext` applies tokens to CSS custom properties
 - `reduce_motion` state flag disables animations; respects OS `prefers-reduced-motion`
 - Gate premium themes behind Max tier
+- Tile-based and animated themes per the existing `15-themes.md` spec
 
-**Reference:** `15-themes.md`
+### 9.2 Theme module shape (per ADR-011)
+
+A theme is a JSON file defining:
+
+- Identity: `slug`, `name: { eng, hin? }`, `description: { eng, hin? }`
+- Tokens: full theme token map (colours, gradients, typography, spacing, radii, animations)
+- Assets: paths to R2-hosted tile images / animation sources
+- Defaults: `type` (flat / tiled / animated), `tier` (free / premium), `coverImagePath`
+
+`themeLifecycle` overlay table (parallel to `packLifecycle`): publish window, featured flag, tier override, season, notes. Admin dashboard gets a Themes section with the same shape as Library.
+
+### 9.3 User-uploaded themes (the natural extension)
+
+Once the JSON-driven pattern is in place, the upload flow is:
+
+- Instructor in Settings → "Create theme" → token-by-token editor or palette uploader (a curated UI, not a free-for-all)
+- Save creates a `themeLifecycle` row with `createdBy: instructorClerkId` + a custom slug
+- Instructor can use the theme on their own profiles immediately (no admin approval needed for private use)
+- Optional: instructor can submit the theme to the shared library (admin reviews, publishes if approved)
+- Submitted themes appear in the library alongside packs, tier-gated per the lifecycle row
+
+### 9.4 Admin dashboard — Themes section
+
+Same shape as Library:
+
+- List all themes (admin-created + user-submitted) with status filters
+- Publish / schedule / unpublish
+- Set tier
+- Feature toggle
+- Review user submissions
+
+PostHog tracks which themes get loaded, which get changed away from, time-on-theme — feeds into commissioning priorities.
+
+**Reference:** `15-themes.md`, ADR-011 (planned)
 
 ---
 
-## Phase 9 — Home/School Connection
+## Phase 10 — UI Design Polish Pass
 
-**Goal:** Student identity is portable between Mo Speech Home and Mo Speech School.
+> **Status:** New phase. Design-led. Slot after Themes so polish lands on a stable architecture and real multi-language / multi-theme content.
 
-### 9.1 convex-identity infrastructure
+**Goal:** The final visual polish to make the product feel slick and considered, not assembled.
 
-- `createStudentIdentity` mutation — called on student profile creation
-- Generates invite code, links to `homeProfileId`
-- `switchContext` mutation — updates `activeContext`
-- `getActiveContext` query — student's device subscribes
+This is intentionally last among the architecture-affecting phases. Polishing before the architecture is right means re-polishing later. By Phase 10:
 
-### 9.2 Cross-project HTTP action
+- Devanagari and Hindi voices render real content (not English placeholders)
+- Multiple themes exercise the design system across colour ranges
+- PostHog data reveals which surfaces matter most (where users spend time, where they bounce)
+- The admin dashboard, library, talker, categories, lists, sentences, settings — all stable
 
-**Prototype this early.** Build a simple read-only HTTP endpoint in `convex-home` that returns a student's profile summary given a `homeProfileId` and a shared secret. Call it from a test context. Verify it works in production before building the full sharing inbox around it.
+### 10.1 Surface audit
 
-### 9.3 Sharing inbox
+Walk every page in every theme + every locale. Catalogue every visual inconsistency, every layout jank, every micro-interaction that feels off. Output: a Figma board with annotated screenshots.
 
-- `shareRequest` table in `convex-identity`
-- Badge on inbox nav item driven by pending request count
-- Staging area: preview → accept (copy into profile) or decline
-- Accepted items are fully independent from the source
+### 10.2 Design exploration in Figma + Claude Design
 
-**Reference:** `07-home-school-connection.md`, ADR-007
+Use Figma + Claude Design tooling to flesh out the best possible look. Focus areas (informed by PostHog data):
+
+- Home dashboard (the daily-touch surface)
+- Talker bar (the AAC-defining surface)
+- Symbol cards (the most-rendered element)
+- Onboarding (the first impression)
+- Library / pack browsing (the discovery surface)
+- Settings (the parent-touching surface)
+
+### 10.3 Implementation pass
+
+Translate Figma decisions into the existing token system. Most polish should be token tweaks, not structural rewrites — if a polish change requires structural work, that signals a deeper design problem worth pausing for.
+
+### 10.4 Accessibility + density audit
+
+Visual polish must not regress accessibility (contrast ratios, focus rings, hit targets) or readability (line lengths, font sizes, especially for Devanagari and other non-Latin scripts).
 
 ---
 
-## Phase 10 — Affiliates
+## Phase 11 — Home/School Connection Review
+
+> **Status:** Review-and-rescope phase, not a build. The original separate-app architecture (convex-identity + convex-school + shared invite codes) may have been **accidentally solved** by the existing `accountMembers` invite system + per-profile `stateFlags`. See the hypothesis below.
+
+### Home/School Hypothesis — Did We Already Solve This?
+
+The original plan (see `07-home-school-connection.md`) envisaged two separate apps — Mo Speech Home and Mo Speech School — connected via a third Convex project (`convex-identity`) that holds shared student identity and brokers cross-app sharing.
+
+Looking at what's already shipped in this build:
+
+| Original plan need | What's already in the codebase |
+|---|---|
+| Teacher sees the student's profile | `accountMembers` invite flow (Phase 1 + `08-family-members.md`) — anyone with the email can be invited as a collaborator and gets full AAC access to the student profile |
+| Per-context settings (home vs school) | Per-profile `stateFlags` on `studentProfiles` already differ profile-by-profile. A parent could create a "school" profile vs a "home" profile within the same account with different settings each. |
+| Student switches between home/school setup | Active profile switching is already implemented (`setActiveProfile` mutation). |
+| Cross-environment consistency | Multiple collaborators (parent + teacher) editing the same student profile see each other's changes live via Convex subscriptions. |
+| Sharing a category from school to home | If teacher and parent are both collaborators on the same account, no "sharing" is needed — they both already see and edit the same content. |
+
+The original plan was designed around the assumption that home and school would be **separate accounts** that needed to be **bridged**. The Phase 1 + Phase 3 architecture instead made them **the same account with multiple collaborators**, which is a strictly simpler and more consistent model.
+
+What might still be needed (and what's worth confirming during this review):
+
+1. **Teacher-as-collaborator with restricted role.** Right now `accountMembers.role` is `"owner" | "collaborator"` with the latter having full edit rights. Teachers might want a `"viewer"` or `"editor-with-restrictions"` role — e.g., can see and use the talker but can't change billing or invite others. Trivial schema extension.
+2. **Multi-account teachers.** A teacher supports multiple students from multiple families. The current model would require the teacher to accept invites from each family separately — N invites for N students. That's actually fine UX-wise (each family explicitly chooses to invite the teacher), but worth confirming with real teachers.
+3. **Classroom modelling.** Modelling mode is one-to-one in the current build. A teacher modelling to multiple students simultaneously (the original Mo Speech School premise) would need a new architecture — but this is an edge case worth deferring until there's a real teacher asking for it.
+4. **Sharing between unconnected accounts.** Parent A's teacher wants to share a category with Parent B's teacher. This is the only scenario the original convex-identity model handles that the collaborator model doesn't. It's rare enough to defer until proven needed — a simple "export this category as JSON, import into another account" feature would cover most cases.
+
+### What this phase actually delivers
+
+- **Audit the hypothesis** above with real teacher conversations once the product is in their hands
+- **If the hypothesis holds:** delete or shrink `convex-identity` scope, archive the cross-project HTTP-action work, mark Mo Speech School as not separately built
+- **If the hypothesis partially holds:** ship the small additions identified above (e.g., a `"viewer"` role) as targeted additions rather than a separate-app architecture
+- **If the hypothesis fails:** revisit the original `07-home-school-connection.md` plan with whatever was learned
+
+The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRequest table) is preserved in `07-home-school-connection.md` as the fallback plan if this review concludes the separate-app architecture is genuinely needed. The Convex schema for `convex-identity` is already defined; nothing is lost by deferring the work.
+
+**Reference:** `07-home-school-connection.md` (original plan, fallback only), `08-family-members.md` (the architecture that may have solved this)
+
+---
+
+## Phase 12 — Affiliates
 
 **Goal:** Admin can grant affiliate status; Stripe Connect handles automatic payouts.
 
