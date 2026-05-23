@@ -397,6 +397,7 @@
     "instructor": "Instructor Profile",
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
+    "privacy": "Data & Privacy",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner.",
     "language": {
       "title": "Language",
@@ -520,6 +521,14 @@
     "upgradeTitle": "Family member invitations",
     "upgradeMessage": "Invite family members and carers to share the same student profile. Available on the Max plan.",
     "upgradeCta": "Upgrade to Max"
+  },
+  "privacy": {
+    "title": "Data & Privacy",
+    "description": "Mo Speech uses PostHog, a privacy-first product analytics service, to understand how the app is used and improve it. We never send the words, symbols, or sentences your child speaks through the app — only anonymous interaction events like which screens are visited and which features are used. IP addresses are anonymised. You can opt out at any time.",
+    "toggleLabel": "Help improve Mo Speech with anonymous usage data",
+    "toggleOnHint": "Anonymous events will be sent.",
+    "toggleOffHint": "No events will be sent from your device.",
+    "close": "Close"
   },
   "studentProfile": {
     "title": "Student Profile",

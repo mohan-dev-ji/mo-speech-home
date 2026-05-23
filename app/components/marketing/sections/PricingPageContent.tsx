@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { PricingToggle } from "@/app/components/marketing/ui/PricingToggle";
 import { PricingCard } from "@/app/components/marketing/ui/PricingCard";
+import { track } from "@/lib/analytics";
 
 type TierKey = "free" | "pro" | "max";
 
@@ -73,6 +74,13 @@ const comparisonRows: ReadonlyArray<{
 export function PricingPageContent() {
   const t = useTranslations("marketingPricing");
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
+
+  // Fire viewed_pricing once on mount. Anonymous visitors get a PostHog-
+  // generated distinctId; the alias-to-Clerk-userId happens automatically on
+  // signup, preserving the viewed_pricing → signed_up funnel.
+  useEffect(() => {
+    track("viewed_pricing", { source: "nav" });
+  }, []);
 
   return (
     <div className="py-20 px-6">

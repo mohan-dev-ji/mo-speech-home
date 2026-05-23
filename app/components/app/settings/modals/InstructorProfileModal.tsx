@@ -11,6 +11,7 @@ import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { track } from "@/lib/analytics";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ const TEXT_OPTIONS: { size: TextSize; label: string; hint: string }[] = [
 
 export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   const params = useParams();
-  const { userRecord } = useAppState();
+  const { userRecord, subscription } = useAppState();
   const { stateFlags, setInstructorTheme } = useProfile();
   const { activeThemeId } = useTheme();
 
@@ -66,8 +67,16 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
 
   // Preview theme immediately on swatch click
   const handleThemeClick = (slug: ThemeSlug) => {
+    const previousTheme = theme;
     setThemeSel(slug);
     setInstructorTheme(slug); // applies CSS vars instantly
+    if (slug !== previousTheme) {
+      track("theme_changed", {
+        from_theme: previousTheme,
+        to_theme: slug,
+        tier: subscription.tier,
+      });
+    }
   };
 
   // Grid change auto-derives text size
@@ -95,6 +104,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         // Persist via NEXT_LOCALE cookie so future visits to bare `/` respect
         // this choice. AppStateProvider's mismatch redirect handles the URL swap.
         document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
+        track("language_switched", { from: currentLocale, to: locale });
       }
       onClose();
     } finally {

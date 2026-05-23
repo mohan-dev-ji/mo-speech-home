@@ -111,8 +111,11 @@ export const getMyAccess = query({
 
 /**
  * Create a new user record on first sign-in.
- * Called by the Clerk webhook or AppStateProvider sync effect.
- * Starts user on a 14-day trial.
+ * Called by AppStateProvider sync effect (this build has no Clerk webhook).
+ *
+ * Returns `{ userId, wasCreated }` so the caller can distinguish first-sign-in
+ * from a returning visit. The `wasCreated` flag drives the one-shot
+ * `signed_up` analytics event in AppStateProvider — see plan §3.1 + §5.
  */
 export const createUser = mutation({
   args: {
@@ -128,7 +131,7 @@ export const createUser = mutation({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
       .first();
-    if (existing) return existing._id;
+    if (existing) return { userId: existing._id, wasCreated: false };
 
     const trialEndsAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -162,7 +165,27 @@ export const createUser = mutation({
       });
     }
 
-    return userId;
+    return { userId, wasCreated: true };
+  },
+});
+
+/**
+ * Update the current user's analytics opt-out preference.
+ * Called from the Settings PrivacyModal. The client also calls
+ * `posthog.opt_in_capturing()` / `posthog.opt_out_capturing()` immediately so
+ * the change is instant; this mutation persists the choice across devices.
+ */
+export const setAnalyticsOptOut = mutation({
+  args: { optOut: v.boolean() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { analyticsOptOut: args.optOut });
   },
 });
 

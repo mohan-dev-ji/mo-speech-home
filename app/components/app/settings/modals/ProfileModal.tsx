@@ -6,7 +6,9 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
+import { useAppState } from "@/app/contexts/AppStateProvider";
 import { type ThemeSlug } from "@/app/contexts/ThemeContext";
+import { track } from "@/lib/analytics";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
@@ -74,6 +76,7 @@ function ProfileTabContent({
 }) {
   const t = useTranslations("studentProfile");
   const { setActiveProfile, allProfiles } = useProfile();
+  const { subscription } = useAppState();
 
   const updateProfile  = useMutation(api.studentProfiles.updateStudentProfile);
   const setFlag        = useMutation(api.studentProfiles.setStateFlag);
@@ -113,14 +116,25 @@ function ProfileTabContent({
 
   const currentLang = profile.language ?? "eng";
   const handleLangChange = (lang: string) => {
+    if (lang === currentLang) return;
     updateProfile({ profileId: profile._id, language: lang });
+    // Student-profile language is conceptually distinct from instructor UI
+    // locale, but for V1 we use the same event name — PostHog can be filtered
+    // by URL / source if we ever need to split the two streams.
+    track("language_switched", { from: currentLang, to: lang });
   };
 
   // ── Theme ──
 
   const currentThemeSlug = ((profile as any).themeSlug ?? "default") as ThemeSlug;
   const handleThemeChange = (slug: ThemeSlug) => {
+    if (slug === currentThemeSlug) return; // no-op when re-clicking the active swatch
     updateProfile({ profileId: profile._id, themeSlug: slug });
+    track("theme_changed", {
+      from_theme: currentThemeSlug,
+      to_theme: slug,
+      tier: subscription.tier,
+    });
   };
 
   // ── Grid ──

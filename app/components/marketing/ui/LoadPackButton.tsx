@@ -9,6 +9,7 @@ import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
+import { track } from "@/lib/analytics";
 
 // Tint the active CTA by the pack's tier so the colour reinforces what the
 // user is unlocking (or already on). Free packs get green, Pro packs get
@@ -150,6 +151,11 @@ export function LoadPackButton({ packSlug, packTier, isStarter }: Props) {
         setSubmitting(true);
         try {
           await loadPack({ packSlug });
+          track("pack_loaded", {
+            slug: packSlug,
+            tier_at_load: packTier,
+            source: "library",
+          });
           showToast({ tone: "info", title: t("loadSuccessToast") });
           router.push("/categories");
         } catch (e: unknown) {

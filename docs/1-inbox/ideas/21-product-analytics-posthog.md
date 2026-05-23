@@ -53,7 +53,7 @@ Mo Speech is used by children. Even though the Clerk-authenticated user is the a
 
 ### Soft rules
 
-- **EU users by default get the EU PostHog instance** (`https://eu.posthog.com`) so data stays in Europe even before self-hosting.
+- **Region:** V1 ships on PostHog US Cloud. Defensible for a solo-founder MVP with DPA in place. Migrate to EU Cloud later if an enterprise / NHS / school-district customer requires strict UK/EU data residency in their procurement contract. **Host gotcha:** the ingest endpoint is `https://us.i.posthog.com` (note the `.i.`) — `https://us.posthog.com` is the dashboard URL only, and pointing `api_host` at it silently drops events. EU equivalents: `https://eu.i.posthog.com` (ingest) vs `https://eu.posthog.com` (dashboard).
 - **Test events in dev are tagged** with `environment: 'dev'` so analytics charts don't pollute with internal usage.
 
 ---
@@ -137,7 +137,7 @@ npm install posthog-js posthog-node
 
 ```
 NEXT_PUBLIC_POSTHOG_KEY=phc_...          # Project API key (public, OK to expose)
-NEXT_PUBLIC_POSTHOG_HOST=https://eu.posthog.com
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com  # or https://eu.i.posthog.com for EU
 POSTHOG_API_KEY=phx_...                  # Personal API key for posthog-node
 ```
 

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
+import posthog from 'posthog-js';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
@@ -185,6 +186,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setTheme(slug, THEME_TOKENS[slug]);
     }
   }, [activeThemeSlug]);
+
+  // ── PostHog: refresh person properties on profile switch ─────────────────────
+  // Each student profile has its own language + theme. When the active profile
+  // changes (multi-profile Max accounts), update the PostHog person properties
+  // so funnels filtered by language or theme reflect *current* usage, not the
+  // signup-time snapshot. Per plan §5.1 — the discipline that keeps the
+  // analytics layer compatible with future language and theme plugins.
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+    if (!studentProfile) return;
+    posthog.setPersonProperties({
+      language: studentProfile.language,
+      theme_slug: studentProfile.themeSlug ?? "default",
+      active_profile_id: studentProfile._id,
+    });
+  }, [studentProfile?._id, studentProfile?.language, studentProfile?.themeSlug]);
 
   // ── Compute active stateFlags ────────────────────────────────────────────────
 

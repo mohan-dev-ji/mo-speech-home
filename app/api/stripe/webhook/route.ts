@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import type Stripe from "stripe";
 import type { SubscriptionPlanId } from "@/types";
 
@@ -17,6 +18,13 @@ function planIdFromPriceId(priceId: string): SubscriptionPlanId {
   if (priceId === process.env.STRIPE_MAX_YEARLY_PRICE_ID) return "max_yearly";
   // Fallback — treat unknown price as pro_monthly; operator should check Stripe config
   return "pro_monthly";
+}
+
+// Rank tier for upgrade/downgrade comparison. Higher = more access.
+function tierRank(plan: SubscriptionPlanId): number {
+  if (plan.startsWith("max")) return 2;
+  if (plan.startsWith("pro")) return 1;
+  return 0;
 }
 
 export async function POST(request: Request) {
@@ -69,6 +77,13 @@ export async function POST(request: Request) {
           stripeSubscriptionId: sub.id,
         });
         console.log("[webhook] subscription updated successfully");
+
+        trackServer(user.clerkUserId, "subscribed", {
+          plan,
+          interval: plan.endsWith("yearly") ? "yearly" : "monthly",
+          amount: session.amount_total ?? 0,
+          currency: session.currency ?? "gbp",
+        });
         break;
       }
 
@@ -80,6 +95,8 @@ export async function POST(request: Request) {
         if (!user) break;
 
         const priceId = sub.items.data[0]?.price.id ?? "";
+        const newPlan = planIdFromPriceId(priceId);
+        const oldPlan = user.subscription.plan;
         const status = sub.cancel_at_period_end ? "cancelled"
           : sub.status === "active" ? "active"
           : sub.status === "past_due" ? "past_due"
@@ -88,11 +105,35 @@ export async function POST(request: Request) {
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status,
-          plan: planIdFromPriceId(priceId),
+          plan: newPlan,
           subscriptionEndsAt: sub.cancel_at_period_end
             ? (sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0) * 1000
             : undefined,
         });
+
+        // Decode the diff into a meaningful analytics event. Stripe sends the
+        // change in `event.data.previous_attributes`; we use the user's prior
+        // stored plan as a fallback signal when previous_attributes is sparse.
+        const prev = (event.data as { previous_attributes?: { cancel_at_period_end?: boolean } })
+          .previous_attributes;
+        const wasReactivated =
+          prev?.cancel_at_period_end === true && sub.cancel_at_period_end === false;
+        const wasCancelled =
+          prev?.cancel_at_period_end === false && sub.cancel_at_period_end === true;
+        const tierChanged = oldPlan && oldPlan !== newPlan;
+
+        if (wasReactivated) {
+          trackServer(user.clerkUserId, "reactivated", { plan: newPlan });
+        } else if (wasCancelled) {
+          trackServer(user.clerkUserId, "cancelled", { plan: newPlan });
+        } else if (tierChanged) {
+          const isUpgrade = tierRank(newPlan) > tierRank(oldPlan as SubscriptionPlanId);
+          trackServer(user.clerkUserId, isUpgrade ? "upgraded" : "downgraded", {
+            from_plan: oldPlan,
+            to_plan: newPlan,
+          });
+        }
+        // Otherwise: trial extension, billing-cycle anchor change, etc. — no event.
         break;
       }
 
@@ -103,10 +144,24 @@ export async function POST(request: Request) {
         });
         if (!user) break;
 
+        const prevPlan = user.subscription.plan;
+        const wasNonPayment = user.subscription.status === "past_due";
+
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status: "expired",
         });
+
+        trackServer(
+          user.clerkUserId,
+          wasNonPayment ? "expired" : "cancelled",
+          {
+            plan: prevPlan ?? null,
+            days_since_subscribed: user.subscription.subscriptionEndsAt
+              ? Math.floor((Date.now() - user._creationTime) / (24 * 60 * 60 * 1000))
+              : null,
+          }
+        );
         break;
       }
 
@@ -121,14 +176,22 @@ export async function POST(request: Request) {
           userId: user._id,
           status: "past_due",
         });
+
+        trackServer(user.clerkUserId, "payment_failed", {
+          plan: user.subscription.plan ?? null,
+          attempt_count: invoice.attempt_count ?? 1,
+        });
         // TODO: Send payment failure email (e.g. via Resend or Nodemailer)
         break;
       }
     }
   } catch (err) {
     console.error("Webhook processing error:", err);
+    await flushAnalytics();
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
 
+  // Flush any queued analytics events before serverless cold-stop drops them.
+  await flushAnalytics();
   return NextResponse.json({ received: true });
 }

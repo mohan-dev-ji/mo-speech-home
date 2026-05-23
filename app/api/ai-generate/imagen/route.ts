@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { uploadBuffer, getFile, isConfigured } from "@/lib/r2-storage";
 import { R2_PATHS } from "@/lib/r2-paths";
 import { STYLE_PRESETS, isStyleId, type StyleId } from "@/lib/ai-style-prompts";
+import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 
 export const dynamic = "force-dynamic";
 // Imagen calls take ~5–10s; bump from the default 10s.
@@ -196,6 +197,16 @@ export async function POST(request: Request) {
     style,
     r2Key,
   });
+
+  // Product analytics: cache-miss = real usage signal. See plan §7.4.
+  // The prompt text is intentionally NOT included in the payload — privacy
+  // hard rule. Style is fine: it's a fixed enum, not user content.
+  trackServer(userId, "ai_generate_used", {
+    tier: "max",
+    cached: false,
+    style,
+  });
+  await flushAnalytics();
 
   const pngAb = pngBuffer.buffer.slice(
     pngBuffer.byteOffset,

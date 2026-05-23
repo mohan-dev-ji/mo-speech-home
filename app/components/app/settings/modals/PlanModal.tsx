@@ -13,6 +13,7 @@ import { PricingToggle } from "@/app/components/marketing/ui/PricingToggle";
 import { DeleteAccountDialog } from "@/app/components/app/settings/modals/DeleteAccountDialog";
 import { Check, AlertCircle, CheckCircle, Camera, ChevronDown } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -324,10 +325,14 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
 
     // Free or expired: go to checkout (need payment details)
     if (tier === "free" || isExpired) {
+      const planId = `${targetTier}_${billingInterval}`;
       return (
         <Button
           size="sm"
-          onClick={() => callApi("/api/stripe/checkout", { tier: targetTier, plan: billingInterval })}
+          onClick={() => {
+            track("started_checkout", { plan: planId });
+            callApi("/api/stripe/checkout", { tier: targetTier, plan: billingInterval });
+          }}
           loading={isLoading}
           className="w-full"
         >

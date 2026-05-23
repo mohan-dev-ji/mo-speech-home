@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import { searchWikimedia } from "@/lib/image-providers/wikimedia";
 import { searchPixabay } from "@/lib/image-providers/pixabay";
 import { searchUnsplash } from "@/lib/image-providers/unsplash";
@@ -156,6 +157,17 @@ export async function POST(request: Request) {
     page,
     results,
   });
+
+  // Product analytics: cache-miss = real usage signal. Cache hits are free
+  // and don't get tracked (they'd inflate the event count without showing
+  // genuine engagement). See plan §7.4 + privacy hard rules (no query text
+  // in the payload, no per-result imagery — aggregate signal only).
+  trackServer(userId, "image_search_used", {
+    tier: "max",
+    cached: false,
+    results_count: results.length,
+  });
+  await flushAnalytics();
 
   return NextResponse.json({
     results,

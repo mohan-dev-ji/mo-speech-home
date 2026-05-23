@@ -45,10 +45,18 @@ export type UserRecord = {
     stripeSubscriptionId?: string;
     subscriptionEndsAt?: number | null;
     trialEndsAt?: number | null;
+    customAccess?: {
+      isActive: boolean;
+      reason: string;
+      grantedBy: string;
+      grantedAt: number;
+      expiresAt?: number;
+    };
   };
   lastActiveAt: number;
   locale?: string;
   themeSlug?: string;
+  analyticsOptOut?: boolean;
   stateFlags?: {
     grid_size?: 'large' | 'medium' | 'small';
     symbol_label_visible?: boolean;

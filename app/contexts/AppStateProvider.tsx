@@ -4,7 +4,10 @@ import { createContext, useContext, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { api } from "@/convex/_generated/api";
+import { track } from "@/lib/analytics";
+import { deriveTier } from "@/types";
 import type { UserSubscription, UserRecord } from "@/types";
 
 type AppStateContextValue = {
@@ -45,18 +48,79 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     hasSynced.current = true;
 
     if (userRecord === null) {
-      // First sign-in — create the user record, capture the current URL locale
-      createUser({
+      // First sign-in — create the user record, capture the current URL locale.
+      // Fire `signed_up` only when the mutation actually inserted (wasCreated:
+      // true). If a race produces wasCreated: false on first sign-in (e.g. two
+      // tabs opened together), we'd skip the event — acceptable; the user
+      // record exists either way.
+      void createUser({
         clerkUserId: clerkUser.id,
         email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
         name: clerkUser.fullName ?? undefined,
         locale: urlLocale ?? "en",
+      }).then((result) => {
+        if (result?.wasCreated) {
+          track("signed_up", { has_referral_code: false });
+        }
       });
     } else {
       // Returning user — update activity timestamp
       updateLastActive({ userId: userRecord._id as any });
     }
   }, [isLoaded, clerkUser, userRecord]);
+
+  // ─── PostHog identify + opt-out respect ──────────────────────────────────────
+  // Identify the user to PostHog as soon as both Clerk + Convex have resolved,
+  // so all subsequent events land on the right person record. Pre-signup
+  // anonymous events are aliased to the Clerk userId automatically when
+  // `identify()` is called (preserves the viewed_pricing → signed_up funnel).
+  //
+  // Opt-out is read from the Convex record so it follows the user across
+  // devices, not just the current browser. Re-runs whenever userRecord or
+  // accessData changes, so person properties stay current with subscription
+  // tier changes.
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+    if (!clerkUser || !userRecord) return;
+
+    if (userRecord.analyticsOptOut === true) {
+      if (!posthog.has_opted_out_capturing()) {
+        posthog.opt_out_capturing();
+      }
+      return;
+    }
+    // Idempotency guards — `opt_in_capturing` and `identify` each fire a
+    // `$opt_in` / `$identify` event whenever called. Without these guards the
+    // identify effect would re-fire those events on every reactive Convex
+    // update (plan changes, locale changes, accessData refresh), flooding the
+    // activity feed with metadata events and drowning real product events.
+    if (!posthog.has_opted_in_capturing()) {
+      posthog.opt_in_capturing();
+    }
+    // `posthog.get_distinct_id()` returns the current identified id, or an
+    // auto-generated anonymous one. Only call `identify` if it doesn't match
+    // our Clerk userId — same idempotency principle.
+    if (posthog.get_distinct_id() !== clerkUser.id) {
+      posthog.identify(clerkUser.id);
+    }
+    // setPersonProperties always emits a `$set` event but it carries genuinely
+    // useful payload (tier / plan / locale changes), so leave that one alone.
+    posthog.setPersonProperties({
+      tier: accessData?.tier ?? deriveTier(userRecord.subscription.plan),
+      plan: userRecord.subscription.plan ?? null,
+      has_custom_access: !!userRecord.subscription.customAccess?.isActive,
+      locale: userRecord.locale ?? null,
+    });
+  }, [
+    clerkUser?.id,
+    userRecord?._id,
+    userRecord?.analyticsOptOut,
+    userRecord?.subscription?.plan,
+    userRecord?.locale,
+    accessData?.tier,
+  ]);
 
   // ─── Locale mismatch redirect — returning users only ─────────────────────────
   // If the stored locale differs from the current URL locale, redirect.

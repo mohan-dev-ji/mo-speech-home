@@ -10,6 +10,7 @@ import { ConvexError } from "convex/values";
 import { Loader2 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { ToastProvider, useToast } from "@/app/components/app/shared/ui/Toast";
+import { track } from "@/lib/analytics";
 
 const RESUME_KEY = "library:resume";
 
@@ -73,6 +74,14 @@ function PostSignupDispatch() {
       // Resume queued → load + redirect to categories (locale-prefixed).
       try {
         await loadPack({ packSlug: resumePackSlug });
+        // tier_at_load: "free" — post-signup users are always on free at the
+        // moment they trigger the resume; if it were a paid pack they'd have
+        // hit a TIER_REQUIRED upsell earlier in the flow.
+        track("pack_loaded", {
+          slug: resumePackSlug,
+          tier_at_load: "free",
+          source: "post_signup",
+        });
         try {
           localStorage.removeItem(RESUME_KEY);
         } catch {

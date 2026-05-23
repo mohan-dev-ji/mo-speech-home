@@ -9,16 +9,16 @@ import { InstructorProfileModal } from "@/app/components/app/settings/modals/Ins
 import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal";
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
+import { PrivacyModal }  from "@/app/components/app/settings/modals/PrivacyModal";
 import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
-import { LanguageRow }   from "@/app/components/app/settings/sections/LanguageRow";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
-  "instructor", "profile", "plan", "navbar", "invites",
+  "instructor", "profile", "plan", "navbar", "invites", "privacy",
 ] as const;
 
 const COLLABORATOR_SETTINGS_IDS = [
-  "instructor", "navbar",
+  "instructor", "navbar", "privacy",
 ] as const;
 
 type SettingId = typeof OWNER_SETTINGS_IDS[number];
@@ -28,6 +28,7 @@ const MODAL_SIZE: Partial<Record<SettingId, string>> = {
   profile:    "max-w-lg",
   plan:       "max-w-3xl",
   invites:    "max-w-2xl",
+  privacy:    "max-w-lg",
 };
 
 export function SettingsContent() {
@@ -67,6 +68,7 @@ export function SettingsContent() {
       case "plan":       return <PlanModal    onClose={close} />;
       case "navbar":     return <ScaffoldModal title={t("navbar")} onClose={close} />;
       case "invites":    return <InvitesModal onClose={close} onOpenPlan={() => { close(); open("plan"); }} />;
+      case "privacy":    return <PrivacyModal onClose={close} />;
     }
   };
 
@@ -76,7 +78,12 @@ export function SettingsContent() {
         <h1 className="text-theme-h4 font-semibold text-theme-alt-text">{t("title")}</h1>
       </div>
 
-      <LanguageRow />
+      {/*
+        Language picker removed from Settings — it now lives inside both
+        Instructor Profile and Student Profile modals where it's more compact
+        and contextual. One place per concept: instructor locale in
+        InstructorProfileModal, student-profile language in ProfileModal.
+      */}
 
       {isCollaborator && (
         <div className="flex items-center gap-3 rounded-theme bg-theme-card px-5 py-3">

@@ -13,6 +13,7 @@ import {
   DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { track } from "@/lib/analytics";
 
 type Props = {
   profileId: Id<"studentProfiles">;
@@ -43,6 +44,7 @@ export function ModellingPickerModal({
     setError(null);
     try {
       await createSession({ profileId, profileSymbolId: selectedId });
+      track("modelling_started", {});
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error"));

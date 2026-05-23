@@ -21,6 +21,8 @@ import {
   DialogDescription,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { useAppState } from "@/app/contexts/AppStateProvider";
+import { track } from "@/lib/analytics";
 
 type UpgradeNudgeProps = {
   open: boolean;
@@ -40,10 +42,21 @@ export function UpgradeNudge({
 }: UpgradeNudgeProps) {
   const t = useTranslations("upgrade");
   const router = useRouter();
+  const { subscription } = useAppState();
 
   const bodyKey: `${"editAuthoring"}Body` = `${feature}Body`;
 
   const handleSeePlans = () => {
+    // Fire BEFORE close so the event fires while the component is still
+    // mounted (defensive — capture is fire-and-forget so it works either way).
+    track("clicked_upgrade", {
+      from_tier: subscription.tier,
+      // V1: every UpgradeNudge instance is the edit-authoring Pro gate.
+      // When we add additional gated features at Max-only surfaces, route
+      // the target_tier from the `feature` prop accordingly.
+      target_tier: "pro",
+      source: feature,
+    });
     onOpenChange(false);
     // Deep-link the Account & Billing modal via `?modal=plan` — SettingsContent
     // reads the param on mount, opens the PlanModal, then strips the query

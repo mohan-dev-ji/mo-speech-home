@@ -7,6 +7,7 @@ import { ModellingSessionProvider } from '@/app/contexts/ModellingSessionContext
 import { ResourceLibraryProvider } from '@/app/contexts/ResourceLibraryContext';
 import { BreadcrumbProvider } from '@/app/contexts/BreadcrumbContext';
 import { AppStateProvider } from '@/app/contexts/AppStateProvider';
+import { PostHogProvider } from '@/app/contexts/PostHogProvider';
 import { StudentOnboardingGate } from '@/app/components/app/onboarding/StudentOnboardingGate';
 import { ToastProvider } from '@/app/components/app/shared/ui/Toast';
 import { ModellingBackdrop } from '@/app/components/app/shared/ui/ModellingBackdrop';
@@ -21,8 +22,9 @@ import type { ReactNode } from 'react';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <AppStateProvider>
-      <ThemeProvider>
+    <PostHogProvider>
+      <AppStateProvider>
+        <ThemeProvider>
         <ProfileProvider>
           <TalkerProvider>
             <ModellingSessionProvider>
@@ -41,11 +43,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
                     {children}
                   </ToastProvider>
                 </BreadcrumbProvider>
-              </ResourceLibraryProvider>
-            </ModellingSessionProvider>
-          </TalkerProvider>
-        </ProfileProvider>
-      </ThemeProvider>
-    </AppStateProvider>
+                </ResourceLibraryProvider>
+              </ModellingSessionProvider>
+            </TalkerProvider>
+          </ProfileProvider>
+        </ThemeProvider>
+      </AppStateProvider>
+    </PostHogProvider>
   );
 }
