@@ -77,7 +77,7 @@ export const getProfileListWithItems = query({
 
 export const createProfileList = mutation({
   args: {
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -106,7 +106,7 @@ export const createProfileList = mutation({
 export const updateProfileListName = mutation({
   args: {
     profileListId: v.id("profileLists"),
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: v.record(v.string(), v.string()),
     // See ADR-008 + ADR-009 follow-up: pack snapshot only updates when the
     // caller is admin AND in admin viewMode. Non-admin views (and normal
     // users) never propagate to the pack.
@@ -132,7 +132,12 @@ export const updateProfileListItems = mutation({
       v.object({
         imagePath: v.optional(v.string()),
         order: v.number(),
-        description: v.optional(v.string()),
+        // Per ADR-009 §2 the description is a localised record; the validator
+        // accepts the legacy plain string too while the Phase 8.0 migration
+        // union is in force, then tightens to record-only in a follow-up.
+        description: v.optional(
+          v.union(v.string(), v.record(v.string(), v.string()))
+        ),
         audioPath: v.optional(v.string()),
         activeAudioSource: v.optional(v.union(
           v.literal("default"), v.literal("generate"), v.literal("record")

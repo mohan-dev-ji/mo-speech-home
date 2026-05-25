@@ -60,12 +60,15 @@ export const getProfileSymbol = query({
     if (!ps) return null;
 
     let symbolRecord: {
-      words: { eng: string; hin?: string };
+      words: Record<string, string>;
       imagePath: string;
-      audio: {
-        eng: { default: string };
-        hin?: { default: string };
-      };
+      // Per ADR-009 §4 audio is a voice-keyed boolean map post Phase 8.0.
+      // Path is convention-resolved client-side; this field surfaces only
+      // "has a seeded recording" presence.
+      audio: Record<string, boolean>;
+      // Legacy en-GB-News-M filename — needed because the MVP's R2 layout
+      // doesn't follow `<word>.mp3`. See `lib/audio/resolveAudioPath.ts`.
+      audioBasename?: string;
     } | null = null;
 
     if (ps.imageSource.type === "symbolstix") {
@@ -74,7 +77,8 @@ export const getProfileSymbol = query({
         symbolRecord = {
           words: sym.words,
           imagePath: sym.imagePath,
-          audio: sym.audio,
+          audio: sym.audio as Record<string, boolean>,
+          ...(sym.audioBasename ? { audioBasename: sym.audioBasename } : {}),
         };
       }
     }
@@ -95,13 +99,8 @@ export const createProfileSymbol = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
     imageSource: imageSourceValidator,
-    label: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-    audio: v.optional(
-      v.object({
-        eng: v.optional(audioSourceValidator),
-        hin: v.optional(audioSourceValidator),
-      })
-    ),
+    label: v.record(v.string(), v.string()),
+    audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
     propagateToPack: v.optional(v.boolean()),
   },
@@ -207,9 +206,12 @@ export const getProfileSymbolDeleteOrphanKeys = query({
     }
 
     // Audio: per-language. Delete `recorded` paths + `recorded` alternates.
-    // Keep `tts` (shared cache) and `r2` (SymbolStix default).
-    for (const lang of ["eng", "hin"] as const) {
-      const a = sym.audio?.[lang];
+    // Keep `tts` (shared cache) and `r2` (SymbolStix default). Post Phase 8.0
+    // the per-language map is an open record keyed by ISO code — iterate
+    // values rather than naming locales.
+    const audioMap =
+      (sym.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
+    for (const a of Object.values(audioMap)) {
       if (!a) continue;
       if (a.type === "recorded") keys.push(a.path);
       if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
@@ -250,13 +252,8 @@ export const updateProfileSymbol = mutation({
     profileSymbolId: v.id("profileSymbols"),
     profileCategoryId: v.id("profileCategories"),
     imageSource: imageSourceValidator,
-    label: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-    audio: v.optional(
-      v.object({
-        eng: v.optional(audioSourceValidator),
-        hin: v.optional(audioSourceValidator),
-      })
-    ),
+    label: v.record(v.string(), v.string()),
+    audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
     propagateToPack: v.optional(v.boolean()),
   },

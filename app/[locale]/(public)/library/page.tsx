@@ -3,6 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { preloadQuery, preloadedQueryResult } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { LibraryGrid } from "@/app/components/marketing/sections/LibraryGrid";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 // Statically render the catalogue and revalidate hourly.
 // Auth-aware CTAs hydrate client-side via LoadPackButton — the SSR HTML always
@@ -34,7 +36,6 @@ export default async function LibraryPage({ params }: Props) {
 
   // JSON-LD ItemList for SEO. Reads the same data shipped to the client.
   const packs = preloadedQueryResult(preloaded);
-  const isHindi = locale === "hi";
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -42,8 +43,8 @@ export default async function LibraryPage({ params }: Props) {
     itemListElement: packs.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: (isHindi && p.name.hin) || p.name.eng,
-      description: (isHindi && p.description.hin) || p.description.eng,
+      name: displayString(p.name, locale, DEFAULT_LOCALE),
+      description: displayString(p.description, locale, DEFAULT_LOCALE),
     })),
   };
 

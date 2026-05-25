@@ -96,7 +96,7 @@ export const migrateContentToAccount = mutation({
  *
  * For each CategorySeed in DEFAULT_CATEGORIES, this mirrors the symbol-lookup
  * logic from seedDefaultAccount (convex/profileCategories.ts:58–89): take each
- * word, query symbols.by_words_eng, prefer matches whose `categories` field
+ * word, query symbols.by_words_en, prefer matches whose `categories` field
  * overlaps cat.symbolstixCategories, fall back to any case-insensitive word
  * match, skip if no match found.
  *
@@ -123,8 +123,8 @@ export const materialiseStarterPack = mutation({
         if (cat.folderWord) {
           const folderSym = await ctx.db
             .query("symbols")
-            .withIndex("by_words_eng", (q) =>
-              q.eq("words.eng", cat.folderWord!)
+            .withIndex("by_words_en", (q) =>
+              q.eq("words.en", cat.folderWord!)
             )
             .first();
           if (folderSym) folderImagePath = folderSym.imagePath;
@@ -140,20 +140,20 @@ export const materialiseStarterPack = mutation({
         for (const word of cat.words) {
           const candidates = await ctx.db
             .query("symbols")
-            .withIndex("by_words_eng", (q) => q.eq("words.eng", word))
+            .withIndex("by_words_en", (q) => q.eq("words.en", word))
             .take(3);
 
           const wordLower = word.toLowerCase();
           const match =
             candidates.find(
               (s) =>
-                s.words.eng.toLowerCase() === wordLower &&
+                (s.words.en ?? "").toLowerCase() === wordLower &&
                 s.categories.some((c) =>
                   cat.symbolstixCategories.includes(c)
                 )
             ) ??
             candidates.find(
-              (s) => s.words.eng.toLowerCase() === wordLower
+              (s) => (s.words.en ?? "").toLowerCase() === wordLower
             );
 
           if (!match) {
@@ -179,10 +179,10 @@ export const materialiseStarterPack = mutation({
     );
 
     const payload = {
-      name: { eng: "Starter Pack", hin: "Starter Pack (hi)" },
+      name: { en: "Starter Pack", hi: "Starter Pack (hi)" },
       description: {
-        eng: "Default categories loaded into every new account on signup.",
-        hin: "Default categories loaded into every new account on signup. (hi)",
+        en: "Default categories loaded into every new account on signup.",
+        hi: "Default categories loaded into every new account on signup. (hi)",
       },
       coverImagePath: "static/starter-cover.webp", // placeholder; replace later
       tags: [],
@@ -795,7 +795,7 @@ export const backfillResourcePackSlugs = mutation({
       }
 
       // Starter pack gets a stable underscore-prefixed slug.
-      let base = pack.isStarter ? "_starter" : slugify(pack.name.eng);
+      let base = pack.isStarter ? "_starter" : slugify(pack.name.en ?? "");
       if (!base) base = "pack"; // defensive: empty name → "pack"
 
       // Resolve collisions with `_2`, `_3`, …
@@ -1175,31 +1175,30 @@ function renameLegacyKeys(
  *
  * Caller loops:
  *   const r = await convex.mutation(api.migrations.migrateSymbolsBatch, { batchSize: 5000 });
- *   while (!r.done) { /* re-call with cursor */ }
+ *   while (!r.done) { // re-call with cursor }
  *
  * Idempotent — rows already migrated (no `eng`/`hin` keys, audio is a flat
  * boolean map) are skipped.
  */
 export const migrateSymbolsBatch = mutation({
   args: {
-    cursor: v.optional(v.string()),
+    cursor: v.optional(v.union(v.string(), v.null())),
     batchSize: v.optional(v.number()),
   },
   handler: async (ctx, { cursor, batchSize = 2000 }) => {
-    // Take batchSize+1 rows; if we get batchSize+1 there's more after.
-    // Cursor is the last processed _id.
-    let q = ctx.db.query("symbols").order("asc");
-    const all = await q.take(batchSize + (cursor ? 1 : 0));
-    const startIdx = cursor
-      ? all.findIndex((s) => s._id === cursor) + 1
-      : 0;
-    const slice = all.slice(startIdx, startIdx + batchSize);
+    // Use Convex's pagination cursor — `take`-with-offset can't survive
+    // 52k rows. The caller loops, passing the previous `continueCursor`
+    // back in until `done: true`.
+    const page = await ctx.db
+      .query("symbols")
+      .order("asc")
+      .paginate({ cursor: cursor ?? null, numItems: batchSize });
 
     let migrated = 0;
     let alreadyDone = 0;
     let lastId: string | null = null;
 
-    for (const row of slice) {
+    for (const row of page.page) {
       lastId = row._id;
 
       const words = row.words as Record<string, unknown>;
@@ -1244,8 +1243,14 @@ export const migrateSymbolsBatch = mutation({
       migrated++;
     }
 
-    const done = slice.length < batchSize;
-    return { migrated, alreadyDone, lastId, done, batchSize };
+    return {
+      migrated,
+      alreadyDone,
+      lastId,
+      done: page.isDone,
+      continueCursor: page.continueCursor,
+      batchSize,
+    };
   },
 });
 
@@ -1434,12 +1439,17 @@ export const wipeProfileContent = mutation({
  * Idempotent — rows already present are left alone.
  */
 export const seedLanguageLifecycle = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+  // Mirrors `materialiseStarterPack`'s dashboard-runnable pattern: takes the
+  // admin's Clerk user id as an argument so the mutation runs without an
+  // identity in `npx convex run` invocations.
+  args: { adminClerkUserId: v.optional(v.string()) },
+  handler: async (ctx, { adminClerkUserId }) => {
+    if (!adminClerkUserId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) throw new Error("Unauthenticated");
+      adminClerkUserId = identity.subject;
+    }
 
-    const adminClerkUserId = identity.subject;
     const now = Date.now();
 
     const seeds = [
@@ -1471,5 +1481,55 @@ export const seedLanguageLifecycle = mutation({
     }
 
     return { seeded, alreadyExisted };
+  },
+});
+
+/**
+ * Phase 8.0 recovery: backfill `symbols.audioBasename` from the MVP's
+ * `symbolstix-metadata.json` export. The initial Phase 8.0 schema migration
+ * collapsed the per-symbol `audio.eng.default` path into a voice-keyed
+ * boolean and lost the original R2 filename. The new audio resolver tried
+ * to synthesise the filename from `words.en`, which is correct for only
+ * ~1 in 6 symbols (the rest use SymbolStix IDs or normalised slugs).
+ *
+ * The companion Node script `scripts/backfill-audio-basenames.mjs` reads
+ * the metadata JSON locally and calls this mutation in batches of 1000.
+ * Match is by `imagePath` (uses the new `by_imagePath` index) — that field
+ * stayed stable through the migration so it's the reliable join key.
+ *
+ * Idempotent — rows already with the correct basename are skipped.
+ */
+export const backfillAudioBasenames = mutation({
+  args: {
+    entries: v.array(
+      v.object({
+        imagePath: v.string(),
+        audioBasename: v.string(),
+      })
+    ),
+  },
+  handler: async (ctx, { entries }) => {
+    let patched = 0;
+    let alreadySet = 0;
+    let symbolMissing = 0;
+
+    for (const entry of entries) {
+      const sym = await ctx.db
+        .query("symbols")
+        .withIndex("by_imagePath", (q) => q.eq("imagePath", entry.imagePath))
+        .first();
+      if (!sym) {
+        symbolMissing++;
+        continue;
+      }
+      if (sym.audioBasename === entry.audioBasename) {
+        alreadySet++;
+        continue;
+      }
+      await ctx.db.patch(sym._id, { audioBasename: entry.audioBasename });
+      patched++;
+    }
+
+    return { patched, alreadySet, symbolMissing, scanned: entries.length };
   },
 });

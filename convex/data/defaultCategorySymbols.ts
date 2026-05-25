@@ -3,12 +3,12 @@
  *
  * Each CategorySeed defines:
  *   - symbolstixCategories: which SymbolStix `categories` values to query
- *   - words: ordered list of 48 words to seed (matched against symbols.words.eng)
+ *   - words: ordered list of 48 words to seed (matched against symbols.words.en)
  *
  * Each DropdownGroup defines 24 words for the core little-words dropdown.
  *
  * Seeding logic: for each word in the `words` array, find the first symbol
- * WHERE words.eng === word AND categories contains any of symbolstixCategories.
+ * WHERE words.en === word AND categories contains any of symbolstixCategories.
  * Insert as profileSymbol in order. Skip gracefully if no match found.
  *
  * Known custom symbol gaps (not in SymbolStix — need manual upload):
@@ -27,12 +27,12 @@
 
 export type CategorySeed = {
   id: string;
-  name: { eng: string; hin: string };
+  name: Record<string, string>;
   icon: string;
   colour: string;
   /** SymbolStix categories[] values to include in the query */
   symbolstixCategories: string[];
-  /** Ordered list of words.eng to seed — first 48 matches used */
+  /** Ordered list of words.en to seed — first 48 matches used */
   words: string[];
   /** Word to look up for the category folder cover image */
   folderWord?: string;
@@ -40,7 +40,7 @@ export type CategorySeed = {
 
 export type DropdownGroup = {
   id: string;
-  name: { eng: string; hin: string };
+  name: Record<string, string>;
   symbolstixCategories: string[];
   words: string[];
 };
@@ -50,7 +50,7 @@ export type DropdownGroup = {
 export const DEFAULT_CATEGORIES: CategorySeed[] = [
   {
     id: "actions",
-    name: { eng: "Actions", hin: "Actions (hi)" },
+    name: { en: "Actions", hi: "Actions (hi)" },
     icon: "⚡",
     colour: "#F97316",
     folderWord: "play",
@@ -66,7 +66,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "people",
-    name: { eng: "People", hin: "People (hi)" },
+    name: { en: "People", hi: "People (hi)" },
     icon: "👥",
     colour: "#A855F7",
     folderWord: "family",
@@ -87,7 +87,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "feelings",
-    name: { eng: "Feelings", hin: "Feelings (hi)" },
+    name: { en: "Feelings", hi: "Feelings (hi)" },
     icon: "😊",
     colour: "#EC4899",
     folderWord: "happy",
@@ -107,7 +107,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "describe",
-    name: { eng: "Describe", hin: "Describe (hi)" },
+    name: { en: "Describe", hi: "Describe (hi)" },
     icon: "🔵",
     colour: "#14B8A6",
     folderWord: "beautiful",
@@ -129,7 +129,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "food-and-drink",
-    name: { eng: "Food & Drink", hin: "Food & Drink (hi)" },
+    name: { en: "Food & Drink", hi: "Food & Drink (hi)" },
     icon: "🍎",
     colour: "#EF4444",
     folderWord: "apple",
@@ -154,7 +154,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "home",
-    name: { eng: "Home", hin: "Home (hi)" },
+    name: { en: "Home", hi: "Home (hi)" },
     icon: "🏠",
     colour: "#3B82F6",
     folderWord: "bedroom",
@@ -183,7 +183,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "activities",
-    name: { eng: "Activities", hin: "Activities (hi)" },
+    name: { en: "Activities", hi: "Activities (hi)" },
     icon: "⚽",
     colour: "#22C55E",
     folderWord: "football",
@@ -213,7 +213,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "school",
-    name: { eng: "School", hin: "School (hi)" },
+    name: { en: "School", hi: "School (hi)" },
     icon: "📚",
     colour: "#EAB308",
     folderWord: "school",
@@ -244,7 +244,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "health",
-    name: { eng: "Health", hin: "Health (hi)" },
+    name: { en: "Health", hi: "Health (hi)" },
     icon: "❤️",
     colour: "#F43F5E",
     folderWord: "doctor",
@@ -274,7 +274,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "animals",
-    name: { eng: "Animals", hin: "Animals (hi)" },
+    name: { en: "Animals", hi: "Animals (hi)" },
     icon: "🐾",
     colour: "#F59E0B",
     folderWord: "dog",
@@ -301,7 +301,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "nature",
-    name: { eng: "Nature", hin: "Nature (hi)" },
+    name: { en: "Nature", hi: "Nature (hi)" },
     icon: "🌿",
     colour: "#10B981",
     folderWord: "sun",
@@ -323,7 +323,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "community",
-    name: { eng: "Community", hin: "Community (hi)" },
+    name: { en: "Community", hi: "Community (hi)" },
     icon: "🏘️",
     colour: "#6366F1",
     folderWord: "hospital",
@@ -351,7 +351,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "time",
-    name: { eng: "Time", hin: "Time (hi)" },
+    name: { en: "Time", hi: "Time (hi)" },
     icon: "⏰",
     colour: "#0EA5E9",
     folderWord: "clock",
@@ -377,7 +377,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "numbers",
-    name: { eng: "Numbers", hin: "Numbers (hi)" },
+    name: { en: "Numbers", hi: "Numbers (hi)" },
     icon: "🔢",
     colour: "#06B6D4",
     folderWord: "number",
@@ -401,7 +401,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "chat",
-    name: { eng: "Chat", hin: "Chat (hi)" },
+    name: { en: "Chat", hi: "Chat (hi)" },
     icon: "💬",
     colour: "#F472B6",
     folderWord: "hello",
@@ -423,7 +423,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "questions",
-    name: { eng: "Questions", hin: "Questions (hi)" },
+    name: { en: "Questions", hi: "Questions (hi)" },
     icon: "❓",
     colour: "#7C3AED",
     folderWord: "what",
@@ -449,7 +449,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "religion",
-    name: { eng: "Religion", hin: "Religion (hi)" },
+    name: { en: "Religion", hi: "Religion (hi)" },
     icon: "🙏",
     colour: "#D97706",
     folderWord: "pray",
@@ -481,7 +481,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
 export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   {
     id: "core-a",
-    name: { eng: "Core words A", hin: "Core words A (hi)" },
+    name: { en: "Core words A", hi: "Core words A (hi)" },
     symbolstixCategories: ["SymbolStix Squares Core Vocabulary Set 1"],
     words: [
       "yes", "please", "more", "stop", "good", "bad", "happy", "sad",
@@ -491,7 +491,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "core-b",
-    name: { eng: "Core words B", hin: "Core words B (hi)" },
+    name: { en: "Core words B", hi: "Core words B (hi)" },
     symbolstixCategories: ["SymbolStix Squares Core Vocabulary Set 2"],
     words: [
       "want", "need", "help", "go", "come", "eat", "drink", "play",
@@ -501,7 +501,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "pronouns",
-    name: { eng: "Pronouns", hin: "Pronouns (hi)" },
+    name: { en: "Pronouns", hi: "Pronouns (hi)" },
     symbolstixCategories: ["Pronouns"],
     words: [
       "I", "you", "he", "she", "we", "they", "me", "him", "her",
@@ -511,7 +511,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "joining-words",
-    name: { eng: "Joining words", hin: "Joining words (hi)" },
+    name: { en: "Joining words", hi: "Joining words (hi)" },
     symbolstixCategories: ["Conjunctions"],
     words: [
       "and", "but", "or", "because", "if", "when", "where", "who",
@@ -521,7 +521,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "position-words",
-    name: { eng: "Position words", hin: "Position words (hi)" },
+    name: { en: "Position words", hi: "Position words (hi)" },
     symbolstixCategories: ["Articles & Prepositions"],
     words: [
       "in", "on", "at", "the", "a", "an", "with", "to", "from",
@@ -531,7 +531,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "time-and-manner",
-    name: { eng: "Time & manner", hin: "Time & manner (hi)" },
+    name: { en: "Time & manner", hi: "Time & manner (hi)" },
     symbolstixCategories: ["Adverbs"],
     words: [
       "now", "today", "tomorrow", "yesterday", "here", "there",

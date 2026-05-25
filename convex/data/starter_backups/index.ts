@@ -26,7 +26,7 @@ export type StarterBackupSymbol = {
 
 export type StarterBackupCategory = {
   sourceProfileCategoryId?: string;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   icon: string;
   colour: string;
   imagePath?: string;
@@ -48,7 +48,7 @@ export type StarterBackupListItem = {
 
 export type StarterBackupList = {
   sourceProfileListId?: string;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   order: number;
   items: StarterBackupListItem[];
   displayFormat?: "rows" | "columns" | "grid";
@@ -66,7 +66,7 @@ export type StarterBackupSentenceSlot = {
 
 export type StarterBackupSentence = {
   sourceProfileSentenceId?: string;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   order: number;
   text?: string;
   slots: StarterBackupSentenceSlot[];

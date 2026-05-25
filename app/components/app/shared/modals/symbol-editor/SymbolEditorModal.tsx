@@ -7,6 +7,7 @@ import { AlertCircle } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
+import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 import { SymbolPreview } from './SymbolPreview';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SymbolStixTab } from './SymbolStixTab';
@@ -247,7 +248,7 @@ export function SymbolEditorModal({
     if (!isEditMode) return;
     if (!existingSymbol) return;
     if (editSearchSeededRef.current) return;
-    setSearchQuery(existingSymbol.label.eng);
+    setSearchQuery(existingSymbol.label.en ?? '');
     editSearchSeededRef.current = true;
   }, [isEditMode, existingSymbol]);
 
@@ -264,19 +265,31 @@ export function SymbolEditorModal({
     if (!existingSymbol) return;
     const ps = existingSymbol;
 
-    // Map saved audio.eng to the active-source model.
-    const eng = ps.audio?.eng;
-    const defaultPath = ps.symbolRecord?.audio.eng.default;
+    // Map saved per-locale audio (English slot for now — Phase 8.5 widens
+    // this) to the active-source model. Per ADR-009 §4 the SymbolStix
+    // default path is convention-resolved via `resolveSymbolAudioPath` from
+    // the seeded-voice boolean map on the underlying symbol.
+    const englishAudio = (ps.audio as Record<string, { type: string; path: string; alternates?: { generated?: string; recorded?: string } } | undefined> | undefined)?.en;
+    const symbolAudioMap =
+      (ps.symbolRecord?.audio as Record<string, boolean> | undefined) ?? {};
+    const englishWord = ps.symbolRecord?.words.en ?? '';
+    const defaultPath =
+      resolveSymbolAudioPath(
+        DEFAULT_VOICE_ID,
+        englishWord,
+        symbolAudioMap[DEFAULT_VOICE_ID] === true,
+        ps.symbolRecord?.audioBasename,
+      ) ?? undefined;
     const activeSource: Draft['activeAudioSource'] =
-      !eng ? (defaultPath ? 'default' : null) :
-      eng.type === 'recorded' ? 'record' :
-      eng.type === 'tts'      ? 'generate' : 'default';
+      !englishAudio ? (defaultPath ? 'default' : null) :
+      englishAudio.type === 'recorded' ? 'record' :
+      englishAudio.type === 'tts'      ? 'generate' : 'default';
 
     // Each source's path: prefer alternates; fall back to the active path if it matches.
     const generatedAudioPath =
-      eng?.alternates?.generated ?? (eng?.type === 'tts' ? eng.path : undefined);
+      englishAudio?.alternates?.generated ?? (englishAudio?.type === 'tts' ? englishAudio.path : undefined);
     const recordedAudioPath =
-      eng?.alternates?.recorded  ?? (eng?.type === 'recorded' ? eng.path : undefined);
+      englishAudio?.alternates?.recorded  ?? (englishAudio?.type === 'recorded' ? englishAudio.path : undefined);
 
     // Placeholder type (created by the category-create modal) lands on the
     // SymbolStix tab. The label has already been pre-populated above into
@@ -292,7 +305,10 @@ export function SymbolEditorModal({
       symbolstixId: ps.imageSource.type === 'symbolstix' ? ps.imageSource.symbolId : undefined,
       symbolstixImagePath: ps.symbolRecord?.imagePath,
       symbolstixAudioEng: defaultPath,
-      symbolstixAudioHin: ps.symbolRecord?.audio.hin?.default,
+      // Hindi-voice seeded recordings aren't shipped at Phase 8.0 — once
+      // Phase 8.4 adds them, mirror the English-voice resolver call against
+      // the active Hindi voiceId.
+      symbolstixAudioHin: undefined,
       resolvedImagePath:
         ps.imageSource.type !== 'symbolstix' && !isPlaceholder
           ? (ps.imageSource as { imagePath: string }).imagePath
@@ -309,8 +325,8 @@ export function SymbolEditorModal({
         ps.imageSource.type === 'imageSearch'
           ? (ps.imageSource as { license?: string }).license
           : undefined,
-      labelEng: ps.label.eng,
-      labelHin: ps.label.hin ?? '',
+      labelEng: ps.label.en ?? '',
+      labelHin: ps.label.hi ?? '',
       audioMode: activeSource ?? 'default',
       activeAudioSource: activeSource,
       defaultAudioPath: defaultPath,
@@ -660,7 +676,10 @@ export function SymbolEditorModal({
         language?: string;
         alternates?: { default?: string; generated?: string; recorded?: string };
       };
-      let audio: { eng?: AR; hin?: AR } | undefined;
+      // Per-language audio override — ISO-keyed open record (ADR-009 §2).
+      // Phase 8.0 writes only the English slot; Phase 8.5 widens this once
+      // the editor exposes per-locale recording.
+      let audio: Record<string, AR> | undefined;
       const activePath =
         draft.activeAudioSource === 'default'  ? draft.defaultAudioPath :
         draft.activeAudioSource === 'generate' ? draft.generatedAudioPath :
@@ -679,10 +698,10 @@ export function SymbolEditorModal({
         };
 
         audio = {
-          eng: {
+          en: {
             type: activeType,
             path: activePath,
-            language: 'eng',
+            language: 'en',
             ...(Object.keys(alternates).length ? { alternates } : {}),
           },
         };
@@ -722,9 +741,9 @@ export function SymbolEditorModal({
       };
       const display = Object.keys(displayDiff).length > 0 ? displayDiff : undefined;
 
-      const label = {
-        eng: draft.labelEng.trim(),
-        ...(draft.labelHin.trim() ? { hin: draft.labelHin.trim() } : {}),
+      const label: Record<string, string> = {
+        en: draft.labelEng.trim(),
+        ...(draft.labelHin.trim() ? { hi: draft.labelHin.trim() } : {}),
       };
 
       const catId = draft.profileCategoryId as Id<'profileCategories'>;
@@ -782,7 +801,7 @@ export function SymbolEditorModal({
       ?? (draft.resolvedImagePath ? `/api/assets?key=${draft.resolvedImagePath}` : undefined);
 
   const previewLabel =
-    language === 'hin' && draft.labelHin ? draft.labelHin : draft.labelEng;
+    language === 'hi' && draft.labelHin ? draft.labelHin : draft.labelEng;
 
   const defaultTitle =
     editorMode === 'sentenceSlot' ? t('titleSentenceSlot') :

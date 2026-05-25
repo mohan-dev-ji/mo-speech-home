@@ -7,6 +7,12 @@ import { Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
+
+// Phase 8.0 placeholder voice — see TalkerDropdown / SymbolEditor for rationale.
+const DEFAULT_VOICE_ID = 'en-GB-News-M';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
@@ -119,15 +125,20 @@ export function SearchContent() {
         {hasResults && (
           <CategoryBoardGrid>
             {results.map((symbol) => {
-              const label =
-                language === 'hin' && symbol.words.hin
-                  ? symbol.words.hin
-                  : symbol.words.eng;
+              const label = displayString(symbol.words, language, DEFAULT_LOCALE);
 
+              // Per ADR-009 §4 audio paths are convention-resolved from the
+              // voice-keyed boolean map; resolver uses the per-symbol
+              // `audioBasename` (MVP filename) when present, else the
+              // English-word convention.
+              const audioMap = (symbol.audio as Record<string, boolean> | undefined) ?? {};
               const audioPath =
-                language === 'hin' && symbol.audio.hin?.default
-                  ? symbol.audio.hin.default
-                  : symbol.audio.eng.default;
+                resolveSymbolAudioPath(
+                  DEFAULT_VOICE_ID,
+                  symbol.words.en ?? '',
+                  audioMap[DEFAULT_VOICE_ID] === true,
+                  symbol.audioBasename,
+                ) ?? '';
 
               return (
                 <SymbolCard

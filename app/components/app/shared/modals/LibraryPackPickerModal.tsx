@@ -26,7 +26,7 @@ export type PackPickerTarget =
   | {
       mode: "create";
       slug: string;
-      name: { eng: string };
+      name: Record<string, string>;
       tier: PlanTier;
     }
   | {
@@ -188,7 +188,7 @@ export function LibraryPackPickerModal({
           ? {
               mode: "create",
               slug: trimmedSlug,
-              name: { eng: trimmedName },
+              name: { en: trimmedName },
               tier,
             }
           : { mode: "append", slug: selectedSlug };
@@ -386,7 +386,7 @@ export function LibraryPackPickerModal({
                   </option>
                   {myPacks!.map((p) => (
                     <option key={p.slug} value={p.slug}>
-                      {p.name.eng} · {t(`planTier${capitalise(p.tier)}`)}
+                      {p.name.en ?? p.slug} · {t(`planTier${capitalise(p.tier)}`)}
                     </option>
                   ))}
                 </select>

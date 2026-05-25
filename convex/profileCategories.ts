@@ -11,6 +11,11 @@ import {
   syncCategoryToPackIfPublished,
 } from "./resourcePacks";
 import { getLibraryPackBySlug } from "./lib/libraryPacks";
+import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
+
+// Phase 8.0 voice fallback — see lib/audio/resolveAudioPath.ts. Phase 8.5
+// drives this from `studentProfiles.voiceId`.
+const DEFAULT_VOICE_ID = "en-GB-News-M";
 
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
@@ -139,28 +144,46 @@ export const getProfileSymbolsWithImages = query({
     return Promise.all(
       rows.map(async (ps) => {
         let imagePath: string | undefined;
-        let audioEng: string | undefined;
-        let audioHin: string | undefined;
+        // Map of ISO code → resolved audio path. Per-language overrides on
+        // `ps.audio` win for their locale; the default-locale slot is seeded
+        // with the SymbolStix default (convention-resolved via
+        // `resolveSymbolAudioPath` for symbolstix-backed rows) so other
+        // locales fall back through `displayValue()` to it on the client.
+        const audio: Record<string, string> = {};
+
+        // 1) Per-language overrides (recordings / tts captured by the instructor).
+        const overrides =
+          (ps.audio as Record<string, { path: string } | undefined>) ?? {};
+        for (const [lang, src] of Object.entries(overrides)) {
+          if (src?.path) audio[lang] = src.path;
+        }
 
         if (ps.imageSource.type === "symbolstix") {
           const sym = await ctx.db.get(ps.imageSource.symbolId);
           if (sym) {
             imagePath = sym.imagePath;
-            audioEng = ps.audio?.eng?.path ?? sym.audio.eng.default;
-            audioHin = ps.audio?.hin?.path ?? sym.audio.hin?.default;
+            // 2) SymbolStix default — only seed the default-locale slot if no
+            //    override already claims it, so user recordings keep winning.
+            if (!audio.en) {
+              const audioMap = sym.audio as Record<string, boolean>;
+              const seeded = audioMap?.[DEFAULT_VOICE_ID] === true;
+              const defaultPath = resolveSymbolAudioPath(
+                DEFAULT_VOICE_ID,
+                sym.words.en ?? "",
+                seeded,
+                sym.audioBasename,
+              );
+              if (defaultPath) audio.en = defaultPath;
+            }
           }
         } else if (ps.imageSource.type === "placeholder") {
           // No image yet — left undefined so SymbolCard renders its empty
           // state. Label still resolves; tapping the tile opens the editor
           // with the label seeded into the SymbolStix search.
           imagePath = undefined;
-          audioEng = ps.audio?.eng?.path;
-          audioHin = ps.audio?.hin?.path;
         } else {
           const src = ps.imageSource as { imagePath: string };
           imagePath = src.imagePath;
-          audioEng = ps.audio?.eng?.path;
-          audioHin = ps.audio?.hin?.path;
         }
 
         return {
@@ -170,8 +193,7 @@ export const getProfileSymbolsWithImages = query({
           label: ps.label,
           display: ps.display,
           imagePath,
-          audioEng,
-          audioHin,
+          audio,
         };
       })
     );
@@ -192,7 +214,7 @@ export const getProfileSymbolsWithImages = query({
  */
 export const createProfileCategory = mutation({
   args: {
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: v.record(v.string(), v.string()),
     // Optional list of labels — one placeholder profileSymbol is created per
     // non-empty entry, ordered as given. Empty / whitespace-only entries are
     // skipped. The instructor opens each placeholder via SymbolEditorModal;
@@ -232,7 +254,7 @@ export const createProfileCategory = mutation({
         profileCategoryId: categoryId,
         order: i,
         imageSource: { type: "placeholder" },
-        label: { eng: cleaned[i] },
+        label: { en: cleaned[i] },
         updatedAt: now,
       });
     }
@@ -278,7 +300,7 @@ export const updateCategoryMeta = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
     name: v.optional(
-      v.object({ eng: v.string(), hin: v.optional(v.string()) })
+      v.record(v.string(), v.string())
     ),
     colour: v.optional(v.string()),
     imagePath: v.optional(v.string()),
@@ -374,10 +396,10 @@ export const reloadCategoryFromLibrary = mutation({
     }
 
     // Join: prefer librarySourceCategoryKey (rename-resilient); fall back to
-    // current name.eng for rows loaded before that field existed.
-    const joinKey = category.librarySourceCategoryKey ?? category.name.eng;
+    // the default locale's name for rows loaded before that field existed.
+    const joinKey = category.librarySourceCategoryKey ?? category.name.en;
     const snapshot = (pack.categories ?? []).find(
-      (c) => c.name.eng === joinKey
+      (c) => c.name.en === joinKey
     );
     if (!snapshot) {
       throw new ConvexError({ code: "SNAPSHOT_MISSING" });
@@ -404,7 +426,7 @@ export const reloadCategoryFromLibrary = mutation({
       imagePath: snapshot.imagePath,
       // Backfill the key on rows that didn't have it (subsequent reloads use it).
       librarySourceCategoryKey:
-        category.librarySourceCategoryKey ?? snapshot.name.eng,
+        category.librarySourceCategoryKey ?? snapshot.name.en,
       updatedAt: now,
     });
 
@@ -463,9 +485,12 @@ export const getCategoryReloadOrphanKeys = query({
         keys.push(s.imageSource.imagePath);
       }
       // Audio: per-language. Delete the active path if type "recorded", plus
-      // any "recorded" alternate. Keep "tts" (cache) and "r2" (SymbolStix default).
-      for (const lang of ["eng", "hin"] as const) {
-        const a = s.audio?.[lang];
+      // any "recorded" alternate. Keep "tts" (cache) and "r2" (SymbolStix
+      // default). The per-language map is an open record keyed by ISO code
+      // post Phase 8.0 — iterate keys rather than naming locales.
+      const audioMap =
+        (s.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
+      for (const a of Object.values(audioMap)) {
         if (!a) continue;
         if (a.type === "recorded") keys.push(a.path);
         if (

@@ -6,6 +6,13 @@ import { useTranslations } from 'next-intl';
 import { Search, X } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Draft } from './types';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
+
+// Phase 8.0 placeholder — see TalkerDropdown for rationale; Phase 8.5 wires
+// this to the active student profile's voiceId.
+const DEFAULT_VOICE_ID = 'en-GB-News-M';
 
 type Props = {
   language: string;
@@ -42,17 +49,31 @@ export function SymbolStixTab({
     // the symbol mid-edit must preserve any custom phrasing the user
     // already entered — matches the behaviour of the Image Search and AI
     // Generate tabs, which use conditional spread for the same reason.
+    // Per ADR-009 §4 audio paths are convention-resolved from
+    // `symbol.audio[voiceId]` booleans. Pass undefined when the voice isn't
+    // seeded — the editor's "default" tab falls through to TTS.
+    const audioMap = (sym.audio as Record<string, boolean> | undefined) ?? {};
+    const seeded = audioMap[DEFAULT_VOICE_ID] === true;
+    const englishWord = sym.words.en ?? '';
+    const defaultAudio =
+      resolveSymbolAudioPath(
+        DEFAULT_VOICE_ID,
+        englishWord,
+        seeded,
+        sym.audioBasename,
+      ) ?? undefined;
+
     patch({
       symbolstixId: sym._id,
       symbolstixImagePath: sym.imagePath,
-      symbolstixAudioEng: sym.audio.eng.default,
-      symbolstixAudioHin: sym.audio.hin?.default,
-      defaultAudioPath: sym.audio.eng.default,
+      symbolstixAudioEng: defaultAudio,
+      symbolstixAudioHin: undefined,
+      defaultAudioPath: defaultAudio,
       // Adopt 'default' as the active source only if nothing is active yet —
       // swapping the symbol mid-edit must not clobber a generated/recorded clip.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
-      ...(draft.labelEng.trim() === '' ? { labelEng: sym.words.eng } : {}),
-      ...(draft.labelHin.trim() === '' && sym.words.hin ? { labelHin: sym.words.hin } : {}),
+      ...(draft.labelEng.trim() === '' && sym.words.en ? { labelEng: sym.words.en } : {}),
+      ...(draft.labelHin.trim() === '' && sym.words.hi ? { labelHin: sym.words.hi } : {}),
     });
   }
 
@@ -106,7 +127,7 @@ export function SymbolStixTab({
         {results && results.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {results.map((sym) => {
-              const symLabel = language === 'hin' && sym.words.hin ? sym.words.hin : sym.words.eng;
+              const symLabel = displayString(sym.words, language, DEFAULT_LOCALE);
               const isSelected = draft.symbolstixId === sym._id;
               return (
                 <button

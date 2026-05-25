@@ -14,6 +14,8 @@ import {
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { track } from "@/lib/analytics";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 type Props = {
   profileId: Id<"studentProfiles">;
@@ -81,8 +83,7 @@ export function ModellingPickerModal({
         {symbols && symbols.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-theme-elements">
             {symbols.map((sym) => {
-              const label =
-                language === "hin" && sym.label.hin ? sym.label.hin : sym.label.eng;
+              const label = displayString(sym.label, language, DEFAULT_LOCALE);
               const imageUrl = sym.imagePath
                 ? `/api/assets?key=${sym.imagePath}`
                 : undefined;

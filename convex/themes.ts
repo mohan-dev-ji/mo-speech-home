@@ -49,8 +49,8 @@ export const seedStarterThemes = mutation({
     const starterThemes = [
       {
         slug: 'classic-blue',
-        name: { eng: 'Classic Blue', hin: 'क्लासिक नीला' },
-        description: { eng: 'Navy and bright blue — the original Mo Speech palette.' },
+        name: { en: 'Classic Blue', hi: 'क्लासिक नीला' },
+        description: { en: 'Navy and bright blue — the original Mo Speech palette.' },
         previewColour: '#3b82f6',
         tokens: {
           bgPrimary:       '#f8fafc',
@@ -81,8 +81,8 @@ export const seedStarterThemes = mutation({
       },
       {
         slug: 'soft-green',
-        name: { eng: 'Soft Green', hin: 'नरम हरा' },
-        description: { eng: 'Calm, nature-inspired greens.' },
+        name: { en: 'Soft Green', hi: 'नरम हरा' },
+        description: { en: 'Calm, nature-inspired greens.' },
         previewColour: '#22c55e',
         tokens: {
           bgPrimary:       '#f0fdf4',
@@ -113,8 +113,8 @@ export const seedStarterThemes = mutation({
       },
       {
         slug: 'warm-coral',
-        name: { eng: 'Warm Coral', hin: 'गर्म कोरल' },
-        description: { eng: 'Friendly oranges and pinks.' },
+        name: { en: 'Warm Coral', hi: 'गर्म कोरल' },
+        description: { en: 'Friendly oranges and pinks.' },
         previewColour: '#f97316',
         tokens: {
           bgPrimary:       '#fff7ed',
@@ -145,8 +145,8 @@ export const seedStarterThemes = mutation({
       },
       {
         slug: 'deep-purple',
-        name: { eng: 'Deep Purple', hin: 'गहरा बैंगनी' },
-        description: { eng: 'Rich purples and lilacs.' },
+        name: { en: 'Deep Purple', hi: 'गहरा बैंगनी' },
+        description: { en: 'Rich purples and lilacs.' },
         previewColour: '#8b5cf6',
         tokens: {
           bgPrimary:       '#faf5ff',
@@ -177,8 +177,8 @@ export const seedStarterThemes = mutation({
       },
       {
         slug: 'sunny-yellow',
-        name: { eng: 'Sunny Yellow', hin: 'धूप पीला' },
-        description: { eng: 'Warm yellows and amber.' },
+        name: { en: 'Sunny Yellow', hi: 'धूप पीला' },
+        description: { en: 'Warm yellows and amber.' },
         previewColour: '#eab308',
         tokens: {
           bgPrimary:       '#fefce8',
@@ -209,8 +209,8 @@ export const seedStarterThemes = mutation({
       },
       {
         slug: 'cool-grey',
-        name: { eng: 'Cool Grey', hin: 'ठंडा स्लेटी' },
-        description: { eng: 'Neutral, minimal, highly accessible.' },
+        name: { en: 'Cool Grey', hi: 'ठंडा स्लेटी' },
+        description: { en: 'Neutral, minimal, highly accessible.' },
         previewColour: '#6b7280',
         tokens: {
           bgPrimary:       '#f9fafb',

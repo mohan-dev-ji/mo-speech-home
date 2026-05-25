@@ -114,7 +114,7 @@ function ProfileTabContent({
 
   // ── Language ──
 
-  const currentLang = profile.language ?? "eng";
+  const currentLang = profile.language ?? "en";
   const handleLangChange = (lang: string) => {
     if (lang === currentLang) return;
     updateProfile({ profileId: profile._id, language: lang });
@@ -221,8 +221,8 @@ function ProfileTabContent({
         <p className="text-small font-semibold text-foreground mb-2">{t("sectionLanguage")}</p>
         <div className="flex gap-2">
           {[
-            { code: "eng", label: "English" },
-            { code: "hin", label: "हिंदी"   },
+            { code: "en", label: "English" },
+            { code: "hi", label: "हिंदी"   },
           ].map(({ code, label }) => (
             <button
               key={code}
@@ -466,7 +466,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
     setCreating(true);
     setCreateError("");
     try {
-      const id = await createProfile({ name: trimmed, language: "eng" });
+      const id = await createProfile({ name: trimmed, language: "en" });
       setNewName("");
       setSelectedId(id);
     } catch {

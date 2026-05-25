@@ -6,6 +6,8 @@ import { Mic, Square as StopIcon, Play, RefreshCw, Loader2 } from 'lucide-react'
 import type { Doc } from '@/convex/_generated/dataModel';
 import { AccordionSection } from './AccordionSection';
 import type { Draft, AudioMode, TextSize, CardShape } from './types';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 
 type Props = {
   draft: Draft;
@@ -239,7 +241,7 @@ export function PropertiesPanel({
             }}
           />
         </label>
-        {editorMode === 'categoryBoard' && language === 'hin' && (
+        {editorMode === 'categoryBoard' && language === 'hi' && (
           <label className="flex flex-col gap-1">
             <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('labelHin')}
@@ -662,7 +664,7 @@ export function PropertiesPanel({
           >
             <option value="" disabled>{t('categoryPlaceholder')}</option>
             {categories?.map((cat) => {
-              const name = language === 'hin' && cat.name.hin ? cat.name.hin : cat.name.eng;
+              const name = displayString(cat.name, language, DEFAULT_LOCALE);
               return <option key={cat._id} value={cat._id}>{name}</option>;
             })}
           </select>

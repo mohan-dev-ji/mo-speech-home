@@ -81,7 +81,10 @@ export const createModellingSession = mutation({
       initiatedBy: user.clerkUserId,
       symbolId: profileSymbol.imageSource.symbolId,
       symbolPreview: {
-        word: symbol.words.eng,
+        // The modelling preview always shows the default-locale label; the
+        // student-view consumer overlays the current-locale value via
+        // `displayValue()` on the profileSymbol.label record.
+        word: symbol.words.en ?? "",
         imagePath: symbol.imagePath,
       },
       steps: [

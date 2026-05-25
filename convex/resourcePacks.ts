@@ -88,11 +88,10 @@ export async function materialiseSymbolsFromCategorySnapshot(
     }
 
     // Build label: pack-level override beats SymbolStix words.
-    const label = {
-      eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
-      ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
-        ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
-        : {}),
+    // Spread merges every available locale; the override layer wins per-key.
+    const label: Record<string, string> = {
+      ...symbolDoc.words,
+      ...(sym.labelOverride ?? {}),
     };
 
     await ctx.db.insert("profileSymbols", {
@@ -164,8 +163,9 @@ export async function materialisePackIntoAccount(
       order: nextCategoryOrder++,
       librarySourceId: pack._id,
       // Capture the snapshot's original name as a stable join key for
-      // reloadCategoryFromLibrary — survives instructor renames.
-      librarySourceCategoryKey: cat.name.eng,
+      // reloadCategoryFromLibrary — survives instructor renames. The default
+      // locale's name is the canonical key (see `lib/languages/registry.ts`).
+      librarySourceCategoryKey: cat.name.en,
       updatedAt: now,
     });
     categoriesAdded++;
@@ -358,11 +358,9 @@ export async function materialiseSymbolsFromJson(
         continue;
       }
 
-      const label = {
-        eng: sym.labelOverride?.eng ?? symbolDoc.words.eng,
-        ...(sym.labelOverride?.hin ?? symbolDoc.words.hin
-          ? { hin: sym.labelOverride?.hin ?? symbolDoc.words.hin }
-          : {}),
+      const label: Record<string, string> = {
+        ...symbolDoc.words,
+        ...(sym.labelOverride ?? {}),
       };
 
       await ctx.db.insert("profileSymbols", {
@@ -387,7 +385,8 @@ export async function materialiseSymbolsFromJson(
       continue;
     }
 
-    const label = sym.label ?? { eng: sym.labelOverride?.eng ?? "" };
+    const label: Record<string, string> =
+      sym.label ?? sym.labelOverride ?? { en: "" };
 
     let imageSource;
     if (kind === "imageSearch") {
@@ -416,7 +415,7 @@ export async function materialiseSymbolsFromJson(
 
     const audio = sym.recordedAudioPath
       ? {
-          eng: {
+          en: {
             type: "recorded" as const,
             path: sym.recordedAudioPath,
           },
@@ -484,7 +483,7 @@ export async function materialisePackFromJson(
       ...(cat.imagePath ? { imagePath: cat.imagePath } : {}),
       order: nextCategoryOrder++,
       librarySourceId: pack.slug,
-      librarySourceCategoryKey: cat.name.eng,
+      librarySourceCategoryKey: cat.name.en,
       updatedAt: now,
     });
     categoriesAdded++;
@@ -958,7 +957,7 @@ export const getLoadedPacksForCurrentAccount = query({
   args: {},
   handler: async (
     ctx
-  ): Promise<Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }>> => {
+  ): Promise<Array<{ _id: Id<"resourcePacks">; name: Record<string, string> }>> => {
     const resolved = await resolveCallerAccountId(ctx);
     if (!resolved) return [];
     const slugs = await collectLoadedPackIds(ctx, resolved.accountId);
@@ -969,7 +968,7 @@ export const getLoadedPacksForCurrentAccount = query({
     // names `_id: Id<"resourcePacks">` because the field is consumed as an
     // opaque string for filter values — refactoring the type would ripple
     // through the consumer for no behavioural change.
-    const out: Array<{ _id: Id<"resourcePacks">; name: { eng: string; hin?: string } }> = [];
+    const out: Array<{ _id: Id<"resourcePacks">; name: Record<string, string> }> = [];
     for (const slug of slugs) {
       const pack = getLibraryPackBySlug(slug);
       if (pack) {
@@ -979,7 +978,7 @@ export const getLoadedPacksForCurrentAccount = query({
         });
       }
     }
-    out.sort((a, b) => a.name.eng.localeCompare(b.name.eng));
+    out.sort((a, b) => (a.name.en ?? "").localeCompare(b.name.en ?? ""));
     return out;
   },
 });
@@ -1015,7 +1014,7 @@ export const getAllResourcePacks = query({
     rows.sort((a, b) => {
       if (a.isStarter && !b.isStarter) return -1;
       if (b.isStarter && !a.isStarter) return 1;
-      return a.name.eng.localeCompare(b.name.eng);
+      return (a.name.en ?? "").localeCompare(b.name.en ?? "");
     });
     return rows;
   },
@@ -1059,10 +1058,9 @@ async function buildCategorySnapshot(
         // Always store the label as labelOverride — we don't know if it matches the
         // SymbolStix base without re-fetching, and storing it means re-materialise
         // is deterministic regardless of base-label changes.
-        labelOverride: {
-          eng: s.label.eng,
-          ...(s.label.hin ? { hin: s.label.hin } : {}),
-        },
+        // Carry every locale on the saved label — pack snapshot stores the
+        // full localised record per ADR-009 §2.
+        labelOverride: { ...s.label },
         ...(s.display ? { display: s.display } : {}),
         order: i,
       };
@@ -1201,12 +1199,12 @@ export async function syncCategoryToPackIfPublished(
   if (!pack) return; // pack was deleted; orphan link, ignore
 
   const snapshot = await buildCategorySnapshot(ctx, category);
-  const lowerName = category.name.eng.toLowerCase();
+  const lowerName = (category.name.en ?? "").toLowerCase();
 
   const updated = (pack.categories ?? []).filter((c) => {
     if (c.sourceProfileCategoryId === profileCategoryId) return false;
     // Adopt unlinked recipe-derived entries with matching name.
-    if (!c.sourceProfileCategoryId && c.name.eng.toLowerCase() === lowerName) {
+    if (!c.sourceProfileCategoryId && (c.name.en ?? "").toLowerCase() === lowerName) {
       return false;
     }
     return true;
@@ -1228,13 +1226,13 @@ export async function syncListToPackIfPublished(
   const pack = await ctx.db.get(list.publishedToPackId);
   if (!pack) return;
 
-  const lowerName = list.name.eng.toLowerCase();
+  const lowerName = (list.name.en ?? "").toLowerCase();
 
   // Same adopt-or-append logic as syncCategoryToPackIfPublished. See its
   // docstring for rationale.
   const remaining = pack.lists.filter((l) => {
     if (l.sourceProfileListId === profileListId) return false;
-    if (!l.sourceProfileListId && l.name.eng.toLowerCase() === lowerName) {
+    if (!l.sourceProfileListId && (l.name.en ?? "").toLowerCase() === lowerName) {
       return false;
     }
     return true;
@@ -1256,13 +1254,13 @@ export async function syncSentenceToPackIfPublished(
   const pack = await ctx.db.get(sentence.publishedToPackId);
   if (!pack) return;
 
-  const lowerName = sentence.name.eng.toLowerCase();
+  const lowerName = (sentence.name.en ?? "").toLowerCase();
 
   const remaining = pack.sentences.filter((s) => {
     if (s.sourceProfileSentenceId === profileSentenceId) return false;
     if (
       !s.sourceProfileSentenceId &&
-      s.name.eng.toLowerCase() === lowerName
+      (s.name.en ?? "").toLowerCase() === lowerName
     ) {
       return false;
     }
@@ -1391,10 +1389,7 @@ const TIER_VALIDATOR = v.union(
 const TARGET_VALIDATOR = v.union(
   v.object({
     mode: v.literal("create"),
-    name: v.object({
-      eng: v.string(),
-      hin: v.optional(v.string()),
-    }),
+    name: v.record(v.string(), v.string()),
     tier: TIER_VALIDATOR,
   }),
   v.object({
@@ -1413,7 +1408,7 @@ async function resolveTargetPack(
   target:
     | {
         mode: "create";
-        name: { eng: string; hin?: string };
+        name: Record<string, string>;
         tier: "free" | "pro" | "max";
       }
     | { mode: "append"; packId: Id<"resourcePacks"> },
@@ -1424,7 +1419,7 @@ async function resolveTargetPack(
     const now = Date.now();
     return await ctx.db.insert("resourcePacks", {
       name: target.name,
-      description: { eng: `Curated by an admin` },
+      description: { en: `Curated by an admin` },
       coverImagePath: fallbackCoverImagePath,
       tags: [],
       featured: false,
@@ -1838,16 +1833,8 @@ const TARGET_VALIDATOR_V2 = v.union(
   v.object({
     mode: v.literal("create"),
     slug: v.string(),
-    name: v.object({
-      eng: v.string(),
-      hin: v.optional(v.string()),
-    }),
-    description: v.optional(
-      v.object({
-        eng: v.string(),
-        hin: v.optional(v.string()),
-      })
-    ),
+    name: v.record(v.string(), v.string()),
+    description: v.optional(v.record(v.string(), v.string())),
     tier: TIER_VALIDATOR,
   }),
   v.object({
@@ -1902,8 +1889,8 @@ async function resolveTargetLifecycleV2(
     | {
         mode: "create";
         slug: string;
-        name: { eng: string; hin?: string };
-        description?: { eng: string; hin?: string };
+        name: Record<string, string>;
+        description?: Record<string, string>;
         tier: "free" | "pro" | "max";
       }
     | { mode: "append"; slug: string },
@@ -2552,7 +2539,7 @@ export const getPacksForAdminStatus = query({
     let starterPackId: Id<"resourcePacks"> | null = null;
     const libraryPacksById: Record<
       string,
-      { tier: "free" | "pro" | "max"; name: { eng: string; hin?: string } }
+      { tier: "free" | "pro" | "max"; name: Record<string, string> }
     > = {};
 
     for (const pack of all) {
@@ -2587,7 +2574,7 @@ export const getPacksForAdminStatusV2 = query({
     const lifecycleRows = await ctx.db.query("packLifecycle").collect();
     const libraryPacksBySlug: Record<
       string,
-      { tier: "free" | "pro" | "max"; name: { eng: string; hin?: string } }
+      { tier: "free" | "pro" | "max"; name: Record<string, string> }
     > = {};
 
     for (const row of lifecycleRows) {
@@ -2701,12 +2688,13 @@ export const getPackContentForPublish = query({
             };
 
             if (s.imageSource.type === "symbolstix") {
+              const hasAnyLabel = Object.values(s.label).some(
+                (v) => typeof v === "string" && v !== ""
+              );
               return {
                 ...base,
                 symbolId: s.imageSource.symbolId as string,
-                ...(s.label.eng !== "" || s.label.hin
-                  ? { labelOverride: s.label }
-                  : {}),
+                ...(hasAnyLabel ? { labelOverride: s.label } : {}),
               };
             }
 
@@ -2721,11 +2709,16 @@ export const getPackContentForPublish = query({
             // Recorded voice — only persistable audio shape per ADR-010.
             // TTS audio lives in the global ttsCache (durable across account
             // deletion). Default audio belongs to a SymbolStix symbol which
-            // this symbol isn't.
+            // this symbol isn't. The default-locale slot is the canonical
+            // place for the seeded recording. The migration-window schema
+            // union surfaces an `eng?/hin?` shape too — cast to the new
+            // open-record shape since post-migration rows match it.
+            const audioRec = (s.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } }> | undefined) ?? {};
+            const englishAudio = audioRec.en;
             const recordedAudioPath =
-              s.audio?.eng?.type === "recorded"
-                ? s.audio.eng.path
-                : s.audio?.eng?.alternates?.recorded;
+              englishAudio?.type === "recorded"
+                ? englishAudio.path
+                : englishAudio?.alternates?.recorded;
 
             return {
               ...base,
@@ -3089,30 +3082,27 @@ export const getPackDetailV2 = query({
     const coverImagePath = await pickCoverImage(ctx, pack);
 
     // Resolve a symbol reference (symbolId OR pre-resolved imagePath) into a
-    // common `{ imagePath, label }` shape the page can render.
+    // common `{ imagePath, label }` shape the page can render. `label` is the
+    // full localised record per ADR-009 §2; the caller resolves to the current
+    // locale via `displayValue()`.
     const resolveSymbolRef = async (
       symbolId: string | undefined,
-      labelOverride: { eng?: string; hin?: string } | undefined,
+      labelOverride: Record<string, string> | undefined,
       fallbackImagePath: string | undefined,
-      fallbackLabel: { eng: string; hin?: string } | undefined,
-    ): Promise<{ imagePath: string | null; label: { eng: string; hin?: string } }> => {
+      fallbackLabel: Record<string, string> | undefined,
+    ): Promise<{ imagePath: string | null; label: Record<string, string> }> => {
       if (symbolId) {
         const doc = await ctx.db.get(symbolId as Id<"symbols">);
         if (doc) {
           return {
             imagePath: doc.imagePath,
-            label: {
-              eng: labelOverride?.eng ?? doc.words.eng,
-              ...(labelOverride?.hin ?? doc.words.hin
-                ? { hin: labelOverride?.hin ?? doc.words.hin }
-                : {}),
-            },
+            label: { ...doc.words, ...(labelOverride ?? {}) },
           };
         }
       }
       return {
         imagePath: fallbackImagePath ?? null,
-        label: fallbackLabel ?? { eng: labelOverride?.eng ?? "" },
+        label: fallbackLabel ?? labelOverride ?? { en: "" },
       };
     };
 
@@ -3133,7 +3123,7 @@ export const getPackDetailV2 = query({
             return {
               order: i,
               imagePath: sym.imagePath ?? null,
-              label: sym.label ?? { eng: sym.labelOverride?.eng ?? "" },
+              label: sym.label ?? sym.labelOverride ?? { en: "" },
             };
           })
         );
@@ -3152,11 +3142,18 @@ export const getPackDetailV2 = query({
         name: list.name,
         items: await Promise.all(
           list.items.map(async (item, i) => {
+            // `item.description` may still be a legacy single string until the
+            // pack JSON migration completes; wrap it so the resolver always
+            // receives a localised record under the default locale.
+            const descriptionRecord =
+              typeof item.description === "string"
+                ? { en: item.description }
+                : item.description;
             const resolved = await resolveSymbolRef(
               item.symbolId,
               undefined,
               item.imagePath,
-              item.description ? { eng: item.description } : undefined,
+              descriptionRecord,
             );
             return { order: i, ...resolved };
           })

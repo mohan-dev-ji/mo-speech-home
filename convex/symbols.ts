@@ -10,9 +10,19 @@ export const batchInsertSymbols = mutation({
   args: {
     symbols: v.array(
       v.object({
-        // Open ISO-keyed records — adding a language is adding a key.
-        words: v.record(v.string(), v.string()),
-        synonyms: v.optional(v.record(v.string(), v.array(v.string()))),
+        // Mirror the schema's `symbolWords` / `symbolSynonyms` shape — the
+        // indexable languages are named so search indexes can target them.
+        // Adding a language is a code edit per ADR-009 §6.6.
+        words: v.object({
+          en: v.string(),
+          hi: v.optional(v.string()),
+        }),
+        synonyms: v.optional(
+          v.object({
+            en: v.optional(v.array(v.string())),
+            hi: v.optional(v.array(v.string())),
+          })
+        ),
         imagePath: v.string(),
         // Voice-keyed boolean map per ADR-009 §4 — "is voice seeded".
         // Path is convention-resolved by lib/audio/resolveAudioPath.ts.

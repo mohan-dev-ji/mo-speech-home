@@ -71,7 +71,7 @@ export function SymbolCardEditable({
             symbolId="edit-mode"
             imagePath={imagePath}
             label={label}
-            language="eng"
+            language="en"
             display={display}
             categoryColour={categoryColour}
             onTap={() => {}}

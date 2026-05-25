@@ -18,8 +18,8 @@ import { Star, MoreHorizontal } from "lucide-react";
 
 type PackRow = {
   slug: string;
-  name: { eng: string; hin?: string };
-  description: { eng: string; hin?: string };
+  name: Record<string, string>;
+  description: Record<string, string>;
   coverImagePath: string;
   defaultTier: "free" | "pro" | "max";
   isStarter: boolean;
@@ -227,7 +227,7 @@ export function LibraryAdminTable({ initialPacks }: Props) {
               >
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium">{p.name.eng}</p>
+                    <p className="font-medium">{p.name.en ?? p.slug}</p>
                     {p.isStarter && <Badge variant="outline">Starter</Badge>}
                     {p.featured && (
                       <Star className="w-4 h-4 text-warning fill-current" />
@@ -327,7 +327,7 @@ export function LibraryAdminTable({ initialPacks }: Props) {
       {deleteTarget && (
         <ConfirmDeletePackLifecycleModal
           slug={deleteTarget.slug}
-          packName={deleteTarget.name.eng}
+          packName={deleteTarget.name.en ?? deleteTarget.slug}
           open
           onOpenChange={(open) => !open && setDeleteTarget(null)}
         />

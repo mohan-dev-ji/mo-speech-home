@@ -4,6 +4,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { preloadQuery, preloadedQueryResult } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { PackDetailContent } from "@/app/components/marketing/sections/PackDetailContent";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 // Re-render hourly so newly published / re-tiered packs roll out without a
 // full deploy. Auth-aware CTA hydrates client-side via LoadPackButton.
@@ -23,10 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const t = await getTranslations({ locale, namespace: "library" });
     return { title: t("metaTitle") };
   }
-  const isHindi = locale === "hi";
-  const name = (isHindi && pack.name.hin) || pack.name.eng;
-  const description =
-    (isHindi && pack.description.hin) || pack.description.eng;
+  const name = displayString(pack.name, locale, DEFAULT_LOCALE);
+  const description = displayString(pack.description, locale, DEFAULT_LOCALE);
   return {
     title: `${name} — Mo Speech Library`,
     description,

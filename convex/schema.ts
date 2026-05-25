@@ -18,8 +18,8 @@ const audioSource = v.object({
 
 // ─── Localised field shapes (ADR-009 §2) ─────────────────────────────────────
 //
-// All bilingual fields use ISO 639-1 keyed open records — adding a language is
-// adding a key, not a schema migration. Display logic uses
+// Most bilingual fields use ISO 639-1 keyed open records — adding a language
+// is adding a key, not a schema migration. Display logic uses
 // `lib/languages/displayValue.ts` for the 3-tier fallback
 // (value[currentLang] ?? value[defaultLang] ?? Object.values(value)[0]).
 //
@@ -30,6 +30,28 @@ const audioSource = v.object({
 const localisedString = v.record(v.string(), v.string());
 const localisedStringArray = v.record(v.string(), v.array(v.string()));
 const localisedAudioSource = v.record(v.string(), audioSource);
+
+// `symbols.words` and `symbols.synonyms` are the one exception — Convex
+// search/lookup indexes can only target statically-declared fields, so the
+// indexable languages are spelled out in a closed object validator. Adding a
+// new search language requires a code edit (per the ADR-009 §6.6 note and
+// docs/4-builds/features/language-plugin-phase-8.md §"Risks worth
+// pre-empting"). New languages start unindexed; promoting to "stable" adds
+// the field + search index in one PR.
+//
+// Post-Phase-8.0 shape — the migration rewrites legacy `{eng, hin}` rows
+// to `{en, hi}` in place, then the validator tightens to the new keys only.
+// Promoting a new language to stable adds a key here and a search index
+// below.
+const symbolWords = v.object({
+  en: v.string(),
+  hi: v.optional(v.string()),
+});
+
+const symbolSynonyms = v.object({
+  en: v.optional(v.array(v.string())),
+  hi: v.optional(v.array(v.string())),
+});
 
 // Voice-keyed audio map — replaces the legacy path-storing shape on symbols.
 // Per ADR-009 §4: the path is convention-resolved by
@@ -74,18 +96,26 @@ export default defineSchema({
    * `displayValue()` and `useLocale()`.
    */
   symbols: defineTable({
-    words: localisedString,
-    synonyms: v.optional(localisedStringArray),
+    words: symbolWords,
+    synonyms: v.optional(symbolSynonyms),
     imagePath: v.string(), // R2 path — SymbolStix licensed, read-only
     // Voice-keyed map of "is voice seeded with SymbolStix recording" booleans.
     // Path is convention-resolved by lib/audio/resolveAudioPath.ts. Per ADR-009 §4.
     // Migration union accepts legacy { eng: { default: path } } shape until Phase 8.0 completes.
     audio: symbolAudioMigration,
+    // Per-symbol audio filename for the legacy en-GB-News-M voice — populated
+    // by `migrations.backfillAudioBasenames` from the MVP's symbolstix-metadata
+    // export. The MVP stored arbitrary basenames (e.g. SymbolStix IDs for many
+    // symbols), so this can't be synthesised from `words.en`. New voices
+    // seeded in Phase 8.4 follow the `<word>.mp3` convention and don't need
+    // this field. Optional so seeds without it still validate.
+    audioBasename: v.optional(v.string()),
     tags: v.array(v.string()),
     categories: v.array(v.string()), // SymbolStix default categories
     priority: v.optional(v.number()), // 1–500 for core vocabulary free tier
   })
     .index("by_priority", ["priority"])
+    .index("by_imagePath", ["imagePath"])
     .index("by_words_en", ["words.en"])
     .searchIndex("search_words_en", {
       searchField: "words.en",

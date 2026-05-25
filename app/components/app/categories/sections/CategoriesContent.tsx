@@ -26,6 +26,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -67,7 +69,7 @@ type SortableTileProps = {
     starterSlug: string;
     libraryPacksBySlug: Record<
       string,
-      { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+      { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
     >;
   };
 };
@@ -205,7 +207,7 @@ export function CategoriesContent() {
       for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
         opts.push({
           value: slug,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'unpublished', label: t('filterUnpublished') });
@@ -213,7 +215,7 @@ export function CategoriesContent() {
       for (const pack of loadedPacks) {
         opts.push({
           value: pack._id,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'mine', label: t('filterMine') });
@@ -294,7 +296,7 @@ export function CategoriesContent() {
 
   async function handleCreate(name: string, symbolLabels: string[]) {
     const id = await createCategoryMutation({
-      name: { eng: name },
+      name: { en: name },
       symbolLabels,
     });
     // ?edit=1 lands the detail page in edit mode so the newly-seeded

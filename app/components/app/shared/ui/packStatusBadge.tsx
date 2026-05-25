@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 /**
  * V2 (ADR-010): pack status shape keyed by slug. The starter pack is a
@@ -12,7 +14,7 @@ export type PackStatusInfo = {
   starterSlug: string;
   libraryPacksBySlug: Record<
     string,
-    { tier: "free" | "pro" | "max"; name: { eng: string; hin?: string } }
+    { tier: "free" | "pro" | "max"; name: Record<string, string> }
   >;
 };
 
@@ -111,10 +113,7 @@ export function PackStatusLabel({
     return <span className={baseClass}>{t("default")}</span>;
   }
 
-  const packName =
-    language === "hin" && libraryPack!.name.hin
-      ? libraryPack!.name.hin
-      : libraryPack!.name.eng;
+  const packName = displayString(libraryPack!.name, language, DEFAULT_LOCALE);
 
   return (
     <span className={baseClass}>

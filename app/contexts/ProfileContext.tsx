@@ -78,7 +78,7 @@ type ProfileContextValue = {
 
   // Active flags and language (viewMode-aware)
   stateFlags: StateFlags;
-  language: string; // 'eng' | 'hin' — for search index + TTS
+  language: string; // ISO 639-1 code ('en', 'hi', 'pa', …) — drives search index + TTS
 
   // View mode
   viewMode: ViewMode;
@@ -106,7 +106,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   profileLoading: true,
   accountId: null,
   stateFlags: DEFAULT_FLAGS,
-  language: 'eng',
+  language: 'en',
   viewMode: 'instructor',
   setViewMode: () => {},
   setGridSize: () => {},
@@ -239,13 +239,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // instructor + extra chrome — see ADR-008).
   const stateFlags: StateFlags = viewMode !== 'student-view' ? instructorFlags : studentFlags;
 
-  // viewMode-aware language ('eng' | 'hin') for search index and TTS
-  // Instructor locale is 'en' or 'hi'; map to 3-letter code for Convex search
-  const instructorLocale = userRecord?.locale ?? 'en';
-  const instructorLanguage = instructorLocale === 'hi' ? 'hin' : 'eng';
+  // viewMode-aware language — ISO 639-1 code per ADR-009 §1. Post Phase 8.0
+  // the studentProfiles.language / users.locale fields are stored as ISO
+  // codes ('en', 'hi', 'pa', …) so no remapping is needed.
   const language = viewMode !== 'student-view'
-    ? instructorLanguage
-    : (studentProfile?.language ?? 'eng');
+    ? (userRecord?.locale ?? 'en')
+    : (studentProfile?.language ?? 'en');
 
   // ── Instructor setters ───────────────────────────────────────────────────────
 

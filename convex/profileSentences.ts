@@ -52,7 +52,7 @@ export const getProfileSentences = query({
 
 export const createProfileSentence = mutation({
   args: {
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -81,7 +81,7 @@ export const createProfileSentence = mutation({
 export const updateProfileSentenceName = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: v.record(v.string(), v.string()),
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

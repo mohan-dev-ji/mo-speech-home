@@ -4,6 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { uploadBuffer, isConfigured, fileExists } from "@/lib/r2-storage";
 import { R2_PATHS, TTS_VOICES, DEFAULT_VOICE_ID, type VoiceId } from "@/lib/r2-paths";
+import { resolveSymbolAudioPath } from "@/lib/audio/resolveAudioPath";
 import { GoogleAuth } from "google-auth-library";
 import { randomUUID } from "crypto";
 
@@ -86,8 +87,12 @@ export async function POST(request: Request) {
   if (token) convex.setAuth(token);
 
   // ── Step 1: SymbolStix folder for this voice ──────────────────────────────
+  // Per ADR-009 §4 the lookup returns just the English word — the route
+  // resolves the R2 key via convention (with the legacy
+  // `audio/eng/default/` fallback baked into `resolveSymbolAudioPath` for
+  // the en-GB-News-M voice until Phase 8.4 re-seeds it).
   type LookupResult =
-    | { source: "symbolstix"; audioDefault: string }
+    | { source: "symbolstix"; englishWord: string; audioBasename?: string }
     | { source: "ttsCache"; r2Key: string }
     | { source: "none" };
 
@@ -98,12 +103,18 @@ export async function POST(request: Request) {
   console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" lookup=`, JSON.stringify(lookup));
 
   if (lookup.source === "symbolstix") {
-    // audioDefault is already the full R2 path (e.g. "audio/eng/default/hello.mp3")
-    const key = lookup.audioDefault;
-    const exists = await fileExists(key);
-    console.log(`[TTS] symbolstix key="${key}" exists=${exists}`);
-    if (exists) {
-      return NextResponse.json({ r2Key: key, cached: true, source: "symbolstix" });
+    const key = resolveSymbolAudioPath(
+      voiceId,
+      lookup.englishWord,
+      true,
+      lookup.audioBasename,
+    );
+    if (key) {
+      const exists = await fileExists(key);
+      console.log(`[TTS] symbolstix key="${key}" exists=${exists}`);
+      if (exists) {
+        return NextResponse.json({ r2Key: key, cached: true, source: "symbolstix" });
+      }
     }
     // R2 file absent — fall through to generate
   }

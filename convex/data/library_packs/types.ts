@@ -92,8 +92,13 @@ export type LibraryPackListItem = {
    * re-materialise can pick up updated images. */
   symbolId?: string;
   imagePath?: string;
-  /** Localised — see schema profileLists.items[].description. */
-  description?: LocalisedString;
+  /**
+   * Localised — see schema profileLists.items[].description.
+   * The union still admits the legacy plain string during the Phase 8.0
+   * migration window; tighten to `LocalisedString` only after the pack
+   * JSON migration ships.
+   */
+  description?: LocalisedString | string;
   audioPath?: string;
   activeAudioSource?: LibraryPackListItemAudioSource;
   defaultAudioPath?: string;
@@ -131,8 +136,11 @@ export type LibraryPackSentenceSlot = {
 export type LibraryPackSentence = {
   name: LocalisedString;
   order: number;
-  /** Localised — see schema profileSentences.text. */
-  text?: LocalisedString;
+  /**
+   * Localised — see schema profileSentences.text.
+   * Migration window union — same caveat as LibraryPackListItem.description.
+   */
+  text?: LocalisedString | string;
   slots: LibraryPackSentenceSlot[];
   audioPath?: string;
 };

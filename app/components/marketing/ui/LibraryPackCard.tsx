@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { LoadPackButton } from "./LoadPackButton";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 export type LibraryPack = {
   // _id carries the packLifecycle row id (null for the starter pack if it
@@ -11,8 +13,8 @@ export type LibraryPack = {
   // ADR-010; load/dedup goes through `slug`.
   _id: string | null;
   slug: string;
-  name: { eng: string; hin?: string };
-  description: { eng: string; hin?: string };
+  name: Record<string, string>;
+  description: Record<string, string>;
   coverImagePath: string;
   season?: string;
   tags: string[];
@@ -39,8 +41,7 @@ export function LibraryPackCard({
   locale: string;
 }) {
   const t = useTranslations("library");
-  const isHindi = locale === "hi";
-  const name = (isHindi && pack.name.hin) || pack.name.eng;
+  const name = displayString(pack.name, locale, DEFAULT_LOCALE);
   const coverSrc = `/api/assets?key=${encodeURIComponent(pack.coverImagePath)}`;
   const tierLabel =
     pack.tier === "free"

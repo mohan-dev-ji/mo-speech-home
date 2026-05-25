@@ -14,6 +14,8 @@ import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
@@ -103,19 +105,25 @@ export function ListDetailContent({ listId }: Props) {
 
   useEffect(() => {
     if (!list) return;
-    const mapped = list.items.map((item, i) => ({
+    // Hydrate UI items from Convex rows. `description` lives in the schema as
+    // a localised record; collapse to a current-locale string for the editor.
+    const mapped: ListItem[] = list.items.map((item, i) => ({
       ...item,
+      description:
+        typeof item.description === 'string'
+          ? item.description
+          : displayString(item.description, language, DEFAULT_LOCALE),
       localId: `item-${i}-${item.imagePath ?? 'empty'}`,
     }));
     setLocalItems(mapped);
     localItemsRef.current = mapped;
-  }, [list]);
+  }, [list, language]);
 
   useEffect(() => { localItemsRef.current = localItems; }, [localItems]);
 
   useEffect(() => {
     if (!list) return;
-    const label = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
+    const label = displayString(list.name, language, DEFAULT_LOCALE);
     setBreadcrumbExtra({ label });
     return () => setBreadcrumbExtra(null);
   }, [list, language, setBreadcrumbExtra]);
@@ -125,7 +133,7 @@ export function ListDetailContent({ listId }: Props) {
   // canonical value if the user reverts an in-progress edit via Escape.
   useEffect(() => {
     if (!list) return;
-    const next = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
+    const next = displayString(list.name, language, DEFAULT_LOCALE);
     setNameDraft(next);
   }, [list, language]);
 
@@ -316,13 +324,13 @@ export function ListDetailContent({ listId }: Props) {
     );
   }
 
-  const listName = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
+  const listName = displayString(list.name, language, DEFAULT_LOCALE);
   const effectiveDisplayFormat = isSmallScreen ? 'rows' : list.displayFormat;
   const isColumns = effectiveDisplayFormat === 'columns';
 
   // Commit the editable banner title. Mirrors BannerEdit's category
-  // pattern: ignore empty/unchanged values, preserve the Hindi label if
-  // present, propagate to the pack snapshot only when admin in admin view.
+  // pattern: ignore empty/unchanged values, preserve every other locale's
+  // label, propagate to the pack snapshot only when admin in admin view.
   async function commitName() {
     if (!list) return;
     const trimmed = nameDraft.trim();
@@ -330,8 +338,10 @@ export function ListDetailContent({ listId }: Props) {
       setNameDraft(listName);
       return;
     }
-    const nextName: { eng: string; hin?: string } = { eng: trimmed };
-    if (list.name.hin) nextName.hin = list.name.hin;
+    const nextName: Record<string, string> = {
+      ...list.name,
+      [language]: trimmed,
+    };
     try {
       await renameList({
         profileListId: listId,
@@ -377,7 +387,7 @@ export function ListDetailContent({ listId }: Props) {
         packLabel={
           isDefault
             ? 'Default'
-            : (linkedLibraryPack?.name.eng ?? undefined)
+            : (linkedLibraryPack ? displayString(linkedLibraryPack.name, language, DEFAULT_LOCALE) : undefined)
         }
       />
 
@@ -582,9 +592,7 @@ export function ListDetailContent({ listId }: Props) {
           isOpen={packPickerOpen}
           onClose={() => setPackPickerOpen(false)}
           itemKind="list"
-          defaultName={
-            language === 'hin' && list.name.hin ? list.name.hin : list.name.eng
-          }
+          defaultName={displayString(list.name, language, DEFAULT_LOCALE)}
           onConfirm={handlePackPickerConfirm}
         />
       )}

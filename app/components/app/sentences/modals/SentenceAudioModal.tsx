@@ -166,7 +166,7 @@ export function SentenceAudioModal({
       }
       const trimmedValue = value.trim();
       if (trimmedValue) {
-        await renameSentence({ profileSentenceId: sentenceId, name: { eng: trimmedValue }, propagateToPack });
+        await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue }, propagateToPack });
       }
       await updateAudio({ profileSentenceId: sentenceId, text: trimmedValue || undefined, audioPath, propagateToPack });
       onClose();

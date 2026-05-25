@@ -13,6 +13,8 @@ import type * as accountMembers from "../accountMembers.js";
 import type * as admin_overviewStats from "../admin/overviewStats.js";
 import type * as crons from "../crons.js";
 import type * as data_defaultCategorySymbols from "../data/defaultCategorySymbols.js";
+import type * as data_languages__index from "../data/languages/_index.js";
+import type * as data_languages_types from "../data/languages/types.js";
 import type * as data_library_packs__index from "../data/library_packs/_index.js";
 import type * as data_library_packs_types from "../data/library_packs/types.js";
 import type * as data_starter_backups_index from "../data/starter_backups/index.js";
@@ -48,6 +50,8 @@ declare const fullApi: ApiFromModules<{
   "admin/overviewStats": typeof admin_overviewStats;
   crons: typeof crons;
   "data/defaultCategorySymbols": typeof data_defaultCategorySymbols;
+  "data/languages/_index": typeof data_languages__index;
+  "data/languages/types": typeof data_languages_types;
   "data/library_packs/_index": typeof data_library_packs__index;
   "data/library_packs/types": typeof data_library_packs_types;
   "data/starter_backups/index": typeof data_starter_backups_index;

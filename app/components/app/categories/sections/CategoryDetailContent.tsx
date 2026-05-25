@@ -23,6 +23,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { displayString, displayValue } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
@@ -71,7 +73,7 @@ type SymbolRow = {
   _id: string;
   profileCategoryId: Id<'profileCategories'>;
   order: number;
-  label: { eng: string; hin?: string };
+  label: Record<string, string>;
   display?: {
     bgColour?: string;
     textColour?: string;
@@ -83,8 +85,9 @@ type SymbolRow = {
     shape?: 'square' | 'rounded' | 'circle';
   };
   imagePath?: string;
-  audioEng?: string;
-  audioHin?: string;
+  // Per-language audio paths keyed by ISO 639-1 code. Empty record means no
+  // override exists — the consumer falls back to TTS via the audio resolver.
+  audio?: Record<string, string>;
 };
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
@@ -116,7 +119,7 @@ function SortableSymbolCard({ sym, language, categoryColour, onEdit, onDeleteReq
     position: 'relative',
   };
 
-  const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
+  const label = displayString(sym.label, language, DEFAULT_LOCALE);
   const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
 
   return (
@@ -304,10 +307,13 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleCategoryNameChange(nextName: string) {
     if (!category) return;
-    // Preserve the existing Hindi label when editing the English one. If
-    // the category had no `hin` set, leave it unset.
-    const next: { eng: string; hin?: string } = { eng: nextName };
-    if (category.name.hin) next.hin = category.name.hin;
+    // Preserve every other locale's label when editing the active locale.
+    // Per ADR-009 §2 the name field is an open ISO-keyed record — the new
+    // value overwrites only the current locale slot.
+    const next: Record<string, string> = {
+      ...category.name,
+      [language]: nextName,
+    };
     updateCategoryMeta({
       profileCategoryId,
       name: next,
@@ -430,7 +436,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   useEffect(() => {
     if (!category) return;
-    const name = language === 'hin' && category.name.hin ? category.name.hin : category.name.eng;
+    const name = displayString(category.name, language, DEFAULT_LOCALE);
     setBreadcrumbExtra({ label: name, colour: category.colour });
     return () => setBreadcrumbExtra(null);
   }, [category, language, setBreadcrumbExtra]);
@@ -438,7 +444,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
   // ── Derived ─────────────────────────────────────────────────────────────────
 
   const categoryName = category
-    ? (language === 'hin' && category.name.hin ? category.name.hin : category.name.eng)
+    ? displayString(category.name, language, DEFAULT_LOCALE)
     : '';
 
   const symbolMap = Object.fromEntries((symbols ?? []).map((s) => [s._id, s]));
@@ -467,7 +473,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
         packLabel={
           isDefault
             ? 'Default'
-            : (linkedLibraryPack?.name.eng ?? undefined)
+            : (linkedLibraryPack ? displayString(linkedLibraryPack.name, language, DEFAULT_LOCALE) : undefined)
         }
       />
 
@@ -577,8 +583,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
           ) : (
             <CategoryBoardGrid>
               {symbols.map((sym) => {
-                const label = language === 'hin' && sym.label.hin ? sym.label.hin : sym.label.eng;
-                const audioPath = language === 'hin' ? (sym.audioHin ?? sym.audioEng) : sym.audioEng;
+                const label = displayString(sym.label, language, DEFAULT_LOCALE);
+                const audioPath = displayValue(sym.audio, language, DEFAULT_LOCALE);
                 const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
 
                 return (

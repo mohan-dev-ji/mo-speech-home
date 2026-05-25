@@ -42,21 +42,18 @@ export const lookup = query({
       (c) => (c.words.en ?? "").toLowerCase().trim() === text
     );
     if (exact) {
-      // `audio` is a voice-keyed boolean map post-migration. Some legacy rows
-      // may briefly carry the migration-union shape until the migration runs;
-      // both paths are handled defensively here.
-      const audioMap = exact.audio as Record<string, unknown>;
-      const seeded =
-        audioMap?.[voiceId] === true ||
-        // Legacy union shape during migration window
-        (voiceId === "en-GB-News-M" && typeof audioMap?.eng === "object");
-
-      if (seeded) {
+      // `audio` is a voice-keyed boolean map per ADR-009 §4 — true means a
+      // seeded recording exists at the convention path. The Phase 8.0
+      // recovery `migrations.backfillAudioBasenames` populates
+      // `audioBasename` with the MVP's per-symbol R2 filename — the route
+      // handler resolves the final R2 path via lib/audio/resolveAudioPath.ts
+      // using this English word + basename.
+      const audioMap = exact.audio as Record<string, boolean>;
+      if (audioMap?.[voiceId] === true) {
         return {
           source: "symbolstix" as const,
-          // The route handler resolves the final R2 path via
-          // lib/audio/resolveAudioPath.ts using this English word.
           englishWord: exact.words.en,
+          audioBasename: exact.audioBasename,
         };
       }
     }

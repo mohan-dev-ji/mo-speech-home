@@ -8,6 +8,8 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 
 // Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container
 // (the aspect-square wrapper marked @container), so the label scales smoothly as
@@ -23,7 +25,7 @@ type AdminPacksStatus = {
   starterSlug: string;
   libraryPacksBySlug: Record<
     string,
-    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+    { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
   >;
 };
 
@@ -51,10 +53,7 @@ export function CategoryTile({
   dragHandleProps,
   adminPacks,
 }: Props) {
-  const name =
-    language === 'hin' && category.name.hin
-      ? category.name.hin
-      : category.name.eng;
+  const name = displayString(category.name, language, DEFAULT_LOCALE);
 
   const colourPair = getCategoryColour(category.colour);
   const Tag = isEditing ? ('div' as const) : ('button' as const);

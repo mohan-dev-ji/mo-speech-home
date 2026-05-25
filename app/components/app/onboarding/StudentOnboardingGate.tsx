@@ -25,7 +25,7 @@ export function StudentOnboardingGate() {
   const createStudentProfile = useMutation(api.studentProfiles.createStudentProfile);
 
   const [name, setName] = useState("");
-  const [language, setLanguage] = useState<"eng" | "hin">("eng");
+  const [language, setLanguage] = useState<"en" | "hi">("en");
   const [dob, setDob] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -78,7 +78,7 @@ export function StudentOnboardingGate() {
           <div className="space-y-1.5">
             <span className="text-small font-medium text-foreground">{t("language")}</span>
             <div className="flex gap-2">
-              {(["eng", "hin"] as const).map((lang) => (
+              {(["en", "hi"] as const).map((lang) => (
                 <button
                   key={lang}
                   type="button"
@@ -89,7 +89,7 @@ export function StudentOnboardingGate() {
                       : "bg-background text-foreground border-border hover:bg-muted"
                   }`}
                 >
-                  {lang === "eng" ? t("languageEng") : t("languageHin")}
+                  {lang === "en" ? t("languageEng") : t("languageHin")}
                 </button>
               ))}
             </div>

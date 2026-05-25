@@ -22,10 +22,19 @@ import { SymbolCard } from './SymbolCard';
 import { NavTabButton } from './NavTabButton';
 import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 import type { QuickSymbolItem } from './TalkerBar';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
+
+// Voice fallback used by Phase 8.0 until the per-profile voice picker (Phase 8.5)
+// drives this from `studentProfiles.voiceId`. en-GB-News-M is the only voice
+// with seeded SymbolStix audio at launch — the legacy path lives at
+// `audio/eng/default/<word>.mp3`; new voices follow the new convention.
+const DEFAULT_VOICE_ID = 'en-GB-News-M';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
-// These match the exact words.eng values in the symbols table.
+// These match the exact words.en values in the symbols table.
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '20'];
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
@@ -92,7 +101,7 @@ export function TalkerDropdown({
 
   // O(1) word → symbol lookup — built from whichever query is active
   function buildMap(symbols: typeof groupSymbols) {
-    return new Map((symbols ?? []).map((s) => [s.words.eng, s]));
+    return new Map((symbols ?? []).map((s) => [s.words.en ?? '', s]));
   }
 
   if (!mounted || anchorWidth === 0) return null;
@@ -116,7 +125,7 @@ export function TalkerDropdown({
     if (id === 'letters') return t('tabLetters');
     const group = LITTLE_WORDS_GROUPS.find((g) => g.id === id);
     if (!group) return id;
-    return language === 'hin' ? group.name.hin : group.name.eng;
+    return displayString(group.name, language, DEFAULT_LOCALE);
   }
 
   const allTabs: TabId[] = [
@@ -161,12 +170,23 @@ export function TalkerDropdown({
     const map = buildMap(symbols);
     return words.map((word) => {
       const sym       = map.get(word);
-      const label     = language === 'hin' && sym?.words.hin ? sym.words.hin : sym?.words.eng ?? word;
+      const label     = sym
+        ? displayString(sym.words, language, DEFAULT_LOCALE)
+        : word;
       const imagePath = sym ? `/api/assets?key=${sym.imagePath}` : undefined;
+      // Per ADR-009 §4 the audio path is convention-resolved. The boolean map
+      // records "is this voice seeded"; resolveSymbolAudioPath turns that into
+      // an R2 key (with the legacy `audio/eng/default/<basename>.mp3`
+      // fallback for the en-GB-News-M voice until Phase 8.4 re-seeds it).
+      const audioMap = (sym?.audio as Record<string, boolean> | undefined) ?? {};
+      const seeded   = audioMap[DEFAULT_VOICE_ID] === true;
       const audioPath = sym
-        ? (language === 'hin' && sym.audio.hin?.default
-            ? sym.audio.hin.default
-            : sym.audio.eng.default)
+        ? resolveSymbolAudioPath(
+            DEFAULT_VOICE_ID,
+            sym.words.en ?? word,
+            seeded,
+            sym.audioBasename,
+          ) ?? undefined
         : undefined;
       return (
         <SymbolCard

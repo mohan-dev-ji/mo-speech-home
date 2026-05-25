@@ -28,6 +28,8 @@ import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
@@ -48,7 +50,7 @@ import {
 
 type ListRow = {
   _id: Id<'profileLists'>;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   order: number;
   itemCount: number;
   thumbnails: { imagePath?: string }[];
@@ -61,7 +63,7 @@ type AdminPacksStatus = {
   starterSlug: string;
   libraryPacksBySlug: Record<
     string,
-    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+    { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
   >;
 };
 
@@ -147,7 +149,7 @@ function SortableListRow({
     position: 'relative',
   };
 
-  const name = language === 'hin' && list.name.hin ? list.name.hin : list.name.eng;
+  const name = displayString(list.name, language, DEFAULT_LOCALE);
   const isEditingThisName = editingNameId === list._id;
 
   return (
@@ -350,7 +352,7 @@ export function ListsModeContent() {
   }
 
   async function handleCreate(name: string, steps: string[]) {
-    const id = await createList({ name: { eng: name } });
+    const id = await createList({ name: { en: name } });
     const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
     if (nonEmpty.length > 0) {
       await updateListItems({
@@ -386,7 +388,7 @@ export function ListsModeContent() {
     }
     await renameList({
       profileListId: editingNameId,
-      name: { eng: editingNameValue.trim() },
+      name: { en: editingNameValue.trim() },
       propagateToPack: showAdminBadges,
     });
     setEditingNameId(null);
@@ -412,7 +414,7 @@ export function ListsModeContent() {
       for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
         opts.push({
           value: slug,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'unpublished', label: t('filterUnpublished') });
@@ -420,7 +422,7 @@ export function ListsModeContent() {
       for (const pack of loadedPacks) {
         opts.push({
           value: pack._id,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'mine', label: t('filterMine') });

@@ -16,7 +16,7 @@ import { TagPicker } from "@/app/components/admin/ui/TagPicker";
 
 type PackRow = {
   slug: string;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   defaultTier: "free" | "pro" | "max";
   publishedAt: number | null;
   expiresAt: number | null;
@@ -104,7 +104,7 @@ export function EditPackLifecycleModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit lifecycle — {pack.name.eng}</DialogTitle>
+          <DialogTitle>Edit lifecycle — {pack.name.en ?? pack.slug}</DialogTitle>
           <DialogDescription>
             Slug: <span className="font-mono">{pack.slug}</span> · Default tier:{" "}
             <span className="uppercase">{pack.defaultTier}</span>

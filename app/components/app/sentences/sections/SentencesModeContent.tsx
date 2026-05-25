@@ -35,6 +35,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -82,7 +84,7 @@ type Slot = {
 
 type SentenceRow = {
   _id: Id<'profileSentences'>;
-  name: { eng: string; hin?: string };
+  name: Record<string, string>;
   order: number;
   text?: string;
   audioPath?: string;
@@ -96,7 +98,7 @@ type AdminPacksStatus = {
   starterSlug: string;
   libraryPacksBySlug: Record<
     string,
-    { tier: 'free' | 'pro' | 'max'; name: { eng: string; hin?: string } }
+    { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
   >;
 };
 
@@ -346,7 +348,7 @@ function SortableSentenceRow({
     position: 'relative',
   };
 
-  const name = language === 'hin' && sentence.name.hin ? sentence.name.hin : sentence.name.eng;
+  const name = displayString(sentence.name, language, DEFAULT_LOCALE);
   const sentenceText = sentence.text || name;
 
   return (
@@ -620,7 +622,7 @@ export function SentencesModeContent() {
   }
 
   async function handleCreate(name: string) {
-    await createSentence({ name: { eng: name } });
+    await createSentence({ name: { en: name } });
     // Drop straight into edit mode so the new sentence's empty slots and
     // audio affordances are visible immediately — same pattern as list
     // creation, just no navigation since sentences live inline on this page.
@@ -767,7 +769,7 @@ export function SentencesModeContent() {
       for (const [slug, pack] of Object.entries(packsStatus.libraryPacksBySlug)) {
         opts.push({
           value: slug,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'unpublished', label: t('filterUnpublished') });
@@ -775,7 +777,7 @@ export function SentencesModeContent() {
       for (const pack of loadedPacks) {
         opts.push({
           value: pack._id,
-          label: language === 'hin' && pack.name.hin ? pack.name.hin : pack.name.eng,
+          label: displayString(pack.name, language, DEFAULT_LOCALE),
         });
       }
       opts.push({ value: 'mine', label: t('filterMine') });
@@ -904,7 +906,15 @@ export function SentencesModeContent() {
                       onReorderSlots={handleReorderSlots}
                       onEditSentence={(s) => setSentenceEditTarget({
                         sentenceId: s._id,
-                        value: s.text || (language === 'hin' && s.name.hin ? s.name.hin : s.name.eng),
+                        // `text` is a localised record post Phase 8.0; the schema
+                        // migration union still permits a string from pre-migration
+                        // rows during the cutover window, so the typeof guard keeps
+                        // both readable.
+                        value:
+                          (typeof s.text === 'string'
+                            ? s.text
+                            : displayString(s.text, language, DEFAULT_LOCALE)) ||
+                          displayString(s.name, language, DEFAULT_LOCALE),
                         audioPath: s.audioPath,
                       })}
                       onPlay={(s) => setPlayTarget(s)}
@@ -1004,7 +1014,14 @@ export function SentencesModeContent() {
       {/* Fullscreen play modal */}
       <SentencePlayModal
         isOpen={playTarget !== null}
-        sentenceText={playTarget ? (playTarget.text || (language === 'hin' && playTarget.name.hin ? playTarget.name.hin : playTarget.name.eng)) : ''}
+        sentenceText={
+          playTarget
+            ? ((typeof playTarget.text === 'string'
+                ? playTarget.text
+                : displayString(playTarget.text, language, DEFAULT_LOCALE)) ||
+              displayString(playTarget.name, language, DEFAULT_LOCALE))
+            : ''
+        }
         slots={playTarget?.slots ?? []}
         audioPath={playTarget?.audioPath}
         onClose={() => setPlayTarget(null)}
@@ -1022,9 +1039,7 @@ export function SentencesModeContent() {
           itemKind="sentence"
           defaultName={
             packPickerSentence
-              ? language === 'hin' && packPickerSentence.name.hin
-                ? packPickerSentence.name.hin
-                : packPickerSentence.name.eng
+              ? displayString(packPickerSentence.name, language, DEFAULT_LOCALE)
               : ''
           }
           onConfirm={handlePackPickerConfirm}

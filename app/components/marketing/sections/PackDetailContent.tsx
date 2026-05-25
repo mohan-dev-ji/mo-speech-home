@@ -17,6 +17,10 @@ import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { LoadPackButton } from "@/app/components/marketing/ui/LoadPackButton";
+import { displayString } from "@/lib/languages/displayValue";
+import { DEFAULT_LOCALE } from "@/lib/languages/registry";
+
+type LocalisedString = Record<string, string>;
 
 const tierBadgeVariant: Record<
   "free" | "pro" | "max",
@@ -30,50 +34,45 @@ const tierBadgeVariant: Record<
 type Symbol = {
   order: number;
   imagePath: string | null;
-  label: { eng: string; hin?: string };
+  label: LocalisedString;
 };
 
 type PackDetail = {
   slug: string;
-  name: { eng: string; hin?: string };
-  description: { eng: string; hin?: string };
+  name: LocalisedString;
+  description: LocalisedString;
   coverImagePath: string;
   tier: "free" | "pro" | "max";
   isStarter: boolean;
   counts: { categories: number; lists: number; sentences: number };
   categories: Array<{
-    name: { eng: string; hin?: string };
+    name: LocalisedString;
     icon: string;
     colour: string;
     imagePath: string | null;
     symbols: Symbol[];
   }>;
   lists: Array<{
-    name: { eng: string; hin?: string };
+    name: LocalisedString;
     items: Symbol[];
   }>;
   sentences: Array<{
-    name: { eng: string; hin?: string };
-    text: string | null;
+    name: LocalisedString;
+    // Convex returns either the localised record or, for legacy pre-migration
+    // pack rows, a plain string. Resolved via `displayString()` when rendered.
+    text: LocalisedString | string | null;
     slots: Symbol[];
   }>;
 };
 
-function localizedLabel(
-  label: { eng: string; hin?: string },
-  isHindi: boolean,
-): string {
-  return (isHindi && label.hin) || label.eng;
-}
-
 function SymbolTile({
   symbol,
-  isHindi,
+  locale,
 }: {
   symbol: Symbol;
-  isHindi: boolean;
+  locale: string;
 }) {
-  const label = localizedLabel(symbol.label, isHindi);
+  const label = displayString(symbol.label, locale, DEFAULT_LOCALE);
   const src = symbol.imagePath
     ? `/api/assets?key=${encodeURIComponent(symbol.imagePath)}`
     : null;
@@ -107,9 +106,8 @@ export function PackDetailContent({
   locale: string;
 }) {
   const t = useTranslations("library");
-  const isHindi = locale === "hi";
-  const name = localizedLabel(pack.name, isHindi);
-  const description = localizedLabel(pack.description, isHindi);
+  const name = displayString(pack.name, locale, DEFAULT_LOCALE);
+  const description = displayString(pack.description, locale, DEFAULT_LOCALE);
   const coverSrc = `/api/assets?key=${encodeURIComponent(pack.coverImagePath)}`;
   const tierLabel =
     pack.tier === "free"
@@ -185,14 +183,14 @@ export function PackDetailContent({
             {pack.categories.map((cat, ci) => (
               <div key={ci} className="flex flex-col gap-3">
                 <h3 className="text-body font-medium text-foreground">
-                  {localizedLabel(cat.name, isHindi)}
+                  {displayString(cat.name, locale, DEFAULT_LOCALE)}
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                   {cat.symbols.map((sym) => (
                     <SymbolTile
                       key={sym.order}
                       symbol={sym}
-                      isHindi={isHindi}
+                      locale={locale}
                     />
                   ))}
                 </div>
@@ -212,14 +210,14 @@ export function PackDetailContent({
             {pack.lists.map((list, li) => (
               <div key={li} className="flex flex-col gap-3">
                 <h3 className="text-body font-medium text-foreground">
-                  {localizedLabel(list.name, isHindi)}
+                  {displayString(list.name, locale, DEFAULT_LOCALE)}
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                   {list.items.map((item) => (
                     <SymbolTile
                       key={item.order}
                       symbol={item}
-                      isHindi={isHindi}
+                      locale={locale}
                     />
                   ))}
                 </div>
@@ -239,13 +237,13 @@ export function PackDetailContent({
             {pack.sentences.map((sent, si) => (
               <div key={si} className="flex flex-col gap-3">
                 <h3 className="text-body font-medium text-foreground">
-                  {localizedLabel(sent.name, isHindi)}
+                  {displayString(sent.name, locale, DEFAULT_LOCALE)}
                 </h3>
                 {/* Slots inline left-to-right; wrap on narrow screens. */}
                 <div className="flex flex-wrap gap-3">
                   {sent.slots.map((slot) => (
                     <div key={slot.order} className="w-20 shrink-0">
-                      <SymbolTile symbol={slot} isHindi={isHindi} />
+                      <SymbolTile symbol={slot} locale={locale} />
                     </div>
                   ))}
                 </div>
