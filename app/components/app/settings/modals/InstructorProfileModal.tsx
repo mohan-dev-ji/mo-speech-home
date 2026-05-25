@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useTheme, THEME_TOKENS, type ThemeSlug } from "@/app/contexts/ThemeContext";
@@ -51,6 +51,13 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   const setMyGridSize       = useMutation(api.users.setMyInstructorGridSize);
   const setMyTextSize       = useMutation(api.users.setMyInstructorSymbolTextSize);
   const setMyFlag           = useMutation(api.users.setMyInstructorFlag);
+
+  // Visible languages drive the picker — `includeBeta: true` so Spanish /
+  // Korean show with a "preview" pill before they're stable. Per ADR-009 §3.
+  // Machine-translated stays hidden in instructor view; admins can preview
+  // those via /admin/languages directly.
+  const visibleLanguages =
+    useQuery(api.languages.getVisibleLanguages, { includeBeta: true }) ?? [];
 
   const currentLocale  = (userRecord?.locale ?? params?.locale ?? "en") as string;
   const currentTheme   = (userRecord?.themeSlug ?? activeThemeId ?? "default") as ThemeSlug;
@@ -123,22 +130,24 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         {/* ── Language ──────────────────────────────────────────────────────── */}
         <section className="space-y-2">
           <p className="text-theme-s font-semibold text-theme-secondary-text">Language</p>
-          <div className="flex gap-2">
-            {[
-              { code: "en", label: "English" },
-              { code: "hi", label: "हिंदी"   },
-            ].map(({ code, label }) => (
+          <div className="flex flex-wrap gap-2">
+            {visibleLanguages.map(({ code, nativeLabel, status }) => (
               <button
                 key={code}
                 type="button"
                 onClick={() => setLocale(code)}
-                className={`flex-1 py-2 rounded-theme text-theme-s font-medium border transition-colors ${
+                className={`flex-1 min-w-[5rem] py-2 px-3 rounded-theme text-theme-s font-medium border transition-colors inline-flex items-center justify-center gap-1.5 ${
                   locale === code
                     ? "bg-theme-button-highlight text-theme-text border-transparent"
                     : "bg-theme-primary text-theme-alt-text border-theme-line hover:opacity-90"
                 }`}
               >
-                {label}
+                <span>{nativeLabel}</span>
+                {status === "beta" && (
+                  <span className="text-[0.65rem] uppercase tracking-wider opacity-70">
+                    preview
+                  </span>
+                )}
               </button>
             ))}
           </div>

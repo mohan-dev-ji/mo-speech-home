@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { track } from "@/lib/analytics";
 import { deriveTier } from "@/types";
 import type { UserSubscription, UserRecord } from "@/types";
+import { LOCALES } from "@/lib/languages/registry";
 
 type AppStateContextValue = {
   userRecord: UserRecord | null | undefined;
@@ -128,21 +129,33 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // In student-view, StudentViewLocaleSync owns the URL locale, so this skips.
 
   useEffect(() => {
-    if (!userRecord || !urlLocale || !router) return;
+    if (!userRecord || !urlLocale) return;
     const isStudentView =
       typeof window !== "undefined" &&
       window.sessionStorage.getItem("mo-view-mode") === "student-view";
     if (isStudentView) return;
     const storedLocale = userRecord.locale;
-    if (storedLocale && storedLocale !== urlLocale) {
-      // Swap the locale segment in the current path so the user stays on the same page.
-      // e.g. /en/settings → /hi/settings, /en/home → /hi/home (covers sign-in redirect too).
-      const newPath = window.location.pathname.replace(
-        new RegExp(`^/${urlLocale}(/|$)`),
-        `/${storedLocale}$1`,
-      );
-      router.replace(newPath);
-    }
+    if (!storedLocale || storedLocale === urlLocale) return;
+    // Guard against redirecting to a locale that's no longer in the registry
+    // (e.g. an admin removed the JSON between sessions). Without this we'd
+    // redirect to /<missing>/home and trigger notFound() in [locale]/layout.
+    if (!LOCALES.includes(storedLocale)) return;
+    // Swap the locale segment in the current path so the user stays on the
+    // same page. e.g. /en/settings → /es/settings, /en/home → /hi/home
+    // (covers sign-in redirect too).
+    //
+    // Hard navigation, not soft `router.replace`. Soft nav works for locales
+    // bundled at first build but flakes for locales added mid-session —
+    // Next sometimes preserves the [locale] segment boundary instead of
+    // re-rendering the layout that carries NextIntlClientProvider, so the
+    // URL changes but UI strings don't. The hard nav guarantees the layout
+    // re-renders with fresh messages. See LocaleSwitcher for the same
+    // pattern on the marketing side.
+    const newPath = window.location.pathname.replace(
+      new RegExp(`^/${urlLocale}(/|$)`),
+      `/${storedLocale}$1`,
+    );
+    window.location.assign(newPath + window.location.search);
   }, [userRecord?.locale, urlLocale]);
 
   // ─── NEXT_LOCALE cookie sync ─────────────────────────────────────────────────
@@ -157,7 +170,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof document === "undefined") return;
     const storedLocale = userRecord?.locale;
-    if (storedLocale !== "en" && storedLocale !== "hi") return;
+    // Only mirror a locale that's actually in the registry — guards against
+    // stale data persisting a locale we no longer ship (e.g. an admin
+    // removed a language between sessions).
+    if (!storedLocale || !LOCALES.includes(storedLocale)) return;
     const cookieMatch = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]+)/);
     if (cookieMatch?.[1] === storedLocale) return;
     document.cookie = `NEXT_LOCALE=${storedLocale};path=/;max-age=31536000;samesite=lax`;

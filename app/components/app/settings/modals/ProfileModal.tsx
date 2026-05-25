@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
@@ -77,6 +77,13 @@ function ProfileTabContent({
   const t = useTranslations("studentProfile");
   const { setActiveProfile, allProfiles } = useProfile();
   const { subscription } = useAppState();
+
+  // Visible-language list — beta languages show with a "preview" pill.
+  // Falls back to a hard-coded en/hi pair until the Convex query hydrates
+  // so the modal renders correctly on first paint.
+  const visibleLanguages = useQuery(api.languages.getVisibleLanguages, {
+    includeBeta: true,
+  });
 
   const updateProfile  = useMutation(api.studentProfiles.updateStudentProfile);
   const setFlag        = useMutation(api.studentProfiles.setStateFlag);
@@ -219,22 +226,29 @@ function ProfileTabContent({
       {/* Language */}
       <div>
         <p className="text-small font-semibold text-foreground mb-2">{t("sectionLanguage")}</p>
-        <div className="flex gap-2">
-          {[
-            { code: "en", label: "English" },
-            { code: "hi", label: "हिंदी"   },
-          ].map(({ code, label }) => (
+        <div className="flex flex-wrap gap-2">
+          {(visibleLanguages ??
+            [
+              { code: "en", nativeLabel: "English", status: "stable" as const },
+              { code: "hi", nativeLabel: "हिंदी", status: "stable" as const },
+            ]
+          ).map(({ code, nativeLabel, status }) => (
             <button
               key={code}
               type="button"
               onClick={() => handleLangChange(code)}
-              className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors ${
+              className={`flex-1 min-w-[6rem] py-2 rounded-md text-small font-medium border transition-colors inline-flex items-center justify-center gap-1.5 ${
                 currentLang === code
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background text-muted-foreground border-border hover:bg-muted"
               }`}
             >
-              {label}
+              {nativeLabel}
+              {status === "beta" && (
+                <span className="inline-flex items-center rounded-full bg-warning/20 text-warning text-caption px-1.5 py-0">
+                  preview
+                </span>
+              )}
             </button>
           ))}
         </div>

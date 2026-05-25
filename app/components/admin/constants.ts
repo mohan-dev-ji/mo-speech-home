@@ -33,3 +33,20 @@ export type CustomAccessReason = (typeof CUSTOM_ACCESS_REASONS)[number];
  * UI components can re-import the union without leaking server types.
  */
 export type PackLifecycleStatus = "draft" | "scheduled" | "live" | "expired";
+
+/**
+ * Language publish statuses — same publish-window axis as packs. Mirrors
+ * `derivePublishStatus` in `convex/languages.ts`.
+ */
+export type LanguagePublishStatus = "draft" | "scheduled" | "live" | "expired";
+
+/**
+ * Language translation statuses per ADR-009 §3. Drives the "promote"
+ * action — `machine-translated → beta → stable`. Independent of the
+ * publish status (a language can be `beta` but `scheduled` to go live
+ * next week).
+ */
+export type LanguageTranslationStatus =
+  | "machine-translated"
+  | "beta"
+  | "stable";
