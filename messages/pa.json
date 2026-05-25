@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "comment": "Phase 8.0 stub — hand-translated subset of UI strings to verify Gurmukhi font rendering. Status: machine-translated (hidden from production pickers by default). Native-speaker review happens in Phase 8.6. Untranslated keys fall through to messages/en.json via next-intl's default-locale fallback."
+  },
+  "nav": {
+    "home": "ਘਰ",
+    "search": "ਖੋਜ",
+    "categories": "ਸ਼੍ਰੇਣੀਆਂ",
+    "sentences": "ਵਾਕ",
+    "settings": "ਸੈਟਿੰਗਾਂ"
+  }
+}

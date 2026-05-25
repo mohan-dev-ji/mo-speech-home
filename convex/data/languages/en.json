@@ -1,0 +1,14 @@
+{
+  "code": "en",
+  "label": "English",
+  "nativeLabel": "English",
+  "dir": "ltr",
+  "font": "notoSans",
+  "voices": [
+    {
+      "id": "default",
+      "label": "Adult (British English)",
+      "ttsVoiceId": "en-GB-News-M"
+    }
+  ]
+}

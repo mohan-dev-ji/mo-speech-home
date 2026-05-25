@@ -3,8 +3,18 @@ import { v } from "convex/values";
 
 /**
  * Look up a TTS cache entry.
- * Checks the symbols table first (free SymbolStix audio), then ttsCache.
- * Returns enough info for the Next.js route to resolve the R2 key or decide to generate.
+ *
+ * Checks the symbols table first (free SymbolStix audio), then `ttsCache`.
+ * Returns either a resolved R2 path or `source: "none"` to tell the caller
+ * to synthesise fresh TTS.
+ *
+ * Per ADR-009 §4: audio paths are convention-resolved by the audio resolver
+ * (`lib/audio/resolveAudioPath.ts`) — never stored on `symbols.audio`.
+ * `symbols.audio[voiceId]` is a boolean meaning "this voice has been seeded
+ * with a SymbolStix recording for this symbol."
+ *
+ * Cache key is per-voice (not per-language). The expected cache wipe on
+ * the Phase 8.0 deploy is intentional — Phase 8.0 plan notes this.
  */
 export const lookup = query({
   args: {
@@ -13,7 +23,7 @@ export const lookup = query({
   },
   handler: async (ctx, { text, voiceId }) => {
     // Match against SymbolStix case-insensitively. The exact-match index
-    // (by_words_eng) is case-sensitive — "pringles" wouldn't find "Pringles" —
+    // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
     // so we hit the tokenised search index and confirm a result's label
     // matches when lowercased. Confirmation guards against false positives
     // ("apple" → "Apple Pie") that the search index would otherwise rank.
@@ -25,17 +35,30 @@ export const lookup = query({
     // recording and fall through to fresh TTS synthesis.
     const candidates = await ctx.db
       .query("symbols")
-      .withSearchIndex("search_words_eng", (q) => q.search("words.eng", text))
+      .withSearchIndex("search_words_en", (q) => q.search("words.en", text))
       .take(10);
 
     const exact = candidates.find(
-      (c) => c.words.eng.toLowerCase().trim() === text
+      (c) => (c.words.en ?? "").toLowerCase().trim() === text
     );
     if (exact) {
-      return {
-        source: "symbolstix" as const,
-        audioDefault: exact.audio.eng.default,
-      };
+      // `audio` is a voice-keyed boolean map post-migration. Some legacy rows
+      // may briefly carry the migration-union shape until the migration runs;
+      // both paths are handled defensively here.
+      const audioMap = exact.audio as Record<string, unknown>;
+      const seeded =
+        audioMap?.[voiceId] === true ||
+        // Legacy union shape during migration window
+        (voiceId === "en-GB-News-M" && typeof audioMap?.eng === "object");
+
+      if (seeded) {
+        return {
+          source: "symbolstix" as const,
+          // The route handler resolves the final R2 path via
+          // lib/audio/resolveAudioPath.ts using this English word.
+          englishWord: exact.words.en,
+        };
+      }
     }
 
     // Check global TTS cache

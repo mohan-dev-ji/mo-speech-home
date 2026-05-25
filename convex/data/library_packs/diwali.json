@@ -1,10 +1,10 @@
 {
   "slug": "diwali",
   "name": {
-    "eng": "Diwali"
+    "en": "Diwali"
   },
   "description": {
-    "eng": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table."
+    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table."
   },
   "coverImagePath": "static/pack-cover-default.webp",
   "defaultTier": "max",
@@ -14,131 +14,131 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00204004.png",
       "name": {
-        "eng": "Diwali"
+        "en": "Diwali"
       },
       "symbols": [
         {
           "labelOverride": {
-            "eng": "festival activities"
+            "en": "festival activities"
           },
           "order": 0,
           "symbolId": "kn715c1fsv5pzff0n4dyhrt5k984n2fb"
         },
         {
           "labelOverride": {
-            "eng": "Diwali lantern"
+            "en": "Diwali lantern"
           },
           "order": 1,
           "symbolId": "kn7ag5r5fp5f15pdvtjbhq1q2h84m14k"
         },
         {
           "labelOverride": {
-            "eng": "Diwali festival"
+            "en": "Diwali festival"
           },
           "order": 2,
           "symbolId": "kn7fd5h7cnhmb42rks582h2m9d84myb3"
         },
         {
           "labelOverride": {
-            "eng": "Diwali"
+            "en": "Diwali"
           },
           "order": 3,
           "symbolId": "kn7anb5dn392yr6swwcwb1fbrh84mrs8"
         },
         {
           "labelOverride": {
-            "eng": "happy"
+            "en": "happy"
           },
           "order": 4,
           "symbolId": "kn77edpvpxsk4vrww1k88ngb5h84mjrx"
         },
         {
           "labelOverride": {
-            "eng": "diya"
+            "en": "diya"
           },
           "order": 5,
           "symbolId": "kn7b0vhn8mmz51tbp4ebx7aae584nvc2"
         },
         {
           "labelOverride": {
-            "eng": "rangoli"
+            "en": "rangoli"
           },
           "order": 6,
           "symbolId": "kn77dds5gn088y4gdavg76tbc984n51a"
         },
         {
           "labelOverride": {
-            "eng": "fireworks"
+            "en": "fireworks"
           },
           "order": 7,
           "symbolId": "kn77hza6dr0atkrsaqfsqt2wss84n90a"
         },
         {
           "labelOverride": {
-            "eng": "sweets"
+            "en": "sweets"
           },
           "order": 8,
           "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
         },
         {
           "labelOverride": {
-            "eng": "gifts"
+            "en": "gifts"
           },
           "order": 9,
           "symbolId": "kn75nbjpjksbp1czsw9me2cfr584mjn9"
         },
         {
           "labelOverride": {
-            "eng": "India"
+            "en": "India"
           },
           "order": 10,
           "symbolId": "kn79261k3jnw2jzeps1tztd4zh84mmrv"
         },
         {
           "labelOverride": {
-            "eng": "new clothes"
+            "en": "new clothes"
           },
           "order": 11,
           "symbolId": "kn724bxcxtk2mtc38ddbxdp3cn84mscq"
         },
         {
           "labelOverride": {
-            "eng": "blessed"
+            "en": "blessed"
           },
           "order": 12,
           "symbolId": "kn7c6e0vr391z7hjrqxrtkdw2184n0q3"
         },
         {
           "labelOverride": {
-            "eng": "lights"
+            "en": "lights"
           },
           "order": 13,
           "symbolId": "kn75kxkw4rmbvzms1qaat9s3wx84ncb4"
         },
         {
           "labelOverride": {
-            "eng": "family"
+            "en": "family"
           },
           "order": 14,
           "symbolId": "kn76k525dn6h32rd8w2nb10hv984men6"
         },
         {
           "labelOverride": {
-            "eng": "prayer"
+            "en": "prayer"
           },
           "order": 15,
           "symbolId": "kn7bz6r742s7sm9p122rs7pze184mgfj"
         },
         {
           "labelOverride": {
-            "eng": "sparkler"
+            "en": "sparkler"
           },
           "order": 16,
           "symbolId": "kn76xgd99zdfak19xw2rapnzd984nv3f"
         },
         {
           "labelOverride": {
-            "eng": "candle"
+            "en": "candle"
           },
           "order": 17,
           "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
@@ -201,7 +201,7 @@
         }
       ],
       "name": {
-        "eng": "Getting ready for Diwali"
+        "en": "Getting ready for Diwali"
       },
       "order": 0,
       "showChecklist": false,
@@ -213,7 +213,7 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/8b482bb7-1b95-4400-99a8-b9d4f1ebfb3a.mp3",
       "name": {
-        "eng": "Let's light the candles"
+        "en": "Let's light the candles"
       },
       "order": 1,
       "slots": [
@@ -247,7 +247,7 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/b88a3173-2336-4e2b-925f-d71aaf29f24f.mp3",
       "name": {
-        "eng": "Time to be quiet for prayers"
+        "en": "Time to be quiet for prayers"
       },
       "order": 1,
       "slots": [

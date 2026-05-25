@@ -40,8 +40,8 @@ Execute in this order:
 | ✅ | Phases 0–6 | shipped | Main app, library authoring, free-tier gating, pricing, library detail page |
 | ✅ | Phase 7 — Admin Dashboard (slice 1) | shipped | Library + Users + Overview + custom access (grant/revoke + audit history + expiry cron) + tag system on packLifecycle |
 | ➡️ | **Phase 7.5 — Product Analytics (PostHog)** | 1–2 days | Funnel data, retention, feature usage, opt-out toggle, child-privacy hard rules. Unblocks evidence-based design for everything below. See `21-product-analytics-posthog.md`. |
-| ➡️ | **ADR-011 — Plugin architecture for content modules** | ~½ day, no code | Codify the "content-as-data, app-as-runtime" pattern (already true for packs via ADR-010). Applied to languages, themes, future plugin types (phonics, key-stage). |
-| ➡️ | **Phase 8 — Languages (dedicated plugin refactor)** | 1–2 weeks | The strategic differentiator. Refactor languages as a plugin module: JSON bundle per locale + voice registration + default-symbol translations + locale routing entry. Hindi proves the architecture; Punjabi / Bengali / Spanish / Arabic follow same rails. Adds a "Languages" section to the admin dashboard. |
+| ✅ | **ADR-011 — Plugin architecture for content modules** | accepted | Codifies the "content-as-data, app-as-runtime" pattern (proven by ADR-010 packs). Generalised to languages, themes, future plugin types. Status: Accepted; folded into the Phase 8 spec. |
+| 🔨 | **Phase 8 — Languages (dedicated plugin refactor)** | 1–2 weeks, sub-phased 8.0 → 8.6 | The strategic differentiator. Full spec in [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/features/language-plugin-phase-8.md). **8.0** (in progress, branch `phase-8-0-foundation-migration`): schema migration `{eng, hin}` → `{[iso]: string}`, registry refactor (JSON-loaded), audio resolver (voice-first R2 paths), `languageLifecycle` table, Punjabi (`pa`) stub for plugin-pattern verification. **8.1**: admin Languages section + UI-strings AI translation pipeline. **8.2**: 52k-symbol translation pipeline + Latin transliterations (ADR-009 §9). **8.3**: default-pack translation. **8.4**: voice seeding (4 voices per language). **8.5**: tier-based slots (Free=1, Pro=2, Max=3), swap flow, beta badge, font activation. **8.6**: native-speaker review queue, promote Hindi/Punjabi to stable. |
 | ➡️ | **Phase 9 — Themes as pluggable packs** | 1–2 weeks | Same plugin pattern. JSON theme definitions + `themeLifecycle` overlay. User uploads as natural next step. Adds a "Themes" section to the admin dashboard. |
 | ➡️ | **Phase 10 — UI design polish pass** | design-led | Figma + Claude Design exploration. Polish AFTER architecture is right and AFTER real content (Devanagari, themes, multi-language) is rendering. PostHog data informs which surfaces deserve most attention. |
 | ➡️ | **Phase 11 — Home/School connection review** | ?? — see hypothesis | The original Phase 9 (convex-identity + convex-school separation) may have been **accidentally solved** by the existing student-profile + accountMembers invite architecture. This phase becomes a review and rescoping rather than a build. See "Home/School Hypothesis" inside Phase 11 below. |
@@ -605,70 +605,25 @@ Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into thi
 
 ## Phase 8 — Languages (dedicated plugin refactor)
 
-> **Status:** New dedicated phase. Replaces the "Languages as a running thread" approach for the specific work of making locales pluggable. The architectural discipline (no `"eng"` hard-coding etc.) remains a running thread — see the section below.
+> **Status:** Sub-phased 8.0 → 8.6. Phase 8.0 in progress on branch `phase-8-0-foundation-migration`. The "Languages as a running thread" discipline (no `"eng"` hard-coding etc.) remains valid — see the section below — but the *implementation* of pluggable languages lives here.
 
-**Goal:** Make adding a new language a self-contained, pluggable operation — no schema changes, no architectural rework, no app-shell editing. Hindi proves the architecture; Punjabi, Bengali, Spanish, Arabic and others follow the same pattern.
+**Goal:** Make adding a new language a self-contained, pluggable operation — no schema changes, no architectural rework, no app-shell editing. Hindi proves the architecture; Punjabi is the third-language plugin-pattern verification; Bengali, Spanish, Arabic and others follow the same pattern.
 
 This is the strategic differentiator. No serious AAC platform treats Hindi (or any South Asian language) as first-class. Building this properly opens markets nobody else can serve.
 
-### 8.1 Language module shape (per ADR-011)
+**Full spec:** [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/features/language-plugin-phase-8.md)
 
-A language is a self-contained module made of:
+**Sub-phase summary** (the spec is the authoritative reference; this list is for scanning):
 
-- **UI bundle:** `messages/<locale>.json` — all `useTranslations` keys for the locale
-- **Voice registration:** `convex/data/voices/<locale>.json` — list of voice IDs available for the locale (Google Cloud TTS voice names + display labels)
-- **Default-symbol translations:** the symbols table's `words.<locale>` and `audio.<locale>` fields (already supported in schema; the addition is a bulk translation + TTS generation pass)
-- **Locale registration:** one entry in a `locales.ts` registry — code, display name, RTL flag, font stack, default voice ID
+- **8.0 Foundation migration** (in progress) — schema migration `{eng, hin}` → `{[iso]: string}` open record; key rename `eng → en`, `hin → hi`; registry refactored to load from `convex/data/languages/*.json`; audio resolver moves to voice-first R2 paths with legacy `audio/eng/default/` fallback; `languageLifecycle` table added; Punjabi (`pa`) stub created to prove the registry actually loads N languages dynamically (not just two hardcoded). Plan file: `~/.claude/plans/i-wanted-to-open-splendid-turing.md`.
+- **8.1 Admin Languages section + UI strings pipeline** — `/admin/languages` page cloned from the Library section; AI translation pipeline writes `messages/<code>.json`; "Add language" button replaces 8.0's manual stub creation.
+- **8.2 Symbol translation pipeline** — 52k-symbol AI translation pass per language, batched and resumable; Latin transliterations into the `synonyms` field for non-Latin scripts (per ADR-009 §9) so users without a script-native keyboard can still search phonetically.
+- **8.3 Default-pack translation** — twelve lists × twelve sentences translated to real native quality (not stubbed); native-speaker review checkbox per (pack, language).
+- **8.4 Voice seeding** — 4 voices per language (adult M/F, child M/F) chosen from a TTS provider; per-voice Symbolstix recording optional for priority symbols.
+- **8.5 Runtime UX** — tier-based language slots (Free=1, Pro=2, Max=3 per ADR-011 §3); swap-out flow when slot-full; beta badge in pickers; per-language font activation; "Translate to <current language>" inline action for user-created content (Pro+ gated).
+- **8.6 Native-speaker review + ship** — editorial pass for Hindi and Punjabi (using owner's local translator contacts); promote `machine-translated` → `beta` → `stable`. Beta is the launch state; stable comes after real-user feedback.
 
-Adding a new locale = add the JSON bundle + run the bulk symbol translation script + register. Zero schema changes; zero component changes (every component already uses `language` as an open string per ADR-009).
-
-### 8.2 Hindi as the first non-English pass-through
-
-Hindi is the proof-case for the architecture. Ship Hindi end-to-end as part of this phase — every step is the template for future languages:
-
-- Generate 58k symbol audio files in Hindi via Google TTS (`hi-IN`)
-- Translate 58k symbol labels via Google Cloud Translation API
-- Manually review the core 500 Hindi labels with a native speaker
-- Verify Noto Sans Devanagari loads correctly across devices
-- All UI message keys present in `messages/hi.json`
-- Symbol cards tested with Devanagari labels — no overflow
-- Theme colour palettes tested with Devanagari text weight
-- Sentences tested with Google Chirp 3 HD `hi-IN` voice
-
-### 8.3 Admin dashboard — Languages section
-
-Return to the admin dashboard (Phase 7) and add a Languages section using the same shape as Library:
-
-- List all registered locales with status (published / scheduled / draft)
-- Publish / schedule / unpublish a locale
-- Set tier (most should be free; rare premium-only locales possible)
-- Translation status indicator per locale (UI keys, symbol labels, voice availability) — distinct from per-pack translation status
-- Display name override per locale
-
-This is where PostHog data informs decisions: which locales actually get switched to? Which onboarding flows drop off in non-English locales?
-
-### 8.4 Locale onboarding flow
-
-Phase 0's `VoiceModal` chose voice at signup. With multi-locale, the onboarding flow becomes locale-first then voice-within-locale:
-
-1. Choose UI language (drives `users.locale`)
-2. Choose voice for the student profile (drives `studentProfiles.voiceId`)
-3. Hindi-locale users see Hindi voices first; English-locale users see English first
-
-A/B test this flow via PostHog feature flags if conversion data warrants.
-
-### 8.5 Future locale rollout (template)
-
-For each new locale after Hindi (Punjabi, Bengali, Spanish, Arabic, etc.):
-
-1. Generate `messages/<locale>.json` (Google Translation API + native-speaker review of core copy)
-2. Generate symbol audio + labels in the new locale (same scripts as Hindi)
-3. Register the locale + its voices
-4. Admin publishes the locale (dashboard click, no deploy)
-5. Native-speaker QA + community feedback loop
-6. PostHog tracks signup → completion funnel for the new locale
-
-**Reference:** `11-language-and-i18n.md`, ADR-009, ADR-011 (planned)
+**References:** [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`11-language-and-i18n.md`](./11-language-and-i18n.md) (historical context — ADRs are now the architectural source of truth).
 
 ---
 

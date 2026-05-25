@@ -5,7 +5,7 @@
  * (`<slug>.json`). The bundled `_index.ts` barrel imports them all and exposes
  * a typed `LIBRARY_PACKS` map. See `convex/lib/libraryPacks.ts` for the readers.
  *
- * The shape mirrors today's `resourcePacks` snapshot fields exactly (per
+ * The shape mirrors the runtime `resourcePacks` snapshot fields exactly (per
  * ADR-010), so the materialisation path stays familiar. Source-pointer Convex
  * Id fields (`sourceProfileCategoryId` etc.) are intentionally omitted — JSON
  * has no Ids; the snapshot stands on its own.
@@ -13,9 +13,19 @@
  * Custom R2 paths inside a pack live under `library_packs/<slug>/…` in the
  * shared bucket. SymbolStix paths remain global and are referenced by
  * `symbolId` only (resolved at materialisation time).
+ *
+ * **Localisation:** all user-visible string fields are ISO-keyed open records
+ * (`LocalisedString`) per ADR-009 §2. Display reads through
+ * `lib/languages/displayValue.ts`.
  */
 
 export type PackTier = "free" | "pro" | "max";
+
+/**
+ * ISO-keyed open record for localised strings. e.g. { en: "Hello", hi: "नमस्ते" }.
+ * Adding a language is adding a key, not a type change.
+ */
+export type LocalisedString = Record<string, string>;
 
 export type SymbolDisplay = {
   bgColour?: string;
@@ -47,12 +57,12 @@ export type LibraryPackCategorySymbol = {
 
   /** SymbolStix kind. */
   symbolId?: string;
-  labelOverride?: { eng?: string; hin?: string };
+  labelOverride?: LocalisedString;
 
   /** Custom-image kind. */
   imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
   imagePath?: string;
-  label?: { eng: string; hin?: string };
+  label?: LocalisedString;
   /** Image-search attribution. */
   imageSourceUrl?: string;
   attribution?: string;
@@ -66,7 +76,7 @@ export type LibraryPackCategorySymbol = {
 };
 
 export type LibraryPackCategory = {
-  name: { eng: string; hin?: string };
+  name: LocalisedString;
   icon: string;
   colour: string;
   /** R2 path for folder cover, under `library_packs/<slug>/covers/…`. */
@@ -82,7 +92,8 @@ export type LibraryPackListItem = {
    * re-materialise can pick up updated images. */
   symbolId?: string;
   imagePath?: string;
-  description?: string;
+  /** Localised — see schema profileLists.items[].description. */
+  description?: LocalisedString;
   audioPath?: string;
   activeAudioSource?: LibraryPackListItemAudioSource;
   defaultAudioPath?: string;
@@ -92,7 +103,7 @@ export type LibraryPackListItem = {
 };
 
 export type LibraryPackList = {
-  name: { eng: string; hin?: string };
+  name: LocalisedString;
   order: number;
   items: LibraryPackListItem[];
   displayFormat?: "rows" | "columns" | "grid";
@@ -118,9 +129,10 @@ export type LibraryPackSentenceSlot = {
 };
 
 export type LibraryPackSentence = {
-  name: { eng: string; hin?: string };
+  name: LocalisedString;
   order: number;
-  text?: string;
+  /** Localised — see schema profileSentences.text. */
+  text?: LocalisedString;
   slots: LibraryPackSentenceSlot[];
   audioPath?: string;
 };
@@ -128,8 +140,8 @@ export type LibraryPackSentence = {
 export type LibraryPack = {
   /** URL-safe identifier; matches the filename without `.json`. */
   slug: string;
-  name: { eng: string; hin?: string };
-  description: { eng: string; hin?: string };
+  name: LocalisedString;
+  description: LocalisedString;
   /** R2 cover key. Under `library_packs/<slug>/covers/…` for new packs;
    * legacy paths preserved as-is during migration. */
   coverImagePath: string;

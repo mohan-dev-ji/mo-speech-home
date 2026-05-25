@@ -8,7 +8,7 @@ const audioSource = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
   path: v.string(),
   ttsText: v.optional(v.string()),
-  language: v.optional(v.string()),
+  language: v.optional(v.string()),  // ISO 639-1 code ('en', 'hi', 'pa'). Migrated from 'eng'/'hin' in Phase 8.0.
   alternates: v.optional(v.object({
     default:   v.optional(v.string()),
     generated: v.optional(v.string()),
@@ -16,42 +16,83 @@ const audioSource = v.object({
   })),
 });
 
+// ─── Localised field shapes (ADR-009 §2) ─────────────────────────────────────
+//
+// All bilingual fields use ISO 639-1 keyed open records — adding a language is
+// adding a key, not a schema migration. Display logic uses
+// `lib/languages/displayValue.ts` for the 3-tier fallback
+// (value[currentLang] ?? value[defaultLang] ?? Object.values(value)[0]).
+//
+// `v.record(v.string(), v.string())` natively accepts the legacy `{eng, hin}`
+// shape during the Phase 8.0 migration window, so no schema-validator drama —
+// the migration script just rewrites the keys to `{en, hi}` in place.
+//
+const localisedString = v.record(v.string(), v.string());
+const localisedStringArray = v.record(v.string(), v.array(v.string()));
+const localisedAudioSource = v.record(v.string(), audioSource);
+
+// Voice-keyed audio map — replaces the legacy path-storing shape on symbols.
+// Per ADR-009 §4: the path is convention-resolved by
+// `lib/audio/resolveAudioPath.ts`, not stored. This field records *whether*
+// a voice has been seeded with a SymbolStix recording.
+//
+// During the Phase 8.0 migration window the validator accepts both new
+// voice-keyed booleans AND the legacy `{eng: {default: string}}` shape so
+// the deploy doesn't reject existing rows. After migration completes,
+// tighten to just `v.record(v.string(), v.boolean())` in a follow-up.
+const symbolAudioMigration = v.union(
+  v.record(v.string(), v.boolean()),
+  v.object({
+    eng: v.object({ default: v.string() }),
+    hin: v.optional(v.object({ default: v.string() })),
+  })
+);
+
+// Per-language audio override on profileSymbols. Same migration-window union:
+// new shape is `{ [iso]: audioSource }`, legacy is `{ eng?: audioSource, hin?: audioSource }`.
+const profileSymbolAudioMigration = v.union(
+  localisedAudioSource,
+  v.object({
+    eng: v.optional(audioSource),
+    hin: v.optional(audioSource),
+  })
+);
+
+// Field that was previously a single string and is becoming a localised
+// record (profileLists.items[].description, profileSentences.text, etc.).
+// During migration: accepts both. Tighten after migration completes.
+const localisedStringMigration = v.union(v.string(), localisedString);
+
 export default defineSchema({
   // ─── EXISTING TABLES (extended) ───────────────────────────────────────────
 
   /**
    * Global SymbolStix symbol library.
-   * Language fields are open-ended objects — adding a language is adding a field,
-   * not a schema migration. Never hard-code "eng" anywhere in the app.
+   * Language fields are ISO-keyed open records (`v.record(string, string)`) —
+   * adding a language is adding a key, not a schema migration. Per ADR-009.
+   * Never hard-code "en" or any other language code; route reads through
+   * `displayValue()` and `useLocale()`.
    */
   symbols: defineTable({
-    words: v.object({
-      eng: v.string(),
-      hin: v.optional(v.string()),
-    }),
-    synonyms: v.optional(
-      v.object({
-        eng: v.optional(v.array(v.string())),
-        hin: v.optional(v.array(v.string())),
-      })
-    ),
+    words: localisedString,
+    synonyms: v.optional(localisedStringArray),
     imagePath: v.string(), // R2 path — SymbolStix licensed, read-only
-    audio: v.object({
-      eng: v.object({ default: v.string() }),
-      hin: v.optional(v.object({ default: v.string() })),
-    }),
+    // Voice-keyed map of "is voice seeded with SymbolStix recording" booleans.
+    // Path is convention-resolved by lib/audio/resolveAudioPath.ts. Per ADR-009 §4.
+    // Migration union accepts legacy { eng: { default: path } } shape until Phase 8.0 completes.
+    audio: symbolAudioMigration,
     tags: v.array(v.string()),
     categories: v.array(v.string()), // SymbolStix default categories
     priority: v.optional(v.number()), // 1–500 for core vocabulary free tier
   })
     .index("by_priority", ["priority"])
-    .index("by_words_eng", ["words.eng"])
-    .searchIndex("search_words_eng", {
-      searchField: "words.eng",
+    .index("by_words_en", ["words.en"])
+    .searchIndex("search_words_en", {
+      searchField: "words.en",
       filterFields: ["priority"],
     })
-    .searchIndex("search_words_hin", {
-      searchField: "words.hin",
+    .searchIndex("search_words_hi", {
+      searchField: "words.hi",
       filterFields: ["priority"],
     }),
 
@@ -160,14 +201,15 @@ export default defineSchema({
   /**
    * Student profile — one per student, shared by all account members.
    * stateFlags control what the student's view shows/hides.
-   * language is open-ended ("eng" | "hin") — never cast to a fixed union.
+   * `language` is an ISO 639-1 code stored as an open string — never cast to
+   * a fixed union. Per ADR-009; runtime values resolved against the registry.
    */
   studentProfiles: defineTable({
     accountId: v.id("users"),
     name: v.string(),
     dateOfBirth: v.optional(v.number()),
     profilePhoto: v.optional(v.string()), // R2 path
-    language: v.string(), // "eng" | "hin" — open-ended
+    language: v.string(), // ISO 639-1 code, e.g. "en" | "hi" | "pa" — open-ended; resolved via registry
     voiceId: v.optional(v.string()), // e.g. 'en-GB-News-M' — defaults to DEFAULT_VOICE_ID
     themeId: v.optional(v.id("themes")), // reserved for Convex themes table (Phase 7)
     themeSlug: v.optional(v.string()),   // flat theme key used now e.g. 'default' | 'sky'
@@ -208,13 +250,13 @@ export default defineSchema({
   profileCategories: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration. New writes always set this.
     profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional so old docs validate. New writes omit.
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: localisedString,
     icon: v.string(),
     colour: v.string(),
     imagePath: v.optional(v.string()), // R2 path for the folder cover image
     order: v.number(),
     librarySourceId: v.optional(v.string()), // loose ref to resourcePacks._id — set when content was loaded from a pack (reload-defaults only)
-    // Snapshot's original name.eng captured at load time. Used by
+    // Snapshot's original name.en captured at load time. Used by
     // reloadCategoryFromLibrary to find the matching snapshot inside the pack
     // even after the instructor renames the category. Optional for back-compat
     // with rows loaded before this field existed.
@@ -289,15 +331,12 @@ export default defineSchema({
       })
     ),
 
-    label: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    label: localisedString,
 
-    // Per-language audio override — falls back to symbols.audio[language].default
-    audio: v.optional(
-      v.object({
-        eng: v.optional(audioSource),
-        hin: v.optional(audioSource),
-      })
-    ),
+    // Per-language audio override — falls back to convention-resolved path
+    // via lib/audio/resolveAudioPath.ts when no override present.
+    // Migration union accepts legacy { eng, hin } shape until Phase 8.0 completes.
+    audio: v.optional(profileSymbolAudioMigration),
 
     // Display overrides — instructor-customised appearance
     display: v.optional(
@@ -343,14 +382,16 @@ export default defineSchema({
   profileLists: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration.
     profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
     items: v.array(
       v.object({
         imagePath: v.optional(v.string()),
         order: v.number(),
-        description: v.optional(v.string()),
+        // Localised list-item description. Migrated from single-string to
+        // localised record in Phase 8.0; union accepts both during migration.
+        description: v.optional(localisedStringMigration),
         audioPath: v.optional(v.string()), // active audio path — what playback uses
         // Active-source model: which audio is in use, plus the inactive alternates so
         // the editor can flip between sources non-destructively on re-edit.
@@ -391,10 +432,12 @@ export default defineSchema({
   profileSentences: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration.
     profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
-    text: v.optional(v.string()),      // sentence text — feeds TTS and display
+    // Sentence text — feeds TTS and display. Localised: migrated from single-string
+    // to localised record in Phase 8.0; union accepts both during migration.
+    text: v.optional(localisedStringMigration),
     slots: v.array(
       v.object({
         order: v.number(),
@@ -457,8 +500,8 @@ export default defineSchema({
     // JSON file. Removed in the deferred Phase X cleanup along with the
     // rest of this table.
     slug: v.optional(v.string()),
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-    description: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: localisedString,
+    description: localisedString,
     coverImagePath: v.string(),
     season: v.optional(v.string()),
     tags: v.array(v.string()),
@@ -488,19 +531,14 @@ export default defineSchema({
           // find-and-replace the correct entry without name-matching. Optional
           // because pre-toggle-chunk entries (DEFAULT_CATEGORIES seed) lack it.
           sourceProfileCategoryId: v.optional(v.id("profileCategories")),
-          name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+          name: localisedString,
           icon: v.string(),
           colour: v.string(),
           imagePath: v.optional(v.string()), // R2 path for folder cover, mirrors profileCategories.imagePath
           symbols: v.array(
             v.object({
               symbolId: v.string(), // loose ref — may be symbolstix ID or custom
-              labelOverride: v.optional(
-                v.object({
-                  eng: v.optional(v.string()),
-                  hin: v.optional(v.string()),
-                })
-              ),
+              labelOverride: v.optional(localisedString),
               display: v.optional(v.any()), // mirrors profileSymbol.display shape
               order: v.number(),
             })
@@ -512,7 +550,7 @@ export default defineSchema({
       v.object({
         // Reverse link — see categories[].sourceProfileCategoryId.
         sourceProfileListId: v.optional(v.id("profileLists")),
-        name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+        name: localisedString,
         order: v.number(),
         items: v.array(
           v.object({
@@ -523,7 +561,8 @@ export default defineSchema({
             // mutations don't populate this; deferred to Phase 7 enhancement.
             symbolId: v.optional(v.string()),
             imagePath: v.optional(v.string()),
-            description: v.optional(v.string()),
+            // Localised — see profileLists.items[].description.
+            description: v.optional(localisedStringMigration),
             audioPath: v.optional(v.string()),
             activeAudioSource: v.optional(
               v.union(
@@ -557,9 +596,10 @@ export default defineSchema({
       v.object({
         // Reverse link — see categories[].sourceProfileCategoryId.
         sourceProfileSentenceId: v.optional(v.id("profileSentences")),
-        name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+        name: localisedString,
         order: v.number(),
-        text: v.optional(v.string()),
+        // Localised — see profileSentences.text.
+        text: v.optional(localisedStringMigration),
         slots: v.array(
           v.object({
             order: v.number(),
@@ -617,9 +657,9 @@ export default defineSchema({
     // the first publish (the JSON file doesn't exist yet for brand-new
     // packs). The `/api/admin/pack-publish` route copies these into the
     // JSON; the JSON is the canonical store after first publish.
-    name: v.optional(v.object({ eng: v.string(), hin: v.optional(v.string()) })),
+    name: v.optional(localisedString),
     description: v.optional(
-      v.object({ eng: v.string(), hin: v.optional(v.string()) })
+      localisedString
     ),
     coverImagePath: v.optional(v.string()),
     publishedAt: v.optional(v.number()),
@@ -651,19 +691,47 @@ export default defineSchema({
     .index("by_createdBy", ["createdBy"]),
 
   /**
+   * Language lifecycle overlay — per ADR-009 + ADR-011. Mirrors `packLifecycle`
+   * shape for the language plugin. Holds runtime catalogue metadata for
+   * languages whose content (UI strings + voice metadata + status) lives in
+   * `convex/data/languages/<code>.json`. A language is visible iff a row here
+   * exists AND `publishedAt <= now` AND (`expiresAt` unset OR `expiresAt > now`)
+   * AND `status` matches the picker's `getVisibleLanguages` filter.
+   *
+   * `slug` is the ISO 639-1 code (`en`, `hi`, `pa`, …). `status` mirrors ADR-009 §3
+   * and gates picker visibility: stable shows everywhere; beta shows with a
+   * preview badge; machine-translated is hidden in prod (dev flag toggles it on).
+   */
+  languageLifecycle: defineTable({
+    slug: v.string(),                            // ISO 639-1 code
+    status: v.union(
+      v.literal("machine-translated"),
+      v.literal("beta"),
+      v.literal("stable")
+    ),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    // Tier override — usually unset (languages default to free). Reserved for
+    // future paid-language scenarios; mechanism mirrors `packLifecycle.tierOverride`.
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    notes: v.optional(v.string()),
+    createdBy: v.string(),                       // Clerk userId of admin who added the language
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_status", ["status"]),
+
+  /**
    * Colour themes. 6 starter flat themes seeded in Phase 0.
    * Premium themes gated behind Max tier.
    * tokens applied to CSS custom properties via ThemeContext.
    */
   themes: defineTable({
-    name: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
+    name: localisedString,
     slug: v.string(),
-    description: v.optional(
-      v.object({
-        eng: v.optional(v.string()),
-        hin: v.optional(v.string()),
-      })
-    ),
+    description: v.optional(localisedString),
     previewColour: v.string(),
     coverImagePath: v.optional(v.string()),
     tier: v.union(v.literal("free"), v.literal("premium")),

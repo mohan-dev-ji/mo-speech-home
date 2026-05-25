@@ -3,25 +3,20 @@ import { v } from "convex/values";
 
 /**
  * Batch insert for seeding — dev/admin use only.
- * Accepts the new schema shape (words.eng, synonyms.eng, etc.).
+ * Accepts the new ISO-keyed shape (`words.en`, `synonyms.en`, etc.) per ADR-009 §2.
  * TODO: convert to internalMutation before production launch.
  */
 export const batchInsertSymbols = mutation({
   args: {
     symbols: v.array(
       v.object({
-        words: v.object({ eng: v.string(), hin: v.optional(v.string()) }),
-        synonyms: v.optional(
-          v.object({
-            eng: v.optional(v.array(v.string())),
-            hin: v.optional(v.array(v.string())),
-          })
-        ),
+        // Open ISO-keyed records — adding a language is adding a key.
+        words: v.record(v.string(), v.string()),
+        synonyms: v.optional(v.record(v.string(), v.array(v.string()))),
         imagePath: v.string(),
-        audio: v.object({
-          eng: v.object({ default: v.string() }),
-          hin: v.optional(v.object({ default: v.string() })),
-        }),
+        // Voice-keyed boolean map per ADR-009 §4 — "is voice seeded".
+        // Path is convention-resolved by lib/audio/resolveAudioPath.ts.
+        audio: v.record(v.string(), v.boolean()),
         tags: v.array(v.string()),
         categories: v.array(v.string()),
         priority: v.optional(v.number()),
@@ -42,19 +37,24 @@ export const batchInsertSymbols = mutation({
  * Language-aware full-text symbol search.
  *
  * Uses the correct search index for the active language:
- *   "eng" → search_words_eng (words.eng field)
- *   "hin" → search_words_hin (words.hin field)
+ *   "en" → search_words_en (words.en field)
+ *   "hi" → search_words_hi (words.hi field)
  *
- * Returns [] immediately when searchTerm is blank — the client
- * skips calling this when blank, but the guard is defensive.
+ * Other languages currently fall back to the en index — Convex search indexes
+ * are static (not record-aware), so each stable language needs an explicit
+ * index defined on `symbols` in schema.ts. Adding indexes for new stable
+ * languages is a deliberate step in the 8.6 promotion-to-stable flow per ADR-009.
  *
- * Never hard-code "eng" as a default — always pass the language from
- * ProfileContext. The fallback to eng index is only for unknown codes.
+ * Returns [] immediately when searchTerm is blank — the client skips calling
+ * this when blank, but the guard is defensive.
+ *
+ * Never hard-code a language as default — always pass the language from
+ * ProfileContext. The fallback to the en index is only for non-indexed languages.
  */
 export const searchSymbols = query({
   args: {
     searchTerm: v.string(),
-    language: v.string(), // "eng" | "hin" — open-ended, never cast to a fixed union
+    language: v.string(), // ISO 639-1 — open-ended, never cast to a fixed union
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -62,19 +62,19 @@ export const searchSymbols = query({
 
     if (!searchTerm.trim()) return [];
 
-    if (language === "hin") {
+    if (language === "hi") {
       return ctx.db
         .query("symbols")
-        .withSearchIndex("search_words_hin", (q) =>
-          q.search("words.hin", searchTerm)
+        .withSearchIndex("search_words_hi", (q) =>
+          q.search("words.hi", searchTerm)
         )
         .take(limit);
     }
 
     return ctx.db
       .query("symbols")
-      .withSearchIndex("search_words_eng", (q) =>
-        q.search("words.eng", searchTerm)
+      .withSearchIndex("search_words_en", (q) =>
+        q.search("words.en", searchTerm)
       )
       .take(limit);
   },
@@ -87,11 +87,11 @@ export const searchSymbols = query({
  *
  * Returns up to `limit` entries (default 2000), sorted by length ascending
  * so shorter conversational phrases surface first. Each entry returns just
- * the eng label and id — keeps the payload small.
+ * the en label and id — keeps the payload small.
  */
-export const listMultiWordEng = query({
+export const listMultiWordEn = query({
   args: {
-    /** Optional regex filter (case-insensitive) applied to words.eng. Used
+    /** Optional regex filter (case-insensitive) applied to words.en. Used
      *  to narrow down to conversational chat phrases vs the full 19k+
      *  multi-word set. */
     contains: v.optional(v.string()),
@@ -116,10 +116,10 @@ export const listMultiWordEng = query({
       : null;
 
     const filtered = slice
-      .filter((s) => s.words.eng.includes(" "))
-      .filter((s) => (re ? re.test(s.words.eng) : true))
-      .map((s) => ({ _id: s._id, eng: s.words.eng }))
-      .sort((a, b) => a.eng.length - b.eng.length);
+      .filter((s) => (s.words.en ?? "").includes(" "))
+      .filter((s) => (re ? re.test(s.words.en ?? "") : true))
+      .map((s) => ({ _id: s._id, en: s.words.en }))
+      .sort((a, b) => (a.en ?? "").length - (b.en ?? "").length);
 
     const items = filtered.slice(0, 5000);
     return {
@@ -134,8 +134,8 @@ export const listMultiWordEng = query({
 });
 
 /**
- * Batch-fetch symbols by exact word labels (eng).
- * Uses the by_words_eng index for O(1) per word.
+ * Batch-fetch symbols by exact word labels (en).
+ * Uses the by_words_en index for O(1) per word.
  * Returns only found symbols — missing words are silently skipped.
  * Used by TalkerDropdown to load real images and audio for little-words groups.
  */
@@ -146,7 +146,7 @@ export const getSymbolsByWords = query({
       args.words.map((word) =>
         ctx.db
           .query("symbols")
-          .withIndex("by_words_eng", (q) => q.eq("words.eng", word))
+          .withIndex("by_words_en", (q) => q.eq("words.en", word))
           .first()
       )
     );

@@ -1,10 +1,10 @@
 {
   "slug": "christmas",
   "name": {
-    "eng": "Christmas"
+    "en": "Christmas"
   },
   "description": {
-    "eng": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day."
+    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day."
   },
   "coverImagePath": "symbols/symbol00059081.png",
   "defaultTier": "max",
@@ -14,12 +14,12 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00059081.png",
       "name": {
-        "eng": "Christmas"
+        "en": "Christmas"
       },
       "symbols": [
         {
           "labelOverride": {
-            "eng": "Christmas tree"
+            "en": "Christmas tree"
           },
           "order": 0,
           "symbolId": "kn75cqcc7q83tg66jpwm5jhqe584m5qf"
@@ -30,112 +30,112 @@
             "borderColour": "#d1d5db"
           },
           "labelOverride": {
-            "eng": "Christmas ornament"
+            "en": "Christmas ornament"
           },
           "order": 1,
           "symbolId": "kn7adby4r1y8wvjzm28k3pt66n84nvf3"
         },
         {
           "labelOverride": {
-            "eng": "Christmas lights"
+            "en": "Christmas lights"
           },
           "order": 2,
           "symbolId": "kn7erzcjrh0vcyb8j17eesx6hd84mydd"
         },
         {
           "labelOverride": {
-            "eng": "star"
+            "en": "star"
           },
           "order": 3,
           "symbolId": "kn7181q1sdxtmjeewp5g8b84w184m311"
         },
         {
           "labelOverride": {
-            "eng": "presents"
+            "en": "presents"
           },
           "order": 4,
           "symbolId": "kn7c2xnsgqxketw2x4tx2xsq0984ne5j"
         },
         {
           "labelOverride": {
-            "eng": "Santa"
+            "en": "Santa"
           },
           "order": 5,
           "symbolId": "kn7bq3gn5hq5j753wqaw0dc6zs84nj7a"
         },
         {
           "labelOverride": {
-            "eng": "reindeer"
+            "en": "reindeer"
           },
           "order": 6,
           "symbolId": "kn7fd432qft28e74zne7nppqes84mnj5"
         },
         {
           "labelOverride": {
-            "eng": "snowman"
+            "en": "snowman"
           },
           "order": 7,
           "symbolId": "kn7bd4xd4tbtjhg5dqb8fr9kth84nqpw"
         },
         {
           "labelOverride": {
-            "eng": "turkey"
+            "en": "turkey"
           },
           "order": 8,
           "symbolId": "kn7e9xne1ak62shcm05xqqpfqx84n8mb"
         },
         {
           "labelOverride": {
-            "eng": "cracker"
+            "en": "cracker"
           },
           "order": 9,
           "symbolId": "kn72f32sw1a58mxjamarx7734d84ne50"
         },
         {
           "labelOverride": {
-            "eng": "mince pie"
+            "en": "mince pie"
           },
           "order": 10,
           "symbolId": "kn770dkw3kb74ewmnb2805wbzx84mt9r"
         },
         {
           "labelOverride": {
-            "eng": "snow"
+            "en": "snow"
           },
           "order": 11,
           "symbolId": "kn72dzra9kg9jjq2kvfaq1vk4x84nvdc"
         },
         {
           "labelOverride": {
-            "eng": "candle"
+            "en": "candle"
           },
           "order": 12,
           "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
         },
         {
           "labelOverride": {
-            "eng": "Jesus"
+            "en": "Jesus"
           },
           "order": 13,
           "symbolId": "kn723nfecd6q1t6m632fs1dg9x84nedj"
         },
         {
           "labelOverride": {
-            "eng": "Mass"
+            "en": "Mass"
           },
           "order": 14,
           "symbolId": "kn71g1kdsd8wrf3qhhbhabfjv984n76e"
         },
         {
           "labelOverride": {
-            "eng": "Christmas carol"
+            "en": "Christmas carol"
           },
           "order": 15,
           "symbolId": "kn73x88c90q47krhtgwkerrgen84mdc0"
         },
         {
           "labelOverride": {
-            "eng": "father christmas"
+            "en": "father christmas"
           },
           "order": 16,
           "symbolId": "kn756yqnzvrvjjnya5ehb34yed84mnxk"
@@ -214,7 +214,7 @@
         }
       ],
       "name": {
-        "eng": "Christmas morning"
+        "en": "Christmas morning"
       },
       "order": 0,
       "showChecklist": false,
@@ -226,7 +226,7 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/d6c59a86-0b13-410c-ba97-0e952346764a.mp3",
       "name": {
-        "eng": "I want to open my presents"
+        "en": "I want to open my presents"
       },
       "order": 0,
       "slots": [

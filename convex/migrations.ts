@@ -1130,3 +1130,346 @@ export const seedLifecycleFromJSON = mutation({
     return summary;
   },
 });
+
+// ─── Phase 8.0 migration ────────────────────────────────────────────────────
+//
+// Migrates every bilingual field from the legacy `{eng, hin}` shape to the new
+// ISO-keyed open record `{en, hi}` per ADR-009 §2. Also rewrites the
+// `symbols.audio` field from path-storing objects to voice-keyed booleans
+// per ADR-009 §4, and wraps single-string user-visible fields
+// (profileLists.items[].description, profileSentences.text) as
+// localised records. Finally seeds `languageLifecycle` with en/hi/pa rows.
+//
+// **Run order via the Convex dashboard:**
+//   1. migrateSymbolsBatch (loop until `done: true` is returned)
+//   2. migrateResourcePacks
+//   3. migratePackLifecycle
+//   4. migrateThemes
+//   5. migrateStudentProfilesLanguage
+//   6. migrateUsersLocale
+//   7. wipeProfileContent           ← optional; user OK'd this for dev
+//   8. seedLanguageLifecycle
+//
+// The migrations are idempotent: rows already on the new shape are skipped.
+
+/** Helper — renames `{eng, hin}` keys to `{en, hi}` on a localised record. */
+function renameLegacyKeys(
+  obj: Record<string, unknown> | undefined
+): Record<string, unknown> {
+  if (!obj || typeof obj !== "object") return {};
+  const out: Record<string, unknown> = { ...obj };
+  if ("eng" in out) {
+    if (out.eng !== undefined && out.eng !== null) out.en = out.eng;
+    delete out.eng;
+  }
+  if ("hin" in out) {
+    if (out.hin !== undefined && out.hin !== null) out.hi = out.hin;
+    delete out.hin;
+  }
+  return out;
+}
+
+/**
+ * Batched migration for the symbols table. Convex mutations have an ~8k
+ * read limit per call; with 52k symbols this needs ~7 batches.
+ *
+ * Caller loops:
+ *   const r = await convex.mutation(api.migrations.migrateSymbolsBatch, { batchSize: 5000 });
+ *   while (!r.done) { /* re-call with cursor */ }
+ *
+ * Idempotent — rows already migrated (no `eng`/`hin` keys, audio is a flat
+ * boolean map) are skipped.
+ */
+export const migrateSymbolsBatch = mutation({
+  args: {
+    cursor: v.optional(v.string()),
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, { cursor, batchSize = 2000 }) => {
+    // Take batchSize+1 rows; if we get batchSize+1 there's more after.
+    // Cursor is the last processed _id.
+    let q = ctx.db.query("symbols").order("asc");
+    const all = await q.take(batchSize + (cursor ? 1 : 0));
+    const startIdx = cursor
+      ? all.findIndex((s) => s._id === cursor) + 1
+      : 0;
+    const slice = all.slice(startIdx, startIdx + batchSize);
+
+    let migrated = 0;
+    let alreadyDone = 0;
+    let lastId: string | null = null;
+
+    for (const row of slice) {
+      lastId = row._id;
+
+      const words = row.words as Record<string, unknown>;
+      const synonyms = row.synonyms as Record<string, unknown> | undefined;
+      const audio = row.audio as Record<string, unknown>;
+
+      const wordsHasLegacy = "eng" in words || "hin" in words;
+      const synonymsHasLegacy =
+        !!synonyms && ("eng" in synonyms || "hin" in synonyms);
+      const audioIsLegacy =
+        audio &&
+        typeof audio === "object" &&
+        ("eng" in audio || "hin" in audio) &&
+        !("en-GB-News-M" in audio);
+
+      if (!wordsHasLegacy && !synonymsHasLegacy && !audioIsLegacy) {
+        alreadyDone++;
+        continue;
+      }
+
+      const newWords = renameLegacyKeys(words);
+      const newSynonyms = synonyms ? renameLegacyKeys(synonyms) : undefined;
+
+      // Transform audio: { eng: { default: "..." } } → { "en-GB-News-M": true }
+      let newAudio: Record<string, boolean>;
+      if (audioIsLegacy) {
+        newAudio = {};
+        if ("eng" in audio && audio.eng) {
+          newAudio["en-GB-News-M"] = true;
+        }
+        // The legacy `hin` slot was speculative — no Hindi audio was ever
+        // seeded under that path. Drop it.
+      } else {
+        newAudio = audio as Record<string, boolean>;
+      }
+
+      await ctx.db.patch(row._id, {
+        words: newWords as never,
+        synonyms: (newSynonyms ?? undefined) as never,
+        audio: newAudio as never,
+      });
+      migrated++;
+    }
+
+    const done = slice.length < batchSize;
+    return { migrated, alreadyDone, lastId, done, batchSize };
+  },
+});
+
+/** Migrates resourcePacks (small table — single batch). */
+export const migrateResourcePacks = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("resourcePacks").collect();
+    let migrated = 0;
+
+    for (const row of rows) {
+      const newName = renameLegacyKeys(row.name as Record<string, unknown>);
+      const newDescription = renameLegacyKeys(
+        row.description as Record<string, unknown>
+      );
+
+      const newCategories = row.categories?.map((cat) => ({
+        ...cat,
+        name: renameLegacyKeys(cat.name as Record<string, unknown>),
+        symbols: cat.symbols.map((sym) => ({
+          ...sym,
+          labelOverride: sym.labelOverride
+            ? renameLegacyKeys(sym.labelOverride as Record<string, unknown>)
+            : undefined,
+        })),
+      }));
+
+      const newLists = row.lists.map((list) => ({
+        ...list,
+        name: renameLegacyKeys(list.name as Record<string, unknown>),
+        items: list.items.map((item) => ({
+          ...item,
+          description:
+            typeof item.description === "string"
+              ? { en: item.description }
+              : item.description,
+        })),
+      }));
+
+      const newSentences = row.sentences.map((sentence) => ({
+        ...sentence,
+        name: renameLegacyKeys(sentence.name as Record<string, unknown>),
+        text:
+          typeof sentence.text === "string"
+            ? { en: sentence.text }
+            : sentence.text,
+      }));
+
+      await ctx.db.patch(row._id, {
+        name: newName as never,
+        description: newDescription as never,
+        categories: newCategories as never,
+        lists: newLists as never,
+        sentences: newSentences as never,
+      });
+      migrated++;
+    }
+
+    return { migrated };
+  },
+});
+
+/** Migrates packLifecycle (small table). */
+export const migratePackLifecycle = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("packLifecycle").collect();
+    let migrated = 0;
+
+    for (const row of rows) {
+      const newName = row.name
+        ? renameLegacyKeys(row.name as Record<string, unknown>)
+        : undefined;
+      const newDescription = row.description
+        ? renameLegacyKeys(row.description as Record<string, unknown>)
+        : undefined;
+
+      await ctx.db.patch(row._id, {
+        name: newName as never,
+        description: newDescription as never,
+      });
+      migrated++;
+    }
+
+    return { migrated };
+  },
+});
+
+/** Migrates themes table. */
+export const migrateThemes = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("themes").collect();
+    let migrated = 0;
+
+    for (const row of rows) {
+      const newName = renameLegacyKeys(row.name as Record<string, unknown>);
+      const newDescription = row.description
+        ? renameLegacyKeys(row.description as Record<string, unknown>)
+        : undefined;
+
+      await ctx.db.patch(row._id, {
+        name: newName as never,
+        description: newDescription as never,
+      });
+      migrated++;
+    }
+
+    return { migrated };
+  },
+});
+
+/** Rewrites studentProfiles.language values "eng" → "en", "hin" → "hi". */
+export const migrateStudentProfilesLanguage = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("studentProfiles").collect();
+    let migrated = 0;
+
+    for (const row of rows) {
+      const newLanguage =
+        row.language === "eng" ? "en" : row.language === "hin" ? "hi" : null;
+      if (newLanguage === null) continue;
+      await ctx.db.patch(row._id, { language: newLanguage });
+      migrated++;
+    }
+
+    return { migrated };
+  },
+});
+
+/** Rewrites users.locale values "eng" → "en", "hin" → "hi" (if any). */
+export const migrateUsersLocale = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("users").collect();
+    let migrated = 0;
+
+    for (const row of rows) {
+      if (!row.locale) continue;
+      const newLocale =
+        row.locale === "eng" ? "en" : row.locale === "hin" ? "hi" : null;
+      if (newLocale === null) continue;
+      await ctx.db.patch(row._id, { locale: newLocale });
+      migrated++;
+    }
+
+    return { migrated };
+  },
+});
+
+/**
+ * Wipes pack-load-derived profile content tables. The user confirmed in the
+ * Phase 8.0 conversation that current data in these tables is test data from
+ * pack loads — re-loading the packs after migration recreates everything.
+ * Migrating these row-by-row would be more code than wiping + re-seeding.
+ */
+export const wipeProfileContent = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const tables = [
+      "profileCategories",
+      "profileSymbols",
+      "profileLists",
+      "profileSentences",
+    ] as const;
+
+    const counts: Record<string, number> = {};
+    for (const table of tables) {
+      const rows = await ctx.db.query(table).collect();
+      for (const row of rows) {
+        await ctx.db.delete(row._id);
+      }
+      counts[table] = rows.length;
+    }
+    return counts;
+  },
+});
+
+/**
+ * Seeds the three `languageLifecycle` rows that match the Phase 8.0 spec:
+ *   - `en` stable, published now
+ *   - `hi` stable, published now
+ *   - `pa` machine-translated, unpublished
+ *
+ * Idempotent — rows already present are left alone.
+ */
+export const seedLanguageLifecycle = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const adminClerkUserId = identity.subject;
+    const now = Date.now();
+
+    const seeds = [
+      { slug: "en", status: "stable" as const, publishedAt: now },
+      { slug: "hi", status: "stable" as const, publishedAt: now },
+      { slug: "pa", status: "machine-translated" as const, publishedAt: undefined },
+    ];
+
+    let seeded = 0;
+    let alreadyExisted = 0;
+
+    for (const seed of seeds) {
+      const existing = await ctx.db
+        .query("languageLifecycle")
+        .withIndex("by_slug", (q) => q.eq("slug", seed.slug))
+        .first();
+      if (existing) {
+        alreadyExisted++;
+        continue;
+      }
+      await ctx.db.insert("languageLifecycle", {
+        slug: seed.slug,
+        status: seed.status,
+        publishedAt: seed.publishedAt,
+        createdBy: adminClerkUserId,
+        updatedAt: now,
+      });
+      seeded++;
+    }
+
+    return { seeded, alreadyExisted };
+  },
+});

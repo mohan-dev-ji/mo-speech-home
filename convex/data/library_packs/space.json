@@ -1,10 +1,10 @@
 {
   "slug": "space",
   "name": {
-    "eng": "Space"
+    "en": "Space"
   },
   "description": {
-    "eng": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there."
+    "en": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there."
   },
   "coverImagePath": "static/pack-cover-default.webp",
   "defaultTier": "free",
@@ -14,7 +14,7 @@
       "icon": "📁",
       "imagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
       "name": {
-        "eng": "Space"
+        "en": "Space"
       },
       "symbols": [
         {
@@ -23,7 +23,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://www.pexels.com/photo/earth-illustration-355935/",
           "label": {
-            "eng": "earth"
+            "en": "earth"
           },
           "license": "Pexels License",
           "order": 0
@@ -34,7 +34,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/full-moon-photography-uIf6H1or1nE",
           "label": {
-            "eng": "moon"
+            "en": "moon"
           },
           "license": "Unsplash License",
           "order": 1
@@ -45,7 +45,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-Bolre_2dEZI",
           "label": {
-            "eng": "stars"
+            "en": "stars"
           },
           "license": "Unsplash License",
           "order": 2
@@ -56,7 +56,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://pixabay.com/photos/solar-system-sun-mercury-venus-439046/",
           "label": {
-            "eng": "neptune"
+            "en": "neptune"
           },
           "license": "Pixabay License",
           "order": 3
@@ -67,7 +67,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://www.pexels.com/photo/planet-of-solar-system-20376399/",
           "label": {
-            "eng": "pluto"
+            "en": "pluto"
           },
           "license": "Pexels License",
           "order": 4
@@ -78,7 +78,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://www.pexels.com/photo/planet-in-cosmos-20337601/",
           "label": {
-            "eng": "mars"
+            "en": "mars"
           },
           "license": "Pexels License",
           "order": 5
@@ -89,7 +89,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/neptune-on-a-black-background-ScBkW9AKgcA",
           "label": {
-            "eng": "neptune"
+            "en": "neptune"
           },
           "license": "Unsplash License",
           "order": 6
@@ -100,7 +100,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/saturn-and-its-rings-2W-QWAC0mzI",
           "label": {
-            "eng": "jupiter"
+            "en": "jupiter"
           },
           "license": "Unsplash License",
           "order": 7
@@ -111,7 +111,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://www.pexels.com/photo/planet-with-rings-20337604/",
           "label": {
-            "eng": "uranus"
+            "en": "uranus"
           },
           "license": "Pexels License",
           "order": 8
@@ -122,7 +122,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/the-sun-with-a-corona-mass-ejection-JHyiw_dpALk",
           "label": {
-            "eng": "sun"
+            "en": "sun"
           },
           "license": "Unsplash License",
           "order": 9
@@ -133,7 +133,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-rCbdp8VCYhQ",
           "label": {
-            "eng": "galaxy"
+            "en": "galaxy"
           },
           "license": "Unsplash License",
           "order": 10
@@ -144,7 +144,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://unsplash.com/photos/a-night-sky-filled-with-lots-of-stars-fxrwJGMCz_g",
           "label": {
-            "eng": "milkyway"
+            "en": "milkyway"
           },
           "license": "Unsplash License",
           "order": 11
@@ -153,13 +153,13 @@
           "imagePath": "library_packs/space/images/7bc1787b-283f-4b79-be88-17a57ef470d8.png",
           "imageSourceType": "aiGenerated",
           "label": {
-            "eng": "space rocket"
+            "en": "space rocket"
           },
           "order": 12
         },
         {
           "labelOverride": {
-            "eng": "NASA"
+            "en": "NASA"
           },
           "order": 13,
           "symbolId": "kn7c8pgzbsqm7786hp6yc770nx84m82d"
@@ -168,7 +168,7 @@
           "imagePath": "library_packs/space/images/534c9d59-71bb-4d1f-ac16-39ecad7c24cb.png",
           "imageSourceType": "aiGenerated",
           "label": {
-            "eng": "satelite"
+            "en": "satelite"
           },
           "order": 14
         },
@@ -178,7 +178,7 @@
           "imageSourceType": "imageSearch",
           "imageSourceUrl": "https://pixabay.com/photos/international-space-station-63128/",
           "label": {
-            "eng": "space station"
+            "en": "space station"
           },
           "license": "Pixabay License",
           "order": 15

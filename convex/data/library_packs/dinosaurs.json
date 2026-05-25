@@ -1,10 +1,10 @@
 {
   "slug": "dinosaurs",
   "name": {
-    "eng": "Dinosaurs"
+    "en": "Dinosaurs"
   },
   "description": {
-    "eng": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession."
+    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession."
   },
   "coverImagePath": "symbols/symbol00192671.png",
   "defaultTier": "pro",
@@ -14,117 +14,117 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00192671.png",
       "name": {
-        "eng": "Dinosaurs"
+        "en": "Dinosaurs"
       },
       "symbols": [
         {
           "labelOverride": {
-            "eng": "tyrannosaurus rex"
+            "en": "tyrannosaurus rex"
           },
           "order": 0,
           "symbolId": "kn7a94c6jakq68p0httwnjan5s84m9v2"
         },
         {
           "labelOverride": {
-            "eng": "ancient footprints"
+            "en": "ancient footprints"
           },
           "order": 1,
           "symbolId": "kn710bzj2fa7c4h3gg893ca3j984nwsm"
         },
         {
           "labelOverride": {
-            "eng": "triceratops"
+            "en": "triceratops"
           },
           "order": 2,
           "symbolId": "kn75pd4q99pgmthj9wv80xh0j584md65"
         },
         {
           "labelOverride": {
-            "eng": "stegosaurus"
+            "en": "stegosaurus"
           },
           "order": 3,
           "symbolId": "kn7avx0frxvkwdr7mena38tyb184mdg1"
         },
         {
           "labelOverride": {
-            "eng": "velociraptor"
+            "en": "velociraptor"
           },
           "order": 4,
           "symbolId": "kn74ky8mxf7ed25wadmkhgwn8x84mmc5"
         },
         {
           "labelOverride": {
-            "eng": "brachiosaurus"
+            "en": "brachiosaurus"
           },
           "order": 5,
           "symbolId": "kn7fqbwxkpstkxt9e2y4k722d184ng16"
         },
         {
           "labelOverride": {
-            "eng": "pterodactyl"
+            "en": "pterodactyl"
           },
           "order": 6,
           "symbolId": "kn7ap7n6rksw5axs6rwgdmeqf984mt67"
         },
         {
           "labelOverride": {
-            "eng": "fossil"
+            "en": "fossil"
           },
           "order": 7,
           "symbolId": "kn72fayv75ynym9492402pt7r984nwfw"
         },
         {
           "labelOverride": {
-            "eng": "dig"
+            "en": "dig"
           },
           "order": 8,
           "symbolId": "kn7336efxhb04fnk3ggea45tmh84nrme"
         },
         {
           "labelOverride": {
-            "eng": "museum"
+            "en": "museum"
           },
           "order": 9,
           "symbolId": "kn7ck3ckft14raevrdxbqk22ax84m6z7"
         },
         {
           "labelOverride": {
-            "eng": "jungle"
+            "en": "jungle"
           },
           "order": 10,
           "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
         },
         {
           "labelOverride": {
-            "eng": "volcano"
+            "en": "volcano"
           },
           "order": 11,
           "symbolId": "kn7199z1erpv5fvbhgdcpsh8md84mgph"
         },
         {
           "labelOverride": {
-            "eng": "river"
+            "en": "river"
           },
           "order": 12,
           "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
         },
         {
           "labelOverride": {
-            "eng": "plants"
+            "en": "plants"
           },
           "order": 13,
           "symbolId": "kn788bybwpwt5zcdeh9fpmmggh84nx3x"
         },
         {
           "labelOverride": {
-            "eng": "fierce"
+            "en": "fierce"
           },
           "order": 14,
           "symbolId": "kn77xhhx1yysyg6r1qdceb5z3584mex9"
         },
         {
           "labelOverride": {
-            "eng": "gentle"
+            "en": "gentle"
           },
           "order": 15,
           "symbolId": "kn7aser87f3trrx7zte4v77xp984nqpk"
@@ -204,7 +204,7 @@
         }
       ],
       "name": {
-        "eng": "Museum visit"
+        "en": "Museum visit"
       },
       "order": 0,
       "showChecklist": false,
@@ -216,7 +216,7 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/575860aa-cfdb-4825-9dc4-47b917ef8c11.mp3",
       "name": {
-        "eng": "tyrannosaurus rex is the most fierce dinosaur"
+        "en": "tyrannosaurus rex is the most fierce dinosaur"
       },
       "order": 0,
       "slots": [

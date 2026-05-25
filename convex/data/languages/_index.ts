@@ -1,0 +1,32 @@
+/**
+ * Typed barrel for language plugin modules — see ADR-009 §1, ADR-011 §3.
+ *
+ * Each language ships as a self-contained JSON module at
+ * `convex/data/languages/<code>.json`. The runtime registry
+ * (`lib/languages/registry.ts`) imports `LANGUAGE_MODULES` from here
+ * and assembles a typed `LangEntry[]`, joining it with the
+ * `languageLifecycle` table for status / publishedAt / expiresAt.
+ *
+ * Adding a language:
+ *   1. Drop a new `<code>.json` matching `LangModule`
+ *   2. Import + export it here
+ *   3. Insert a `languageLifecycle` row (admin Languages section, Phase 8.1)
+ *
+ * The admin "Add language" flow (Phase 8.1) automates steps 1–3 via the
+ * publish API route + Convex mutation; this file is the post-deploy
+ * registration surface.
+ */
+
+import type { LangModule } from "./types";
+
+import en from "./en.json";
+import hi from "./hi.json";
+import pa from "./pa.json";
+
+export const LANGUAGE_MODULES: readonly LangModule[] = [
+  en as LangModule,
+  hi as LangModule,
+  pa as LangModule,
+];
+
+export type { LangModule, LangStatus, VoiceEntry } from "./types";
