@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { ChevronDown } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import { usePathname } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { LANGUAGES } from "@/lib/languages/registry";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +29,8 @@ import { cn } from "@/lib/utils";
  */
 export function LocaleSwitcher() {
   const currentLocale = useLocale();
-  // `pathname` is locale-stripped (next-intl's nav helper), so we can splice
-  // any new locale segment in front of it.
   const pathname = usePathname();
+  const router = useRouter();
   const { isSignedIn } = useUser();
   const setMyLocale = useMutation(api.users.setMyLocale);
   const [open, setOpen] = useState(false);
@@ -109,26 +108,20 @@ export function LocaleSwitcher() {
                   // AppStateProvider's mismatch redirect respects it on the
                   // next app-route visit. Without this, the user's stored
                   // locale stays as the old one and bounces them back.
-                  // Fire-and-forget — the hard nav below is the load-bearing
-                  // path; the mutation is the durability tail.
+                  // Fire-and-forget — the router.replace below is the
+                  // load-bearing path; the mutation is the durability tail.
                   if (isSignedIn) {
                     setMyLocale({ locale: locale.code }).catch((e) =>
                       // eslint-disable-next-line no-console
                       console.error("[LocaleSwitcher] setMyLocale failed", e)
                     );
                   }
-                  // Hard navigation — guarantees the `[locale]` layout
-                  // re-renders with new messages. Soft `router.replace` works
-                  // for locales bundled at first build (en/hi) but flakes for
-                  // locales added mid-session because Next sometimes preserves
-                  // the parallel-route boundary instead of re-rendering the
-                  // layout that carries the NextIntlClientProvider. The flash
-                  // is invisible on a fast page.
-                  const search =
-                    typeof window !== "undefined"
-                      ? window.location.search
-                      : "";
-                  window.location.assign(`/${locale.code}${pathname}${search}`);
+                  router.replace(pathname, {
+                    // next-intl types `locale` against routing.locales — every
+                    // visible code is in the registry which feeds routing.locales,
+                    // so the cast is safe at runtime.
+                    locale: locale.code as never,
+                  });
                 }}
                 className="w-full text-left px-3 py-2 text-small text-foreground hover:bg-muted transition-colors flex items-center justify-between gap-2"
               >

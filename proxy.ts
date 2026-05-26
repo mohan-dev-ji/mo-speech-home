@@ -5,23 +5,31 @@ import { routing } from "@/i18n/routing";
 
 const intl = createIntlMiddleware(routing);
 
+// Built once at module load from `routing.locales` so adding a language
+// (Phase 8.1 — `/admin/languages` → "Add language") immediately routes
+// through next-intl. Hardcoded `(en|hi)` here was the Phase 8.0 cause of
+// new locales (es, pa, …) bypassing the intl middleware entirely: their
+// requests fell through to default-locale handling and `getRequestConfig`
+// never fired, so messages stayed English regardless of URL prefix.
+const LOCALE_GROUP = `(${routing.locales.join("|")})`;
+
 // Routes that next-intl is responsible for: locale-prefixed paths AND bare
 // un-prefixed paths that map to a localised route (so /pricing redirects to
 // /en/pricing). Bare `/` is NOT in this matcher — it's owned by app/page.tsx
 // which renders the welcome splash for first-time visitors and redirects
 // returning visitors to /<their-locale> server-side.
 const isLocaleScopedRoute = createRouteMatcher([
-  "/(en|hi)",
-  "/(en|hi)/(.*)",
+  `/${LOCALE_GROUP}`,
+  `/${LOCALE_GROUP}/(.*)`,
   "/pricing",
   "/library(.*)",
 ]);
 
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/(en|hi)",
-  "/(en|hi)/pricing",
-  "/(en|hi)/library(.*)",
+  `/${LOCALE_GROUP}`,
+  `/${LOCALE_GROUP}/pricing`,
+  `/${LOCALE_GROUP}/library(.*)`,
   // Bare un-prefixed marketing paths must be public so intl can redirect them
   // to the right /<locale>/... — without this, the auth check rejects them.
   "/pricing",

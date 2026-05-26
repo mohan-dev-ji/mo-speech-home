@@ -4,12 +4,7 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useProfile } from "@/app/contexts/ProfileContext";
-
-// Profile language → next-intl locale segment
-const LANG_TO_LOCALE: Record<string, string> = {
-  eng: "en",
-  hin: "hi",
-};
+import { LOCALES } from "@/lib/languages/registry";
 
 /**
  * In student-view, force the URL locale to match the active student profile's
@@ -18,6 +13,12 @@ const LANG_TO_LOCALE: Record<string, string> = {
  *
  * Instructor view leaves the URL alone — instructor locale is governed by
  * `userRecord.locale` in `AppStateProvider`.
+ *
+ * Post Phase 8.0 the `studentProfiles.language` field is stored as an ISO
+ * 639-1 code (`en`, `hi`, `es`, `pa`, …) — same shape as the URL locale
+ * segment — so no remapping is needed. We still guard against languages
+ * that have been removed from the registry between sessions so we never
+ * redirect to a non-routable locale.
  */
 export function StudentViewLocaleSync() {
   const { viewMode, studentProfile } = useProfile();
@@ -26,14 +27,14 @@ export function StudentViewLocaleSync() {
   const pathname = usePathname();
 
   const urlLocale = (params?.locale as string) ?? null;
-  const profileLang = studentProfile?.language;
-  const targetLocale = profileLang ? LANG_TO_LOCALE[profileLang] : undefined;
+  const targetLocale = studentProfile?.language;
 
   useEffect(() => {
     if (viewMode !== "student-view") return;
     if (!urlLocale || !targetLocale) return;
     if (urlLocale === targetLocale) return;
-    router.replace(pathname, { locale: targetLocale });
+    if (!LOCALES.includes(targetLocale)) return;
+    router.replace(pathname, { locale: targetLocale as never });
   }, [viewMode, urlLocale, targetLocale, pathname, router]);
 
   return null;

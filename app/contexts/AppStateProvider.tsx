@@ -129,7 +129,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // In student-view, StudentViewLocaleSync owns the URL locale, so this skips.
 
   useEffect(() => {
-    if (!userRecord || !urlLocale) return;
+    if (!userRecord || !urlLocale || !router) return;
     const isStudentView =
       typeof window !== "undefined" &&
       window.sessionStorage.getItem("mo-view-mode") === "student-view";
@@ -140,22 +140,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     // (e.g. an admin removed the JSON between sessions). Without this we'd
     // redirect to /<missing>/home and trigger notFound() in [locale]/layout.
     if (!LOCALES.includes(storedLocale)) return;
-    // Swap the locale segment in the current path so the user stays on the
-    // same page. e.g. /en/settings → /es/settings, /en/home → /hi/home
-    // (covers sign-in redirect too).
-    //
-    // Hard navigation, not soft `router.replace`. Soft nav works for locales
-    // bundled at first build but flakes for locales added mid-session —
-    // Next sometimes preserves the [locale] segment boundary instead of
-    // re-rendering the layout that carries NextIntlClientProvider, so the
-    // URL changes but UI strings don't. The hard nav guarantees the layout
-    // re-renders with fresh messages. See LocaleSwitcher for the same
-    // pattern on the marketing side.
+    // Swap the locale segment in the current path so the user stays on the same page.
+    // e.g. /en/settings → /es/settings, /en/home → /hi/home (covers sign-in redirect too).
     const newPath = window.location.pathname.replace(
       new RegExp(`^/${urlLocale}(/|$)`),
       `/${storedLocale}$1`,
     );
-    window.location.assign(newPath + window.location.search);
+    router.replace(newPath);
   }, [userRecord?.locale, urlLocale]);
 
   // ─── NEXT_LOCALE cookie sync ─────────────────────────────────────────────────
