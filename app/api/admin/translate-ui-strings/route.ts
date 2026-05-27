@@ -39,7 +39,13 @@ import { NextResponse } from "next/server";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { GoogleAuth } from "google-auth-library";
+import {
+  buildVertexClient,
+  buildStringMapSchema,
+  callJsonResponse,
+  VERTEX_MODEL,
+  type VertexClient,
+} from "@/lib/llm/vertex";
 
 export const dynamic = "force-dynamic";
 // Translation runs can take 60s+ for the full 829-key UI dictionary across
@@ -50,11 +56,9 @@ const REPO_ROOT = process.cwd();
 const MESSAGES_DIR = join(REPO_ROOT, "messages");
 const SNAPSHOT_KEY = "_sourceSnapshot";
 
-// Gemini 2.5 Flash: $0.30/M input + $2.50/M output as of May 2026 —
-// 25× cheaper than Claude Sonnet 4.6 and excellent multilingual quality.
-// Switch to 2.5 Flash-Lite for an extra 80% off if quality holds for the
-// Phase 8.2 symbol pipeline.
-const MODEL = "gemini-2.5-flash";
+// Phase 8.1 / 8.2 share Gemini 2.5 Flash — pinned in lib/llm/vertex.ts so
+// both surfaces can't drift apart on the model version.
+const MODEL = VERTEX_MODEL;
 
 function isDevEnvironment(): boolean {
   if (process.env.NODE_ENV !== "development") return false;
@@ -100,13 +104,11 @@ function unflatten(flat: Record<string, string>): NestedRecord {
   return out;
 }
 
-// ── Gemini via Vertex AI ──────────────────────────────────────────────────
+// ── UI-strings prompt + per-batch translation ────────────────────────────
 //
-// Uses the same `generateContent` REST endpoint as the AI Studio SDK but
-// authenticated via Google Cloud service account. `responseMimeType:
-// "application/json"` + `responseSchema` constrains output to a key→string
-// map so we don't need to tolerate fenced markdown like an unconstrained
-// model would emit.
+// The Vertex AI client + structured-output plumbing lives in
+// `lib/llm/vertex.ts`; this file only owns the prompt and the
+// per-batch shape (translate values keyed by next-intl namespace path).
 
 const SYSTEM_PROMPT = `You are translating UI strings for Mo Speech, an AAC (augmentative communication) app for non-verbal children and their families.
 
@@ -124,87 +126,8 @@ type LanguageInfo = {
   nativeLabel: string;
 };
 
-type AuthedVertexClient = {
-  call: (body: unknown) => Promise<unknown>;
-};
-
-/**
- * Build a Vertex-AI REST client bound to the project's service account.
- * One client per request — `generateContent` is rate-limited per-project
- * not per-connection so there's nothing to pool.
- */
-async function buildVertexClient(): Promise<AuthedVertexClient> {
-  const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!credJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not set");
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-  if (!projectId) throw new Error("GOOGLE_CLOUD_PROJECT_ID not set");
-  // Region preference:
-  //  - `GEMINI_TRANSLATION_LOCATION` if set — lets you put translation in
-  //    EU (e.g. `europe-west4`, Netherlands — reliable Gemini 2.5 Flash
-  //    presence) without moving Imagen, which is pinned to `us-central1`.
-  //  - Else the shared `GOOGLE_CLOUD_LOCATION` (Imagen's home).
-  //  - Else `us-central1`.
-  // europe-west2 (London) currently 404s on Gemini 2.5 Flash; west4 is the
-  // closest reliable EU region.
-  const location =
-    process.env.GEMINI_TRANSLATION_LOCATION ??
-    process.env.GOOGLE_CLOUD_LOCATION ??
-    "us-central1";
-
-  const googleAuth = new GoogleAuth({
-    credentials: JSON.parse(credJson),
-    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-  });
-  const client = await googleAuth.getClient();
-  const { token } = await client.getAccessToken();
-
-  const url =
-    `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}` +
-    `/locations/${location}/publishers/google/models/${MODEL}:generateContent`;
-
-  return {
-    async call(body) {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Vertex AI ${MODEL} ${res.status}: ${text}`);
-      }
-      return res.json();
-    },
-  };
-}
-
-/**
- * Build the responseSchema for a single batch. Gemini's structured-output
- * mode honours a JSON Schema subset — `type: "object"` with a `properties`
- * map keyed by the source keys forces a 1:1 response shape and lets us
- * skip the regex / fenced-markdown tolerance loop entirely.
- *
- * Gemini's schema spec requires `propertyOrdering` to control the output
- * order (and avoid alphabetisation), so we set it to the input order.
- */
-function buildResponseSchema(keys: string[]): Record<string, unknown> {
-  const properties: Record<string, unknown> = {};
-  for (const k of keys) {
-    properties[k] = { type: "string" };
-  }
-  return {
-    type: "object",
-    properties,
-    required: keys,
-    propertyOrdering: keys,
-  };
-}
-
 async function translateBatch(
-  vertex: AuthedVertexClient,
+  vertex: VertexClient,
   target: LanguageInfo,
   entries: Record<string, string>
 ): Promise<Record<string, string>> {
@@ -215,74 +138,43 @@ Translate every value in this JSON object. Return a JSON object with the SAME ke
 
 ${JSON.stringify(entries, null, 2)}`;
 
-  const body = {
-    // Vertex's generateContent shape — system instruction is its own field;
-    // contents holds the user turn.
-    systemInstruction: {
-      role: "system",
-      parts: [{ text: SYSTEM_PROMPT }],
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: userPrompt }],
+  const { result } = await callJsonResponse(
+    vertex,
+    {
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: SYSTEM_PROMPT }],
       },
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
-      responseSchema: buildResponseSchema(keys),
-      maxOutputTokens: 8192,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: userPrompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: buildStringMapSchema(keys),
+        maxOutputTokens: 8192,
+      },
     },
-  };
-
-  const json = (await vertex.call(body)) as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ text?: string }> };
-      finishReason?: string;
-    }>;
-    promptFeedback?: { blockReason?: string };
-  };
-
-  if (json.promptFeedback?.blockReason) {
-    throw new Error(
-      `Gemini blocked the prompt: ${json.promptFeedback.blockReason}`
-    );
-  }
-  const cand = json.candidates?.[0];
-  if (!cand) throw new Error("Gemini returned no candidates");
-  if (cand.finishReason && cand.finishReason !== "STOP") {
-    throw new Error(
-      `Gemini stopped early with reason: ${cand.finishReason}` +
-        (cand.finishReason === "MAX_TOKENS"
-          ? " — lower the batch size."
-          : "")
-    );
-  }
-  const text = cand.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini candidate had no text part");
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error(
-      `Gemini returned non-JSON despite structured output. First 200 chars: ${text.slice(0, 200)}`
-    );
-  }
-  if (typeof parsed !== "object" || parsed === null) {
-    throw new Error("Gemini response was not a JSON object");
-  }
-  const result: Record<string, string> = {};
-  for (const key of keys) {
-    const v = (parsed as Record<string, unknown>)[key];
-    if (typeof v !== "string") {
-      throw new Error(
-        `Gemini omitted or mis-typed key "${key}" (got ${typeof v})`
-      );
-    }
-    result[key] = v;
-  }
+    (parsed) => {
+      if (typeof parsed !== "object" || parsed === null) {
+        throw new Error("Gemini response was not a JSON object");
+      }
+      const out: Record<string, string> = {};
+      for (const key of keys) {
+        const v = (parsed as Record<string, unknown>)[key];
+        if (typeof v !== "string") {
+          throw new Error(
+            `Gemini omitted or mis-typed key "${key}" (got ${typeof v})`,
+          );
+        }
+        out[key] = v;
+      }
+      return out;
+    },
+  );
   return result;
 }
 

@@ -12,6 +12,8 @@ import {
 import { EditLanguageLifecycleModal } from "@/app/components/admin/modals/EditLanguageLifecycleModal";
 import { ConfirmDeleteLanguageLifecycleModal } from "@/app/components/admin/modals/ConfirmDeleteLanguageLifecycleModal";
 import { AddLanguageModal } from "@/app/components/admin/modals/AddLanguageModal";
+import { TranslateSymbolsConfirmModal } from "@/app/components/admin/modals/TranslateSymbolsConfirmModal";
+import { TranslationProgressBar } from "@/app/components/admin/ui/TranslationProgressBar";
 import type {
   LanguagePublishStatus,
   LanguageTranslationStatus,
@@ -73,6 +75,8 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
 
   const [editTarget, setEditTarget] = useState<LanguageRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LanguageRow | null>(null);
+  const [translateSymbolsTarget, setTranslateSymbolsTarget] =
+    useState<LanguageRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -205,6 +209,9 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
                       </p>
                     </div>
                   </div>
+                  {/* Phase 8.2 inline progress / completion banner — only
+                      renders when a translation job exists for this row. */}
+                  {l.code !== "en" && <TranslationProgressBar slug={l.code} />}
                 </td>
                 <td className="p-4">
                   <LanguagePublishStatusBadge status={l.publishStatus} />
@@ -250,6 +257,7 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
                       })
                     }
                     onTranslate={() => runTranslate(l.code)}
+                    onTranslateSymbols={() => setTranslateSymbolsTarget(l)}
                     onEdit={() => setEditTarget(l)}
                     onDelete={() => setDeleteTarget(l)}
                   />
@@ -287,6 +295,16 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
           lang={editTarget}
           open
           onOpenChange={(open) => !open && setEditTarget(null)}
+        />
+      )}
+
+      {translateSymbolsTarget && (
+        <TranslateSymbolsConfirmModal
+          code={translateSymbolsTarget.code}
+          label={translateSymbolsTarget.label}
+          nativeLabel={translateSymbolsTarget.nativeLabel}
+          open
+          onOpenChange={(open) => !open && setTranslateSymbolsTarget(null)}
         />
       )}
 
@@ -360,6 +378,7 @@ function RowActions({
   onPromoteToStable,
   onDemoteToMachine,
   onTranslate,
+  onTranslateSymbols,
   onEdit,
   onDelete,
 }: {
@@ -371,6 +390,7 @@ function RowActions({
   onPromoteToStable: () => void;
   onDemoteToMachine: () => void;
   onTranslate: () => void;
+  onTranslateSymbols: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -422,6 +442,11 @@ function RowActions({
           <Separator />
 
           <MenuItem onSelect={onTranslate}>Translate UI strings…</MenuItem>
+          {lang.code !== "en" && (
+            <MenuItem onSelect={onTranslateSymbols}>
+              Translate symbols…
+            </MenuItem>
+          )}
           <MenuItem onSelect={onEdit}>Edit lifecycle…</MenuItem>
 
           {lang.lifecycleId && (

@@ -4,5 +4,6 @@
   "nativeLabel": "ਪੰਜਾਬੀ",
   "dir": "ltr",
   "font": "notoSansGurmukhi",
+  "scriptFamily": "non-latin",
   "voices": []
 }

@@ -36,6 +36,8 @@ import type * as studentViewLock from "../studentViewLock.js";
 import type * as studentViewSessions from "../studentViewSessions.js";
 import type * as symbols from "../symbols.js";
 import type * as themes from "../themes.js";
+import type * as translationActions from "../translationActions.js";
+import type * as translationJobs from "../translationJobs.js";
 import type * as ttsCache from "../ttsCache.js";
 import type * as users from "../users.js";
 
@@ -74,6 +76,8 @@ declare const fullApi: ApiFromModules<{
   studentViewSessions: typeof studentViewSessions;
   symbols: typeof symbols;
   themes: typeof themes;
+  translationActions: typeof translationActions;
+  translationJobs: typeof translationJobs;
   ttsCache: typeof ttsCache;
   users: typeof users;
 }>;

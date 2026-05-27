@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -197,5 +197,100 @@ export const dumpSymbolsPage = query({
       nextCursor: result.continueCursor,
       isDone: result.isDone,
     };
+  },
+});
+
+/**
+ * Phase 8.2 — read a page of symbols that still need translating into
+ * `slug`. Internal: called from `translationActions.translateSymbolsBatch`
+ * to drive the cursor-based loop.
+ *
+ * Returns up to `pageSize` rows where `words[slug]` is missing or empty
+ * — already-translated rows are filtered server-side so the action
+ * spends its time-budget on real work, not skip-then-discard cycles.
+ *
+ * NOTE: filtering happens in JS after the page fetch (no index on
+ * "missing field"), so this DOES scan `pageSize` rows even when most
+ * are translated. The Phase 8.2 loop accepts the inefficiency on
+ * partial re-runs in exchange for not adding a "needsTranslation"
+ * denormalised flag per symbol per language.
+ */
+export const fetchUntranslatedPage = internalMutation({
+  args: {
+    slug: v.string(),
+    cursor: v.union(v.string(), v.null()),
+    pageSize: v.number(),
+  },
+  handler: async (ctx, { slug, cursor, pageSize }) => {
+    const result = await ctx.db
+      .query("symbols")
+      .order("asc")
+      .paginate({ numItems: pageSize, cursor });
+
+    // Filter to symbols missing this language. We do this server-side
+    // so the action's outbound payload stays small.
+    const needsTranslation = result.page.filter((sym) => {
+      const words = sym.words as Record<string, string | undefined>;
+      const existing = words[slug];
+      return typeof existing !== "string" || existing.length === 0;
+    });
+
+    return {
+      page: needsTranslation.map((sym) => ({
+        _id: sym._id,
+        wordsEn: sym.words.en,
+      })),
+      // Number of rows in the raw page (used by the action to advance the
+      // cursor even when every row in the page is already translated).
+      rawPageSize: result.page.length,
+      nextCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+/**
+ * Phase 8.2 — patch one Gemini batch's results into the `symbols` table.
+ * Internal: only called by `translationActions.translateSymbolsBatch`.
+ *
+ * Each entry overwrites `words[slug]` and `synonyms[slug]` for one row.
+ * Existing keys in other languages are preserved (the spread is
+ * destructive only on the target language slot).
+ *
+ * Up to 100 patches per call by design — matches the Gemini batch size.
+ * Each patch is ~50 bytes so 100 fits comfortably inside Convex's per-
+ * mutation budget (1s execution, 16 MB total writes).
+ */
+export const applyTranslationsBatch = internalMutation({
+  args: {
+    slug: v.string(),
+    entries: v.array(
+      v.object({
+        symbolId: v.id("symbols"),
+        word: v.string(),
+        synonyms: v.array(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, { slug, entries }) => {
+    let patched = 0;
+    for (const entry of entries) {
+      const sym = await ctx.db.get(entry.symbolId);
+      if (!sym) continue; // row vanished between read + write — skip silently
+      const nextWords = {
+        ...(sym.words as Record<string, string>),
+        [slug]: entry.word,
+      };
+      const nextSynonyms = {
+        ...((sym.synonyms ?? {}) as Record<string, string[]>),
+        [slug]: entry.synonyms,
+      };
+      await ctx.db.patch(entry.symbolId, {
+        words: nextWords,
+        synonyms: nextSynonyms,
+      });
+      patched++;
+    }
+    return { patched };
   },
 });

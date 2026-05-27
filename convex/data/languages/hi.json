@@ -4,5 +4,6 @@
   "nativeLabel": "हिन्दी",
   "dir": "ltr",
   "font": "notoSansDevanagari",
+  "scriptFamily": "non-latin",
   "voices": []
 }

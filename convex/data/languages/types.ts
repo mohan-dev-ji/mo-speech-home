@@ -41,6 +41,24 @@ export type VoiceEntry = {
  * `dir` is `'rtl'` for Arabic / Hebrew; layout support is deferred
  * (ADR-009 §8) but the field is wired through for forward-compatibility.
  */
+/**
+ * Script family — drives the Phase 8.2 translation-pipeline prompt variant.
+ *
+ *   `latin`     — Spanish, Portuguese, German, French, Italian, … The user
+ *                 types in the same script as English; translation is
+ *                 single-script, synonyms are contextual alternates.
+ *   `non-latin` — Hindi (Devanagari), Korean (Hangul), Arabic, … The user
+ *                 may type either native script or a Latin transliteration
+ *                 (e.g. "kutta" for कुत्ता). Prompt asks for both — native
+ *                 word PLUS Latin transliterations into the synonyms slot
+ *                 so search works from either keyboard.
+ *
+ * `en` is special-cased as `latin` (no translation pipeline runs against it).
+ * Defaults to `latin` when omitted, so existing modules keep working without
+ * an audit pass.
+ */
+export type ScriptFamily = "latin" | "non-latin";
+
 export type LangModule = {
   code: string;        // ISO 639-1 — 'en', 'hi', 'pa', 'es', 'ko', ...
   label: string;       // English-facing picker label
@@ -48,4 +66,8 @@ export type LangModule = {
   dir: "ltr" | "rtl";
   font: string;        // next/font loader id
   voices: VoiceEntry[];
+  // Phase 8.2 — picks the translation prompt variant. Optional so existing
+  // modules without the field default to `latin` (correct for en/es/pa-Latin
+  // but wrong for hi — patch hi.json explicitly when re-running 8.2 for it).
+  scriptFamily?: ScriptFamily;
 };

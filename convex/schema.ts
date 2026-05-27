@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { LANGUAGE_MODULES } from "./data/languages/_index";
 
 // Reusable audio source validator (used in profileSymbols)
 // `type` encodes the active source: 'r2' = default (SymbolStix), 'tts' = generated, 'recorded' = user recording.
@@ -39,19 +40,46 @@ const localisedAudioSource = v.record(v.string(), audioSource);
 // pre-empting"). New languages start unindexed; promoting to "stable" adds
 // the field + search index in one PR.
 //
-// Post-Phase-8.0 shape — the migration rewrites legacy `{eng, hin}` rows
-// to `{en, hi}` in place, then the validator tightens to the new keys only.
-// Promoting a new language to stable adds a key here and a search index
-// below.
-const symbolWords = v.object({
-  en: v.string(),
-  hi: v.optional(v.string()),
-});
+// Post-Phase-8.0 shape — per-language fields derived from
+// `LANGUAGE_MODULES` (the same JSON catalogue that powers
+// `i18n/routing.ts`). Adding a language to `convex/data/languages/<code>.json`
+// + the barrel automatically widens the schema on the next `npx convex
+// dev` push. Per ADR-009 §6.6: the only language with a *required* word
+// is the default locale (`en`); everything else is optional, populated
+// by Phase 8.2's translation pipeline (`convex/translationActions.ts`).
+//
+// **Why not `v.record(v.string(), v.string())`?** — Convex search /
+// indexed-field references require the indexed field to exist on the
+// validator at schema-evaluation time. An open record can't express that
+// `words.en` exists. So we use `v.object` with a derived set of keys —
+// closed at schema time, but auto-widening from the registry.
+//
+// **Promoting a new language to stable** still requires a one-line schema
+// PR to add `searchIndex("search_words_<code>", ...)` below. The admin
+// UI surfaces a copy-pasteable snippet when a translation job completes.
+const DEFAULT_LOCALE = "en";
 
-const symbolSynonyms = v.object({
-  en: v.optional(v.array(v.string())),
-  hi: v.optional(v.array(v.string())),
-});
+// The field map is built dynamically from `LANGUAGE_MODULES` so adding a
+// language JSON automatically widens the schema on the next push. We cast
+// to `any` on the field map to bypass TS's variance check on the
+// per-key validator union (TS can't prove `en: v.string()` and
+// `es: v.optional(v.string())` share a common type); the runtime
+// validator is fully type-safe regardless. Convex codegen reads the
+// validator and produces the correct narrow TS types for each field.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const symbolWordsFields: Record<string, any> = {};
+for (const mod of LANGUAGE_MODULES) {
+  symbolWordsFields[mod.code] =
+    mod.code === DEFAULT_LOCALE ? v.string() : v.optional(v.string());
+}
+const symbolWords = v.object(symbolWordsFields);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const symbolSynonymsFields: Record<string, any> = {};
+for (const mod of LANGUAGE_MODULES) {
+  symbolSynonymsFields[mod.code] = v.optional(v.array(v.string()));
+}
+const symbolSynonyms = v.object(symbolSynonymsFields);
 
 // Voice-keyed audio map — replaces the legacy path-storing shape on symbols.
 // Per ADR-009 §4: the path is convention-resolved by
@@ -751,6 +779,64 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_slug", ["slug"])
+    .index("by_status", ["status"]),
+
+  /**
+   * Translation job tracking — Phase 8.2 + 8.3. One row per (slug, kind) pair.
+   * Drives the `/admin/languages` progress bar, makes the pipeline resumable
+   * across action invocations + crashes, and captures `actualTokens` so we
+   * can compare against the dry-run estimate.
+   *
+   * **Lifecycle:**
+   *   queued    → admin clicked "Start" but the first action hasn't run yet
+   *   running   → action is actively processing batches
+   *   paused    → admin clicked "Pause" mid-run; can resume from cursor
+   *   completed → processedCount === totalCount, no more work
+   *   failed    → last action threw; `lastError` carries the message
+   *
+   * **Resumability:** `cursor` is the Convex pagination cursor returned by
+   * the last successful batch. On resume, the action picks up where it
+   * left off — no symbol is re-translated.
+   *
+   * **One-row-per-(slug, kind):** re-running the same job kind for the
+   * same language re-uses the row (patches it back to `running`). Deleting
+   * the row resets state entirely.
+   */
+  translationJobs: defineTable({
+    slug: v.string(),                            // ISO 639-1 code
+    kind: v.union(
+      v.literal("symbols-words"),                // Phase 8.2 — words + synonyms
+      v.literal("library-packs")                 // Phase 8.3 — pack content
+    ),
+    status: v.union(
+      v.literal("queued"),
+      v.literal("running"),
+      v.literal("paused"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    // Pagination cursor for the next batch. `null` (or undefined) means
+    // "start at the beginning". Updated after each batch's mutation.
+    cursor: v.optional(v.union(v.string(), v.null())),
+    // Counts — `totalCount` is fixed at job start (snapshot of source size);
+    // `processedCount` ticks up after each batch's writes commit.
+    totalCount: v.number(),
+    processedCount: v.number(),
+    // Cost / token bookkeeping. Estimates set at dry-run; actuals accumulate
+    // as the pipeline runs so admin can compare.
+    estimatedTokens: v.optional(v.number()),
+    actualInputTokens: v.optional(v.number()),
+    actualOutputTokens: v.optional(v.number()),
+    // Timestamps. `startedAt` is the first batch's start; `completedAt` is
+    // set when the row reaches a terminal state (completed / failed).
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    // Diagnostic. Cleared on resume; set on failure / pause.
+    lastError: v.optional(v.string()),
+    createdBy: v.string(),                       // Clerk userId who kicked it off
+    updatedAt: v.number(),
+  })
+    .index("by_slug_and_kind", ["slug", "kind"])
     .index("by_status", ["status"]),
 
   /**
