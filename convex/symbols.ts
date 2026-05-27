@@ -163,3 +163,39 @@ export const getSymbolsByWords = query({
     return results.filter((s): s is NonNullable<typeof s> => s !== null);
   },
 });
+
+/**
+ * Paginated dump of the full `symbols` table — drives
+ * `scripts/backup-symbols.mjs`. The whole table is too large (~16 MB raw
+ * JSON, 52k rows) to return in a single query call, so the script paginates
+ * with 2000-row pages until `isDone: true`.
+ *
+ * Ordering is ascending by `_id` so that two backups taken at different
+ * times produce a stable line ordering — that's what makes the resulting
+ * JSONL files diff cleanly in git and lets git's pack-file delta
+ * compression dedupe identical lines across snapshots.
+ *
+ * Public query — backups are intended to run from a local CLI / CI
+ * environment with no auth context. Symbol data is global / non-sensitive
+ * (SymbolStix is the upstream licensor, not user data).
+ */
+export const dumpSymbolsPage = query({
+  args: {
+    cursor: v.optional(v.union(v.string(), v.null())),
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, { cursor, pageSize = 2000 }) => {
+    const result = await ctx.db
+      .query("symbols")
+      .order("asc")
+      .paginate({
+        numItems: pageSize,
+        cursor: cursor ?? null,
+      });
+    return {
+      symbols: result.page,
+      nextCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});

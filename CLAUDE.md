@@ -27,6 +27,32 @@ All product design, feature specs, and build plans are in `docs/`:
 - `mo-speech-identity` → `NEXT_PUBLIC_CONVEX_IDENTITY_URL` — shared child identity
 - `mo-speech-school` → stub only, not built yet
 
+## Convex Billing
+- **Plan**: Starter (Free + pay-as-you-go overage). $0 base.
+- **Region**: EU (`eu-west-1`, Ireland) — confirmed via URL `*.eu-west-1.convex.cloud`.
+- **Spending limits**: $10/mo warning · $20/mo disable.
+- **Why Starter not Pro**: Pro is $25/mo but on EU the included limits don't apply — every byte is billed at plan rate + 30% surcharge. So Pro EU costs $25 + everything-on-demand. Starter EU = Free tier limits apply, overage at +30%. Strictly cheaper for our scale.
+- **Free-tier limits** (Starter): 1M function calls · 0.5 GB storage · 1 GB DB I/O · 1 GB egress · 20 GB-hours action compute · 40 deployments / month.
+- **Overage rates** (Starter EU, with +30%): function calls $2.86/M · DB I/O $0.286/GB · egress $0.172/GB · storage $0.286/GB-mo.
+- **Watch list before considering Pro**: daily backups (compliance), log streaming, custom domains, email support. Re-evaluate when MVP-2.0 + Home combined hit ~80% of Free monthly, or when first real customer pays. Probably also worth a US-region prod deployment at that point to dodge the surcharge.
+
+## Backups
+Convex Pro ships automated daily backups; on Starter we roll our own. Two layers:
+
+- **Full deployment snapshot** (disaster recovery, gitignored):
+  ```bash
+  npx convex export --path backups/<date>-<label>.zip
+  ```
+  Run before any risky operation (schema migrations, multi-language translation runs, mass mutations). Local-only; the `backups/` dir is gitignored. Restore via `npx convex import --replace <zip>`.
+
+- **Symbols-table milestone snapshot** (committed to git):
+  ```bash
+  node --env-file=.env.local scripts/backup-symbols.mjs "<label>"
+  ```
+  Writes `convex/data/symbols_backups/<YYYY_MM_DD>_<label>.jsonl` (one symbol per line, sorted by `_id` for stable git diffs) + a small `.meta.json` sidecar. Commit both. After Phase 8.2 each language run produces an irreplaceable AI-translation diff — these snapshots capture it in repo history. Backed by `convex/symbols.ts:dumpSymbolsPage`.
+
+Node version: the Convex CLI requires Node 20+. If you have multiple Node versions via nvm, prefix backup commands with `source ~/.nvm/nvm.sh && nvm use 20.17.0`.
+
 ## Pricing Tiers: free / pro / max
 (Template says "business" — this build uses "max" throughout)
 
