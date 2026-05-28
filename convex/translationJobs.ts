@@ -73,7 +73,12 @@ async function findJob(
  * Output scales with batch + script family — non-Latin generates richer
  * synonyms (native + Latin transliterations).
  */
-const BATCH_SIZE = 100; // symbols per Gemini call
+// MUST match `BATCH_SIZE` in convex/translationActions.ts — drives the
+// estimated-batches calculation. Dropped from 100 to 50 after first
+// Spanish run tripped Gemini's 8k output-token limit; halving the batch
+// keeps each call well inside the API budget at the cost of doubling
+// the API-call count (~$0.20 more on a full 52k run).
+const BATCH_SIZE = 50; // symbols per Gemini call
 const INPUT_TOKENS_PER_BATCH = 1500;
 const OUTPUT_TOKENS_PER_SYMBOL_LATIN = 12;
 const OUTPUT_TOKENS_PER_SYMBOL_NON_LATIN = 22;

@@ -262,3 +262,9 @@ The language will work in a similar way but with obvious differences. I am now t
 
 The main thing I do want mention is that it would be great if the admin dashboard could act as our language creation touch point where we can input translations, trigger seeds, publish edit  and update languages. I envision publishing a language into a self contained json file which points to all the audio and holds the actual translations and fonts and can then be loaded
 
+
+Convex back ups before Transalte symbols
+source ~/.nvm/nvm.sh && nvm use 20.17.0
+
+node --env-file=.env.local scripts/backup-symbols.mjs "pre-phase-8-2-es"
+git add convex/data/symbols_backups/*.* && git commit -m "backup: pre-phase-8-2 spanish"

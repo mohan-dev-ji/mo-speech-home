@@ -133,32 +133,45 @@ export function buildStringMapSchema(keys: string[]): Record<string, unknown> {
 }
 
 /**
- * Build a responseSchema for the "object keyed by id, every value is a
- * `{ word, synonyms[] }`" case — Phase 8.2 symbol translation shape.
+ * Build a responseSchema for the Phase 8.2 symbol translation shape.
  *
- * `word` is the primary translation (string); `synonyms` is an array of
- * alternates and (for non-Latin scripts) Latin transliterations.
+ * **Why an array, not a keyed object?** Vertex AI's structured-output
+ * mode rejects schemas with too many "states" — a keyed object with
+ * 100 nested `{word, synonyms[]}` properties produces ~300 schema nodes
+ * and trips the limit with a 400:
+ *
+ *   "The specified schema produces a constraint that has too many states
+ *   for serving."
+ *
+ * Flattening to `{translations: [{id, word, synonyms}, ...]}` makes the
+ * schema constant-size (~7 nodes) regardless of batch count. The model
+ * receives the input ids in the user prompt and echoes them back as the
+ * `id` field on each item; the caller's validator maps back to the
+ * original input.
+ *
+ * `word` is the primary translation; `synonyms` is an array of alternates
+ * and (for non-Latin scripts) Latin transliterations.
  */
-export function buildSymbolTranslationSchema(
-  keys: string[],
-): Record<string, unknown> {
-  const properties: Record<string, unknown> = {};
-  for (const k of keys) {
-    properties[k] = {
-      type: "object",
-      properties: {
-        word: { type: "string" },
-        synonyms: { type: "array", items: { type: "string" } },
-      },
-      required: ["word", "synonyms"],
-      propertyOrdering: ["word", "synonyms"],
-    };
-  }
+export function buildSymbolTranslationSchema(): Record<string, unknown> {
   return {
     type: "object",
-    properties,
-    required: keys,
-    propertyOrdering: keys,
+    properties: {
+      translations: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            word: { type: "string" },
+            synonyms: { type: "array", items: { type: "string" } },
+          },
+          required: ["id", "word", "synonyms"],
+          propertyOrdering: ["id", "word", "synonyms"],
+        },
+      },
+    },
+    required: ["translations"],
+    propertyOrdering: ["translations"],
   };
 }
 

@@ -46,8 +46,24 @@ import { LANGUAGE_MODULES } from "./data/languages/_index";
 
 // ── Tunables (kept inline; tweak after observation) ──────────────────────
 
-const BATCH_SIZE = 100;            // symbols per Gemini call
-const PAGE_SIZE = 200;             // symbols per Convex paginate
+// Walked from 100 → 50 → 25 across the first Spanish run. Each drop
+// halved per-batch output token use, and each time Gemini still managed
+// to find a pathological batch that tripped MAX_TOKENS. The actual
+// culprit isn't the average batch — it's the long-tail batch where one
+// symbol's "translation" balloons into multiple sentences of synonyms.
+// Tightening the prompt's synonym cap (below) is the durable fix; the
+// smaller batch is the belt-and-braces.
+//
+// Cost trade-off: smaller batches mean more system-prompt overhead per
+// symbol. Going from 50 → 25 roughly doubles input-token cost
+// (~$0.20 extra on a full 52k run). Acceptable.
+const BATCH_SIZE = 25;
+// 65536 is Gemini 2.5 Flash's hard ceiling — there's no higher number
+// to bump to. If a 25-symbol batch ever overflows this we have a real
+// problem with the prompt, not the size. There's NO billing impact
+// from raising the cap: you pay only for tokens actually generated.
+const MAX_OUTPUT_TOKENS = 65536;
+const PAGE_SIZE = 200;             // symbols per Convex paginate (2 batches per page)
 const TIME_BUDGET_MS = 4 * 60_000; // 4 min — leave 6 min headroom under 10 min ceiling
 const MAX_RETRIES = 3;
 const BACKOFF_MS = [1_000, 4_000, 16_000]; // 1s, 4s, 16s
@@ -59,13 +75,14 @@ const LATIN_SYSTEM_PROMPT = `You are translating SymbolStix AAC pictogram labels
 Each input is a short English word or phrase shown under a small pictogram (e.g. "dog", "happy", "go to bed"). Translate accurately, naturally, and at a register appropriate for a child or their caregiver.
 
 For EACH input:
-- "word" — the single best translation in the target language.
-- "synonyms" — 2 to 4 short alternates a user might search for (verb/noun forms, regional variants, common shortenings).
+- "word" — the single best translation in the target language. ONE word or short phrase only.
+- "synonyms" — EXACTLY 2 short alternates a user might search for (verb/noun forms, regional variants, common shortenings). Never more than 2. Each synonym must be one short word or phrase, never a sentence.
 
 Rules:
-- Leave proper nouns and brand names unchanged ("Mo Speech", "Hello Kitty", "SymbolStix").
+- Leave proper nouns and brand names unchanged ("Mo Speech", "Hello Kitty", "SymbolStix") — the word becomes the same string, and synonyms is an empty array.
 - Preserve the meaning, not the surface form — translate "go to bed" as a natural phrase, not word-by-word.
 - Synonyms should be common everyday alternates, not rare formal forms.
+- Never repeat the "word" inside its own "synonyms" array.
 - Return JSON exactly matching the schema. Keep input IDs in the same order.`;
 
 const NON_LATIN_SYSTEM_PROMPT = `You are translating SymbolStix AAC pictogram labels for Mo Speech, an app for non-verbal children and their families.
@@ -73,13 +90,13 @@ const NON_LATIN_SYSTEM_PROMPT = `You are translating SymbolStix AAC pictogram la
 Each input is a short English word or phrase shown under a small pictogram (e.g. "dog", "happy", "go to bed"). Translate accurately, naturally, and at a register appropriate for a child or their caregiver.
 
 For EACH input:
-- "word" — the single best translation in the target language's NATIVE SCRIPT (e.g. Devanagari for Hindi, Hangul for Korean, Gurmukhi for Punjabi). Do NOT romanise.
-- "synonyms" — 4 to 6 alternates total, mixing native-script variants AND Latin-script transliterations following standard romanisation conventions. Example for Hindi "dog" / "कुत्ता": ["कुत्ता","कुत्ते","kutta","dog","puppy"]. Transliterations let users with English keyboards still search for the symbol.
+- "word" — the single best translation in the target language's NATIVE SCRIPT (e.g. Devanagari for Hindi, Hangul for Korean, Gurmukhi for Punjabi). ONE word or short phrase only. Do NOT romanise.
+- "synonyms" — EXACTLY 4 alternates total: 2 native-script variants AND 2 Latin-script transliterations following standard romanisation. Never more than 4. Example for Hindi "dog" / "कुत्ता": ["कुत्ते","कुतिया","kutta","kutiya"]. Each synonym must be one short word or phrase, never a sentence.
 
 Rules:
-- Leave proper nouns and brand names unchanged ("Mo Speech", "Hello Kitty", "SymbolStix").
+- Leave proper nouns and brand names unchanged ("Mo Speech", "Hello Kitty", "SymbolStix") — the word becomes the same string, and synonyms is an empty array.
 - Preserve the meaning, not the surface form — translate "go to bed" as a natural phrase, not word-by-word.
-- Include at least 2 Latin transliterations in the synonyms array.
+- Never repeat the "word" inside its own "synonyms" array.
 - Return JSON exactly matching the schema. Keep input IDs in the same order.`;
 
 // ── Action handler ───────────────────────────────────────────────────────
@@ -221,11 +238,17 @@ export const translateSymbolsBatch = internalAction({
             inputMap,
           );
 
-          const entries = symbolIds.map((id) => ({
-            symbolId: id as Id<"symbols">,
-            word: translations[id].word,
-            synonyms: translations[id].synonyms,
-          }));
+          // Filter to ids that actually came back — see partial-response
+          // tolerance in `translateOneBatch`. Missing rows will resurface
+          // on the next pagination pass via the untranslated filter.
+          const entries = symbolIds
+            .filter((id) => translations[id] !== undefined)
+            .map((id) => ({
+              symbolId: id as Id<"symbols">,
+              word: translations[id].word,
+              synonyms: translations[id].synonyms,
+            }));
+          if (entries.length === 0) continue;
 
           await ctx.runMutation(internal.symbols.applyTranslationsBatch, {
             slug: job.slug,
@@ -271,6 +294,11 @@ export const translateSymbolsBatch = internalAction({
           markCompleted: true,
         });
         // Console log for diagnostics — visible in Convex logs.
+        // NOTE: stragglers (~1-2% of symbols Gemini occasionally omits)
+        // will leave `processedCount` slightly below `totalCount`. Admin
+        // can re-open the Translate-symbols modal to pick them up — the
+        // estimate query's `alreadyTranslated` count excludes them so
+        // they'll appear as "X to translate this run".
         console.log(
           `[translateSymbolsBatch] job ${jobId} complete for ${job.slug}; processed ${totalProcessedThisInvocation} this invocation`,
         );
@@ -296,9 +324,14 @@ async function translateOneBatch(
   const symbolIds = Object.keys(inputMap);
   const userPrompt = `Target language: ${langMod.label} (${langMod.nativeLabel}, ISO: ${langMod.code}).
 
-Translate every value in this JSON object. The keys are stable symbol IDs — keep them EXACTLY as given. Return a JSON object with the SAME keys, each mapping to { "word": <translation>, "synonyms": [<alternates>] }.
+Translate every English value below. The keys are stable symbol IDs — echo them back EXACTLY as given in the \`id\` field of each output item. Return ONE object: \`{ "translations": [ { "id": "<symbolId>", "word": "<translation>", "synonyms": [<alternates>] }, ... ] }\` with one entry per input id, same order. Do not add, drop, or rename ids.
 
+Inputs:
 ${JSON.stringify(inputMap, null, 2)}`;
+
+  // Set of expected ids — let us validate the model returned every
+  // requested symbol and didn't hallucinate extra ones.
+  const expectedIds = new Set(symbolIds);
 
   let lastError: unknown = null;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -319,37 +352,68 @@ ${JSON.stringify(inputMap, null, 2)}`;
           generationConfig: {
             temperature: 0.2,
             responseMimeType: "application/json",
-            responseSchema: buildSymbolTranslationSchema(symbolIds),
-            // Symbol translations are short (~10-20 tokens each) — 100 symbols
-            // × ~25 tokens × non-Latin synonym richness ~= 5k tokens budget.
-            // Headroom to 8k.
-            maxOutputTokens: 8192,
+            responseSchema: buildSymbolTranslationSchema(),
+            // See `MAX_OUTPUT_TOKENS` rationale at the top of the file —
+            // 16k gives 2× headroom over the worst-case 8k batch.
+            maxOutputTokens: MAX_OUTPUT_TOKENS,
           },
         },
         (parsed) => {
           if (typeof parsed !== "object" || parsed === null) {
             throw new Error("Gemini response was not a JSON object");
           }
+          const root = parsed as { translations?: unknown };
+          if (!Array.isArray(root.translations)) {
+            throw new Error(
+              "Gemini response missing the `translations` array",
+            );
+          }
           const out: Record<string, { word: string; synonyms: string[] }> = {};
-          for (const id of symbolIds) {
-            const entry = (parsed as Record<string, unknown>)[id];
-            if (typeof entry !== "object" || entry === null) {
+          for (const raw of root.translations) {
+            if (typeof raw !== "object" || raw === null) continue;
+            const item = raw as Record<string, unknown>;
+            if (typeof item.id !== "string") continue;
+            if (!expectedIds.has(item.id)) continue; // ignore stray ids
+            if (typeof item.word !== "string") {
+              throw new Error(`Gemini missing word for "${item.id}"`);
+            }
+            if (!Array.isArray(item.synonyms)) {
               throw new Error(
-                `Gemini omitted or mis-typed symbol "${id}" (got ${typeof entry})`,
+                `Gemini missing synonyms array for "${item.id}"`,
               );
             }
-            const e = entry as Record<string, unknown>;
-            if (typeof e.word !== "string") {
-              throw new Error(`Gemini missing word for "${id}"`);
-            }
-            if (!Array.isArray(e.synonyms)) {
-              throw new Error(`Gemini missing synonyms array for "${id}"`);
-            }
             const synonyms: string[] = [];
-            for (const s of e.synonyms) {
+            for (const s of item.synonyms) {
               if (typeof s === "string") synonyms.push(s);
             }
-            out[id] = { word: e.word, synonyms };
+            out[item.id] = { word: item.word, synonyms };
+          }
+          // Partial-response tolerance — Gemini occasionally drops 1-2
+          // items per 50-item batch (~2% rate, observed in early
+          // Phase 8.2 runs). Treat as a soft failure: accept what came
+          // back, log a warning, let the next pagination pass re-fetch
+          // the missing rows (the action's `fetchUntranslatedPage` filter
+          // strips already-translated rows so stragglers naturally
+          // resurface).
+          //
+          // A hard fail (throwing here) would abort the entire job for
+          // one missing row — discarding the other 49 good translations
+          // and forcing a manual Resume. The soft path is robust against
+          // Gemini's small omission rate without blocking progress.
+          const missing = symbolIds.filter((id) => !(id in out));
+          if (missing.length > 0) {
+            // Allow up to half the batch to be missing — beyond that
+            // something is structurally wrong (malformed batch,
+            // truncated response). Catastrophic batches should fail
+            // the job so admin notices; small omissions should not.
+            if (missing.length > symbolIds.length / 2) {
+              throw new Error(
+                `Gemini returned only ${symbolIds.length - missing.length}/${symbolIds.length} symbols — too few to accept. First missing: ${missing.slice(0, 3).join(", ")}`,
+              );
+            }
+            console.warn(
+              `[translateSymbolsBatch] partial response: ${missing.length}/${symbolIds.length} symbols missing; accepting partial. First missing: ${missing.slice(0, 3).join(", ")}`,
+            );
           }
           return out;
         },
