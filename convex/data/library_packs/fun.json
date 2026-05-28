@@ -1,10 +1,12 @@
 {
   "slug": "fun",
   "name": {
-    "en": "Fun"
+    "en": "Fun",
+    "es": "Diversión"
   },
   "description": {
-    "en": "Toys, games, and everything they reach for when no one's making them work. Words for play."
+    "en": "Toys, games, and everything they reach for when no one's making them work. Words for play.",
+    "es": "Juguetes, juegos y todo lo que quieren hacer cuando nadie les dice qué hacer. Palabras para jugar."
   },
   "coverImagePath": "symbols/fun.png",
   "defaultTier": "free",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "symbols/fun.png",
       "name": {
-        "en": "Fun"
+        "en": "Fun",
+        "es": "Diversión"
       },
       "symbols": [
         {
@@ -182,7 +185,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
           "defaultAudioPath": "audio/eng/default/toilet.mp3",
-          "description": "go to the toilet",
+          "description": {
+            "en": "go to the toilet",
+            "es": "ir al baño"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
           "imagePath": "symbols/toilet.png",
           "imageSourceType": "symbolstix",
@@ -192,7 +198,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00105241.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00105241.mp3",
-          "description": "drive to trampoline park",
+          "description": {
+            "en": "drive to trampoline park",
+            "es": "ir en coche al parque de trampolines"
+          },
           "imagePath": "symbols/symbol00105241.png",
           "imageSourceType": "symbolstix",
           "order": 1
@@ -201,7 +210,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00061831.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00061831.mp3",
-          "description": "put on special socks",
+          "description": {
+            "en": "put on special socks",
+            "es": "ponerme calcetines especiales"
+          },
           "imagePath": "symbols/symbol00061831.png",
           "imageSourceType": "symbolstix",
           "order": 2
@@ -210,14 +222,18 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00106261.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00106261.mp3",
-          "description": "jump on trampolines",
+          "description": {
+            "en": "jump on trampolines",
+            "es": "saltar en los trampolines"
+          },
           "imagePath": "symbols/symbol00106261.png",
           "imageSourceType": "symbolstix",
           "order": 3
         }
       ],
       "name": {
-        "en": "Going to the trampoline park"
+        "en": "Going to the trampoline park",
+        "es": "Ir al parque de trampolines"
       },
       "order": 0,
       "showChecklist": false,
@@ -229,7 +245,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/06d16411-4307-4162-93f9-1a4ee315d262.mp3",
       "name": {
-        "en": "I want to watch YouTube"
+        "en": "I want to watch YouTube",
+        "es": "Quiero ver YouTube"
       },
       "order": 0,
       "slots": [
@@ -282,7 +299,10 @@
           "order": 3
         }
       ],
-      "text": "I want to watch YouTube"
+      "text": {
+        "en": "I want to watch YouTube",
+        "es": "Quiero ver YouTube"
+      }
     }
   ]
 }

@@ -1,10 +1,12 @@
 {
   "slug": "diwali",
   "name": {
-    "en": "Diwali"
+    "en": "Diwali",
+    "es": "Diwali"
   },
   "description": {
-    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table."
+    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table.",
+    "es": "El festival de las luces con el vocabulario para la ocasión. Diyas, rangoli, los dulces por su nombre y la familia alrededor de la mesa."
   },
   "coverImagePath": "static/pack-cover-default.webp",
   "defaultTier": "max",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00204004.png",
       "name": {
-        "en": "Diwali"
+        "en": "Diwali",
+        "es": "Diwali"
       },
       "symbols": [
         {
@@ -154,7 +157,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00212646.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
-          "description": "shower",
+          "description": {
+            "en": "shower",
+            "es": "ducharse"
+          },
           "imagePath": "symbols/symbol00212646.png",
           "imageSourceType": "symbolstix",
           "order": 0
@@ -163,7 +169,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
-          "description": "put on new clothes",
+          "description": {
+            "en": "put on new clothes",
+            "es": "ponerse ropa nueva"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
           "imagePath": "symbols/symbol00066341.png",
           "imageSourceType": "symbolstix",
@@ -173,7 +182,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00188535.mp3",
-          "description": "light diyas",
+          "description": {
+            "en": "light diyas",
+            "es": "encender diyas"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
           "imagePath": "symbols/symbol00188535.png",
           "imageSourceType": "symbolstix",
@@ -183,7 +195,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00207426.mp3",
-          "description": "eat Indian food",
+          "description": {
+            "en": "eat Indian food",
+            "es": "comer comida india"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
           "imagePath": "symbols/symbol00207426.png",
           "imageSourceType": "symbolstix",
@@ -193,7 +208,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00188531.mp3",
-          "description": "go to Diwali festival",
+          "description": {
+            "en": "go to Diwali festival",
+            "es": "ir al festival de Diwali"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
           "imagePath": "symbols/symbol00188531.png",
           "imageSourceType": "symbolstix",
@@ -201,7 +219,8 @@
         }
       ],
       "name": {
-        "en": "Getting ready for Diwali"
+        "en": "Getting ready for Diwali",
+        "es": "Preparándonos para Diwali"
       },
       "order": 0,
       "showChecklist": false,
@@ -213,7 +232,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/8b482bb7-1b95-4400-99a8-b9d4f1ebfb3a.mp3",
       "name": {
-        "en": "Let's light the candles"
+        "en": "Let's light the candles",
+        "es": "Vamos a encender las velas"
       },
       "order": 1,
       "slots": [
@@ -242,12 +262,16 @@
           "order": 1
         }
       ],
-      "text": "Let's light the candles"
+      "text": {
+        "en": "Let's light the candles",
+        "es": "Vamos a encender las velas"
+      }
     },
     {
       "audioPath": "audio/en-GB-News-M/tts/b88a3173-2336-4e2b-925f-d71aaf29f24f.mp3",
       "name": {
-        "en": "Time to be quiet for prayers"
+        "en": "Time to be quiet for prayers",
+        "es": "Hora de estar callados para rezar"
       },
       "order": 1,
       "slots": [
@@ -288,7 +312,10 @@
           "order": 2
         }
       ],
-      "text": "Time to be quiet for prayers"
+      "text": {
+        "en": "Time to be quiet for prayers",
+        "es": "Hora de estar callados para rezar"
+      }
     }
   ]
 }

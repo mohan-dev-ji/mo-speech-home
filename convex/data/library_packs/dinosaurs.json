@@ -1,10 +1,12 @@
 {
   "slug": "dinosaurs",
   "name": {
-    "en": "Dinosaurs"
+    "en": "Dinosaurs",
+    "es": "Dinosaurios"
   },
   "description": {
-    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession."
+    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
+    "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión."
   },
   "coverImagePath": "symbols/symbol00192671.png",
   "defaultTier": "pro",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00192671.png",
       "name": {
-        "en": "Dinosaurs"
+        "en": "Dinosaurs",
+        "es": "Dinosaurios"
       },
       "symbols": [
         {
@@ -140,7 +143,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00204614.mp3",
-          "description": "Buy ticket online",
+          "description": {
+            "en": "Buy ticket online",
+            "es": "Comprar entrada online"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
           "imagePath": "symbols/symbol00204614.png",
           "imageSourceType": "symbolstix",
@@ -150,7 +156,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00196752.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00196752.mp3",
-          "description": "Get on the train",
+          "description": {
+            "en": "Get on the train",
+            "es": "Subir al tren"
+          },
           "imagePath": "symbols/symbol00196752.png",
           "imageSourceType": "symbolstix",
           "order": 1
@@ -159,7 +168,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
           "defaultAudioPath": "audio/eng/default/walk.mp3",
-          "description": "Walk to the Museum",
+          "description": {
+            "en": "Walk to the Museum",
+            "es": "Caminar al museo"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
           "imagePath": "symbols/walk.png",
           "imageSourceType": "symbolstix",
@@ -169,7 +181,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00094721.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00094721.mp3",
-          "description": "Queue to get in",
+          "description": {
+            "en": "Queue to get in",
+            "es": "Hacer fila para entrar"
+          },
           "imagePath": "symbols/symbol00094721.png",
           "imageSourceType": "symbolstix",
           "order": 3
@@ -178,7 +193,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
           "defaultAudioPath": "audio/eng/default/look.mp3",
-          "description": "Look at the exhibition",
+          "description": {
+            "en": "Look at the exhibition",
+            "es": "Ver la exposición"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
           "imagePath": "symbols/look.png",
           "imageSourceType": "symbolstix",
@@ -188,7 +206,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00109151.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00109151.mp3",
-          "description": "Snack",
+          "description": {
+            "en": "Snack",
+            "es": "Merienda"
+          },
           "imagePath": "symbols/symbol00109151.png",
           "imageSourceType": "symbolstix",
           "order": 5
@@ -197,14 +218,18 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/let_us_go_home.mp3",
           "defaultAudioPath": "audio/eng/default/let_us_go_home.mp3",
-          "description": "Go home",
+          "description": {
+            "en": "Go home",
+            "es": "Ir a casa"
+          },
           "imagePath": "symbols/let_us_go_home.png",
           "imageSourceType": "symbolstix",
           "order": 6
         }
       ],
       "name": {
-        "en": "Museum visit"
+        "en": "Museum visit",
+        "es": "Visita al museo"
       },
       "order": 0,
       "showChecklist": false,
@@ -216,7 +241,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/575860aa-cfdb-4825-9dc4-47b917ef8c11.mp3",
       "name": {
-        "en": "tyrannosaurus rex is the most fierce dinosaur"
+        "en": "tyrannosaurus rex is the most fierce dinosaur",
+        "es": "el tiranosaurio rex es el dinosaurio más feroz"
       },
       "order": 0,
       "slots": [
@@ -257,7 +283,10 @@
           "order": 2
         }
       ],
-      "text": "tyrannosaurus rex is the most fierce dinosaur"
+      "text": {
+        "en": "tyrannosaurus rex is the most fierce dinosaur",
+        "es": "El tiranosaurio rex es el dinosaurio más feroz."
+      }
     }
   ]
 }

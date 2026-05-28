@@ -1,10 +1,12 @@
 {
   "slug": "religion",
   "name": {
-    "en": "Religion"
+    "en": "Religion",
+    "es": "Religión"
   },
   "description": {
-    "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own."
+    "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
+    "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio."
   },
   "coverImagePath": "symbols/pray.png",
   "defaultTier": "free",
@@ -15,7 +17,8 @@
       "imagePath": "symbols/pray.png",
       "name": {
         "en": "Religion",
-        "hi": "Religion (hi)"
+        "hi": "Religion (hi)",
+        "es": "Religión"
       },
       "symbols": [
         {
@@ -204,7 +207,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00212646.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
-          "description": "shower",
+          "description": {
+            "en": "shower",
+            "es": "ducharse"
+          },
           "imagePath": "symbols/symbol00212646.png",
           "imageSourceType": "symbolstix",
           "order": 0
@@ -213,7 +219,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00066341.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
-          "description": "put on clean clothes",
+          "description": {
+            "en": "put on clean clothes",
+            "es": "ponerse ropa limpia"
+          },
           "imagePath": "symbols/symbol00066341.png",
           "imageSourceType": "symbolstix",
           "order": 1
@@ -222,7 +231,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/193c0cb5-58c0-4d6c-9cbc-53e0ad991580.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00194236.mp3",
-          "description": "go to the gurdwara",
+          "description": {
+            "en": "go to the gurdwara",
+            "es": "ir al gurdwara"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/193c0cb5-58c0-4d6c-9cbc-53e0ad991580.mp3",
           "imagePath": "symbols/symbol00194236.png",
           "imageSourceType": "symbolstix",
@@ -232,7 +244,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00056099.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00056099.mp3",
-          "description": "sit",
+          "description": {
+            "en": "sit",
+            "es": "sentarse"
+          },
           "imagePath": "symbols/symbol00056099.png",
           "imageSourceType": "symbolstix",
           "order": 3
@@ -241,14 +256,18 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00196084.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00196084.mp3",
-          "description": "pray",
+          "description": {
+            "en": "pray",
+            "es": "rezar"
+          },
           "imagePath": "symbols/symbol00196084.png",
           "imageSourceType": "symbolstix",
           "order": 4
         }
       ],
       "name": {
-        "en": "Going to the the Gurdwara"
+        "en": "Going to the the Gurdwara",
+        "es": "Ir al Gurdwara"
       },
       "order": 0,
       "showChecklist": false,
@@ -260,7 +279,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/e62614ce-06ab-4d81-ae82-9a68b5d81c37.mp3",
       "name": {
-        "en": "Let's be quiet for the prayer"
+        "en": "Let's be quiet for the prayer",
+        "es": "Vamos a hacer silencio para la oración"
       },
       "order": 0,
       "slots": [
@@ -289,7 +309,10 @@
           "order": 1
         }
       ],
-      "text": "Let's be quiet for the prayer"
+      "text": {
+        "en": "Let's be quiet for the prayer",
+        "es": "Vamos a hacer silencio para la oración"
+      }
     }
   ]
 }

@@ -1,10 +1,12 @@
 {
   "slug": "vehicles",
   "name": {
-    "en": "Vehicles"
+    "en": "Vehicles",
+    "es": "Vehículos"
   },
   "description": {
-    "en": "Cars, buses, trucks, the lot. Vocabulary for the kid who notices every vehicle and wants to tell you about it."
+    "en": "Cars, buses, trucks, the lot. Vocabulary for the kid who notices every vehicle and wants to tell you about it.",
+    "es": "Coches, autobuses, camiones, de todo. Vocabulario para el niño que se fija en cada vehículo y quiere contártelo."
   },
   "coverImagePath": "symbols/symbol00109461.png",
   "defaultTier": "pro",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00109461.png",
       "name": {
-        "en": "Vehicles"
+        "en": "Vehicles",
+        "es": "Vehículos"
       },
       "symbols": [
         {

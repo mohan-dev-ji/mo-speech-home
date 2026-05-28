@@ -1,10 +1,12 @@
 {
   "slug": "christmas",
   "name": {
-    "en": "Christmas"
+    "en": "Christmas",
+    "es": "Navidad"
   },
   "description": {
-    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day."
+    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
+    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día."
   },
   "coverImagePath": "symbols/symbol00059081.png",
   "defaultTier": "max",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "symbols/symbol00059081.png",
       "name": {
-        "en": "Christmas"
+        "en": "Christmas",
+        "es": "Navidad"
       },
       "symbols": [
         {
@@ -151,7 +154,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/wake_up.mp3",
           "defaultAudioPath": "audio/eng/default/wake_up.mp3",
-          "description": "wake up",
+          "description": {
+            "en": "wake up",
+            "es": "despertarse"
+          },
           "imagePath": "symbols/wake_up.png",
           "imageSourceType": "symbolstix",
           "order": 0
@@ -160,7 +166,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/en-GB-News-M/tts/a046b3d3-12a7-422a-9697-cbcc6a6ee08e.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00188421.mp3",
-          "description": "open presents",
+          "description": {
+            "en": "open presents",
+            "es": "abrir regalos"
+          },
           "generatedAudioPath": "audio/en-GB-News-M/tts/a046b3d3-12a7-422a-9697-cbcc6a6ee08e.mp3",
           "imagePath": "symbols/symbol00188421.png",
           "imageSourceType": "symbolstix",
@@ -170,7 +179,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/eat_breakfast.mp3",
           "defaultAudioPath": "audio/eng/default/eat_breakfast.mp3",
-          "description": "breakfast",
+          "description": {
+            "en": "breakfast",
+            "es": "desayuno"
+          },
           "imagePath": "symbols/eat_breakfast.png",
           "imageSourceType": "symbolstix",
           "order": 2
@@ -179,7 +191,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/family_time.mp3",
           "defaultAudioPath": "audio/eng/default/family_time.mp3",
-          "description": "family time",
+          "description": {
+            "en": "family time",
+            "es": "tiempo en familia"
+          },
           "imagePath": "symbols/family_time.png",
           "imageSourceType": "symbolstix",
           "order": 3
@@ -188,7 +203,10 @@
           "activeAudioSource": "generate",
           "audioPath": "audio/eng/default/symbol00108601.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00133631.mp3",
-          "description": "play time",
+          "description": {
+            "en": "play time",
+            "es": "tiempo de jugar"
+          },
           "generatedAudioPath": "audio/eng/default/symbol00108601.mp3",
           "imagePath": "symbols/symbol00133631.png",
           "imageSourceType": "symbolstix",
@@ -198,7 +216,10 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00067461.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00067461.mp3",
-          "description": "lunch",
+          "description": {
+            "en": "lunch",
+            "es": "comida"
+          },
           "imagePath": "symbols/symbol00067461.png",
           "imageSourceType": "symbolstix",
           "order": 5
@@ -207,14 +228,18 @@
           "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00190434.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
-          "description": "walk",
+          "description": {
+            "en": "walk",
+            "es": "paseo"
+          },
           "imagePath": "symbols/symbol00190434.png",
           "imageSourceType": "symbolstix",
           "order": 6
         }
       ],
       "name": {
-        "en": "Christmas morning"
+        "en": "Christmas morning",
+        "es": "Mañana de Navidad"
       },
       "order": 0,
       "showChecklist": false,
@@ -226,7 +251,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/d6c59a86-0b13-410c-ba97-0e952346764a.mp3",
       "name": {
-        "en": "I want to open my presents"
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos"
       },
       "order": 0,
       "slots": [
@@ -279,7 +305,10 @@
           "order": 3
         }
       ],
-      "text": "I want to open my presents"
+      "text": {
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos"
+      }
     }
   ]
 }

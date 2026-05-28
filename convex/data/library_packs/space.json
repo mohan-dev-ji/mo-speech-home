@@ -1,10 +1,12 @@
 {
   "slug": "space",
   "name": {
-    "en": "Space"
+    "en": "Space",
+    "es": "Espacio"
   },
   "description": {
-    "en": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there."
+    "en": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there.",
+    "es": "Planetas, cohetes, estrellas por su nombre. Para el niño que siempre pregunta qué hay allá afuera."
   },
   "coverImagePath": "static/pack-cover-default.webp",
   "defaultTier": "free",
@@ -14,7 +16,8 @@
       "icon": "📁",
       "imagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
       "name": {
-        "en": "Space"
+        "en": "Space",
+        "es": "Espacio"
       },
       "symbols": [
         {
