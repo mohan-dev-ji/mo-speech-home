@@ -2,11 +2,13 @@
   "slug": "_starter",
   "name": {
     "en": "Starter Pack",
-    "hi": "Starter Pack (hi)"
+    "hi": "Starter Pack (hi)",
+    "es": "Paquete Inicial"
   },
   "description": {
     "en": "The first vocabulary every account opens with. Greetings, feelings, asking for what they need. Loaded automatically when a profile is created.",
-    "hi": "The first vocabulary every account opens with. Greetings, feelings, asking for what they need. Loaded automatically when a profile is created. (hi)"
+    "hi": "The first vocabulary every account opens with. Greetings, feelings, asking for what they need. Loaded automatically when a profile is created. (hi)",
+    "es": "El primer vocabulario que se carga en cada cuenta. Saludos, emociones, pedir lo que necesitan. Se carga automáticamente al crear un perfil."
   },
   "coverImagePath": "static/starter-cover.webp",
   "defaultTier": "free",
@@ -18,7 +20,8 @@
       "imagePath": "symbols/play.png",
       "name": {
         "en": "Actions",
-        "hi": "Actions (hi)"
+        "hi": "Actions (hi)",
+        "es": "Acciones"
       },
       "symbols": [
         {
@@ -365,7 +368,8 @@
       "imagePath": "symbols/family.png",
       "name": {
         "en": "People",
-        "hi": "People (hi)"
+        "hi": "People (hi)",
+        "es": "Personas"
       },
       "symbols": [
         {
@@ -705,7 +709,8 @@
       "imagePath": "symbols/feelings.png",
       "name": {
         "en": "Feelings",
-        "hi": "Feelings (hi)"
+        "hi": "Feelings (hi)",
+        "es": "Emociones"
       },
       "symbols": [
         {
@@ -1045,7 +1050,8 @@
       "imagePath": "symbols/symbol00200090.png",
       "name": {
         "en": "Descriptions",
-        "hi": "Describe (hi)"
+        "hi": "Describe (hi)",
+        "es": "Descripciones"
       },
       "symbols": [
         {
@@ -1392,7 +1398,8 @@
       "imagePath": "symbols/symbol00188596.png",
       "name": {
         "en": "Food & Drink",
-        "hi": "Food & Drink (hi)"
+        "hi": "Food & Drink (hi)",
+        "es": "Comida y bebida"
       },
       "symbols": [
         {
@@ -1739,7 +1746,8 @@
       "imagePath": "symbols/home.png",
       "name": {
         "en": "Home",
-        "hi": "Home (hi)"
+        "hi": "Home (hi)",
+        "es": "Casa"
       },
       "symbols": [
         {
@@ -2079,7 +2087,8 @@
       "imagePath": "symbols/symbol00102991.png",
       "name": {
         "en": "Activities",
-        "hi": "Activities (hi)"
+        "hi": "Activities (hi)",
+        "es": "Actividades"
       },
       "symbols": [
         {
@@ -2412,7 +2421,8 @@
       "imagePath": "symbols/symbol00114621.png",
       "name": {
         "en": "School",
-        "hi": "School (hi)"
+        "hi": "School (hi)",
+        "es": "Escuela"
       },
       "symbols": [
         {
@@ -2738,7 +2748,8 @@
       "imagePath": "symbols/doctor.png",
       "name": {
         "en": "Health",
-        "hi": "Health (hi)"
+        "hi": "Health (hi)",
+        "es": "Salud"
       },
       "symbols": [
         {
@@ -3085,7 +3096,8 @@
       "imagePath": "symbols/symbol00000992.png",
       "name": {
         "en": "Animals",
-        "hi": "Animals (hi)"
+        "hi": "Animals (hi)",
+        "es": "Animales"
       },
       "symbols": [
         {
@@ -3432,7 +3444,8 @@
       "imagePath": "symbols/symbol00202158.png",
       "name": {
         "en": "Nature",
-        "hi": "Nature (hi)"
+        "hi": "Nature (hi)",
+        "es": "Naturaleza"
       },
       "symbols": [
         {
@@ -3772,7 +3785,8 @@
       "imagePath": "symbols/community.png",
       "name": {
         "en": "Community",
-        "hi": "Community (hi)"
+        "hi": "Community (hi)",
+        "es": "Comunidad"
       },
       "symbols": [
         {
@@ -4119,7 +4133,8 @@
       "imagePath": "symbols/clock_blank.png",
       "name": {
         "en": "Time",
-        "hi": "Time (hi)"
+        "hi": "Time (hi)",
+        "es": "Tiempo"
       },
       "symbols": [
         {
@@ -4354,7 +4369,8 @@
       "imagePath": "symbols/number.png",
       "name": {
         "en": "Numbers",
-        "hi": "Numbers (hi)"
+        "hi": "Numbers (hi)",
+        "es": "Números"
       },
       "symbols": [
         {
@@ -4701,7 +4717,8 @@
       "imagePath": "symbols/symbol00213947.png",
       "name": {
         "en": "Chat",
-        "hi": "Chat (hi)"
+        "hi": "Chat (hi)",
+        "es": "Charla"
       },
       "symbols": [
         {
@@ -4928,7 +4945,8 @@
       "icon": "📁",
       "imagePath": "symbols/places.png",
       "name": {
-        "en": "Places"
+        "en": "Places",
+        "es": "Lugares"
       },
       "symbols": [
         {
@@ -5139,7 +5157,8 @@
         }
       ],
       "name": {
-        "en": "Bedtime routine"
+        "en": "Bedtime routine",
+        "es": "Rutina para dormir"
       },
       "order": 1,
       "showChecklist": false,
@@ -5196,7 +5215,8 @@
         }
       ],
       "name": {
-        "en": "Morning Routine"
+        "en": "Morning Routine",
+        "es": "Rutina de la mañana"
       },
       "order": 2,
       "showChecklist": true,
@@ -5272,7 +5292,8 @@
         }
       ],
       "name": {
-        "en": "Brushing teeth"
+        "en": "Brushing teeth",
+        "es": "Cepillarse los dientes"
       },
       "order": 2,
       "showChecklist": true,
@@ -5348,7 +5369,8 @@
         }
       ],
       "name": {
-        "en": "Getting dressed"
+        "en": "Getting dressed",
+        "es": "Vestirse"
       },
       "order": 4,
       "showChecklist": true,
@@ -5406,7 +5428,8 @@
         }
       ],
       "name": {
-        "en": "Toilet routine - seat up"
+        "en": "Toilet routine - seat up",
+        "es": "Rutina del baño - tapa arriba"
       },
       "order": 5,
       "showChecklist": false,
@@ -5473,7 +5496,8 @@
         }
       ],
       "name": {
-        "en": "Toilet routine - seat down"
+        "en": "Toilet routine - seat down",
+        "es": "Rutina del baño - tapa abajo"
       },
       "order": 6,
       "showChecklist": false,
@@ -5539,7 +5563,8 @@
         }
       ],
       "name": {
-        "en": "Mealtime"
+        "en": "Mealtime",
+        "es": "Hora de comer"
       },
       "order": 7,
       "showChecklist": true,
@@ -5587,7 +5612,8 @@
         }
       ],
       "name": {
-        "en": "Handwashing"
+        "en": "Handwashing",
+        "es": "Lavarse las manos"
       },
       "order": 7,
       "showChecklist": true,
@@ -5657,7 +5683,8 @@
         }
       ],
       "name": {
-        "en": "Bath time"
+        "en": "Bath time",
+        "es": "Hora del baño"
       },
       "order": 8,
       "showChecklist": false,
@@ -5715,7 +5742,8 @@
         }
       ],
       "name": {
-        "en": "Going to school"
+        "en": "Going to school",
+        "es": "Ir al colegio"
       },
       "order": 9,
       "showChecklist": false,
@@ -5772,7 +5800,8 @@
         }
       ],
       "name": {
-        "en": "Snack time"
+        "en": "Snack time",
+        "es": "Hora de la merienda"
       },
       "order": 10,
       "showChecklist": false,
@@ -5829,7 +5858,8 @@
         }
       ],
       "name": {
-        "en": "Going to the park"
+        "en": "Going to the park",
+        "es": "Ir al parque"
       },
       "order": 11,
       "showChecklist": false,
@@ -5841,7 +5871,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/df19507b-d9dd-4bbd-a695-649d13747cfd.mp3",
       "name": {
-        "en": "I want to go outside"
+        "en": "I want to go outside",
+        "es": "Quiero salir afuera"
       },
       "order": 11,
       "slots": [
@@ -5875,7 +5906,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/c9360455-f32e-4f83-9361-b2776aa35369.mp3",
       "name": {
-        "en": "I don't want it"
+        "en": "I don't want it",
+        "es": "No lo quiero"
       },
       "order": 11,
       "slots": [
@@ -5909,7 +5941,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/6f035756-5706-4113-9b7c-1ac376fb2438.mp3",
       "name": {
-        "en": "More music please"
+        "en": "More music please",
+        "es": "Más música por favor"
       },
       "order": 11,
       "slots": [
@@ -5943,7 +5976,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/07af06f9-e80f-434b-83e9-527c8cbfa94b.mp3",
       "name": {
-        "en": "Can I have some water"
+        "en": "Can I have some water",
+        "es": "¿Me das un poco de agua?"
       },
       "order": 11,
       "slots": [
@@ -5977,7 +6011,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/cf001866-3b73-46d2-bbb7-a88aeb96776f.mp3",
       "name": {
-        "en": "I feel happy"
+        "en": "I feel happy",
+        "es": "Me siento feliz"
       },
       "order": 11,
       "slots": [
@@ -6011,7 +6046,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",
       "name": {
-        "en": "My stomach hurts"
+        "en": "My stomach hurts",
+        "es": "Me duele la barriga"
       },
       "order": 11,
       "slots": [
@@ -6045,7 +6081,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/696e4df2-81a9-47e0-bad7-e3e272ad274e.mp3",
       "name": {
-        "en": "Look at me"
+        "en": "Look at me",
+        "es": "Mírame"
       },
       "order": 11,
       "slots": [
@@ -6079,7 +6116,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/a5cc2c8b-bc52-4d95-a4ab-af947e48add9.mp3",
       "name": {
-        "en": "I like music"
+        "en": "I like music",
+        "es": "Me gusta la música"
       },
       "order": 11,
       "slots": [
@@ -6113,7 +6151,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
       "name": {
-        "en": "I'm hungry"
+        "en": "I'm hungry",
+        "es": "Tengo hambre"
       },
       "order": 11,
       "slots": [
@@ -6147,7 +6186,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/1ccdf0a8-15b4-4827-8d3f-1bb7818963b3.mp3",
       "name": {
-        "en": "I'm not hungry"
+        "en": "I'm not hungry",
+        "es": "No tengo hambre"
       },
       "order": 11,
       "slots": [
@@ -6181,7 +6221,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/6080b5ed-151b-4f91-926d-48afe153a2aa.mp3",
       "name": {
-        "en": "I'm thirsty"
+        "en": "I'm thirsty",
+        "es": "Tengo sed"
       },
       "order": 11,
       "slots": [
@@ -6215,7 +6256,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/66e9e7f2-8457-4bed-b07a-7476d422839d.mp3",
       "name": {
-        "en": "It's my turn"
+        "en": "It's my turn",
+        "es": "Es mi turno"
       },
       "order": 11,
       "slots": [

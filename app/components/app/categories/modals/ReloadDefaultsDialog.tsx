@@ -11,8 +11,6 @@ import {
 } from "@/app/components/app/shared/ui/Dialog";
 import type { Id } from "@/convex/_generated/dataModel";
 
-const CONFIRM_PHRASE = "RELOAD";
-
 export type ReloadDefaultsResult = {
   symbolsAdded: number;
   symbolsSkipped: number;
@@ -50,7 +48,11 @@ export function ReloadDefaultsDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ready = typed === CONFIRM_PHRASE && !busy;
+  // Match the placeholder the user sees in their locale (RELOAD in en,
+  // RECARGAR in es, etc.) — not a hard-coded English constant. Reading
+  // from the translation key keeps the typed gate aligned with the copy.
+  const confirmPhrase = t("reloadDefaultsConfirmPlaceholder");
+  const ready = typed === confirmPhrase && !busy;
 
   async function handleConfirm() {
     setBusy(true);

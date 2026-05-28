@@ -152,6 +152,10 @@ export default defineSchema({
     .searchIndex("search_words_hi", {
       searchField: "words.hi",
       filterFields: ["priority"],
+    })
+    .searchIndex("search_words_es", {
+      searchField: "words.es",
+      filterFields: ["priority"],
     }),
 
   /**

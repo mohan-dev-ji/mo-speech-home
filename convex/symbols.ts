@@ -72,11 +72,26 @@ export const searchSymbols = query({
 
     if (!searchTerm.trim()) return [];
 
+    // Per ADR-009 §6.6: Convex search indexes are static, so each
+    // searchable language needs its own `searchIndex(...)` declared in
+    // `convex/schema.ts`. New languages added to the registry but without
+    // a search index here will fall through to the English index (so
+    // typing in English still works during the machine-translation
+    // window before promotion-to-stable adds the index).
     if (language === "hi") {
       return ctx.db
         .query("symbols")
         .withSearchIndex("search_words_hi", (q) =>
           q.search("words.hi", searchTerm)
+        )
+        .take(limit);
+    }
+
+    if (language === "es") {
+      return ctx.db
+        .query("symbols")
+        .withSearchIndex("search_words_es", (q) =>
+          q.search("words.es", searchTerm)
         )
         .take(limit);
     }
