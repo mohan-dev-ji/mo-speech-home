@@ -86,7 +86,11 @@ type SentenceRow = {
   _id: Id<'profileSentences'>;
   name: Record<string, string>;
   order: number;
-  text?: string;
+  // Schema is `v.union(v.string(), localisedString)` per the Phase 8.0
+  // migration window — pre-migration rows still carry a plain string,
+  // post-migration rows carry `{en, es, ...}`. All `.text` reads must
+  // typeof-guard + displayString through. See `text` consumers below.
+  text?: string | Record<string, string>;
   audioPath?: string;
   slots: Slot[];
   publishedToPackId?: Id<'resourcePacks'>;
@@ -349,7 +353,14 @@ function SortableSentenceRow({
   };
 
   const name = displayString(sentence.name, language, DEFAULT_LOCALE);
-  const sentenceText = sentence.text || name;
+  // `text` is `string | LocalisedString` during the Phase 8.0 migration
+  // window — typeof-guard before rendering. Same pattern as the
+  // onEditSentence callback below and the PlayModal hookup.
+  const resolvedText =
+    typeof sentence.text === 'string'
+      ? sentence.text
+      : displayString(sentence.text, language, DEFAULT_LOCALE);
+  const sentenceText = resolvedText || name;
 
   return (
     <div ref={setNodeRef} style={style}>
