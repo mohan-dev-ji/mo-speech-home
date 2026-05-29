@@ -16,7 +16,8 @@
 | English fix where existing Spanish (etc.) already conveys correct meaning | Edit `en` only, leave other locales. |
 | English meaning has changed | Edit `en`, **delete the stale locale keys**, run `node --env-file=.env.local scripts/translate-pack.mjs <slug> <locale>` |
 | Wrong Spanish (etc.) word/phrase, English is fine | Delete the stale locale key, re-run the script. |
-| Wrong Spanish (etc.) on a **symbol label** inside a pack | This isn't the pack JSON — it comes from `symbols.words.<locale>`. Fix it via the symbols admin path, not the pack. |
+| Wrong Spanish (etc.) on a **SymbolStix symbol label** in a pack (symbol has `symbolId`) | Not the pack JSON — comes from `symbols.words.<locale>`. Fix in the symbols admin path. |
+| Wrong/missing Spanish on a **custom-image symbol label** in a pack (no `symbolId`) | Is the pack JSON — delete `label.es` and run the script as usual. |
 | Bulk fix across all 7 non-starter packs | Edit each pack JSON, then `scripts/translate-pack.mjs --all <locale>` |
 
 ---
@@ -145,19 +146,31 @@ Spanish output: `"Tyrannosaurus rex es el dinosaurio más feroz"` — now preser
 
 ## Special cases
 
-### Symbol labels inside packs — NOT the script's job
+### Symbol labels inside packs — the SymbolStix vs custom-image distinction
 
-Pack JSONs contain symbol entries with `labelOverride` (for SymbolStix symbols) or `label` (for custom images). These look localisable:
+Pack JSONs contain symbol entries that look localisable:
 
 ```json
-"labelOverride": { "en": "Christmas tree" }
+// SymbolStix-backed (has symbolId)
+{ "symbolId": "kn7c8...", "labelOverride": { "en": "Christmas tree" } }
+
+// Custom-image (no symbolId, has imagePath + label)
+{ "imageSourceType": "imageSearch", "imagePath": "library_packs/space/...",
+  "label": { "en": "Earth" } }
 ```
 
-But the pack translation script **deliberately skips them.** At display time, the materialiser merges `{...symbolDoc.words, ...sym.labelOverride}` per symbol — so the Spanish slot for this symbol is filled by `symbols.words.es` (populated for all 58,807 symbols by Phase 8.2), not by anything in the pack JSON.
+The script handles them differently based on whether the symbol has a `symbolId`:
 
-**Consequence:** if a tester reports a wrong Spanish symbol label inside a pack, the fix is in the `symbols` table (admin path / `symbols.ts`), not the pack JSON. Editing `labelOverride.es` in the pack JSON would only affect that one pack instance, not every other surface where the same symbol appears — almost always the wrong layer to fix it.
+| Symbol kind | Marker | What the script does | Why |
+|---|---|---|---|
+| SymbolStix | has `symbolId` | **Skips both `label` and `labelOverride`** | At materialisation time the runtime merges `{...symbolDoc.words, ...sym.labelOverride}`. The Spanish slot comes from `symbols.words.es` (Phase 8.2 populated all 58,807 symbols) — not from anything in the pack JSON. Translating it in the pack would be duplicative work. |
+| Custom-image | no `symbolId` | **Translates `symbols[].label`** | No central symbols-table entry exists → no Phase 8.2 fallback → the pack JSON is the only place the Spanish label can live. Skip it and the symbol stays English forever. |
 
-You *can* edit `labelOverride.en` to fix English-only display issues for that symbol within that pack (e.g. capitalising `"Tyrannosaurus rex"`). That's fine — English overrides are the original purpose of `labelOverride`.
+**Consequences for tester reports:**
+
+- If a SymbolStix symbol shows the wrong Spanish label inside a pack, the fix is in the **central `symbols` table** (admin path / `symbols.ts`), not the pack JSON. Editing `labelOverride.es` would only affect that one pack instance, not every other surface where the same symbol appears.
+- If a custom-image symbol shows the wrong Spanish label, the fix **is** in the pack JSON's `symbols[].label.es`. Delete the `es` key and re-run the script the usual way.
+- Editing **`labelOverride.en`** (or `label.en`) for English-only display issues is always fine — the English override is the original purpose of the field.
 
 ### Sentence `name` vs `text` — usually meant to be identical
 
