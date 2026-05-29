@@ -22,7 +22,7 @@
       "symbols": [
         {
           "labelOverride": {
-            "en": "tyrannosaurus rex"
+            "en": "Tyrannosaurus rex"
           },
           "order": 0,
           "symbolId": "kn7a94c6jakq68p0httwnjan5s84m9v2"
@@ -241,8 +241,8 @@
     {
       "audioPath": "audio/en-GB-News-M/tts/575860aa-cfdb-4825-9dc4-47b917ef8c11.mp3",
       "name": {
-        "en": "tyrannosaurus rex is the most fierce dinosaur",
-        "es": "el tiranosaurio rex es el dinosaurio más feroz"
+        "en": "Tyrannosaurus rex is the most fierce dinosaur",
+        "es": "Tyrannosaurus rex es el dinosaurio más feroz"
       },
       "order": 0,
       "slots": [
@@ -284,8 +284,8 @@
         }
       ],
       "text": {
-        "en": "tyrannosaurus rex is the most fierce dinosaur",
-        "es": "El tiranosaurio rex es el dinosaurio más feroz."
+        "en": "Tyrannosaurus rex is the most fierce dinosaur",
+        "es": "Tyrannosaurus rex es el dinosaurio más feroz"
       }
     }
   ]
