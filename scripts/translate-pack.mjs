@@ -184,14 +184,19 @@ async function translatePack(slug, locale, localeMeta, dry) {
  * Recognised LocalisedString fields per types.ts:
  *   - pack.name, pack.description
  *   - category.name
+ *   - category.symbols[].label — ONLY for custom-image symbols (no symbolId).
+ *     SymbolStix symbols (with symbolId) get their localised label via the
+ *     central symbols.words[locale] table at materialisation time and so
+ *     are deliberately skipped here.
  *   - list.name
  *   - list.items[].description (legacy string | LocalisedString)
  *   - sentence.name
  *   - sentence.text (legacy string | LocalisedString)
  *
  * Explicitly skipped:
- *   - symbols[].label / symbols[].labelOverride — handled by Phase 8.2's
- *     live symbols.words[locale] lookup at materialisation time.
+ *   - symbols[].labelOverride — ALWAYS skipped. Only present on SymbolStix
+ *     symbols (which have symbolId) where the central fallback applies.
+ *   - symbols[].label when the symbol also has symbolId — same reason.
  */
 function collectFields(pack, locale) {
   const out = [];
@@ -201,7 +206,15 @@ function collectFields(pack, locale) {
 
   for (const [i, cat] of (pack.categories ?? []).entries()) {
     pushField(out, `categories[${i}].name`, cat.name, locale);
-    // symbols[].label / labelOverride deliberately skipped (see header).
+    for (const [si, sym] of (cat.symbols ?? []).entries()) {
+      // SymbolStix-backed symbols (have symbolId) get their localised label
+      // via symbols.words[locale] at materialisation time — never translate
+      // their pack-level label or labelOverride. Custom-image symbols (no
+      // symbolId) have no central fallback, so their label must be
+      // translated pack-side. See header comment for rationale.
+      if (sym.symbolId) continue;
+      pushField(out, `categories[${i}].symbols[${si}].label`, sym.label, locale);
+    }
   }
 
   for (const [i, list] of (pack.lists ?? []).entries()) {
