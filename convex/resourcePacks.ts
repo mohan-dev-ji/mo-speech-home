@@ -2011,16 +2011,134 @@ export const setCategoryDefaultV2 = mutation({
   },
 });
 
+// ─── Duplicate helpers — used by the Library picker's "Save to pack" flow ───
+//
+// When admin picks a target pack for a row that's ALREADY pack-associated
+// (librarySourceId set), we clone the row at the new slug rather than
+// retargeting in place. The original row stays linked to its current pack
+// so admin can keep publishing to both. See plan doc for rationale.
+//
+// Children: only categories have a separate-table child (profileSymbols).
+// Lists' items and sentences' slots are stored inline on the parent row,
+// so a row-level spread copies them as part of the parent.
+
+async function duplicateProfileCategory(
+  ctx: MutationCtx,
+  source: Doc<"profileCategories">,
+  newSlug: string,
+  now: number,
+): Promise<Id<"profileCategories">> {
+  // Place the duplicate at the end of the admin's category list.
+  const lastCategory = await ctx.db
+    .query("profileCategories")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", source.accountId))
+    .order("desc")
+    .first();
+  const nextOrder = lastCategory ? lastCategory.order + 1 : 0;
+
+  // Strip system + overridden fields. _id/_creationTime are Convex-managed,
+  // packSlug is deliberately cleared (the simplification stops writing it),
+  // order/librarySourceId/librarySourceCategoryKey/updatedAt are reassigned
+  // for the duplicate.
+  const { _id: _id, _creationTime: _ct, order: _o, packSlug: _ps,
+    librarySourceId: _lsi, librarySourceCategoryKey: _lsck,
+    updatedAt: _ua, ...rest } = source;
+  void _id; void _ct; void _o; void _ps; void _lsi; void _lsck; void _ua;
+
+  const newCategoryId = await ctx.db.insert("profileCategories", {
+    ...rest,
+    order: nextOrder,
+    librarySourceId: newSlug,
+    librarySourceCategoryKey: typeof source.name?.en === "string" ? source.name.en : undefined,
+    updatedAt: now,
+  });
+
+  // Clone every profileSymbol belonging to the source category.
+  const symbols = await ctx.db
+    .query("profileSymbols")
+    .withIndex("by_profile_category_id", (q) => q.eq("profileCategoryId", source._id))
+    .collect();
+  for (const sym of symbols) {
+    const { _id: _sid, _creationTime: _sct, profileCategoryId: _pcid,
+      updatedAt: _sua, ...symRest } = sym;
+    void _sid; void _sct; void _pcid; void _sua;
+    await ctx.db.insert("profileSymbols", {
+      ...symRest,
+      profileCategoryId: newCategoryId,
+      updatedAt: now,
+    });
+  }
+
+  return newCategoryId;
+}
+
+async function duplicateProfileList(
+  ctx: MutationCtx,
+  source: Doc<"profileLists">,
+  newSlug: string,
+  now: number,
+): Promise<Id<"profileLists">> {
+  const lastList = await ctx.db
+    .query("profileLists")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", source.accountId))
+    .order("desc")
+    .first();
+  const nextOrder = lastList ? lastList.order + 1 : 0;
+
+  const { _id: _id, _creationTime: _ct, order: _o, packSlug: _ps,
+    librarySourceId: _lsi, updatedAt: _ua, ...rest } = source;
+  void _id; void _ct; void _o; void _ps; void _lsi; void _ua;
+
+  return await ctx.db.insert("profileLists", {
+    ...rest,
+    order: nextOrder,
+    librarySourceId: newSlug,
+    updatedAt: now,
+  });
+}
+
+async function duplicateProfileSentence(
+  ctx: MutationCtx,
+  source: Doc<"profileSentences">,
+  newSlug: string,
+  now: number,
+): Promise<Id<"profileSentences">> {
+  const lastSentence = await ctx.db
+    .query("profileSentences")
+    .withIndex("by_account_id_and_order", (q) => q.eq("accountId", source.accountId))
+    .order("desc")
+    .first();
+  const nextOrder = lastSentence ? lastSentence.order + 1 : 0;
+
+  const { _id: _id, _creationTime: _ct, order: _o, packSlug: _ps,
+    librarySourceId: _lsi, updatedAt: _ua, ...rest } = source;
+  void _id; void _ct; void _o; void _ps; void _lsi; void _ua;
+
+  return await ctx.db.insert("profileSentences", {
+    ...rest,
+    order: nextOrder,
+    librarySourceId: newSlug,
+    updatedAt: now,
+  });
+}
+
 /**
- * V2: Toggle "Library" — non-starter pack membership for a category.
+ * V2: "Save to pack" picker — duplicate-or-assign for a category.
  *
- * On: requires `target`. Either creates a new lifecycle row (mode: 'create')
- * with the chosen slug + name + tier, or links to an existing lifecycle row
- * the admin owns (mode: 'append'). Rejects if the category is already
- * published to any pack.
+ * Behaviour: pick a target pack. If the row has no `librarySourceId` yet
+ * (admin-created from scratch), assign in place. If the row is already
+ * pack-associated, duplicate it (and its profileSymbols children) at the
+ * new slug — original row stays put with its current librarySourceId.
  *
- * Off: clears `packSlug` (the JSON pack content remains until the next
- * `pack-publish` runs and observes no source rows).
+ * Rejects with ALREADY_IN_PACK if the target equals the row's existing
+ * librarySourceId (would create an identical clone in the same pack).
+ *
+ * No `off` arm — the Library toggle is now a stateless button. To remove
+ * a row from a pack, admin deletes the row and republishes that pack.
+ *
+ * The `on: false` path is retained as a no-op return for back-compat
+ * with any caller that still passes `on: false`; the UI no longer calls
+ * it after the Layer 5 refactor.
  */
 export const setCategoryInLibraryV2 = mutation({
   args: {
@@ -2036,44 +2154,43 @@ export const setCategoryInLibraryV2 = mutation({
       throw new ConvexError({ code: "NOT_FOUND", message: "Category not found." });
     }
 
-    if (args.on) {
-      if (!args.target) {
-        throw new ConvexError({
-          code: "TARGET_REQUIRED",
-          message: "Target required when toggling Library on.",
-        });
-      }
-      // Retarget semantics: the Library picker is now the canonical way
-      // to change a row's publish target. If packSlug is already set
-      // (from a previous toggle, or stale data from the pre-refactor
-      // Default toggle), overwrite it rather than refusing — the user's
-      // intent is to publish to the chosen target. The old
-      // ALREADY_PUBLISHED guard belonged to the "either Default or
-      // Library, never both" model which we dropped when the Default
-      // toggle became a visibility gate.
-      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
-      await ctx.db.patch(args.profileCategoryId, {
-        packSlug: slug,
-        updatedAt: Date.now(),
-      });
-      return { slug, action: category.packSlug ? "retargeted" : "added" as const };
-    } else {
-      if (!category.packSlug) {
-        return { action: "noop" as const };
-      }
-      if (category.packSlug === STARTER_SLUG) {
-        throw new ConvexError({
-          code: "USE_DEFAULT_TOGGLE",
-          message:
-            "This category is in the starter pack — use the Default toggle to remove.",
-        });
-      }
-      await ctx.db.patch(args.profileCategoryId, {
-        packSlug: undefined,
-        updatedAt: Date.now(),
-      });
-      return { action: "removed" as const };
+    if (!args.on) {
+      // No-op for back-compat with any caller that still passes off:false.
+      // The UI doesn't call this path post-refactor — "remove from pack"
+      // is now deletion + republish.
+      return { action: "noop" as const };
     }
+
+    if (!args.target) {
+      throw new ConvexError({
+        code: "TARGET_REQUIRED",
+        message: "Target required when toggling Library on.",
+      });
+    }
+
+    const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+    const now = Date.now();
+
+    if (category.librarySourceId === slug) {
+      throw new ConvexError({
+        code: "ALREADY_IN_PACK",
+        message: `This category is already in "${slug}". Pick a different pack to duplicate it.`,
+      });
+    }
+
+    if (!category.librarySourceId) {
+      // First-time save — assign in place.
+      await ctx.db.patch(args.profileCategoryId, {
+        librarySourceId: slug,
+        updatedAt: now,
+      });
+      return { slug, action: "assigned" as const };
+    }
+
+    // Already pack-associated — duplicate (with profileSymbols children)
+    // at the new slug. Original row stays linked to its current pack.
+    const newCategoryId = await duplicateProfileCategory(ctx, category, slug, now);
+    return { slug, action: "duplicated" as const, newProfileCategoryId: newCategoryId };
   },
 });
 
@@ -2133,36 +2250,39 @@ export const setListInLibraryV2 = mutation({
       throw new ConvexError({ code: "NOT_FOUND", message: "List not found." });
     }
 
-    if (args.on) {
-      if (!args.target) {
-        throw new ConvexError({
-          code: "TARGET_REQUIRED",
-          message: "Target required when toggling Library on.",
-        });
-      }
-      // Retarget semantics — see setCategoryInLibraryV2 above for the
-      // rationale. Library picker overwrites any existing publish target.
-      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
-      await ctx.db.patch(args.profileListId, {
-        packSlug: slug,
-        updatedAt: Date.now(),
-      });
-      return { slug, action: list.packSlug ? "retargeted" : "added" as const };
-    } else {
-      if (!list.packSlug) return { action: "noop" as const };
-      if (list.packSlug === STARTER_SLUG) {
-        throw new ConvexError({
-          code: "USE_DEFAULT_TOGGLE",
-          message:
-            "This list is in the starter pack — use the Default toggle to remove.",
-        });
-      }
-      await ctx.db.patch(args.profileListId, {
-        packSlug: undefined,
-        updatedAt: Date.now(),
-      });
-      return { action: "removed" as const };
+    if (!args.on) {
+      return { action: "noop" as const };
     }
+
+    if (!args.target) {
+      throw new ConvexError({
+        code: "TARGET_REQUIRED",
+        message: "Target required when toggling Library on.",
+      });
+    }
+
+    const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+    const now = Date.now();
+
+    if (list.librarySourceId === slug) {
+      throw new ConvexError({
+        code: "ALREADY_IN_PACK",
+        message: `This list is already in "${slug}". Pick a different pack to duplicate it.`,
+      });
+    }
+
+    if (!list.librarySourceId) {
+      await ctx.db.patch(args.profileListId, {
+        librarySourceId: slug,
+        updatedAt: now,
+      });
+      return { slug, action: "assigned" as const };
+    }
+
+    // Already pack-associated — duplicate at the new slug. Items are
+    // inline on the row, so the row-spread carries them.
+    const newListId = await duplicateProfileList(ctx, list, slug, now);
+    return { slug, action: "duplicated" as const, newProfileListId: newListId };
   },
 });
 
@@ -2222,36 +2342,39 @@ export const setSentenceInLibraryV2 = mutation({
       throw new ConvexError({ code: "NOT_FOUND", message: "Sentence not found." });
     }
 
-    if (args.on) {
-      if (!args.target) {
-        throw new ConvexError({
-          code: "TARGET_REQUIRED",
-          message: "Target required when toggling Library on.",
-        });
-      }
-      // Retarget semantics — see setCategoryInLibraryV2 above for the
-      // rationale. Library picker overwrites any existing publish target.
-      const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
-      await ctx.db.patch(args.profileSentenceId, {
-        packSlug: slug,
-        updatedAt: Date.now(),
-      });
-      return { slug, action: sentence.packSlug ? "retargeted" : "added" as const };
-    } else {
-      if (!sentence.packSlug) return { action: "noop" as const };
-      if (sentence.packSlug === STARTER_SLUG) {
-        throw new ConvexError({
-          code: "USE_DEFAULT_TOGGLE",
-          message:
-            "This sentence is in the starter pack — use the Default toggle to remove.",
-        });
-      }
-      await ctx.db.patch(args.profileSentenceId, {
-        packSlug: undefined,
-        updatedAt: Date.now(),
-      });
-      return { action: "removed" as const };
+    if (!args.on) {
+      return { action: "noop" as const };
     }
+
+    if (!args.target) {
+      throw new ConvexError({
+        code: "TARGET_REQUIRED",
+        message: "Target required when toggling Library on.",
+      });
+    }
+
+    const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
+    const now = Date.now();
+
+    if (sentence.librarySourceId === slug) {
+      throw new ConvexError({
+        code: "ALREADY_IN_PACK",
+        message: `This sentence is already in "${slug}". Pick a different pack to duplicate it.`,
+      });
+    }
+
+    if (!sentence.librarySourceId) {
+      await ctx.db.patch(args.profileSentenceId, {
+        librarySourceId: slug,
+        updatedAt: now,
+      });
+      return { slug, action: "assigned" as const };
+    }
+
+    // Already pack-associated — duplicate at the new slug. Slots are
+    // inline on the row, so the row-spread carries them.
+    const newSentenceId = await duplicateProfileSentence(ctx, sentence, slug, now);
+    return { slug, action: "duplicated" as const, newProfileSentenceId: newSentenceId };
   },
 });
 
