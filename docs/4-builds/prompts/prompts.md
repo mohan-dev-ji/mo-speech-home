@@ -268,3 +268,7 @@ source ~/.nvm/nvm.sh && nvm use 20.17.0
 
 node --env-file=.env.local scripts/backup-symbols.mjs "pre-phase-8-2-es"
 git add convex/data/symbols_backups/*.* && git commit -m "backup: pre-phase-8-2 spanish"
+
+$ node --env-file=.env.local scripts/translate-pack.mjs dinosaurs es
+
+dinosaurs.json — translated 2 field(s) · 365/47 tok · ~$0.0002
