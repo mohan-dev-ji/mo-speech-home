@@ -81,6 +81,9 @@ export function ListDetailContent({ listId }: Props) {
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const [packPickerOpen, setPackPickerOpen] = useState(false);
+  // Local visibility gate for the destructive RepublishButton — closed
+  // on every mount; admin opens it explicitly via the Republish toggle.
+  const [republishGateOpen, setRepublishGateOpen] = useState(false);
   // Draft for the editable banner title. Synced from the server name on
   // load + on every server change so a remote rename (or an Escape revert)
   // restores the canonical value.
@@ -90,7 +93,8 @@ export function ListDetailContent({ listId }: Props) {
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
-  const setListDefault = useMutation(api.resourcePacks.setListDefaultV2);
+  // setListDefaultV2 — replaced by the Republish gate (handleToggleRepublishGate).
+  // Kept in the Convex API for back-compat / future removal.
   const setListInLibrary = useMutation(api.resourcePacks.setListInLibraryV2);
   const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
@@ -238,17 +242,12 @@ export function ListDetailContent({ listId }: Props) {
     persistItems(next);
   }
 
-  async function handleToggleDefault() {
-    try {
-      await setListDefault({ profileListId: listId, on: !isDefault });
-      showToast({
-        tone: 'info',
-        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
-      });
-    } catch (e) {
-      console.error('[ListDetailContent] toggle default failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
+  // Local ephemeral visibility gate for the destructive RepublishButton.
+  // See CategoryDetailContent for the rationale — this toggle replaces
+  // the legacy "set packSlug = '_starter'" behaviour, which is now
+  // redundant given the librarySourceId fallback.
+  function handleToggleRepublishGate() {
+    setRepublishGateOpen((prev) => !prev);
   }
 
   async function handleToggleLibrary() {
@@ -484,17 +483,18 @@ export function ListDetailContent({ listId }: Props) {
                 border: '1px solid rgba(255,200,0,0.2)',
               }}
             >
+              {/* "Republish" toggle: ephemeral visibility gate for the
+                  destructive RepublishButton. No backend write, no
+                  mutual-exclusion with Library. */}
               <ToggleButton
-                pressed={isDefault}
-                disabled={isInLibrary}
-                onClick={handleToggleDefault}
+                pressed={republishGateOpen}
+                onClick={handleToggleRepublishGate}
                 icon={<Bookmark className="w-3.5 h-3.5" />}
               >
-                {t('toggleDefault')}
+                {t('toggleRepublish')}
               </ToggleButton>
               <ToggleButton
                 pressed={isInLibrary}
-                disabled={isDefault}
                 onClick={handleToggleLibrary}
                 icon={<Library className="w-3.5 h-3.5" />}
               >
@@ -507,7 +507,7 @@ export function ListDetailContent({ listId }: Props) {
                   translationNamespace="lists"
                 />
               )}
-              {publishSlug && (
+              {publishSlug && republishGateOpen && (
                 <RepublishButton
                   packSlug={publishSlug}
                   packName={listName}

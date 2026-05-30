@@ -313,18 +313,20 @@ export function BannerEdit({
                 border: '1px solid rgba(255,200,0,0.2)',
               }}
             >
+              {/* "Republish" toggle: ephemeral visibility gate for the
+                  destructive RepublishButton. Pressed state = caller's
+                  republishGateOpen. No backend write, no mutual exclusion
+                  with Library — they're orthogonal concerns now. */}
               <ToggleButton
                 pressed={isDefault}
-                disabled={isInLibrary}
                 onClick={() => onToggleDefault?.()}
                 icon={<Bookmark className="w-3.5 h-3.5" />}
-                title={t('bannerToggleDefaultHint')}
+                title={t('bannerToggleRepublishHint')}
               >
-                {t('bannerToggleDefault')}
+                {t('bannerToggleRepublish')}
               </ToggleButton>
               <ToggleButton
                 pressed={isInLibrary}
-                disabled={isDefault}
                 onClick={() => onToggleLibrary?.()}
                 icon={<Library className="w-3.5 h-3.5" />}
                 title={t('bannerToggleLibraryHint')}

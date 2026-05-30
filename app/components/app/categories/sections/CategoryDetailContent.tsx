@@ -217,7 +217,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   // the server can also clean up R2 personal media on delete. See
   // handleDeleteConfirm below.
   const reorderProfileSymbols = useMutation(api.profileSymbols.reorderProfileSymbols);
-  const setCategoryDefault = useMutation(api.resourcePacks.setCategoryDefaultV2);
+  // setCategoryDefaultV2 historically toggled packSlug = '_starter'; the
+  // Republish gate (handleToggleRepublishGate) replaces it. Mutation kept
+  // in the Convex API for back-compat / future removal.
   const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibraryV2);
   const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
@@ -237,11 +239,14 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
-  // Republish target: explicit packSlug wins (Default/Library toggle set it),
-  // otherwise fall back to librarySourceId (the origin set at materialise time).
-  // The fallback is what makes Republish surface automatically for library-
-  // origin content without the admin first toggling Library on.
+  // Republish target: explicit packSlug wins (Library toggle / pack picker
+  // set it), otherwise fall back to librarySourceId (the origin set at
+  // materialise time). The fallback is what makes Republish naturally
+  // available for library-origin content.
   const publishSlug = category?.packSlug ?? category?.librarySourceId;
+  // Local visibility gate for the destructive RepublishButton (see
+  // handleToggleRepublishGate). Closed on every mount.
+  const [republishGateOpen, setRepublishGateOpen] = useState(false);
   // Dirty-state gate for the Republish button. Subscribed only when there's
   // a slug to query against AND admin mode is on; otherwise 'skip' avoids
   // pointless reactive queries for non-admin viewers.
@@ -392,17 +397,16 @@ export function CategoryDetailContent({ categoryId }: Props) {
     setFolderImageModalOpen(false);
   }
 
-  async function handleToggleDefault() {
-    try {
-      await setCategoryDefault({ profileCategoryId, on: !isDefault });
-      showToast({
-        tone: 'info',
-        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
-      });
-    } catch (e) {
-      console.error('[CategoryDetailContent] toggle default failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
+  // The "Default" toggle was historically a publish gate that set
+  // packSlug = '_starter' on the row (back when default packs lived in
+  // Convex, not JSON). After Phase 8.3 the librarySourceId fallback
+  // means RepublishButton surfaces automatically for any pack-origin
+  // content — so the toggle is repurposed as a *visibility gate* for
+  // the destructive Republish button. Local ephemeral state: gate
+  // starts closed on every mount; admin opens it explicitly to make
+  // the Republish action available.
+  function handleToggleRepublishGate() {
+    setRepublishGateOpen((prev) => !prev);
   }
 
   async function handleToggleLibrary() {
@@ -505,7 +509,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   packs={packsStatus}
                   language={language}
                 />
-                {publishSlug && (
+                {publishSlug && republishGateOpen && (
                   <RepublishButton
                     packSlug={publishSlug}
                     packName={categoryName}
@@ -533,10 +537,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   onAddSymbol={handleAddSymbol}
                   onEditFolderImage={handleEditFolderImage}
                   showAdminButtons={showAdminButtons}
-                  isDefault={isDefault}
+                  isDefault={republishGateOpen}
                   isInLibrary={isInLibrary}
                   libraryTier={libraryTier}
-                  onToggleDefault={handleToggleDefault}
+                  onToggleDefault={handleToggleRepublishGate}
                   onToggleLibrary={handleToggleLibrary}
                   onSetTier={handleSetTier}
                   librarySourceId={category?.librarySourceId}
