@@ -207,7 +207,7 @@ function SortableListRow({
           {adminPacks && (
             <div className="shrink-0">
               <PackStatusLabel
-                packSlug={list.packSlug}
+                packSlug={list.librarySourceId}
                 packs={adminPacks}
                 language={language}
               />
@@ -437,9 +437,10 @@ export function ListsModeContent() {
       const row = listMap[id];
       if (!row) return false;
       if (showAdminBadges) {
-        if (packFilter === 'default') return row.packSlug === adminPacks?.starterSlug;
-        if (packFilter === 'unpublished') return !row.packSlug;
-        return row.packSlug === packFilter;
+        // Post-simplification: filters use librarySourceId (single field).
+        if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
+        if (packFilter === 'unpublished') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
@@ -451,7 +452,7 @@ export function ListsModeContent() {
 
   // Admin-view reminder: any list on screen that's published means
   // reorder / rename / delete here propagates to the live pack.
-  const hasPublishedList = !!lists?.some((l) => !!l.packSlug);
+  const hasPublishedList = !!lists?.some((l) => !!l.librarySourceId);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

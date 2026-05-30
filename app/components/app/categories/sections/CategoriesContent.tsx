@@ -230,9 +230,10 @@ export function CategoriesContent() {
       const row = categoryMap[id];
       if (!row) return false;
       if (showAdminBadges) {
-        if (packFilter === 'default') return row.packSlug === adminPacks?.starterSlug;
-        if (packFilter === 'unpublished') return !row.packSlug;
-        return row.packSlug === packFilter;
+        // Post-simplification: filters use librarySourceId (single field).
+        if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
+        if (packFilter === 'unpublished') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
@@ -307,7 +308,7 @@ export function CategoriesContent() {
 
   // Admin-view reminder: any category on screen that's published means
   // reorder / delete here propagates to the live pack.
-  const hasPublishedCategory = !!categories?.some((c) => !!c.packSlug);
+  const hasPublishedCategory = !!categories?.some((c) => !!c.librarySourceId);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

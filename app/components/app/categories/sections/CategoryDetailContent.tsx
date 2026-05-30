@@ -230,8 +230,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   // Subscribe once at the page level — used by the toolbar to show pressed state
   // on the Default/Library toggles + correct tier in the picker.
+  // Reads librarySourceId as the single publish-target field (post-simplification).
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
-  const linkedSlug = category?.packSlug;
+  const linkedSlug = category?.librarySourceId;
   const isDefault = linkedSlug === '_starter';
   const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
     ? packsStatus.libraryPacksBySlug[linkedSlug]
@@ -239,11 +240,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
-  // Republish target: explicit packSlug wins (Library toggle / pack picker
-  // set it), otherwise fall back to librarySourceId (the origin set at
-  // materialise time). The fallback is what makes Republish naturally
-  // available for library-origin content.
-  const publishSlug = category?.packSlug ?? category?.librarySourceId;
+  // Republish target = librarySourceId. Same as linkedSlug.
+  const publishSlug = category?.librarySourceId;
   // Local visibility gate for the destructive RepublishButton (see
   // handleToggleRepublishGate). Closed on every mount.
   const [republishGateOpen, setRepublishGateOpen] = useState(false);
@@ -505,7 +503,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
             const packLabel = showAdminButtons && packsStatus ? (
               <div className="flex items-center gap-2 flex-wrap">
                 <PackStatusLabel
-                  packSlug={category?.packSlug}
+                  packSlug={category?.librarySourceId}
                   packs={packsStatus}
                   language={language}
                 />

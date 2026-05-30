@@ -448,7 +448,7 @@ function SortableSentenceRow({
           {adminPacks && (
             <div className="shrink-0">
               <PackStatusLabel
-                packSlug={sentence.packSlug}
+                packSlug={sentence.librarySourceId}
                 packs={adminPacks}
                 language={language}
               />
@@ -615,7 +615,7 @@ export function SentencesModeContent() {
         })())
     : '';
   function statusFor(sentence: SentenceRow) {
-    const slug = sentence.packSlug;
+    const slug = sentence.librarySourceId;
     const isDefault = slug === '_starter';
     const libraryPack = slug && slug !== '_starter' && packsStatus
       ? packsStatus.libraryPacksBySlug[slug]
@@ -714,9 +714,9 @@ export function SentencesModeContent() {
   }
 
   async function handleSetTier(sentence: SentenceRow, tier: 'free' | 'pro' | 'max') {
-    if (!sentence.packSlug || sentence.packSlug === '_starter') return;
+    if (!sentence.librarySourceId || sentence.librarySourceId === '_starter') return;
     try {
-      await setLibraryPackTier({ slug: sentence.packSlug, tier });
+      await setLibraryPackTier({ slug: sentence.librarySourceId, tier });
       showToast({ tone: 'info', title: t('toastTierUpdated') });
     } catch (e) {
       console.error('[SentencesModeContent] set tier failed', e);
@@ -831,9 +831,10 @@ export function SentencesModeContent() {
       const row = sentenceMap[id];
       if (!row) return false;
       if (showAdminButtons) {
-        if (packFilter === 'default') return row.packSlug === packsStatus?.starterSlug;
-        if (packFilter === 'unpublished') return !row.packSlug;
-        return row.packSlug === packFilter;
+        // Post-simplification: filters use librarySourceId (single field).
+        if (packFilter === 'default') return row.librarySourceId === packsStatus?.starterSlug;
+        if (packFilter === 'unpublished') return !row.librarySourceId;
+        return row.librarySourceId === packFilter;
       } else {
         if (packFilter === 'mine') return !row.librarySourceId;
         return row.librarySourceId === packFilter;
@@ -858,7 +859,7 @@ export function SentencesModeContent() {
   // Show the admin disclaimer when at least one sentence on this page is
   // published to a pack — admin in admin view editing those sentences will
   // propagate to the pack.
-  const hasPublishedSentence = !!sentences?.some((s) => !!s.packSlug);
+  const hasPublishedSentence = !!sentences?.some((s) => !!s.librarySourceId);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">

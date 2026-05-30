@@ -99,8 +99,9 @@ export function ListDetailContent({ listId }: Props) {
   const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
   // Pack status — drives Default/Library toggle pressed states + tier picker.
+  // Reads librarySourceId as the single publish-target field (post-simplification).
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
-  const linkedSlug = list?.packSlug;
+  const linkedSlug = list?.librarySourceId;
   const isDefault = linkedSlug === '_starter';
   const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
     ? packsStatus.libraryPacksBySlug[linkedSlug]
@@ -108,10 +109,8 @@ export function ListDetailContent({ listId }: Props) {
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
-  // Republish target: explicit packSlug, falling back to librarySourceId so
-  // library-origin lists get Republish without an admin toggle. See
-  // CategoryDetailContent for the same pattern.
-  const publishSlug = list?.packSlug ?? list?.librarySourceId;
+  // Republish target = librarySourceId. Single field — same as linkedSlug.
+  const publishSlug = list?.librarySourceId;
   const hasPackEdits = useQuery(
     api.resourcePacks.hasPackEdits,
     showAdminButtons && publishSlug ? { slug: publishSlug } : 'skip',
@@ -407,7 +406,7 @@ export function ListDetailContent({ listId }: Props) {
           {showAdminButtons && packsStatus && (
             <div className="absolute top-2 right-2 z-30 pointer-events-none">
               <PackStatusLabel
-                packSlug={list.packSlug}
+                packSlug={list.librarySourceId}
                 packs={packsStatus}
                 language={language}
               />

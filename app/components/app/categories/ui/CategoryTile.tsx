@@ -188,7 +188,7 @@ export function CategoryTile({
                 style={{ padding: '0 3cqi 4cqi' }}
               >
                 <PackStatusLabel
-                  packSlug={category.packSlug}
+                  packSlug={category.librarySourceId}
                   packs={adminPacks}
                   language={language}
                 />
