@@ -44,6 +44,7 @@ type Props = { listId: Id<'profileLists'> };
 
 export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
+  const tPicker = useTranslations('packPicker');
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -511,7 +512,7 @@ export function ListDetailContent({ listId }: Props) {
                   packSlug={publishSlug}
                   packName={listName}
                   disabled={hasPackEdits === false}
-                  disabledTooltip="No unsaved edits"
+                  disabledTooltip={tPicker('republishNoEditsTooltip')}
                 />
               )}
             </div>

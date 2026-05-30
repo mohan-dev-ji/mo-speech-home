@@ -155,6 +155,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const { isActive: modellingActive } = useModellingSession();
   const { subscription } = useAppState();
   const tBanner = useTranslations('banner');
+  const tPicker = useTranslations('packPicker');
 
   // Modelling trigger gate. Two paths:
   //  - Instructor / admin view: Pro+ tier is the only requirement. The
@@ -509,7 +510,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
                     packSlug={publishSlug}
                     packName={categoryName}
                     disabled={hasPackEdits === false}
-                    disabledTooltip="No unsaved edits"
+                    disabledTooltip={tPicker('republishNoEditsTooltip')}
                   />
                 )}
               </div>

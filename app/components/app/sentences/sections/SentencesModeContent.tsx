@@ -525,6 +525,7 @@ function SortableSentenceRow({
 
 export function SentencesModeContent() {
   const t = useTranslations('sentences');
+  const tPicker = useTranslations('packPicker');
   const params = useParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -607,7 +608,7 @@ export function SentencesModeContent() {
   );
   const publishPackName = publishSlug
     ? (publishSlug === packsStatus?.starterSlug
-      ? 'Starter Pack'
+      ? tPicker('republishStarterPack')
       : (() => {
           const meta = packsStatus?.libraryPacksBySlug[publishSlug];
           return meta ? displayString(meta.name, language, DEFAULT_LOCALE) : publishSlug;
@@ -898,7 +899,11 @@ export function SentencesModeContent() {
                 packSlug={publishSlug ?? ''}
                 packName={publishPackName}
                 disabled={!publishSlug || hasPackEdits === false}
-                disabledTooltip={!publishSlug ? 'Filter by pack to enable' : 'No unsaved edits'}
+                disabledTooltip={
+                  !publishSlug
+                    ? tPicker('republishFilterTooltip')
+                    : tPicker('republishNoEditsTooltip')
+                }
               />
             )}
           </PageBanner>

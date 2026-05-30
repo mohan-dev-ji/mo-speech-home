@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -51,21 +52,19 @@ export function SavePackChangesConfirmModal({
   onConfirm,
   busy = false,
 }: Props) {
+  const t = useTranslations("packPicker");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save changes to “{packName}”?</DialogTitle>
+          <DialogTitle>{t("confirmModalTitle", { packName })}</DialogTitle>
           <DialogDescription>
-            Overwrites <code className="font-mono">{slug}.json</code> in the
-            repo with your current profile content for this pack. Your edits
-            become the canonical source. This cannot be undone except via
-            git.
+            {t("confirmModalBody", { slug })}
           </DialogDescription>
         </DialogHeader>
 
         <p className="text-small text-muted-foreground">
-          Slug: <span className="font-mono">{slug}</span>
+          <span className="font-mono">{t("confirmModalSlugLine", { slug })}</span>
         </p>
 
         <DialogFooter>
@@ -75,7 +74,7 @@ export function SavePackChangesConfirmModal({
             size="sm"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -84,7 +83,7 @@ export function SavePackChangesConfirmModal({
             loading={busy}
             onClick={onConfirm}
           >
-            Save changes
+            {t("confirmModalConfirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

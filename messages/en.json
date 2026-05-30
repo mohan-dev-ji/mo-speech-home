@@ -180,7 +180,16 @@
     "save": "Save",
     "saving": "Saving…",
     "savedAndPublishedToast": "Pack saved — review the JSON diff and commit.",
-    "publishGenericError": "Pack saved, but couldn't write the JSON file."
+    "publishGenericError": "Pack saved, but couldn't write the JSON file.",
+    "republishLabel": "Republish to JSON",
+    "republishAria": "Republish pack to JSON",
+    "republishStarterPack": "Starter Pack",
+    "republishNoEditsTooltip": "No unsaved edits",
+    "republishFilterTooltip": "Filter by pack to enable",
+    "confirmModalTitle": "Save changes to “{packName}”?",
+    "confirmModalBody": "Overwrites {slug}.json in the repo with your current profile content for this pack. Your edits become the canonical source. This cannot be undone except via git.",
+    "confirmModalSlugLine": "Slug: {slug}",
+    "confirmModalConfirm": "Save changes"
   },
   "studentViewLock": {
     "instructorDescription": "Full access — edit profile, settings, content",

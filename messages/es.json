@@ -179,7 +179,16 @@
     "save": "Guardar",
     "saving": "Guardando…",
     "savedAndPublishedToast": "Paquete guardado — revisa la diferencia JSON y confirma.",
-    "publishGenericError": "Paquete guardado, pero no se pudo escribir el archivo JSON."
+    "publishGenericError": "Paquete guardado, pero no se pudo escribir el archivo JSON.",
+    "republishLabel": "Republish to JSON (es)",
+    "republishAria": "Republish pack to JSON (es)",
+    "republishStarterPack": "Starter Pack (es)",
+    "republishNoEditsTooltip": "No unsaved edits (es)",
+    "republishFilterTooltip": "Filter by pack to enable (es)",
+    "confirmModalTitle": "Save changes to “{packName}”? (es)",
+    "confirmModalBody": "Overwrites {slug}.json in the repo with your current profile content for this pack. Your edits become the canonical source. This cannot be undone except via git. (es)",
+    "confirmModalSlugLine": "Slug: {slug}",
+    "confirmModalConfirm": "Save changes (es)"
   },
   "studentViewLock": {
     "instructorDescription": "Acceso completo — editar perfil, ajustes, contenido",

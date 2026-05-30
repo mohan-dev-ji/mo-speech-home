@@ -117,12 +117,12 @@ export function RepublishButton({
           border: "1px solid rgba(255,200,0,0.30)",
           color: "var(--theme-text-primary)",
         }}
-        aria-label={label ?? "Republish pack to JSON"}
+        aria-label={label ?? t("republishAria")}
       >
         <RefreshCw
           className={`w-3.5 h-3.5 ${submitting ? "animate-spin" : ""}`}
         />
-        {submitting ? t("saving") : (label ?? "Republish to JSON")}
+        {submitting ? t("saving") : (label ?? t("republishLabel"))}
       </button>
 
       <SavePackChangesConfirmModal
