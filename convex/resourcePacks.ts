@@ -1957,12 +1957,13 @@ async function resolveTargetLifecycleV2(
       message: "Use the Default toggle to add to the starter pack.",
     });
   }
-  if (lifecycle.createdBy !== clerkUserId) {
-    throw new ConvexError({
-      code: "NOT_OWNER",
-      message: "You don't own this pack.",
-    });
-  }
+  // Ownership gate dropped post-simplification: any admin can save to
+  // any pack in the catalogue (matches the picker's getMyLifecycle-
+  // PacksForPicker which lists all packs to all admins). Small-team
+  // admin reality — the createdBy check was creating a "I can see it
+  // but can't write to it" gap that surprised users. clerkUserId
+  // param kept on the signature for future use (e.g. audit logging).
+  void clerkUserId;
   return lifecycle.slug;
 }
 
