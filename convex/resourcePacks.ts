@@ -2827,16 +2827,23 @@ export const getMyLifecyclePacksForPicker = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
+    // Admin gate inline (non-throwing). The original gating was
+    // `createdBy === identity.subject` — restrictive to the publishing
+    // admin only. In practice the catalogue is small-team-curated and
+    // any admin should be able to append to any existing pack. Dropping
+    // the createdBy filter restores the Save As "Add to existing" path
+    // for admins who weren't the original publisher (e.g. after a dev
+    // DB reset, or when multiple admins share the catalogue).
+    const role = (identity as { role?: unknown }).role;
+    if (role !== "admin") return [];
 
     const lifecycleRows = await ctx.db.query("packLifecycle").collect();
-    const mine = lifecycleRows.filter(
-      (r) => r.slug !== STARTER_SLUG && r.createdBy === identity.subject
-    );
+    const candidates = lifecycleRows.filter((r) => r.slug !== STARTER_SLUG);
 
     // Newest first
-    mine.sort((a, b) => b._creationTime - a._creationTime);
+    candidates.sort((a, b) => b._creationTime - a._creationTime);
 
-    return mine
+    return candidates
       .map((r) => {
         const pack = getLibraryPackBySlug(r.slug);
         return pack
