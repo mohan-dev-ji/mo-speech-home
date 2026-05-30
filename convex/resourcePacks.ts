@@ -2415,9 +2415,15 @@ export const hasPackEdits = query({
       .first();
     const lastPublishedAt = lifecycle?.lastPublishedAt ?? 0;
 
+    // Effective publish target = `packSlug ?? librarySourceId`. Must
+    // match what getPackContentForPublish uses below — otherwise the
+    // dirty bit would light up for rows that wouldn't actually be
+    // included in the republish payload. Explicit packSlug wins (admin
+    // retargeting via the Library picker takes the row away from its
+    // librarySourceId origin).
     const matches = (
       row: { packSlug?: string; librarySourceId?: string; updatedAt: number }
-    ) => row.packSlug === slug || row.librarySourceId === slug;
+    ) => (row.packSlug ?? row.librarySourceId) === slug;
 
     // Scan caller's profile rows (cheap — a typical account has dozens,
     // not thousands). The slug predicate can't be indexed cleanly because
@@ -2747,7 +2753,14 @@ export const getPackContentForPublish = query({
       .query("profileCategories")
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
-    const categories = allCategories.filter((c) => c.packSlug === slug);
+    // Effective publish target = `packSlug ?? librarySourceId`. The
+    // librarySourceId fallback is what makes library-loaded content
+    // (which never has packSlug set by materialisePackFromJson) republish
+    // back to its origin pack. Explicit `packSlug` wins so an admin can
+    // retarget a row via the Library picker without ambiguity.
+    const categories = allCategories.filter(
+      (c) => (c.packSlug ?? c.librarySourceId) === slug
+    );
 
     // For each category, fetch the profileSymbols and emit two shapes:
     //  - SymbolStix: store `symbolId`; image + default audio re-resolved on
@@ -2857,7 +2870,8 @@ export const getPackContentForPublish = query({
       .order("asc")
       .collect();
     const lists = allLists
-      .filter((l) => l.packSlug === slug)
+      // Same effective-publish-target predicate as categories above.
+      .filter((l) => (l.packSlug ?? l.librarySourceId) === slug)
       .map((l, i) => ({
         name: l.name,
         order: i,
@@ -2884,7 +2898,8 @@ export const getPackContentForPublish = query({
       .order("asc")
       .collect();
     const sentences = allSentences
-      .filter((s) => s.packSlug === slug)
+      // Same effective-publish-target predicate as categories above.
+      .filter((s) => (s.packSlug ?? s.librarySourceId) === slug)
       .map((s, i) => ({
         name: s.name,
         order: i,
