@@ -2377,6 +2377,101 @@ export const listAllPacksForAdmin = query({
 });
 
 /**
+ * Has the caller's profile content for `slug` been edited since the last
+ * Republish-to-JSON? Drives the `disabled` state of the RepublishButton
+ * in the per-pack content views (CategoryDetailContent / ListDetailContent /
+ * SentencesModeContent).
+ *
+ * Match predicate: `packSlug === slug` OR `librarySourceId === slug` —
+ * picks up both the explicit publish target (set by Default/Library
+ * toggles) and the load-time origin (set by `materialisePackFromJson`).
+ * This is what makes Republish surface for library-origin content without
+ * the admin first toggling Default/Library on.
+ *
+ * Comparison: `max(profile-row updatedAt) > (packLifecycle.lastPublishedAt ?? 0)`.
+ * Returns `false` for non-admin / unauthenticated callers (the button is
+ * admin-only; we return false rather than throwing so client useQuery
+ * subscribes cleanly).
+ *
+ * Known caveat: `materialisePackFromJson` stamps every cloned row with
+ * `updatedAt = now` on load, so right after loading a pack this returns
+ * `true` even with no real edits. Clicking Republish is benign (the JSON
+ * write produces a no-op git diff). Documented in the workflow doc.
+ */
+export const hasPackEdits = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    const role = (identity as { role?: unknown }).role;
+    if (role !== "admin") return false;
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return false;
+    const { accountId } = resolved;
+
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    const lastPublishedAt = lifecycle?.lastPublishedAt ?? 0;
+
+    const matches = (
+      row: { packSlug?: string; librarySourceId?: string; updatedAt: number }
+    ) => row.packSlug === slug || row.librarySourceId === slug;
+
+    // Scan caller's profile rows (cheap — a typical account has dozens,
+    // not thousands). The slug predicate can't be indexed cleanly because
+    // it's an OR over two fields; the by_account_id index gives us the
+    // right scope.
+    const [cats, lists, sentences] = await Promise.all([
+      ctx.db
+        .query("profileCategories")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect(),
+      ctx.db
+        .query("profileLists")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect(),
+      ctx.db
+        .query("profileSentences")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect(),
+    ]);
+
+    let maxUpdated = 0;
+    for (const r of cats) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
+    for (const r of lists) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
+    for (const r of sentences) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
+
+    return maxUpdated > lastPublishedAt;
+  },
+});
+
+/**
+ * Stamp `packLifecycle.lastPublishedAt = now` after a successful JSON
+ * write in `/api/admin/pack-publish`. Called from the route's post-write
+ * hook. Admin-only. If the lifecycle row doesn't exist (publishing a
+ * brand-new slug), this is a no-op — the route's existing path creates
+ * the lifecycle row separately when needed.
+ */
+export const markPackPublished = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    await requireCallerIsAdmin(ctx);
+    const lifecycle = await ctx.db
+      .query("packLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!lifecycle) return;
+    const now = Date.now();
+    await ctx.db.patch(lifecycle._id, {
+      lastPublishedAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+/**
  * Update a packLifecycle row in place — single consolidated mutation for
  * every dashboard lifecycle action. Fields are optional; pass `null` to
  * clear a field, omit to leave it alone. If no row exists for the slug

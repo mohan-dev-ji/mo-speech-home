@@ -726,6 +726,15 @@ export default defineSchema({
     coverImagePath: v.optional(v.string()),
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
+    /**
+     * Last time the pack's JSON was overwritten via `/api/admin/pack-publish`.
+     * Distinct from `publishedAt` (which is the catalogue visibility window —
+     * see `getPublicLibraryCatalogueV2`). Used by `hasPackEdits` to disable
+     * the Republish button when no profile-side edits have happened since
+     * the last save. Stamped by `markPackPublished` after a successful
+     * writeFile in the publish route.
+     */
+    lastPublishedAt: v.optional(v.number()),
     featured: v.boolean(),
     tierOverride: v.optional(
       v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
