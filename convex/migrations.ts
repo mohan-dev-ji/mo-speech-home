@@ -1018,6 +1018,83 @@ export const backfillProfilePackSlugs = mutation({
 });
 
 /**
+ * Backfill `librarySourceId` from `packSlug` on profile rows.
+ *
+ * Context: the simplification dropping `packSlug` (see plan doc) makes
+ * `librarySourceId` the single publish-target field. Rows that today
+ * have `packSlug` set but `librarySourceId` empty would silently lose
+ * their publish target after the read paths flip. This catches them.
+ *
+ * Two scenarios produce such rows:
+ *   - Admin clicked the old Default toggle on a row → setCategoryDefaultV2
+ *     wrote `packSlug = "_starter"`. The row was never materialised from
+ *     a pack JSON, so `librarySourceId` is undefined.
+ *   - Admin created content from scratch then used the Library picker
+ *     → setCategoryInLibraryV2 wrote `packSlug = <chosen slug>`. Same
+ *     shape — no librarySourceId because the row didn't come from a JSON.
+ *
+ * Behaviour: idempotent. For each row in the three profile tables, if
+ * `packSlug` is set and `librarySourceId` is empty, copy `packSlug →
+ * librarySourceId`. Touches `updatedAt`. Rows where both are set, or
+ * neither is set, are left alone. Returns per-table counts.
+ *
+ * Run once on each deployment:
+ *   npx convex run --no-push migrations:backfillLibrarySourceIdFromPackSlug '{}'
+ */
+export const backfillLibrarySourceIdFromPackSlug = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const summary = {
+      profileCategories: { scanned: 0, backfilled: 0, alreadySet: 0, neither: 0 },
+      profileLists: { scanned: 0, backfilled: 0, alreadySet: 0, neither: 0 },
+      profileSentences: { scanned: 0, backfilled: 0, alreadySet: 0, neither: 0 },
+    };
+
+    const categories = await ctx.db.query("profileCategories").collect();
+    for (const row of categories) {
+      summary.profileCategories.scanned++;
+      if (row.librarySourceId) { summary.profileCategories.alreadySet++; continue; }
+      if (!row.packSlug) { summary.profileCategories.neither++; continue; }
+      await ctx.db.patch(row._id, {
+        librarySourceId: row.packSlug,
+        updatedAt: now,
+      });
+      summary.profileCategories.backfilled++;
+    }
+
+    const lists = await ctx.db.query("profileLists").collect();
+    for (const row of lists) {
+      summary.profileLists.scanned++;
+      if (row.librarySourceId) { summary.profileLists.alreadySet++; continue; }
+      if (!row.packSlug) { summary.profileLists.neither++; continue; }
+      await ctx.db.patch(row._id, {
+        librarySourceId: row.packSlug,
+        updatedAt: now,
+      });
+      summary.profileLists.backfilled++;
+    }
+
+    const sentences = await ctx.db.query("profileSentences").collect();
+    for (const row of sentences) {
+      summary.profileSentences.scanned++;
+      if (row.librarySourceId) { summary.profileSentences.alreadySet++; continue; }
+      if (!row.packSlug) { summary.profileSentences.neither++; continue; }
+      await ctx.db.patch(row._id, {
+        librarySourceId: row.packSlug,
+        updatedAt: now,
+      });
+      summary.profileSentences.backfilled++;
+    }
+
+    console.log(
+      `[backfillLibrarySourceIdFromPackSlug] ${JSON.stringify(summary)}`
+    );
+    return summary;
+  },
+});
+
+/**
  * Truncate the V1 `resourcePacks` table — deletes every row but leaves
  * the schema definition in place. After running:
  *
