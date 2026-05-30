@@ -18,6 +18,8 @@
 | Wrong Spanish (etc.) word/phrase, English is fine | Delete the stale locale key, re-run the script. |
 | Wrong Spanish (etc.) on a **SymbolStix symbol label** in a pack (symbol has `symbolId`) | Not the pack JSON — comes from `symbols.words.<locale>`. Fix in the symbols admin path. |
 | Wrong/missing Spanish on a **custom-image symbol label** in a pack (no `symbolId`) | Is the pack JSON — delete `label.es` and run the script as usual. |
+| Bad image, wrong symbol order, restructure a category | Workflow C — admin curates in-app, then clicks **Republish to JSON**. |
+| Create a brand-new pack | Two steps: **Save to pack → Create new** (assigns slug), then **Republish to JSON** (writes the file). |
 | Bulk fix across all 7 non-starter packs | Edit each pack JSON, then `scripts/translate-pack.mjs --all <locale>` |
 
 ---
@@ -82,6 +84,46 @@ Use when the edit is a typo, capitalisation, or punctuation change that doesn't 
 That's the entire fix. No script run.
 
 **When in doubt** about whether the existing Spanish is still correct, glance at it. If it reads naturally and conveys the intended meaning, leave it. If unsure, treat it as Workflow B (cheap insurance — a single field re-translation costs fractions of a cent).
+
+---
+
+## Workflow C — UI curate-and-Republish (visual edits)
+
+For changes you need to *see* to judge — image swaps, layout reordering, restructuring categories, deleting bad symbols — open the app in admin mode and curate the loaded copy of the pack. Then push back to JSON via the **Republish to JSON** button. Pairs naturally with Workflows A and B; you'll often touch all three on a single tester report.
+
+The model after the simplification:
+
+- **Every profile row tracks its origin pack via `librarySourceId`** (set automatically by the materialiser when admin or instructor loads the pack). One field, no more `packSlug` fallback chain.
+- **Republish gate toggle** (in the admin edit bar) is a safety switch — it just reveals the destructive **Republish to JSON** button. No backend write.
+- **Republish to JSON** writes the current profile content for this pack back to `convex/data/library_packs/<slug>.json`. Dirty-state gated; disabled when nothing has changed since the last publish.
+- **Save to pack** button is the picker — opens the existing `LibraryPackPickerModal`. Mutation is **duplicate-or-assign**: first-time save assigns `librarySourceId` to a fresh row; subsequent saves create a duplicate at the chosen pack.
+
+### Creating a brand-new pack is a two-step flow
+
+1. **Save to pack → Create new pack → enter slug + name → confirm.** This creates the `packLifecycle` row in Convex and assigns `librarySourceId` to a fresh row (or duplicates an existing one if the row was already pack-loaded).
+2. **Open the row's detail page → open the Republish gate → click Republish to JSON → confirm.** This writes `<slug>.json` to disk and rebuilds the barrel. After the next Convex deploy (`npx convex dev --once` in dev), the new pack appears in `/library`.
+
+Without step 2, the lifecycle row exists in Convex but the JSON file doesn't — `getPublicLibraryCatalogueV2` filters the pack out because `getLibraryPackBySlug(slug)` returns `undefined`.
+
+### Removing content from a pack
+
+There's no Library OFF button. To remove a category / list / sentence from a pack:
+1. Delete the row from your profile (the standard delete affordance).
+2. Republish the pack — the next JSON write drops the row from the file.
+
+This is one-way deliberate, not a footgun.
+
+### Moving content between packs
+
+No "move" workflow either. To move from pack A to pack B:
+1. Save to pack → pick B → row is duplicated at B (original stays at A).
+2. Delete the original row + Republish A so its JSON drops it.
+
+Two steps but rarely needed in practice.
+
+### Origin badges
+
+Every category card, list row, and sentence row now shows a **"From <Pack Name>"** badge when `librarySourceId` is set. Visible to instructors and admins. Brand-new admin-created content (no `librarySourceId`) shows no badge.
 
 ---
 
