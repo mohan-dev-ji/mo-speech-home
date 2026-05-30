@@ -288,9 +288,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { userId, getToken } = await auth();
+  const { userId, sessionClaims, getToken } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  // Defence-in-depth admin gate. The downstream Convex query
+  // getPackContentForPublish enforces admin via requireCallerIsAdmin too,
+  // but failing fast at the route avoids a misleading 500 if the JWT
+  // template doesn't carry the role claim for some reason.
+  const role = (sessionClaims as { metadata?: { role?: unknown } } | undefined)
+    ?.metadata?.role;
+  if (role !== "admin") {
+    return NextResponse.json({ error: "Admin role required" }, { status: 403 });
   }
 
   const token = await getToken({ template: "convex" });
@@ -458,6 +467,16 @@ export async function POST(request: Request) {
       { error: "Wrote JSON but failed to regenerate _index.ts" },
       { status: 500 }
     );
+  }
+
+  // Stamp lastPublishedAt on the lifecycle row so the Republish button's
+  // dirty-state gate (hasPackEdits) settles back to "no edits". Best-effort:
+  // log and continue if it fails — the JSON write already succeeded and the
+  // worst case is the button stays enabled until the next real edit.
+  try {
+    await convex.mutation(api.resourcePacks.markPackPublished, { slug });
+  } catch (e: unknown) {
+    console.error("[pack-publish] markPackPublished failed (non-fatal)", e);
   }
 
   return NextResponse.json({
