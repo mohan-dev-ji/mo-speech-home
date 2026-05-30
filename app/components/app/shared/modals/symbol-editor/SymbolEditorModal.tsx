@@ -741,10 +741,22 @@ export function SymbolEditorModal({
       };
       const display = Object.keys(displayDiff).length > 0 ? displayDiff : undefined;
 
+      // Build the label record. Spread existing locales first so any
+      // translation the editor doesn't manage (es, pa, etc.) passes
+      // through unchanged — without the spread, an admin editing a
+      // pack-loaded symbol via image-search would silently wipe its
+      // Spanish translation on save. en is always overridden from the
+      // draft; hi is overridden if non-empty, dropped if cleared (matches
+      // the original editor behaviour for the two inputs it owns).
       const label: Record<string, string> = {
+        ...(existingSymbol?.label ?? {}),
         en: draft.labelEng.trim(),
-        ...(draft.labelHin.trim() ? { hi: draft.labelHin.trim() } : {}),
       };
+      if (draft.labelHin.trim()) {
+        label.hi = draft.labelHin.trim();
+      } else {
+        delete label.hi;
+      }
 
       const catId = draft.profileCategoryId as Id<'profileCategories'>;
 

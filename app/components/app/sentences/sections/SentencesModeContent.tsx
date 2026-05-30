@@ -683,17 +683,8 @@ export function SentencesModeContent() {
   }
 
   async function handleToggleLibrary(sentence: SentenceRow) {
-    const { isInLibrary } = statusFor(sentence);
-    if (isInLibrary) {
-      try {
-        await setSentenceInLibrary({ profileSentenceId: sentence._id, on: false });
-        showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } catch (e) {
-        console.error('[SentencesModeContent] toggle library off failed', e);
-        showToast({ tone: 'warning', title: t('toastAdminError') });
-      }
-      return;
-    }
+    // Post-simplification: Save to pack is stateless — always opens the
+    // picker modal. Duplicate-or-assign per librarySourceId state.
     setPackPickerSentence(sentence);
   }
 

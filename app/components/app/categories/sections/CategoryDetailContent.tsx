@@ -408,17 +408,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   }
 
   async function handleToggleLibrary() {
-    if (isInLibrary) {
-      try {
-        await setCategoryInLibrary({ profileCategoryId, on: false });
-        showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } catch (e) {
-        console.error('[CategoryDetailContent] toggle library off failed', e);
-        showToast({ tone: 'warning', title: t('toastAdminError') });
-      }
-      return;
-    }
-    // ON path is async + needs admin to choose target — defer to the modal.
+    // Post-simplification: Save to pack is stateless — always opens the
+    // picker modal. The underlying mutation is duplicate-or-assign based
+    // on whether librarySourceId is already set. No more OFF arm.
     setPackPickerOpen(true);
   }
 

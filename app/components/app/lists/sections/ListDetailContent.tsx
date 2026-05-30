@@ -250,16 +250,8 @@ export function ListDetailContent({ listId }: Props) {
   }
 
   async function handleToggleLibrary() {
-    if (isInLibrary) {
-      try {
-        await setListInLibrary({ profileListId: listId, on: false });
-        showToast({ tone: 'info', title: t('toastLibraryOff') });
-      } catch (e) {
-        console.error('[ListDetailContent] toggle library off failed', e);
-        showToast({ tone: 'warning', title: t('toastAdminError') });
-      }
-      return;
-    }
+    // Post-simplification: Save to pack is stateless — always opens the
+    // picker modal. Duplicate-or-assign per librarySourceId state.
     setPackPickerOpen(true);
   }
 
