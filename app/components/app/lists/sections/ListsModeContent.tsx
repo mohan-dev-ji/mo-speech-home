@@ -35,6 +35,8 @@ import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
+import { resolvePackName } from '@/lib/packs/resolvePackName';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
@@ -203,6 +205,15 @@ function SortableListRow({
               </p>
             )}
           </div>
+
+          {/* Origin badge — everyone sees which pack this list is from. */}
+          {list.librarySourceId && (
+            <div className="shrink-0">
+              <LibrarySourceBadge
+                packName={resolvePackName(list.librarySourceId, language)}
+              />
+            </div>
+          )}
 
           {adminPacks && (
             <div className="shrink-0">

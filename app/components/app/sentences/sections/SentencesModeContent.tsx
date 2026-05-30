@@ -45,6 +45,8 @@ import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
+import { resolvePackName } from '@/lib/packs/resolvePackName';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -440,6 +442,15 @@ function SortableSentenceRow({
             <p className="flex-1 min-w-0 text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
               {sentenceText}
             </p>
+          )}
+
+          {/* Origin badge — everyone sees which pack this sentence is from. */}
+          {sentence.librarySourceId && (
+            <div className="shrink-0">
+              <LibrarySourceBadge
+                packName={resolvePackName(sentence.librarySourceId, language)}
+              />
+            </div>
           )}
 
           {/* Admin pack-status label — sits at the right edge of the text

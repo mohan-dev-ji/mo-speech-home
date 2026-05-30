@@ -8,8 +8,10 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { resolvePackName } from '@/lib/packs/resolvePackName';
 
 // Tile label fluid sizing — clamp(min, cqi, max) reads from the tile's container
 // (the aspect-square wrapper marked @container), so the label scales smoothly as
@@ -180,6 +182,19 @@ export function CategoryTile({
               </div>
             </div>
 
+            {/* Origin badge — visible to everyone (not just admin) when
+                the category was loaded from a pack. Tier-and-status
+                label below stays admin-only. */}
+            {category.librarySourceId && (
+              <div
+                className="shrink-0 flex items-center justify-center"
+                style={{ padding: '0 3cqi 2cqi' }}
+              >
+                <LibrarySourceBadge
+                  packName={resolvePackName(category.librarySourceId, language)}
+                />
+              </div>
+            )}
             {/* Admin-only pack-status label — sits inside the folder card under
                 the symbol. Symbol flex-shrinks above to make room. */}
             {adminPacks && (
