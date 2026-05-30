@@ -2043,19 +2043,20 @@ export const setCategoryInLibraryV2 = mutation({
           message: "Target required when toggling Library on.",
         });
       }
-      if (category.packSlug) {
-        throw new ConvexError({
-          code: "ALREADY_PUBLISHED",
-          message:
-            "Toggle Default off first — items can only be in one pack at a time.",
-        });
-      }
+      // Retarget semantics: the Library picker is now the canonical way
+      // to change a row's publish target. If packSlug is already set
+      // (from a previous toggle, or stale data from the pre-refactor
+      // Default toggle), overwrite it rather than refusing — the user's
+      // intent is to publish to the chosen target. The old
+      // ALREADY_PUBLISHED guard belonged to the "either Default or
+      // Library, never both" model which we dropped when the Default
+      // toggle became a visibility gate.
       const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
       await ctx.db.patch(args.profileCategoryId, {
         packSlug: slug,
         updatedAt: Date.now(),
       });
-      return { slug, action: "added" as const };
+      return { slug, action: category.packSlug ? "retargeted" : "added" as const };
     } else {
       if (!category.packSlug) {
         return { action: "noop" as const };
@@ -2139,19 +2140,14 @@ export const setListInLibraryV2 = mutation({
           message: "Target required when toggling Library on.",
         });
       }
-      if (list.packSlug) {
-        throw new ConvexError({
-          code: "ALREADY_PUBLISHED",
-          message:
-            "Toggle Default off first — items can only be in one pack at a time.",
-        });
-      }
+      // Retarget semantics — see setCategoryInLibraryV2 above for the
+      // rationale. Library picker overwrites any existing publish target.
       const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
       await ctx.db.patch(args.profileListId, {
         packSlug: slug,
         updatedAt: Date.now(),
       });
-      return { slug, action: "added" as const };
+      return { slug, action: list.packSlug ? "retargeted" : "added" as const };
     } else {
       if (!list.packSlug) return { action: "noop" as const };
       if (list.packSlug === STARTER_SLUG) {
@@ -2233,19 +2229,14 @@ export const setSentenceInLibraryV2 = mutation({
           message: "Target required when toggling Library on.",
         });
       }
-      if (sentence.packSlug) {
-        throw new ConvexError({
-          code: "ALREADY_PUBLISHED",
-          message:
-            "Toggle Default off first — items can only be in one pack at a time.",
-        });
-      }
+      // Retarget semantics — see setCategoryInLibraryV2 above for the
+      // rationale. Library picker overwrites any existing publish target.
       const slug = await resolveTargetLifecycleV2(ctx, args.target, clerkUserId);
       await ctx.db.patch(args.profileSentenceId, {
         packSlug: slug,
         updatedAt: Date.now(),
       });
-      return { slug, action: "added" as const };
+      return { slug, action: sentence.packSlug ? "retargeted" : "added" as const };
     } else {
       if (!sentence.packSlug) return { action: "noop" as const };
       if (sentence.packSlug === STARTER_SLUG) {
