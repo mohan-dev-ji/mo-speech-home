@@ -2427,9 +2427,9 @@ export const hasPackEdits = query({
 
     // Scan caller's profile rows (cheap — a typical account has dozens,
     // not thousands). The slug predicate can't be indexed cleanly because
-    // it's an OR over two fields; the by_account_id index gives us the
-    // right scope.
-    const [cats, lists, sentences] = await Promise.all([
+    // it's effective-target-derived; the by_account_id index gives us
+    // the right scope.
+    const [cats, lists, sentences, symbols] = await Promise.all([
       ctx.db
         .query("profileCategories")
         .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
@@ -2442,12 +2442,32 @@ export const hasPackEdits = query({
         .query("profileSentences")
         .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
         .collect(),
+      // profileSymbols is a separate table — symbol-level edits don't
+      // bump the parent profileCategory's updatedAt, so we must scan
+      // symbols too to catch the common "rename a label" / "swap an
+      // image" workflow. Symbols don't carry packSlug/librarySourceId
+      // themselves; they inherit from their parent category.
+      ctx.db
+        .query("profileSymbols")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect(),
     ]);
+
+    // Build the set of category IDs whose effective target matches the
+    // slug. Symbols belonging to those categories count toward the
+    // dirty bit.
+    const matchingCategoryIds = new Set<string>();
+    for (const r of cats) if (matches(r)) matchingCategoryIds.add(r._id);
 
     let maxUpdated = 0;
     for (const r of cats) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
     for (const r of lists) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
     for (const r of sentences) if (matches(r) && r.updatedAt > maxUpdated) maxUpdated = r.updatedAt;
+    for (const s of symbols) {
+      if (matchingCategoryIds.has(s.profileCategoryId) && s.updatedAt > maxUpdated) {
+        maxUpdated = s.updatedAt;
+      }
+    }
 
     return maxUpdated > lastPublishedAt;
   },
