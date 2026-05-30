@@ -43,6 +43,7 @@ import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
+import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
@@ -586,6 +587,32 @@ export function SentencesModeContent() {
     api.resourcePacks.getLoadedPacksForCurrentAccount,
     showAdminButtons ? 'skip' : {},
   );
+
+  // ── Republish-to-JSON slug for the pack-level Save button on the banner.
+  // Sentences span many packs on one page, so the publish slug is scoped
+  // to the active pack filter rather than per-row. Multi-pack tokens
+  // ('all', 'unpublished', 'mine') leave publishSlug undefined → button
+  // renders disabled with "Filter by pack to enable" tooltip. Single-pack
+  // selections resolve to the corresponding slug (with 'default' mapping
+  // to starterSlug).
+  const publishSlug = (() => {
+    if (!showAdminButtons) return undefined;
+    if (packFilter === 'all' || packFilter === 'unpublished' || packFilter === 'mine') return undefined;
+    if (packFilter === 'default') return packsStatus?.starterSlug;
+    return packFilter;
+  })();
+  const hasPackEdits = useQuery(
+    api.resourcePacks.hasPackEdits,
+    publishSlug ? { slug: publishSlug } : 'skip',
+  );
+  const publishPackName = publishSlug
+    ? (publishSlug === packsStatus?.starterSlug
+      ? 'Starter Pack'
+      : (() => {
+          const meta = packsStatus?.libraryPacksBySlug[publishSlug];
+          return meta ? displayString(meta.name, language, DEFAULT_LOCALE) : publishSlug;
+        })())
+    : '';
   function statusFor(sentence: SentenceRow) {
     const slug = sentence.packSlug;
     const isDefault = slug === '_starter';
@@ -864,6 +891,14 @@ export function SentencesModeContent() {
                 options={filterOptions}
                 onChange={setPackFilter}
                 ariaLabel={t('filterPackLabel')}
+              />
+            )}
+            {showAdminButtons && (
+              <RepublishButton
+                packSlug={publishSlug ?? ''}
+                packName={publishPackName}
+                disabled={!publishSlug || hasPackEdits === false}
+                disabledTooltip={!publishSlug ? 'Filter by pack to enable' : 'No unsaved edits'}
               />
             )}
           </PageBanner>

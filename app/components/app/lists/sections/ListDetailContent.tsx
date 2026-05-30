@@ -103,6 +103,15 @@ export function ListDetailContent({ listId }: Props) {
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
+  // Republish target: explicit packSlug, falling back to librarySourceId so
+  // library-origin lists get Republish without an admin toggle. See
+  // CategoryDetailContent for the same pattern.
+  const publishSlug = list?.packSlug ?? list?.librarySourceId;
+  const hasPackEdits = useQuery(
+    api.resourcePacks.hasPackEdits,
+    showAdminButtons && publishSlug ? { slug: publishSlug } : 'skip',
+  );
+
   useEffect(() => {
     if (!list) return;
     // Hydrate UI items from Convex rows. `description` lives in the schema as
@@ -497,8 +506,13 @@ export function ListDetailContent({ listId }: Props) {
                   translationNamespace="lists"
                 />
               )}
-              {list.packSlug && (
-                <RepublishButton packSlug={list.packSlug} />
+              {publishSlug && (
+                <RepublishButton
+                  packSlug={publishSlug}
+                  packName={listName}
+                  disabled={hasPackEdits === false}
+                  disabledTooltip="No unsaved edits"
+                />
               )}
             </div>
           )}

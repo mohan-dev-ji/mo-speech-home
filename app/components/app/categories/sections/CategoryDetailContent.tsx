@@ -236,6 +236,19 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const isInLibrary = !!linkedLibraryPack;
   const libraryTier = linkedLibraryPack?.tier ?? 'free';
 
+  // Republish target: explicit packSlug wins (Default/Library toggle set it),
+  // otherwise fall back to librarySourceId (the origin set at materialise time).
+  // The fallback is what makes Republish surface automatically for library-
+  // origin content without the admin first toggling Library on.
+  const publishSlug = category?.packSlug ?? category?.librarySourceId;
+  // Dirty-state gate for the Republish button. Subscribed only when there's
+  // a slug to query against AND admin mode is on; otherwise 'skip' avoids
+  // pointless reactive queries for non-admin viewers.
+  const hasPackEdits = useQuery(
+    api.resourcePacks.hasPackEdits,
+    showAdminButtons && publishSlug ? { slug: publishSlug } : 'skip',
+  );
+
   // ── dnd-kit sensors ─────────────────────────────────────────────────────────
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -491,8 +504,13 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   packs={packsStatus}
                   language={language}
                 />
-                {category?.packSlug && (
-                  <RepublishButton packSlug={category.packSlug} />
+                {publishSlug && (
+                  <RepublishButton
+                    packSlug={publishSlug}
+                    packName={categoryName}
+                    disabled={hasPackEdits === false}
+                    disabledTooltip="No unsaved edits"
+                  />
                 )}
               </div>
             ) : null;
