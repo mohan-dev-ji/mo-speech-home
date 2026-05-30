@@ -189,7 +189,11 @@
     "confirmModalTitle": "Save changes to “{packName}”? (es)",
     "confirmModalBody": "Overwrites {slug}.json in the repo with your current profile content for this pack. Your edits become the canonical source. This cannot be undone except via git. (es)",
     "confirmModalSlugLine": "Slug: {slug}",
-    "confirmModalConfirm": "Save changes (es)"
+    "confirmModalConfirm": "Save changes (es)",
+    "saveToPackButton": "Save to pack (es)",
+    "saveToPackAria": "Save this item to a pack (es)",
+    "fromPackBadge": "From {packName} (es)",
+    "starterPackName": "Starter Pack (es)"
   },
   "studentViewLock": {
     "instructorDescription": "Acceso completo — editar perfil, ajustes, contenido",
@@ -328,6 +332,8 @@
     "bannerToggleLibraryHint": "Publicar en la biblioteca en el nivel de plan elegido",
     "bannerToggleRepublish": "Republish (es)",
     "bannerToggleRepublishHint": "Show the Republish to JSON button (es)",
+    "bannerSaveToPack": "Save to pack (es)",
+    "bannerSaveToPackHint": "Save this category to a library pack (es)",
     "planTierFree": "Gratis",
     "planTierPro": "Pro",
     "planTierMax": "Max",

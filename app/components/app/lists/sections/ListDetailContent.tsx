@@ -492,20 +492,17 @@ export function ListDetailContent({ listId }: Props) {
               >
                 {t('toggleRepublish')}
               </ToggleButton>
+              {/* "Save to pack" — stateless button opening the picker
+                  modal. Mutation is duplicate-or-assign. Tier is chosen
+                  inside the modal's "Create new pack" tab; no in-bar
+                  tier picker post-simplification. */}
               <ToggleButton
-                pressed={isInLibrary}
+                pressed={false}
                 onClick={handleToggleLibrary}
                 icon={<Library className="w-3.5 h-3.5" />}
               >
-                {t('toggleLibrary')}
+                {tPicker('saveToPackButton')}
               </ToggleButton>
-              {isInLibrary && (
-                <PlanTierPicker
-                  value={libraryTier}
-                  onChange={handleSetTier}
-                  translationNamespace="lists"
-                />
-              )}
               {publishSlug && republishGateOpen && (
                 <RepublishButton
                   packSlug={publishSlug}

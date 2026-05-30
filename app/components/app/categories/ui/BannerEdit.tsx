@@ -332,21 +332,20 @@ export function BannerEdit({
               >
                 {t('bannerToggleRepublish')}
               </ToggleButton>
+              {/* "Save to pack" is a stateless button — opens the picker
+                  modal (categories' parent handles via onToggleLibrary).
+                  Post-simplification: no pressed-state, no mutex with
+                  the Republish gate, no "off" semantic. Underlying
+                  mutation (setCategoryInLibraryV2) is duplicate-or-assign
+                  based on whether the row already has librarySourceId. */}
               <ToggleButton
-                pressed={isInLibrary}
+                pressed={false}
                 onClick={() => onToggleLibrary?.()}
                 icon={<Library className="w-3.5 h-3.5" />}
-                title={t('bannerToggleLibraryHint')}
+                title={t('bannerSaveToPackHint')}
               >
-                {t('bannerToggleLibrary')}
+                {t('bannerSaveToPack')}
               </ToggleButton>
-              {isInLibrary && onSetTier && (
-                <PlanTierPicker
-                  value={libraryTier}
-                  onChange={onSetTier}
-                  translationNamespace="categoryDetail"
-                />
-              )}
               {republishSlot}
             </div>
           )}

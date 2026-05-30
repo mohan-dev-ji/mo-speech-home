@@ -342,6 +342,7 @@ function SortableSentenceRow({
   adminPacks,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
+  const tPicker = useTranslations('packPicker');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: sentence._id });
 
@@ -468,29 +469,17 @@ function SortableSentenceRow({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* Per-row "Save to pack" — stateless button opening
+                      the picker for this single sentence. Default toggle
+                      dropped post-simplification (vestigial — Save to
+                      pack covers starter-pack as a target choice). */}
                   <ToggleButton
-                    pressed={isDefault}
-                    disabled={isInLibrary}
-                    onClick={() => onToggleDefault?.(sentence)}
-                    icon={<Bookmark className="w-3.5 h-3.5" />}
-                  >
-                    {t('toggleDefault')}
-                  </ToggleButton>
-                  <ToggleButton
-                    pressed={isInLibrary}
-                    disabled={isDefault}
+                    pressed={false}
                     onClick={() => onToggleLibrary?.(sentence)}
                     icon={<Library className="w-3.5 h-3.5" />}
                   >
-                    {t('toggleLibrary')}
+                    {tPicker('saveToPackButton')}
                   </ToggleButton>
-                  {isInLibrary && onSetTier && (
-                    <PlanTierPicker
-                      value={libraryTier}
-                      onChange={(tier) => onSetTier(sentence, tier)}
-                      translationNamespace="sentences"
-                    />
-                  )}
                 </div>
               )}
               <button
