@@ -160,6 +160,12 @@ export type BannerEditProps = {
   // category.librarySourceId and onReloadDefaults from its dialog opener).
   librarySourceId?: string;
   onReloadDefaults?: () => void;
+  // Slot for the Republish-to-JSON button rendered inside the admin
+  // toggles bar (after the Library tier picker). Parent owns the
+  // visibility gate — passes `null` or a real <RepublishButton/> based on
+  // its own republishGateOpen + publishSlug state. Slot pattern keeps
+  // BannerEdit ignorant of RepublishButton's API.
+  republishSlot?: React.ReactNode;
 };
 
 export function BannerEdit({
@@ -180,6 +186,7 @@ export function BannerEdit({
   onSetTier,
   librarySourceId,
   onReloadDefaults,
+  republishSlot,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
@@ -340,6 +347,7 @@ export function BannerEdit({
                   translationNamespace="categoryDetail"
                 />
               )}
+              {republishSlot}
             </div>
           )}
         </div>

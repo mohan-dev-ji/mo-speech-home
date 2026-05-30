@@ -509,15 +509,19 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   packs={packsStatus}
                   language={language}
                 />
-                {publishSlug && republishGateOpen && (
-                  <RepublishButton
-                    packSlug={publishSlug}
-                    packName={categoryName}
-                    disabled={hasPackEdits === false}
-                    disabledTooltip={tPicker('republishNoEditsTooltip')}
-                  />
-                )}
               </div>
+            ) : null;
+            // RepublishButton slot for the admin edit bar — passed
+            // through to BannerEdit so the button renders next to the
+            // Republish toggle that gates it. Hidden by the gate, the
+            // origin check, and admin viewMode.
+            const republishSlot = showAdminButtons && publishSlug && republishGateOpen ? (
+              <RepublishButton
+                packSlug={publishSlug}
+                packName={categoryName}
+                disabled={hasPackEdits === false}
+                disabledTooltip={tPicker('republishNoEditsTooltip')}
+              />
             ) : null;
             return isEditing ? (
               <div
@@ -545,6 +549,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   onSetTier={handleSetTier}
                   librarySourceId={category?.librarySourceId}
                   onReloadDefaults={() => setReloadDialogOpen(true)}
+                  republishSlot={republishSlot}
                 />
               </div>
             ) : (
