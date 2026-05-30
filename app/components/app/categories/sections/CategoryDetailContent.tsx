@@ -149,7 +149,7 @@ type Props = {
 export function CategoryDetailContent({ categoryId }: Props) {
   const t = useTranslations('categoryDetail');
 
-  const { language, viewMode, stateFlags, accountId, studentProfile } = useProfile();
+  const { language, viewMode, stateFlags, accountId, studentProfile, voiceId } = useProfile();
   const { talkerMode, addToTalker } = useTalker();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const { isActive: modellingActive } = useModellingSession();
@@ -209,7 +209,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   const symbols = useQuery(
     api.profileCategories.getProfileSymbolsWithImages,
-    { profileCategoryId }
+    { profileCategoryId, voiceId }
   );
 
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
@@ -649,6 +649,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
           profileCategoryId={profileCategoryId}
           accountId={accountId}
           language={language}
+          voiceId={voiceId}
           onClose={() => setSymbolEditorState({ isOpen: false })}
           onSave={() => setSymbolEditorState({ isOpen: false })}
         />
@@ -662,6 +663,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
           isOpen={true}
           accountId={accountId}
           language={language}
+          voiceId={voiceId}
           folderImageMode={true}
           initialImagePath={draftImagePath}
           initialLabel={categoryName}

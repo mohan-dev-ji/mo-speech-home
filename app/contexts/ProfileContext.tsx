@@ -6,6 +6,8 @@ import posthog from 'posthog-js';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
+import { resolveVoiceId } from '@/lib/audio/resolveVoiceId';
+import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
 
 // ─── State flag types ─────────────────────────────────────────────────────────
 
@@ -79,6 +81,7 @@ type ProfileContextValue = {
   // Active flags and language (viewMode-aware)
   stateFlags: StateFlags;
   language: string; // ISO 639-1 code ('en', 'hi', 'pa', …) — drives search index + TTS
+  voiceId: string;  // resolved ttsVoiceId for the active profile (Phase 8.4) — see lib/audio/resolveVoiceId.ts
 
   // View mode
   viewMode: ViewMode;
@@ -107,6 +110,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   accountId: null,
   stateFlags: DEFAULT_FLAGS,
   language: 'en',
+  voiceId: DEFAULT_VOICE_ID,
   viewMode: 'instructor',
   setViewMode: () => {},
   setGridSize: () => {},
@@ -246,6 +250,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     ? (userRecord?.locale ?? 'en')
     : (studentProfile?.language ?? 'en');
 
+  // viewMode-aware resolved voice (Phase 8.4). In student-view the student's
+  // own override wins; otherwise it falls back to the account default for the
+  // active language, then the first registry voice, then DEFAULT_VOICE_ID.
+  // Resolution + validation against TTS_VOICES lives in resolveVoiceId.
+  const voiceId = resolveVoiceId({
+    studentVoiceId: viewMode === 'student-view' ? studentProfile?.voiceId : undefined,
+    voiceDefaults: userRecord?.voiceDefaults,
+    lang: language,
+  });
+
   // ── Instructor setters ───────────────────────────────────────────────────────
 
   function setGridSize(size: 'large' | 'medium' | 'small') {
@@ -321,6 +335,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         accountId: (studentProfile?.accountId ?? userRecord?._id) ?? null,
         stateFlags,
         language,
+        voiceId,
         viewMode,
         setViewMode,
         setGridSize,

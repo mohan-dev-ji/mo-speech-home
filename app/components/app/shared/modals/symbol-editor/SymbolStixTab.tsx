@@ -10,12 +10,12 @@ import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 
-// Phase 8.0 placeholder — see TalkerDropdown for rationale; Phase 8.5 wires
-// this to the active student profile's voiceId.
-const DEFAULT_VOICE_ID = 'en-GB-News-M';
-
 type Props = {
   language: string;
+  // Resolved ttsVoiceId from the active profile (Phase 8.4) — threaded down
+  // from SymbolEditorModal so the picked symbol's default audio uses the same
+  // voice the student hears everywhere else.
+  voiceId: string;
   draft: Draft;
   patch: (partial: Partial<Draft>) => void;
   searchQuery: string;
@@ -24,6 +24,7 @@ type Props = {
 
 export function SymbolStixTab({
   language,
+  voiceId,
   draft,
   patch,
   searchQuery,
@@ -53,11 +54,11 @@ export function SymbolStixTab({
     // `symbol.audio[voiceId]` booleans. Pass undefined when the voice isn't
     // seeded — the editor's "default" tab falls through to TTS.
     const audioMap = (sym.audio as Record<string, boolean> | undefined) ?? {};
-    const seeded = audioMap[DEFAULT_VOICE_ID] === true;
+    const seeded = audioMap[voiceId] === true;
     const englishWord = sym.words.en ?? '';
     const defaultAudio =
       resolveSymbolAudioPath(
-        DEFAULT_VOICE_ID,
+        voiceId,
         englishWord,
         seeded,
         sym.audioBasename,

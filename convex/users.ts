@@ -453,6 +453,25 @@ export const setMyLocale = mutation({
 });
 
 /**
+ * Set the account's default voice for a given language ({ lang → ttsVoiceId }).
+ * Student profiles in that language inherit this unless they set their own
+ * studentProfiles.voiceId override. Phase 8.4 — see lib/audio/resolveVoiceId.ts.
+ */
+export const setMyVoiceDefault = mutation({
+  args: { lang: v.string(), voiceId: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db
+      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      voiceDefaults: { ...(user.voiceDefaults ?? {}), [args.lang]: args.voiceId },
+    });
+  },
+});
+
+/**
  * Save the instructor's active theme slug.
  */
 export const setMyThemeSlug = mutation({

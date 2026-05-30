@@ -44,6 +44,36 @@ export const batchInsertSymbols = mutation({
 });
 
 /**
+ * Mark a batch of symbols as seeded for a voice — flips `symbols.audio[voiceId]`
+ * to `true`. Used by `scripts/seed-voice-audio.mjs` (Phase 8.4) after each
+ * symbol's audio is uploaded to R2. Batched to keep Convex function-call count
+ * low across a ~58k-symbol seed run. Seed/admin use only.
+ *
+ * Migration-safe: rebuilds the audio value from existing boolean entries only,
+ * dropping any legacy `{ eng: { default } }` shape, so the patched value always
+ * satisfies `v.record(string, boolean)`.
+ */
+export const setVoiceSeededBatch = mutation({
+  args: { symbolIds: v.array(v.id("symbols")), voiceId: v.string() },
+  handler: async (ctx, { symbolIds, voiceId }) => {
+    let updated = 0;
+    for (const id of symbolIds) {
+      const sym = await ctx.db.get(id);
+      if (!sym) continue;
+      const existing = (sym.audio ?? {}) as Record<string, unknown>;
+      const next: Record<string, boolean> = {};
+      for (const [k, val] of Object.entries(existing)) {
+        if (typeof val === "boolean") next[k] = val;
+      }
+      next[voiceId] = true;
+      await ctx.db.patch(id, { audio: next });
+      updated += 1;
+    }
+    return { updated };
+  },
+});
+
+/**
  * Language-aware full-text symbol search.
  *
  * Uses the correct search index for the active language:

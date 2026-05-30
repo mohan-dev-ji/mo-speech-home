@@ -56,6 +56,8 @@ export type UserRecord = {
   lastActiveAt: number;
   locale?: string;
   themeSlug?: string;
+  // Per-language default voice: { langCode → ttsVoiceId }. Phase 8.4.
+  voiceDefaults?: Record<string, string>;
   analyticsOptOut?: boolean;
   stateFlags?: {
     grid_size?: 'large' | 'medium' | 'small';

@@ -11,7 +11,9 @@ import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { getLanguage } from "@/lib/languages/registry";
 import { track } from "@/lib/analytics";
+import { Volume2 } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   const setMyGridSize       = useMutation(api.users.setMyInstructorGridSize);
   const setMyTextSize       = useMutation(api.users.setMyInstructorSymbolTextSize);
   const setMyFlag           = useMutation(api.users.setMyInstructorFlag);
+  const setMyVoiceDefault   = useMutation(api.users.setMyVoiceDefault);
 
   // Visible languages drive the picker — `includeBeta: true` so Spanish /
   // Korean show with a "preview" pill before they're stable. Per ADR-009 §3.
@@ -71,6 +74,33 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   const [textSize,     setTextSize]     = useState<TextSize>(currentTextSize);
   const [labelVisible, setLabelVisible] = useState(currentLabelVisible);
   const [saving,       setSaving]       = useState(false);
+
+  // ── Default voice (per language) ──
+  // Only languages that offer a real choice (>1 voice) get a picker. Currently
+  // that's English; others appear automatically as their voices are added.
+  const voiceLanguages = visibleLanguages
+    .map((l) => ({ ...l, voices: getLanguage(l.code)?.voices ?? [] }))
+    .filter((l) => l.voices.length > 1);
+  // Local per-language overrides; the stored default (or first registry voice)
+  // shows until the instructor picks a different one.
+  const [voiceSel, setVoiceSel] = useState<Record<string, string>>({});
+  const effectiveVoice = (code: string, voices: { ttsVoiceId: string }[]) =>
+    voiceSel[code] ?? userRecord?.voiceDefaults?.[code] ?? voices[0]?.ttsVoiceId;
+
+  const previewVoice = async (voiceId: string) => {
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: "Hello", voiceId }),
+      });
+      if (!res.ok) return;
+      const { r2Key } = await res.json();
+      if (r2Key) new Audio(`/api/assets?key=${r2Key}`).play().catch(() => {});
+    } catch {
+      /* preview is best-effort */
+    }
+  };
 
   // Preview theme immediately on swatch click
   const handleThemeClick = (slug: ThemeSlug) => {
@@ -105,6 +135,12 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
       ];
       if (locale !== currentLocale) {
         mutations.push(setMyLocale({ locale }));
+      }
+      // Persist any changed per-language voice defaults.
+      for (const [lang, voiceId] of Object.entries(voiceSel)) {
+        if (voiceId && voiceId !== userRecord?.voiceDefaults?.[lang]) {
+          mutations.push(setMyVoiceDefault({ lang, voiceId }));
+        }
       }
       await Promise.all(mutations);
       if (locale !== currentLocale) {
@@ -157,6 +193,48 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
             </p>
           )}
         </section>
+
+        {/* ── Default voice ─────────────────────────────────────────────────── */}
+        {voiceLanguages.length > 0 && (
+          <section className="space-y-3">
+            <p className="text-theme-s font-semibold text-theme-secondary-text">Default voice</p>
+            {voiceLanguages.map(({ code, nativeLabel, voices }) => (
+              <div key={code} className="space-y-2">
+                {voiceLanguages.length > 1 && (
+                  <p className="text-theme-s text-theme-secondary-text">{nativeLabel}</p>
+                )}
+                <div className="flex flex-col gap-2">
+                  {voices.map((vc) => {
+                    const selected = effectiveVoice(code, voices) === vc.ttsVoiceId;
+                    return (
+                      <div key={vc.id} className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setVoiceSel((prev) => ({ ...prev, [code]: vc.ttsVoiceId }))}
+                          className={`flex-1 py-2 px-3 rounded-theme text-theme-s font-medium text-left transition-colors ${
+                            selected
+                              ? "bg-theme-button-highlight text-theme-text"
+                              : "bg-theme-primary text-theme-alt-text hover:opacity-90"
+                          }`}
+                        >
+                          {vc.label}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => previewVoice(vc.ttsVoiceId)}
+                          aria-label="Preview voice"
+                          className="shrink-0 p-2 rounded-theme-sm bg-theme-primary text-theme-alt-text hover:opacity-90 transition-colors"
+                        >
+                          <Volume2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* ── Theme ─────────────────────────────────────────────────────────── */}
         <section className="space-y-2">

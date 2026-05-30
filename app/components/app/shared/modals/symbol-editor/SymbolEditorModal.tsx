@@ -275,9 +275,9 @@ export function SymbolEditorModal({
     const englishWord = ps.symbolRecord?.words.en ?? '';
     const defaultPath =
       resolveSymbolAudioPath(
-        DEFAULT_VOICE_ID,
+        voiceId,
         englishWord,
-        symbolAudioMap[DEFAULT_VOICE_ID] === true,
+        symbolAudioMap[voiceId] === true,
         ps.symbolRecord?.audioBasename,
       ) ?? undefined;
     const activeSource: Draft['activeAudioSource'] =
@@ -959,6 +959,7 @@ export function SymbolEditorModal({
             {draft.imageSourceTab === 'symbolstix' && (
               <SymbolStixTab
                 language={language}
+                voiceId={voiceId}
                 draft={draft}
                 patch={patch}
                 searchQuery={searchQuery}

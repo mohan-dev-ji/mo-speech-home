@@ -50,7 +50,7 @@ export function ListDetailContent({ listId }: Props) {
   const params = useParams();
   const locale = (params?.locale as string | undefined) ?? 'en';
   const { setBreadcrumbExtra } = useBreadcrumb();
-  const { language, viewMode, accountId, stateFlags, studentProfile } = useProfile();
+  const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
   const { talkerMode } = useTalker();
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
@@ -551,7 +551,7 @@ export function ListDetailContent({ listId }: Props) {
           accountId={accountId}
           language={language}
           editorMode="listItem"
-          voiceId={studentProfile?.voiceId ?? 'en-GB-News-M'}
+          voiceId={voiceId}
           initialLabel={localItems[symbolPickerForIndex]?.description}
           initialImagePath={localItems[symbolPickerForIndex]?.imagePath}
           initialAudioPath={localItems[symbolPickerForIndex]?.audioPath}

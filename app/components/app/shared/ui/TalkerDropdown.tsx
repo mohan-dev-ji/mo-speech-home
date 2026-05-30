@@ -25,12 +25,7 @@ import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
-
-// Voice fallback used by Phase 8.0 until the per-profile voice picker (Phase 8.5)
-// drives this from `studentProfiles.voiceId`. en-GB-News-M is the only voice
-// with seeded SymbolStix audio at launch — the legacy path lives at
-// `audio/eng/default/<word>.mp3`; new voices follow the new convention.
-const DEFAULT_VOICE_ID = 'en-GB-News-M';
+import { useProfile } from '@/app/contexts/ProfileContext';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -64,6 +59,7 @@ export function TalkerDropdown({
   onSymbolTap,
 }: TalkerDropdownProps) {
   const t = useTranslations('talker');
+  const { voiceId } = useProfile();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
   const [mounted, setMounted]     = useState(false);
@@ -179,10 +175,10 @@ export function TalkerDropdown({
       // an R2 key (with the legacy `audio/eng/default/<basename>.mp3`
       // fallback for the en-GB-News-M voice until Phase 8.4 re-seeds it).
       const audioMap = (sym?.audio as Record<string, boolean> | undefined) ?? {};
-      const seeded   = audioMap[DEFAULT_VOICE_ID] === true;
+      const seeded   = audioMap[voiceId] === true;
       const audioPath = sym
         ? resolveSymbolAudioPath(
-            DEFAULT_VOICE_ID,
+            voiceId,
             sym.words.en ?? word,
             seeded,
             sym.audioBasename,

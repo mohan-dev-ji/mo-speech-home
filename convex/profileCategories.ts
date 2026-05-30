@@ -13,8 +13,9 @@ import {
 import { getLibraryPackBySlug } from "./lib/libraryPacks";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 
-// Phase 8.0 voice fallback — see lib/audio/resolveAudioPath.ts. Phase 8.5
-// drives this from `studentProfiles.voiceId`.
+// Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
+// Phase 8.4: callers pass the active profile's resolved `voiceId`; this is the
+// final fallback (matches DEFAULT_VOICE_ID in lib/r2-paths.ts).
 const DEFAULT_VOICE_ID = "en-GB-News-M";
 
 // ─── Internal: seed ───────────────────────────────────────────────────────────
@@ -131,8 +132,14 @@ export const getProfileSymbols = query({
 });
 
 export const getProfileSymbolsWithImages = query({
-  args: { profileCategoryId: v.id("profileCategories") },
+  args: {
+    profileCategoryId: v.id("profileCategories"),
+    // Active profile's resolved ttsVoiceId (Phase 8.4). Falls back to the
+    // legacy male voice when omitted.
+    voiceId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
+    const voiceId = args.voiceId ?? DEFAULT_VOICE_ID;
     const rows = await ctx.db
       .query("profileSymbols")
       .withIndex("by_profile_category_id_and_order", (q) =>
@@ -166,9 +173,9 @@ export const getProfileSymbolsWithImages = query({
             //    override already claims it, so user recordings keep winning.
             if (!audio.en) {
               const audioMap = sym.audio as Record<string, boolean>;
-              const seeded = audioMap?.[DEFAULT_VOICE_ID] === true;
+              const seeded = audioMap?.[voiceId] === true;
               const defaultPath = resolveSymbolAudioPath(
-                DEFAULT_VOICE_ID,
+                voiceId,
                 sym.words.en ?? "",
                 seeded,
                 sym.audioBasename,

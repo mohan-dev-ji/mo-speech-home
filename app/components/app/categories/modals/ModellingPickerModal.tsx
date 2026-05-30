@@ -13,6 +13,7 @@ import {
   DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { useProfile } from "@/app/contexts/ProfileContext";
 import { track } from "@/lib/analytics";
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
@@ -31,8 +32,10 @@ export function ModellingPickerModal({
   onClose,
 }: Props) {
   const t = useTranslations("modelling.picker");
+  const { voiceId } = useProfile();
   const symbols = useQuery(api.profileCategories.getProfileSymbolsWithImages, {
     profileCategoryId,
+    voiceId,
   });
   const createSession = useMutation(api.modellingSessions.createModellingSession);
 

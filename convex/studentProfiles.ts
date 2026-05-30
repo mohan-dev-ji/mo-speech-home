@@ -388,6 +388,9 @@ export const updateStudentProfile = mutation({
     dateOfBirth: v.optional(v.number()),
     language: v.optional(v.string()),
     themeSlug: v.optional(v.string()),
+    // ttsVoiceId override for this student. Pass `null` to clear it (→ inherit
+    // the account default for the profile's language). Phase 8.4.
+    voiceId: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -402,8 +405,12 @@ export const updateStudentProfile = mutation({
       .first();
     if (!user || profile.accountId !== user._id) throw new Error("Not authorised");
 
-    const { profileId, ...updates } = args;
-    await ctx.db.patch(profileId, { ...updates, updatedAt: Date.now() });
+    const { profileId, voiceId, ...updates } = args;
+    const patch: Record<string, unknown> = { ...updates, updatedAt: Date.now() };
+    // `null` clears the override (patch to undefined removes the field);
+    // a string sets it; omitted leaves it untouched.
+    if (voiceId !== undefined) patch.voiceId = voiceId === null ? undefined : voiceId;
+    await ctx.db.patch(profileId, patch);
   },
 });
 

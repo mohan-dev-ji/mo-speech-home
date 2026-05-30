@@ -531,7 +531,7 @@ export function SentencesModeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = params.locale as string;
-  const { language, viewMode, accountId, stateFlags } = useProfile();
+  const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
   const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
@@ -1034,6 +1034,7 @@ export function SentencesModeContent() {
           isOpen
           accountId={accountId}
           language={language}
+          voiceId={voiceId}
           editorMode="sentenceSlot"
           initialImagePath={existingSlotImagePath}
           onClose={() => setSlotEditTarget(null)}

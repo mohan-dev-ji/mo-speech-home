@@ -225,6 +225,11 @@ export default defineSchema({
     // ── Instructor-level preferences (saved here, not on student profile) ──
     locale: v.optional(v.string()),     // 'en' | 'hi' — drives UI locale routing
     themeSlug: v.optional(v.string()),  // flat theme key e.g. 'default' | 'sky'
+    // Per-language default voice for this account: { langCode → ttsVoiceId }.
+    // A student profile inherits its language's default unless it sets its own
+    // studentProfiles.voiceId override. Phase 8.4. Resolution lives in
+    // lib/audio/resolveVoiceId.ts.
+    voiceDefaults: v.optional(v.record(v.string(), v.string())),
     stateFlags: v.optional(v.object({
       grid_size:            v.optional(v.union(v.literal("large"), v.literal("medium"), v.literal("small"))),
       symbol_label_visible: v.optional(v.boolean()),

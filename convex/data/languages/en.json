@@ -7,8 +7,13 @@
   "voices": [
     {
       "id": "default",
-      "label": "Adult (British English)",
+      "label": "Adult male (British English)",
       "ttsVoiceId": "en-GB-News-M"
+    },
+    {
+      "id": "female",
+      "label": "Adult female (British English)",
+      "ttsVoiceId": "en-GB-News-G"
     }
   ]
 }

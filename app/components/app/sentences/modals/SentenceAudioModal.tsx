@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl';
 import { Loader2, Mic, Play, RefreshCw, Square as StopIcon, Trash2, Volume2 } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import {
@@ -44,7 +43,7 @@ export function SentenceAudioModal({
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const renameSentence = useMutation(api.profileSentences.updateProfileSentenceName);
-  const { viewMode } = useProfile();
+  const { viewMode, voiceId } = useProfile();
   const isAdmin = useIsAdmin();
   const propagateToPack = viewMode === 'admin' && isAdmin;
 
@@ -92,7 +91,7 @@ export function SentenceAudioModal({
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: value.trim(), voiceId: DEFAULT_VOICE_ID }),
+        body: JSON.stringify({ text: value.trim(), voiceId }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

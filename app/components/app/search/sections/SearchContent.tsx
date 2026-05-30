@@ -10,9 +10,6 @@ import { useTalker } from '@/app/contexts/TalkerContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
-
-// Phase 8.0 placeholder voice — see TalkerDropdown / SymbolEditor for rationale.
-const DEFAULT_VOICE_ID = 'en-GB-News-M';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
@@ -28,7 +25,7 @@ function playAudio(audioPath: string) {
 
 export function SearchContent() {
   const t = useTranslations('search');
-  const { language, stateFlags } = useProfile();
+  const { language, stateFlags, voiceId } = useProfile();
   const { talkerMode, addToTalker } = useTalker();
 
   const [query, setQuery] = useState('');
@@ -134,9 +131,9 @@ export function SearchContent() {
               const audioMap = (symbol.audio as Record<string, boolean> | undefined) ?? {};
               const audioPath =
                 resolveSymbolAudioPath(
-                  DEFAULT_VOICE_ID,
+                  voiceId,
                   symbol.words.en ?? '',
-                  audioMap[DEFAULT_VOICE_ID] === true,
+                  audioMap[voiceId] === true,
                   symbol.audioBasename,
                 ) ?? '';
 

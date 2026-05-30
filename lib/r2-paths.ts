@@ -1,5 +1,9 @@
 export const TTS_VOICES = {
   "en-GB-News-M": { languageCode: "en-GB", name: "en-GB-News-M" },
+  // Phase 8.4 — English female, same "News" family as the male above so the
+  // pair is stylistically consistent. Symbol library seeded under the new
+  // voice-first convention (audio/en-GB-News-G/symbols/...).
+  "en-GB-News-G": { languageCode: "en-GB", name: "en-GB-News-G" },
   // Additional voices added here as their SymbolStix libraries are seeded
 } as const;
 

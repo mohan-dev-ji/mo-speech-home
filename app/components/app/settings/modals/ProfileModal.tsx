@@ -15,7 +15,8 @@ import {
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { Input } from "@/app/components/app/shared/ui/Input";
 import { HeaderModeControl } from "@/app/components/app/shared/ui/HeaderModeControl";
-import { ChevronDown } from "lucide-react";
+import { getLanguage } from "@/lib/languages/registry";
+import { ChevronDown, Volume2 } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
 
@@ -124,11 +125,46 @@ function ProfileTabContent({
   const currentLang = profile.language ?? "en";
   const handleLangChange = (lang: string) => {
     if (lang === currentLang) return;
-    updateProfile({ profileId: profile._id, language: lang });
+    // If the current voice override doesn't belong to the new language, clear
+    // it so the student falls back to that language's account default / first
+    // registry voice (resolveVoiceId guards this too, but clearing keeps the
+    // stored value honest).
+    const newVoices = getLanguage(lang)?.voices ?? [];
+    const keepVoice =
+      !!profile.voiceId && newVoices.some((vc) => vc.ttsVoiceId === profile.voiceId);
+    updateProfile({
+      profileId: profile._id,
+      language: lang,
+      ...(keepVoice ? {} : { voiceId: null }),
+    });
     // Student-profile language is conceptually distinct from instructor UI
     // locale, but for V1 we use the same event name — PostHog can be filtered
     // by URL / source if we ever need to split the two streams.
     track("language_switched", { from: currentLang, to: lang });
+  };
+
+  // ── Voice ──
+  // Voices come from the language registry for the profile's current language.
+  // `profile.voiceId` is the override; absent = inherit the account default.
+  const voices = getLanguage(currentLang)?.voices ?? [];
+  const currentVoiceId = profile.voiceId as string | undefined;
+  const handleVoiceChange = (voiceId: string | null) => {
+    // `null` clears the override (→ inherit account default for this language).
+    updateProfile({ profileId: profile._id, voiceId });
+  };
+  const previewVoice = async (voiceId: string) => {
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: "Hello", voiceId }),
+      });
+      if (!res.ok) return;
+      const { r2Key } = await res.json();
+      if (r2Key) new Audio(`/api/assets?key=${r2Key}`).play().catch(() => {});
+    } catch {
+      /* preview is best-effort */
+    }
   };
 
   // ── Theme ──
@@ -253,6 +289,50 @@ function ProfileTabContent({
           ))}
         </div>
       </div>
+
+      {/* Voice — only shown when the current language offers a choice */}
+      {voices.length > 1 && (
+        <div>
+          <p className="text-small font-semibold text-foreground mb-2">{t("sectionVoice")}</p>
+          <div className="flex flex-col gap-2">
+            {/* Inherit account default */}
+            <button
+              type="button"
+              onClick={() => handleVoiceChange(null)}
+              className={`w-full py-2 px-3 rounded-md text-small font-medium border transition-colors text-left ${
+                currentVoiceId === undefined
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {t("voiceUseAccountDefault")}
+            </button>
+            {voices.map((vc) => (
+              <div key={vc.id} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleVoiceChange(vc.ttsVoiceId)}
+                  className={`flex-1 py-2 px-3 rounded-md text-small font-medium border transition-colors text-left ${
+                    currentVoiceId === vc.ttsVoiceId
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {vc.label}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => previewVoice(vc.ttsVoiceId)}
+                  aria-label={t("voicePreview")}
+                  className="shrink-0 p-2 rounded-md border border-border text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Theme */}
       <div>
