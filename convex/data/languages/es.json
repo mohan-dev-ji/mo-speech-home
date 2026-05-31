@@ -4,5 +4,16 @@
   "nativeLabel": "Español",
   "dir": "ltr",
   "font": "notoSans",
-  "voices": []
+  "voices": [
+    {
+      "id": "male",
+      "label": "Adult male (Latin American Spanish)",
+      "ttsVoiceId": "es-US-Wavenet-C"
+    },
+    {
+      "id": "female",
+      "label": "Adult female (Latin American Spanish)",
+      "ttsVoiceId": "es-US-Wavenet-A"
+    }
+  ]
 }

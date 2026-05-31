@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
@@ -29,21 +30,24 @@ const THEME_SWATCHES: { slug: ThemeSlug; swatch: string; name: string }[] = [
 type GridSize = "large" | "medium" | "small";
 type TextSize = "large" | "medium" | "small" | "xs";
 
-const GRID_OPTIONS: { size: GridSize; label: string; hint: string }[] = [
-  { size: "large",  label: "Large",  hint: "4 cols"  },
-  { size: "medium", label: "Medium", hint: "8 cols"  },
-  { size: "small",  label: "Small",  hint: "12 cols" },
+// Labels/hints are i18n keys (resolved via `t` in the component) — never
+// hard-code copy (Critical Rule #1). Size labels are shared between the two.
+const GRID_OPTIONS: { size: GridSize; labelKey: string; hintKey: string }[] = [
+  { size: "large",  labelKey: "sizeLarge",  hintKey: "gridHintLarge"  },
+  { size: "medium", labelKey: "sizeMedium", hintKey: "gridHintMedium" },
+  { size: "small",  labelKey: "sizeSmall",  hintKey: "gridHintSmall"  },
 ];
 
-const TEXT_OPTIONS: { size: TextSize; label: string; hint: string }[] = [
-  { size: "large",  label: "Large",  hint: "h2"     },
-  { size: "medium", label: "Medium", hint: "h4"     },
-  { size: "small",  label: "Small",  hint: "p bold" },
+const TEXT_OPTIONS: { size: TextSize; labelKey: string; hintKey: string }[] = [
+  { size: "large",  labelKey: "sizeLarge",  hintKey: "textHintLarge"  },
+  { size: "medium", labelKey: "sizeMedium", hintKey: "textHintMedium" },
+  { size: "small",  labelKey: "sizeSmall",  hintKey: "textHintSmall"  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("instructorProfile");
   const params = useParams();
   const { userRecord, subscription } = useAppState();
   const { stateFlags, setInstructorTheme } = useProfile();
@@ -158,14 +162,14 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Instructor Profile</DialogTitle>
+        <DialogTitle>{t("title")}</DialogTitle>
       </DialogHeader>
 
       <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
 
         {/* ── Language ──────────────────────────────────────────────────────── */}
         <section className="space-y-2">
-          <p className="text-theme-s font-semibold text-theme-secondary-text">Language</p>
+          <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionLanguage")}</p>
           <div className="flex flex-wrap gap-2">
             {visibleLanguages.map(({ code, nativeLabel, status }) => (
               <button
@@ -181,7 +185,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
                 <span>{nativeLabel}</span>
                 {status === "beta" && (
                   <span className="text-[0.65rem] uppercase tracking-wider opacity-70">
-                    preview
+                    {t("preview")}
                   </span>
                 )}
               </button>
@@ -189,7 +193,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
           </div>
           {locale !== currentLocale && (
             <p className="text-theme-s text-theme-secondary-text">
-              The app will reload in the selected language.
+              {t("languageReloadNotice")}
             </p>
           )}
         </section>
@@ -197,7 +201,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         {/* ── Default voice ─────────────────────────────────────────────────── */}
         {voiceLanguages.length > 0 && (
           <section className="space-y-3">
-            <p className="text-theme-s font-semibold text-theme-secondary-text">Default voice</p>
+            <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionDefaultVoice")}</p>
             {voiceLanguages.map(({ code, nativeLabel, voices }) => (
               <div key={code} className="space-y-2">
                 {voiceLanguages.length > 1 && (
@@ -222,7 +226,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
                         <button
                           type="button"
                           onClick={() => previewVoice(vc.ttsVoiceId)}
-                          aria-label="Preview voice"
+                          aria-label={t("voicePreview")}
                           className="shrink-0 p-2 rounded-theme-sm bg-theme-primary text-theme-alt-text hover:opacity-90 transition-colors"
                         >
                           <Volume2 className="w-4 h-4" />
@@ -238,7 +242,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
 
         {/* ── Theme ─────────────────────────────────────────────────────────── */}
         <section className="space-y-2">
-          <p className="text-theme-s font-semibold text-theme-secondary-text">Theme</p>
+          <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionTheme")}</p>
           <div className="flex flex-wrap gap-theme-elements">
             {THEME_SWATCHES.map(({ slug, swatch, name }) => (
               <button
@@ -260,9 +264,9 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
 
         {/* ── Grid ──────────────────────────────────────────────────────────── */}
         <section className="space-y-2">
-          <p className="text-theme-s font-semibold text-theme-secondary-text">Symbol grid</p>
+          <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionGrid")}</p>
           <div className="flex gap-theme-elements">
-            {GRID_OPTIONS.map(({ size, label, hint }) => (
+            {GRID_OPTIONS.map(({ size, labelKey, hintKey }) => (
               <button
                 key={size}
                 type="button"
@@ -273,8 +277,8 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
                     : "bg-theme-primary text-theme-alt-text hover:opacity-90"
                 }`}
               >
-                <span className="text-theme-p font-semibold">{label}</span>
-                <span className="text-theme-s opacity-70">{hint}</span>
+                <span className="text-theme-p font-semibold">{t(labelKey)}</span>
+                <span className="text-theme-s opacity-70">{t(hintKey)}</span>
               </button>
             ))}
           </div>
@@ -282,7 +286,7 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
 
         {/* ── Symbols ───────────────────────────────────────────────────────── */}
         <section className="space-y-3">
-          <p className="text-theme-s font-semibold text-theme-secondary-text">Symbols</p>
+          <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionSymbols")}</p>
 
           {/* Label visible toggle */}
           <label className="flex items-center gap-3 cursor-pointer">
@@ -292,14 +296,14 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setLabelVisible(e.target.checked)}
               className="w-4 h-4 rounded accent-[color:var(--theme-brand-primary)] cursor-pointer"
             />
-            <span className="text-theme-p text-theme-alt-text">Display text label</span>
+            <span className="text-theme-p text-theme-alt-text">{t("displayTextLabel")}</span>
           </label>
 
           {/* Text size */}
           <div className={labelVisible ? "" : "opacity-40 pointer-events-none"}>
-            <p className="text-theme-s text-theme-secondary-text mb-2">Text size</p>
+            <p className="text-theme-s text-theme-secondary-text mb-2">{t("textSize")}</p>
             <div className="flex gap-theme-elements">
-              {TEXT_OPTIONS.map(({ size, label, hint }) => (
+              {TEXT_OPTIONS.map(({ size, labelKey, hintKey }) => (
                 <button
                   key={size}
                   type="button"
@@ -310,8 +314,8 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
                       : "bg-theme-primary text-theme-alt-text hover:opacity-90"
                   }`}
                 >
-                  <span className="text-theme-p font-semibold">{label}</span>
-                  <span className="text-theme-s opacity-70">{hint}</span>
+                  <span className="text-theme-p font-semibold">{t(labelKey)}</span>
+                  <span className="text-theme-s opacity-70">{t(hintKey)}</span>
                 </button>
               ))}
             </div>
@@ -322,9 +326,9 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{t("cancelButton")}</Button>
         </DialogClose>
-        <Button onClick={handleConfirm} loading={saving}>Confirm</Button>
+        <Button onClick={handleConfirm} loading={saving}>{t("confirmButton")}</Button>
       </DialogFooter>
     </>
   );

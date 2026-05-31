@@ -53,6 +53,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const VOICE_LANG = {
   "en-GB-News-M": { languageCode: "en-GB", lang: "en", legacy: true },
   "en-GB-News-G": { languageCode: "en-GB", lang: "en" },
+  // Phase 8.4 (Spanish) — synthesise words.es; filename stays words.en.
+  "es-US-Wavenet-C": { languageCode: "es-US", lang: "es" }, // male
+  "es-US-Wavenet-A": { languageCode: "es-US", lang: "es" }, // female
 };
 
 const LEGACY_VOICE_ID = "en-GB-News-M";
@@ -67,11 +70,18 @@ const getOpt = (n, def) => {
 
 const VOICE_ID = getOpt("--voice", null);
 const DRY_RUN = hasFlag("--dry-run");
+// Flags-only: skip all TTS/R2 work and just set audio[voiceId]=true for symbols
+// that aren't flagged yet. Use to repair the DB flag after a run where the
+// uploads succeeded but the flag-flip failed. Assumes the R2 files exist.
+const FLAGS_ONLY = hasFlag("--flags-only");
 const LIMIT = getOpt("--limit", null) ? Number(getOpt("--limit")) : null;
 const CONCURRENCY = Number(getOpt("--concurrency", "4"));
 const DELAY_MS = Number(getOpt("--delay", "0"));
 const PAGE_SIZE = 2000;
-const FLAG_BATCH = 300;
+// Convex caps array args at 8192; keep batches well under that AND small enough
+// that each setVoiceSeededBatch transaction (1 get + 1 patch per id) stays light.
+const FLAG_BATCH = 1000;
+const NEEDS_AUDIO_DEPS = !DRY_RUN && !FLAGS_ONLY; // GCP + R2 only needed for real synth/upload
 
 // ── Validation ──
 if (!VOICE_ID) {
@@ -104,11 +114,11 @@ if (!CONVEX_URL) {
   console.error("❌ NEXT_PUBLIC_CONVEX_URL not set — run with: node --env-file=.env.local ...");
   process.exit(1);
 }
-if (!DRY_RUN && !credJson) {
+if (NEEDS_AUDIO_DEPS && !credJson) {
   console.error("❌ GOOGLE_SERVICE_ACCOUNT_JSON not set (required for synthesis).");
   process.exit(1);
 }
-if (!DRY_RUN && (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey || !r2.bucketName)) {
+if (NEEDS_AUDIO_DEPS && (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey || !r2.bucketName)) {
   console.error("❌ Missing R2 env vars (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME).");
   process.exit(1);
 }
@@ -116,7 +126,7 @@ if (!DRY_RUN && (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey || !r2.
 // ── Clients ──
 const convex = new ConvexHttpClient(CONVEX_URL);
 
-const s3 = DRY_RUN
+const s3 = !NEEDS_AUDIO_DEPS
   ? null
   : new S3Client({
       region: "auto",
@@ -124,7 +134,7 @@ const s3 = DRY_RUN
       credentials: { accessKeyId: r2.accessKeyId, secretAccessKey: r2.secretAccessKey },
     });
 
-const googleAuth = DRY_RUN
+const googleAuth = !NEEDS_AUDIO_DEPS
   ? null
   : new GoogleAuth({
       credentials: JSON.parse(credJson),
@@ -228,16 +238,33 @@ let failed = 0;
 const errors = [];
 const flagBuffer = []; // symbol ids whose file is present but flag not yet set
 
+// Drains the flag buffer in FLAG_BATCH-sized chunks (each well under Convex's
+// 8192 array-arg limit). `force` drains it completely; otherwise it only sends
+// while at least one full batch is queued, so the buffer can't grow unbounded.
 async function flushFlags(force = false) {
-  if (flagBuffer.length === 0) return;
-  if (!force && flagBuffer.length < FLAG_BATCH) return;
-  const batch = flagBuffer.splice(0, force ? flagBuffer.length : FLAG_BATCH);
-  try {
-    await convex.mutation("symbols:setVoiceSeededBatch", { symbolIds: batch, voiceId: VOICE_ID });
-  } catch (err) {
-    errors.push({ kind: "flag-batch", size: batch.length, message: err.message });
-    console.error(`  ❌ flag batch (${batch.length}) failed: ${err.message}`);
+  while (flagBuffer.length > 0 && (force || flagBuffer.length >= FLAG_BATCH)) {
+    const batch = flagBuffer.splice(0, FLAG_BATCH);
+    try {
+      await convex.mutation("symbols:setVoiceSeededBatch", { symbolIds: batch, voiceId: VOICE_ID });
+    } catch (err) {
+      errors.push({ kind: "flag-batch", size: batch.length, message: err.message });
+      console.error(`  ❌ flag batch (${batch.length}) failed: ${err.message}`);
+    }
   }
+}
+
+// ── Flags-only repair: mark every not-yet-flagged symbol seeded, no R2/TTS ──
+if (FLAGS_ONLY) {
+  const need = items.filter((it) => !it.seededFlag);
+  console.log(`🏷️  Flags-only — setting audio[${VOICE_ID}]=true for ${need.length} symbol(s) (${items.length - need.length} already flagged). No R2/TTS.\n`);
+  for (const it of need) flagBuffer.push(it.id);
+  await flushFlags(true);
+  if (errors.length) {
+    console.error(`\n❌ ${errors.length} flag batch(es) failed — re-run --flags-only to retry.`);
+    process.exit(1);
+  }
+  console.log(`✅ Flagged ${need.length} symbol(s) for ${VOICE_ID}.`);
+  process.exit(0);
 }
 
 async function processOne(it) {

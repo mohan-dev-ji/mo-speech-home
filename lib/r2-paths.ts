@@ -4,6 +4,11 @@ export const TTS_VOICES = {
   // pair is stylistically consistent. Symbol library seeded under the new
   // voice-first convention (audio/en-GB-News-G/symbols/...).
   "en-GB-News-G": { languageCode: "en-GB", name: "en-GB-News-G" },
+  // Phase 8.4 (Spanish) — Latin American Spanish WaveNet pair. Symbols seeded
+  // from words.es under audio/<voiceId>/symbols/<words.en>.mp3 (English word is
+  // the stable filename key; the clip itself is Spanish).
+  "es-US-Wavenet-C": { languageCode: "es-US", name: "es-US-Wavenet-C" }, // male
+  "es-US-Wavenet-A": { languageCode: "es-US", name: "es-US-Wavenet-A" }, // female
   // Additional voices added here as their SymbolStix libraries are seeded
 } as const;
 
@@ -11,16 +16,13 @@ export type VoiceId = keyof typeof TTS_VOICES;
 
 export const DEFAULT_VOICE_ID: VoiceId = "en-GB-News-M";
 
-// en-GB-News-M was seeded before this folder structure existed.
-// Its SymbolStix audio lives at the legacy path; all future voices use the standard layout.
-const LEGACY_VOICE_ID: VoiceId = "en-GB-News-M";
-
+// NOTE: per-symbol SymbolStix audio paths are resolved exclusively by
+// `resolveSymbolAudioPath` in lib/audio/resolveAudioPath.ts — the single source
+// of truth for the voice-first layout (`audio/<voiceId>/symbols/<word>.mp3`,
+// with the legacy `audio/eng/default/` fallback for en-GB-News-M). Do NOT add a
+// path builder for symbol audio here; a duplicate drifted to `/symbolstix/` and
+// was removed (Phase 8.4) precisely to avoid that hazard.
 export const R2_PATHS = {
-  symbolstixAudio: (voiceId: string, audioDefault: string) =>
-    voiceId === LEGACY_VOICE_ID
-      ? `audio/eng/default/${audioDefault}`
-      : `audio/${voiceId}/symbolstix/${audioDefault}`,
-
   ttsAudio: (voiceId: string, uuid: string) =>
     `audio/${voiceId}/tts/${uuid}.mp3`,
 

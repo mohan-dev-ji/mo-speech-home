@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "label": "phase-8-4-spanish-pre-seed",
+  "createdAt": "2026-05-31T09:53:55.373Z",
+  "count": 58807,
+  "pages": 30,
+  "deployment": "dev:wandering-marmot-955",
+  "jsonlFile": "2026_05_31_phase_8_4_spanish_pre_seed.jsonl"
+}

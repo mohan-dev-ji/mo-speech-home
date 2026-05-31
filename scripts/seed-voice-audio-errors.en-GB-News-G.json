@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "flag-batch",
+    "size": 23702,
+    "message": "[Request ID: 51c2196c934bcf0a] Server Error\nInvalid arguments for symbols.js:setVoiceSeededBatch: Array length is too long (23702 > maximum length 8192)\n"
+  }
+]
