@@ -8,12 +8,16 @@
     {
       "id": "default",
       "label": "Adult male (British English)",
-      "ttsVoiceId": "en-GB-News-M"
+      "ttsVoiceId": "en-GB-News-M",
+      "gender": "male",
+      "region": "British English"
     },
     {
       "id": "female",
       "label": "Adult female (British English)",
-      "ttsVoiceId": "en-GB-News-G"
+      "ttsVoiceId": "en-GB-News-G",
+      "gender": "female",
+      "region": "British English"
     }
   ]
 }

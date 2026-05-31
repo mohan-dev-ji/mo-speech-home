@@ -79,17 +79,16 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   const [labelVisible, setLabelVisible] = useState(currentLabelVisible);
   const [saving,       setSaving]       = useState(false);
 
-  // ── Default voice (per language) ──
-  // Only languages that offer a real choice (>1 voice) get a picker. Currently
-  // that's English; others appear automatically as their voices are added.
-  const voiceLanguages = visibleLanguages
-    .map((l) => ({ ...l, voices: getLanguage(l.code)?.voices ?? [] }))
-    .filter((l) => l.voices.length > 1);
+  // ── Voices (for the currently-selected language only) ──
+  // The picker shows the voices for whatever language is selected above. The
+  // account stores a default voice per language (users.voiceDefaults); editing
+  // here sets the default for the selected `locale`.
+  const localeVoices = getLanguage(locale)?.voices ?? [];
   // Local per-language overrides; the stored default (or first registry voice)
-  // shows until the instructor picks a different one.
+  // shows as selected until the instructor picks a different one.
   const [voiceSel, setVoiceSel] = useState<Record<string, string>>({});
-  const effectiveVoice = (code: string, voices: { ttsVoiceId: string }[]) =>
-    voiceSel[code] ?? userRecord?.voiceDefaults?.[code] ?? voices[0]?.ttsVoiceId;
+  const selectedVoiceId =
+    voiceSel[locale] ?? userRecord?.voiceDefaults?.[locale] ?? localeVoices[0]?.ttsVoiceId;
 
   const previewVoice = async (voiceId: string) => {
     try {
@@ -198,45 +197,42 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
           )}
         </section>
 
-        {/* ── Default voice ─────────────────────────────────────────────────── */}
-        {voiceLanguages.length > 0 && (
-          <section className="space-y-3">
-            <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionDefaultVoice")}</p>
-            {voiceLanguages.map(({ code, nativeLabel, voices }) => (
-              <div key={code} className="space-y-2">
-                {voiceLanguages.length > 1 && (
-                  <p className="text-theme-s text-theme-secondary-text">{nativeLabel}</p>
-                )}
-                <div className="flex flex-col gap-2">
-                  {voices.map((vc) => {
-                    const selected = effectiveVoice(code, voices) === vc.ttsVoiceId;
-                    return (
-                      <div key={vc.id} className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setVoiceSel((prev) => ({ ...prev, [code]: vc.ttsVoiceId }))}
-                          className={`flex-1 py-2 px-3 rounded-theme text-theme-s font-medium text-left transition-colors ${
-                            selected
-                              ? "bg-theme-button-highlight text-theme-text"
-                              : "bg-theme-primary text-theme-alt-text hover:opacity-90"
-                          }`}
-                        >
-                          {vc.label}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => previewVoice(vc.ttsVoiceId)}
-                          aria-label={t("voicePreview")}
-                          className="shrink-0 p-2 rounded-theme-sm bg-theme-primary text-theme-alt-text hover:opacity-90 transition-colors"
-                        >
-                          <Volume2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+        {/* ── Voices (selected language only) ───────────────────────────────── */}
+        {localeVoices.length > 1 && (
+          <section className="space-y-2">
+            <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionVoices")}</p>
+            <div className="flex flex-wrap gap-theme-elements">
+              {localeVoices.map((vc) => {
+                const selected = selectedVoiceId === vc.ttsVoiceId;
+                return (
+                  <div key={vc.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setVoiceSel((prev) => ({ ...prev, [locale]: vc.ttsVoiceId }))}
+                      className={`w-28 h-28 flex flex-col items-center justify-center gap-1 px-2 rounded-theme text-center transition-colors ${
+                        selected
+                          ? "bg-theme-button-highlight text-theme-text"
+                          : "bg-theme-primary text-theme-alt-text hover:opacity-90"
+                      }`}
+                    >
+                      <span className="text-theme-p font-semibold">
+                        {vc.gender === "female" ? t("genderFemale") : t("genderMale")}
+                      </span>
+                      <span className="text-[0.65rem] font-mono opacity-80 break-all leading-tight">{vc.ttsVoiceId}</span>
+                      <span className="text-theme-s opacity-70 leading-tight">{vc.region}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => previewVoice(vc.ttsVoiceId)}
+                      aria-label={t("voicePreview")}
+                      className="absolute top-1 right-1 p-1.5 rounded-theme-sm bg-theme-primary text-theme-alt-text hover:opacity-90 transition-colors"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
 

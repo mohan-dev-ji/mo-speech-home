@@ -181,6 +181,23 @@ async function uploadMp3(key, buffer) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Retry transient failures — network blips ("fetch failed"), brief R2 clock-skew
+// during an NTP resync, R2/Convex 5xx. Exponential backoff. A persistently wrong
+// system clock won't be fixed by retrying (sync the clock + keep the machine
+// awake), but a momentary skew on wake will.
+async function withRetry(fn, attempts = 4) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) await sleep(500 * 2 ** i); // 0.5s → 1s → 2s
+    }
+  }
+  throw lastErr;
+}
+
 // ── Load all symbols (paginated) ──
 console.log(`🔗 Convex: ${CONVEX_URL}`);
 console.log(`🎙️  Voice: ${VOICE_ID} (languageCode=${languageCode}, words.${lang})${DRY_RUN ? "  [DRY RUN]" : ""}\n`);
@@ -245,7 +262,7 @@ async function flushFlags(force = false) {
   while (flagBuffer.length > 0 && (force || flagBuffer.length >= FLAG_BATCH)) {
     const batch = flagBuffer.splice(0, FLAG_BATCH);
     try {
-      await convex.mutation("symbols:setVoiceSeededBatch", { symbolIds: batch, voiceId: VOICE_ID });
+      await withRetry(() => convex.mutation("symbols:setVoiceSeededBatch", { symbolIds: batch, voiceId: VOICE_ID }));
     } catch (err) {
       errors.push({ kind: "flag-batch", size: batch.length, message: err.message });
       console.error(`  ❌ flag batch (${batch.length}) failed: ${err.message}`);
@@ -275,8 +292,8 @@ async function processOne(it) {
       if (!it.seededFlag) flagBuffer.push(it.id); // file present but flag missing → set it
       return;
     }
-    const buffer = await synthesise(it.spoken);
-    await uploadMp3(key, buffer);
+    const buffer = await withRetry(() => synthesise(it.spoken));
+    await withRetry(() => uploadMp3(key, buffer)); // separate retry — reuses the buffer, no re-synth
     uploaded += 1;
     if (!it.seededFlag) flagBuffer.push(it.id);
   } catch (err) {

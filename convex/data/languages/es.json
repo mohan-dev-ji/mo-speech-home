@@ -8,12 +8,16 @@
     {
       "id": "male",
       "label": "Adult male (Latin American Spanish)",
-      "ttsVoiceId": "es-US-Wavenet-C"
+      "ttsVoiceId": "es-US-Wavenet-C",
+      "gender": "male",
+      "region": "Latin America"
     },
     {
       "id": "female",
       "label": "Adult female (Latin American Spanish)",
-      "ttsVoiceId": "es-US-Wavenet-A"
+      "ttsVoiceId": "es-US-Wavenet-A",
+      "gender": "female",
+      "region": "Latin America"
     }
   ]
 }

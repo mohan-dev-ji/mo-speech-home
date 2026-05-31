@@ -16,6 +16,7 @@ import { Button } from "@/app/components/app/shared/ui/Button";
 import { Input } from "@/app/components/app/shared/ui/Input";
 import { HeaderModeControl } from "@/app/components/app/shared/ui/HeaderModeControl";
 import { getLanguage } from "@/lib/languages/registry";
+import { resolveVoiceId } from "@/lib/audio/resolveVoiceId";
 import { ChevronDown, Volume2 } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ function ProfileTabContent({
 }) {
   const t = useTranslations("studentProfile");
   const { setActiveProfile, allProfiles } = useProfile();
-  const { subscription } = useAppState();
+  const { subscription, userRecord } = useAppState();
 
   // Visible-language list — beta languages show with a "preview" pill.
   // Falls back to a hard-coded en/hi pair until the Convex query hydrates
@@ -145,11 +146,16 @@ function ProfileTabContent({
 
   // ── Voice ──
   // Voices come from the language registry for the profile's current language.
-  // `profile.voiceId` is the override; absent = inherit the account default.
+  // Selection is always explicit; the *resolved* voice (override → account
+  // default → first registry voice) is shown pre-selected so one tile is always
+  // active even before the instructor picks.
   const voices = getLanguage(currentLang)?.voices ?? [];
-  const currentVoiceId = profile.voiceId as string | undefined;
-  const handleVoiceChange = (voiceId: string | null) => {
-    // `null` clears the override (→ inherit account default for this language).
+  const selectedVoiceId = resolveVoiceId({
+    studentVoiceId: profile.voiceId,
+    voiceDefaults: userRecord?.voiceDefaults,
+    lang: currentLang,
+  });
+  const handleVoiceChange = (voiceId: string) => {
     updateProfile({ profileId: profile._id, voiceId });
   };
   const previewVoice = async (voiceId: string) => {
@@ -290,46 +296,41 @@ function ProfileTabContent({
         </div>
       </div>
 
-      {/* Voice — only shown when the current language offers a choice */}
+      {/* Voices — only shown when the current language offers a choice */}
       {voices.length > 1 && (
         <div>
-          <p className="text-small font-semibold text-foreground mb-2">{t("sectionVoice")}</p>
-          <div className="flex flex-col gap-2">
-            {/* Inherit account default */}
-            <button
-              type="button"
-              onClick={() => handleVoiceChange(null)}
-              className={`w-full py-2 px-3 rounded-md text-small font-medium border transition-colors text-left ${
-                currentVoiceId === undefined
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {t("voiceUseAccountDefault")}
-            </button>
-            {voices.map((vc) => (
-              <div key={vc.id} className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleVoiceChange(vc.ttsVoiceId)}
-                  className={`flex-1 py-2 px-3 rounded-md text-small font-medium border transition-colors text-left ${
-                    currentVoiceId === vc.ttsVoiceId
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-muted-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  {vc.label}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => previewVoice(vc.ttsVoiceId)}
-                  aria-label={t("voicePreview")}
-                  className="shrink-0 p-2 rounded-md border border-border text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Volume2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+          <p className="text-small font-semibold text-foreground mb-2">{t("sectionVoices")}</p>
+          <div className="flex flex-wrap gap-2">
+            {voices.map((vc) => {
+              const selected = selectedVoiceId === vc.ttsVoiceId;
+              return (
+                <div key={vc.id} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceChange(vc.ttsVoiceId)}
+                    className={`w-28 h-28 flex flex-col items-center justify-center gap-1 px-2 rounded-md border text-center transition-colors ${
+                      selected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    <span className="text-small font-semibold">
+                      {vc.gender === "female" ? t("genderFemale") : t("genderMale")}
+                    </span>
+                    <span className="text-[0.65rem] font-mono opacity-80 break-all leading-tight">{vc.ttsVoiceId}</span>
+                    <span className="text-caption opacity-70 leading-tight">{vc.region}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => previewVoice(vc.ttsVoiceId)}
+                    aria-label={t("voicePreview")}
+                    className="absolute top-1 right-1 p-1.5 rounded-md border border-border bg-background text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

@@ -28,6 +28,11 @@ export type VoiceEntry = {
   id: string;
   label: string;
   ttsVoiceId: string;
+  /** Speaker gender — surfaced in the settings voice picker. */
+  gender: "male" | "female";
+  /** Human-readable accent/region, e.g. "British English",
+   *  "Latin American Spanish" — surfaced in the settings voice picker. */
+  region: string;
 };
 
 /**
