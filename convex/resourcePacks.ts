@@ -285,6 +285,9 @@ export async function materialisePackIntoAccount(
       ...(sentence.audioPath !== undefined
         ? { audioPath: sentence.audioPath }
         : {}),
+      ...(sentence.recordedAudioPath !== undefined
+        ? { recordedAudioPath: sentence.recordedAudioPath }
+        : {}),
       librarySourceId: pack._id,
       updatedAt: now,
     });
@@ -1143,6 +1146,9 @@ function buildSentenceSnapshot(
     })),
     ...(sentence.audioPath !== undefined
       ? { audioPath: sentence.audioPath }
+      : {}),
+    ...(sentence.recordedAudioPath !== undefined
+      ? { recordedAudioPath: sentence.recordedAudioPath }
       : {}),
   };
 }

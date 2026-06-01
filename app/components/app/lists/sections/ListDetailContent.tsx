@@ -543,6 +543,7 @@ export function ListDetailContent({ listId }: Props) {
         checkedIds={checkedIds}
         onToggle={toggleChecked}
         onClose={() => setPlayModal(null)}
+        voiceId={voiceId}
       />
 
       {symbolPickerForIndex !== null && accountId && (

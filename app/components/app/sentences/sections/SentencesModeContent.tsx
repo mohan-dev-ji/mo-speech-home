@@ -95,6 +95,7 @@ type SentenceRow = {
   // typeof-guard + displayString through. See `text` consumers below.
   text?: string | Record<string, string>;
   audioPath?: string;
+  recordedAudioPath?: string;
   slots: Slot[];
   publishedToPackId?: Id<'resourcePacks'>;
   packSlug?: string;
@@ -307,6 +308,9 @@ type SortableSentenceRowProps = {
   sentence: SentenceRow;
   language: string;
   isEditing: boolean;
+  /** Phase 8.5 — audio available for the CURRENT voice (a recording, or cached/
+   *  seeded TTS). Drives the edit-mode "needs generation" nudge. */
+  audioReady?: boolean;
   onDeleteRequest: (id: Id<'profileSentences'>, name: string) => void;
   onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
@@ -330,7 +334,7 @@ type SortableSentenceRowProps = {
 };
 
 function SortableSentenceRow({
-  sentence, language, isEditing,
+  sentence, language, isEditing, audioReady = false,
   onDeleteRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditSentence, onPlay,
@@ -420,7 +424,7 @@ function SortableSentenceRow({
               </p>
               {/* Audio-status nudge — visible inside the click area so it
                   doubles as a call to action: "click here to add audio". */}
-              {sentence.audioPath ? (
+              {audioReady ? (
                 <span
                   className="mt-1 inline-flex items-center gap-1 text-theme-xs"
                   style={{ color: 'var(--theme-secondary-text)' }}
@@ -835,6 +839,23 @@ export function SentencesModeContent() {
 
   const filteredSentences = filteredOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
+  // Phase 8.5 — reactive "is audio available for the current voice" per sentence,
+  // driving the edit-mode "needs generation" nudge. Index-only batch lookup,
+  // only while editing (the signal is instructor/editing-only).
+  const rowText = (s: SentenceRow) => {
+    const txt = typeof s.text === 'string' ? s.text : displayString(s.text, language, DEFAULT_LOCALE);
+    return (txt || displayString(s.name, language, DEFAULT_LOCALE)).toLowerCase().trim();
+  };
+  const sentenceAudioTexts = isEditing
+    ? filteredSentences.map(rowText).filter(Boolean)
+    : [];
+  const audioAvail = useQuery(
+    api.ttsCache.checkMany,
+    isEditing && sentenceAudioTexts.length > 0
+      ? { texts: sentenceAudioTexts, voiceId }
+      : 'skip'
+  );
+
   const slotEditorSentence = slotEditTarget
     ? sentences?.find((s) => s._id === slotEditTarget.sentenceId)
     : undefined;
@@ -936,12 +957,16 @@ export function SentencesModeContent() {
               <div className="flex flex-col gap-3">
                 {filteredSentences.map((sentence) => {
                   const status = statusFor(sentence);
+                  const audioReady =
+                    !!sentence.recordedAudioPath ||
+                    audioAvail?.[rowText(sentence)]?.available === true;
                   return (
                     <SortableSentenceRow
                       key={sentence._id}
                       sentence={sentence}
                       language={language}
                       isEditing={isEditing}
+                      audioReady={audioReady}
                       onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
                       onEditSlot={handleEditSlot}
                       onRemoveSlot={handleRemoveSlot}
@@ -1050,7 +1075,6 @@ export function SentencesModeContent() {
           sentenceId={sentenceEditTarget.sentenceId}
           accountId={accountId}
           initialValue={sentenceEditTarget.value}
-          initialAudioPath={sentenceEditTarget.audioPath}
           onClose={() => setSentenceEditTarget(null)}
         />
       )}
@@ -1067,7 +1091,8 @@ export function SentencesModeContent() {
             : ''
         }
         slots={playTarget?.slots ?? []}
-        audioPath={playTarget?.audioPath}
+        recordedAudioPath={playTarget?.recordedAudioPath}
+        voiceId={voiceId}
         onClose={() => setPlayTarget(null)}
       />
 

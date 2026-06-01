@@ -519,7 +519,11 @@ export default defineSchema({
         })),
       })
     ),
-    audioPath: v.optional(v.string()), // global TTS key or profiles/.../audio/...
+    audioPath: v.optional(v.string()), // legacy single key (TTS or recording). Phase 8.5: TTS is resolved dynamically; this is back-compat only.
+    // Phase 8.5 — human recording override (voice-independent). Stored under
+    // accounts/<id>/audio/...; wins over dynamic TTS at play time. TTS is NOT
+    // stored — it's resolved per (text, voice) via the global ttsCache.
+    recordedAudioPath: v.optional(v.string()),
     // Admin-only forward link — see profileCategories.publishedToPackId.
     publishedToPackId: v.optional(v.id("resourcePacks")),
     // V2 (ADR-010) — see profileCategories.packSlug.
@@ -698,6 +702,8 @@ export default defineSchema({
           })
         ),
         audioPath: v.optional(v.string()),
+        // Phase 8.5 — human recording override (voice-independent); parity with profileSentences.
+        recordedAudioPath: v.optional(v.string()),
       })
     ),
   })

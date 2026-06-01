@@ -40,6 +40,14 @@ export const getProfileSentences = query({
       order:     s.order,
       text:      s.text,
       audioPath: s.audioPath,
+      // Phase 8.5 — human recording override. Read-time backfill: a legacy
+      // `audioPath` under the recording prefix (accounts/<id>/audio/...) is a
+      // recording, so surface it as the override even before it was migrated.
+      // Legacy TTS audioPaths are NOT surfaced here — they're superseded by
+      // dynamic per-voice resolution.
+      recordedAudioPath:
+        s.recordedAudioPath ??
+        (s.audioPath?.startsWith("accounts/") ? s.audioPath : undefined),
       slots:     [...s.slots].sort((a, b) => a.order - b.order),
       publishedToPackId: s.publishedToPackId,
       packSlug: s.packSlug,
@@ -127,7 +135,13 @@ export const updateProfileSentenceAudio = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
     text:      v.optional(v.string()),
-    audioPath: v.optional(v.string()),
+    // Phase 8.5: TTS is no longer stored here — it's resolved per (text, voice)
+    // from the global ttsCache. Pass `recordedAudioPath` for a human recording
+    // (null clears it). `audioPath` kept for back-compat (null clears). Only
+    // fields explicitly provided are patched, so a TTS-only save leaves any
+    // existing recording intact.
+    recordedAudioPath: v.optional(v.union(v.string(), v.null())),
+    audioPath: v.optional(v.union(v.string(), v.null())),
     propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -135,11 +149,11 @@ export const updateProfileSentenceAudio = mutation({
     requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
-    await ctx.db.patch(args.profileSentenceId, {
-      text:      args.text,
-      audioPath: args.audioPath,
-      updatedAt: Date.now(),
-    });
+    const patch: Record<string, unknown> = { updatedAt: Date.now() };
+    if (args.text !== undefined) patch.text = args.text;
+    if (args.recordedAudioPath !== undefined) patch.recordedAudioPath = args.recordedAudioPath ?? undefined;
+    if (args.audioPath !== undefined) patch.audioPath = args.audioPath ?? undefined;
+    await ctx.db.patch(args.profileSentenceId, patch);
     if (args.propagateToPack) {
       await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
     }

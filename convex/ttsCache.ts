@@ -1,76 +1,127 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { QueryCtx } from "./_generated/server";
+import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
+
+type ResolveResult =
+  | { source: "symbolstix"; englishWord: string; audioBasename?: string }
+  | { source: "ttsCache"; r2Key: string }
+  | { source: "none" };
 
 /**
- * Look up a TTS cache entry.
- *
- * Checks the symbols table first (free SymbolStix audio), then `ttsCache`.
- * Returns either a resolved R2 path or `source: "none"` to tell the caller
- * to synthesise fresh TTS.
+ * Shared resolution used by `lookup` (the /api/tts entry point) and `checkMany`
+ * (the authoring availability signal). Checks SymbolStix seeded audio first
+ * (free), then the global `ttsCache`, else "none". Index reads only — no R2
+ * HEAD; the seeded boolean flag is trusted (same optimism as before).
  *
  * Per ADR-009 §4: audio paths are convention-resolved by the audio resolver
  * (`lib/audio/resolveAudioPath.ts`) — never stored on `symbols.audio`.
  * `symbols.audio[voiceId]` is a boolean meaning "this voice has been seeded
- * with a SymbolStix recording for this symbol."
+ * with a SymbolStix recording for this symbol." Cache key is per-voice.
+ */
+async function resolveCachedAudio(
+  ctx: QueryCtx,
+  text: string,
+  voiceId: string
+): Promise<ResolveResult> {
+  // Match against SymbolStix case-insensitively. The exact-match index
+  // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
+  // so we hit the tokenised search index and confirm a result's label
+  // matches when lowercased. Confirmation guards against false positives
+  // ("apple" → "Apple Pie") that the search index would otherwise rank.
+  //
+  // Take a small batch instead of just `.first()`: the relevance ranker can
+  // surface a longer/multi-word symbol above the exact single-word match
+  // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
+  // at the top result would cause us to miss a perfectly valid SymbolStix
+  // recording and fall through to fresh TTS synthesis.
+  const candidates = await ctx.db
+    .query("symbols")
+    .withSearchIndex("search_words_en", (q) => q.search("words.en", text))
+    .take(10);
+
+  const exact = candidates.find(
+    (c) => (c.words.en ?? "").toLowerCase().trim() === text
+  );
+  if (exact) {
+    const audioMap = exact.audio as Record<string, boolean>;
+    if (audioMap?.[voiceId] === true) {
+      return {
+        source: "symbolstix",
+        englishWord: exact.words.en,
+        audioBasename: exact.audioBasename,
+      };
+    }
+  }
+
+  // Check global TTS cache
+  const cached = await ctx.db
+    .query("ttsCache")
+    .withIndex("by_text_voice", (q) =>
+      q.eq("text", text).eq("voiceId", voiceId)
+    )
+    .first();
+
+  if (cached) {
+    return { source: "ttsCache", r2Key: cached.r2Key };
+  }
+
+  return { source: "none" };
+}
+
+/**
+ * Look up a TTS cache entry (entry point for /api/tts).
  *
- * Cache key is per-voice (not per-language). The expected cache wipe on
- * the Phase 8.0 deploy is intentional — Phase 8.0 plan notes this.
+ * Returns either a resolved R2 path or `source: "none"` to tell the caller
+ * to synthesise fresh TTS.
  */
 export const lookup = query({
   args: {
     text: v.string(),    // normalised (lowercase, trimmed)
     voiceId: v.string(),
   },
-  handler: async (ctx, { text, voiceId }) => {
-    // Match against SymbolStix case-insensitively. The exact-match index
-    // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
-    // so we hit the tokenised search index and confirm a result's label
-    // matches when lowercased. Confirmation guards against false positives
-    // ("apple" → "Apple Pie") that the search index would otherwise rank.
-    //
-    // Take a small batch instead of just `.first()`: the relevance ranker can
-    // surface a longer/multi-word symbol above the exact single-word match
-    // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
-    // at the top result would cause us to miss a perfectly valid SymbolStix
-    // recording and fall through to fresh TTS synthesis.
-    const candidates = await ctx.db
-      .query("symbols")
-      .withSearchIndex("search_words_en", (q) => q.search("words.en", text))
-      .take(10);
+  handler: async (ctx, { text, voiceId }) => resolveCachedAudio(ctx, text, voiceId),
+});
 
-    const exact = candidates.find(
-      (c) => (c.words.en ?? "").toLowerCase().trim() === text
-    );
-    if (exact) {
-      // `audio` is a voice-keyed boolean map per ADR-009 §4 — true means a
-      // seeded recording exists at the convention path. The Phase 8.0
-      // recovery `migrations.backfillAudioBasenames` populates
-      // `audioBasename` with the MVP's per-symbol R2 filename — the route
-      // handler resolves the final R2 path via lib/audio/resolveAudioPath.ts
-      // using this English word + basename.
-      const audioMap = exact.audio as Record<string, boolean>;
-      if (audioMap?.[voiceId] === true) {
-        return {
-          source: "symbolstix" as const,
-          englishWord: exact.words.en,
-          audioBasename: exact.audioBasename,
-        };
+/**
+ * Batch availability check for the authoring "needs generation for this voice"
+ * signal (Phase 8.5). For each text, returns whether audio is already available
+ * for the voice (SymbolStix seeded OR cached TTS) and, when available, the
+ * ready-to-play `r2Key` so the client can play cached audio SYNCHRONOUSLY
+ * inside a tap (gesture-safe on iOS — no /api/tts round-trip needed).
+ *
+ * Index reads only — cheap for the ~10–50 rows on a Lists/Sentences page.
+ * Texts are normalised here (lowercase + trim) exactly like /api/tts, and the
+ * returned map is keyed by that normalised text.
+ */
+export const checkMany = query({
+  args: {
+    texts: v.array(v.string()),
+    voiceId: v.string(),
+  },
+  handler: async (ctx, { texts, voiceId }) => {
+    const out: Record<string, { available: boolean; r2Key?: string }> = {};
+    for (const raw of texts) {
+      const text = raw.toLowerCase().trim();
+      if (!text || text in out) continue;
+      const res = await resolveCachedAudio(ctx, text, voiceId);
+      if (res.source === "ttsCache") {
+        out[text] = { available: true, r2Key: res.r2Key };
+      } else if (res.source === "symbolstix") {
+        // Convention-resolve the seeded path so a cached tap can play it
+        // synchronously. `true` = seeded (flag already confirmed above).
+        const key = resolveSymbolAudioPath(
+          voiceId,
+          res.englishWord,
+          true,
+          res.audioBasename
+        );
+        out[text] = { available: true, r2Key: key ?? undefined };
+      } else {
+        out[text] = { available: false };
       }
     }
-
-    // Check global TTS cache
-    const cached = await ctx.db
-      .query("ttsCache")
-      .withIndex("by_text_voice", (q) =>
-        q.eq("text", text).eq("voiceId", voiceId)
-      )
-      .first();
-
-    if (cached) {
-      return { source: "ttsCache" as const, r2Key: cached.r2Key };
-    }
-
-    return { source: "none" as const };
+    return out;
   },
 });
 

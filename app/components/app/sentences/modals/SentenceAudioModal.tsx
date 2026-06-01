@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { playKey } from '@/lib/audio/playTts';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +38,6 @@ export function SentenceAudioModal({
   sentenceId,
   accountId,
   initialValue = '',
-  initialAudioPath,
   onClose,
 }: Props) {
   const t = useTranslations('sentences');
@@ -48,7 +48,11 @@ export function SentenceAudioModal({
   const propagateToPack = viewMode === 'admin' && isAdmin;
 
   const [value, setValue] = useState(initialValue);
-  const [ttsKey, setTtsKey] = useState<string | undefined>(initialAudioPath);
+  // TTS is no longer stored on the sentence (Phase 8.5) — it's resolved per
+  // (text, voice) from the global ttsCache. `ttsKey` is only set when the user
+  // generates THIS session, which both warms the cache and signals "use TTS"
+  // (clears any recording on save).
+  const [ttsKey, setTtsKey] = useState<string | undefined>(undefined);
   const [ttsSource, setTtsSource] = useState<'cache' | 'generated' | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -68,13 +72,13 @@ export function SentenceAudioModal({
   useEffect(() => {
     if (isOpen) {
       setValue(initialValue);
-      setTtsKey(initialAudioPath);
+      setTtsKey(undefined);
       setTtsSource(null);
       setGenerateError(null);
       setRecordedBlobUrl(null);
       setRecordedBlob(null);
     }
-  }, [isOpen, initialValue, initialAudioPath]);
+  }, [isOpen, initialValue]);
 
   useEffect(() => {
     return () => {
@@ -107,11 +111,6 @@ export function SentenceAudioModal({
     } finally {
       setIsGenerating(false);
     }
-  }
-
-  function playTts() {
-    if (!ttsKey) return;
-    new Audio(`/api/assets?key=${ttsKey}`).play().catch(() => {});
   }
 
   async function startRecording() {
@@ -156,18 +155,29 @@ export function SentenceAudioModal({
     if (!sentenceId) return;
     setIsSaving(true);
     try {
-      let audioPath: string | undefined = ttsKey;
-      if (recordedBlob) {
-        const ext = recordedBlob.type.includes('ogg') ? 'ogg' : 'webm';
-        const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
-        await uploadBlobToR2(recordedBlob, key);
-        audioPath = key;
-      }
       const trimmedValue = value.trim();
       if (trimmedValue) {
         await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue }, propagateToPack });
       }
-      await updateAudio({ profileSentenceId: sentenceId, text: trimmedValue || undefined, audioPath, propagateToPack });
+      // Phase 8.5: never store TTS — it lives in the global ttsCache and is
+      // resolved per voice at play time. A new recording is the only audio we
+      // persist; generating TTS this session (ttsKey set) means "use TTS" → clear
+      // any prior recording. A text-only edit leaves audio untouched.
+      let recordedAudioPath: string | null | undefined;
+      if (recordedBlob) {
+        const ext = recordedBlob.type.includes('ogg') ? 'ogg' : 'webm';
+        const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
+        await uploadBlobToR2(recordedBlob, key);
+        recordedAudioPath = key;
+      } else if (ttsKey) {
+        recordedAudioPath = null; // chose TTS → drop any existing recording
+      }
+      await updateAudio({
+        profileSentenceId: sentenceId,
+        text: trimmedValue || undefined,
+        ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
+        propagateToPack,
+      });
       onClose();
     } finally {
       setIsSaving(false);
@@ -224,7 +234,7 @@ export function SentenceAudioModal({
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={playTts}
+                  onClick={() => { if (ttsKey) playKey(ttsKey); }}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-theme-sm text-theme-s font-medium"
                   style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)', border: '1px solid var(--theme-button-highlight)' }}
                 >

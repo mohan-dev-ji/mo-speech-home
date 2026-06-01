@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
+import { playKey, playTts } from '@/lib/audio/playTts';
 import type { ListItem } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -61,6 +62,8 @@ type ListItemPlayModalProps = {
   checkedIds: Set<string>;
   onToggle: (localId: string) => void;
   onClose: () => void;
+  /** Active voice — TTS resolved per (description, voiceId) at play time. */
+  voiceId: string;
 };
 
 export function ListItemPlayModal({
@@ -71,18 +74,25 @@ export function ListItemPlayModal({
   checkedIds,
   onToggle,
   onClose,
+  voiceId,
 }: ListItemPlayModalProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     audioRef.current?.pause();
-    if (state?.item.audioPath) {
-      const audio = new Audio(`/api/assets?key=${state.item.audioPath}`);
-      audioRef.current = audio;
-      audio.play().catch(() => {});
+    const item = state?.item;
+    if (item) {
+      // Phase 8.5: a human recording wins (any voice); otherwise resolve TTS for
+      // the current voice (cache hit or cold-tap synthesise).
+      if (item.activeAudioSource === 'record' && item.recordedAudioPath) {
+        audioRef.current = playKey(item.recordedAudioPath);
+      } else if (item.description) {
+        audioRef.current = null;
+        playTts(item.description, voiceId);
+      }
     }
     return () => { audioRef.current?.pause(); };
-  }, [state]);
+  }, [state, voiceId]);
 
   if (!state) return null;
   const { item, index } = state;

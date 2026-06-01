@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { playKey, playTts } from '@/lib/audio/playTts';
 
 type Slot = {
   order: number;
@@ -12,18 +13,26 @@ type SentencePlayModalProps = {
   isOpen: boolean;
   sentenceText: string;
   slots: Slot[];
-  audioPath?: string;
+  /** Human recording override — voice-independent; wins over dynamic TTS. */
+  recordedAudioPath?: string;
+  /** Active voice — TTS is resolved per (sentenceText, voiceId) at play time. */
+  voiceId: string;
   onClose: () => void;
 };
 
 export function SentencePlayModal({
-  isOpen, sentenceText, slots, audioPath, onClose,
+  isOpen, sentenceText, slots, recordedAudioPath, voiceId, onClose,
 }: SentencePlayModalProps) {
   useEffect(() => {
-    if (isOpen && audioPath) {
-      new Audio(`/api/assets?key=${audioPath}`).play().catch(() => {});
+    if (!isOpen) return;
+    // Recording wins (any voice); otherwise resolve TTS for the current voice
+    // (cache hit, or synthesise on a cold first tap) — Phase 8.5.
+    if (recordedAudioPath) {
+      playKey(recordedAudioPath);
+    } else if (sentenceText) {
+      playTts(sentenceText, voiceId);
     }
-  }, [isOpen, audioPath]);
+  }, [isOpen, recordedAudioPath, voiceId, sentenceText]);
 
   if (!isOpen) return null;
 
