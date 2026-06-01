@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 // busy state is tracked per-slug via `busySlug` so individual rows can show
 // a spinner while sibling rows stay interactive.
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
@@ -68,8 +68,16 @@ function packTagSet(p: PackRow): Set<string> {
  * reflects in the table without a page refresh.
  */
 export function LibraryAdminTable({ initialPacks }: Props) {
+  // Gate live admin queries on Convex auth readiness — on a hard refresh the
+  // Convex client connects a beat before ConvexProviderWithClerk attaches the
+  // Clerk JWT, and an admin query fired in that window throws UNAUTHENTICATED.
+  // `'skip'` until authenticated; SSR `initialPacks` shows meanwhile.
+  const { isAuthenticated } = useConvexAuth();
   // Subscribe live; fall back to initialPacks until the first hydration.
-  const livePacks = useQuery(api.resourcePacks.listAllPacksForAdmin);
+  const livePacks = useQuery(
+    api.resourcePacks.listAllPacksForAdmin,
+    isAuthenticated ? {} : "skip"
+  );
   const packs = (livePacks ?? initialPacks) as PackRow[];
 
   const updateLifecycle = useMutation(api.resourcePacks.updatePackLifecycle);
@@ -88,7 +96,10 @@ export function LibraryAdminTable({ initialPacks }: Props) {
   // Catalogue-wide tag union. Subscribed once at the table level; passed
   // into both the filter chip row and the edit modal so they share one
   // source of truth and update live when an admin adds a brand-new tag.
-  const tagSuggestions = useQuery(api.resourcePacks.getAllTagsInUse) ?? [];
+  const tagSuggestions = useQuery(
+    api.resourcePacks.getAllTagsInUse,
+    isAuthenticated ? {} : "skip"
+  ) ?? [];
 
   const filtered = useMemo(() => {
     return packs.filter((p) => {

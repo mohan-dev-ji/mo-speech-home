@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import {
@@ -63,7 +63,16 @@ type TranslationFilter = "all" | LanguageTranslationStatus;
  * a follow-up).
  */
 export function LanguagesAdminTable({ initialLanguages }: Props) {
-  const liveLanguages = useQuery(api.languages.listAllLanguagesForAdmin);
+  // Gate the live query on Convex auth readiness. On a hard refresh the Convex
+  // client connects a beat before ConvexProviderWithClerk hands it the Clerk
+  // JWT; firing an admin query in that window throws UNAUTHENTICATED (which
+  // crashes this client component and prevents the row dropdowns from mounting).
+  // `'skip'` until authenticated; the SSR `initialLanguages` shows meanwhile.
+  const { isAuthenticated } = useConvexAuth();
+  const liveLanguages = useQuery(
+    api.languages.listAllLanguagesForAdmin,
+    isAuthenticated ? {} : "skip"
+  );
   const languages = (liveLanguages ?? initialLanguages) as LanguageRow[];
 
   const updateLifecycle = useMutation(api.languages.updateLanguageLifecycle);

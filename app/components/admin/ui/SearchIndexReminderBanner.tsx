@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { Button } from "@/app/components/app/shared/ui/Button";
-import { Check, Copy, CheckCircle2 } from "lucide-react";
+import { Check, Copy, CheckCircle2, ChevronRight } from "lucide-react";
 
 type Props = {
   slug: string;
@@ -41,53 +41,57 @@ export function SearchIndexReminderBanner({ slug, job }: Props) {
   }
 
   return (
-    <div className="mt-2 rounded-md border border-success/40 bg-success/5 p-3 space-y-2">
-      <div className="flex items-start gap-2">
-        <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-        <div className="space-y-1 flex-1">
-          <p className="text-small font-medium">
-            Symbol translation complete — {job.processedCount.toLocaleString()}{" "}
-            symbols translated into <span className="font-mono">{slug}</span>.
-          </p>
-          <p className="text-caption text-muted-foreground">
-            To enable in-app search against the new translations, add this index
-            to <span className="font-mono">convex/schema.ts</span> on the{" "}
-            <span className="font-mono">symbols</span> table, then redeploy:
-          </p>
-        </div>
-      </div>
+    // Collapsed by default so the completion detail can't widen the table cell
+    // and push the Publish/Translation/actions columns off-screen. `max-w` caps
+    // it; `<details>` keeps the verbose snippet one click away under "Seed details".
+    <details className="group mt-2 max-w-md rounded-md border border-success/40 bg-success/5">
+      <summary className="flex items-center gap-2 p-2 cursor-pointer list-none select-none">
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform group-open:rotate-90" />
+        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+        <span className="text-caption font-medium truncate">
+          Seed details — {job.processedCount.toLocaleString()} symbols → {slug}
+        </span>
+      </summary>
 
-      <div className="flex items-stretch gap-2">
-        <code className="flex-1 font-mono text-caption bg-background border border-border rounded px-2 py-1.5 overflow-x-auto whitespace-nowrap">
-          {snippet}
-        </code>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={copySnippet}
-          aria-label="Copy snippet"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 mr-1" />
-              Copied
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5 mr-1" />
-              Copy
-            </>
-          )}
-        </Button>
-      </div>
-
-      {job.actualInputTokens !== undefined && (
-        <p className="text-caption text-muted-foreground tabular-nums">
-          Tokens used: {(job.actualInputTokens ?? 0).toLocaleString()} input ·{" "}
-          {(job.actualOutputTokens ?? 0).toLocaleString()} output
+      <div className="px-3 pb-3 pt-1 space-y-2">
+        <p className="text-caption text-muted-foreground">
+          To enable in-app search against the new translations, add this index
+          to <span className="font-mono">convex/schema.ts</span> on the{" "}
+          <span className="font-mono">symbols</span> table, then redeploy:
         </p>
-      )}
-    </div>
+
+        <div className="flex items-stretch gap-2">
+          <code className="flex-1 min-w-0 font-mono text-caption bg-background border border-border rounded px-2 py-1.5 overflow-x-auto whitespace-nowrap">
+            {snippet}
+          </code>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={copySnippet}
+            aria-label="Copy snippet"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 mr-1" />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 mr-1" />
+                Copy
+              </>
+            )}
+          </Button>
+        </div>
+
+        {job.actualInputTokens !== undefined && (
+          <p className="text-caption text-muted-foreground tabular-nums">
+            Tokens used: {(job.actualInputTokens ?? 0).toLocaleString()} input ·{" "}
+            {(job.actualOutputTokens ?? 0).toLocaleString()} output
+          </p>
+        )}
+      </div>
+    </details>
   );
 }
