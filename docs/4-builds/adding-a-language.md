@@ -19,7 +19,7 @@ case is **Hindi**.
 | 2 | **Lifecycle / visibility** (machine-translated → beta → stable + publish window) | `languageLifecycle` table | `/admin/languages` UI |
 | 3 | **UI strings** | `messages/<code>.json` (mirror of `messages/en.json`) | translate the `"… (hi)"` placeholders |
 | 4 | **Symbol translations** (`words.<code>` + `synonyms.<code>` on ~58,807 rows) | `symbols` table | AI pipeline (admin) |
-| 5 | **Search index** | `convex/schema.ts` `search_words_<code>` | code edit (already exists for en/hi/es) |
+| 5 | **Search index** | `convex/schema.ts` `search_text_<code>` over `searchText.<code>` (word+synonyms combined) | code edit (already exists for en/hi/es) |
 | 6 | **Library-pack translations** | `resourcePacks` snapshots | `scripts/translate-pack.mjs` |
 | 7 | **Voices** (catalog + per-voice seeded symbol audio) | `lib/r2-paths.ts` + `<code>.json` voices + R2 | `scripts/seed-voice-audio.mjs` |
 | 8 | **Sentence/list audio** | resolved dynamically per `(text, voice)` | nothing to do — Phase 8.5 makes it automatic once #4 + #7 exist |
@@ -33,7 +33,7 @@ A language is "fully made" when 1–7 are done. #8 is free.
 Hindi is **not a new language to add** — it's an existing one to *fill in*. Already done:
 
 - ✅ `convex/data/languages/hi.json` — correct: `"scriptFamily": "non-latin"`, `"font": "notoSansDevanagari"`, `"nativeLabel": "हिन्दी"`, imported in `_index.ts`.
-- ✅ `search_words_hi` index in `convex/schema.ts`.
+- ✅ `search_text_hi` index in `convex/schema.ts` (over the combined `searchText.hi`).
 - ✅ `languageLifecycle` row — Hindi is currently **`stable`/visible** (legacy from the original hard-coded en+hi build).
 - ✅ `messages/hi.json` — **all keys exist**, but most values are `"English value (hi)"` placeholders.
 - ✅ The AI translation prompt already has a **non-latin / Devanagari variant** (native script word + 2 native synonyms + 2 Latin transliterations).
@@ -142,7 +142,17 @@ token accounting and straggler handling are all built in):
 
 The non-latin prompt writes `words.hi` in Devanagari **and** puts 2 Devanagari
 synonyms + 2 Latin transliterations into `synonyms.hi` (so search works from either
-keyboard). `search_words_hi` picks them up with no extra config.
+keyboard). Search reaches those via the combined **`searchText.hi`** field (word +
+synonyms joined into one indexable string) — the pipeline writes `searchText.hi` at
+the same time it writes `words`/`synonyms`, so a freshly-translated language is
+searchable with no extra step. The index is `search_text_hi` over `searchText.hi`.
+
+> **Why not search `synonyms.hi` directly?** Convex full-text search needs a single
+> string `searchField`; `synonyms.<code>` is a `string[]`, which can't be indexed. So
+> transliteration search rides on `searchText.<code>`, not the array. See ADR-009 §9
+> *Correction (2026-06-02)*. Pre-existing rows (translated before this landed) were
+> backfilled once via `npx convex run migrations:backfillSearchText` — idempotent,
+> additive, re-derivable from `words`+`synonyms`.
 
 Snapshot the result for review history:
 ```bash
@@ -290,7 +300,7 @@ node --env-file=.env.local scripts/seed-voice-audio.mjs --voice <id> --flags-onl
 
 # Adding a brand-new language (NOT Hindi — Hindi already has these):
 #  1) convex/data/languages/<code>.json  (+ import in _index.ts)
-#  2) add search_words_<code> index in convex/schema.ts
+#  2) add search_text_<code> index (searchField "searchText.<code>") in convex/schema.ts
 #  3) messages/<code>.json (copy en.json, values → "English (… )" placeholders)
 #  4) /admin/languages → create lifecycle row → then steps B–D above
 ```

@@ -55,8 +55,9 @@ const localisedAudioSource = v.record(v.string(), audioSource);
 // closed at schema time, but auto-widening from the registry.
 //
 // **Promoting a new language to stable** still requires a one-line schema
-// PR to add `searchIndex("search_words_<code>", ...)` below. The admin
-// UI surfaces a copy-pasteable snippet when a translation job completes.
+// PR to add `searchIndex("search_text_<code>", ...)` below (searching the
+// combined `searchText.<code>` surface). The admin UI surfaces a
+// copy-pasteable snippet when a translation job completes.
 const DEFAULT_LOCALE = "en";
 
 // The field map is built dynamically from `LANGUAGE_MODULES` so adding a
@@ -80,6 +81,22 @@ for (const mod of LANGUAGE_MODULES) {
   symbolSynonymsFields[mod.code] = v.optional(v.array(v.string()));
 }
 const symbolSynonyms = v.object(symbolSynonymsFields);
+
+// Combined per-language search string: `words[code]` joined with every
+// `synonyms[code]` entry (native variants AND Latin transliterations) into a
+// single space-separated string. Convex full-text search requires a single
+// string `searchField` — arrays like `synonyms` can't be indexed directly, so
+// a Latin-keyboard user typing "kutta" could never match `कुत्ता` while the
+// transliteration lived only in the (unindexable) synonyms array. This field
+// is the indexable surface that fixes that (ADR-009 §9). All keys optional —
+// only languages with a translation get an entry. Populated by
+// `migrations.backfillSearchText` and kept in sync by `applyTranslationsBatch`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const symbolSearchTextFields: Record<string, any> = {};
+for (const mod of LANGUAGE_MODULES) {
+  symbolSearchTextFields[mod.code] = v.optional(v.string());
+}
+const symbolSearchText = v.object(symbolSearchTextFields);
 
 // Voice-keyed audio map — replaces the legacy path-storing shape on symbols.
 // Per ADR-009 §4: the path is convention-resolved by
@@ -126,6 +143,9 @@ export default defineSchema({
   symbols: defineTable({
     words: symbolWords,
     synonyms: v.optional(symbolSynonyms),
+    // Combined word+synonyms search surface, keyed by language. See
+    // `symbolSearchText` above + the `search_text_<code>` indexes below.
+    searchText: v.optional(symbolSearchText),
     imagePath: v.string(), // R2 path — SymbolStix licensed, read-only
     // Voice-keyed map of "is voice seeded with SymbolStix recording" booleans.
     // Path is convention-resolved by lib/audio/resolveAudioPath.ts. Per ADR-009 §4.
@@ -145,16 +165,20 @@ export default defineSchema({
     .index("by_priority", ["priority"])
     .index("by_imagePath", ["imagePath"])
     .index("by_words_en", ["words.en"])
-    .searchIndex("search_words_en", {
-      searchField: "words.en",
+    // Search the combined `searchText.<code>` surface (word + synonyms +
+    // transliterations), not the bare `words.<code>`, so search matches
+    // synonyms and Latin transliterations too. `searchText.<code>` includes
+    // the word itself, so native-script search is unaffected. Per ADR-009 §9.
+    .searchIndex("search_text_en", {
+      searchField: "searchText.en",
       filterFields: ["priority"],
     })
-    .searchIndex("search_words_hi", {
-      searchField: "words.hi",
+    .searchIndex("search_text_hi", {
+      searchField: "searchText.hi",
       filterFields: ["priority"],
     })
-    .searchIndex("search_words_es", {
-      searchField: "words.es",
+    .searchIndex("search_text_es", {
+      searchField: "searchText.es",
       filterFields: ["priority"],
     }),
 

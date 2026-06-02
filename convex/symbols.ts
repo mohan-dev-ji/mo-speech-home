@@ -76,9 +76,12 @@ export const setVoiceSeededBatch = mutation({
 /**
  * Language-aware full-text symbol search.
  *
- * Uses the correct search index for the active language:
- *   "en" → search_words_en (words.en field)
- *   "hi" → search_words_hi (words.hi field)
+ * Uses the correct search index for the active language, searching the
+ * combined `searchText.<code>` surface (word + synonyms + transliterations),
+ * not the bare `words.<code>` — so "kutta" matches कुत्ता (ADR-009 §9):
+ *   "en" → search_text_en (searchText.en field)
+ *   "hi" → search_text_hi (searchText.hi field)
+ *   "es" → search_text_es (searchText.es field)
  *
  * Other languages currently fall back to the en index — Convex search indexes
  * are static (not record-aware), so each stable language needs an explicit
@@ -111,8 +114,8 @@ export const searchSymbols = query({
     if (language === "hi") {
       return ctx.db
         .query("symbols")
-        .withSearchIndex("search_words_hi", (q) =>
-          q.search("words.hi", searchTerm)
+        .withSearchIndex("search_text_hi", (q) =>
+          q.search("searchText.hi", searchTerm)
         )
         .take(limit);
     }
@@ -120,16 +123,16 @@ export const searchSymbols = query({
     if (language === "es") {
       return ctx.db
         .query("symbols")
-        .withSearchIndex("search_words_es", (q) =>
-          q.search("words.es", searchTerm)
+        .withSearchIndex("search_text_es", (q) =>
+          q.search("searchText.es", searchTerm)
         )
         .take(limit);
     }
 
     return ctx.db
       .query("symbols")
-      .withSearchIndex("search_words_en", (q) =>
-        q.search("words.en", searchTerm)
+      .withSearchIndex("search_text_en", (q) =>
+        q.search("searchText.en", searchTerm)
       )
       .take(limit);
   },
@@ -330,9 +333,20 @@ export const applyTranslationsBatch = internalMutation({
         ...((sym.synonyms ?? {}) as Record<string, string[]>),
         [slug]: entry.synonyms,
       };
+      // Keep the indexed search surface in sync: word + all synonyms /
+      // transliterations joined into one string (see schema `symbolSearchText`
+      // + `search_text_<code>`). Mirrors `migrations.backfillSearchText`.
+      const nextSearchText = {
+        ...((sym.searchText ?? {}) as Record<string, string>),
+        [slug]: [entry.word, ...entry.synonyms]
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(" "),
+      };
       await ctx.db.patch(entry.symbolId, {
         words: nextWords,
         synonyms: nextSynonyms,
+        searchText: nextSearchText,
       });
       patched++;
     }

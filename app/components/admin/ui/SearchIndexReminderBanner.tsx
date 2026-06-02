@@ -25,7 +25,7 @@ type Props = {
 export function SearchIndexReminderBanner({ slug, job }: Props) {
   const [copied, setCopied] = useState(false);
 
-  const snippet = `.searchIndex("search_words_${slug}", { searchField: "words.${slug}", filterFields: ["priority"] })`;
+  const snippet = `.searchIndex("search_text_${slug}", { searchField: "searchText.${slug}", filterFields: ["priority"] })`;
 
   function copySnippet() {
     navigator.clipboard.writeText(snippet).then(
