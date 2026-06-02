@@ -91,6 +91,30 @@ next-intl hot-reloads — just refresh the app in `hi`.
 > top-level namespaces. For a deep check, compare with a small recursive script or
 > just rely on `grep -c '(hi)'` trending to 0.
 
+> **⚠️ Hindi-only first-run quirk (does NOT apply to future languages).**
+> The `/admin/languages` → **Translate UI strings** route is diff-based: it stores a
+> `_sourceSnapshot` of the English values it translated, and on re-runs **skips** any key
+> whose English source is unchanged. But `messages/hi.json` is hand-authored legacy and
+> has **no `_sourceSnapshot`** — so the *first* run treats every key as new and
+> **re-translates all 782**, including:
+>   - the ~20 hand-done Devanagari values from the original en+hi build, and
+>   - the ~19 deliberately-English literals (`£9.99`, the typed confirm-words `DELETE` /
+>     `RELOAD`, size codes `S`/`M`/`L`, `Pro`/`Max`).
+> After this one run a snapshot is written, so all later runs behave correctly (skip
+> unchanged). **This is unique to Hindi** — every language added via the pipeline gets a
+> snapshot from its first translate, so it never re-translates wholesale. Two ways to
+> handle the Hindi first run:
+>   1. **Run, then review the diff** (recommended): `git diff messages/hi.json` and
+>      spot-check the ~20 Devanagari keys + the literals. The typed confirm-words
+>      (`confirmPlaceholder` / `reloadDefaultsConfirmPlaceholder`) **should translate** —
+>      both `DeleteAccountDialog` and `ReloadDefaultsDialog` compare typed input against the
+>      *localised* placeholder, so es shows ELIMINAR/RECARGAR and hi shows Devanagari, and
+>      they work. The values that should stay literal are **prices** (`£9.99`) and **size
+>      codes** (`S`/`M`/`L`, `h2`/`h4`) — confirm those didn't get translated. Quick scan;
+>      leaves a clean snapshot.
+>   2. **Pre-seed the snapshot** to protect those ~39 keys before running, so only the
+>      743 placeholders translate. More surgical, more setup.
+
 ### Layer B — Symbol translations (`words.hi`)  ⟷ Phase 8.2
 This is the AI pipeline (`convex/translationActions.ts` → `translateSymbolsBatch`,
 self-scheduling, idempotent, resumable, Devanagari-aware).
