@@ -5702,7 +5702,7 @@
           "audioPath": "audio/eng/default/turn_water_on.mp3",
           "defaultAudioPath": "audio/eng/default/turn_water_on.mp3",
           "description": {
-            "en": "turn water on (hi)",
+            "en": "turn water on",
             "es": "Abrir el grifo"
           },
           "imagePath": "symbols/turn_water_on.png",

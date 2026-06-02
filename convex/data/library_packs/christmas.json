@@ -1,200 +1,314 @@
 {
   "slug": "christmas",
   "name": {
-    "en": "Christmas"
+    "en": "Christmas",
+    "es": "Navidad"
   },
   "description": {
-    "en": "Curated by an admin"
+    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
+    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día."
   },
   "coverImagePath": "symbols/symbol00059081.png",
   "defaultTier": "max",
   "categories": [
     {
-      "colour": "indigo",
+      "colour": "#6B7280",
       "icon": "📁",
-      "imagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
+      "imagePath": "symbols/symbol00059081.png",
       "name": {
-        "en": "Space",
-        "es": "Espacio"
+        "en": "Christmas",
+        "es": "Navidad"
       },
       "symbols": [
         {
-          "attribution": "AlexAntropov86",
-          "imagePath": "library_packs/space/images/f814ddee-577f-45ec-9317-18734af2b8ca.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://pixabay.com/photos/earth-planet-atmosphere-space-2113656/",
-          "label": {
-            "en": "Earth"
-          },
-          "license": "Pixabay License",
-          "order": 0
-        },
-        {
-          "attribution": "Vivek Doshi",
-          "imagePath": "library_packs/christmas/images/199875aa-abc5-45b5-9c32-d296c8effc01.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/low-light-photo-of-sun-obsBswnv7FI",
-          "label": {
-            "en": "Sun"
-          },
-          "license": "Unsplash License",
-          "order": 1
-        },
-        {
-          "attribution": "Pedro Lastra",
-          "imagePath": "library_packs/christmas/images/56dc9e53-7624-4f78-9a08-36efaf54ac5d.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/moon-wCujVcf0JDw",
-          "label": {
-            "en": "Moon"
-          },
-          "license": "Unsplash License",
-          "order": 2
-        },
-        {
-          "attribution": "Jacob Spence",
-          "imagePath": "library_packs/christmas/images/dcd78b10-f2b7-48e8-ab9e-efa5c8af6e30.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-Bolre_2dEZI",
-          "label": {
-            "en": "stars"
-          },
-          "license": "Unsplash License",
-          "order": 3
-        },
-        {
-          "attribution": "TheSpaceway",
-          "imagePath": "library_packs/christmas/images/782006f2-925f-4469-8fcf-82882dfe313e.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://pixabay.com/photos/pluto-planet-space-astronomy-6595130/",
-          "label": {
-            "en": "Pluto"
-          },
-          "license": "Pixabay License",
-          "order": 4
-        },
-        {
-          "attribution": "BoliviaInteligente",
-          "imagePath": "library_packs/christmas/images/a91d356b-ce85-497f-bad2-df1e26dd5c43.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/a-red-planet-with-a-star-in-the-background-BsHarhZMmpg",
-          "label": {
-            "en": "Mars"
-          },
-          "license": "Unsplash License",
-          "order": 5
-        },
-        {
-          "attribution": "NASA",
-          "imagePath": "library_packs/christmas/images/9ab0b610-f343-4004-9814-c0da5b2991fa.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/neptune-on-a-black-background-ScBkW9AKgcA",
-          "label": {
-            "en": "Neptune"
-          },
-          "license": "Unsplash License",
-          "order": 6
-        },
-        {
-          "attribution": "TheSpaceway",
-          "imagePath": "library_packs/christmas/images/2b08d74b-043e-45a2-ad43-0ebf5b99c845.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://pixabay.com/photos/jupiter-planet-outer-space-galaxy-6595135/",
-          "label": {
-            "en": "Jupiter"
-          },
-          "license": "Pixabay License",
-          "order": 7
-        },
-        {
-          "attribution": "Zelch Csaba",
-          "imagePath": "library_packs/christmas/images/a3a31de6-b8e2-4ad2-afc6-7b3e375353f0.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://www.pexels.com/photo/planet-with-rings-20337604/",
-          "label": {
-            "en": "Uranus"
-          },
-          "license": "Pexels License",
-          "order": 8
-        },
-        {
-          "attribution": "WikiImages",
-          "imagePath": "library_packs/christmas/images/d79940ff-9654-4343-b4e0-e8149c0c0531.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://pixabay.com/photos/galaxy-space-universe-night-sky-11098/",
-          "label": {
-            "en": "galaxy"
-          },
-          "license": "Pixabay License",
-          "order": 9
-        },
-        {
-          "attribution": "Dns Dgn",
-          "imagePath": "library_packs/christmas/images/ed026bbf-ce02-4962-91e8-047b47d182cb.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://unsplash.com/photos/milky-way-on-mountains-9wH624ALFQA",
-          "label": {
-            "en": "Milky Way"
-          },
-          "license": "Unsplash License",
-          "order": 10
-        },
-        {
-          "imagePath": "library_packs/space/images/7bc1787b-283f-4b79-be88-17a57ef470d8.png",
-          "imageSourceType": "aiGenerated",
-          "label": {
-            "en": "space rocket",
-            "es": "cohete espacial"
-          },
-          "order": 11
-        },
-        {
           "labelOverride": {
-            "en": "NASA",
-            "es": "NASA"
+            "en": "Christmas tree"
           },
-          "order": 12,
-          "symbolId": "kn7c8pgzbsqm7786hp6yc770nx84m82d"
+          "order": 0,
+          "symbolId": "kn75cqcc7q83tg66jpwm5jhqe584m5qf"
         },
         {
-          "attribution": "WikiImages",
           "display": {
             "bgColour": "#ffffff",
             "borderColour": "#d1d5db"
           },
-          "imagePath": "library_packs/christmas/images/1258bb45-3ceb-4217-b237-71fc22a5a6d2.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://pixabay.com/photos/international-space-station-63128/",
-          "label": {
-            "en": "space station",
-            "es": "estación espacial"
+          "labelOverride": {
+            "en": "Christmas ornament"
           },
-          "license": "Pixabay License",
-          "order": 13
+          "order": 1,
+          "symbolId": "kn7adby4r1y8wvjzm28k3pt66n84nvf3"
         },
         {
-          "imagePath": "library_packs/space/images/534c9d59-71bb-4d1f-ac16-39ecad7c24cb.png",
-          "imageSourceType": "aiGenerated",
-          "label": {
-            "en": "satellite",
-            "es": "satélite"
+          "labelOverride": {
+            "en": "Christmas lights"
           },
-          "order": 14
+          "order": 2,
+          "symbolId": "kn7erzcjrh0vcyb8j17eesx6hd84mydd"
         },
         {
-          "attribution": "Prime Minister's Office",
-          "imagePath": "library_packs/christmas/images/0fa6fab2-a123-4136-a958-bbb8b92b89b6.jpg",
-          "imageSourceType": "imageSearch",
-          "imageSourceUrl": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_meeting_Mr._Elon_Musk_in_New_York,_USA_on_June_20,_2023_(2)_(cropped).jpg",
-          "label": {
-            "en": "Elon Musk"
+          "labelOverride": {
+            "en": "star"
           },
-          "license": "GODL-India",
-          "order": 15
+          "order": 3,
+          "symbolId": "kn7181q1sdxtmjeewp5g8b84w184m311"
+        },
+        {
+          "labelOverride": {
+            "en": "presents"
+          },
+          "order": 4,
+          "symbolId": "kn7c2xnsgqxketw2x4tx2xsq0984ne5j"
+        },
+        {
+          "labelOverride": {
+            "en": "Santa"
+          },
+          "order": 5,
+          "symbolId": "kn7bq3gn5hq5j753wqaw0dc6zs84nj7a"
+        },
+        {
+          "labelOverride": {
+            "en": "reindeer"
+          },
+          "order": 6,
+          "symbolId": "kn7fd432qft28e74zne7nppqes84mnj5"
+        },
+        {
+          "labelOverride": {
+            "en": "snowman"
+          },
+          "order": 7,
+          "symbolId": "kn7bd4xd4tbtjhg5dqb8fr9kth84nqpw"
+        },
+        {
+          "labelOverride": {
+            "en": "turkey"
+          },
+          "order": 8,
+          "symbolId": "kn7e9xne1ak62shcm05xqqpfqx84n8mb"
+        },
+        {
+          "labelOverride": {
+            "en": "cracker"
+          },
+          "order": 9,
+          "symbolId": "kn72f32sw1a58mxjamarx7734d84ne50"
+        },
+        {
+          "labelOverride": {
+            "en": "mince pie"
+          },
+          "order": 10,
+          "symbolId": "kn770dkw3kb74ewmnb2805wbzx84mt9r"
+        },
+        {
+          "labelOverride": {
+            "en": "snow"
+          },
+          "order": 11,
+          "symbolId": "kn72dzra9kg9jjq2kvfaq1vk4x84nvdc"
+        },
+        {
+          "labelOverride": {
+            "en": "candle"
+          },
+          "order": 12,
+          "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
+        },
+        {
+          "labelOverride": {
+            "en": "Jesus"
+          },
+          "order": 13,
+          "symbolId": "kn723nfecd6q1t6m632fs1dg9x84nedj"
+        },
+        {
+          "labelOverride": {
+            "en": "Mass"
+          },
+          "order": 14,
+          "symbolId": "kn71g1kdsd8wrf3qhhbhabfjv984n76e"
+        },
+        {
+          "labelOverride": {
+            "en": "Christmas carol"
+          },
+          "order": 15,
+          "symbolId": "kn73x88c90q47krhtgwkerrgen84mdc0"
+        },
+        {
+          "labelOverride": {
+            "en": "father christmas"
+          },
+          "order": 16,
+          "symbolId": "kn756yqnzvrvjjnya5ehb34yed84mnxk"
         }
       ]
     }
   ],
-  "lists": [],
-  "sentences": []
+  "lists": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wake_up.mp3",
+          "defaultAudioPath": "audio/eng/default/wake_up.mp3",
+          "description": {
+            "en": "wake up",
+            "es": "despertarse"
+          },
+          "imagePath": "symbols/wake_up.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/a046b3d3-12a7-422a-9697-cbcc6a6ee08e.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00188421.mp3",
+          "description": {
+            "en": "open presents",
+            "es": "abrir regalos"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/a046b3d3-12a7-422a-9697-cbcc6a6ee08e.mp3",
+          "imagePath": "symbols/symbol00188421.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/eat_breakfast.mp3",
+          "defaultAudioPath": "audio/eng/default/eat_breakfast.mp3",
+          "description": {
+            "en": "breakfast",
+            "es": "desayuno"
+          },
+          "imagePath": "symbols/eat_breakfast.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/family_time.mp3",
+          "defaultAudioPath": "audio/eng/default/family_time.mp3",
+          "description": {
+            "en": "family time",
+            "es": "tiempo en familia"
+          },
+          "imagePath": "symbols/family_time.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00108601.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00133631.mp3",
+          "description": {
+            "en": "play time",
+            "es": "tiempo de jugar"
+          },
+          "generatedAudioPath": "audio/eng/default/symbol00108601.mp3",
+          "imagePath": "symbols/symbol00133631.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00067461.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00067461.mp3",
+          "description": {
+            "en": "lunch",
+            "es": "comida"
+          },
+          "imagePath": "symbols/symbol00067461.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190434.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
+          "description": {
+            "en": "walk",
+            "es": "paseo"
+          },
+          "imagePath": "symbols/symbol00190434.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "en": "Christmas morning",
+        "es": "Mañana de Navidad"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "sentences": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/d6c59a86-0b13-410c-ba97-0e952346764a.mp3",
+      "name": {
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/open_2.png",
+          "order": 2
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00188421.png",
+          "order": 3
+        }
+      ],
+      "text": {
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos"
+      }
+    }
+  ]
 }
