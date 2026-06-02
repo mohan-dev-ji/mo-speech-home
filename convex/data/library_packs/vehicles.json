@@ -1,10 +1,12 @@
 {
   "slug": "vehicles",
   "name": {
-    "en": "Vehicles"
+    "en": "Vehicles",
+    "hi": "गाड़ियाँ"
   },
   "description": {
-    "en": "Curated by an admin"
+    "en": "Curated by an admin",
+    "hi": "एडमिन ने बनाया है"
   },
   "coverImagePath": "symbols/symbol00109461.png",
   "defaultTier": "pro",
@@ -15,7 +17,8 @@
       "imagePath": "symbols/symbol00109461.png",
       "name": {
         "en": "Vehicles",
-        "es": "Vehículos"
+        "es": "Vehículos",
+        "hi": "गाड़ियाँ"
       },
       "symbols": [
         {

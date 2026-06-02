@@ -5,5 +5,20 @@
   "dir": "ltr",
   "font": "notoSansDevanagari",
   "scriptFamily": "non-latin",
-  "voices": []
+  "voices": [
+    {
+      "id": "male",
+      "label": "Adult male (Hindi)",
+      "ttsVoiceId": "hi-IN-Wavenet-F",
+      "gender": "male",
+      "region": "Hindi (India)"
+    },
+    {
+      "id": "female",
+      "label": "Adult female (Hindi)",
+      "ttsVoiceId": "hi-IN-Wavenet-E",
+      "gender": "female",
+      "region": "Hindi (India)"
+    }
+  ]
 }

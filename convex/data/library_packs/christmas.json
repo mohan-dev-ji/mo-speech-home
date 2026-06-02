@@ -2,11 +2,13 @@
   "slug": "christmas",
   "name": {
     "en": "Christmas",
-    "es": "Navidad"
+    "es": "Navidad",
+    "hi": "क्रिसमस"
   },
   "description": {
     "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
-    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día."
+    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día.",
+    "hi": "दिसंबर में वो सब कुछ जिस पर वो उंगली रखना चाहते हैं। पेड़, तोहफ़े, वो पुडिंग का टुकड़ा जो किसी को पसंद नहीं। पूरे दिन के लिए शब्द।"
   },
   "coverImagePath": "symbols/symbol00059081.png",
   "defaultTier": "max",
@@ -17,7 +19,8 @@
       "imagePath": "symbols/symbol00059081.png",
       "name": {
         "en": "Christmas",
-        "es": "Navidad"
+        "es": "Navidad",
+        "hi": "क्रिसमस"
       },
       "symbols": [
         {
@@ -156,7 +159,8 @@
           "defaultAudioPath": "audio/eng/default/wake_up.mp3",
           "description": {
             "en": "wake up",
-            "es": "despertarse"
+            "es": "despertarse",
+            "hi": "उठना"
           },
           "imagePath": "symbols/wake_up.png",
           "imageSourceType": "symbolstix",
@@ -168,7 +172,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00188421.mp3",
           "description": {
             "en": "open presents",
-            "es": "abrir regalos"
+            "es": "abrir regalos",
+            "hi": "तोहफ़े खोलना"
           },
           "generatedAudioPath": "audio/en-GB-News-M/tts/a046b3d3-12a7-422a-9697-cbcc6a6ee08e.mp3",
           "imagePath": "symbols/symbol00188421.png",
@@ -181,7 +186,8 @@
           "defaultAudioPath": "audio/eng/default/eat_breakfast.mp3",
           "description": {
             "en": "breakfast",
-            "es": "desayuno"
+            "es": "desayuno",
+            "hi": "नाश्ता"
           },
           "imagePath": "symbols/eat_breakfast.png",
           "imageSourceType": "symbolstix",
@@ -193,7 +199,8 @@
           "defaultAudioPath": "audio/eng/default/family_time.mp3",
           "description": {
             "en": "family time",
-            "es": "tiempo en familia"
+            "es": "tiempo en familia",
+            "hi": "परिवार के साथ समय"
           },
           "imagePath": "symbols/family_time.png",
           "imageSourceType": "symbolstix",
@@ -205,7 +212,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00133631.mp3",
           "description": {
             "en": "play time",
-            "es": "tiempo de jugar"
+            "es": "tiempo de jugar",
+            "hi": "खेलने का समय"
           },
           "generatedAudioPath": "audio/eng/default/symbol00108601.mp3",
           "imagePath": "symbols/symbol00133631.png",
@@ -218,7 +226,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00067461.mp3",
           "description": {
             "en": "lunch",
-            "es": "comida"
+            "es": "comida",
+            "hi": "दोपहर का खाना"
           },
           "imagePath": "symbols/symbol00067461.png",
           "imageSourceType": "symbolstix",
@@ -230,7 +239,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
           "description": {
             "en": "walk",
-            "es": "paseo"
+            "es": "paseo",
+            "hi": "घूमना"
           },
           "imagePath": "symbols/symbol00190434.png",
           "imageSourceType": "symbolstix",
@@ -239,7 +249,8 @@
       ],
       "name": {
         "en": "Christmas morning",
-        "es": "Mañana de Navidad"
+        "es": "Mañana de Navidad",
+        "hi": "क्रिसमस की सुबह"
       },
       "order": 0,
       "showChecklist": false,
@@ -252,7 +263,8 @@
       "audioPath": "audio/en-GB-News-M/tts/d6c59a86-0b13-410c-ba97-0e952346764a.mp3",
       "name": {
         "en": "I want to open my presents",
-        "es": "Quiero abrir mis regalos"
+        "es": "Quiero abrir mis regalos",
+        "hi": "मुझे अपने तोहफ़े खोलने हैं"
       },
       "order": 0,
       "slots": [
@@ -307,7 +319,8 @@
       ],
       "text": {
         "en": "I want to open my presents",
-        "es": "Quiero abrir mis regalos"
+        "es": "Quiero abrir mis regalos",
+        "hi": "मुझे अपने तोहफ़े खोलने हैं"
       }
     }
   ]
