@@ -193,6 +193,20 @@ touching.
    `--flags-only` is the fast DB-only repair if you see `flag batch … failed`. Re-run the
    full command to fill any failed uploads (idempotent). Cost ≈ ~$13/voice for ~58k clips.
 
+   HINDI example:
+   ```bash
+   source ~/.nvm/nvm.sh && nvm use 20.17.0
+   sudo sntp -sS time.apple.com          # re-sync clock — R2 auth is clock-sensitive (es-run lesson)
+
+   # Male — hi-IN-Wavenet-F  (~58,680 clips, ~$10.76)
+   caffeinate -i node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-F
+   node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-F --flags-only
+
+   # Female — hi-IN-Wavenet-E  (~58,680 clips, ~$10.76)
+   caffeinate -i node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-E
+   node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-E --flags-only
+   ```
+
 ### Layer E — Sentence/list audio  ⟷ Phase 8.5
 Nothing to do. Once `words.hi` (B) and the voices (D) exist, list items and sentences
 resolve `(Hindi text, Hindi voice)` automatically through `/api/tts` + the global
