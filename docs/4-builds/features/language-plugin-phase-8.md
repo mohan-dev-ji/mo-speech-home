@@ -155,7 +155,7 @@ The admin tab is not separable from the pipelines. The pipelines need a UI to tr
 
 - **The 8.0 migration is three migrations in a coat** — schema field shape change + `eng→en` rename + audio path field removal. Dry-run with a snapshot of prod data before running for real. Per ADR-009 consequences section.
 - **TTS cache invalidation** in 8.0 — moving from per-language key to per-voice key wipes the cache. Acceptable but worth being deliberate (warm the cache for priority symbols post-deploy).
-- **Convex search indexes are static** — adding a stable language requires a code edit to add the `search_words_<code>` index. Document this as part of "promoting to stable" so it doesn't surprise later.
+- **Convex search indexes are static** — adding a stable language requires a code edit to add the `search_text_<code>` index (over the combined `searchText.<code>` field — word + synonyms + transliterations; arrays like `synonyms` can't be a Convex `searchField`, so transliteration search rides on `searchText`, see ADR-009 §9 *Correction 2026-06-02*). Document this as part of "promoting to stable" so it doesn't surprise later.
 - **8.2 pipeline cost** — 52k symbols × N languages × token cost. Bound this with a dry-run estimate before kicking off the real run.
 - **Coordinate with ADR-010 pack seeding** — pack JSON files in `convex/data/library_packs/` currently use `{eng, hin}`. The 8.0 migration must update these files in the same pass as the schema, otherwise loaded packs write `(eng/hin)` records into user accounts that look migrated but aren't.
 

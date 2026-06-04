@@ -37,7 +37,7 @@ async function resolveCachedAudio(
   // recording and fall through to fresh TTS synthesis.
   const candidates = await ctx.db
     .query("symbols")
-    .withSearchIndex("search_words_en", (q) => q.search("words.en", text))
+    .withSearchIndex("search_text_en", (q) => q.search("searchText.en", text))
     .take(10);
 
   const exact = candidates.find(

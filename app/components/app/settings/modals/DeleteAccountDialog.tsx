@@ -12,8 +12,6 @@ import {
   DialogTitle,
 } from "@/app/components/app/shared/ui/Dialog";
 
-const CONFIRM_PHRASE = "DELETE";
-
 export function DeleteAccountDialog({
   open,
   onOpenChange,
@@ -30,7 +28,11 @@ export function DeleteAccountDialog({
   const [error, setError] = useState<string | null>(null);
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const ready = typed === CONFIRM_PHRASE && !busy;
+  // Compare against the LOCALISED confirm word the user actually sees
+  // (en "DELETE", es "ELIMINAR", hi Devanagari) — mirrors ReloadDefaultsDialog.
+  // Previously hard-coded "DELETE", which broke account deletion in any
+  // non-English locale (the placeholder said ELIMINAR but only DELETE worked).
+  const ready = typed.trim() === t("confirmPlaceholder").trim() && !busy;
 
   async function handleConfirm() {
     setBusy(true);

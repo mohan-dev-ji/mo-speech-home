@@ -9,6 +9,11 @@ export const TTS_VOICES = {
   // the stable filename key; the clip itself is Spanish).
   "es-US-Wavenet-C": { languageCode: "es-US", name: "es-US-Wavenet-C" }, // male
   "es-US-Wavenet-A": { languageCode: "es-US", name: "es-US-Wavenet-A" }, // female
+  // Phase 8.4 (Hindi) — Indian Hindi WaveNet pair. Symbols seeded from
+  // words.hi under audio/<voiceId>/symbols/<words.en>.mp3 (English word is the
+  // stable filename key; the clip itself is Hindi).
+  "hi-IN-Wavenet-F": { languageCode: "hi-IN", name: "hi-IN-Wavenet-F" }, // male
+  "hi-IN-Wavenet-E": { languageCode: "hi-IN", name: "hi-IN-Wavenet-E" }, // female
   // Additional voices added here as their SymbolStix libraries are seeded
 } as const;
 

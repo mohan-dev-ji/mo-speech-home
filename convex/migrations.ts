@@ -1,10 +1,12 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation, action } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
 import { STARTER_BACKUPS } from "./data/starter_backups";
 import { LIBRARY_PACKS } from "./data/library_packs/_index";
+import { LANGUAGE_MODULES } from "./data/languages/_index";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -1608,5 +1610,110 @@ export const backfillAudioBasenames = mutation({
     }
 
     return { patched, alreadySet, symbolMissing, scanned: entries.length };
+  },
+});
+
+// ─── searchText backfill (ADR-009 §9 transliteration search) ────────────────
+//
+// Materialises `searchText.<code>` on every symbol from existing `words` +
+// `synonyms`. Convex full-text search needs a single string `searchField`, but
+// transliterations live in the unindexable `synonyms` array — so a Latin
+// keyboard user typing "kutta" could never match कुत्ता. This backfill builds
+// the combined word+synonyms string the `search_text_<code>` indexes read.
+// See schema `symbolSearchText`. Kept in sync going forward by
+// `symbols.applyTranslationsBatch`.
+//
+// Additive + idempotent: only the per-language searchText slot is written, and
+// pages whose computed value already matches are skipped. Paginated because the
+// table is ~58k rows — past a single mutation's budget. The `backfillSearchText`
+// action loops this until the table is exhausted.
+
+/**
+ * Process one page of symbols: compute `searchText[code]` for every language
+ * that has a `words[code]`, and patch rows whose value changed.
+ */
+export const backfillSearchTextPage = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    pageSize: v.number(),
+  },
+  handler: async (ctx, { cursor, pageSize }) => {
+    const page = await ctx.db
+      .query("symbols")
+      .order("asc")
+      .paginate({ numItems: pageSize, cursor });
+
+    let patched = 0;
+    for (const sym of page.page) {
+      const words = (sym.words ?? {}) as Record<string, string>;
+      const synonyms = (sym.synonyms ?? {}) as Record<string, string[]>;
+
+      const next: Record<string, string> = {};
+      for (const mod of LANGUAGE_MODULES) {
+        const code = mod.code;
+        const word = words[code];
+        if (typeof word !== "string" || word.length === 0) continue;
+        const syns = Array.isArray(synonyms[code]) ? synonyms[code] : [];
+        next[code] = [word, ...syns]
+          .map((s) => (typeof s === "string" ? s.trim() : ""))
+          .filter(Boolean)
+          .join(" ");
+      }
+
+      // Idempotency: skip the write when the computed value already matches.
+      const prev = (sym.searchText ?? {}) as Record<string, string>;
+      const unchanged =
+        Object.keys(next).length === Object.keys(prev).length &&
+        Object.entries(next).every(([k, val]) => prev[k] === val);
+      if (unchanged) continue;
+
+      await ctx.db.patch(sym._id, { searchText: next });
+      patched++;
+    }
+
+    return {
+      patched,
+      pageCount: page.page.length,
+      nextCursor: page.continueCursor,
+      isDone: page.isDone,
+    };
+  },
+});
+
+/**
+ * Driver: loops `backfillSearchTextPage` over the whole symbols table.
+ * Run from the CLI:  `npx convex run migrations:backfillSearchText`
+ * (optionally `--push` the schema first so the `searchText` field + indexes
+ * exist). Safe to re-run — unchanged rows are skipped.
+ */
+export const backfillSearchText = action({
+  args: { pageSize: v.optional(v.number()) },
+  handler: async (
+    ctx,
+    { pageSize = 500 },
+  ): Promise<{ totalPatched: number; totalScanned: number; pages: number }> => {
+    let cursor: string | null = null;
+    let totalPatched = 0;
+    let totalScanned = 0;
+    let pages = 0;
+    // Hard cap mirrors the estimate scan in translationJobs — 58k / 500 ≈ 118
+    // pages; 500 is a comfortable ceiling that also catches a runaway loop.
+    while (pages < 500) {
+      const res: {
+        patched: number;
+        pageCount: number;
+        nextCursor: string;
+        isDone: boolean;
+      } = await ctx.runMutation(internal.migrations.backfillSearchTextPage, {
+        cursor,
+        pageSize,
+      });
+      totalPatched += res.patched;
+      totalScanned += res.pageCount;
+      pages++;
+      if (res.isDone) break;
+      cursor = res.nextCursor;
+    }
+    return { totalPatched, totalScanned, pages };
   },
 });

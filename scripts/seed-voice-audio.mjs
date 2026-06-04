@@ -56,6 +56,9 @@ const VOICE_LANG = {
   // Phase 8.4 (Spanish) — synthesise words.es; filename stays words.en.
   "es-US-Wavenet-C": { languageCode: "es-US", lang: "es" }, // male
   "es-US-Wavenet-A": { languageCode: "es-US", lang: "es" }, // female
+  // Phase 8.4 (Hindi) — synthesise words.hi; filename stays words.en.
+  "hi-IN-Wavenet-F": { languageCode: "hi-IN", lang: "hi" }, // male
+  "hi-IN-Wavenet-E": { languageCode: "hi-IN", lang: "hi" }, // female
 };
 
 const LEGACY_VOICE_ID = "en-GB-News-M";

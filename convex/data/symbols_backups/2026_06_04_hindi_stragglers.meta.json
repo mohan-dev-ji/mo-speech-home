@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "label": "hindi-stragglers",
+  "createdAt": "2026-06-04T00:06:18.711Z",
+  "count": 58807,
+  "pages": 30,
+  "deployment": "dev:wandering-marmot-955",
+  "jsonlFile": "2026_06_04_hindi_stragglers.jsonl"
+}

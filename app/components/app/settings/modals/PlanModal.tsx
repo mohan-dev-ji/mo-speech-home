@@ -59,6 +59,7 @@ function PlanCard({ name, price, features, highlighted, children }: {
 // ─── Instructor account section ──────────────────────────────────────────────
 
 function InstructorAccountSection() {
+  const t = useTranslations("account");
   const { user, isLoaded } = useUser();
 
   const updatePasswordVerified = useReverification(
@@ -103,7 +104,7 @@ function InstructorAccountSection() {
     if (!file) return;
     setPhotoLoading(true);
     try { await user?.setProfileImage({ file }); }
-    catch { setError("Failed to update photo."); }
+    catch { setError(t("photoError")); }
     finally {
       setPhotoLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -113,7 +114,7 @@ function InstructorAccountSection() {
   const handleSave = async () => {
     setError(""); setSuccess(""); setPasswordError("");
     if (newPassword && newPassword !== confirmPassword) {
-      setPasswordError("Passwords don't match."); return;
+      setPasswordError(t("passwordMismatch")); return;
     }
     setSaving(true);
     try {
@@ -123,16 +124,16 @@ function InstructorAccountSection() {
       }
       if (email !== origEmail) {
         await user?.createEmailAddress({ email });
-        setSuccess("Verification email sent. It will become your primary once confirmed.");
+        setSuccess(t("emailVerificationSent"));
         setOrigEmail(email);
       }
       if (newPassword) {
         await updatePasswordVerified(newPassword);
         setNewPassword(""); setConfirmPassword("");
       }
-      if (!success) setSuccess("Changes saved.");
+      if (!success) setSuccess(t("changesSaved"));
     } catch (err: any) {
-      setError(err?.errors?.[0]?.message ?? "Failed to save changes.");
+      setError(err?.errors?.[0]?.message ?? t("saveError"));
     } finally { setSaving(false); }
   };
 
@@ -142,7 +143,7 @@ function InstructorAccountSection() {
 
   return (
     <div className="pt-4 border-t border-theme-line space-y-4">
-      <p className="text-theme-p font-semibold text-theme-alt-text">Your account</p>
+      <p className="text-theme-p font-semibold text-theme-alt-text">{t("yourAccount")}</p>
 
       {/* Avatar */}
       <div className="flex items-center gap-3">
@@ -150,7 +151,7 @@ function InstructorAccountSection() {
           onClick={() => fileInputRef.current?.click()}
           disabled={photoLoading}
           className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-border hover:ring-primary transition-all group shrink-0"
-          aria-label="Change photo"
+          aria-label={t("changePhoto")}
         >
           {user.imageUrl ? (
             <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -164,33 +165,33 @@ function InstructorAccountSection() {
         <div>
           <button onClick={() => fileInputRef.current?.click()} disabled={photoLoading}
             className="text-small text-primary hover:underline disabled:opacity-50">
-            {photoLoading ? "Uploading…" : "Change photo"}
+            {photoLoading ? t("uploading") : t("changePhoto")}
           </button>
-          <p className="text-caption text-muted-foreground">JPG, PNG or GIF. Max 10MB.</p>
+          <p className="text-caption text-muted-foreground">{t("photoHint")}</p>
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
       </div>
 
       {/* Name */}
       <div className="grid grid-cols-2 gap-3">
-        <Input label="First name" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" />
-        <Input label="Last name"  value={lastName}  onChange={e => setLastName(e.target.value)}  placeholder="Last name" />
+        <Input label={t("firstName")} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t("firstName")} />
+        <Input label={t("lastName")}  value={lastName}  onChange={e => setLastName(e.target.value)}  placeholder={t("lastName")} />
       </div>
 
       {/* Email */}
-      <Input label="Email address" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+      <Input label={t("emailAddress")} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t("emailPlaceholder")} />
 
       {/* Password */}
-      <Input label="New password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Leave blank to keep current" error={passwordError} />
+      <Input label={t("newPassword")} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={t("newPasswordPlaceholder")} error={passwordError} />
       {newPassword && (
-        <Input label="Confirm password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
+        <Input label={t("confirmPassword")} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder={t("confirmPasswordPlaceholder")} />
       )}
 
       {(error || success) && (
         <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
       )}
 
-      <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges}>Save account</Button>
+      <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges}>{t("saveAccount")}</Button>
 
       {/* Danger zone — collapsed by default so the destructive button isn't
           the first thing the user sees on the Account & Billing surface.
@@ -205,7 +206,7 @@ function InstructorAccountSection() {
           className="flex items-center justify-between w-full text-left py-1 group"
         >
           <span className="text-small font-medium text-destructive">
-            Danger zone
+            {t("dangerZone")}
           </span>
           <ChevronDown
             className={cn(
@@ -217,14 +218,14 @@ function InstructorAccountSection() {
         {dangerOpen && (
           <div className="mt-2 space-y-2">
             <p className="text-caption text-muted-foreground">
-              Permanently deletes your account and cancels any active subscription.
+              {t("dangerZoneDescription")}
             </p>
             <Button
               variant="destructive"
               size="sm"
               onClick={() => setDeleteDialogOpen(true)}
             >
-              Delete my account
+              {t("deleteMyAccount")}
             </Button>
           </div>
         )}
@@ -242,6 +243,7 @@ function InstructorAccountSection() {
 
 export function PlanModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("plan");
+  const ta = useTranslations("account");
   const { subscription } = useAppState();
   const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
   const [actionState, setActionState] = useState<ActionState>({ status: "idle" });
@@ -443,7 +445,7 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
     <>
       <DialogHeader>
         <div className="flex items-center justify-between">
-          <DialogTitle>Account &amp; Billing</DialogTitle>
+          <DialogTitle>{ta("accountBillingTitle")}</DialogTitle>
           <PricingToggle value={billingInterval} onChange={setBillingInterval} />
         </div>
         {isSubscribed && (

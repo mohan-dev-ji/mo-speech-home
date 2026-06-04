@@ -123,19 +123,24 @@ The technical architecture of multi-language Mo Speech is settled by [ADR-009](.
 - The runtime registry described in ADR-009 §1 is rebuilt from these JSON modules at deploy time. The hard-coded `lib/languages/registry.ts` becomes a thin barrel that imports the JSONs and assembles the registry array.
 - Lifecycle overlay (`languageLifecycle` table): `publishedAt`, `expiresAt`, `tierOverride` (rare), `notes`, `status` (mirroring ADR-009 §3, but as a lifecycle-row field so it can change without a deploy).
 
-**Tier-based language slots:**
+**Tier-based language access (boolean, not a slot counter):**
 
-A user's "language slots" cap how many languages they can have actively installed on their profile, not which languages the *system* offers. The system always exposes every published language; the slot constraint is what each user can load.
+> **Amended 2026-06-03.** The original design here was a slot *counter* (Free=1, Pro=2, Max=3) with a swap-replacement flow. That is **superseded** by a single boolean entitlement. Rationale below.
 
-| Plan | Active language slots |
+Multilingual is one entitlement, not a count. The system always exposes every published language; what a tier controls is simply whether a user can run **more than one**.
+
+| Plan | Languages |
 |---|---|
-| Free | **1** |
-| Pro | **2** |
-| Max | **3** |
+| Free | **1** — chosen at sign-up; changeable, but only one active at a time |
+| Pro | **All** — every published language, switchable at will |
+| Max | **All** — same language access as Pro; Max differentiates on *other* axes (extra voices, AI-translate-your-own-content, full pack library), not on language count |
 
-This is deliberately low. The 95%-of-users case in ADR-009 §5 is bilingual; the third slot serves diaspora trilingual families specifically; anything beyond is a vanishingly small audience that doesn't justify the UX cost of higher slot counts. If usage data (PostHog `language_switched` events per user over time) shows demand for higher counts on Max, this loosens — not a schema change, just a constant.
+**Why a boolean, not the 1/2/3 counter.** ADR-009 §5 establishes the multilingual case is ~95% bilingual, with trilingual "vanishingly small." A 2-vs-3 distinction therefore spends the Pro→Max upgrade lever on an almost-empty segment while charging real UX cost — a "slots" concept users must learn plus a swap-replacement flow. The only meaningful line is **"one language vs more than one,"** which a boolean captures cleanly. Two consequences worth stating:
 
-When a user is at their slot limit and wants to add another language, the picker shows the slot-replacement flow: pick which existing language to swap out. (Swapping is non-destructive — the slot was just an active-usage cap; per-symbol translations stay in the open-record schema regardless.)
+- **The free tier is monolingual-*complete*, not crippled** — a non-verbal child can fully communicate in their one language. Free isn't a teaser.
+- **The second language sits at Pro, not Max.** For a diaspora/bilingual household (Hindi at home, English at school) the second language is closer to an *accessibility need* than a luxury, so it belongs at the affordable tier, not the premium one. Gating a disabled child's home language behind the top plan would be both off-mission and a growth-suppressant in exactly the international segment multilingual exists to serve.
+
+**How it surfaces.** A Free user picks their one language at sign-up. A Pro/Max user sees every language toggle in profile settings, free to switch and test at will. The natural multi-language pattern is **one student profile per language** (Hindi for one child, English for another), though switching within a single profile is also supported. Switching a profile's language is **non-destructive**: content created in one language stays put and offers the inline "Translate to <current language>" action (ADR-009 §6), so testing across languages never loses data. (If PostHog `language_switched` data later shows real demand for capping or for a count-based lever, this can revisit — but the default is the simple boolean.)
 
 **Voice bundle:** each language ships with 4 default voices selected in the profile modal under language selection — adult male, adult female, child male, child female. These map to voice IDs in the registry per ADR-009 §4. Additional voices beyond the four are post-launch additions and don't require a language JSON change — the registry's `voices` array is editable independently.
 

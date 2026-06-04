@@ -19,7 +19,7 @@ case is **Hindi**.
 | 2 | **Lifecycle / visibility** (machine-translated → beta → stable + publish window) | `languageLifecycle` table | `/admin/languages` UI |
 | 3 | **UI strings** | `messages/<code>.json` (mirror of `messages/en.json`) | translate the `"… (hi)"` placeholders |
 | 4 | **Symbol translations** (`words.<code>` + `synonyms.<code>` on ~58,807 rows) | `symbols` table | AI pipeline (admin) |
-| 5 | **Search index** | `convex/schema.ts` `search_words_<code>` | code edit (already exists for en/hi/es) |
+| 5 | **Search index** | `convex/schema.ts` `search_text_<code>` over `searchText.<code>` (word+synonyms combined) | code edit (already exists for en/hi/es) |
 | 6 | **Library-pack translations** | `resourcePacks` snapshots | `scripts/translate-pack.mjs` |
 | 7 | **Voices** (catalog + per-voice seeded symbol audio) | `lib/r2-paths.ts` + `<code>.json` voices + R2 | `scripts/seed-voice-audio.mjs` |
 | 8 | **Sentence/list audio** | resolved dynamically per `(text, voice)` | nothing to do — Phase 8.5 makes it automatic once #4 + #7 exist |
@@ -33,7 +33,7 @@ A language is "fully made" when 1–7 are done. #8 is free.
 Hindi is **not a new language to add** — it's an existing one to *fill in*. Already done:
 
 - ✅ `convex/data/languages/hi.json` — correct: `"scriptFamily": "non-latin"`, `"font": "notoSansDevanagari"`, `"nativeLabel": "हिन्दी"`, imported in `_index.ts`.
-- ✅ `search_words_hi` index in `convex/schema.ts`.
+- ✅ `search_text_hi` index in `convex/schema.ts` (over the combined `searchText.hi`).
 - ✅ `languageLifecycle` row — Hindi is currently **`stable`/visible** (legacy from the original hard-coded en+hi build).
 - ✅ `messages/hi.json` — **all keys exist**, but most values are `"English value (hi)"` placeholders.
 - ✅ The AI translation prompt already has a **non-latin / Devanagari variant** (native script word + 2 native synonyms + 2 Latin transliterations).
@@ -91,6 +91,30 @@ next-intl hot-reloads — just refresh the app in `hi`.
 > top-level namespaces. For a deep check, compare with a small recursive script or
 > just rely on `grep -c '(hi)'` trending to 0.
 
+> **⚠️ Hindi-only first-run quirk (does NOT apply to future languages).**
+> The `/admin/languages` → **Translate UI strings** route is diff-based: it stores a
+> `_sourceSnapshot` of the English values it translated, and on re-runs **skips** any key
+> whose English source is unchanged. But `messages/hi.json` is hand-authored legacy and
+> has **no `_sourceSnapshot`** — so the *first* run treats every key as new and
+> **re-translates all 782**, including:
+>   - the ~20 hand-done Devanagari values from the original en+hi build, and
+>   - the ~19 deliberately-English literals (`£9.99`, the typed confirm-words `DELETE` /
+>     `RELOAD`, size codes `S`/`M`/`L`, `Pro`/`Max`).
+> After this one run a snapshot is written, so all later runs behave correctly (skip
+> unchanged). **This is unique to Hindi** — every language added via the pipeline gets a
+> snapshot from its first translate, so it never re-translates wholesale. Two ways to
+> handle the Hindi first run:
+>   1. **Run, then review the diff** (recommended): `git diff messages/hi.json` and
+>      spot-check the ~20 Devanagari keys + the literals. The typed confirm-words
+>      (`confirmPlaceholder` / `reloadDefaultsConfirmPlaceholder`) **should translate** —
+>      both `DeleteAccountDialog` and `ReloadDefaultsDialog` compare typed input against the
+>      *localised* placeholder, so es shows ELIMINAR/RECARGAR and hi shows Devanagari, and
+>      they work. The values that should stay literal are **prices** (`£9.99`) and **size
+>      codes** (`S`/`M`/`L`, `h2`/`h4`) — confirm those didn't get translated. Quick scan;
+>      leaves a clean snapshot.
+>   2. **Pre-seed the snapshot** to protect those ~39 keys before running, so only the
+>      743 placeholders translate. More surgical, more setup.
+
 ### Layer B — Symbol translations (`words.hi`)  ⟷ Phase 8.2
 This is the AI pipeline (`convex/translationActions.ts` → `translateSymbolsBatch`,
 self-scheduling, idempotent, resumable, Devanagari-aware).
@@ -118,7 +142,17 @@ token accounting and straggler handling are all built in):
 
 The non-latin prompt writes `words.hi` in Devanagari **and** puts 2 Devanagari
 synonyms + 2 Latin transliterations into `synonyms.hi` (so search works from either
-keyboard). `search_words_hi` picks them up with no extra config.
+keyboard). Search reaches those via the combined **`searchText.hi`** field (word +
+synonyms joined into one indexable string) — the pipeline writes `searchText.hi` at
+the same time it writes `words`/`synonyms`, so a freshly-translated language is
+searchable with no extra step. The index is `search_text_hi` over `searchText.hi`.
+
+> **Why not search `synonyms.hi` directly?** Convex full-text search needs a single
+> string `searchField`; `synonyms.<code>` is a `string[]`, which can't be indexed. So
+> transliteration search rides on `searchText.<code>`, not the array. See ADR-009 §9
+> *Correction (2026-06-02)*. Pre-existing rows (translated before this landed) were
+> backfilled once via `npx convex run migrations:backfillSearchText` — idempotent,
+> additive, re-derivable from `words`+`synonyms`.
 
 Snapshot the result for review history:
 ```bash
@@ -158,6 +192,20 @@ touching.
    ```
    `--flags-only` is the fast DB-only repair if you see `flag batch … failed`. Re-run the
    full command to fill any failed uploads (idempotent). Cost ≈ ~$13/voice for ~58k clips.
+
+   HINDI example:
+   ```bash
+   source ~/.nvm/nvm.sh && nvm use 20.17.0
+   sudo sntp -sS time.apple.com          # re-sync clock — R2 auth is clock-sensitive (es-run lesson)
+
+   # Male — hi-IN-Wavenet-F  (~58,680 clips, ~$10.76)
+   caffeinate -i node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-F
+   node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-F --flags-only
+
+   # Female — hi-IN-Wavenet-E  (~58,680 clips, ~$10.76)
+   caffeinate -i node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-E
+   node --env-file=.env.local scripts/seed-voice-audio.mjs --voice hi-IN-Wavenet-E --flags-only
+   ```
 
 ### Layer E — Sentence/list audio  ⟷ Phase 8.5
 Nothing to do. Once `words.hi` (B) and the voices (D) exist, list items and sentences
@@ -266,7 +314,7 @@ node --env-file=.env.local scripts/seed-voice-audio.mjs --voice <id> --flags-onl
 
 # Adding a brand-new language (NOT Hindi — Hindi already has these):
 #  1) convex/data/languages/<code>.json  (+ import in _index.ts)
-#  2) add search_words_<code> index in convex/schema.ts
+#  2) add search_text_<code> index (searchField "searchText.<code>") in convex/schema.ts
 #  3) messages/<code>.json (copy en.json, values → "English (… )" placeholders)
 #  4) /admin/languages → create lifecycle row → then steps B–D above
 ```

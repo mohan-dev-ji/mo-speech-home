@@ -18,7 +18,7 @@ type LocaleCode = (typeof routing.locales)[number];
 
 const LANGUAGES: ReadonlyArray<{ code: LocaleCode; native: string; latin: string }> = [
   { code: "en", native: "English", latin: "English" },
-  { code: "hi", native: "हिंदी", latin: "Hindi" },
+  { code: "hi", native: "हिन्दी", latin: "Hindi" },
 ];
 
 export function WelcomeSplash() {

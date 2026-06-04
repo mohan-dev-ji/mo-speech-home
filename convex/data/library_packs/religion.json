@@ -2,11 +2,13 @@
   "slug": "religion",
   "name": {
     "en": "Religion",
-    "es": "Religión"
+    "es": "Religión",
+    "hi": "धर्म"
   },
   "description": {
     "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
-    "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio."
+    "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio.",
+    "hi": "विश्वास की बातें। प्रार्थना, पूजा, आशीर्वाद। ये वो शब्द हैं जो आप ज़्यादातर धर्मों में सुनेंगे। अपनी पसंद के शब्द जोड़ने से पहले एक शुरुआत।"
   },
   "coverImagePath": "symbols/pray.png",
   "defaultTier": "free",
@@ -17,8 +19,8 @@
       "imagePath": "symbols/pray.png",
       "name": {
         "en": "Religion",
-        "hi": "Religion (hi)",
-        "es": "Religión"
+        "es": "Religión",
+        "hi": "धर्म"
       },
       "symbols": [
         {
@@ -209,7 +211,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
           "description": {
             "en": "shower",
-            "es": "ducharse"
+            "es": "ducharse",
+            "hi": "नहाना"
           },
           "imagePath": "symbols/symbol00212646.png",
           "imageSourceType": "symbolstix",
@@ -221,7 +224,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
           "description": {
             "en": "put on clean clothes",
-            "es": "ponerse ropa limpia"
+            "es": "ponerse ropa limpia",
+            "hi": "साफ़ कपड़े पहनना"
           },
           "imagePath": "symbols/symbol00066341.png",
           "imageSourceType": "symbolstix",
@@ -233,7 +237,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00194236.mp3",
           "description": {
             "en": "go to the gurdwara",
-            "es": "ir al gurdwara"
+            "es": "ir al gurdwara",
+            "hi": "गुरुद्वारे जाना"
           },
           "generatedAudioPath": "audio/en-GB-News-M/tts/193c0cb5-58c0-4d6c-9cbc-53e0ad991580.mp3",
           "imagePath": "symbols/symbol00194236.png",
@@ -246,7 +251,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00056099.mp3",
           "description": {
             "en": "sit",
-            "es": "sentarse"
+            "es": "sentarse",
+            "hi": "बैठना"
           },
           "imagePath": "symbols/symbol00056099.png",
           "imageSourceType": "symbolstix",
@@ -258,7 +264,8 @@
           "defaultAudioPath": "audio/eng/default/symbol00196084.mp3",
           "description": {
             "en": "pray",
-            "es": "rezar"
+            "es": "rezar",
+            "hi": "प्रार्थना करना"
           },
           "imagePath": "symbols/symbol00196084.png",
           "imageSourceType": "symbolstix",
@@ -267,7 +274,8 @@
       ],
       "name": {
         "en": "Going to the Gurdwara",
-        "es": "Ir al Gurdwara"
+        "es": "Ir al Gurdwara",
+        "hi": "गुरुद्वारे जाना"
       },
       "order": 0,
       "showChecklist": false,
@@ -280,7 +288,8 @@
       "audioPath": "audio/en-GB-News-M/tts/e62614ce-06ab-4d81-ae82-9a68b5d81c37.mp3",
       "name": {
         "en": "Let's be quiet for the prayer",
-        "es": "Vamos a hacer silencio para la oración"
+        "es": "Vamos a hacer silencio para la oración",
+        "hi": "चलो प्रार्थना के लिए चुप रहें"
       },
       "order": 0,
       "slots": [
@@ -311,7 +320,8 @@
       ],
       "text": {
         "en": "Let's be quiet for the prayer",
-        "es": "Vamos a hacer silencio para la oración"
+        "es": "Vamos a hacer silencio para la oración",
+        "hi": "चलो प्रार्थना के लिए चुप रहें"
       }
     }
   ]

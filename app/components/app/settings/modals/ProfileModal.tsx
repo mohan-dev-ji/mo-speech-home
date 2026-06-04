@@ -272,7 +272,7 @@ function ProfileTabContent({
           {(visibleLanguages ??
             [
               { code: "en", nativeLabel: "English", status: "stable" as const },
-              { code: "hi", nativeLabel: "हिंदी", status: "stable" as const },
+              { code: "hi", nativeLabel: "हिन्दी", status: "stable" as const },
             ]
           ).map(({ code, nativeLabel, status }) => (
             <button

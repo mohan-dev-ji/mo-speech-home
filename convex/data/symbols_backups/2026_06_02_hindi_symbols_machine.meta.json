@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "label": "hindi-symbols-machine",
+  "createdAt": "2026-06-02T09:05:37.598Z",
+  "count": 58807,
+  "pages": 30,
+  "deployment": "dev:wandering-marmot-955",
+  "jsonlFile": "2026_06_02_hindi_symbols_machine.jsonl"
+}
