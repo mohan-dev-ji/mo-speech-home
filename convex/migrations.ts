@@ -1717,3 +1717,55 @@ export const backfillSearchText = action({
     return { totalPatched, totalScanned, pages };
   },
 });
+
+// ─── Proper-noun translation correction ─────────────────────────────────────
+//
+// The symbol-translation AI deliberately leaves proper nouns unchanged ("the
+// word becomes the same string"), so culturally-significant names that DO have
+// a standard native-script form (Diwali → दिवाली) can end up displaying in
+// Latin. The admin "Translate symbols" pass won't fix them — they already have
+// a (Latin) `words.<locale>`, so it's not "missing".
+//
+// This corrects every symbol whose English word matches `en`: sets the native
+// form, merges the Latin transliteration into `synonyms.<locale>` (so phonetic
+// search keeps working), and recomputes `searchText.<locale>`. Idempotent.
+// Reusable for the next proper noun a reviewer flags — until ADR-013's
+// translator surface exists.
+//
+// Run, e.g. Diwali → दिवाली:
+//   npx convex run migrations:fixSymbolProperNoun \
+//     '{"en":"Diwali","locale":"hi","native":"दिवाली","translit":["diwali"]}'
+export const fixSymbolProperNoun = mutation({
+  args: {
+    en: v.string(),                       // exact English word to match (words.en)
+    locale: v.string(),                   // target language code, e.g. "hi"
+    native: v.string(),                   // native-script form, e.g. "दिवाली"
+    translit: v.optional(v.array(v.string())), // Latin transliteration(s) to keep searchable
+  },
+  handler: async (ctx, { en, locale, native, translit = [] }) => {
+    const rows = await ctx.db
+      .query("symbols")
+      .withIndex("by_words_en", (q) => q.eq("words.en", en))
+      .collect();
+
+    let patched = 0;
+    for (const sym of rows) {
+      const words = { ...(sym.words as Record<string, string>), [locale]: native };
+      const prevSyn = ((sym.synonyms ?? {}) as Record<string, string[]>)[locale] ?? [];
+      const mergedSyn = Array.from(
+        new Set([...prevSyn, ...translit].map((s) => s.trim()).filter(Boolean)),
+      );
+      const synonyms = {
+        ...((sym.synonyms ?? {}) as Record<string, string[]>),
+        [locale]: mergedSyn,
+      };
+      const searchText = {
+        ...((sym.searchText ?? {}) as Record<string, string>),
+        [locale]: [native, ...mergedSyn].map((s) => s.trim()).filter(Boolean).join(" "),
+      };
+      await ctx.db.patch(sym._id, { words, synonyms, searchText });
+      patched++;
+    }
+    return { en, locale, native, matched: rows.length, patched };
+  },
+});
