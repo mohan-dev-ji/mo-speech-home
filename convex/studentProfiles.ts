@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireCallerIsAdmin } from "./lib/account";
+import { assertLanguageAllowed } from "./lib/access";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,12 @@ export const createStudentProfile = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
       .first();
     if (!user) throw new Error("User record not found");
+
+    // Language tier gate (ADR-011 §3): Free is monolingual. A new profile in a
+    // language that differs from the account's existing language is the gated
+    // action (onboarding sets the account locale first so the first profile
+    // matches). Throws TIER_REQUIRED for Free; no-op for Pro/Max.
+    await assertLanguageAllowed(ctx, user, args.language, { kind: "profile" });
 
     const profileId = await ctx.db.insert("studentProfiles", {
       accountId: user._id,
@@ -404,6 +411,17 @@ export const updateStudentProfile = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
       .first();
     if (!user || profile.accountId !== user._id) throw new Error("Not authorised");
+
+    // Language tier gate (ADR-011 §3): on Free, a student may not set its own
+    // language different from the (single) account language — that's the gated
+    // action (the Free student picker is hidden in the UI; this is the net).
+    // No-op for Pro/Max, or when language isn't changing.
+    if (args.language !== undefined) {
+      await assertLanguageAllowed(ctx, user, args.language, {
+        kind: "profile",
+        profileId: args.profileId,
+      });
+    }
 
     const { profileId, voiceId, ...updates } = args;
     const patch: Record<string, unknown> = { ...updates, updatedAt: Date.now() };

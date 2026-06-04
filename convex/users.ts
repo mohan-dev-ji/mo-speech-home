@@ -1,7 +1,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { requireCallerIsAdmin } from "./lib/account";
-import { isCustomAccessEffective } from "./lib/access";
+import { isCustomAccessEffective, assertLanguageAllowed } from "./lib/access";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -440,6 +440,39 @@ export const expireStaleCustomAccessGrants = internalMutation({
  * Save the instructor's UI locale preference.
  * Drives locale routing — 'en' | 'hi'.
  */
+/**
+ * DEV / TEST ONLY — flip a user's subscription between "free" and "max" by
+ * email so tier gates (e.g. the language gate, ADR-011 §3) can be exercised
+ * without a real Stripe downgrade. Faithful: it rewrites `subscription`, so
+ * both the client `useSubscription` capability AND the backend
+ * `userHasFullAccess` guard see the new tier.
+ *
+ * Runs from the Convex dashboard Function Runner (no Clerk identity needed):
+ *   users:devSetTier   { "email": "you@example.com", "tier": "free" }
+ *   users:devSetTier   { "email": "you@example.com", "tier": "max" }
+ *
+ * TODO: REMOVE before merging to prod (no auth gate — dev-deployment tool only).
+ */
+export const devSetTier = mutation({
+  args: {
+    email: v.string(),
+    tier: v.union(v.literal("free"), v.literal("max")),
+  },
+  handler: async (ctx, { email, tier }) => {
+    const all = await ctx.db.query("users").collect();
+    const user = all.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) throw new Error(`No user with email ${email}`);
+    const sub = user.subscription;
+    await ctx.db.patch(user._id, {
+      subscription:
+        tier === "free"
+          ? { ...sub, status: "active", plan: undefined, customAccess: undefined }
+          : { ...sub, status: "active", plan: "max_monthly" },
+    });
+    return { email: user.email, tier };
+  },
+});
+
 export const setMyLocale = mutation({
   args: { locale: v.string() },
   handler: async (ctx, args) => {
@@ -448,7 +481,16 @@ export const setMyLocale = mutation({
     const user = await ctx.db
       .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
     if (!user) throw new Error("User not found");
+    // Language tier gate (ADR-011 §3): Free is monolingual. Changing the
+    // instructor locale is always allowed; on Free it cascades the student
+    // profiles to inherit the new language.
+    const { cascadeProfileIds } = await assertLanguageAllowed(ctx, user, args.locale, {
+      kind: "locale",
+    });
     await ctx.db.patch(user._id, { locale: args.locale });
+    for (const pid of cascadeProfileIds) {
+      await ctx.db.patch(pid, { language: args.locale, updatedAt: Date.now() });
+    }
   },
 });
 

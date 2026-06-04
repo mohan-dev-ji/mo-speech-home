@@ -15,9 +15,11 @@ import {
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { Input } from "@/app/components/app/shared/ui/Input";
 import { HeaderModeControl } from "@/app/components/app/shared/ui/HeaderModeControl";
+import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
+import { useSubscription } from "@/hooks/useSubscription";
 import { getLanguage } from "@/lib/languages/registry";
 import { resolveVoiceId } from "@/lib/audio/resolveVoiceId";
-import { ChevronDown, Volume2 } from "lucide-react";
+import { ChevronDown, Volume2, Lock } from "lucide-react";
 
 // ─── Theme swatches ───────────────────────────────────────────────────────────
 
@@ -79,6 +81,7 @@ function ProfileTabContent({
   const t = useTranslations("studentProfile");
   const { setActiveProfile, allProfiles } = useProfile();
   const { subscription, userRecord } = useAppState();
+  const { canUseMultipleLanguages } = useSubscription();
 
   // Visible-language list — beta languages show with a "preview" pill.
   // Falls back to a hard-coded en/hi pair until the Convex query hydrates
@@ -100,6 +103,7 @@ function ProfileTabContent({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [error,       setError]       = useState("");
+  const [langNudgeOpen, setLangNudgeOpen] = useState(false);
 
   const flags = profile.stateFlags as Record<string, boolean | string | undefined>;
   const canDelete = allProfiles.length > 1;
@@ -268,32 +272,53 @@ function ProfileTabContent({
       {/* Language */}
       <div>
         <p className="text-small font-semibold text-foreground mb-2">{t("sectionLanguage")}</p>
-        <div className="flex flex-wrap gap-2">
-          {(visibleLanguages ??
-            [
-              { code: "en", nativeLabel: "English", status: "stable" as const },
-              { code: "hi", nativeLabel: "हिन्दी", status: "stable" as const },
-            ]
-          ).map(({ code, nativeLabel, status }) => (
-            <button
-              key={code}
-              type="button"
-              onClick={() => handleLangChange(code)}
-              className={`flex-1 min-w-[6rem] py-2 rounded-md text-small font-medium border transition-colors inline-flex items-center justify-center gap-1.5 ${
-                currentLang === code
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {nativeLabel}
-              {status === "beta" && (
-                <span className="inline-flex items-center rounded-full bg-warning/20 text-warning text-caption px-1.5 py-0">
-                  preview
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {canUseMultipleLanguages ? (
+          /* Pro/Max: full per-profile picker (beta languages get a preview pill). */
+          <div className="flex flex-wrap gap-2">
+            {(visibleLanguages ??
+              [
+                { code: "en", nativeLabel: "English", status: "stable" as const },
+                { code: "hi", nativeLabel: "हिन्दी", status: "stable" as const },
+              ]
+            ).map(({ code, nativeLabel, status }) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => handleLangChange(code)}
+                className={`flex-1 min-w-[6rem] py-2 rounded-md text-small font-medium border transition-colors inline-flex items-center justify-center gap-1.5 ${
+                  currentLang === code
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {nativeLabel}
+                {status === "beta" && (
+                  <span className="inline-flex items-center rounded-full bg-warning/20 text-warning text-caption px-1.5 py-0">
+                    preview
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          /* Free: the student inherits the account language; the picker is a
+             locked upgrade affordance (ADR-011 §3). */
+          <button
+            type="button"
+            onClick={() => setLangNudgeOpen(true)}
+            className="w-full flex items-center justify-between gap-2 py-2 px-3 rounded-md border border-border bg-background text-small text-muted-foreground hover:bg-muted transition-colors"
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              {t("languageInheritedNote", {
+                language: getLanguage(currentLang)?.nativeLabel ?? currentLang,
+              })}
+            </span>
+            <span className="text-caption font-medium text-primary shrink-0">
+              {t("languageUpgradeCta")}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Voices — only shown when the current language offers a choice */}
@@ -539,6 +564,13 @@ function ProfileTabContent({
           </Dialog>
         </div>
       )}
+
+      <UpgradeNudge
+        open={langNudgeOpen}
+        onOpenChange={setLangNudgeOpen}
+        feature="multiLanguage"
+        locale={currentLang}
+      />
     </div>
   );
 }
@@ -548,7 +580,11 @@ function ProfileTabContent({
 export function ProfileModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("studentProfile");
   const { allProfiles, activeProfileId } = useProfile();
+  const { userRecord } = useAppState();
   const createProfile = useMutation(api.studentProfiles.createStudentProfile);
+  // New profiles inherit the account's current language so a Free (monolingual)
+  // account never trips the language gate by creating an off-language profile.
+  const accountLang = userRecord?.locale ?? "en";
 
   const [selectedId,  setSelectedId]  = useState<string>(activeProfileId ?? allProfiles[0]?._id ?? "");
   const [newName,     setNewName]     = useState("");
@@ -561,7 +597,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
     setCreating(true);
     setCreateError("");
     try {
-      const id = await createProfile({ name: trimmed, language: "en" });
+      const id = await createProfile({ name: trimmed, language: accountLang });
       setNewName("");
       setSelectedId(id);
     } catch {

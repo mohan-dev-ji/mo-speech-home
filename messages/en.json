@@ -629,6 +629,8 @@
     "deleteModalTitle": "Delete {name}?",
     "deleteModalBody": "This will permanently delete this student profile and all of its content. This action cannot be undone.",
     "sectionLanguage": "Language",
+    "languageInheritedNote": "Uses your app language ({language})",
+    "languageUpgradeCta": "Upgrade for more",
     "sectionVoices": "Voices",
     "genderMale": "Male",
     "genderFemale": "Female",
@@ -806,6 +808,7 @@
   "upgrade": {
     "proFeatureTitle": "Pro feature",
     "editAuthoringBody": "Creating and editing categories, lists, sentences and symbols is part of Pro and Max. Start a subscription to build your student's vocabulary.",
+    "multiLanguageBody": "Give each student their own language on Pro and Max. Free accounts use a single language across the app.",
     "ctaSeePlans": "See plans",
     "ctaMaybeLater": "Maybe later"
   },

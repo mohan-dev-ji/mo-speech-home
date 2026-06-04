@@ -27,10 +27,9 @@ import { track } from "@/lib/analytics";
 type UpgradeNudgeProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Translation key under `upgrade.*` for the body copy. V1 uses one body
-   *  shared across all editing entry points; extend the namespace if you
-   *  need feature-specific messaging later. */
-  feature?: "editAuthoring";
+  /** Translation key under `upgrade.*` for the body copy. Each feature maps to
+   *  an `<feature>Body` key in the `upgrade` namespace. */
+  feature?: "editAuthoring" | "multiLanguage";
   locale: string;
 };
 
@@ -44,7 +43,7 @@ export function UpgradeNudge({
   const router = useRouter();
   const { subscription } = useAppState();
 
-  const bodyKey: `${"editAuthoring"}Body` = `${feature}Body`;
+  const bodyKey = `${feature}Body` as "editAuthoringBody" | "multiLanguageBody";
 
   const handleSeePlans = () => {
     // Fire BEFORE close so the event fires while the component is still

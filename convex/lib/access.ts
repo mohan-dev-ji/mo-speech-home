@@ -1,5 +1,6 @@
 import { ConvexError } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { QueryCtx } from "../_generated/server";
 import { tierFromPlan } from "../users";
 
 /**
@@ -68,4 +69,75 @@ export function requireProTier(user: Doc<"users">): void {
       message: "Editing requires Pro or Max plan.",
     });
   }
+}
+
+/**
+ * Language tier gate (ADR-011 §3, boolean model). A **Free** account is
+ * monolingual: at most one distinct language across `users.locale` + every
+ * `studentProfiles.language`. Pro/Max (and custom grants) are unrestricted.
+ *
+ * Called from the three mutations that write a language (`setMyLocale`,
+ * `updateStudentProfile`, `createStudentProfile`) BEFORE the write. Behaviour:
+ *
+ *  - Pro/Max/grant → no-op (returns empty cascade). All paid paths unchanged.
+ *  - Free, change keeps ≤1 distinct language → allowed.
+ *  - Free, **instructor** changes the single account language (`kind:"locale"`)
+ *    in a way that would diverge → returns `cascadeProfileIds`: the student
+ *    profiles the caller must snap to the new language (Free students INHERIT
+ *    the instructor's language). Cascade is one-directional (instructor →
+ *    students); the instructor can always change the one language.
+ *  - Free, a **student** sets its own different language, or a second-language
+ *    profile is created (`kind:"profile"`) → `TIER_REQUIRED` (the gated action;
+ *    the Free student picker is hidden in the UI, this is the backend net).
+ *
+ * Returns the profiles to cascade; an empty array means "nothing to do".
+ */
+export async function assertLanguageAllowed(
+  ctx: QueryCtx,
+  user: Doc<"users">,
+  nextLanguage: string,
+  opts: { kind: "locale" } | { kind: "profile"; profileId?: Id<"studentProfiles"> },
+): Promise<{ cascadeProfileIds: Id<"studentProfiles">[] }> {
+  // Pro / Max / active custom grant: no language cap — paid behaviour untouched.
+  if (userHasFullAccess(user)) return { cascadeProfileIds: [] };
+
+  const profiles = await ctx.db
+    .query("studentProfiles")
+    .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
+    .collect();
+
+  const norm = (s: string | undefined) => (s ?? "").trim();
+  const next = norm(nextLanguage);
+
+  // Build the distinct-language set as it WOULD be after the proposed change.
+  const resulting = new Set<string>();
+  if (opts.kind === "locale") {
+    if (next) resulting.add(next);
+    for (const p of profiles) if (norm(p.language)) resulting.add(norm(p.language));
+  } else {
+    if (norm(user.locale)) resulting.add(norm(user.locale));
+    for (const p of profiles) {
+      const lang = opts.profileId && p._id === opts.profileId ? next : norm(p.language);
+      if (lang) resulting.add(lang);
+    }
+    if (!opts.profileId && next) resulting.add(next); // create
+  }
+
+  if (resulting.size <= 1) return { cascadeProfileIds: [] };
+
+  // Instructor changing the one account language → cascade students to inherit.
+  if (opts.kind === "locale" && next) {
+    return {
+      cascadeProfileIds: profiles
+        .filter((p) => norm(p.language) !== next)
+        .map((p) => p._id),
+    };
+  }
+
+  // A student diverging, or a second-language profile → the gated action.
+  throw new ConvexError({
+    code: "TIER_REQUIRED",
+    required: "pro",
+    message: "Multiple languages require Pro or Max.",
+  });
 }

@@ -55,6 +55,7 @@ This ADR proposes a **Language Operations Console**: a per-language admin page t
                               ▼
                     [Promote: machine-translated → beta → stable]
                               gated on human review/approval across UI + symbols + packs (ADR-013)
+                              → on reaching `stable`, fires the existing-account rollout (§7)
 ```
 
 **On "symbols *and* packs before audio":** the *hard* technical gate on the voice audio seed is **symbol words + voices catalog** — the seed synthesises `words.<code>` and writes per-symbol R2 clips; it never reads packs. **Pack copy is a parallel track**, gated not on audio but on **promote-to-stable** ("fully made"). The timeline shows both edges honestly: audio unlocks when symbols+voices are done; packs are a sibling track that, together with UI strings and symbols, gates the final promotion. (If a future "pack audio pre-seed" is ever added it *would* gate on pack copy — but list/sentence audio is on-demand today, so it doesn't.)
@@ -91,7 +92,7 @@ Rename and widen the existing `translationJobs` table (which already has `kind: 
 ```
 languageJobs:
   slug: string                 // language code, indexed
-  kind: "symbols-words" | "ui-strings" | "library-packs" | "voice-seed"
+  kind: "symbols-words" | "ui-strings" | "library-packs" | "voice-seed" | "language-rollout"
   voiceId?: string             // for voice-seed
   status: "queued" | "running" | "paused" | "completed" | "failed"
   scope?: string               // e.g. "all packs", "_starter", "hi-IN-Wavenet-F"
@@ -128,6 +129,22 @@ The escape hatch when a **non-technical translator/reviewer** must self-serve is
 
 The console is the concrete admin surface ADR-011 gestured at for languages: tier-based slots (Free=1, Pro=2, Max=3) decide which languages a *user* sees; the ops console is where an *admin* builds a language up through its lifecycle (`machine-translated` → `beta` → `stable`) before it ever reaches those slots. The per-language page is where "promote to stable" lives, with the ingredient grid as the readiness checklist.
 
+### 7. Rolling a new language out to existing accounts
+
+**The problem.** Default content (categories, lists, sentences, symbols) is **copied into each account at seed time** as a localised snapshot (ADR-010 copy-at-seed). A language added *after* a customer signed up therefore never reaches their already-seeded content: it falls back to English text while their voice speaks the new language — a jarring mismatch (observed with Hindi: English labels with Hindi audio; sentences synthesised as English text in a Hindi accent). New accounts are fine; existing ones go stale, and **every existing customer hits this for each language shipped post-launch**. This is the gap the console must close so "keep adding languages" doesn't degrade the existing base.
+
+**Two content classes, two fixes:**
+- **Library/default content** (carries `librarySourceId` + `librarySourceCategoryKey`). The pack JSON *already holds* the new language once translated — so this is **mechanically backfillable from source**: no AI, exact, free.
+- **User-created or user-edited content.** No source translation exists → needs **AI** (the ADR-009 §6 "Translate to <current language>" path, Pro/Max-gated).
+
+**The rollout job (`languageJobs` kind `"language-rollout"`).** Promoting a language to **stable** (§1, §6) fires a self-scheduling backend job that, across all accounts, **non-destructively fills the missing language key** into pack-sourced `name` / `text` / `description` / `label` — matched by `librarySourceId` + `librarySourceCategoryKey`, with symbol `label[newLang]` taken from the global `symbols.words[newLang]`. It writes only the *missing* slot, so existing values and user edits survive. Outcome: existing customers' default content appears in the new language, identical to a fresh seed. Paginated, idempotent, resumable, and recorded in the job log like every other operation. **Prerequisite:** extend today's category-only `reloadCategoryFromLibrary` primitive to **lists and sentences** (they have no reload path yet).
+
+**A `pristine` marker** on pack-seeded content (cleared on the user's first edit) tells the job exactly what is safe to auto-backfill from source versus what the user changed — the latter routes to the AI path rather than clobbering their edit.
+
+**Graceful degradation in the meantime** (ADR-009 §6): until an item is translated it renders in its source language with a small "not translated yet" indicator (instructor/admin view) plus an inline "Translate to <language>" — never a silent strange experience. Plus one cheap, high-value safety net: **when display text falls back across languages, fall the voice back to match the text's language**, so you never get "English words in the new language's accent."
+
+**Rejected — reference-not-copy.** The root cause is copy-at-seed; rendering unedited default content *live from the pack* would make new languages appear with zero backfill. Rejected: it unwinds ADR-010's reasons for copying (users own/edit their content; the dev deployment stays disposable). The backfill keeps ADR-010 intact and patches the one gap; the `pristine` flag is the cheap middle ground.
+
 ---
 
 ## Consequences
@@ -140,6 +157,7 @@ The console is the concrete admin surface ADR-011 gestured at for languages: tie
 - **Action-compute cost moves onto the Convex bill** for server-side seeds — a metered tradeoff against developer convenience, watched via the existing spend limits.
 - **The page encodes the build order as gates, not prose.** The dependency graph (§1) is enforced in the UI: locked stages can't run, the "Build language" macro (§1a) walks it topologically, and progress/cost/history live in collapsible per-stage cards (the "terminal summary, but persistent" shape).
 - **The playbook (`adding-a-language.md`) becomes partly redundant** as the console encodes the same status checks and ordering rules in the UI — but it stays as the conceptual reference and the dev-CLI fallback. (ADR-012 itself is the *decision record*, not the guide — it does not become redundant; the playbook is the guide that does.)
+- **Adding a language post-launch self-heals the existing base.** Promote-to-stable fires the `language-rollout` job (§7), which backfills pack-sourced default content into every existing account from source (non-destructive, `pristine`-aware); user content + edited items fall to the ADR-009 §6 AI-translate path, with graceful "not translated yet" degradation until then. This turns "keep adding languages" from a per-customer regression into a one-action rollout. **Prerequisite work:** extend `reloadCategoryFromLibrary` to lists + sentences, and add the `pristine` marker + voice-follows-text-fallback.
 
 ## Alternatives considered
 

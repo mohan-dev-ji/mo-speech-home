@@ -604,6 +604,8 @@
     "deleteModalTitle": "{name} हटाएँ?",
     "deleteModalBody": "यह इस छात्र प्रोफ़ाइल और इसकी सभी सामग्री को स्थायी रूप से हटा देगा। इस कार्रवाई को पूर्ववत नहीं किया जा सकता है।",
     "sectionLanguage": "भाषा",
+    "languageInheritedNote": "Uses your app language ({language}) (hi)",
+    "languageUpgradeCta": "Upgrade for more (hi)",
     "sectionVoices": "आवाज़ें",
     "genderMale": "पुरुष",
     "genderFemale": "महिला",
@@ -781,6 +783,7 @@
   "upgrade": {
     "proFeatureTitle": "प्रो सुविधा",
     "editAuthoringBody": "श्रेणियाँ, सूचियाँ, वाक्य और सिंबल बनाना और संपादित करना प्रो और मैक्स का हिस्सा है। अपने छात्र की शब्दावली बनाने के लिए सदस्यता शुरू करें।",
+    "multiLanguageBody": "Give each student their own language on Pro and Max. Free accounts use a single language across the app. (hi)",
     "ctaSeePlans": "प्लान देखें",
     "ctaMaybeLater": "शायद बाद में"
   },

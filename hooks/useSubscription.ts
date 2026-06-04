@@ -10,6 +10,9 @@ export type SubscriptionCapabilities = {
   hasPremiumThemes: boolean;
   hasVoiceCloning: boolean;
   maxStudentProfiles: number;
+  /** Pro+: multiple languages across the account (per-profile language pickers,
+   *  diverging instructor/student languages). Free is monolingual — ADR-011 §3. */
+  canUseMultipleLanguages: boolean;
 };
 
 /**
@@ -33,5 +36,6 @@ export function useSubscription(): SubscriptionCapabilities {
     hasPremiumThemes: isMax,
     hasVoiceCloning: isMax,
     maxStudentProfiles: isMax ? Infinity : 1,
+    canUseMultipleLanguages: isPro,
   };
 }

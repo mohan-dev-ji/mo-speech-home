@@ -23,9 +23,18 @@ export function StudentOnboardingGate() {
   const isCollaborator = membership?.status === "active";
 
   const createStudentProfile = useMutation(api.studentProfiles.createStudentProfile);
+  const setMyLocale = useMutation(api.users.setMyLocale);
+  // Dynamic published-language list (beta included), en/hi fallback for first paint.
+  const visibleLanguages = useQuery(api.languages.getVisibleLanguages, {
+    includeBeta: true,
+  });
+  const languageOptions = visibleLanguages ?? [
+    { code: "en", nativeLabel: "English", status: "stable" as const },
+    { code: "hi", nativeLabel: "हिन्दी", status: "stable" as const },
+  ];
 
   const [name, setName] = useState("");
-  const [language, setLanguage] = useState<"en" | "hi">("en");
+  const [language, setLanguage] = useState<string>("en");
   const [dob, setDob] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +53,13 @@ export function StudentOnboardingGate() {
     setError("");
     try {
       const dateOfBirth = dob ? new Date(dob).getTime() : undefined;
+      // Set the account locale FIRST so the new profile (same language) starts a
+      // consistent monolingual account and never trips the Free language gate
+      // (ADR-011 §3 — locale + first profile must match).
+      await setMyLocale({ locale: language });
       await createStudentProfile({ name: name.trim(), language, dateOfBirth });
+      // Persist the choice for bare-`/` visits; routing follows via AppStateProvider.
+      document.cookie = `NEXT_LOCALE=${language};path=/;max-age=31536000;samesite=lax`;
       // ProfileContext re-queries on mutation success — gate auto-hides
     } catch {
       setError(t("errorGeneric"));
@@ -77,19 +92,24 @@ export function StudentOnboardingGate() {
           {/* Language preference */}
           <div className="space-y-1.5">
             <span className="text-small font-medium text-foreground">{t("language")}</span>
-            <div className="flex gap-2">
-              {(["en", "hi"] as const).map((lang) => (
+            <div className="flex flex-wrap gap-2">
+              {languageOptions.map(({ code, nativeLabel, status }) => (
                 <button
-                  key={lang}
+                  key={code}
                   type="button"
-                  onClick={() => setLanguage(lang)}
-                  className={`flex-1 py-2 rounded-md border text-small font-medium transition-colors ${
-                    language === lang
+                  onClick={() => setLanguage(code)}
+                  className={`flex-1 min-w-[6rem] py-2 rounded-md border text-small font-medium transition-colors inline-flex items-center justify-center gap-1.5 ${
+                    language === code
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-foreground border-border hover:bg-muted"
                   }`}
                 >
-                  {lang === "en" ? t("languageEng") : t("languageHin")}
+                  {nativeLabel}
+                  {status === "beta" && (
+                    <span className="inline-flex items-center rounded-full bg-warning/20 text-warning text-caption px-1.5 py-0">
+                      preview
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

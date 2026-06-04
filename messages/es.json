@@ -578,6 +578,8 @@
     "deleteModalTitle": "¿Eliminar {name}?",
     "deleteModalBody": "Esto eliminará permanentemente este perfil de estudiante y todo su contenido. Esta acción no se puede deshacer.",
     "sectionLanguage": "Idioma",
+    "languageInheritedNote": "Usa el idioma de tu app ({language})",
+    "languageUpgradeCta": "Mejora tu plan",
     "sectionTheme": "Tema",
     "sectionGrid": "Cuadrícula de símbolos",
     "sectionSymbols": "Símbolos en categorías",
@@ -755,6 +757,7 @@
   "upgrade": {
     "proFeatureTitle": "Característica Pro",
     "editAuthoringBody": "Crear y editar categorías, listas, frases y símbolos es parte de Pro y Max. Inicia una suscripción para construir el vocabulario de tu estudiante.",
+    "multiLanguageBody": "Asigna a cada estudiante su propio idioma en Pro y Max. Las cuentas gratuitas usan un solo idioma en toda la app.",
     "ctaSeePlans": "Ver planes",
     "ctaMaybeLater": "Quizás más tarde"
   },
