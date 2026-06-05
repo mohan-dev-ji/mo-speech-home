@@ -55,7 +55,8 @@ This ADR proposes a **Language Operations Console**: a per-language admin page t
                               ▼
                     [Promote: machine-translated → beta → stable]
                               gated on human review/approval across UI + symbols + packs (ADR-013)
-                              → on reaching `stable`, fires the existing-account rollout (§7)
+                              → existing accounts pick the language up automatically
+                                via dynamic resolution; nothing to roll out (§7)
 ```
 
 **On "symbols *and* packs before audio":** the *hard* technical gate on the voice audio seed is **symbol words + voices catalog** — the seed synthesises `words.<code>` and writes per-symbol R2 clips; it never reads packs. **Pack copy is a parallel track**, gated not on audio but on **promote-to-stable** ("fully made"). The timeline shows both edges honestly: audio unlocks when symbols+voices are done; packs are a sibling track that, together with UI strings and symbols, gates the final promotion. (If a future "pack audio pre-seed" is ever added it *would* gate on pack copy — but list/sentence audio is on-demand today, so it doesn't.)
@@ -92,7 +93,7 @@ Rename and widen the existing `translationJobs` table (which already has `kind: 
 ```
 languageJobs:
   slug: string                 // language code, indexed
-  kind: "symbols-words" | "ui-strings" | "library-packs" | "voice-seed" | "language-rollout"
+  kind: "symbols-words" | "ui-strings" | "library-packs" | "voice-seed"
   voiceId?: string             // for voice-seed
   status: "queued" | "running" | "paused" | "completed" | "failed"
   scope?: string               // e.g. "all packs", "_starter", "hi-IN-Wavenet-F"
@@ -129,21 +130,27 @@ The escape hatch when a **non-technical translator/reviewer** must self-serve is
 
 The console is the concrete admin surface ADR-011 gestured at for languages: tier-based slots (Free=1, Pro=2, Max=3) decide which languages a *user* sees; the ops console is where an *admin* builds a language up through its lifecycle (`machine-translated` → `beta` → `stable`) before it ever reaches those slots. The per-language page is where "promote to stable" lives, with the ingredient grid as the readiness checklist.
 
-### 7. Rolling a new language out to existing accounts
+### 7. New languages reach existing accounts automatically (dynamic resolution)
 
-**The problem.** Default content (categories, lists, sentences, symbols) is **copied into each account at seed time** as a localised snapshot (ADR-010 copy-at-seed). A language added *after* a customer signed up therefore never reaches their already-seeded content: it falls back to English text while their voice speaks the new language — a jarring mismatch (observed with Hindi: English labels with Hindi audio; sentences synthesised as English text in a Hindi accent). New accounts are fine; existing ones go stale, and **every existing customer hits this for each language shipped post-launch**. This is the gap the console must close so "keep adding languages" doesn't degrade the existing base.
+**The problem.** Default content (categories, lists, sentences, symbols) is **copied into each account at seed time** as a localised snapshot (ADR-010 copy-at-seed). A language added *after* a customer signed up never reaches their already-seeded content: it falls back to English text while their voice speaks the new language — a jarring mismatch (observed with Hindi: English labels with Hindi audio; sentences synthesised as English text in a Hindi accent). New accounts are fine; existing ones go stale, and **every existing customer would hit this for each language shipped post-launch**.
 
-**Two content classes, two fixes:**
-- **Library/default content** (carries `librarySourceId` + `librarySourceCategoryKey`). The pack JSON *already holds* the new language once translated — so this is **mechanically backfillable from source**: no AI, exact, free.
-- **User-created or user-edited content.** No source translation exists → needs **AI** (the ADR-009 §6 "Translate to <current language>" path, Pro/Max-gated).
+**The fix — resolve localised *text* live; keep *structure* copied.** The copy-at-seed reasons (ADR-010) — users own/edit their content, and an AAC board must stay stable under upstream change — apply only to **structure** (which symbols are on a board, order, deletions, additions), **not** to the **localised text** of an *unedited* item. So:
 
-**The rollout job (`languageJobs` kind `"language-rollout"`).** Promoting a language to **stable** (§1, §6) fires a self-scheduling backend job that, across all accounts, **non-destructively fills the missing language key** into pack-sourced `name` / `text` / `description` / `label` — matched by `librarySourceId` + `librarySourceCategoryKey`, with symbol `label[newLang]` taken from the global `symbols.words[newLang]`. It writes only the *missing* slot, so existing values and user edits survive. Outcome: existing customers' default content appears in the new language, identical to a fresh seed. Paginated, idempotent, resumable, and recorded in the job log like every other operation. **Prerequisite:** extend today's category-only `reloadCategoryFromLibrary` primitive to **lists and sentences** (they have no reload path yet).
+- **Structure stays a per-account snapshot** — stable, editable, AAC-safe (a child's board never shifts because a pack changed upstream).
+- **The localised text of a *pristine* (unedited) pack-sourced field resolves live at render**, from sources that already exist and already hold every language:
+  - **Symbols** → `symbols.words[lang]` (global Convex table, already all-languages). The category symbol query *already* re-resolves each symbol's **image** from its global row at render — so resolving the **label** from that same fetched row is nearly free.
+  - **Category / list / sentence copy** → the current pack, by `librarySourceId` + `librarySourceCategoryKey`. The pack JSON is already bundled into Convex (`LIBRARY_PACKS`, O(1) by slug), so this needs **no schema move** — and if pack/UI translations later migrate into Convex tables, the same model holds; the source just changes address.
+- **On first edit of a field, store the override and stop resolving it live.** Render becomes `override ?? liveSource[field][currentLang] ?? en`.
 
-**A `pristine` marker** on pack-seeded content (cleared on the user's first edit) tells the job exactly what is safe to auto-backfill from source versus what the user changed — the latter routes to the AI path rather than clobbering their edit.
+**Net: a new language — and any upstream translation fix — appears for every existing customer automatically, with no rollout job and no migration of their live data.** Symbols are the first, cheapest win (source already in Convex with all languages; the per-symbol global lookup already happens for images); pack copy follows the same pattern.
 
-**Graceful degradation in the meantime** (ADR-009 §6): until an item is translated it renders in its source language with a small "not translated yet" indicator (instructor/admin view) plus an inline "Translate to <language>" — never a silent strange experience. Plus one cheap, high-value safety net: **when display text falls back across languages, fall the voice back to match the text's language**, so you never get "English words in the new language's accent."
+**The `pristine` flag is the core dispatch, not a backfill optimisation:** pristine + has-source → **resolve live**; edited, or no source at all (user-created) → the only content that still needs **AI** (ADR-009 §6 "Translate to <current language>", Pro/Max-gated). Promote-to-stable therefore triggers *nothing* for pristine content — it simply starts resolving.
 
-**Rejected — reference-not-copy.** The root cause is copy-at-seed; rendering unedited default content *live from the pack* would make new languages appear with zero backfill. Rejected: it unwinds ADR-010's reasons for copying (users own/edit their content; the dev deployment stays disposable). The backfill keeps ADR-010 intact and patches the one gap; the `pristine` flag is the cheap middle ground.
+**Graceful degradation in the meantime** (ADR-009 §6): until an edited/created item is translated it renders in its source language with a small "not translated yet" indicator (instructor/admin view) plus an inline "Translate to <language>". And one cheap, high-value safety net: **when display text falls back across languages, fall the voice back to match the text's language**, so you never get "English words in the new language's accent" while an item awaits AI translation.
+
+**The one-time migration (what the "rollout job" demotes to).** Existing accounts hold *frozen* copies, not references. A single migration converts them to the reference model — stamp `symbolId` / `librarySourceId` + key + `pristine` on existing rows and drop (or demote to override) the frozen localised text where it still matches source. It reuses the backfill machinery and needs the category-only `reloadCategoryFromLibrary` primitive **extended to lists and sentences**. After it runs once, language additions are self-healing forever — there is no recurring per-language rollout.
+
+**Rejected — *full* reference (structure included).** Rendering a board's *structure* live from the pack would let an upstream restructure shift a child's board under them — unacceptable for AAC. The chosen model references only the **localised text of pristine fields**; structure stays copied. That line is what keeps boards stable while letting languages and translation fixes flow in.
 
 ---
 
@@ -157,7 +164,7 @@ The console is the concrete admin surface ADR-011 gestured at for languages: tie
 - **Action-compute cost moves onto the Convex bill** for server-side seeds — a metered tradeoff against developer convenience, watched via the existing spend limits.
 - **The page encodes the build order as gates, not prose.** The dependency graph (§1) is enforced in the UI: locked stages can't run, the "Build language" macro (§1a) walks it topologically, and progress/cost/history live in collapsible per-stage cards (the "terminal summary, but persistent" shape).
 - **The playbook (`adding-a-language.md`) becomes partly redundant** as the console encodes the same status checks and ordering rules in the UI — but it stays as the conceptual reference and the dev-CLI fallback. (ADR-012 itself is the *decision record*, not the guide — it does not become redundant; the playbook is the guide that does.)
-- **Adding a language post-launch self-heals the existing base.** Promote-to-stable fires the `language-rollout` job (§7), which backfills pack-sourced default content into every existing account from source (non-destructive, `pristine`-aware); user content + edited items fall to the ADR-009 §6 AI-translate path, with graceful "not translated yet" degradation until then. This turns "keep adding languages" from a per-customer regression into a one-action rollout. **Prerequisite work:** extend `reloadCategoryFromLibrary` to lists + sentences, and add the `pristine` marker + voice-follows-text-fallback.
+- **Adding a language post-launch self-heals the existing base — with no recurring job.** Pristine pack-sourced content resolves its localised text *live* from source (symbols → `symbols.words`; pack copy → `LIBRARY_PACKS`), so a newly-published language (and any upstream translation fix) appears for every existing customer automatically (§7). Only user-edited/created content needs the ADR-009 §6 AI-translate path, with graceful "not translated yet" degradation until then. **One-time work:** a migration to convert existing frozen copies to the reference model (symbols first), extend `reloadCategoryFromLibrary` to lists + sentences, and add the `pristine` flag + voice-follows-text fallback. Structure stays copied (AAC stability); only localised text resolves live.
 
 ## Alternatives considered
 
