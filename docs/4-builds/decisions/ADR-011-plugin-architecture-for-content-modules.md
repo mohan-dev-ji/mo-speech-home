@@ -66,6 +66,29 @@ The ADR-010 pack-publish API route (write-back-to-JSON via local dev) is the pro
 
 Themes are the next plugin to formalise after packs. The current `ThemeContext` ships six flat themes hard-coded; this ADR makes themes pluggable with a deliberate, principled shape.
 
+> **Amended 2026-06-05 (Phase 9 review).** Two findings reshaped this section. **(1)** Themes already use *dynamic resolution* — a profile stores only a `themeSlug` and resolves the token definition live at render; they never had content's copy-at-seed staleness (§2.0 below). **(2)** A vestigial `themes` Convex table + `convex/themes.ts` exist with a *different, older* token shape and are dead at runtime; they get the deferred-cleanup treatment ADR-010 gives `resourcePacks` (§2.5). The plain-English companion is [`theme-system-explained.md`](../theme-system-explained.md).
+
+#### 2.0 Themes already resolve live — what that does and doesn't give us
+
+The Phase 8 content work (ADR-012 §7) fought to convert content from **copy-at-seed** (a frozen per-account photocopy of localised text) to **dynamic resolution** (look the text up live from a central source). **Themes already work the dynamic-resolution way and always have:**
+
+- A profile stores only the **slug** — `studentProfiles.themeSlug` (student view) / `users.themeSlug` (instructor view). It never stores a copy of the tokens.
+- `ProfileContext` resolves the definition **live at render**: `setTheme(slug, THEME_TOKENS[slug])` runs each time the active profile loads. The slug is a *reference*, not a snapshot.
+
+The consequence is goal (a) of the Phase 9 brief — *an admin's edit to a published theme reaches existing users automatically* — is **structurally already satisfied**. Everyone whose profile says `themeSlug:"sky"` renders whatever `sky` currently resolves to; there is never an "update all old accounts" migration for themes, the way there had to be for content.
+
+**The catch is *where* the central source lives.** Today it is the hard-coded `THEME_TOKENS` catalogue in the client bundle ([`app/contexts/ThemeContext.tsx`](../../../app/contexts/ThemeContext.tsx)). So the same repo-writer constraint that governs pack/UI content (ADR-012 §2) applies: **a theme's token *values* are content** — changing them is a code deploy (but still reaches everyone live, no migration). **A theme's *lifecycle* — published, tier, featured, seasonal — is deploy-free** via the overlay (§2.4). This split is the whole design:
+
+```
+  Theme token VALUES (the colours)    = content   → code deploy to change
+                                                     (reaches every user live, no migration)
+  Theme LIFECYCLE (publish/tier/etc.) = overlay   → admin toggle, no deploy
+```
+
+So Phase 9 is **not** a copy→reference conversion (themes are already reference). It is: move the central source from hard-coded catalogue → JSON plugin files (§2.1–2.3), add the lifecycle overlay (§2.4), retire the dead table (§2.5), and — for user-customisable themes — store per-token overrides not full copies (§2.6).
+
+#### 2.1 The token shape — background + optional texture + universal greys + accent
+
 **Principle: every theme is a background + optional texture + universal greys + accent.**
 
 A theme is composed of four layers:
@@ -76,6 +99,24 @@ A theme is composed of four layers:
 - **Accent layer** — a single primary accent colour used sparingly for highlights, CTAs, focus rings, and selected states. This is the existing Tailwind-500-equivalent token, repurposed from "dominant chrome" to "highlight only."
 
 This shifts where personality lives. Today's themes (`sky`, `amber`, `rose`, etc.) achieve identity through dominant accent colour. The new shape achieves identity through dominant **background** with the accent stepped back. The result: themes can be visually dramatic (animated starfield, glassmorphic tiles over photography) while the UI remains legible and consistent across every theme.
+
+**Why the layer model needs the per-token override design (§2.6):** the texture layer does not exist on the six current themes. When it ships, every theme — and every family's customised theme — that hasn't explicitly overridden texture should gain it for free. That is only possible if each layer is an independently resolved slot, which is exactly what dynamic resolution (§2.0) + per-token overrides (§2.6) provide.
+
+#### 2.2 Canonical token shape — and the three that currently disagree
+
+There are **three** token shapes in the repo today, and they must converge:
+
+| Shape | Where | Status |
+|---|---|---|
+| `ThemeTokens` (`--theme-*`: background, primary, banner, card, accent…) | [`ThemeContext.tsx`](../../../app/contexts/ThemeContext.tsx) + `app/globals.css` `@theme inline` | **Live — actually rendered.** The canonical base. |
+| `themes.tokens` (`bgPrimary`, `bgSurface`, `talkerBg`, `navIndicator`…) | `convex/schema.ts` `themes` table + [`convex/themes.ts`](../../../convex/themes.ts) `seedStarterThemes` | **Dead** — nothing reads `api.themes.*` at runtime; even the slugs (`classic-blue`…) don't match the live ones. Retired in §2.5. |
+| Four-layer model (background · texture · surface · accent) | this ADR §2.1, the JSON shape below | **Target** — the canonical shape evolves *toward* this. |
+
+**Decision:** the `ThemeContext.ThemeTokens` shape is canonical; it evolves to express the four-layer model (adding the `texture` / `surface` / `background.kind` structure). The dead `themes`-table shape is abandoned, not reconciled.
+
+#### 2.3 Theme content lives in JSON plugin files (the source move)
+
+Per the §1 plugin pattern and ADR-010, theme definitions move from the hard-coded `THEME_TOKENS` catalogue to `convex/data/themes/<slug>.json`, bundled into a typed barrel (`_index.ts`) the same way `LIBRARY_PACKS` and the language registry are. `ThemeContext` / `ProfileContext` resolve the slug against that bundled catalogue instead of the inline object — the dynamic-resolution behaviour (§2.0) is unchanged; only the *address* of the source moves. This is what makes "add a theme" a JSON file rather than a code edit to a context, and lines themes up with the same Republish-to-JSON authoring path packs use (ADR-010 §5; prod authoring deferred to the GitHub-API hook).
 
 **Theme JSON shape (illustrative — fields can flex):**
 
@@ -105,13 +146,36 @@ This shifts where personality lives. Today's themes (`sky`, `amber`, `rose`, etc
 }
 ```
 
-**Lifecycle overlay (`themeLifecycle` table):** same shape as `packLifecycle` minus `season` (themes can be seasonal but the field can ride on `notes` until seasonal themes prove themselves), plus all the standard fields.
+#### 2.4 Lifecycle overlay — the deploy-free half
 
-**Admin authoring surface:** `/admin/themes/<slug>` is a dedicated page (not just the modal pattern Library uses) because themes benefit from a **sticky live preview** at the top of the viewport while the settings scroll below. The admin sees their changes applied to a representative mini-app render in real time — Talker bar, a symbol card, a list item, a modal — as they tune background, texture, accent, surface opacity, and blur. The texture-blend-mode dropdown in particular benefits from live preview because the same B&W image looks dramatically different under `overlay` vs `soft-light` vs `multiply`.
+**`themeLifecycle` table:** same shape as `packLifecycle` minus `season` (themes can be seasonal but the field can ride on `notes` until seasonal themes prove themselves), plus all the standard §1 fields (`slug`, `publishedAt`, `expiresAt`, `featured`, `tierOverride`, `notes`, `createdBy`, `updatedAt`). It exposes the three universal admin functions (`listAllThemesForAdmin`, `updateThemeLifecycle`, `deleteThemeLifecycle`).
 
-**User-uploaded themes:** out of scope for V1 of this ADR. The admin-side authoring tooling is the prototype; if user-uploaded themes are ever requested with sufficient demand, the same authoring UI can be exposed to Max-tier users with a moderation queue routing to the admin Themes section before publication. Captured in Future hooks below.
+A theme is visible in a picker iff the §1 universal rule holds: its JSON file exists **and** a `themeLifecycle` row exists with `publishedAt <= now` and `expiresAt` open. This is what delivers goal (b) of the Phase 9 brief — **a newly published theme appears in every existing user's picker automatically, tier/lifecycle-gated, with no deploy for the publish itself** (the JSON ships on deploy; turning it on does not). Effective tier = `tierOverride ?? defaultTier`; premium themes carry a 🔒 + upgrade nudge for tiers below their gate, same mechanic as premium packs.
 
-**Tier gating:** `defaultTier` defaults to `free`. Premium themes use tile / animation backgrounds and are gated to paid tiers via the `tierOverride` lifecycle field — same mechanic as packs.
+**Admin authoring surface:** `/admin/themes/<slug>` is a dedicated page (not just the modal pattern Library uses) because themes benefit from a **sticky live preview** at the top of the viewport while the settings scroll below. The admin sees their changes applied to a representative mini-app render in real time — Talker bar, a symbol card, a list item, a modal — as they tune background, texture, accent, surface opacity, and blur. The texture-blend-mode dropdown in particular benefits from live preview because the same B&W image looks dramatically different under `overlay` vs `soft-light` vs `multiply`. (Token-value edits still publish via the ADR-010 Republish-to-JSON path — dev-only in V1; lifecycle toggles are live.)
+
+#### 2.5 The dead `themes` table is retired like `resourcePacks`
+
+The `themes` Convex table and [`convex/themes.ts`](../../../convex/themes.ts) (`listThemes`, `getThemeBySlug`, `getThemeById`, `seedStarterThemes`) carry the abandoned token shape (§2.2) and are unreferenced by any runtime UI. They are treated exactly as ADR-010 treats `resourcePacks`: **kept as an inert legacy stub through the Phase 9 cutover, then dropped in a deferred cleanup phase** once JSON-sourced themes + the `themeLifecycle` overlay are proven in real use. The `studentProfiles.themeId` / `purchasedThemeIds` fields (typed `Id<"themes">`, reserved "for Phase 7") are likewise vestigial — purchases, if ever built, key on `slug` like everything else. No code is removed as part of this design pass.
+
+#### 2.6 User-customisable themes — per-token "borrowed vs yours"
+
+**User-uploaded/authored themes are out of scope for V1** (admin-side authoring is the prototype; see Future hooks). But the *storage model* for them is decided now, because getting it wrong reintroduces the photocopy trap at the user-theme level.
+
+A customised theme is **not** a full copy of the base theme's tokens. It is the **base slug plus a sparse map of only the tokens the user changed** — the same per-field override model ADR-012 §7 uses for a symbol's per-language word slots:
+
+```
+  resolve(token) = userOverride[token] ?? baseTheme[token] ?? cssDefault
+```
+
+Each token is independently **borrowed** (resolved live from the base theme) or **yours** (overridden, frozen). The two properties this guarantees are identical to the content model in [`language-system-explained.md` §3](../language-system-explained.md):
+
+- **Changing one token never freezes the rest.** Override the accent and only the accent becomes yours; a later admin refinement to the base theme's background still flows in.
+- **New token layers flow into untouched slots.** When the texture layer (§2.1) ships, every custom theme that didn't override texture gains it automatically.
+
+Storing a full token copy instead would freeze all of it — a base improvement or a new layer would never reach that user. The override map is the difference between a custom theme that ages with the product and one that rots. (Concretely: a custom theme is a `themeLifecycle`-style row with `baseSlug` + `tokenOverrides`, `createdBy: <instructorClerkId>`, private to the account until submitted — see Future hooks.)
+
+**Tier gating:** `defaultTier` defaults to `free`. Premium themes use tile / animation backgrounds and are gated to paid tiers via the `tierOverride` lifecycle field — same mechanic as packs. User-authored custom themes, when built, are a Max-tier capability (Future hooks).
 
 ### 3. Languages — plugin shape + tier-based slots
 
@@ -186,6 +250,8 @@ The litmus test: *if it's user-facing browseable catalogue content with a publis
 
 - **Adding a new plugin type becomes a recipe**, not an architecture project. The Library / Themes / Languages admin sections are templates; new sections clone the shape.
 - **Themes ship with a normative design language**: background-led identity, universal greys for surfaces, accent as highlight only. Existing six themes (`default`, `sky`, `amber`, `fuchsia`, `lime`, `rose`) get reshaped to fit the new principle during Phase 9 — they're currently accent-dominant, which is the inverse.
+- **Themes already resolve dynamically** (§2.0): a profile stores only `themeSlug` and resolves tokens live, so an admin's edit reaches every existing user with no migration (goal (a), already structurally true). Phase 9 work is *source move* (hard-coded catalogue → JSON), *lifecycle overlay* (deploy-free publish/tier → goal (b)), and *per-token overrides* for custom themes (§2.6) — not a copy→reference conversion. Token *values* remain content (deploy to change); lifecycle is deploy-free.
+- **The vestigial `themes` table + `convex/themes.ts` are retired like `resourcePacks`** (§2.5): inert through cutover, dropped in a deferred cleanup. Their token shape is abandoned; `ThemeContext.ThemeTokens` is canonical (§2.2).
 - **Languages get a clean admin home**: the dashboard becomes the language-creation tool, not just a metadata CMS.
 - **Tier-based language slots are now a documented decision** (Free=1, Pro=2, Max=3) — implementers should NOT exceed these defaults without a follow-up ADR.
 - **Translation gates for user-generated content** are tier-gated identically to other Pro+ features (consistent UX with category authoring, modelling, etc.).
@@ -230,5 +296,8 @@ Each plugin type's lifecycle events (`<type>_published`, `<type>_loaded`, `<type
 - [ADR-009](./ADR-009-multi-language-multi-voice-architecture.md) — multi-language registry, schema, voices, R2 paths, transliterations. ADR-011 builds on this without replacing any of it.
 - [ADR-010](./ADR-010-pack-storage-shift.md) — the proof-of-concept for the pattern this ADR generalises. Pack lifecycle table, JSON-as-source-of-truth, local-dev publish API route.
 - [`docs/1-inbox/ideas/00-build-plan.md`](../../1-inbox/ideas/00-build-plan.md) — Phases 8 (Languages plugin refactor) and 9 (Themes as pluggable packs) implement this ADR.
-- [`docs/1-inbox/ideas/15-themes.md`](../../1-inbox/ideas/15-themes.md) — original themes spec; the design principles in §2 of this ADR supersede it where they conflict.
+- [`docs/1-inbox/ideas/15-themes.md`](../../1-inbox/ideas/15-themes.md) — original themes spec; the design principles in §2 of this ADR supersede it where they conflict (notably its "stored in a Convex table" model — §2.0/§2.3/§2.5 here).
+- [`docs/4-builds/theme-system-explained.md`](../theme-system-explained.md) — plain-English companion to this §2; the "don't photocopy — resolve live" model applied to themes.
+- [ADR-012 §7](./ADR-012-language-operations-console.md) — dynamic resolution + per-field "borrowed vs yours" for content; §2.0/§2.6 here apply the same model to themes.
+- [`app/contexts/ThemeContext.tsx`](../../../app/contexts/ThemeContext.tsx) — the live `THEME_TOKENS` catalogue + `ThemeTokens` canonical shape (§2.2); [`app/contexts/ProfileContext.tsx`](../../../app/contexts/ProfileContext.tsx) — the slug→tokens live resolution (§2.0).
 - [`docs/1-inbox/ideas/21-product-analytics-posthog.md`](../../1-inbox/ideas/21-product-analytics-posthog.md) — PostHog event-shape discipline that keeps the analytics layer plugin-compatible (plugin dimensions are open strings, not literal unions).

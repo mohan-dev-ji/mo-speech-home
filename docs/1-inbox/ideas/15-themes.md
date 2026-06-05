@@ -1,12 +1,28 @@
 # Themes and Design System
 
+> **Status (amended 2026-06-05, Phase 9 review).** This is the original themes spec. Its
+> *token reference* and *design rationale* (below) remain accurate and useful, but its
+> **storage/architecture model is superseded** by [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md)
+> and the plain-English [`theme-system-explained.md`](../../4-builds/theme-system-explained.md).
+> The two corrections to read this doc through:
+> 1. **Themes are not stored "in a Convex table" per profile.** A profile stores only a
+>    `themeSlug`; the token definition resolves **live** from a central catalogue at render
+>    (dynamic resolution — ADR-011 §2.0). An admin's edit reaches every existing user with
+>    no migration; the catalogue moves from the hard-coded `THEME_TOKENS` object to JSON
+>    plugin files (`convex/data/themes/*.json`), with a deploy-free `themeLifecycle` overlay
+>    for publish/tier/featured/season (ADR-011 §2.3–2.4).
+> 2. **The `themes` Convex table + `convex/themes.ts` in the repo are dead** (wrong token
+>    shape, unread at runtime) and are retired like `resourcePacks` (ADR-011 §2.5). The
+>    `Convex Schema` block near the bottom of this doc reflects that abandoned model — treat
+>    it as historical.
+
 ## Overview
 
 Mo Speech Home uses a JSON-driven, token-based theme system. Every colour, spacing value, and roundness is a CSS custom property derived from Figma design tokens — no component ever hard-codes a value. Switching a theme is a single update to custom properties on the root element; the component tree never changes.
 
-Themes are stored in a Convex table managed by the Mo Speech admin team. New themes can be published without a code deploy. Themes can be free, premium, or purchasable. Seasonal and animated themes can be added over time.
+Theme definitions live as JSON plugin modules managed by the Mo Speech admin team, resolved live by slug at render. New themes can be published (made visible, tier-set, scheduled) without a code deploy via the `themeLifecycle` overlay; changing a theme's actual token *values* is a code deploy but still reaches every existing user automatically (no migration). Themes can be free, premium, or purchasable. Seasonal and animated themes can be added over time.
 
-Each student profile has its own theme.
+Each student profile stores only its theme *slug* — never a frozen copy of the tokens.
 
 **Source of truth for token values:** `docs/3-design/design-system/Themes/*.tokens.json`
 
@@ -315,6 +331,12 @@ Applied to `:root` (flat Default theme). ThemeContext updates these when a stude
 
 ## Convex Schema
 
+> **Historical — superseded by ADR-011 §2.2/§2.3/§2.5.** The block below describes the
+> per-profile Convex-table storage model that was never wired up at runtime. The live
+> system stores only `themeSlug` on the profile and resolves tokens live; the canonical
+> token shape is `ThemeTokens` in `ThemeContext.tsx`; the source of truth moves to
+> `convex/data/themes/*.json` + a `themeLifecycle` overlay. Kept here for reference only.
+
 ```typescript
 themes: {
   _id: Id<"themes">
@@ -537,4 +559,9 @@ Themes are managed in the Mo Speech admin dashboard. Admins can:
 - Preview the theme applied to a mock app screen before publishing
 - Unpublish or delete at any time
 
-No code deploy required for any theme change.
+Lifecycle changes (publish, unpublish, schedule, tier, feature) require **no code deploy** —
+they ride the `themeLifecycle` overlay. Changing a theme's actual token *values* (the
+colours/textures themselves) is a code deploy, because token values are content authored as
+JSON in the repo (ADR-011 §2.0, the same repo-writer constraint as packs in ADR-010 / ADR-012
+§2) — but the change still reaches every existing user with that theme automatically, with no
+per-account migration.

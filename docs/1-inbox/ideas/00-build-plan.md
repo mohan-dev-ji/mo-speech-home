@@ -630,10 +630,16 @@ This is the strategic differentiator. No serious AAC platform treats Hindi (or a
 ## Phase 9 — Themes as pluggable packs
 
 > **Status:** Reordered from original Phase 8. Same plugin pattern as Languages.
+> **Reviewed 2026-06-05** against the Phase 8 dynamic-content architecture — see findings below.
 
 **Goal:** Student profiles have selectable colour themes, and any admin (and eventually any Max user) can introduce a new theme without code changes.
 
-The existing `themes` table is seeded with 6 starter themes from Phase 0. This phase makes themes pluggable: JSON theme definitions in `convex/data/themes/*.json` + a `themeLifecycle` overlay table for runtime metadata. Matches ADR-011.
+**Key finding from the 2026-06-05 review (read [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) + [`theme-system-explained.md`](../../4-builds/theme-system-explained.md)):** themes **already resolve dynamically** — a profile stores only `themeSlug` ([`studentProfiles.themeSlug`](../../../convex/schema.ts) / `users.themeSlug`) and `ProfileContext` resolves the token definition live by slug at render. They never had content's copy-at-seed staleness. So goal (a) — *an admin's edit to a published theme reaches existing users automatically* — is **structurally already true** (no migration needed, ever). Phase 9 is therefore **not** a copy→reference conversion. It is four distinct pieces of work:
+
+1. **Source move** — relocate the central catalogue from the hard-coded `THEME_TOKENS` object in `ThemeContext.tsx` to JSON plugin files `convex/data/themes/*.json` (the ADR-010/011 pattern), bundled via a barrel and resolved by slug. Token *values* stay content (deploy to change; still reaches everyone live); behaviour is otherwise unchanged.
+2. **Lifecycle overlay** — add `themeLifecycle` (parallel to `packLifecycle`) so publish/unpublish/tier/featured/season is deploy-free → delivers goal (b): newly published themes appear in every user's picker, tier/lifecycle-gated, with no deploy for the publish.
+3. **Token-shape + dead-table reconciliation** — the live `ThemeContext.ThemeTokens` shape is canonical and evolves toward the four-layer model (background · texture · surface · accent, ADR-011 §2.1). The vestigial `themes` Convex table + `convex/themes.ts` (`seedStarterThemes`, wrong token shape, unread at runtime) are retired like `resourcePacks` — inert through cutover, dropped in a deferred cleanup (ADR-011 §2.5).
+4. **Per-token custom themes** — when user-customisable themes land (9.3), a custom theme is `baseSlug` + a sparse `tokenOverrides` map, **not** a full token copy — per-field "borrowed vs yours" (ADR-011 §2.6 / ADR-012 §7), so untouched tokens (and future layers like texture) keep flowing from the base.
 
 ### 9.1 Built-in functionality (the original Phase 8 spec)
 
@@ -644,26 +650,26 @@ The existing `themes` table is seeded with 6 starter themes from Phase 0. This p
 - Gate premium themes behind Max tier
 - Tile-based and animated themes per the existing `15-themes.md` spec
 
-### 9.2 Theme module shape (per ADR-011)
+### 9.2 Theme module shape (per ADR-011 §2)
 
-A theme is a JSON file defining:
+A theme is a JSON file at `convex/data/themes/<slug>.json` defining:
 
-- Identity: `slug`, `name: { eng, hin? }`, `description: { eng, hin? }`
-- Tokens: full theme token map (colours, gradients, typography, spacing, radii, animations)
-- Assets: paths to R2-hosted tile images / animation sources
-- Defaults: `type` (flat / tiled / animated), `tier` (free / premium), `coverImagePath`
+- Identity: `slug`, `name: { en, hi? }`, `description: { en, hi? }` (ISO keys per ADR-009 `eng→en` rename; not `eng`/`hin`)
+- Tokens: the canonical `ThemeTokens` map (`ThemeContext.tsx`) — colours, spacing, radii, animations — evolving to the four-layer model (background · texture · surface · accent, ADR-011 §2.1)
+- Assets: paths to R2-hosted tile images / textures / animation sources (under `themes/<slug>/…`)
+- Defaults: `type` (flat / tiled / animated), `defaultTier` (free / premium / max), `coverImagePath`
 
-`themeLifecycle` overlay table (parallel to `packLifecycle`): publish window, featured flag, tier override, season, notes. Admin dashboard gets a Themes section with the same shape as Library.
+`themeLifecycle` overlay table (parallel to `packLifecycle`): publish window, featured flag, tier override, season (on `notes` until proven), notes, `createdBy`, `updatedAt`. Three universal admin functions (`listAllThemesForAdmin`, `updateThemeLifecycle`, `deleteThemeLifecycle`). Admin dashboard gets a Themes section with the same shape as Library, plus the dedicated `/admin/themes/<slug>` live-preview page (ADR-011 §2.4). The dead `themes` table + `convex/themes.ts` are retired here per ADR-011 §2.5 (deferred cleanup).
 
 ### 9.3 User-uploaded themes (the natural extension)
 
 Once the JSON-driven pattern is in place, the upload flow is:
 
 - Instructor in Settings → "Create theme" → token-by-token editor or palette uploader (a curated UI, not a free-for-all)
-- Save creates a `themeLifecycle` row with `createdBy: instructorClerkId` + a custom slug
+- Save stores the custom theme as **`baseSlug` + a sparse `tokenOverrides` map** (per-token "borrowed vs yours", ADR-011 §2.6) — **not** a full token copy. Untouched tokens keep resolving live from the base theme, so base-theme improvements and future token layers (e.g. texture) flow into the slots the user didn't change. Persisted with `createdBy: instructorClerkId` + a custom slug.
 - Instructor can use the theme on their own profiles immediately (no admin approval needed for private use)
 - Optional: instructor can submit the theme to the shared library (admin reviews, publishes if approved)
-- Submitted themes appear in the library alongside packs, tier-gated per the lifecycle row
+- Submitted themes appear in the library alongside packs, tier-gated per the lifecycle row (user-authored custom themes are a Max-tier capability)
 
 ### 9.4 Admin dashboard — Themes section
 
@@ -677,7 +683,7 @@ Same shape as Library:
 
 PostHog tracks which themes get loaded, which get changed away from, time-on-theme — feeds into commissioning priorities.
 
-**Reference:** `15-themes.md`, ADR-011 (planned)
+**Reference:** [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`theme-system-explained.md`](../../4-builds/theme-system-explained.md), [`15-themes.md`](./15-themes.md) (token reference; storage model superseded), [ADR-012 §7](../../4-builds/decisions/ADR-012-language-operations-console.md) (the dynamic-resolution + per-field model this mirrors)
 
 ---
 
