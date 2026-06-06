@@ -29,7 +29,7 @@ type UpgradeNudgeProps = {
   onOpenChange: (open: boolean) => void;
   /** Translation key under `upgrade.*` for the body copy. Each feature maps to
    *  an `<feature>Body` key in the `upgrade` namespace. */
-  feature?: "editAuthoring" | "multiLanguage";
+  feature?: "editAuthoring" | "multiLanguage" | "premiumThemes";
   locale: string;
 };
 
@@ -43,17 +43,20 @@ export function UpgradeNudge({
   const router = useRouter();
   const { subscription } = useAppState();
 
-  const bodyKey = `${feature}Body` as "editAuthoringBody" | "multiLanguageBody";
+  const bodyKey = `${feature}Body` as
+    | "editAuthoringBody"
+    | "multiLanguageBody"
+    | "premiumThemesBody";
+  // Premium themes are a Max-tier surface; the other gates are Pro.
+  const isMaxGate = feature === "premiumThemes";
+  const titleKey = isMaxGate ? "maxFeatureTitle" : "proFeatureTitle";
 
   const handleSeePlans = () => {
     // Fire BEFORE close so the event fires while the component is still
     // mounted (defensive — capture is fire-and-forget so it works either way).
     track("clicked_upgrade", {
       from_tier: subscription.tier,
-      // V1: every UpgradeNudge instance is the edit-authoring Pro gate.
-      // When we add additional gated features at Max-only surfaces, route
-      // the target_tier from the `feature` prop accordingly.
-      target_tier: "pro",
+      target_tier: isMaxGate ? "max" : "pro",
       source: feature,
     });
     onOpenChange(false);
@@ -77,7 +80,7 @@ export function UpgradeNudge({
                 style={{ color: "var(--theme-secondary-text)" }}
               />
             </div>
-            <DialogTitle>{t("proFeatureTitle")}</DialogTitle>
+            <DialogTitle>{t(titleKey)}</DialogTitle>
           </div>
           <DialogDescription>{t(bodyKey)}</DialogDescription>
         </DialogHeader>

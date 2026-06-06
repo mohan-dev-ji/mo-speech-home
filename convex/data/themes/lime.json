@@ -1,0 +1,25 @@
+{
+  "slug": "lime",
+  "name": { "en": "Lime", "hi": "Lime (hi)" },
+  "previewColour": "#5EA500",
+  "type": "flat",
+  "defaultTier": "free",
+  "builtin": true,
+  "tokens": {
+    "background": "#18181B",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#5EA500",
+    "banner": "#497D00",
+    "card": "#35530E",
+    "buttonHighlight": "#D8F999",
+    "line": "#3F6212",
+    "secondaryAltText": "#F4F4F5",
+    "enterMode": "#FF6900"
+  }
+}

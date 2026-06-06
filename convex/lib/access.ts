@@ -55,6 +55,32 @@ export function userHasFullAccess(user: Doc<"users">): boolean {
 }
 
 /**
+ * The tier a user can actually *use* right now: "free" | "pro" | "max".
+ *
+ * Mirrors the `tier` returned by `users.getMyAccess` (and the client
+ * `useSubscription`) exactly, so server-side gates agree with the UI:
+ *  - active custom-access grant → "max" (admin grants are Max-equivalent);
+ *  - else the plan tier, but only if billing is active / cancelled-but-active;
+ *  - otherwise "free" (e.g. an expired Pro plan gates as free).
+ *
+ * Use for tier comparisons that need to distinguish pro vs max (e.g. theme
+ * gating). For a simple "any paid access?" check use `userHasFullAccess`.
+ */
+export function effectiveUserTier(user: Doc<"users">): "free" | "pro" | "max" {
+  const { status, subscriptionEndsAt, plan, customAccess } = user.subscription;
+  if (isCustomAccessEffective(customAccess)) return "max";
+  const planTier = tierFromPlan(plan);
+  const now = Date.now();
+  const isCancelledButActive =
+    status === "cancelled" &&
+    subscriptionEndsAt != null &&
+    subscriptionEndsAt > now;
+  const planAccess =
+    planTier !== "free" && (status === "active" || isCancelledButActive);
+  return planAccess ? planTier : "free";
+}
+
+/**
  * Throws a `TIER_REQUIRED` ConvexError if the caller is on the free tier.
  * Convenience for mutation handlers — call right after you have the user doc.
  *

@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireCallerIsAdmin } from "./lib/account";
 import { assertLanguageAllowed } from "./lib/access";
+import { assertThemeSelectable } from "./lib/themes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -421,6 +422,11 @@ export const updateStudentProfile = mutation({
         kind: "profile",
         profileId: args.profileId,
       });
+    }
+
+    // Theme tier/visibility gate — backend net for the per-profile picker.
+    if (args.themeSlug !== undefined) {
+      await assertThemeSelectable(ctx, args.themeSlug, user);
     }
 
     const { profileId, voiceId, ...updates } = args;

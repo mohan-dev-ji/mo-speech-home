@@ -1,5 +1,13 @@
 import { mutation, query } from './_generated/server';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
+import type { Doc } from './_generated/dataModel';
+import { requireCallerIsAdmin } from './lib/account';
+import {
+  getAllThemes,
+  getThemeBySlug as getThemeModuleBySlug,
+  effectiveThemeTier,
+  isThemeVisible,
+} from './lib/themes';
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -266,5 +274,186 @@ export const seedStarterThemes = mutation({
     }
 
     return { inserted, skipped };
+  },
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// Theme plugin (ADR-011 §2) — JSON catalogue + themeLifecycle overlay.
+//
+// NOTE: everything ABOVE this banner operates on the legacy `themes` table and
+// is dead at runtime (wrong token shape, unread by any UI). It is kept inert
+// for deferred cleanup per ADR-011 §2.5. New code uses the functions BELOW,
+// which read theme token values from `convex/data/themes/*.json` and merge with
+// the `themeLifecycle` table. Mirrors the resource-pack functions.
+// ════════════════════════════════════════════════════════════════════════════
+
+type ThemeLifecycleStatus = "draft" | "scheduled" | "live" | "expired";
+
+function deriveThemeStatus(
+  lifecycle: Doc<"themeLifecycle"> | null,
+  now: number
+): ThemeLifecycleStatus {
+  if (!lifecycle || lifecycle.publishedAt == null) return "draft";
+  if (lifecycle.publishedAt > now) return "scheduled";
+  if (lifecycle.expiresAt != null && lifecycle.expiresAt <= now) return "expired";
+  return "live";
+}
+
+const THEME_TIER_VALIDATOR = v.union(
+  v.literal("free"),
+  v.literal("pro"),
+  v.literal("max")
+);
+
+/**
+ * Public theme catalogue for the picker. Returns every *visible* theme —
+ * builtin themes always, plus any theme with a `themeLifecycle` row inside its
+ * publish window (`isThemeVisible`). Tokens are intentionally omitted (the
+ * client resolves them by slug from the bundled registry); this returns only
+ * what the picker needs to render a swatch + decide gating.
+ *
+ * Mirrors `resourcePacks.getPublicLibraryCatalogueV2`.
+ */
+export const getPublicThemeCatalogue = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const lifecycleRows = await ctx.db.query("themeLifecycle").collect();
+    const lifecycleBySlug = new Map(lifecycleRows.map((r) => [r.slug, r]));
+
+    return getAllThemes()
+      .map((theme) => {
+        const lifecycle = lifecycleBySlug.get(theme.slug) ?? null;
+        if (!isThemeVisible(theme, lifecycle, now)) return null;
+        return {
+          slug: theme.slug,
+          name: theme.name,
+          description: theme.description ?? null,
+          previewColour: theme.previewColour,
+          coverImagePath: theme.coverImagePath ?? null,
+          type: theme.type,
+          featured: lifecycle?.featured ?? false,
+          effectiveTier: effectiveThemeTier(theme, lifecycle),
+        };
+      })
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+  },
+});
+
+/**
+ * Admin catalogue. Every theme from the bundled JSON joined with its lifecycle
+ * row (when present), regardless of publish window — drafts and expired included.
+ * Mirrors `resourcePacks.listAllPacksForAdmin`.
+ */
+export const listAllThemesForAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireCallerIsAdmin(ctx);
+    const lifecycleRows = await ctx.db.query("themeLifecycle").collect();
+    const lifecycleBySlug = new Map(lifecycleRows.map((r) => [r.slug, r]));
+    const now = Date.now();
+    return getAllThemes().map((theme) => {
+      const lifecycle = lifecycleBySlug.get(theme.slug) ?? null;
+      return {
+        slug: theme.slug,
+        name: theme.name,
+        description: theme.description ?? null,
+        previewColour: theme.previewColour,
+        coverImagePath: theme.coverImagePath ?? null,
+        type: theme.type,
+        defaultTier: theme.defaultTier,
+        builtin: theme.builtin ?? false,
+        lifecycleId: lifecycle?._id ?? null,
+        publishedAt: lifecycle?.publishedAt ?? null,
+        expiresAt: lifecycle?.expiresAt ?? null,
+        featured: lifecycle?.featured ?? false,
+        tierOverride: lifecycle?.tierOverride ?? null,
+        notes: lifecycle?.notes ?? null,
+        updatedAt: lifecycle?.updatedAt ?? null,
+        createdBy: lifecycle?.createdBy ?? null,
+        status: deriveThemeStatus(lifecycle, now),
+        effectiveTier: effectiveThemeTier(theme, lifecycle),
+      };
+    });
+  },
+});
+
+/**
+ * Create or update a theme's lifecycle row. Tri-state inputs:
+ * `undefined` = leave alone, `null` = clear, value = set. Inserts a row on
+ * first publish. Refuses slugs not in the bundled JSON catalogue.
+ * Mirrors `resourcePacks.updatePackLifecycle`.
+ */
+export const updateThemeLifecycle = mutation({
+  args: {
+    slug: v.string(),
+    publishedAt: v.optional(v.union(v.number(), v.null())),
+    expiresAt: v.optional(v.union(v.number(), v.null())),
+    featured: v.optional(v.boolean()),
+    tierOverride: v.optional(v.union(THEME_TIER_VALIDATOR, v.null())),
+    notes: v.optional(v.union(v.string(), v.null())),
+  },
+  handler: async (ctx, args) => {
+    const { clerkUserId } = await requireCallerIsAdmin(ctx);
+
+    if (!getThemeModuleBySlug(args.slug)) {
+      throw new ConvexError({
+        code: "THEME_NOT_FOUND",
+        message: `No JSON theme found for slug "${args.slug}".`,
+      });
+    }
+
+    const existing = await ctx.db
+      .query("themeLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    const now = Date.now();
+    const patch: Partial<Doc<"themeLifecycle">> & { updatedAt: number } = {
+      updatedAt: now,
+    };
+    if (args.publishedAt !== undefined) patch.publishedAt = args.publishedAt ?? undefined;
+    if (args.expiresAt !== undefined) patch.expiresAt = args.expiresAt ?? undefined;
+    if (args.featured !== undefined) patch.featured = args.featured;
+    if (args.tierOverride !== undefined) patch.tierOverride = args.tierOverride ?? undefined;
+    if (args.notes !== undefined) patch.notes = args.notes ?? undefined;
+
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      return { slug: args.slug, lifecycleId: existing._id };
+    }
+
+    const lifecycleId = await ctx.db.insert("themeLifecycle", {
+      slug: args.slug,
+      featured: patch.featured ?? false,
+      createdBy: clerkUserId,
+      updatedAt: now,
+      ...(patch.publishedAt !== undefined && { publishedAt: patch.publishedAt }),
+      ...(patch.expiresAt !== undefined && { expiresAt: patch.expiresAt }),
+      ...(patch.tierOverride !== undefined && { tierOverride: patch.tierOverride }),
+      ...(patch.notes !== undefined && { notes: patch.notes }),
+    });
+    return { slug: args.slug, lifecycleId };
+  },
+});
+
+/**
+ * Delete a themeLifecycle row, returning the slug to draft state. The JSON
+ * theme file is NOT touched. Builtin themes stay visible (always-on); other
+ * themes disappear from pickers until republished. No-op if no row exists.
+ * Mirrors `resourcePacks.deletePackLifecycle`.
+ */
+export const deleteThemeLifecycle = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    await requireCallerIsAdmin(ctx);
+    const row = await ctx.db
+      .query("themeLifecycle")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (row) {
+      await ctx.db.delete(row._id);
+    }
+    return { slug };
   },
 });

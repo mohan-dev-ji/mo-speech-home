@@ -1,0 +1,25 @@
+{
+  "slug": "sky",
+  "name": { "en": "Sky", "hi": "Sky (hi)" },
+  "previewColour": "#00A6F4",
+  "type": "flat",
+  "defaultTier": "free",
+  "builtin": true,
+  "tokens": {
+    "background": "#18181B",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#00A6F4",
+    "banner": "#0084D1",
+    "card": "#024A70",
+    "buttonHighlight": "#B8E6FE",
+    "line": "#075985",
+    "secondaryAltText": "#F4F4F5",
+    "enterMode": "#FD9A00"
+  }
+}

@@ -5,7 +5,8 @@ import { useQuery, useMutation } from 'convex/react';
 import posthog from 'posthog-js';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
-import { useTheme, THEME_TOKENS, type ThemeSlug } from '@/app/contexts/ThemeContext';
+import { useTheme } from '@/app/contexts/ThemeContext';
+import { getThemeTokens } from '@/lib/themes/registry';
 import { resolveVoiceId } from '@/lib/audio/resolveVoiceId';
 import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
 
@@ -185,9 +186,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!activeThemeSlug) return;
-    const slug = activeThemeSlug as ThemeSlug;
-    if (THEME_TOKENS[slug]) {
-      setTheme(slug, THEME_TOKENS[slug]);
+    const tokens = getThemeTokens(activeThemeSlug);
+    if (tokens) {
+      setTheme(activeThemeSlug, tokens);
     }
   }, [activeThemeSlug]);
 
@@ -288,8 +289,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   function setInstructorTheme(slug: string) {
     setMyThemeSlugMutation({ themeSlug: slug });
-    if (THEME_TOKENS[slug as ThemeSlug]) {
-      setTheme(slug, THEME_TOKENS[slug as ThemeSlug]);
+    const tokens = getThemeTokens(slug);
+    if (tokens) {
+      setTheme(slug, tokens);
     }
   }
 

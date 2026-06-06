@@ -2,6 +2,7 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { requireCallerIsAdmin } from "./lib/account";
 import { isCustomAccessEffective, assertLanguageAllowed } from "./lib/access";
+import { assertThemeSelectable } from "./lib/themes";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -524,6 +525,9 @@ export const setMyThemeSlug = mutation({
     const user = await ctx.db
       .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
     if (!user) throw new Error("User not found");
+    // Backend net: slug must exist, be published, and be within the caller's
+    // tier (the client hides gated themes — this catches direct/stale calls).
+    await assertThemeSelectable(ctx, args.themeSlug, user);
     await ctx.db.patch(user._id, { themeSlug: args.themeSlug });
   },
 });

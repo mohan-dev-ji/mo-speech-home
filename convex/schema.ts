@@ -797,6 +797,36 @@ export default defineSchema({
     .index("by_createdBy", ["createdBy"]),
 
   /**
+   * Theme lifecycle overlay (ADR-011 §2.4). The deploy-free half of the theme
+   * plugin: token *values* live in `convex/data/themes/*.json` (content → code
+   * deploy), but publish window / tier / featured / scheduling live here and an
+   * admin edits them with no deploy.
+   *
+   * A theme is visible in pickers iff the JSON module is `builtin` OR a row here
+   * exists with `publishedAt <= now` and `expiresAt` unset/future
+   * (`getPublicThemeCatalogue`). Mirrors `packLifecycle` minus pack-only fields;
+   * season rides on `notes` until seasonal themes prove themselves.
+   *
+   * NOTE: distinct from the legacy `themes` table below, which is dead (wrong
+   * token shape, unread at runtime) and slated for deferred cleanup (ADR-011
+   * §2.5). Do not wire new code to `themes`.
+   */
+  themeLifecycle: defineTable({
+    slug: v.string(),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    featured: v.boolean(),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    notes: v.optional(v.string()),
+    createdBy: v.string(), // Clerk userId of the admin who first published the slug
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_createdBy", ["createdBy"]),
+
+  /**
    * Language lifecycle overlay — per ADR-009 + ADR-011. Mirrors `packLifecycle`
    * shape for the language plugin. Holds runtime catalogue metadata for
    * languages whose content (UI strings + voice metadata + status) lives in
