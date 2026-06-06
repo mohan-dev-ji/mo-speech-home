@@ -2,30 +2,22 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
-import { useTheme, THEME_TOKENS, type ThemeSlug } from "@/app/contexts/ThemeContext";
+import { useTheme } from "@/app/contexts/ThemeContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import {
   DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
 import { getLanguage } from "@/lib/languages/registry";
+import { canAccessThemeTier } from "@/lib/themes/registry";
+import { displayValue } from "@/lib/languages/displayValue";
 import { track } from "@/lib/analytics";
-import { Volume2 } from "lucide-react";
-
-// ─── Theme swatches ───────────────────────────────────────────────────────────
-
-const THEME_SWATCHES: { slug: ThemeSlug; swatch: string; name: string }[] = [
-  { slug: "default", swatch: "#62748E", name: "Classic" },
-  { slug: "sky",     swatch: "#00A6F4", name: "Sky"     },
-  { slug: "amber",   swatch: "#E17100", name: "Amber"   },
-  { slug: "fuchsia", swatch: "#E12AFB", name: "Fuchsia" },
-  { slug: "lime",    swatch: "#5EA500", name: "Lime"    },
-  { slug: "rose",    swatch: "#FF2056", name: "Rose"    },
-];
+import { Volume2, Lock } from "lucide-react";
 
 type GridSize = "large" | "medium" | "small";
 type TextSize = "large" | "medium" | "small" | "xs";
@@ -67,13 +59,19 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
     useQuery(api.languages.getVisibleLanguages, { includeBeta: true }) ?? [];
 
   const currentLocale  = (userRecord?.locale ?? params?.locale ?? "en") as string;
-  const currentTheme   = (userRecord?.themeSlug ?? activeThemeId ?? "default") as ThemeSlug;
+  const currentTheme   = (userRecord?.themeSlug ?? activeThemeId ?? "default") as string;
   const currentGrid    = stateFlags.grid_size;
   const currentTextSize = stateFlags.symbol_text_size;
   const currentLabelVisible = stateFlags.symbol_label_visible;
 
+  // Theme picker is data-driven: visible themes + tier come from the catalogue
+  // (builtin + admin-published), gated against the account tier. Per ADR-011 §2.
+  const uiLocale = useLocale();
+  const themeCatalogue = useQuery(api.themes.getPublicThemeCatalogue) ?? [];
+  const [themeNudgeOpen, setThemeNudgeOpen] = useState(false);
+
   const [locale,       setLocale]       = useState(currentLocale);
-  const [theme,        setThemeSel]     = useState<ThemeSlug>(currentTheme);
+  const [theme,        setThemeSel]     = useState<string>(currentTheme);
   const [grid,         setGrid]         = useState<GridSize>(currentGrid);
   const [textSize,     setTextSize]     = useState<TextSize>(currentTextSize);
   const [labelVisible, setLabelVisible] = useState(currentLabelVisible);
@@ -105,8 +103,18 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // Preview theme immediately on swatch click
-  const handleThemeClick = (slug: ThemeSlug) => {
+  // Preview theme immediately on swatch click. Gated themes open the upgrade
+  // nudge instead of selecting (the server mutation also rejects, defensively).
+  const handleThemeClick = (slug: string, requiredTier: "free" | "pro" | "max") => {
+    if (!canAccessThemeTier(subscription.tier, requiredTier)) {
+      track("theme_locked_click", {
+        slug,
+        required_tier: requiredTier,
+        tier: subscription.tier,
+      });
+      setThemeNudgeOpen(true);
+      return;
+    }
     const previousTheme = theme;
     setThemeSel(slug);
     setInstructorTheme(slug); // applies CSS vars instantly
@@ -240,21 +248,26 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         <section className="space-y-2">
           <p className="text-theme-s font-semibold text-theme-secondary-text">{t("sectionTheme")}</p>
           <div className="flex flex-wrap gap-theme-elements">
-            {THEME_SWATCHES.map(({ slug, swatch, name }) => (
-              <button
-                key={slug}
-                type="button"
-                onClick={() => handleThemeClick(slug)}
-                className={`flex items-center gap-2 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-theme-s font-medium transition-colors ${
-                  theme === slug
-                    ? "bg-theme-button-highlight text-theme-text"
-                    : "bg-theme-primary text-theme-alt-text hover:opacity-90"
-                }`}
-              >
-                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: swatch }} />
-                {name}
-              </button>
-            ))}
+            {themeCatalogue.map((th) => {
+              const locked = !canAccessThemeTier(subscription.tier, th.effectiveTier);
+              const label = displayValue(th.name, uiLocale, "en") ?? th.slug;
+              return (
+                <button
+                  key={th.slug}
+                  type="button"
+                  onClick={() => handleThemeClick(th.slug, th.effectiveTier)}
+                  className={`flex items-center gap-2 px-theme-btn-x py-theme-btn-y rounded-theme-sm text-theme-s font-medium transition-colors ${
+                    theme === th.slug
+                      ? "bg-theme-button-highlight text-theme-text"
+                      : "bg-theme-primary text-theme-alt-text hover:opacity-90"
+                  }`}
+                >
+                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: th.previewColour }} />
+                  {label}
+                  {locked && <Lock className="w-3 h-3 shrink-0" aria-hidden />}
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -326,6 +339,13 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
         </DialogClose>
         <Button onClick={handleConfirm} loading={saving}>{t("confirmButton")}</Button>
       </DialogFooter>
+
+      <UpgradeNudge
+        open={themeNudgeOpen}
+        onOpenChange={setThemeNudgeOpen}
+        feature="premiumThemes"
+        locale={uiLocale}
+      />
     </>
   );
 }

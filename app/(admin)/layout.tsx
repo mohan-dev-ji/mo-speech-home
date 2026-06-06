@@ -3,17 +3,18 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/app/components/admin/ui/ThemeToggle";
-import { LayoutDashboard, Users, Library, Languages } from "lucide-react";
+import { LayoutDashboard, Users, Library, Languages, Palette } from "lucide-react";
 
 // Admin UI is English only (per docs/1-inbox/ideas/17-admin-dashboard.md §
 // "Language Handling"). This is the one place in the app where the
 // `useTranslations` rule is deliberately bypassed — all strings below are
-// plain literals. Other sections (Themes, Affiliates, Core Vocab, Starter
-// Pack) ship in later phases and will be added to `adminNav` then.
+// plain literals. Remaining sections (Affiliates, Core Vocab, Starter Pack)
+// ship in later phases and will be added to `adminNav` then.
 const adminNav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/library", label: "Library", icon: Library },
+  { href: "/admin/themes", label: "Themes", icon: Palette },
   { href: "/admin/languages", label: "Languages", icon: Languages },
 ];
 

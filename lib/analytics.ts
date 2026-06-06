@@ -44,6 +44,14 @@ type EventMap = {
     to_theme: string;
     tier: SubscriptionTier;
   };
+  // A user tapped a tier-locked theme swatch (opens the upgrade nudge). Captures
+  // which premium themes tempt which tiers — the demand signal that precedes the
+  // `clicked_upgrade` (source: "premiumThemes") conversion event.
+  theme_locked_click:      {
+    slug: string;
+    required_tier: SubscriptionTier;
+    tier: SubscriptionTier;
+  };
   language_switched:       { from: string; to: string };
   profile_switched:        { profile_count: number };
   modelling_started:       Record<string, never>;

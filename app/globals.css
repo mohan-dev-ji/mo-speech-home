@@ -94,6 +94,23 @@
   --theme-bg-animation-duration: 4s;
   --theme-card-animation:        none;
 
+  /* ── Four-layer model (ADR-011 §2.1) — no-op defaults ──────────────
+     Flat themes leave these untouched so they render identically to
+     before. Premium themes set them via ThemeContext at runtime.
+     - bg-layer paints the flat background → no visual change.
+     - texture opacity 0 → invisible.
+     - surface = solid card, blur 0, saturate 100% → no glass.
+  ──────────────────────────────────────────────────────────────────── */
+  --theme-bg-layer:        var(--theme-background);
+  --theme-texture-image:   none;
+  --theme-texture-blend:   normal;
+  --theme-texture-opacity: 0;
+  --theme-surface:         var(--theme-card);
+  --theme-surface-bar:     var(--theme-banner);
+  --theme-surface-blur:    0px;
+  --theme-surface-saturate: 100%;
+  --theme-surface-border:  var(--theme-line);
+
   /* ── New token names (Convex themes schema) ────────────────────────
      These aliases bridge the shared components to the current theme system.
      Phase 7 will wire these directly from the themes Convex table.
@@ -267,12 +284,66 @@ body {
 
 [data-locale] {
   font-family: var(--font-noto-sans), Arial, sans-serif;
-  background: var(--theme-background);
+  /* Background is painted by the fixed `.theme-bg-layer` behind the shell so a
+     premium theme's gradient/texture shows through translucent chrome. The shell
+     itself is transparent. For flat themes the layer paints --theme-background,
+     so the result is pixel-identical to a solid shell background. */
+  background: transparent;
   color: var(--theme-text);
 }
 
 [data-locale="hi"] {
   font-family: var(--font-noto-devanagari), var(--font-noto-sans), Arial, sans-serif;
+}
+
+/* ─── Theme background + texture layers (ADR-011 §2.1) ────────────
+   Two fixed full-bleed layers mounted as the first children of the
+   AAC shell, behind all content (z-index:-1, non-interactive). The
+   content scrolls over them. Flat themes: bg paints --theme-background,
+   texture is invisible (opacity 0) → no visual change.
+──────────────────────────────────────────────────────────────── */
+
+.theme-bg-layer,
+.theme-texture-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.theme-bg-layer {
+  background: var(--theme-bg-layer);
+}
+
+/* Texture sits above the bg layer (later in the DOM) and blends with it. */
+.theme-texture-layer {
+  background-image: var(--theme-texture-image);
+  background-repeat: repeat;
+  mix-blend-mode: var(--theme-texture-blend);
+  opacity: var(--theme-texture-opacity);
+}
+
+/* ─── Glass chrome (ADR-011 §2.1, chrome only) ───────────────────
+   Applied to the sidebar, top bar and talker chrome. For flat themes
+   these are no-ops: surface = solid card/banner, blur 0, saturate 100%
+   → identical to a plain coloured surface. Premium themes set the
+   surface tokens to translucent rgba + a blur so the chrome frosts and
+   the background layer shows through. Symbol cards and the talker chip
+   tray deliberately do NOT use these (AAC legibility).
+──────────────────────────────────────────────────────────────── */
+
+.glass-surface,
+.glass-bar {
+  -webkit-backdrop-filter: blur(var(--theme-surface-blur)) saturate(var(--theme-surface-saturate));
+  backdrop-filter: blur(var(--theme-surface-blur)) saturate(var(--theme-surface-saturate));
+}
+
+.glass-surface {
+  background: var(--theme-surface);
+}
+
+.glass-bar {
+  background: var(--theme-surface-bar);
 }
 
 /* ─── AAC Component Classes ──────────────────────────────────────

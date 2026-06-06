@@ -1,0 +1,25 @@
+{
+  "slug": "rose",
+  "name": { "en": "Rose", "hi": "Rose (hi)" },
+  "previewColour": "#FF2056",
+  "type": "flat",
+  "defaultTier": "free",
+  "builtin": true,
+  "tokens": {
+    "background": "#18181B",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#FF2056",
+    "banner": "#C70036",
+    "card": "#8B0836",
+    "buttonHighlight": "#FFCCD3",
+    "line": "#9F1239",
+    "secondaryAltText": "#F4F4F5",
+    "enterMode": "#FF6900"
+  }
+}

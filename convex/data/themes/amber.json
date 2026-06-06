@@ -1,0 +1,25 @@
+{
+  "slug": "amber",
+  "name": { "en": "Amber", "hi": "Amber (hi)" },
+  "previewColour": "#E17100",
+  "type": "flat",
+  "defaultTier": "free",
+  "builtin": true,
+  "tokens": {
+    "background": "#18181B",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#E17100",
+    "banner": "#BB4D00",
+    "card": "#7B3306",
+    "buttonHighlight": "#FEE685",
+    "line": "#92400E",
+    "secondaryAltText": "#F4F4F5",
+    "enterMode": "#FF6900"
+  }
+}

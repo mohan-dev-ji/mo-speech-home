@@ -42,7 +42,7 @@ export function Sidebar({ locale }: SidebarProps) {
   const settingsVisible = isStudent ? !!stateFlags.settings_visible : true;
 
   return (
-    <aside className="hidden md:flex flex-col shrink-0 h-full bg-theme-card">
+    <aside className="hidden md:flex flex-col shrink-0 h-full glass-surface">
 
       {/* Logo links to the marketing landing in the current locale.
           Signed-in users can reach the Hero/Features/Pricing surface from here.

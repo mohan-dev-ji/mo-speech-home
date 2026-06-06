@@ -140,8 +140,8 @@ export function TalkerDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity"
-        style={{ ...baseStyle, background: 'var(--theme-card)', color: 'var(--theme-nav-text)' }}
+        className="flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity glass-surface"
+        style={{ ...baseStyle, color: 'var(--theme-nav-text)' }}
         aria-label={t('openDropdown')}
       >
         <ChevronDown className="w-5 h-5" />
@@ -218,8 +218,8 @@ export function TalkerDropdown({
 
       <div
         ref={panelRef}
-        className="flex flex-col"
-        style={{ ...baseStyle, bottom: 0, background: 'var(--theme-card)' }}
+        className="flex flex-col glass-surface"
+        style={{ ...baseStyle, bottom: 0 }}
       >
       {/* Chevron close — stays at same position as the closed-state tab */}
       <button

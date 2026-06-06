@@ -36,7 +36,6 @@
     "firstLabel": "First",
     "thenLabel": "Then",
     "editList": "Edit",
-    "exitEdit": "Exit Edit",
     "editNameLabel": "Edit list name",
     "formatRows": "Rows",
     "formatColumns": "Columns",
@@ -810,7 +809,9 @@
     "editAuthoringBody": "Creating and editing categories, lists, sentences and symbols is part of Pro and Max. Start a subscription to build your student's vocabulary.",
     "multiLanguageBody": "Give each student their own language on Pro and Max. Free accounts use a single language across the app.",
     "ctaSeePlans": "See plans",
-    "ctaMaybeLater": "Maybe later"
+    "ctaMaybeLater": "Maybe later",
+    "maxFeatureTitle": "Max feature",
+    "premiumThemesBody": "Premium themes — tiled and animated backgrounds — are part of Max. Upgrade to unlock the full theme library."
   },
   "marketingHero": {
     "betaBadge": "Now in beta",

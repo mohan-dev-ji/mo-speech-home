@@ -143,8 +143,8 @@ export function TopBar() {
   return (
     <>
       <header
-        className="flex items-center px-5 gap-2 shrink-0"
-        style={{ background: 'var(--theme-banner)', minHeight: '48px', zIndex: 70 }}
+        className="flex items-center px-5 gap-2 shrink-0 glass-bar"
+        style={{ minHeight: '48px', zIndex: 70 }}
       >
         {/* Hamburger — mobile only */}
         <button
@@ -181,10 +181,9 @@ export function TopBar() {
       {/* Mobile dropdown */}
       {menuOpen && (
         <div
-          className="md:hidden fixed inset-x-0 bottom-0 flex flex-col overflow-auto"
+          className="md:hidden fixed inset-x-0 bottom-0 flex flex-col overflow-auto glass-surface"
           style={{
             top: '48px',
-            background: 'var(--theme-card)',
             // Default z-60 keeps the drawer above page content. When a
             // modelling session is active, bump above the backdrop (z-80)
             // so the wrapped target inside the drawer can show its

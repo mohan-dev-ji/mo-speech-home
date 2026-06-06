@@ -7,49 +7,16 @@ import {
   type ReactNode,
 } from 'react';
 
-// ─── ThemeTokens — mirrors Figma design system + Convex schema ────────────────
-// Source: docs/3-design/design-system/Themes/*.tokens.json
-// CSS vars: tailwind.config.ts + app/globals.css
+// ─── ThemeTokens + catalogue ──────────────────────────────────────────────────
+// The token *type* and the per-theme token *values* now live in the bundled
+// theme catalogue (`convex/data/themes/*.json`), resolved by slug at render via
+// `lib/themes/registry`. Per ADR-011 §2.3 the source of truth moved from this
+// hard-coded file to JSON; this context just applies whatever the slug resolves
+// to. The type is re-exported here for back-compat with existing import sites.
 
-export type ThemeTokens = {
-  // Colours — required, unique per theme
-  background:         string;   // --theme-background
-  primary:            string;   // --theme-primary
-  banner:             string;   // --theme-banner
-  card:               string;   // --theme-card
-  altCard:            string;   // --theme-alt-card
-  symbolBg:           string;   // --theme-symbol-bg
-  buttonHighlight:    string;   // --theme-button-highlight
-  text:               string;   // --theme-text
-  secondaryText:      string;   // --theme-secondary-text
-  altText:            string;   // --theme-alt-text
-  secondaryAltText:   string;   // --theme-secondary-alt-text
-  line:               string;   // --theme-line
-  enterMode:          string;   // --theme-enter-mode
-  success:            string;   // --theme-success
-  warning:            string;   // --theme-warning
-
-  // Spacing — optional overrides (flat themes inherit CSS defaults)
-  generalPadding?:          number;   // --theme-general-padding
-  generalSpaceBetween?:     number;   // --theme-general-space-between
-  headerBannerPadding?:     number;   // --theme-header-banner-padding
-  modalPadding?:            number;   // --theme-modal-padding
-  categoriesFolderPadding?: number;   // --theme-categories-folder-padding
-  modalSpaceBetween?:       number;   // --theme-modal-space-between
-  largeButtonsPadding?:     number;   // --theme-large-buttons-padding
-  itemPadding?:             number;   // --theme-item-padding
-  headerTalkerPadding?:     number;   // --theme-header-talker-padding
-  roundness?:               number;   // --theme-roundness
-  smallRoundness?:          number;   // --theme-small-roundness
-  elementsSpaceBetween?:    number;   // --theme-elements-space-between
-  symbolCardPadding?:       number;   // --theme-symbol-card-padding
-  buttonsYPadding?:         number;   // --theme-buttons-y-padding
-
-  // Animation (animated themes only)
-  bgAnimation?:         string;   // --theme-bg-animation
-  bgAnimationDuration?: string;   // --theme-bg-animation-duration
-  cardAnimation?:       string;   // --theme-card-animation
-};
+import type { ThemeTokens } from '@/lib/themes/registry';
+import { THEME_MODULE_MAP } from '@/lib/themes/registry';
+export type { ThemeTokens };
 
 // ─── CSS variable map ──────────────────────────────────────────────────────────
 
@@ -86,88 +53,32 @@ const TOKEN_TO_CSS: Record<keyof ThemeTokens, string> = {
   bgAnimation:              '--theme-bg-animation',
   bgAnimationDuration:      '--theme-bg-animation-duration',
   cardAnimation:            '--theme-card-animation',
+  // Four-layer model (ADR-011 §2.1) — additive, no-op defaults live in globals.css
+  bgLayer:                  '--theme-bg-layer',
+  textureImage:             '--theme-texture-image',
+  textureBlend:             '--theme-texture-blend',
+  textureOpacity:           '--theme-texture-opacity',
+  surface:                  '--theme-surface',
+  surfaceBar:               '--theme-surface-bar',
+  surfaceBlur:              '--theme-surface-blur',
+  surfaceSaturate:          '--theme-surface-saturate',
+  surfaceBorder:            '--theme-surface-border',
 };
 
-// ─── Theme catalogue — all 6 flat themes ──────────────────────────────────────
-// Source: docs/3-design/design-system/Themes/*.tokens.json
-// Shared values (background, altCard, symbolBg, text, secondaryText,
-// altText, success, warning) are identical across all flat themes.
+// Numeric tokens that must be written WITHOUT a `px` suffix (ratios/opacities).
+const UNITLESS_TOKENS: ReadonlySet<keyof ThemeTokens> = new Set(['textureOpacity']);
 
-const SHARED: Pick<ThemeTokens, 'background' | 'altCard' | 'symbolBg' | 'text' | 'secondaryText' | 'altText' | 'success' | 'warning'> = {
-  background:    '#18181B',  // zinc/900
-  altCard:       '#E4E4E7',  // zinc/200
-  symbolBg:      '#FAFAFA',  // zinc/50
-  text:          '#3F3F46',  // zinc/700
-  secondaryText: '#71717B',  // zinc/500
-  altText:       '#FAFAFA',  // zinc/50
-  success:       '#00C951',  // green/500
-  warning:       '#FB2C36',  // red/500
-};
+// ─── Back-compat token map ─────────────────────────────────────────────────────
+// A slug→tokens map derived from the bundled catalogue, for call sites that
+// still expect the old `THEME_TOKENS` object. Prefer `getThemeTokens(slug)`
+// from `lib/themes/registry` in new code.
 
-export const THEME_TOKENS = {
-  default: {
-    ...SHARED,
-    primary:          '#62748E',  // slate/500
-    banner:           '#45556C',  // slate/600
-    card:             '#314158',  // slate/700
-    buttonHighlight:  '#E2E8F0',  // slate/200
-    line:             '#1E293B',  // slate/800
-    secondaryAltText: '#D4D4D8',  // zinc/300
-    enterMode:        '#FF6900',  // orange/500
-  },
-  sky: {
-    ...SHARED,
-    primary:          '#00A6F4',  // sky/500
-    banner:           '#0084D1',  // sky/600
-    card:             '#024A70',  // sky/900
-    buttonHighlight:  '#B8E6FE',  // sky/200
-    line:             '#075985',  // sky/800
-    secondaryAltText: '#F4F4F5',  // zinc/100
-    enterMode:        '#FD9A00',  // amber/500
-  },
-  amber: {
-    ...SHARED,
-    primary:          '#E17100',  // amber/600
-    banner:           '#BB4D00',  // amber/700
-    card:             '#7B3306',  // amber/900
-    buttonHighlight:  '#FEE685',  // amber/200
-    line:             '#92400E',  // amber/800
-    secondaryAltText: '#F4F4F5',  // zinc/100
-    enterMode:        '#FF6900',  // orange/500
-  },
-  fuchsia: {
-    ...SHARED,
-    primary:          '#E12AFB',  // fuchsia/500
-    banner:           '#A800B7',  // fuchsia/700
-    card:             '#721378',  // fuchsia/900
-    buttonHighlight:  '#F6CFFF',  // fuchsia/200
-    line:             '#86198F',  // fuchsia/800
-    secondaryAltText: '#F4F4F5',  // zinc/100
-    enterMode:        '#FF6900',  // orange/500
-  },
-  lime: {
-    ...SHARED,
-    primary:          '#5EA500',  // lime/600
-    banner:           '#497D00',  // lime/700
-    card:             '#35530E',  // lime/900
-    buttonHighlight:  '#D8F999',  // lime/200
-    line:             '#3F6212',  // lime/800
-    secondaryAltText: '#F4F4F5',  // zinc/100
-    enterMode:        '#FF6900',  // orange/500
-  },
-  rose: {
-    ...SHARED,
-    primary:          '#FF2056',  // rose/500
-    banner:           '#C70036',  // rose/700
-    card:             '#8B0836',  // rose/900
-    buttonHighlight:  '#FFCCD3',  // rose/200
-    line:             '#9F1239',  // rose/800
-    secondaryAltText: '#F4F4F5',  // zinc/100
-    enterMode:        '#FF6900',  // orange/500
-  },
-} satisfies Record<string, ThemeTokens>;
+export const THEME_TOKENS: Record<string, ThemeTokens> = Object.fromEntries(
+  Object.entries(THEME_MODULE_MAP).map(([slug, m]) => [slug, m.tokens]),
+);
 
-export type ThemeSlug = keyof typeof THEME_TOKENS;
+// Slugs are now an open set sourced from JSON, not a fixed union.
+export type ThemeSlug = string;
 
 // ─── Apply tokens to CSS vars ─────────────────────────────────────────────────
 
@@ -176,7 +87,16 @@ function applyThemeTokens(tokens: ThemeTokens, reduceMotion = false) {
   for (const [key, cssVar] of Object.entries(TOKEN_TO_CSS)) {
     const value = tokens[key as keyof ThemeTokens];
     if (value !== undefined) {
-      root.style.setProperty(cssVar, typeof value === 'number' ? `${value}px` : value);
+      const isNum = typeof value === 'number';
+      const unitless = UNITLESS_TOKENS.has(key as keyof ThemeTokens);
+      root.style.setProperty(cssVar, isNum && !unitless ? `${value}px` : String(value));
+    } else {
+      // Token absent from this theme → clear any inline override so the var
+      // falls back to its globals.css `:root` default. Critical when switching
+      // a premium theme (gradient/texture/glass) back to a flat one — otherwise
+      // the optional layer vars would persist. (Flat themes define all base
+      // tokens, so only the optional four-layer vars are ever cleared here.)
+      root.style.removeProperty(cssVar);
     }
   }
   root.setAttribute('data-reduce-motion', String(reduceMotion));

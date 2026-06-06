@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
-import { type ThemeSlug } from "@/app/contexts/ThemeContext";
+import { canAccessThemeTier } from "@/lib/themes/registry";
+import { displayValue } from "@/lib/languages/displayValue";
 import { track } from "@/lib/analytics";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
@@ -20,17 +21,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { getLanguage } from "@/lib/languages/registry";
 import { resolveVoiceId } from "@/lib/audio/resolveVoiceId";
 import { ChevronDown, Volume2, Lock } from "lucide-react";
-
-// ─── Theme swatches ───────────────────────────────────────────────────────────
-
-const THEME_SWATCHES: { slug: ThemeSlug; swatch: string; name: string }[] = [
-  { slug: "default", swatch: "#62748E", name: "Classic" },
-  { slug: "sky",     swatch: "#00A6F4", name: "Sky"     },
-  { slug: "amber",   swatch: "#E17100", name: "Amber"   },
-  { slug: "fuchsia", swatch: "#E12AFB", name: "Fuchsia" },
-  { slug: "lime",    swatch: "#5EA500", name: "Lime"    },
-  { slug: "rose",    swatch: "#FF2056", name: "Rose"    },
-];
 
 type GridSize = "large" | "medium" | "small";
 type TextSize = "large" | "medium" | "small" | "xs";
@@ -178,9 +168,24 @@ function ProfileTabContent({
   };
 
   // ── Theme ──
+  // Data-driven, tier-gated picker (ADR-011 §2): visible themes + required tier
+  // come from the catalogue; gated themes open the upgrade nudge.
 
-  const currentThemeSlug = ((profile as any).themeSlug ?? "default") as ThemeSlug;
-  const handleThemeChange = (slug: ThemeSlug) => {
+  const uiLocale = useLocale();
+  const themeCatalogue = useQuery(api.themes.getPublicThemeCatalogue) ?? [];
+  const [themeNudgeOpen, setThemeNudgeOpen] = useState(false);
+
+  const currentThemeSlug = (profile.themeSlug ?? "default") as string;
+  const handleThemeChange = (slug: string, requiredTier: "free" | "pro" | "max") => {
+    if (!canAccessThemeTier(subscription.tier, requiredTier)) {
+      track("theme_locked_click", {
+        slug,
+        required_tier: requiredTier,
+        tier: subscription.tier,
+      });
+      setThemeNudgeOpen(true);
+      return;
+    }
     if (slug === currentThemeSlug) return; // no-op when re-clicking the active swatch
     updateProfile({ profileId: profile._id, themeSlug: slug });
     track("theme_changed", {
@@ -364,21 +369,26 @@ function ProfileTabContent({
       <div>
         <p className="text-small font-semibold text-foreground mb-2">{t("sectionTheme")}</p>
         <div className="flex flex-wrap gap-2">
-          {THEME_SWATCHES.map(({ slug, swatch, name: themeName }) => (
-            <button
-              key={slug}
-              type="button"
-              onClick={() => handleThemeChange(slug)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-small font-medium border transition-colors ${
-                currentThemeSlug === slug
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:bg-muted"
-              }`}
-            >
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: swatch }} />
-              {themeName}
-            </button>
-          ))}
+          {themeCatalogue.map((th) => {
+            const locked = !canAccessThemeTier(subscription.tier, th.effectiveTier);
+            const themeName = displayValue(th.name, uiLocale, "en") ?? th.slug;
+            return (
+              <button
+                key={th.slug}
+                type="button"
+                onClick={() => handleThemeChange(th.slug, th.effectiveTier)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-small font-medium border transition-colors ${
+                  currentThemeSlug === th.slug
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: th.previewColour }} />
+                {themeName}
+                {locked && <Lock className="w-3 h-3 shrink-0" aria-hidden />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -570,6 +580,13 @@ function ProfileTabContent({
         onOpenChange={setLangNudgeOpen}
         feature="multiLanguage"
         locale={currentLang}
+      />
+
+      <UpgradeNudge
+        open={themeNudgeOpen}
+        onOpenChange={setThemeNudgeOpen}
+        feature="premiumThemes"
+        locale={uiLocale}
       />
     </div>
   );

@@ -1,0 +1,25 @@
+{
+  "slug": "default",
+  "name": { "en": "Classic", "hi": "Classic (hi)" },
+  "previewColour": "#62748E",
+  "type": "flat",
+  "defaultTier": "free",
+  "builtin": true,
+  "tokens": {
+    "background": "#18181B",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#62748E",
+    "banner": "#45556C",
+    "card": "#314158",
+    "buttonHighlight": "#E2E8F0",
+    "line": "#1E293B",
+    "secondaryAltText": "#D4D4D8",
+    "enterMode": "#FF6900"
+  }
+}
