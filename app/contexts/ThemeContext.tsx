@@ -53,7 +53,20 @@ const TOKEN_TO_CSS: Record<keyof ThemeTokens, string> = {
   bgAnimation:              '--theme-bg-animation',
   bgAnimationDuration:      '--theme-bg-animation-duration',
   cardAnimation:            '--theme-card-animation',
+  // Four-layer model (ADR-011 §2.1) — additive, no-op defaults live in globals.css
+  bgLayer:                  '--theme-bg-layer',
+  textureImage:             '--theme-texture-image',
+  textureBlend:             '--theme-texture-blend',
+  textureOpacity:           '--theme-texture-opacity',
+  surface:                  '--theme-surface',
+  surfaceBar:               '--theme-surface-bar',
+  surfaceBlur:              '--theme-surface-blur',
+  surfaceSaturate:          '--theme-surface-saturate',
+  surfaceBorder:            '--theme-surface-border',
 };
+
+// Numeric tokens that must be written WITHOUT a `px` suffix (ratios/opacities).
+const UNITLESS_TOKENS: ReadonlySet<keyof ThemeTokens> = new Set(['textureOpacity']);
 
 // ─── Back-compat token map ─────────────────────────────────────────────────────
 // A slug→tokens map derived from the bundled catalogue, for call sites that
@@ -74,7 +87,16 @@ function applyThemeTokens(tokens: ThemeTokens, reduceMotion = false) {
   for (const [key, cssVar] of Object.entries(TOKEN_TO_CSS)) {
     const value = tokens[key as keyof ThemeTokens];
     if (value !== undefined) {
-      root.style.setProperty(cssVar, typeof value === 'number' ? `${value}px` : value);
+      const isNum = typeof value === 'number';
+      const unitless = UNITLESS_TOKENS.has(key as keyof ThemeTokens);
+      root.style.setProperty(cssVar, isNum && !unitless ? `${value}px` : String(value));
+    } else {
+      // Token absent from this theme → clear any inline override so the var
+      // falls back to its globals.css `:root` default. Critical when switching
+      // a premium theme (gradient/texture/glass) back to a flat one — otherwise
+      // the optional layer vars would persist. (Flat themes define all base
+      // tokens, so only the optional four-layer vars are ever cleared here.)
+      root.style.removeProperty(cssVar);
     }
   }
   root.setAttribute('data-reduce-motion', String(reduceMotion));

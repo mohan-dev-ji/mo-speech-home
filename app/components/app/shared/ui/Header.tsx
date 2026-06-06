@@ -66,8 +66,7 @@ export function Header({
     <div>
       <div
         ref={mainRef}
-        className="flex items-stretch gap-2 p-3 rounded-theme min-h-[200px]"
-        style={{ background: 'var(--theme-banner)' }}
+        className="flex items-stretch gap-2 p-3 rounded-theme min-h-[200px] glass-bar"
       >
         {/* Chip area */}
         <div ref={chipAreaRef} className="flex-1 min-w-0">

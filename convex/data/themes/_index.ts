@@ -27,6 +27,7 @@ import amber from "./amber.json";
 import fuchsia from "./fuchsia.json";
 import lime from "./lime.json";
 import rose from "./rose.json";
+import midnightGlass from "./midnight_glass.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ export const THEME_MODULES: Record<string, ThemeModule> = {
   fuchsia: fuchsia as ThemeModule,
   lime: lime as ThemeModule,
   rose: rose as ThemeModule,
+  midnight_glass: midnightGlass as ThemeModule,
 };
 
 // ── Re-exports ────────────────────────────────────────────────────────────────

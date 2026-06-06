@@ -19,13 +19,19 @@ export default async function AppShellLayout({ children, params }: Props) {
         className="dark flex h-screen overflow-hidden"
         data-locale={locale}
       >
+        {/* Fixed full-bleed background + texture layers (ADR-011 §2.1). Behind
+            all content; flat themes paint --theme-background here so the shell
+            looks unchanged. Premium themes paint a gradient + procedural grain.
+            aria-hidden — purely decorative. */}
+        <div className="theme-bg-layer" aria-hidden />
+        <div className="theme-texture-layer" aria-hidden />
         <Sidebar locale={locale} />
         <div className="flex flex-1 flex-col min-w-0">
           <TopBar />
           <PersistentTalker />
-          {/* Inline style: bg-theme-* utilities rely on @config var() parsing which can be
-              unreliable in Tailwind v4. Direct CSS var reference is always safe. */}
-          <main className="flex-1 overflow-auto" style={{ background: 'var(--theme-background)' }}>
+          {/* Transparent so the fixed background layer shows through as content
+              scrolls (the layer paints --theme-background for flat themes). */}
+          <main className="flex-1 overflow-auto">
             {children}
           </main>
         </div>

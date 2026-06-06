@@ -75,6 +75,32 @@ export type ThemeTokens = {
   bgAnimation?: string; // --theme-bg-animation
   bgAnimationDuration?: string; // --theme-bg-animation-duration
   cardAnimation?: string; // --theme-card-animation
+
+  // ── Four-layer model (ADR-011 §2.1) — all optional, additive ──────────────
+  // Flat themes omit these; they default to no-ops in globals.css so the six
+  // builtins render pixel-identically. Premium themes opt in.
+
+  // Background layer — full CSS background value painted by the fixed
+  // `.theme-bg-layer` div behind the app shell. Falls back to `background`.
+  bgLayer?: string; // --theme-bg-layer  (e.g. "linear-gradient(...)")
+
+  // Texture layer — a procedural grain. `textureImage` is an inline SVG
+  // feTurbulence data-URI string (no asset file). Applied by the fixed
+  // `.theme-texture-layer` div with a blend mode + opacity.
+  textureImage?: string; // --theme-texture-image   (url("data:image/svg+xml,..."))
+  textureBlend?: string; // --theme-texture-blend   (overlay | soft-light | …)
+  textureOpacity?: number; // --theme-texture-opacity (UNITLESS, ~0.04–0.10)
+
+  // Surface (glass) layer — translucent chrome. No-op defaults keep flat
+  // themes solid. Only the opted-in chrome components read these. Two surface
+  // colours so flat themes stay pixel-identical: card-like chrome (sidebar,
+  // talker panel) uses `surface`; bar-like chrome (top bar, talker header)
+  // uses `surfaceBar`. Premium themes typically set both to the same rgba.
+  surface?: string; // --theme-surface         (default var(--theme-card))
+  surfaceBar?: string; // --theme-surface-bar     (default var(--theme-banner))
+  surfaceBlur?: number; // --theme-surface-blur    (px; 0 = no glass)
+  surfaceSaturate?: string; // --theme-surface-saturate (e.g. "170%"; default "100%")
+  surfaceBorder?: string; // --theme-surface-border  (hairline; default var(--theme-line))
 };
 
 /**

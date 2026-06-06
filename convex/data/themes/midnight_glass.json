@@ -1,0 +1,39 @@
+{
+  "slug": "midnight_glass",
+  "name": { "en": "Midnight Glass", "hi": "Midnight Glass (hi)" },
+  "description": {
+    "en": "A deep midnight gradient with frosted glass panels and a fine grain.",
+    "hi": "A deep midnight gradient with frosted glass panels and a fine grain. (hi)"
+  },
+  "previewColour": "#5B8DEF",
+  "type": "tiled",
+  "defaultTier": "max",
+  "builtin": false,
+  "tokens": {
+    "background": "#0B1020",
+    "altCard": "#E4E4E7",
+    "symbolBg": "#FAFAFA",
+    "text": "#3F3F46",
+    "secondaryText": "#71717B",
+    "altText": "#FAFAFA",
+    "secondaryAltText": "#F4F4F5",
+    "success": "#00C951",
+    "warning": "#FB2C36",
+    "primary": "#5B8DEF",
+    "banner": "#283349",
+    "card": "#1B2236",
+    "buttonHighlight": "#CDDDFF",
+    "line": "#2A3450",
+    "enterMode": "#FF6900",
+    "bgLayer": "linear-gradient(160deg, #0B1020 0%, #141A2E 45%, #1B1430 100%)",
+    "textureImage": "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"180\" height=\"180\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.85\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"180\" height=\"180\" filter=\"url(%23n)\"/></svg>')",
+    "textureBlend": "soft-light",
+    "textureOpacity": 0.25
+    ,
+    "surface": "rgba(20, 26, 44, 0.55)",
+    "surfaceBar": "rgba(28, 36, 58, 0.5)",
+    "surfaceBlur": 14,
+    "surfaceSaturate": "170%",
+    "surfaceBorder": "rgba(255, 255, 255, 0.14)"
+  }
+}
