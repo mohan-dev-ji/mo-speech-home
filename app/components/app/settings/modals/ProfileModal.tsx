@@ -178,6 +178,11 @@ function ProfileTabContent({
   const currentThemeSlug = (profile.themeSlug ?? "default") as string;
   const handleThemeChange = (slug: string, requiredTier: "free" | "pro" | "max") => {
     if (!canAccessThemeTier(subscription.tier, requiredTier)) {
+      track("theme_locked_click", {
+        slug,
+        required_tier: requiredTier,
+        tier: subscription.tier,
+      });
       setThemeNudgeOpen(true);
       return;
     }

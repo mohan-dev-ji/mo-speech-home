@@ -107,6 +107,11 @@ export function InstructorProfileModal({ onClose }: { onClose: () => void }) {
   // nudge instead of selecting (the server mutation also rejects, defensively).
   const handleThemeClick = (slug: string, requiredTier: "free" | "pro" | "max") => {
     if (!canAccessThemeTier(subscription.tier, requiredTier)) {
+      track("theme_locked_click", {
+        slug,
+        required_tier: requiredTier,
+        tier: subscription.tier,
+      });
       setThemeNudgeOpen(true);
       return;
     }
