@@ -30,7 +30,7 @@ export function LibrarySourceBadge({ packName }: Props = {}) {
     : tFallback("librarySourceBadge");
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-medium bg-theme-card text-theme-secondary-text"
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-medium bg-theme-surface text-theme-secondary-text"
       role="note"
     >
       {label}

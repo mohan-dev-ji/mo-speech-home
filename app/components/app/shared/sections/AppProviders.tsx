@@ -20,12 +20,20 @@ import { StudentViewLocaleSync } from '@/app/components/app/shared/sections/Stud
 import { StudentViewRouteGuard } from '@/app/components/app/shared/sections/StudentViewRouteGuard';
 import type { ReactNode } from 'react';
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({
+  children,
+  initialHeaderInBannerMode,
+}: {
+  children: ReactNode;
+  // Forwarded to ProfileProvider as the first-paint talker-vs-banner seed,
+  // read from the mo-header-mode cookie by the app-shell layout (server).
+  initialHeaderInBannerMode?: boolean;
+}) {
   return (
     <PostHogProvider>
       <AppStateProvider>
         <ThemeProvider>
-        <ProfileProvider>
+        <ProfileProvider initialHeaderInBannerMode={initialHeaderInBannerMode}>
           <TalkerProvider>
             <ModellingSessionProvider>
               <ResourceLibraryProvider>

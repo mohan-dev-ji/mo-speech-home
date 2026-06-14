@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source "../app/**/*.{ts,tsx,js,jsx}";
+/* design-system migration: surface/card remap (Figma Finals) */
 
 /* Class-based dark mode — supports ThemeToggle */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -37,11 +38,15 @@
      in tailwind.config.ts and resolved via these CSS vars.
   ──────────────────────────────────────────────────────────────── */
 
-  /* ── Colours (per-theme) ── */
-  --theme-background:         #18181B;  /* zinc/900   — all flat themes */
-  --theme-primary:            #62748E;  /* slate/500  — Default */
+  /* ── Colours (per-theme) ──
+     These :root defaults MUST mirror the Default (Classic) theme JSON
+     (convex/data/themes/default.json) — they are what first paint shows
+     before ProfileContext applies the profile's themeSlug post-query.
+     Keep them in sync with default.json or refreshes flash a stale palette. */
+  --theme-background:         #09090B;  /* zinc/950   — Default (Finals) */
+  --theme-primary:            #2B7FFF;  /* blue/500   — Default (Finals) */
   --theme-banner:             #45556C;  /* slate/600  — Default */
-  --theme-card:               #314158;  /* slate/700  — Default */
+  --theme-card:               rgba(250, 250, 250, 0.04);  /* translucent overlay — Default (Finals) */
   --theme-alt-card:           #E4E4E7;  /* zinc/200   — all flat themes */
   --theme-symbol-bg:          #FAFAFA;  /* zinc/50    — all flat themes */
   --theme-button-highlight:   #E2E8F0;  /* slate/200  — Default */
@@ -49,7 +54,7 @@
   --theme-secondary-text:     #71717B;  /* zinc/500   — all flat themes */
   --theme-alt-text:           #FAFAFA;  /* zinc/50    — all flat themes */
   --theme-secondary-alt-text: #D4D4D8;  /* zinc/300   — Default; zinc/100 others */
-  --theme-line:               #1E293B;  /* slate/800  — Default */
+  --theme-line:               rgba(250, 250, 250, 0.14);  /* hairline — Default (Finals) */
   --theme-enter-mode:         #FF6900;  /* orange/500 — all flat themes except Sky */
   --theme-success:            #00C951;  /* green/500  — all themes */
   --theme-create:             #16A34A;  /* green/600  — solid create/add affordance bg, all themes */
@@ -105,18 +110,52 @@
   --theme-texture-image:   none;
   --theme-texture-blend:   normal;
   --theme-texture-opacity: 0;
-  --theme-surface:         var(--theme-card);
-  --theme-surface-bar:     var(--theme-banner);
+  --theme-surface:         #181A21;  /* Default (Finals) solid raised surface — was var(--theme-card); card is now translucent */
+  --theme-surface-bar:     var(--theme-surface);
   --theme-surface-blur:    0px;
   --theme-surface-saturate: 100%;
   --theme-surface-border:  var(--theme-line);
+
+  /* ── Figma "Finals" tokens (code-design-system-migration Stage 1) ──────
+     Per-component roundness, elevation shadows, the tier-pill fill, and the
+     global (non-theme) button constants. Themes may override roundness/
+     elevation/pill-bg per-theme via ThemeContext; the button constants are
+     deliberately fixed across all themes (Figma Button-primary/secondary).
+  ──────────────────────────────────────────────────────────────────── */
+  --theme-button-roundness:    6px;
+  --theme-card-roundness:      16px;
+  --theme-pack-card-roundness: 20px;
+  --theme-modal-roundness:     16px;
+  --theme-chip-roundness:      999px;
+
+  --theme-elevation-subtle:  0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --theme-elevation-surface: 0 2px 8px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --theme-elevation-modal:   0 8px 24px 0 rgba(0, 0, 0, 0.10), 0 2px 6px 0 rgba(0, 0, 0, 0.05);
+
+  /* Tier-pill fill — translucent white film (default = dark-theme value;
+     light themes override to a stronger /80 via their JSON). */
+  --theme-pill-bg: rgba(255, 255, 255, 0.25);
+
+  /* Pack-card fill — translucent near-white wash behind library pack cards
+     (default = dark-theme value; light themes override to /50 via JSON). */
+  --theme-pack-bg: rgba(250, 250, 250, 0.25);
+
+  /* Primary tints (Figma Primary-50 / Primary-25) — derived from each theme's
+     own primary at fixed alpha, so they auto-track per-theme with no JSON
+     field. Match Figma's primary@50% / primary@25%. */
+  --theme-primary-50: color-mix(in srgb, var(--theme-primary) 50%, transparent);
+  --theme-primary-25: color-mix(in srgb, var(--theme-primary) 25%, transparent);
+
+  /* Global button constants — fixed across themes (not per-theme). */
+  --theme-button-primary:   #FAFAFA;  /* zinc/50  — primary button label/fill */
+  --theme-button-secondary: #52525C;  /* zinc/600 — secondary button surface */
 
   /* ── New token names (Convex themes schema) ────────────────────────
      These aliases bridge the shared components to the current theme system.
      Phase 7 will wire these directly from the themes Convex table.
   ──────────────────────────────────────────────────────────────────── */
   --theme-bg-primary:         var(--theme-background);
-  --theme-bg-surface:         var(--theme-card);
+  --theme-bg-surface:         var(--theme-surface);
   --theme-bg-surface-alt:     var(--theme-banner);
   --theme-brand-primary:      var(--theme-primary);
   --theme-brand-secondary:    var(--theme-primary);
@@ -128,7 +167,7 @@
   --theme-symbol-card-text:   var(--theme-text);
   --theme-symbol-card-border: var(--theme-line);
   --theme-symbol-card-glow:   var(--theme-primary);
-  --theme-talker-bg:          var(--theme-card);
+  --theme-talker-bg:          var(--theme-surface);
   --theme-talker-text:        var(--theme-alt-text);
   --theme-talker-border:      var(--theme-line);
   --theme-nav-bg:             var(--theme-banner);
@@ -202,12 +241,24 @@
   --color-theme-success:            var(--theme-success);
   --color-theme-create:             var(--theme-create);
   --color-theme-warning:            var(--theme-warning);
+  --color-theme-pill-bg:            var(--theme-pill-bg);
+  --color-theme-pack-bg:            var(--theme-pack-bg);
+  --color-theme-surface:            var(--theme-surface);
+  --color-theme-primary-50:         var(--theme-primary-50);
+  --color-theme-primary-25:         var(--theme-primary-25);
 
   /* ─── AAC Border Radius Tokens ──────────────────────────────────
-     rounded-theme / rounded-theme-sm
+     rounded-theme / rounded-theme-sm (global), plus per-component
+     roundness from the Figma "Finals" system:
+     rounded-theme-button / -card / -pack / -modal / -chip
   ──────────────────────────────────────────────────────────────── */
-  --radius-theme:    var(--theme-roundness);
-  --radius-theme-sm: var(--theme-small-roundness);
+  --radius-theme:        var(--theme-roundness);
+  --radius-theme-sm:     var(--theme-small-roundness);
+  --radius-theme-button: var(--theme-button-roundness);
+  --radius-theme-card:   var(--theme-card-roundness);
+  --radius-theme-pack:   var(--theme-pack-card-roundness);
+  --radius-theme-modal:  var(--theme-modal-roundness);
+  --radius-theme-chip:   var(--theme-chip-roundness);
 
   /* ─── AAC Spacing Tokens ────────────────────────────────────────
      p-theme-general, gap-theme-gap, px-theme-btn-x, etc.
@@ -345,6 +396,17 @@ body {
 .glass-bar {
   background: var(--theme-surface-bar);
 }
+
+/* ─── Elevation (Figma "Finals" — Elevation/Subtle · Surface · Modal) ──────
+   Semantic shadow classes mirroring the glass-surface / symbol-card convention.
+   Each reads its --theme-elevation-* var so a theme can retune the shadow.
+   - subtle:  hairline lift (chips, raised icon buttons, active nav pill)
+   - surface: raised cards/panels
+   - modal:   dialogs / popovers
+──────────────────────────────────────────────────────────────────────── */
+.elevation-subtle  { box-shadow: var(--theme-elevation-subtle); }
+.elevation-surface { box-shadow: var(--theme-elevation-surface); }
+.elevation-modal   { box-shadow: var(--theme-elevation-modal); }
 
 /* ─── AAC Component Classes ──────────────────────────────────────
    Shared semantic classes used by AAC components to pull from the

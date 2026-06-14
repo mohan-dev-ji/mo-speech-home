@@ -118,7 +118,7 @@ export function BreadcrumbViewModeDropdown() {
       {open && (
         <div
           role="menu"
-          className="absolute top-full left-0 mt-1 min-w-[240px] rounded-theme bg-theme-card text-theme-alt-text shadow-lg border border-theme-line z-80 overflow-hidden"
+          className="absolute top-full left-0 mt-1 min-w-[240px] rounded-theme bg-theme-surface text-theme-alt-text shadow-lg border border-theme-line z-80 overflow-hidden"
         >
           {isAdmin && (
             <MenuItem

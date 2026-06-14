@@ -128,7 +128,17 @@ const ProfileContext = createContext<ProfileContextValue>({
 
 const VIEW_MODE_STORAGE_KEY = 'mo-view-mode';
 
-export function ProfileProvider({ children }: { children: ReactNode }) {
+export function ProfileProvider({
+  children,
+  initialHeaderInBannerMode,
+}: {
+  children: ReactNode;
+  // First-paint seed for talker-vs-banner mode, read server-side from the
+  // `mo-header-mode` cookie and passed by the app-shell layout. Lets SSR + the
+  // first client render match the user's last-seen mode so a refresh doesn't
+  // flash the default talker bar before the Convex stateFlags query resolves.
+  initialHeaderInBannerMode?: boolean;
+}) {
   // Always start as 'instructor' so SSR and the client's first render match.
   // After mount, hydrate from sessionStorage — this avoids a hydration mismatch
   // where the dropdown renders "Instructor" on the server but the student name
@@ -212,6 +222,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   // ── Compute active stateFlags ────────────────────────────────────────────────
 
+  // Talker-vs-banner first-paint seed (see initialHeaderInBannerMode above).
+  // Used only as the loading fallback — once Convex resolves, the stored value
+  // wins. Keeps the talker bar from flashing before the query lands on refresh.
+  const seededHeaderInBannerMode =
+    initialHeaderInBannerMode ?? DEFAULT_FLAGS.header_in_banner_mode;
+
   // Instructor flags: defaults overridden by anything stored in users.stateFlags
   const instructorFlags: StateFlags = {
     ...DEFAULT_FLAGS,
@@ -221,7 +237,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     reduce_motion:         userRecord?.stateFlags?.reduce_motion        ?? DEFAULT_FLAGS.reduce_motion,
     core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
     talker_visible:        userRecord?.stateFlags?.talker_visible       ?? DEFAULT_FLAGS.talker_visible,
-    header_in_banner_mode: userRecord?.stateFlags?.header_in_banner_mode ?? DEFAULT_FLAGS.header_in_banner_mode,
+    header_in_banner_mode: userRecord?.stateFlags?.header_in_banner_mode ?? seededHeaderInBannerMode,
   };
 
   // Student flags: from the active student profile
@@ -238,11 +254,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         quick_settings_visible: studentProfile.stateFlags.quick_settings_visible ?? false,
         header_in_banner_mode: studentProfile.stateFlags.header_in_banner_mode ?? false,
       }
-    : DEFAULT_FLAGS;
+    : { ...DEFAULT_FLAGS, header_in_banner_mode: seededHeaderInBannerMode };
 
   // viewMode-aware stateFlags. Admin sees instructor flags (admin acts as
   // instructor + extra chrome — see ADR-008).
   const stateFlags: StateFlags = viewMode !== 'student-view' ? instructorFlags : studentFlags;
+
+  // Mirror the resolved talker-vs-banner mode to a cookie so the next page
+  // load's SSR can seed it (see initialHeaderInBannerMode) and skip the
+  // talker-bar flash. Only write once the authoritative source has resolved,
+  // never the loading seed. Cookie tracks what the user last *saw* (viewMode-
+  // aware), so a same-view refresh always matches.
+  const headerModeResolved =
+    viewMode === 'student-view' ? studentProfile !== undefined : userRecord !== undefined;
+  useEffect(() => {
+    if (!headerModeResolved || typeof document === 'undefined') return;
+    const value = stateFlags.header_in_banner_mode ? 'banner' : 'talker';
+    document.cookie = `mo-header-mode=${value};path=/;max-age=31536000;samesite=lax`;
+  }, [stateFlags.header_in_banner_mode, headerModeResolved]);
 
   // viewMode-aware language — ISO 639-1 code per ADR-009 §1. Post Phase 8.0
   // the studentProfiles.language / users.locale fields are stored as ISO

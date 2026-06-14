@@ -76,7 +76,7 @@ export function Banner({
             disabled={!onModel}
             title={modelDisabledReason}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+            style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
           >
             <Layers className="w-3.5 h-3.5" />
             {t('modelButton')}

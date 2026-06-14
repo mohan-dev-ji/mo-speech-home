@@ -116,7 +116,7 @@ export function ListItemPlayModal({
 
       <div
         className="flex flex-col items-center gap-5 rounded-2xl p-8 w-full max-w-xs transition-colors"
-        style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}
+        style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-surface)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {showFirstThen && <FirstThenPill index={index} />}
@@ -160,7 +160,7 @@ function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen
   return (
     <div
       className="flex items-center gap-4 rounded-theme p-4 transition-colors cursor-pointer"
-      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}
+      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-surface)' }}
       onClick={onPlay}
     >
       {showFirstThen && <FirstThenPill index={index} />}
@@ -188,7 +188,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
   return (
     <div
       className="flex flex-1 min-w-0 min-h-0 flex-col items-center justify-center gap-3 rounded-theme p-4 transition-colors h-full cursor-pointer"
-      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}
+      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-surface)' }}
       onClick={onPlay}
     >
       {showFirstThen && <FirstThenPill index={index} />}
@@ -236,7 +236,7 @@ function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThe
   return (
     <div
       className="flex items-center gap-4 rounded-theme p-4 transition-colors cursor-pointer"
-      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-card)' }}
+      style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-surface)' }}
       onClick={onPlay}
     >
       {showFirstThen && <FirstThenPill index={index} />}

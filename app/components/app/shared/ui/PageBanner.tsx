@@ -28,7 +28,7 @@ export function PageBanner({ title, titleSlot, children }: Props) {
     || stateFlags.student_can_filter;
 
   return (
-    <div className="flex items-center gap-4 min-h-[136px] p-theme-general bg-theme-card rounded-theme">
+    <div className="flex items-center gap-4 min-h-[136px] p-theme-general bg-theme-surface rounded-theme">
       <div className="flex-1 flex flex-col justify-center min-w-0">
         {titleSlot ?? (
           <h1

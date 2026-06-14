@@ -109,7 +109,7 @@ export function FormatDropdown({ value, onChange }: { value: DisplayFormat; onCh
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
         style={{
-          background: 'var(--theme-card)',
+          background: 'var(--theme-surface)',
           color: 'var(--theme-text-primary)',
           border: '1px solid rgba(255,255,255,0.15)',
           minWidth: '100px',
@@ -121,7 +121,7 @@ export function FormatDropdown({ value, onChange }: { value: DisplayFormat; onCh
       {open && (
         <div
           className="absolute top-full left-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
-          style={{ background: 'var(--theme-card)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '120px' }}
+          style={{ background: 'var(--theme-surface)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '120px' }}
         >
           {options.map((opt) => (
             <button

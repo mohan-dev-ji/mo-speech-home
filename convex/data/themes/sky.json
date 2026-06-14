@@ -6,7 +6,7 @@
   "defaultTier": "free",
   "builtin": true,
   "tokens": {
-    "background": "#18181B",
+    "background": "#000A10",
     "altCard": "#E4E4E7",
     "symbolBg": "#FAFAFA",
     "text": "#3F3F46",
@@ -16,10 +16,13 @@
     "warning": "#FB2C36",
     "primary": "#00A6F4",
     "banner": "#0084D1",
-    "card": "#024A70",
+    "card": "rgba(250, 250, 250, 0.04)",
     "buttonHighlight": "#B8E6FE",
-    "line": "#075985",
+    "line": "rgba(250, 250, 250, 0.14)",
     "secondaryAltText": "#F4F4F5",
-    "enterMode": "#FD9A00"
+    "enterMode": "#FD9A00",
+    "surface": "#081821",
+    "pillBg": "rgba(255, 255, 255, 0.25)",
+    "packBg": "rgba(250, 250, 250, 0.25)"
   }
 }

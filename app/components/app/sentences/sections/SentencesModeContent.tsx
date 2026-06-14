@@ -375,7 +375,7 @@ function SortableSentenceRow({
       <div
         className="flex flex-col gap-3 rounded-theme px-4 py-3"
         style={{
-          background: 'var(--theme-card)',
+          background: 'var(--theme-surface)',
           outline: isEditing ? '2px dashed var(--theme-enter-mode)' : 'none',
           outlineOffset: '2px',
           cursor: isEditing ? undefined : 'pointer',

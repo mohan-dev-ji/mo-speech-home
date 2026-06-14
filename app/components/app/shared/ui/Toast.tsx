@@ -71,7 +71,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role="status"
-            className="pointer-events-auto flex items-start gap-3 rounded-theme bg-theme-card text-theme-alt-text px-theme-btn-x py-theme-btn-y shadow-lg"
+            className="pointer-events-auto flex items-start gap-3 rounded-theme bg-theme-surface text-theme-alt-text px-theme-btn-x py-theme-btn-y shadow-lg"
             style={{
               borderLeft: `4px solid ${t.tone === "warning" ? "var(--theme-error, #d97706)" : "var(--theme-brand-primary)"}`,
             }}

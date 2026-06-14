@@ -86,7 +86,7 @@ export function SettingsContent() {
       */}
 
       {isCollaborator && (
-        <div className="flex items-center gap-3 rounded-theme bg-theme-card px-5 py-3">
+        <div className="flex items-center gap-3 rounded-theme bg-theme-surface px-5 py-3">
           <Users className="w-4 h-4 text-theme-secondary-text shrink-0" />
           <p className="text-theme-s text-theme-secondary-text">{t("collaboratorNotice")}</p>
         </div>
@@ -97,7 +97,7 @@ export function SettingsContent() {
           <button
             key={id}
             onClick={() => open(id)}
-            className="rounded-theme bg-theme-card text-left px-6 py-8 hover:bg-theme-banner transition-colors"
+            className="rounded-theme bg-theme-surface text-left px-6 py-8 hover:bg-theme-banner transition-colors"
           >
             <span className="text-theme-p text-theme-alt-text">{t(id)}</span>
           </button>

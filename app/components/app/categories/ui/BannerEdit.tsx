@@ -29,7 +29,7 @@ function ColourPicker({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-        style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+        style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
       >
         <span
           className="w-4 h-4 rounded-theme-sm shrink-0 border border-black/10"
@@ -42,7 +42,7 @@ function ColourPicker({
       {open && (
         <div
           className="absolute top-full left-0 mt-1 p-2 rounded-xl shadow-xl z-50 grid grid-cols-6 gap-1.5"
-          style={{ background: 'var(--theme-card)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px' }}
+          style={{ background: 'var(--theme-surface)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px' }}
         >
           {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => (
             <button
@@ -284,7 +284,7 @@ export function BannerEdit({
               type="button"
               onClick={onEditFolderImage}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-card)', color: 'var(--theme-text-primary)' }}
+              style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
             >
               <FolderOpen className="w-3.5 h-3.5" />
               {t('bannerEditFolderImage')}
@@ -300,7 +300,7 @@ export function BannerEdit({
                 title={t('bannerReloadDefaultsHint')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
                 style={{
-                  background: 'var(--theme-card)',
+                  background: 'var(--theme-surface)',
                   color: 'var(--theme-warning)',
                 }}
               >

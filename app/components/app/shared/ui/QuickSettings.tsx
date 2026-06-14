@@ -49,7 +49,7 @@ export function QuickSettings() {
         <div
           className="absolute right-0 top-full mt-1 w-52 rounded-theme-sm shadow-lg"
           style={{
-            background: 'var(--theme-card)',
+            background: 'var(--theme-surface)',
             border: '1px solid var(--theme-line)',
             zIndex: 80,
           }}

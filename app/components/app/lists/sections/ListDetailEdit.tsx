@@ -64,7 +64,7 @@ function SortableEditRow({
     <div ref={setNodeRef} style={style}>
       <div
         className="flex items-center gap-3 rounded-theme px-4 py-3"
-        style={{ background: 'var(--theme-card)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
+        style={{ background: 'var(--theme-surface)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
       >
         {showNumbers && (
           <div className="w-8 h-8 rounded-theme-sm flex items-center justify-center shrink-0 text-theme-s font-bold" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--theme-text-primary)' }}>
@@ -107,7 +107,7 @@ function SortableEditColumn({
     <div ref={setNodeRef} style={style} className="flex-1 min-w-0 flex flex-col">
       <div
         className="flex flex-1 flex-col items-center gap-3 rounded-theme p-4"
-        style={{ background: 'var(--theme-card)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
+        style={{ background: 'var(--theme-surface)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
       >
         {showNumbers && (
           <div className="w-8 h-8 rounded-theme-sm flex items-center justify-center shrink-0 text-theme-s font-bold" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--theme-text-primary)' }}>
@@ -152,7 +152,7 @@ function SortableEditGrid({
     <div ref={setNodeRef} style={style}>
       <div
         className="flex items-center gap-2 rounded-theme px-3 py-3"
-        style={{ background: 'var(--theme-card)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
+        style={{ background: 'var(--theme-surface)', outline: '2px dashed var(--theme-enter-mode)', outlineOffset: '2px' }}
       >
         {showNumbers && (
           <div className="w-7 h-7 rounded-theme-sm flex items-center justify-center shrink-0 text-theme-s font-bold" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--theme-text-primary)' }}>

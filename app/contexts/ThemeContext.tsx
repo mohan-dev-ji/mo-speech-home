@@ -36,6 +36,17 @@ const TOKEN_TO_CSS: Record<keyof ThemeTokens, string> = {
   enterMode:                '--theme-enter-mode',
   success:                  '--theme-success',
   warning:                  '--theme-warning',
+  // Figma "Finals" tokens (migration Stage 1)
+  pillBg:                   '--theme-pill-bg',
+  packBg:                   '--theme-pack-bg',
+  buttonRoundness:          '--theme-button-roundness',
+  cardRoundness:            '--theme-card-roundness',
+  packCardRoundness:        '--theme-pack-card-roundness',
+  modalRoundness:           '--theme-modal-roundness',
+  chipRoundness:            '--theme-chip-roundness',
+  elevationSubtle:          '--theme-elevation-subtle',
+  elevationSurface:         '--theme-elevation-surface',
+  elevationModal:           '--theme-elevation-modal',
   generalPadding:           '--theme-general-padding',
   generalSpaceBetween:      '--theme-general-space-between',
   headerBannerPadding:      '--theme-header-banner-padding',
@@ -82,14 +93,26 @@ export type ThemeSlug = string;
 
 // ─── Apply tokens to CSS vars ─────────────────────────────────────────────────
 
+// localStorage key for the pre-paint anti-flash bootstrap. The inline <head>
+// script in app/layout.tsx reads this and applies the persisted CSS-var map
+// before first paint, so a refresh shows the active theme immediately instead
+// of flashing the globals.css `:root` Default until ProfileContext's query
+// resolves. Keep the key in sync with that script.
+const THEME_CSS_CACHE_KEY = 'aac-theme-css';
+
 function applyThemeTokens(tokens: ThemeTokens, reduceMotion = false) {
   const root = document.documentElement;
+  // Build the resolved CSS-var → string map once (so the persisted copy is the
+  // exact same strings we set inline — the head script can apply it verbatim
+  // without re-implementing the px/unitless logic).
+  const cssMap: Record<string, string> = {};
   for (const [key, cssVar] of Object.entries(TOKEN_TO_CSS)) {
     const value = tokens[key as keyof ThemeTokens];
     if (value !== undefined) {
       const isNum = typeof value === 'number';
       const unitless = UNITLESS_TOKENS.has(key as keyof ThemeTokens);
-      root.style.setProperty(cssVar, isNum && !unitless ? `${value}px` : String(value));
+      cssMap[cssVar] = isNum && !unitless ? `${value}px` : String(value);
+      root.style.setProperty(cssVar, cssMap[cssVar]);
     } else {
       // Token absent from this theme → clear any inline override so the var
       // falls back to its globals.css `:root` default. Critical when switching
@@ -100,6 +123,12 @@ function applyThemeTokens(tokens: ThemeTokens, reduceMotion = false) {
     }
   }
   root.setAttribute('data-reduce-motion', String(reduceMotion));
+  // Persist for the next page load's pre-paint bootstrap (best-effort).
+  try {
+    localStorage.setItem(THEME_CSS_CACHE_KEY, JSON.stringify(cssMap));
+  } catch {
+    /* storage unavailable (private mode / quota) — fall back to :root defaults */
+  }
 }
 
 // ─── Context ───────────────────────────────────────────────────────────────────

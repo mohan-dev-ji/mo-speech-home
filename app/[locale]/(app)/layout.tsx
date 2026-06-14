@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { AppProviders } from '@/app/components/app/shared/sections/AppProviders';
 import { Sidebar } from '@/app/components/app/shared/sections/Sidebar';
 import { TopBar } from '@/app/components/app/shared/sections/TopBar';
@@ -11,8 +12,16 @@ type Props = {
 export default async function AppShellLayout({ children, params }: Props) {
   const { locale } = await params;
 
+  // First-paint seed for talker-vs-banner mode (written by ProfileContext once
+  // the Convex stateFlags resolve). Reading it server-side lets SSR render the
+  // user's last-seen mode, so a refresh doesn't flash the default talker bar
+  // before the query lands. Convex stays authoritative once it resolves.
+  const cookieStore = await cookies();
+  const initialHeaderInBannerMode =
+    cookieStore.get('mo-header-mode')?.value === 'banner';
+
   return (
-    <AppProviders>
+    <AppProviders initialHeaderInBannerMode={initialHeaderInBannerMode}>
       {/* data-locale drives font switching in globals.css — theme tokens are scoped here.
           dark class ensures template UI components (Card, Button, Dialog) use dark variants. */}
       <div

@@ -55,6 +55,32 @@ export type ThemeTokens = {
   success: string; // --theme-success
   warning: string; // --theme-warning
 
+  // ── Figma "Finals" tokens (code-design-system-migration Stage 1) ──────────
+  // Pill background — translucent fill behind in-shell tier pills / chips.
+  // Required so every theme declares its own (dark themes ~white/40, light
+  // themes ~white/80). Maps to --theme-pill-bg.
+  pillBg: string; // --theme-pill-bg
+
+  // Pack-card fill — translucent near-white wash behind library pack cards.
+  // Optional (inherits the :root default); dark themes ~/.25, light ~/.5.
+  packBg?: string; // --theme-pack-bg
+
+  // Per-component roundness (px) — optional; omitted themes inherit the
+  // :root defaults in globals.css (button 6 / card 16 / pack 20 / modal 16 /
+  // chip 999). Distinct from the global `roundness`/`smallRoundness` above.
+  buttonRoundness?: number; // --theme-button-roundness
+  cardRoundness?: number; // --theme-card-roundness
+  packCardRoundness?: number; // --theme-pack-card-roundness
+  modalRoundness?: number; // --theme-modal-roundness
+  chipRoundness?: number; // --theme-chip-roundness
+
+  // Elevation — optional box-shadow strings; omitted themes inherit the
+  // :root defaults. Surfaced as utility classes (.elevation-subtle/-surface/
+  // -modal) that read these vars.
+  elevationSubtle?: string; // --theme-elevation-subtle
+  elevationSurface?: string; // --theme-elevation-surface
+  elevationModal?: string; // --theme-elevation-modal
+
   // Spacing — optional overrides (flat themes inherit CSS defaults)
   generalPadding?: number; // --theme-general-padding
   generalSpaceBetween?: number; // --theme-general-space-between
@@ -91,11 +117,14 @@ export type ThemeTokens = {
   textureBlend?: string; // --theme-texture-blend   (overlay | soft-light | …)
   textureOpacity?: number; // --theme-texture-opacity (UNITLESS, ~0.04–0.10)
 
-  // Surface (glass) layer — translucent chrome. No-op defaults keep flat
-  // themes solid. Only the opted-in chrome components read these. Two surface
-  // colours so flat themes stay pixel-identical: card-like chrome (sidebar,
-  // talker panel) uses `surface`; bar-like chrome (top bar, talker header)
-  // uses `surfaceBar`. Premium themes typically set both to the same rgba.
+  // Surface — the SOLID raised surface for every theme (Figma "Finals":
+  // Surface = solid raised panel, Card = translucent overlay). Each builtin
+  // now declares its own value (dark themes a near-black/tinted solid, light
+  // themes #FFFFFF). The `--theme-bg-surface` bridge alias points here.
+  // Premium glass themes still set it to a translucent rgba for frosted
+  // chrome. `surfaceBar` remains the bar-like chrome variant (top bar, talker
+  // header); flat themes inherit it from `banner`. Falls back to
+  // var(--theme-card) only when a theme omits it.
   surface?: string; // --theme-surface         (default var(--theme-card))
   surfaceBar?: string; // --theme-surface-bar     (default var(--theme-banner))
   surfaceBlur?: number; // --theme-surface-blur    (px; 0 = no glass)

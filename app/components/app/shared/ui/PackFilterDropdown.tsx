@@ -63,7 +63,7 @@ export function PackFilterDropdown({ value, options, onChange, ariaLabel }: Prop
         aria-expanded={open}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
         style={{
-          background: 'var(--theme-card)',
+          background: 'var(--theme-surface)',
           color: 'var(--theme-text-primary)',
           border: '1px solid rgba(255,255,255,0.15)',
           minWidth: '140px',
@@ -78,7 +78,7 @@ export function PackFilterDropdown({ value, options, onChange, ariaLabel }: Prop
           role="listbox"
           aria-label={ariaLabel}
           className="absolute top-full left-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden max-h-[60vh] overflow-y-auto"
-          style={{ background: 'var(--theme-card)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px' }}
+          style={{ background: 'var(--theme-surface)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px' }}
         >
           {options.map((opt) => (
             <button

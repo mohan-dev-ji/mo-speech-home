@@ -1,12 +1,12 @@
 {
   "slug": "default",
   "name": { "en": "Classic", "hi": "Classic (hi)" },
-  "previewColour": "#62748E",
+  "previewColour": "#2B7FFF",
   "type": "flat",
   "defaultTier": "free",
   "builtin": true,
   "tokens": {
-    "background": "#18181B",
+    "background": "#09090B",
     "altCard": "#E4E4E7",
     "symbolBg": "#FAFAFA",
     "text": "#3F3F46",
@@ -14,12 +14,15 @@
     "altText": "#FAFAFA",
     "success": "#00C951",
     "warning": "#FB2C36",
-    "primary": "#62748E",
+    "primary": "#2B7FFF",
     "banner": "#45556C",
-    "card": "#314158",
+    "card": "rgba(250, 250, 250, 0.04)",
     "buttonHighlight": "#E2E8F0",
-    "line": "#1E293B",
+    "line": "rgba(250, 250, 250, 0.14)",
     "secondaryAltText": "#D4D4D8",
-    "enterMode": "#FF6900"
+    "enterMode": "#FF6900",
+    "surface": "#181A21",
+    "pillBg": "rgba(255, 255, 255, 0.25)",
+    "packBg": "rgba(250, 250, 250, 0.25)"
   }
 }

@@ -5,12 +5,20 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/app/contexts/ConvexClientProvider";
 import "./globals.css";
 
-// Anti-flash dark-mode bootstrapping. Lives in <head> as a plain inline
-// <script> so it executes once during initial document load and isn't part of
-// React's body render tree (which would otherwise emit a "Scripts inside React
-// components are never executed when rendering on the client" warning every
-// time a client-side navigation re-traverses the body).
-const themeInitScript = `(function(){var t=localStorage.getItem('theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');})();`;
+// Anti-flash bootstrapping. Lives in <head> as a plain inline <script> so it
+// executes once during initial document load and isn't part of React's body
+// render tree (which would otherwise emit a "Scripts inside React components are
+// never executed when rendering on the client" warning every time a client-side
+// navigation re-traverses the body).
+//
+// Two responsibilities, both before first paint:
+//  1. Marketing/template dark-mode `.dark` class (localStorage 'theme').
+//  2. AAC `--theme-*` tokens: apply the last-applied theme's resolved CSS-var
+//     map (persisted by ThemeContext's applyThemeTokens under 'aac-theme-css')
+//     so a refresh renders the active theme immediately instead of flashing the
+//     globals.css `:root` Default until ProfileContext's Convex query resolves.
+//     ProfileContext later re-applies the authoritative theme (usually identical).
+const themeInitScript = `(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');}catch(e){}try{var m=JSON.parse(localStorage.getItem('aac-theme-css')||'null');if(m){var r=document.documentElement;for(var k in m){r.style.setProperty(k,m[k]);}}}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: {
