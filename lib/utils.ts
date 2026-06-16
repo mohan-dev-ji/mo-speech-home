@@ -13,6 +13,18 @@ const twMerge = extendTailwindMerge({
         "text-body",
         "text-small",
         "text-caption",
+        // AAC theme type scale — these are font-sizes, NOT colours. Without
+        // registering them, tailwind-merge treats e.g. `text-theme-s` as a
+        // text-colour and drops it when a colour like `text-theme-alt-text`
+        // is also present (e.g. Button size + variant), silently breaking sizes.
+        "text-theme-xs",
+        "text-theme-s",
+        "text-theme-p",
+        "text-theme-large",
+        "text-theme-h1",
+        "text-theme-h2",
+        "text-theme-h3",
+        "text-theme-h4",
       ],
     },
   },

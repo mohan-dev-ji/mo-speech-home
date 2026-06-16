@@ -516,7 +516,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
             return isEditing ? (
               <div
                 className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
-                style={{ background: getCategoryColour(draftColour).c700 }}
+                style={{ background: `color-mix(in srgb, ${getCategoryColour(draftColour).c500} 30%, transparent)` }}
               >
                 {packLabel && (
                   <div className="mb-2 self-start">{packLabel}</div>

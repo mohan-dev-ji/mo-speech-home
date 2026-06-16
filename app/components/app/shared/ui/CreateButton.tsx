@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { Button } from "./Button";
 
 type CreateButtonProps = {
   onClick: () => void;
@@ -13,23 +14,9 @@ type CreateButtonProps = {
 };
 
 /**
- * Universal "Create new" button.
- *
- * Uses `--theme-create` (the dedicated create-affordance green token) as a
- * solid fill so create / add buttons stand out from neutral toolbar buttons
- * in any theme. Pairs naturally with the orange `EditButton` in the same
- * banner — green = make, orange = modify.
- *
- * Labels are consumer-supplied so the component stays translation-agnostic.
- *
- * Currently used on:
- *   - app/components/app/lists/sections/ListsModeContent.tsx
- *   - app/components/app/lists/modals/CreateListModal.tsx (inline button,
- *     same `--theme-create` token but custom layout — not yet migrated to
- *     this component)
- *
- * Future: replace remaining inline create / add buttons across the app
- * once the visual treatment has stabilised in production use.
+ * "Create new" convenience composition over `Button`. Renders the `primary`
+ * variant (per the Figma banner — all banner actions are primary); adds the
+ * `Plus` icon. Styling lives in `Button` (the Figma "Button" atom).
  */
 export function CreateButton({
   onClick,
@@ -37,30 +24,16 @@ export function CreateButton({
   disabled = false,
   className,
 }: CreateButtonProps) {
-  const baseClass = [
-    "flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm",
-    "text-theme-s font-semibold transition-opacity hover:opacity-90",
-    "disabled:opacity-40 disabled:cursor-not-allowed",
-    "focus-visible:outline-none focus-visible:ring-2",
-    "focus-visible:ring-[var(--theme-create)]",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <button
-      type="button"
+    <Button
+      variant="primary"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className={baseClass}
-      style={{
-        background: "var(--theme-create)",
-        color: "#fff",
-      }}
+      className={className}
+      icon={<Plus className="w-3.5 h-3.5" />}
     >
-      <Plus className="w-3.5 h-3.5" />
       {label}
-    </button>
+    </Button>
   );
 }

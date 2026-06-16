@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Button } from "./Button";
 
 type ToggleButtonProps = {
   pressed: boolean;
@@ -14,14 +15,9 @@ type ToggleButtonProps = {
 };
 
 /**
- * A toolbar button with explicit pressed/unpressed state.
- *
- * Visual language matches the existing toolbar buttons (see ListDetailContent's
- * Numbers / Checklist toggles): pressed uses --theme-button-highlight; unpressed
- * uses --theme-card. Disabled state is muted to 50% opacity with cursor-not-allowed.
- *
- * Used for the admin Default + Library toggles (see ADR-008 + the toggle-based
- * library state chunk).
+ * Toolbar toggle convenience composition over `Button` (`variant="toggle"`).
+ * `pressed` → `active` (highlight); idle is the translucent `card` pill.
+ * Styling lives in `Button` (the Figma "Button" atom).
  */
 export function ToggleButton({
   pressed,
@@ -33,25 +29,17 @@ export function ToggleButton({
   title,
 }: ToggleButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
+    <Button
+      variant="toggle"
+      size="sm"
+      active={pressed}
       disabled={disabled}
-      aria-pressed={pressed}
+      onClick={onClick}
+      icon={icon}
       aria-label={ariaLabel}
       title={title}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-theme-s font-medium transition-opacity"
-      style={{
-        background: pressed
-          ? "var(--theme-button-highlight)"
-          : "var(--theme-card)",
-        color: pressed ? "var(--theme-text)" : "var(--theme-text-primary)",
-        opacity: disabled ? 0.4 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
     >
-      {icon}
       {children}
-    </button>
+    </Button>
   );
 }

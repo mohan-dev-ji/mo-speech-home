@@ -32,7 +32,14 @@ export function CategoryPageHeader({
   showAdminContext = false,
   topSlot,
 }: Props) {
-  const bg = getCategoryColour(colour ?? 'orange').c700;
+  // Banner bg = the category's tailwind-500 colour at 30% opacity (a soft tint
+  // over the page background), matching the simplified category visual.
+  // While `colour` is still loading (undefined on first paint after navigation),
+  // render NO tint rather than a hard-coded fallback — a `?? 'orange'` fallback
+  // caused an orange flash before the category's colour resolved.
+  const bg = colour
+    ? `color-mix(in srgb, ${getCategoryColour(colour).c500} 30%, transparent)`
+    : 'transparent';
 
   return (
     <div

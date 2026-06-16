@@ -244,6 +244,8 @@
   --color-theme-pill-bg:            var(--theme-pill-bg);
   --color-theme-pack-bg:            var(--theme-pack-bg);
   --color-theme-surface:            var(--theme-surface);
+  --color-theme-button-primary:     var(--theme-button-primary);
+  --color-theme-button-secondary:   var(--theme-button-secondary);
   --color-theme-primary-50:         var(--theme-primary-50);
   --color-theme-primary-25:         var(--theme-primary-25);
 

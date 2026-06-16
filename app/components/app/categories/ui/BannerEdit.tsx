@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { FolderOpen, ImageIcon, ChevronDown, Bookmark, Library, RotateCcw } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
 import { useTranslations } from 'next-intl';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
@@ -28,38 +29,37 @@ function ColourPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-        style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
+        className="flex items-center gap-theme-elements px-theme-btn-x py-theme-btn-y rounded-theme-button border border-theme-line bg-theme-surface text-theme-alt-text text-theme-s font-medium transition-colors hover:bg-theme-card"
       >
         <span
           className="w-4 h-4 rounded-theme-sm shrink-0 border border-black/10"
           style={{ backgroundColor: current.c500 }}
         />
         {t('bannerColourPicker')}
-        <ChevronDown className="w-3 h-3 ml-0.5" />
+        <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
       </button>
 
       {open && (
         <div
-          className="absolute top-full left-0 mt-1 p-2 rounded-xl shadow-xl z-50 grid grid-cols-6 gap-1.5"
-          style={{ background: 'var(--theme-surface)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px' }}
+          className="absolute top-full left-0 mt-1 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50 overflow-hidden"
+          style={{ minWidth: '180px' }}
         >
-          {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => (
-            <button
-              key={name}
-              type="button"
-              title={name}
-              onClick={() => { onChange(name); setOpen(false); }}
-              className="w-7 h-7 rounded-md transition-transform hover:scale-110 active:scale-95"
-              style={{
-                backgroundColor: pair.c500,
-                outline: getCategoryColour(value).c500 === pair.c500
-                  ? '2px solid white'
-                  : 'none',
-                outlineOffset: '2px',
-              }}
-            />
-          ))}
+          {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => {
+            const selected = getCategoryColour(value).c500 === pair.c500;
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => { onChange(name); setOpen(false); }}
+                className="block w-full h-6"
+                style={{
+                  backgroundColor: pair.c500,
+                  boxShadow: selected ? 'inset 0 0 0 2px white' : undefined,
+                }}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -280,33 +280,28 @@ export function BannerEdit({
             <ColourPicker value={draftColour} onChange={onColourChange} />
 
             {/* Edit folder image */}
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={onEditFolderImage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
+              icon={<FolderOpen className="w-3.5 h-3.5" />}
             >
-              <FolderOpen className="w-3.5 h-3.5" />
               {t('bannerEditFolderImage')}
-            </button>
+            </Button>
 
             {/* Reload Defaults — visible only when this category was loaded
                 from a library pack and the parent supplied a handler. Destructive
                 styling matches the Delete pattern in other modals. */}
             {librarySourceId && onReloadDefaults && (
-              <button
-                type="button"
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={onReloadDefaults}
                 title={t('bannerReloadDefaultsHint')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80"
-                style={{
-                  background: 'var(--theme-surface)',
-                  color: 'var(--theme-warning)',
-                }}
+                icon={<RotateCcw className="w-3.5 h-3.5" />}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
                 {t('bannerReloadDefaults')}
-              </button>
+              </Button>
             )}
           </div>
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { Layers, ImageIcon } from 'lucide-react';
+import { Pointer, ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
 
 type BannerProps = {
   categoryName: string;
@@ -39,7 +40,9 @@ export function Banner({
 }: BannerProps) {
   const t = useTranslations('banner');
 
-  const colourPair = getCategoryColour(colour ?? 'orange');
+  // `null` while the category colour is still loading — avoids an orange flash
+  // from a `?? 'orange'` fallback on the image card before `colour` resolves.
+  const colourPair = colour ? getCategoryColour(colour) : null;
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
 
   return (
@@ -70,24 +73,23 @@ export function Banner({
             exitLabel={t('editButton')}
           />
 
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={onModel}
             disabled={!onModel}
             title={modelDisabledReason}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-theme-sm text-small font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
+            icon={<Pointer className="w-3.5 h-3.5" />}
           >
-            <Layers className="w-3.5 h-3.5" />
             {t('modelButton')}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Right: category folder image card */}
       <div
         className="w-[136px] h-[136px] rounded-2xl overflow-hidden shrink-0 flex items-center justify-center"
-        style={{ backgroundColor: colourPair.c100 }}
+        style={{ backgroundColor: colourPair?.c100 ?? 'var(--theme-alt-card)' }}
       >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -98,7 +100,7 @@ export function Banner({
             draggable={false}
           />
         ) : (
-          <ImageIcon className="w-12 h-12" style={{ color: colourPair.c500 }} />
+          <ImageIcon className="w-12 h-12" style={{ color: colourPair?.c500 ?? 'var(--theme-secondary-text)' }} />
         )}
       </div>
     </div>
