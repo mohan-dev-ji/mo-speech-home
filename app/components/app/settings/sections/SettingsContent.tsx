@@ -10,7 +10,7 @@ import { ProfileModal }  from "@/app/components/app/settings/modals/ProfileModal
 import { PlanModal }     from "@/app/components/app/settings/modals/PlanModal";
 import { InvitesModal }  from "@/app/components/app/settings/modals/InvitesModal";
 import { PrivacyModal }  from "@/app/components/app/settings/modals/PrivacyModal";
-import { ScaffoldModal } from "@/app/components/app/settings/modals/ScaffoldModal";
+import { NavbarModal }   from "@/app/components/app/settings/modals/NavbarModal";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
@@ -66,7 +66,7 @@ export function SettingsContent() {
       case "instructor": return <InstructorProfileModal onClose={close} />;
       case "profile":    return <ProfileModal onClose={close} />;
       case "plan":       return <PlanModal    onClose={close} />;
-      case "navbar":     return <ScaffoldModal title={t("navbar")} onClose={close} />;
+      case "navbar":     return <NavbarModal onClose={close} />;
       case "invites":    return <InvitesModal onClose={close} onOpenPlan={() => { close(); open("plan"); }} />;
       case "privacy":    return <PrivacyModal onClose={close} />;
     }

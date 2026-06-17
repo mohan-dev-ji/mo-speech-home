@@ -110,6 +110,13 @@ and is encoded in the `.figma.tsx` mapping.
 Prove the round-trip on **Button** first (highest reuse, clean variants), then Icon-button, NavTabButton,
 Tier-pill — then the rest. Each: align name/variants → build/rebind code → add `.figma.tsx` mapping → tick here.
 
+## Built in code (✅ Stage 2 progress)
+- **Button** `1446:22551` → `shared/ui/Button.tsx` — consolidated variant button; wrappers retired to thin delegates. ✅
+- **Dropdown** `3153:681` → `shared/ui/Dropdown.tsx` — surface+line atom; `PackFilterDropdown` wraps it. ✅
+- **Banner (slice)** → `PageBanner` + category-detail header/edit rebound. ✅
+- **Navbar-button** `1433:21520` → `shared/ui/NavTabButton.tsx` — ✅ **done + validated live**. Inactive = transparent + `secondary-alt-text` + normal weight; active = `bg-theme-surface` pill + `border-theme-line` (1px, transparent when idle → no width shift) + `rounded-theme-button` + `alt-text` + semibold + `elevation-subtle`. **Companion change:** `Sidebar.tsx` dropped `glass-surface` → transparent + `border-r border-theme-line` (the Navbar "no bg — edge line" direction) so the surface pill reads against the page `background`; `TalkerDropdown` tab strip got `bg-theme-background` (the Talker "stage") so its pills read inside the surface popover. (Full Navbar/Talker rebinds still deferred.)
+- **Icon-button** `3080:251` → `shared/ui/IconButton.tsx` — ✅ **new atom built** (typechecks; no consumers yet — unblocks Edit-panel, talker controls, Topbar). 48², 24² glyph centred, `rounded-theme-button`, `elevation-subtle`. `primary`=`button-secondary` fill + `button-primary` glyph; `neutral`=`button-primary` fill + `button-secondary` glyph + line; `ghost`=transparent + line + `alt-text` glyph. Required `label`→`aria-label` (icon-only a11y); `[&_svg]:size-6` forces 24² glyph.
+
 ## Decisions (✅ approved by owner)
 - **NavTabButton** visual change confirmed — inactive nav goes filled → text-only; active = surface pill.
 - **Button consolidation** confirmed — one variant `Button`; retire `EditButton`/`CreateButton`/`ToggleButton`.

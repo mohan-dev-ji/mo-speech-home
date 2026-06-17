@@ -232,8 +232,9 @@ export function TalkerDropdown({
         <ChevronDown className="w-5 h-5 rotate-180" />
       </button>
 
-      {/* Scrollable tab bar */}
-      <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      {/* Scrollable tab bar. Sits on `background` (the Talker "stage") so the
+          active NavTabButton's surface pill reads against it inside the surface popover. */}
+      <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
         {allTabs.map((id) => (
           <NavTabButton key={id} active={activeTab === id} onClick={() => setActiveTab(id)}>
             {getTabLabel(id)}

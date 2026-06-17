@@ -456,6 +456,12 @@
     "small": "Small",
     "smallHint": "12 columns"
   },
+  "navbar": {
+    "title": "Navigational Side Bar",
+    "minimalLabel": "Minimal sidebar",
+    "minimalHint": "Collapse the sidebar to an icon-only rail.",
+    "close": "Close"
+  },
   "account": {
     "accountBillingTitle": "Account & Billing",
     "yourAccount": "Your account",

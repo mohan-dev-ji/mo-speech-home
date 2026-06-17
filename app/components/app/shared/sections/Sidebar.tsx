@@ -9,6 +9,7 @@ import { NavTabButton } from '@/app/components/app/shared/ui/NavTabButton';
 import { LogoSvg } from '@/app/components/app/shared/ui/LogoSvg';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useNavbarVariant } from '@/app/contexts/NavbarVariantContext';
 
 type SidebarProps = {
   locale: string;
@@ -28,6 +29,7 @@ export function Sidebar({ locale }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const { viewMode, stateFlags } = useProfile();
+  const { minimal } = useNavbarVariant();
   const isStudent = viewMode === 'student-view';
 
   function isActive(segment: string) {
@@ -41,8 +43,16 @@ export function Sidebar({ locale }: SidebarProps) {
 
   const settingsVisible = isStudent ? !!stateFlags.settings_visible : true;
 
+  // The aside carries the outer padding; the logo wrapper then mirrors a nav
+  // button's x-padding (`px-theme-btn-x`) so the glyph aligns with the button
+  // icons, and the buttons (w-full) grow to fill the logo-driven rail width.
+  // Minimal (Figma `variant=Minimal`) collapses to a fixed icon-only rail.
   return (
-    <aside className="hidden md:flex flex-col shrink-0 h-full glass-surface">
+    <aside
+      className={`hidden md:flex flex-col shrink-0 h-full border-r border-theme-line px-theme-general ${
+        minimal ? 'w-[84px]' : ''
+      }`}
+    >
 
       {/* Logo links to the marketing landing in the current locale.
           Signed-in users can reach the Hero/Features/Pricing surface from here.
@@ -50,22 +60,27 @@ export function Sidebar({ locale }: SidebarProps) {
           users back to /<locale>/home, which would create a loop. */}
       <Link
         href={`/${locale}`}
-        className="p-theme-general block"
+        className="px-theme-btn-x py-theme-general block"
         aria-label="Mo Speech Home — marketing"
       >
-        <LogoSvg className="w-[155px] text-theme-alt-text" />
+        <LogoSvg
+          variant={minimal ? 'no-text' : 'default'}
+          className={`${minimal ? 'w-[17px]' : 'w-[147px]'} text-theme-primary`}
+        />
       </Link>
 
-      <nav className="flex flex-col flex-1 gap-theme-general px-theme-general">
+      <nav className="flex flex-col flex-1">
         {visibleNavItems.map(({ segment, icon: Icon }) => {
           const button = (
             <NavTabButton
               href={`/${locale}/${segment}`}
               active={isActive(segment)}
               size="lg"
+              iconOnly={minimal}
+              ariaLabel={minimal ? t(segment) : undefined}
             >
-              <Icon className="w-4 h-8 shrink-0" />
-              <span className="truncate">{t(segment)}</span>
+              <Icon className="size-5 shrink-0" />
+              {!minimal && <span className="truncate">{t(segment)}</span>}
             </NavTabButton>
           );
 
@@ -82,14 +97,16 @@ export function Sidebar({ locale }: SidebarProps) {
       </nav>
 
       {settingsVisible && (
-        <div className="px-theme-general pb-theme-general pt-2">
+        <div className="pb-theme-general">
           <NavTabButton
             href={`/${locale}/settings`}
             active={isActive('settings')}
             size="lg"
+            iconOnly={minimal}
+            ariaLabel={minimal ? t('settings') : undefined}
           >
-            <Settings className="w-4 h-8 shrink-0" />
-            <span className="truncate">{t('settings')}</span>
+            <Settings className="size-5 shrink-0" />
+            {!minimal && <span className="truncate">{t('settings')}</span>}
           </NavTabButton>
         </div>
       )}

@@ -456,6 +456,12 @@
     "small": "छोटा",
     "smallHint": "12 कॉलम"
   },
+  "navbar": {
+    "title": "Navigational Side Bar (hi)",
+    "minimalLabel": "Minimal sidebar (hi)",
+    "minimalHint": "Collapse the sidebar to an icon-only rail. (hi)",
+    "close": "Close (hi)"
+  },
   "plan": {
     "heading": "योजना",
     "billingMonthly": "मासिक",
