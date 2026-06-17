@@ -29,7 +29,8 @@ export function Sidebar({ locale }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const { viewMode, stateFlags } = useProfile();
-  const { minimal } = useNavbarVariant();
+  const { minimal, side } = useNavbarVariant();
+  const onRight = side === 'right';
   const isStudent = viewMode === 'student-view';
 
   function isActive(segment: string) {
@@ -47,11 +48,14 @@ export function Sidebar({ locale }: SidebarProps) {
   // button's x-padding (`px-theme-btn-x`) so the glyph aligns with the button
   // icons, and the buttons (w-full) grow to fill the logo-driven rail width.
   // Minimal (Figma `variant=Minimal`) collapses to a fixed icon-only rail.
+  // `side='right'` flips the rail to the right (tablet handedness) via flex
+  // `order` — the bg/texture layers are position:fixed so they're unaffected —
+  // and moves the edge line to the left.
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 h-full border-r border-theme-line px-theme-general ${
-        minimal ? 'w-[84px]' : ''
-      }`}
+      className={`hidden md:flex flex-col shrink-0 h-full border-theme-line px-theme-general ${
+        onRight ? 'order-last border-l' : 'border-r'
+      } ${minimal ? 'w-[84px]' : ''}`}
     >
 
       {/* Logo links to the marketing landing in the current locale.

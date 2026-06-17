@@ -460,6 +460,10 @@
     "title": "Navigational Side Bar",
     "minimalLabel": "Minimal sidebar",
     "minimalHint": "Collapse the sidebar to an icon-only rail.",
+    "sideLabel": "Sidebar position",
+    "sideHint": "Place the sidebar on the left or right — handy for left- or right-handed use on a tablet.",
+    "left": "Left",
+    "right": "Right",
     "close": "Close"
   },
   "account": {

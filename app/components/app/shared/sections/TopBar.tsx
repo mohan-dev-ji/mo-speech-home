@@ -85,37 +85,28 @@ export function TopBar() {
 
   // ─── Breadcrumb nodes ────────────────────────────────────────────────────────
 
-  const homeNode = currentSegment === 'home' ? (
-    <span className="flex items-center gap-1 text-small font-semibold" style={boldStyle}>
-      <Home className="w-3.5 h-3.5" />
-      {tNav('home')}
-    </span>
-  ) : (
+  // The breadcrumb root is the CURRENT top-level section, not Home. Home is a
+  // peer nav destination (a navbar sibling of Categories/Lists/Sentences), not
+  // an ancestor — so sibling sections must not carry a "Home ›" prefix. On a
+  // sub-page the section becomes a link back to itself; otherwise it's the bold
+  // current crumb. (Home only appears when you're actually on the Home page.)
+  const isHome = currentSegment === 'home';
+  const sectionLabel = tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment;
+  const homeIcon = isHome ? <Home className="w-3.5 h-3.5" /> : null;
+  const sectionNode = isSubPage ? (
     <Link
-      href={`/${locale}/home`}
+      href={`/${locale}/${currentSegment}`}
       className="flex items-center gap-1 text-small font-medium transition-colors hover:underline"
       style={linkStyle}
     >
-      <Home className="w-3.5 h-3.5" />
-      {tNav('home')}
+      {homeIcon}
+      {sectionLabel}
     </Link>
-  );
-
-  const sectionLabel = tNav.has(currentSegment) ? tNav(currentSegment) : currentSegment;
-  const sectionNode = currentSegment !== 'home' && (
-    isSubPage ? (
-      <Link
-        href={`/${locale}/${currentSegment}`}
-        className="text-small font-medium transition-colors hover:underline"
-        style={linkStyle}
-      >
-        {sectionLabel}
-      </Link>
-    ) : (
-      <span className="text-small font-semibold" style={boldStyle}>
-        {sectionLabel}
-      </span>
-    )
+  ) : (
+    <span className="flex items-center gap-1 text-small font-semibold" style={boldStyle}>
+      {homeIcon}
+      {sectionLabel}
+    </span>
   );
 
   const detailNode = isSubPage && breadcrumbExtra && (
@@ -134,8 +125,7 @@ export function TopBar() {
 
   const breadcrumbs = (
     <div className="flex items-center gap-2">
-      {homeNode}
-      {sectionNode && <>{sep}{sectionNode}</>}
+      {sectionNode}
       {detailNode && <>{sep}{detailNode}</>}
     </div>
   );
@@ -143,7 +133,7 @@ export function TopBar() {
   return (
     <>
       <header
-        className="flex items-center px-5 gap-2 shrink-0 glass-bar"
+        className="flex items-center px-theme-general py-theme-general gap-theme-elements shrink-0 border-b border-theme-line"
         style={{ minHeight: '48px', zIndex: 70 }}
       >
         {/* Hamburger — mobile only */}
