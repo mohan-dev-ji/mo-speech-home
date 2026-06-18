@@ -33,8 +33,10 @@ export function CheckboxBtn({ checked, onToggle }: { checked: boolean; onToggle:
       onClick={onToggle}
       className="w-6 h-6 rounded shrink-0 flex items-center justify-center transition-colors"
       style={{
+        // Unchecked: primary outline so the checkbox stands out. Checked: kept
+        // white fill + green ✓ (reads well on the green selected-item background).
         background: checked ? '#fff' : 'transparent',
-        border: `2px solid ${checked ? '#fff' : 'rgba(255,255,255,0.4)'}`,
+        border: `2px solid ${checked ? '#fff' : 'var(--theme-primary)'}`,
       }}
     >
       {checked && <span style={{ color: 'var(--theme-success, #22c55e)', fontSize: 12, fontWeight: 700 }}>✓</span>}
