@@ -19,6 +19,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, Trash2, Move } from 'lucide-react';
 import { EditSymbolSlot } from '../ui/ListItemAtoms';
+import { IconButton } from '@/app/components/app/shared/ui/IconButton';
+import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import type { ListItem } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -82,12 +84,10 @@ function SortableEditRow({
           style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.12)' }}
         />
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid rgba(255,255,255,0.3)' }} />}
-        <button type="button" onClick={onDeleteRequest} className="p-1.5 rounded shrink-0 hover:bg-red-100/10" style={{ color: 'var(--theme-warning)' }} aria-label={t('itemDelete')}>
-          <Trash2 className="w-4 h-4" />
-        </button>
-        <button type="button" className="p-1.5 rounded shrink-0 cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--theme-alt-text)' }} aria-label={t('itemMove')} {...listeners} {...attributes}>
-          <Move className="w-4 h-4" />
-        </button>
+        <EditPanel className="shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
+        </EditPanel>
       </div>
     </div>
   );
@@ -125,14 +125,10 @@ function SortableEditColumn({
           style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.12)' }}
         />
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid rgba(255,255,255,0.3)' }} />}
-        <div className="flex gap-1 mt-auto shrink-0">
-          <button type="button" onClick={onDeleteRequest} className="p-1.5 rounded hover:bg-red-100/10" style={{ color: 'var(--theme-warning)' }} aria-label={t('itemDelete')}>
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <button type="button" className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--theme-alt-text)' }} aria-label={t('itemMove')} {...listeners} {...attributes}>
-            <Move className="w-4 h-4" />
-          </button>
-        </div>
+        <EditPanel className="mt-auto shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
+        </EditPanel>
       </div>
     </div>
   );
@@ -170,12 +166,10 @@ function SortableEditGrid({
           style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--theme-text-primary)', border: '1px solid rgba(255,255,255,0.12)' }}
         />
         {showChecklist && <div className="w-4 h-4 rounded shrink-0" style={{ border: '2px solid rgba(255,255,255,0.3)' }} />}
-        <button type="button" onClick={onDeleteRequest} className="p-1 rounded shrink-0 hover:bg-red-100/10" style={{ color: 'var(--theme-warning)' }} aria-label={t('itemDelete')}>
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-        <button type="button" className="p-1 rounded shrink-0 cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--theme-alt-text)' }} aria-label={t('itemMove')} {...listeners} {...attributes}>
-          <Move className="w-3.5 h-3.5" />
-        </button>
+        <EditPanel className="shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
+        </EditPanel>
       </div>
     </div>
   );

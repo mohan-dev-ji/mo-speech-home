@@ -22,6 +22,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { Pencil, Trash2, Move, Check, X } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { IconButton } from '@/app/components/app/shared/ui/IconButton';
+import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
@@ -156,23 +158,26 @@ function SortableListRow({
 
   return (
     <div ref={setNodeRef} style={style}>
+      {/* Figma List-strip / List-strip-edit (`3025:2324`): `card` strip, edit adds
+          a stroke-2 dashed border + the Edit-panel on the right. `flex-wrap` keeps
+          the strip within the content width — the right cluster drops to a new
+          line (grows on Y) instead of overflowing horizontally. */}
       <div
-        className="relative flex flex-col md:flex-row md:items-center gap-3 md:gap-4 rounded-theme px-4 py-3 cursor-pointer transition-opacity"
-        style={{
-          background: 'var(--theme-surface)',
-          outline: isEditing ? '2px dashed var(--theme-enter-mode)' : 'none',
-          outlineOffset: '2px',
-        }}
+        className={[
+          'relative flex flex-wrap items-center gap-3 md:gap-4 rounded-theme-card px-theme-general py-theme-item transition-colors',
+          'border-2 border-dashed',
+          isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
+        ].join(' ')}
+        style={{ background: 'var(--theme-card)' }}
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
         <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
 
-        {/* Meta row — title (grows), pack-status pill (flush right of title),
-            edit buttons (further right, with ml-4 for visual separation).
-            Drops beneath the thumbnails on small screens; sits inline on
-            md+ widths. */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="flex-1 min-w-0">
+        {/* Meta row — title (grows), then the right cluster (badge + edit-panel).
+            No `min-w-0` here: the meta keeps its min-content width so it wraps
+            below the thumbnails (grows Y) instead of overflowing horizontally. */}
+        <div className="flex flex-wrap items-center gap-3 flex-1">
+          <div className="flex-1 min-w-[8rem]">
             {isEditingThisName ? (
               <div className="flex items-center gap-2">
                 <input
@@ -206,57 +211,53 @@ function SortableListRow({
             )}
           </div>
 
-          {/* Origin badge — everyone sees which pack this list is from. */}
-          {list.librarySourceId && (
-            <div className="shrink-0">
+          {/* Right cluster — origin badge + admin status + edit-panel. `ml-auto`
+              right-aligns it; it wraps below the title as a unit when narrow. */}
+          <div className="flex items-center gap-3 shrink-0 ml-auto">
+            {/* Origin badge — everyone sees which pack this list is from. */}
+            {list.librarySourceId && (
               <LibrarySourceBadge
                 packName={resolvePackName(list.librarySourceId, language)}
               />
-            </div>
-          )}
+            )}
 
-          {adminPacks && (
-            <div className="shrink-0">
+            {adminPacks && (
               <PackStatusLabel
                 packSlug={list.librarySourceId}
                 packs={adminPacks}
                 language={language}
               />
-            </div>
-          )}
+            )}
 
-          {isEditing && (
-            <div className="flex items-center gap-1 shrink-0 ml-4">
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
-                className="p-1.5 rounded transition-colors hover:bg-red-100/10"
-                style={{ color: 'var(--theme-warning)' }}
-                aria-label={t('rowDelete')}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onEditNameStart(list._id, name); }}
-                className="p-1.5 rounded transition-colors hover:bg-black/10"
-                style={{ color: 'var(--theme-alt-text)' }}
-                aria-label={t('rowEdit')}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none"
-                style={{ color: 'var(--theme-alt-text)' }}
-                aria-label={t('rowMove')}
-                {...listeners}
-                {...attributes}
-              >
-                <Move className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            {isEditing && (
+              <EditPanel className="flex-wrap">
+                <IconButton
+                  size="sm"
+                  variant="neutral"
+                  className="text-theme-warning"
+                  icon={<Trash2 />}
+                  label={t('rowDelete')}
+                  onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
+                />
+                <IconButton
+                  size="sm"
+                  variant="neutral"
+                  icon={<Pencil />}
+                  label={t('rowEdit')}
+                  onClick={(e) => { e.stopPropagation(); onEditNameStart(list._id, name); }}
+                />
+                <IconButton
+                  size="sm"
+                  variant="neutral"
+                  className="cursor-grab active:cursor-grabbing touch-none"
+                  icon={<Move />}
+                  label={t('rowMove')}
+                  {...listeners}
+                  {...attributes}
+                />
+              </EditPanel>
+            )}
+          </div>
         </div>
       </div>
     </div>

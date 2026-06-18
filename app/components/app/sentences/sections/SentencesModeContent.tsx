@@ -42,6 +42,8 @@ import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
+import { IconButton } from '@/app/components/app/shared/ui/IconButton';
+import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
@@ -372,19 +374,21 @@ function SortableSentenceRow({
 
   return (
     <div ref={setNodeRef} style={style}>
+      {/* Figma sentence strip — `card` row; edit adds a stroke-2 dashed border
+          (transparent when idle → no shift) + the Edit-panel. `flex-wrap` keeps
+          the strip within the content width: the right cluster drops below
+          (grows on Y) rather than overflowing horizontally. */}
       <div
-        className="flex flex-col gap-3 rounded-theme px-4 py-3"
-        style={{
-          background: 'var(--theme-surface)',
-          outline: isEditing ? '2px dashed var(--theme-enter-mode)' : 'none',
-          outlineOffset: '2px',
-          cursor: isEditing ? undefined : 'pointer',
-        }}
+        className={[
+          'rounded-theme-card px-theme-general py-theme-item transition-colors border-2 border-dashed',
+          isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
+        ].join(' ')}
+        style={{ background: 'var(--theme-card)' }}
         onClick={isEditing ? undefined : () => onPlay(sentence)}
         role={isEditing ? undefined : 'button'}
         aria-label={isEditing ? undefined : t('rowPlay')}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4">
 
           {/* Symbol preview area */}
           <div className="shrink-0" onClick={isEditing ? undefined : (e) => e.stopPropagation()}>
@@ -405,14 +409,13 @@ function SortableSentenceRow({
             )}
           </div>
 
-          {/* Sentence text — grows to fill the outer row, pushing the
-              pack-status label (and the edit-mode action cluster) to the
-              right edge. */}
+          {/* Sentence text — grows to fill the row; `min-w` lets the right
+              cluster wrap below instead of squeezing the text to nothing. */}
           {isEditing ? (
             <button
               type="button"
               onClick={() => onEditSentence(sentence)}
-              className="flex-1 min-w-0 px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
+              className="flex-1 min-w-[10rem] px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
               style={{
                 border: '1.5px dashed var(--theme-brand-primary)',
                 background: 'transparent',
@@ -443,82 +446,74 @@ function SortableSentenceRow({
               )}
             </button>
           ) : (
-            <p className="flex-1 min-w-0 text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
+            <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
               {sentenceText}
             </p>
           )}
 
-          {/* Origin badge — everyone sees which pack this sentence is from. */}
-          {sentence.librarySourceId && (
-            <div className="shrink-0">
+          {/* Right cluster — origin badge + admin status + admin save + edit-panel.
+              `ml-auto` right-aligns it; wraps below the text as a unit when narrow. */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
+            {/* Origin badge — everyone sees which pack this sentence is from. */}
+            {sentence.librarySourceId && (
               <LibrarySourceBadge
                 packName={resolvePackName(sentence.librarySourceId, language)}
               />
-            </div>
-          )}
+            )}
 
-          {/* Admin pack-status label — sits at the right edge of the text
-              zone. With the text element grown via flex-1, this is naturally
-              flush right in non-edit mode; in edit mode the action cluster
-              follows with extra left-margin for visual separation. */}
-          {adminPacks && (
-            <div className="shrink-0">
+            {adminPacks && (
               <PackStatusLabel
                 packSlug={sentence.librarySourceId}
                 packs={adminPacks}
                 language={language}
               />
-            </div>
-          )}
+            )}
 
-          {/* Edit mode action buttons — `ml-4` gives visible separation
-              from the pack-status label. */}
-          {isEditing && (
-            <div className="flex items-center gap-1 shrink-0 ml-4">
-              {showAdminButtons && (
-                <div
-                  className="flex items-center gap-1 mr-1 px-1.5 py-1 rounded-theme-sm"
-                  style={{
-                    background: 'rgba(255,200,0,0.06)',
-                    border: '1px solid rgba(255,200,0,0.2)',
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Per-row "Save to pack" — stateless button opening
-                      the picker for this single sentence. Default toggle
-                      dropped post-simplification (vestigial — Save to
-                      pack covers starter-pack as a target choice). */}
-                  <ToggleButton
-                    pressed={false}
-                    onClick={() => onToggleLibrary?.(sentence)}
-                    icon={<Library className="w-3.5 h-3.5" />}
+            {isEditing && (
+              <>
+                {showAdminButtons && (
+                  <div
+                    className="flex items-center gap-1 px-1.5 py-1 rounded-theme-sm"
+                    style={{
+                      background: 'rgba(255,200,0,0.06)',
+                      border: '1px solid rgba(255,200,0,0.2)',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {tPicker('saveToPackButton')}
-                  </ToggleButton>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onDeleteRequest(sentence._id, name); }}
-                className="p-1.5 rounded transition-colors hover:bg-red-100/10"
-                style={{ color: 'var(--theme-warning)' }}
-                aria-label={t('rowDelete')}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="p-1.5 rounded cursor-grab active:cursor-grabbing touch-none"
-                style={{ color: 'var(--theme-alt-text)' }}
-                aria-label={t('rowMove')}
-                onClick={(e) => e.stopPropagation()}
-                {...listeners}
-                {...attributes}
-              >
-                <Move className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+                    {/* Per-row "Save to pack" — stateless button opening the
+                        picker for this single sentence. */}
+                    <ToggleButton
+                      pressed={false}
+                      onClick={() => onToggleLibrary?.(sentence)}
+                      icon={<Library className="w-3.5 h-3.5" />}
+                    >
+                      {tPicker('saveToPackButton')}
+                    </ToggleButton>
+                  </div>
+                )}
+                <EditPanel className="flex-wrap">
+                  <IconButton
+                    size="sm"
+                    variant="neutral"
+                    className="text-theme-warning"
+                    icon={<Trash2 />}
+                    label={t('rowDelete')}
+                    onClick={(e) => { e.stopPropagation(); onDeleteRequest(sentence._id, name); }}
+                  />
+                  <IconButton
+                    size="sm"
+                    variant="neutral"
+                    className="cursor-grab active:cursor-grabbing touch-none"
+                    icon={<Move />}
+                    label={t('rowMove')}
+                    onClick={(e) => e.stopPropagation()}
+                    {...listeners}
+                    {...attributes}
+                  />
+                </EditPanel>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

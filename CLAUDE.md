@@ -57,7 +57,7 @@ Node version: the Convex CLI requires Node 20+. If you have multiple Node versio
 (Template says "business" — this build uses "max" throughout)
 
 ## Critical Rules
-1. **Never hard-code UI copy** — all text must come from `useTranslations`; add every key to `en.json` (real English) and `hi.json` (`"English value (hi)"` as a placeholder until a translator replaces it)
+1. **Never hard-code UI copy** — all text must come from `useTranslations`; add every key to **`en.json` only** (real English). Do NOT hand-add the key to `hi.json`/`es.json`/etc.: `i18n/request.ts` merges each locale over `en.json` so missing keys fall back to English, and the translation pipeline (`app/api/admin/translate-ui-strings/route.ts`) only translates keys **absent** from a locale — a hand-added `"English (hi)"` placeholder is treated as already-translated and is **skipped forever**, shipping the placeholder. So en-only is both correct and required.
 2. **Schema first** — define all Convex tables before building any UI
 3. **Read `docs/4-builds/decisions/`** before proposing architecture changes
 4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`

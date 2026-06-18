@@ -6,9 +6,13 @@ import { type ButtonHTMLAttributes, type ReactNode, forwardRef } from "react";
 /**
  * Icon-only square button — mirrors the Figma "Icon-button" component
  * (Components page `3080:251`, `Style` property: Primary / Neutral / Ghost).
- * 48² box, 24² glyph (centred → the Figma 12px padding), `rounded-theme-button`,
- * `.elevation-subtle`. The shared atom for every icon-only affordance:
- * Edit-panel, symbol/category edit controls, talker controls, Topbar.
+ * 24² glyph, `rounded-theme-button`, `.elevation-subtle`. The shared atom for
+ * every icon-only affordance: Edit-panel, symbol/category edit controls, talker
+ * controls, Topbar.
+ *
+ * `size` — `md` (default) = 48² box (12px inset, standalone controls);
+ * `sm` = 32² box (4px inset, the dense Edit-panel cluster). The glyph stays 24²
+ * either way (`[&_svg]:size-6`), per the Figma Icon-button instances.
  *
  * Variant fills mirror Button's primary/secondary inversion (both fixed :root
  * constants, theme-independent — so the glyph stays legible on any theme):
@@ -22,9 +26,13 @@ import { type ButtonHTMLAttributes, type ReactNode, forwardRef } from "react";
 
 type Variant = "primary" | "neutral" | "ghost";
 
+type Size = "sm" | "md";
+
 interface IconButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label"> {
   variant?: Variant;
+  /** `md` = 48² (default), `sm` = 32² (Edit-panel cluster). Glyph stays 24². */
+  size?: Size;
   /** The glyph (e.g. a lucide icon). Forced to 24² via `[&_svg]:size-6`. */
   icon: ReactNode;
   /** Required accessible name for the icon-only control (→ `aria-label`). */
@@ -32,6 +40,7 @@ interface IconButtonProps
 }
 
 const RAISED = "elevation-subtle";
+const SIZE: Record<Size, string> = { sm: "size-8", md: "size-12" };
 
 function variantClass(variant: Variant): string {
   switch (variant) {
@@ -45,14 +54,14 @@ function variantClass(variant: Variant): string {
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ variant = "primary", icon, label, disabled, className, ...props }, ref) => (
+  ({ variant = "primary", size = "md", icon, label, disabled, className, ...props }, ref) => (
     <button
       ref={ref}
       type="button"
       aria-label={label}
       disabled={disabled}
       className={cn(
-        "inline-flex size-12 shrink-0 items-center justify-center rounded-theme-button [&_svg]:size-6",
+        `inline-flex ${SIZE[size]} shrink-0 items-center justify-center rounded-theme-button [&_svg]:size-6`,
         "transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
         variantClass(variant),
         className
