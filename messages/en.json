@@ -222,7 +222,26 @@
   },
   "home": {
     "title": "Home",
-    "resourceLibrary": "Templates / Resource Library"
+    "resourceLibrary": "Templates / Resource Library",
+    "libraryPacksHeading": "Library packs",
+    "libraryPacksBody1": "You can load pre-made categories, lists and sentences from the Resource Library.",
+    "libraryPacksBody2": "Each account comes with the starter pack which has 16 categories, 12 lists and 12 sentences that you can use to get started.",
+    "addMorePacks": "Add more packs",
+    "packLoad": "Load",
+    "packLoaded": "Already Loaded",
+    "packLoading": "Loading…",
+    "packLoadError": "Couldn't load that pack. Please try again.",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "tierMax": "Max",
+    "navCategories": "Categories",
+    "navLists": "Lists",
+    "navSentences": "Sentences",
+    "navSearch": "Search Symbols",
+    "createSymbol": "Create a Symbol",
+    "createCategory": "Create a Category",
+    "createList": "Create a List",
+    "createSentence": "Create a Sentence"
   },
   "search": {
     "title": "Search",
