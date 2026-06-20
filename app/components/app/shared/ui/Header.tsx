@@ -2,13 +2,20 @@
 
 // Pure talker display — chip area, action buttons, and TalkerDropdown.
 // Category props and mode toggle removed (see ADR-004).
+//
+// Figma "Talker" (`3017:2185`): one rounded-card rectangle, clipped via
+// `overflow`. The Topline is a thin `primary-50` frame; inside it the
+// Symbol-stage (fill = `background`) holds the chips on the left and the control
+// IconButtons on the right (`justify-between`). The full-width Dropdown forms
+// the bottom edge of the same rectangle.
 
-import { useState, useEffect, useRef } from 'react';
-import { Volume2, X, Save } from 'lucide-react';
+import { Volume2, Delete, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { TalkerBar } from './TalkerBar';
 import type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 import { TalkerDropdown } from './TalkerDropdown';
+import { IconButton } from './IconButton';
+import { EditPanel } from './EditPanel';
 
 export type { TalkerSymbolItem, QuickSymbolItem } from './TalkerBar';
 
@@ -39,88 +46,56 @@ export function Header({
 }: HeaderProps) {
   const t = useTranslations('talker');
 
-  const mainRef     = useRef<HTMLDivElement>(null);
-  const chipAreaRef = useRef<HTMLDivElement>(null);
-  const [anchorPos, setAnchorPos] = useState({ bottom: 0, left: 0, width: 0 });
-
   const hasSymbols = symbols.length > 0;
 
-  useEffect(() => {
-    function measure() {
-      const main = mainRef.current?.getBoundingClientRect();
-      const chip = chipAreaRef.current?.getBoundingClientRect();
-      if (!main || !chip) return;
-      setAnchorPos({ bottom: main.bottom, left: chip.left, width: chip.width });
-    }
-    measure();
-    window.addEventListener('resize', measure);
-    const ro = new ResizeObserver(measure);
-    if (mainRef.current) ro.observe(mainRef.current);
-    return () => {
-      window.removeEventListener('resize', measure);
-      ro.disconnect();
-    };
-  }, []);
-
   return (
-    <div>
+    <div className="flex flex-col items-stretch overflow-clip rounded-theme-card w-full">
+      {/* Topline — thin primary-50 frame around the stage */}
       <div
-        ref={mainRef}
-        className="flex items-stretch gap-2 p-3 rounded-theme min-h-[200px] glass-bar"
+        className="flex items-center justify-center p-theme-general w-full glass-bar"
+        style={{ background: 'var(--theme-primary-50)' }}
       >
-        {/* Chip area */}
-        <div ref={chipAreaRef} className="flex-1 min-w-0">
+        {/* Symbol-stage — `background` fill; chips left, control buttons right */}
+        <div
+          className="flex flex-1 items-stretch justify-between gap-2 min-w-0 overflow-hidden px-3 min-h-[180px] rounded-theme-card"
+          style={{ background: 'var(--theme-background)' }}
+        >
           <TalkerBar
             symbols={symbols}
             placeholder={placeholder}
             onChipTap={onChipTap}
           />
-        </div>
 
-        {/* Action button column */}
-        <div className="flex flex-col gap-1.5 shrink-0 w-10">
-          <button
-            type="button"
-            onClick={onPlaySentence}
-            disabled={!hasSymbols}
-            className="flex-1 flex items-center justify-center rounded-lg transition-transform active:scale-95 disabled:opacity-40"
-            style={{ background: 'var(--theme-success)', color: '#fff' }}
-            aria-label={t('playLabel')}
-          >
-            <Volume2 className="w-5 h-5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={onClear}
-            disabled={!hasSymbols}
-            className="flex-1 flex items-center justify-center rounded-lg transition-transform active:scale-95 disabled:opacity-40"
-            style={{ background: 'var(--theme-warning)', color: '#fff' }}
-            aria-label={t('clearLabel')}
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={!hasSymbols || !onSave}
-            className="flex-1 flex items-center justify-center rounded-lg transition-transform active:scale-95 disabled:opacity-40"
-            style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-text-on-brand)' }}
-            aria-label={t('saveLabel')}
-          >
-            <Save className="w-5 h-5" />
-          </button>
+          {/* Control buttons — play / clear / save */}
+          <EditPanel orientation="vertical" className="shrink-0 py-theme-elements">
+            <IconButton
+              icon={<Volume2 />}
+              label={t('playLabel')}
+              onClick={onPlaySentence}
+              disabled={!hasSymbols}
+              style={{ background: 'var(--theme-success)', color: '#fff' }}
+            />
+            <IconButton
+              icon={<Delete />}
+              label={t('clearLabel')}
+              onClick={onClear}
+              disabled={!hasSymbols}
+              style={{ background: 'var(--theme-warning)', color: '#fff' }}
+            />
+            <IconButton
+              variant="ghost"
+              icon={<Save />}
+              label={t('saveLabel')}
+              onClick={onSave}
+              disabled={!hasSymbols || !onSave}
+              style={{ background: 'var(--theme-surface)' }}
+            />
+          </EditPanel>
         </div>
       </div>
 
-      <TalkerDropdown
-        anchorBottom={anchorPos.bottom}
-        anchorLeft={anchorPos.left}
-        anchorWidth={anchorPos.width}
-        language={language}
-        onSymbolTap={onQuickSymbolTap}
-      />
+      {/* Dropdown — full-width bottom of the rectangle */}
+      <TalkerDropdown language={language} onSymbolTap={onQuickSymbolTap} />
     </div>
   );
 }

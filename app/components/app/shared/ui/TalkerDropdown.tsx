@@ -1,18 +1,17 @@
 "use client";
 
-// Quick-access dropdown attached below the TalkerBar chip area.
+// Quick-access dropdown — the bottom section of the Talker rectangle.
 //
-// Positioning rules (both states):
-//   width  = anchorWidth × 0.8   (narrower than the chip area)
-//   left   = anchorLeft  + anchorWidth × 0.1   (centred on x axis)
-//   top    = anchorBottom  (flush with bottom of the main bar)
+// Closed: a full-width inline bar (a chevron). It sits inside the Talker's
+//   `overflow-clip rounded-theme-card` wrapper, so it's clipped into the
+//   rectangle's bottom edge. Fill = `primary-25`, with a top hairline.
 //
-// Rounding: bottom corners only — square top edge makes it look
-//   physically connected to the TalkerBar from below.
-//
-// Both states render via portal so the panel can overlay page content.
+// Open: a portal-rendered overlay panel. It self-measures the inline bar to
+//   anchor itself (top = bar top, full bar width) and expands to the viewport
+//   bottom, overlaying page content. Bottom corners rounded so it reads as the
+//   rectangle growing downward.
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -20,6 +19,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { SymbolCard } from './SymbolCard';
 import { NavTabButton } from './NavTabButton';
+import { CategoryBoardGrid } from './CategoryBoardGrid';
 import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
@@ -42,41 +42,26 @@ const GROUP_TABS = LITTLE_WORDS_GROUPS.map((g) => ({ id: g.id, name: g.name }));
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TalkerDropdownProps = {
-  anchorBottom: number;
-  anchorLeft: number;
-  anchorWidth: number;
   language: string;
   onSymbolTap: (item: QuickSymbolItem) => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function TalkerDropdown({
-  anchorBottom,
-  anchorLeft,
-  anchorWidth,
-  language,
-  onSymbolTap,
-}: TalkerDropdownProps) {
+export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
   const { voiceId } = useProfile();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
-  const [mounted, setMounted]     = useState(false);
+  const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 0 });
+  const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setMounted(true); }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+  function openPanel() {
+    const r = barRef.current?.getBoundingClientRect();
+    if (r) setPanelPos({ top: r.top, left: r.left, width: r.width });
+    setIsOpen(true);
+  }
 
   const activeGroup = LITTLE_WORDS_GROUPS.find((g) => g.id === activeTab);
 
@@ -100,22 +85,6 @@ export function TalkerDropdown({
     return new Map((symbols ?? []).map((s) => [s.words.en ?? '', s]));
   }
 
-  if (!mounted || anchorWidth === 0) return null;
-
-  // ── Derived position ──────────────────────────────────────────────────────
-  const dropWidth = anchorWidth * 0.8;
-  const dropLeft  = anchorLeft  + anchorWidth * 0.1;
-
-  const baseStyle: React.CSSProperties = {
-    position: 'fixed',
-    top:   anchorBottom,
-    left:  dropLeft,
-    width: dropWidth,
-    zIndex: 50,
-    borderRadius: `0 0 var(--theme-roundness) var(--theme-roundness)`,
-    overflow: 'hidden',
-  };
-
   function getTabLabel(id: TabId): string {
     if (id === 'numbers') return t('tabNumbers');
     if (id === 'letters') return t('tabLetters');
@@ -134,28 +103,12 @@ export function TalkerDropdown({
     onSymbolTap(item);
   }
 
-  // ── Closed: chevron tab ───────────────────────────────────────────────────
-  if (!isOpen) {
-    return createPortal(
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity glass-surface"
-        style={{ ...baseStyle, color: 'var(--theme-nav-text)' }}
-        aria-label={t('openDropdown')}
-      >
-        <ChevronDown className="w-5 h-5" />
-      </button>,
-      document.body
-    );
-  }
-
   // ── Symbol grid content ───────────────────────────────────────────────────
 
   function renderWordList(words: string[], symbols: typeof groupSymbols) {
     if (symbols === undefined) {
       return (
-        <div className="col-span-6 flex items-center justify-center py-8">
+        <div className="col-span-full flex items-center justify-center py-8">
           <div
             className="w-5 h-5 rounded-full border-2 animate-spin"
             style={{ borderColor: 'var(--theme-nav-text)', borderTopColor: 'transparent' }}
@@ -203,53 +156,80 @@ export function TalkerDropdown({
     return renderWordList(activeGroup!.words, groupSymbols);
   }
 
-  // ── Open: full panel ──────────────────────────────────────────────────────
-  return createPortal(
+  // ── Render ────────────────────────────────────────────────────────────────
+  // The inline bar always renders (so the rectangle keeps its bottom edge / flow
+  // height); the overlay panel renders on top of it via portal when open.
+  return (
     <>
-      {/* Overlay — blocks board taps; clicking it triggers click-outside close */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 49,
-          background: 'rgba(0,0,0,0.45)',
-        }}
-      />
-
-      <div
-        ref={panelRef}
-        className="flex flex-col glass-surface"
-        style={{ ...baseStyle, bottom: 0 }}
-      >
-      {/* Chevron close — stays at same position as the closed-state tab */}
       <button
+        ref={barRef}
         type="button"
-        onClick={() => setIsOpen(false)}
-        className="shrink-0 flex items-center justify-center w-full py-1.5 hover:opacity-70 transition-opacity"
-        style={{ color: 'var(--theme-nav-text)' }}
-        aria-label={t('closeDropdown')}
+        onClick={isOpen ? () => setIsOpen(false) : openPanel}
+        className="flex items-center justify-center w-full h-[50px] border-t border-theme-line hover:opacity-70 transition-opacity"
+        style={{ background: 'var(--theme-primary-25)', color: 'var(--theme-nav-text)' }}
+        aria-label={isOpen ? t('closeDropdown') : t('openDropdown')}
       >
-        <ChevronDown className="w-5 h-5 rotate-180" />
+        {/* Hidden while open — the overlay panel owns the close chevron, and the
+            translucent panel would otherwise show this one bleeding through. */}
+        {!isOpen && <ChevronDown className="w-5 h-5" />}
       </button>
 
-      {/* Scrollable tab bar. Sits on `background` (the Talker "stage") so the
-          active NavTabButton's surface pill reads against it inside the surface popover. */}
-      <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
-        {allTabs.map((id) => (
-          <NavTabButton key={id} active={activeTab === id} onClick={() => setActiveTab(id)}>
-            {getTabLabel(id)}
-          </NavTabButton>
-        ))}
-      </div>
+      {isOpen &&
+        createPortal(
+          <>
+            {/* Overlay — blocks board taps; click triggers click-outside close */}
+            <div
+              onClick={() => setIsOpen(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: 49, background: 'rgba(0,0,0,0.45)' }}
+            />
 
-      {/* Scrollable symbol grid */}
-      <div className="flex-1 overflow-y-auto px-4 pb-2">
-        <div className="grid grid-cols-6 gap-2">
-          {renderItems()}
-        </div>
-      </div>
-    </div>
-    </>,
-    document.body
+            <div
+              ref={panelRef}
+              className="flex flex-col glass-surface"
+              style={{
+                position: 'fixed',
+                top: panelPos.top,
+                left: panelPos.left,
+                width: panelPos.width,
+                bottom: 0,
+                zIndex: 50,
+                borderRadius: '0 0 var(--theme-card-roundness) var(--theme-card-roundness)',
+                overflow: 'hidden',
+                background: 'var(--theme-background)',
+              }}
+            >
+              {/* Chevron close — same position as the closed-state bar */}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="shrink-0 flex items-center justify-center w-full h-[50px] hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--theme-nav-text)' }}
+                aria-label={t('closeDropdown')}
+              >
+                <ChevronDown className="w-5 h-5 rotate-180" />
+              </button>
+
+              {/* Scrollable tab bar. Sits on `background` (the Talker "stage") so the
+                  active NavTabButton's surface pill reads against it. */}
+              <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
+                {allTabs.map((id) => (
+                  <NavTabButton key={id} active={activeTab === id} onClick={() => setActiveTab(id)}>
+                    {getTabLabel(id)}
+                  </NavTabButton>
+                ))}
+              </div>
+
+              {/* Scrollable symbol grid — columns follow the active profile's
+                  grid_size (instructor or student), same as the board. */}
+              <div className="flex-1 overflow-y-auto px-4 pb-2">
+                <CategoryBoardGrid>
+                  {renderItems()}
+                </CategoryBoardGrid>
+              </div>
+            </div>
+          </>,
+          document.body
+        )}
+    </>
   );
 }
