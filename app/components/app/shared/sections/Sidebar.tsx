@@ -9,7 +9,6 @@ import { NavTabButton } from '@/app/components/app/shared/ui/NavTabButton';
 import { LogoSvg } from '@/app/components/app/shared/ui/LogoSvg';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { useNavbarVariant } from '@/app/contexts/NavbarVariantContext';
 
 type SidebarProps = {
   locale: string;
@@ -29,8 +28,10 @@ export function Sidebar({ locale }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const { viewMode, stateFlags } = useProfile();
-  const { minimal, side } = useNavbarVariant();
-  const onRight = side === 'right';
+  // Navbar variant is now a per-profile setting (stateFlags), so the rail flips
+  // automatically when switching between instructor-view and a student's view.
+  const minimal = stateFlags.navbar_minimal;
+  const onRight = stateFlags.navbar_on_right;
   const isStudent = viewMode === 'student-view';
 
   function isActive(segment: string) {

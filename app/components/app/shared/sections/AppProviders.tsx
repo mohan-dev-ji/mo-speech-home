@@ -6,7 +6,6 @@ import { TalkerProvider } from '@/app/contexts/TalkerContext';
 import { ModellingSessionProvider } from '@/app/contexts/ModellingSessionContext';
 import { ResourceLibraryProvider } from '@/app/contexts/ResourceLibraryContext';
 import { BreadcrumbProvider } from '@/app/contexts/BreadcrumbContext';
-import { NavbarVariantProvider } from '@/app/contexts/NavbarVariantContext';
 import { AppStateProvider } from '@/app/contexts/AppStateProvider';
 import { PostHogProvider } from '@/app/contexts/PostHogProvider';
 import { StudentOnboardingGate } from '@/app/components/app/onboarding/StudentOnboardingGate';
@@ -39,7 +38,6 @@ export function AppProviders({
             <ModellingSessionProvider>
               <ResourceLibraryProvider>
                 <BreadcrumbProvider>
-                  <NavbarVariantProvider>
                   <ToastProvider>
                     <StudentOnboardingGate />
                     <InstructorPresenceWatcher />
@@ -52,7 +50,6 @@ export function AppProviders({
                     <ModellingExitButton />
                     {children}
                   </ToastProvider>
-                  </NavbarVariantProvider>
                 </BreadcrumbProvider>
                 </ResourceLibraryProvider>
               </ModellingSessionProvider>

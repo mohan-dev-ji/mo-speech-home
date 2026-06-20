@@ -4,13 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useUser, useReverification } from "@clerk/nextjs";
 import { useAppState } from "@/app/contexts/AppStateProvider";
-import {
-  DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { Input } from "@/app/components/app/shared/ui/Input";
 import { PricingToggle } from "@/app/components/marketing/ui/PricingToggle";
 import { DeleteAccountDialog } from "@/app/components/app/settings/modals/DeleteAccountDialog";
+import { SettingsSection } from "@/app/components/app/settings/ui/SettingsSection";
 import { Check, AlertCircle, CheckCircle, Camera, ChevronDown } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { track } from "@/lib/analytics";
@@ -36,17 +34,17 @@ function PlanCard({ name, price, features, highlighted, children }: {
 }) {
   return (
     <div className={cn(
-      "rounded-theme border p-4 flex flex-col",
-      highlighted ? "border-primary ring-1 ring-primary" : "border-theme-line"
+      "rounded-theme-sm border p-theme-general flex flex-col",
+      highlighted ? "border-theme-primary ring-1 ring-theme-primary" : "border-theme-line"
     )}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-theme-p font-semibold text-theme-text">{name}</span>
-        <span className="font-bold text-theme-text">{price}</span>
+        <span className="text-theme-p font-semibold text-theme-alt-text">{name}</span>
+        <span className="font-bold text-theme-alt-text">{price}</span>
       </div>
       <ul className="space-y-1 mb-4 flex-1">
         {features.map((f, i) => (
-          <li key={i} className="flex items-center gap-2 text-theme-s text-theme-secondary-text">
-            <Check className="w-3.5 h-3.5 text-success shrink-0" />
+          <li key={i} className="flex items-center gap-2 text-theme-s text-theme-secondary-alt-text">
+            <Check className="w-3.5 h-3.5 text-theme-success shrink-0" />
             {f}
           </li>
         ))}
@@ -142,21 +140,19 @@ function InstructorAccountSection() {
     user.primaryEmailAddress?.emailAddress?.[0]?.toUpperCase() || "?";
 
   return (
-    <div className="pt-4 border-t border-theme-line space-y-4">
-      <p className="text-theme-p font-semibold text-theme-alt-text">{t("yourAccount")}</p>
-
+    <div className="space-y-4">
       {/* Avatar */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={photoLoading}
-          className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-border hover:ring-primary transition-all group shrink-0"
+          className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-theme-line hover:ring-theme-primary transition-all group shrink-0"
           aria-label={t("changePhoto")}
         >
           {user.imageUrl ? (
             <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
-            <span className="w-full h-full flex items-center justify-center bg-muted text-subheading font-medium">{initials}</span>
+            <span className="w-full h-full flex items-center justify-center bg-theme-surface text-theme-large font-medium text-theme-alt-text">{initials}</span>
           )}
           <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
             <Camera className="w-3.5 h-3.5 text-white" />
@@ -164,10 +160,10 @@ function InstructorAccountSection() {
         </button>
         <div>
           <button onClick={() => fileInputRef.current?.click()} disabled={photoLoading}
-            className="text-small text-primary hover:underline disabled:opacity-50">
+            className="text-theme-s text-theme-primary hover:underline disabled:opacity-50">
             {photoLoading ? t("uploading") : t("changePhoto")}
           </button>
-          <p className="text-caption text-muted-foreground">{t("photoHint")}</p>
+          <p className="text-theme-xs text-theme-secondary-alt-text">{t("photoHint")}</p>
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
       </div>
@@ -188,36 +184,34 @@ function InstructorAccountSection() {
       )}
 
       {(error || success) && (
-        <p className={`text-small ${error ? "text-destructive" : "text-success"}`}>{error || success}</p>
+        <p className={`text-theme-s ${error ? "text-theme-warning" : "text-theme-success"}`}>{error || success}</p>
       )}
 
       <Button size="sm" onClick={handleSave} loading={saving} disabled={!hasChanges}>{t("saveAccount")}</Button>
 
       {/* Danger zone — collapsed by default so the destructive button isn't
-          the first thing the user sees on the Account & Billing surface.
-          Expanding reveals the warning + button which opens the proper
-          typed-confirmation `DeleteAccountDialog` (was previously two
-          parallel implementations; consolidated here). */}
-      <div className="pt-2 border-t border-border">
+          the first thing the user sees. Expanding reveals the warning + button
+          which opens the typed-confirmation `DeleteAccountDialog`. */}
+      <div className="pt-2 border-t border-theme-line">
         <button
           type="button"
           onClick={() => setDangerOpen((o) => !o)}
           aria-expanded={dangerOpen}
           className="flex items-center justify-between w-full text-left py-1 group"
         >
-          <span className="text-small font-medium text-destructive">
+          <span className="text-theme-s font-medium text-theme-warning">
             {t("dangerZone")}
           </span>
           <ChevronDown
             className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform",
+              "w-4 h-4 text-theme-secondary-alt-text transition-transform",
               dangerOpen && "rotate-180",
             )}
           />
         </button>
         {dangerOpen && (
           <div className="mt-2 space-y-2">
-            <p className="text-caption text-muted-foreground">
+            <p className="text-theme-xs text-theme-secondary-alt-text">
               {t("dangerZoneDescription")}
             </p>
             <Button
@@ -239,9 +233,14 @@ function InstructorAccountSection() {
   );
 }
 
-// ─── PlanModal ───────────────────────────────────────────────────────────────
+// ─── AccountBillingPanel ───────────────────────────────────────────────────────
 
-export function PlanModal({ onClose }: { onClose: () => void }) {
+/**
+ * Account & Billing tab — ports `PlanModal`. Stripe checkout/cancel/switch/
+ * reactivate flows and the Clerk-backed account section are kept byte-for-byte;
+ * only the Dialog chrome is replaced with section-cards.
+ */
+export function AccountBillingPanel() {
   const t = useTranslations("plan");
   const ta = useTranslations("account");
   const { subscription } = useAppState();
@@ -254,13 +253,10 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
   const isExpired   = status === "expired";
   const isSubscribed = isActive || isCancelled;
 
-  // Derive the current billing interval from the stored plan ID
   const currentInterval: BillingInterval | null =
     plan?.includes("yearly") ? "yearly" : plan ? "monthly" : null;
 
   const isLoading = actionState.status === "loading";
-
-  // ─── API helper ──────────────────────────────────────────────────────────────
 
   const callApi = async (url: string, body?: object, successMsg?: string) => {
     setActionState({ status: "loading" });
@@ -275,7 +271,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
         setActionState({ status: "error", message: t("errorGeneric") });
         return;
       }
-      // Stripe checkout returns a redirect URL
       if (data.url) {
         window.location.href = data.url;
         return;
@@ -285,8 +280,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
       setActionState({ status: "error", message: t("errorGeneric") });
     }
   };
-
-  // ─── Free card CTA ───────────────────────────────────────────────────────────
 
   const renderFreeCTA = () => {
     if (tier === "free" || isExpired) {
@@ -298,7 +291,7 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
     }
     if (isCancelled && subscriptionEndsAt) {
       return (
-        <p className="text-theme-s text-theme-secondary-text text-center py-1">
+        <p className="text-theme-s text-theme-secondary-alt-text text-center py-1">
           {t("ctaCancellingOn", { date: formatDate(subscriptionEndsAt) })}
         </p>
       );
@@ -319,13 +312,10 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
     return null;
   };
 
-  // ─── Paid tier CTA ───────────────────────────────────────────────────────────
-
   const renderPaidCTA = (targetTier: "pro" | "max") => {
     const tierName = targetTier === "pro" ? t("proName") : t("maxName");
     const isCurrentTier = tier === targetTier;
 
-    // Free or expired: go to checkout (need payment details)
     if (tier === "free" || isExpired) {
       const planId = `${targetTier}_${billingInterval}`;
       return (
@@ -343,10 +333,8 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
       );
     }
 
-    // Currently on this tier
     if (isCurrentTier) {
       if (isActive) {
-        // Same billing interval as toggle — already on this plan
         if (currentInterval === billingInterval) {
           return (
             <Button variant="secondary" size="sm" disabled className="w-full opacity-60 cursor-default">
@@ -354,7 +342,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
             </Button>
           );
         }
-        // Different billing interval — offer seamless switch
         return (
           <Button
             size="sm"
@@ -370,10 +357,8 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
           </Button>
         );
       }
-      // Cancelling — reactivate, or reactivate + switch interval in one step
       if (isCancelled) {
         if (currentInterval === billingInterval) {
-          // Same interval: simple reactivate (remove cancel_at_period_end)
           return (
             <Button
               size="sm"
@@ -385,7 +370,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
             </Button>
           );
         }
-        // Different interval: switch-plan clears cancel_at_period_end AND changes interval
         return (
           <Button
             size="sm"
@@ -403,12 +387,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
       }
     }
 
-    // Different tier — seamless upgrade or downgrade (no Stripe redirect).
-    // Upgrade access is granted immediately via the subscription.updated
-    // webhook, even though the price change defers to the next billing
-    // date (proration_behavior: "none" in /api/stripe/switch-plan). So the
-    // toast copy differs: upgrades say "available now", downgrades say
-    // "next billing".
     const isUpgrade = tier === "pro" && targetTier === "max";
     return (
       <Button
@@ -429,8 +407,6 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
     );
   };
 
-  // ─── Price display ────────────────────────────────────────────────────────────
-
   const proPrice = billingInterval === "monthly"
     ? `${t("proMonthlyPrice")} ${t("perMonth")}`
     : `${t("proYearlyPrice")} ${t("perYear")}`;
@@ -439,89 +415,64 @@ export function PlanModal({ onClose }: { onClose: () => void }) {
     ? `${t("maxMonthlyPrice")} ${t("perMonth")}`
     : `${t("maxYearlyPrice")} ${t("perYear")}`;
 
-  // ─── Render ───────────────────────────────────────────────────────────────────
-
   return (
-    <>
-      <DialogHeader>
-        <div className="flex items-center justify-between">
-          <DialogTitle>{ta("accountBillingTitle")}</DialogTitle>
+    <div className="flex flex-col gap-theme-gap">
+      <SettingsSection title={ta("accountBillingTitle")}>
+        <div className="flex items-center justify-between gap-theme-gap">
+          {isSubscribed ? (
+            <p className="text-theme-s text-theme-secondary-alt-text">{t("changeNotice")}</p>
+          ) : (
+            <span />
+          )}
           <PricingToggle value={billingInterval} onChange={setBillingInterval} />
         </div>
-        {isSubscribed && (
-          <p className="text-theme-s text-theme-secondary-text mt-1">{t("changeNotice")}</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <PlanCard
+            name={t("freeName")}
+            price={t("freePrice")}
+            features={[t("freeFeature0"), t("freeFeature1"), t("freeFeature2"), t("freeFeature3")]}
+            highlighted={tier === "free" || isExpired}
+          >
+            {renderFreeCTA()}
+          </PlanCard>
+
+          <PlanCard
+            name={t("proName")}
+            price={proPrice}
+            features={[t("proFeature0"), t("proFeature1"), t("proFeature2"), t("proFeature3"), t("proFeature4")]}
+            highlighted={tier === "pro" && isSubscribed}
+          >
+            {renderPaidCTA("pro")}
+          </PlanCard>
+
+          <PlanCard
+            name={t("maxName")}
+            price={maxPrice}
+            features={[t("maxFeature0"), t("maxFeature1"), t("maxFeature2"), t("maxFeature3"), t("maxFeature4")]}
+            highlighted={tier === "max" && isSubscribed}
+          >
+            {renderPaidCTA("max")}
+          </PlanCard>
+        </div>
+
+        {actionState.status === "success" && (
+          <div className="flex items-center gap-2 rounded-theme-sm border border-theme-success/20 bg-theme-success/10 px-3 py-2 text-theme-s text-theme-success">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            {actionState.message}
+          </div>
         )}
-      </DialogHeader>
+        {actionState.status === "error" && (
+          <div className="flex items-center gap-2 rounded-theme-sm border border-theme-warning/20 bg-theme-warning/10 px-3 py-2 text-theme-s text-theme-warning">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {actionState.message}
+          </div>
+        )}
+      </SettingsSection>
 
-      <div className="max-h-[70vh] overflow-y-auto pr-1 space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <PlanCard
-          name={t("freeName")}
-          price={t("freePrice")}
-          features={[
-            t("freeFeature0"),
-            t("freeFeature1"),
-            t("freeFeature2"),
-            t("freeFeature3"),
-          ]}
-          highlighted={tier === "free" || isExpired}
-        >
-          {renderFreeCTA()}
-        </PlanCard>
-
-        <PlanCard
-          name={t("proName")}
-          price={proPrice}
-          features={[
-            t("proFeature0"),
-            t("proFeature1"),
-            t("proFeature2"),
-            t("proFeature3"),
-            t("proFeature4"),
-          ]}
-          highlighted={tier === "pro" && isSubscribed}
-        >
-          {renderPaidCTA("pro")}
-        </PlanCard>
-
-        <PlanCard
-          name={t("maxName")}
-          price={maxPrice}
-          features={[
-            t("maxFeature0"),
-            t("maxFeature1"),
-            t("maxFeature2"),
-            t("maxFeature3"),
-            t("maxFeature4"),
-          ]}
-          highlighted={tier === "max" && isSubscribed}
-        >
-          {renderPaidCTA("max")}
-        </PlanCard>
-      </div>
-
-      {actionState.status === "success" && (
-        <div className="flex items-center gap-2 rounded-lg bg-success/10 border border-success/20 px-3 py-2 text-small text-success">
-          <CheckCircle className="w-4 h-4 shrink-0" />
-          {actionState.message}
-        </div>
-      )}
-      {actionState.status === "error" && (
-        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-small text-destructive">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {actionState.message}
-        </div>
-      )}
-
-      <InstructorAccountSection />
-
-      </div>{/* end scrollable area */}
-
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="secondary" onClick={onClose}>{t("close")}</Button>
-        </DialogClose>
-      </DialogFooter>
-    </>
+      <SettingsSection title={ta("yourAccount")}>
+        <InstructorAccountSection />
+      </SettingsSection>
+    </div>
   );
 }

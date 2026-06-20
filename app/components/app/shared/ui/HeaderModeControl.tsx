@@ -18,34 +18,32 @@ export function HeaderModeControl({
   const t = useTranslations("studentProfile");
   const dualDisabled = !headerOn;
 
-  return (
-    <div className="space-y-2">
-      <p className="text-small font-semibold text-foreground">{t("sectionHeader")}</p>
+  // Shared on/off styling so every toggle here matches the settings pickers
+  // (Figma button variant): on = `--theme-primary` bg + `button-primary` text;
+  // off = `button-primary` bg + `button-secondary` text at 50% opacity, → 100% on hover.
+  const segment = (active: boolean) =>
+    active
+      ? "bg-theme-primary text-theme-button-primary border-theme-primary"
+      : "bg-theme-button-primary text-theme-button-secondary border-theme-line opacity-50 hover:opacity-100";
 
+  return (
+    <div className="flex flex-col gap-theme-elements">
       {/* Header on/off */}
       <button
         type="button"
         onClick={() => onToggleHeader(!headerOn)}
-        className={`w-full py-2 rounded-md text-small font-medium border transition-colors ${
-          headerOn
-            ? "bg-primary text-primary-foreground border-primary"
-            : "bg-background text-muted-foreground border-border hover:bg-muted"
-        }`}
+        className={`w-full rounded-theme-button border py-theme-btn-y text-theme-s font-medium transition ${segment(headerOn)}`}
       >
         {headerOn ? t("headerOn") : t("headerOff")}
       </button>
 
       {/* Talker | Banner — disabled when header is off */}
-      <div className={`flex gap-2 ${dualDisabled ? "opacity-40 pointer-events-none" : ""}`}>
+      <div className={`flex gap-theme-elements ${dualDisabled ? "pointer-events-none opacity-40" : ""}`}>
         <button
           type="button"
           onClick={() => onSetBannerMode(false)}
           disabled={dualDisabled}
-          className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors ${
-            !inBannerMode
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-background text-muted-foreground border-border hover:bg-muted"
-          }`}
+          className={`flex-1 rounded-theme-button border py-theme-btn-y text-theme-s font-medium transition ${segment(!inBannerMode)}`}
         >
           {t("headerTalkerMode")}
         </button>
@@ -53,11 +51,7 @@ export function HeaderModeControl({
           type="button"
           onClick={() => onSetBannerMode(true)}
           disabled={dualDisabled}
-          className={`flex-1 py-2 rounded-md text-small font-medium border transition-colors ${
-            inBannerMode
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-background text-muted-foreground border-border hover:bg-muted"
-          }`}
+          className={`flex-1 rounded-theme-button border py-theme-btn-y text-theme-s font-medium transition ${segment(inBannerMode)}`}
         >
           {t("headerBannerMode")}
         </button>
