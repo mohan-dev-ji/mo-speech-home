@@ -16,7 +16,7 @@ type Props = BaseProps &
   );
 
 const CARD_CLASS =
-  "flex flex-col items-center justify-center gap-8 w-full min-h-[200px] md:min-h-[260px] p-theme-general rounded-theme-card bg-theme-card text-theme-alt-text transition-colors hover:brightness-110 cursor-pointer";
+  "flex flex-col items-center justify-center gap-8 w-full min-h-[200px] md:min-h-[260px] p-theme-general rounded-theme-card bg-theme-card text-theme-secondary-alt-text border border-transparent transition-colors hover:bg-theme-surface hover:text-theme-alt-text hover:border-theme-line cursor-pointer";
 
 /**
  * Home-card — the Figma "Home-card" component (`1431:21111`). One card used by
