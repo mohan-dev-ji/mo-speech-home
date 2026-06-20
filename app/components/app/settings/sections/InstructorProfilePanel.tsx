@@ -15,6 +15,7 @@ import { VoiceCard } from "@/app/components/app/settings/ui/VoiceCard";
 import { ThemePicker } from "@/app/components/app/settings/ui/ThemePicker";
 import { GridSizePicker, type GridSize } from "@/app/components/app/settings/ui/GridSizePicker";
 import { SymbolsControls, type TextSize } from "@/app/components/app/settings/ui/SymbolsControls";
+import { NavbarControls } from "@/app/components/app/settings/ui/NavbarControls";
 import { getLanguage } from "@/lib/languages/registry";
 import { canAccessThemeTier } from "@/lib/themes/registry";
 import { track } from "@/lib/analytics";
@@ -40,6 +41,7 @@ function deriveTextSize(grid: GridSize): TextSize {
  */
 export function InstructorProfilePanel() {
   const t = useTranslations("instructorProfile");
+  const tNav = useTranslations("navbar");
   const params = useParams();
   const uiLocale = useLocale();
   const { userRecord, subscription } = useAppState();
@@ -170,6 +172,15 @@ export function InstructorProfilePanel() {
           onTextSizeChange={(size) => setMyTextSize({ textSize: size })}
           textSizeLabel={t("textSize")}
           options={TEXT_SIZES.map((size) => ({ size, label: t(SIZE_LABEL_KEY[size]) }))}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={tNav("title")}>
+        <NavbarControls
+          minimal={stateFlags.navbar_minimal}
+          onRight={stateFlags.navbar_on_right}
+          onToggleMinimal={(value) => setMyFlag({ flag: "navbar_minimal", value })}
+          onSetRight={(value) => setMyFlag({ flag: "navbar_on_right", value })}
         />
       </SettingsSection>
 

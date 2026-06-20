@@ -8,17 +8,16 @@ import { TabBar } from "@/app/components/app/settings/ui/TabBar";
 import { InstructorProfilePanel } from "@/app/components/app/settings/sections/InstructorProfilePanel";
 import { StudentProfilesPanel } from "@/app/components/app/settings/sections/StudentProfilesPanel";
 import { AccountBillingPanel } from "@/app/components/app/settings/sections/AccountBillingPanel";
-import { NavbarPanel } from "@/app/components/app/settings/sections/NavbarPanel";
 import { InvitesPanel } from "@/app/components/app/settings/sections/InvitesPanel";
 import { PrivacyPanel } from "@/app/components/app/settings/sections/PrivacyPanel";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
-  "instructor", "profile", "plan", "navbar", "invites", "privacy",
+  "instructor", "profile", "plan", "invites", "privacy",
 ] as const;
 
 const COLLABORATOR_SETTINGS_IDS = [
-  "instructor", "navbar", "privacy",
+  "instructor", "privacy",
 ] as const;
 
 type SettingId = typeof OWNER_SETTINGS_IDS[number];
@@ -56,7 +55,6 @@ export function SettingsContent() {
       case "instructor": return <InstructorProfilePanel />;
       case "profile":    return <StudentProfilesPanel />;
       case "plan":       return <AccountBillingPanel />;
-      case "navbar":     return <NavbarPanel />;
       case "invites":    return <InvitesPanel onOpenPlan={() => setActiveTab("plan")} />;
       case "privacy":    return <PrivacyPanel />;
     }

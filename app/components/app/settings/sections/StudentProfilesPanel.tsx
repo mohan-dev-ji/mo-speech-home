@@ -26,6 +26,7 @@ import { VoiceCard } from "@/app/components/app/settings/ui/VoiceCard";
 import { ThemePicker } from "@/app/components/app/settings/ui/ThemePicker";
 import { GridSizePicker, type GridSize } from "@/app/components/app/settings/ui/GridSizePicker";
 import { SymbolsControls, type TextSize } from "@/app/components/app/settings/ui/SymbolsControls";
+import { NavbarControls } from "@/app/components/app/settings/ui/NavbarControls";
 import { ChevronDown, Lock, Plus } from "lucide-react";
 
 const GRID_SIZES: GridSize[] = ["large", "medium", "small"];
@@ -97,6 +98,7 @@ function StudentProfileForm({
   isAppActive: boolean;
 }) {
   const t = useTranslations("studentProfile");
+  const tNav = useTranslations("navbar");
   const uiLocale = useLocale();
   const { setActiveProfile, allProfiles } = useProfile();
   const { subscription, userRecord } = useAppState();
@@ -334,6 +336,16 @@ function StudentProfileForm({
           onTextSizeChange={(size) => setTextSizeMut({ profileId: profile._id, textSize: size })}
           textSizeLabel={t("textSize")}
           options={TEXT_SIZES.map((size) => ({ size, label: t(SIZE_LABEL_KEY[size]) }))}
+        />
+      </SettingsSection>
+
+      {/* Navigation sidebar — per-student handedness + minimal rail */}
+      <SettingsSection title={tNav("title")}>
+        <NavbarControls
+          minimal={!!flags.navbar_minimal}
+          onRight={!!flags.navbar_on_right}
+          onToggleMinimal={(value) => setFlag({ profileId: profile._id, flag: "navbar_minimal", value })}
+          onSetRight={(value) => setFlag({ profileId: profile._id, flag: "navbar_on_right", value })}
         />
       </SettingsSection>
 

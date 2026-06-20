@@ -41,6 +41,8 @@ const DEFAULT_STATE_FLAGS = {
   student_can_edit: false,
   quick_settings_visible: false,
   header_in_banner_mode: false,
+  navbar_minimal: false,
+  navbar_on_right: false,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────

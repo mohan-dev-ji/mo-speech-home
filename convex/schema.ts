@@ -262,6 +262,8 @@ export default defineSchema({
       core_dropdown_visible: v.optional(v.boolean()),
       talker_visible:       v.optional(v.boolean()),
       header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
+      navbar_minimal:       v.optional(v.boolean()), // collapse the nav rail to an icon-only strip
+      navbar_on_right:      v.optional(v.boolean()), // false=left (default), true=right (handedness)
     })),
   })
     .index("by_clerk_id", ["clerkUserId"])
@@ -328,6 +330,8 @@ export default defineSchema({
       student_can_filter:   v.optional(v.boolean()), // Student can use the pack-filter dropdown on listings; default false
       quick_settings_visible: v.optional(v.boolean()), // Quick-settings top-bar dropdown in student-view; default false
       header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
+      navbar_minimal:       v.optional(v.boolean()), // collapse the nav rail to an icon-only strip
+      navbar_on_right:      v.optional(v.boolean()), // false=left (default), true=right (handedness)
     }),
     studentViewLocked: v.optional(v.boolean()),  // when true on a student-view device, the breadcrumb dropdown is fully disabled. Toggled remotely by instructor.
     updatedAt: v.number(),
