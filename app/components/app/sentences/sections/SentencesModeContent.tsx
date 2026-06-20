@@ -880,7 +880,11 @@ export function SentencesModeContent() {
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
-            {viewMode !== 'student-view' && (
+            {/* In student-view the Edit/Create affordances appear only when the
+                instructor has granted `student_can_edit` (matches the detail
+                pages, which render their EditButton unconditionally inside the
+                banner and let PageBanner's showChildren gate on the flag). */}
+            {(viewMode !== 'student-view' || stateFlags.student_can_edit) && (
               <>
                 <EditButton
                   isEditing={isEditing}

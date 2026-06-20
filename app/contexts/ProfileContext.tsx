@@ -34,6 +34,8 @@ type StateFlags = {
   student_can_filter: boolean;
   quick_settings_visible: boolean;
   header_in_banner_mode: boolean;
+  navbar_minimal: boolean;
+  navbar_on_right: boolean;
 };
 
 // Instructor defaults — all navigation/features always on, display prefs standard
@@ -59,6 +61,8 @@ const DEFAULT_FLAGS: StateFlags = {
   student_can_filter: false,
   quick_settings_visible: true, // instructor always sees quick settings
   header_in_banner_mode: false, // false=talker mode, true=banner mode
+  navbar_minimal: false,        // full rail by default
+  navbar_on_right: false,       // left-handed rail by default
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────────
@@ -238,6 +242,8 @@ export function ProfileProvider({
     core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
     talker_visible:        userRecord?.stateFlags?.talker_visible       ?? DEFAULT_FLAGS.talker_visible,
     header_in_banner_mode: userRecord?.stateFlags?.header_in_banner_mode ?? seededHeaderInBannerMode,
+    navbar_minimal:        userRecord?.stateFlags?.navbar_minimal       ?? DEFAULT_FLAGS.navbar_minimal,
+    navbar_on_right:       userRecord?.stateFlags?.navbar_on_right      ?? DEFAULT_FLAGS.navbar_on_right,
   };
 
   // Student flags: from the active student profile
@@ -253,6 +259,8 @@ export function ProfileProvider({
         student_can_filter:   studentProfile.stateFlags.student_can_filter   ?? DEFAULT_FLAGS.student_can_filter,
         quick_settings_visible: studentProfile.stateFlags.quick_settings_visible ?? false,
         header_in_banner_mode: studentProfile.stateFlags.header_in_banner_mode ?? false,
+        navbar_minimal:       studentProfile.stateFlags.navbar_minimal       ?? DEFAULT_FLAGS.navbar_minimal,
+        navbar_on_right:      studentProfile.stateFlags.navbar_on_right      ?? DEFAULT_FLAGS.navbar_on_right,
       }
     : { ...DEFAULT_FLAGS, header_in_banner_mode: seededHeaderInBannerMode };
 

@@ -142,7 +142,10 @@
     "instructor": "Instructor",
     "admin": "Admin",
     "student": "Student",
-    "studentView": "Student"
+    "studentView": "Student",
+    "themesDark": "Dark Themes",
+    "themesLight": "Light Themes",
+    "themesPro": "Pro Themes"
   },
   "packStatus": {
     "default": "Default",
@@ -612,7 +615,7 @@
   "studentProfile": {
     "title": "Student Profile",
     "newProfilePlaceholder": "New Profile Name",
-    "createButton": "+ Create new profile",
+    "createButton": "Create new profile",
     "activeLabel": "Currently active profile",
     "notActiveLabel": "Not the active profile",
     "switchButton": "Switch to this profile",
@@ -649,6 +652,12 @@
     "sectionTheme": "Theme",
     "sectionGrid": "Symbol grid",
     "sectionSymbols": "Symbols in categories",
+    "displayTextLabel": "Display text label",
+    "textSize": "Text size",
+    "preview": "preview",
+    "sizeLarge": "Large",
+    "sizeMedium": "Medium",
+    "sizeSmall": "Small",
     "saveNameButton": "Save",
     "cancelButton": "Cancel",
     "confirmButton": "Done",
