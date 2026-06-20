@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import { useTranslations } from 'next-intl';
-import { Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
@@ -12,6 +11,7 @@ import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
+import { SearchBar } from '@/app/components/app/shared/ui/SearchBar';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
@@ -65,27 +65,12 @@ export function SearchContent() {
 
       {/* Search input */}
       <div className="shrink-0">
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: 'var(--theme-text)' }}
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('placeholder')}
-            className="w-full pl-9 pr-4 py-1.5 rounded-xl text-body outline-none"
-            style={{
-              background: 'var(--theme-alt-card)',
-              color: 'var(--theme-text)',
-            }}
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
-        </div>
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder={t('placeholder')}
+          autoFocus
+        />
       </div>
 
       {/* Results area */}

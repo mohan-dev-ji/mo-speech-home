@@ -250,7 +250,9 @@
     "placeholder": "Search for a symbol…",
     "emptyHint": "Start typing to find a symbol",
     "noResults": "No results for \"{query}\"",
-    "talkerHint": "Tap symbols to build a sentence…"
+    "talkerHint": "Tap symbols to build a sentence…",
+    "voiceSearch": "Voice search",
+    "clearSearch": "Clear search"
   },
   "header": {
     "switchToBanner": "Switch to direct play",
