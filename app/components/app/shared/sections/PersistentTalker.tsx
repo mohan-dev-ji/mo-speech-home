@@ -86,7 +86,9 @@ export function PersistentTalker() {
 
   return (
     <>
-      <div className="shrink-0 px-theme-mobile-general md:px-theme-general pt-theme-mobile-general md:pt-theme-general pb-8">
+      {/* No bottom padding — the page content below owns the gap via its own top
+          padding, so the talker doesn't double up the space under it. */}
+      <div className="shrink-0 px-theme-mobile-general md:px-theme-general pt-theme-mobile-general md:pt-theme-general">
         <Header
           symbols={talkerSymbols}
           language={language}

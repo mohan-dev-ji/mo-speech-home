@@ -252,7 +252,18 @@
     "noResults": "No results for \"{query}\"",
     "talkerHint": "Tap symbols to build a sentence…",
     "voiceSearch": "Voice search",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "voiceStop": "Stop listening",
+    "connecting": "Connecting…",
+    "speakNow": "Listening… speak now",
+    "viaBrowser": "via Browser",
+    "viaCloud": "via Cloud",
+    "errMicDenied": "Microphone access denied. Enable it in your browser settings.",
+    "errNoMic": "No microphone found. Connect one and try again.",
+    "errNoSpeech": "No speech detected. Please try again.",
+    "errNetwork": "Network error. Check your connection and try again.",
+    "errVoiceUnsupported": "Voice search isn’t supported in this browser.",
+    "errVoiceFailed": "Voice search failed. Please try again."
   },
   "header": {
     "switchToBanner": "Switch to direct play",

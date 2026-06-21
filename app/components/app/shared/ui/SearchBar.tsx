@@ -13,13 +13,14 @@ type SearchBarProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  /** Voice-search handler. Omitted for now — STT isn't wired, the chip is the
-      Figma affordance. */
+  /** Voice-search handler (toggles listening). */
   onMic?: () => void;
+  /** When true the mic chip turns red + pulses (recording in progress). */
+  isListening?: boolean;
   autoFocus?: boolean;
 };
 
-export function SearchBar({ value, onChange, placeholder, onMic, autoFocus }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder, onMic, isListening, autoFocus }: SearchBarProps) {
   const t = useTranslations('search');
 
   return (
@@ -52,8 +53,13 @@ export function SearchBar({ value, onChange, placeholder, onMic, autoFocus }: Se
       <button
         type="button"
         onClick={onMic}
-        aria-label={t('voiceSearch')}
-        className="shrink-0 flex items-center justify-center p-2 rounded-theme-chip bg-theme-button-secondary text-theme-button-primary cursor-pointer"
+        aria-label={isListening ? t('voiceStop') : t('voiceSearch')}
+        aria-pressed={isListening}
+        className={`shrink-0 flex items-center justify-center p-2 rounded-theme-chip cursor-pointer ${
+          isListening
+            ? 'bg-theme-warning text-white animate-pulse'
+            : 'bg-theme-button-secondary text-theme-button-primary'
+        }`}
       >
         <Mic className="w-6 h-6" />
       </button>

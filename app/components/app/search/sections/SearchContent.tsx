@@ -13,6 +13,19 @@ import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardG
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { SearchBar } from '@/app/components/app/shared/ui/SearchBar';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
+import { VoiceListeningOverlay } from '@/app/components/app/shared/modals/VoiceListeningOverlay';
+import { useVoiceSearch, type VoiceError } from '@/app/hooks/useVoiceSearch';
+
+// Maps a voice-search error code to its translation key.
+const VOICE_ERROR_KEY: Record<VoiceError, string> = {
+  'not-allowed': 'errMicDenied',
+  'no-mic': 'errNoMic',
+  'no-speech': 'errNoSpeech',
+  network: 'errNetwork',
+  unsupported: 'errVoiceUnsupported',
+  auth: 'errVoiceFailed',
+  failed: 'errVoiceFailed',
+};
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +43,10 @@ export function SearchContent() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Voice search — Web Speech (Chrome) / Deepgram fallback. The transcript sets
+  // the query, which is already reactive (debounce → Convex query below).
+  const voice = useVoiceSearch({ language, onTranscript: setQuery });
 
   useEffect(() => {
     if (!query.trim()) {
@@ -69,9 +86,25 @@ export function SearchContent() {
           value={query}
           onChange={setQuery}
           placeholder={t('placeholder')}
+          onMic={voice.isListening ? voice.stop : voice.start}
+          isListening={voice.isListening}
           autoFocus
         />
+        {voice.error && (
+          <p className="mt-2 px-2 text-small" style={{ color: 'var(--theme-warning)' }}>
+            {t(VOICE_ERROR_KEY[voice.error])}
+          </p>
+        )}
       </div>
+
+      {/* Listening overlay (Web Speech / Deepgram) */}
+      {voice.isListening && (
+        <VoiceListeningOverlay
+          state={voice.listeningState}
+          method={voice.method}
+          onCancel={voice.stop}
+        />
+      )}
 
       {/* Results area */}
       <div className="flex-1 overflow-auto">
