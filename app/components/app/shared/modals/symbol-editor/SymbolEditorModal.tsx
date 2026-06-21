@@ -70,6 +70,12 @@ export type SymbolEditorModalProps = {
   initialGeneratedAudioPath?: string;
   initialRecordedAudioPath?: string;
   initialImageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  // Pre-select a SymbolStix symbol (e.g. opened from a search result) so the
+  // editor opens locked onto it — image + ids + label + default audio seeded,
+  // category left unpicked. categoryBoard create mode only.
+  initialSymbolstixId?: Id<'symbols'>;
+  initialSymbolstixImagePath?: string;
+  initialLabelHin?: string;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -117,6 +123,9 @@ export function SymbolEditorModal({
   initialGeneratedAudioPath,
   initialRecordedAudioPath,
   initialImageSourceType,
+  initialSymbolstixId,
+  initialSymbolstixImagePath,
+  initialLabelHin,
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
@@ -165,6 +174,25 @@ export function SymbolEditorModal({
 
   const initialAudioMode = initialActive ?? 'default';
 
+  // Pre-selected SymbolStix symbol (search → editor): seed the image tab + ids,
+  // the Hindi label, and the default audio so the editor opens locked onto it.
+  const symbolstixSeed =
+    !isEditMode && initialSymbolstixId
+      ? {
+          imageSourceTab: 'symbolstix' as const,
+          symbolstixId: initialSymbolstixId,
+          symbolstixImagePath: initialSymbolstixImagePath,
+          ...(initialLabelHin ? { labelHin: initialLabelHin } : {}),
+          ...(initialDefaultAudioPath
+            ? {
+                defaultAudioPath: initialDefaultAudioPath,
+                activeAudioSource: 'default' as const,
+                audioMode: 'default' as const,
+              }
+            : {}),
+        }
+      : {};
+
   const [draft, setDraft] = useState<Draft>({
     ...INITIAL_DRAFT,
     audioMode: initialAudioMode,
@@ -196,6 +224,7 @@ export function SymbolEditorModal({
           recordedAudioPath:  initialRecordedAudioPath,
         }
       : {}),
+    ...symbolstixSeed,
   });
 
   const [pendingImageBlob, setPendingImageBlob] = useState<Blob | null>(null);

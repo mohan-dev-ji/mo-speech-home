@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
@@ -10,10 +10,13 @@ import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
-import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
+import { SymbolCardSearch } from '@/app/components/app/search/ui/SymbolCardSearch';
 import { SearchBar } from '@/app/components/app/shared/ui/SearchBar';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { VoiceListeningOverlay } from '@/app/components/app/shared/modals/VoiceListeningOverlay';
+import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
+import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useVoiceSearch, type VoiceError } from '@/app/hooks/useVoiceSearch';
 
 // Maps a voice-search error code to its translation key.
@@ -38,8 +41,11 @@ function playAudio(audioPath: string) {
 
 export function SearchContent() {
   const t = useTranslations('search');
-  const { language, stateFlags, voiceId } = useProfile();
+  const locale = useLocale();
+  const { language, stateFlags, voiceId, accountId } = useProfile();
   const { talkerMode, addToTalker } = useTalker();
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -61,6 +67,10 @@ export function SearchContent() {
     api.symbols.searchSymbols,
     debouncedQuery ? { searchTerm: debouncedQuery, language } : 'skip'
   );
+
+  // Symbol pending personalise/save (opens the Symbol Editor seeded with it).
+  const [editorSymbol, setEditorSymbol] = useState<NonNullable<typeof results>[number] | null>(null);
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
   // ─── Derived state ─────────────────────────────────────────────────────────
 
@@ -156,7 +166,7 @@ export function SearchContent() {
                 ) ?? '';
 
               return (
-                <SymbolCard
+                <SymbolCardSearch
                   key={symbol._id}
                   symbolId={symbol._id}
                   imagePath={`/api/assets?key=${symbol.imagePath}`}
@@ -175,12 +185,46 @@ export function SearchContent() {
                       });
                     }
                   }}
+                  onEdit={() => {
+                    // Personalise + save is Pro-gated (createProfileSymbol).
+                    if (isFree) { setUpgradeNudgeOpen(true); return; }
+                    setEditorSymbol(symbol);
+                  }}
                 />
               );
             })}
           </CategoryBoardGrid>
         )}
       </div>
+
+      {/* Personalise + save the picked search symbol via the shared editor.
+          No profileCategoryId → the user picks (or creates) a category inside. */}
+      {editorSymbol && accountId && (
+        <SymbolEditorModal
+          isOpen
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          editorMode="categoryBoard"
+          initialSymbolstixId={editorSymbol._id}
+          initialSymbolstixImagePath={editorSymbol.imagePath}
+          initialLabel={editorSymbol.words.en ?? displayString(editorSymbol.words, language, DEFAULT_LOCALE)}
+          initialLabelHin={editorSymbol.words.hi}
+          initialDefaultAudioPath={
+            resolveSymbolAudioPath(
+              voiceId,
+              editorSymbol.words.en ?? '',
+              ((editorSymbol.audio as Record<string, boolean> | undefined) ?? {})[voiceId] === true,
+              editorSymbol.audioBasename,
+            ) ?? undefined
+          }
+          initialActiveAudioSource="default"
+          onClose={() => setEditorSymbol(null)}
+          onSave={() => setEditorSymbol(null)}
+        />
+      )}
+
+      <UpgradeNudge open={upgradeNudgeOpen} onOpenChange={setUpgradeNudgeOpen} locale={locale} />
     </div>
   );
 }

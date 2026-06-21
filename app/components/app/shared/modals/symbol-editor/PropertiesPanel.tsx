@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
-import { Mic, Square as StopIcon, Play, RefreshCw, Loader2 } from 'lucide-react';
-import type { Doc } from '@/convex/_generated/dataModel';
+import { Mic, Square as StopIcon, Play, RefreshCw, Loader2, Plus, X } from 'lucide-react';
+import { api } from '@/convex/_generated/api';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { AccordionSection } from './AccordionSection';
 import type { Draft, AudioMode, TextSize, CardShape } from './types';
 import { displayString } from '@/lib/languages/displayValue';
@@ -52,6 +54,28 @@ export function PropertiesPanel({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [audioSource, setAudioSource] = useState<'symbolstix' | 'cache' | 'generated' | null>(null);
+
+  // Inline "+ New category" — creates a category and selects it without leaving
+  // the editor. The modal's categories query is reactive, so the new option
+  // appears in the <select> once created.
+  const createCategory = useMutation(api.profileCategories.createProfileCategory);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  async function handleCreateCategory() {
+    const name = newCategoryName.trim();
+    if (!name || savingCategory) return;
+    setSavingCategory(true);
+    try {
+      const id = await createCategory({ name: { en: name } });
+      patch({ profileCategoryId: id as Id<'profileCategories'> });
+      setNewCategoryName('');
+      setCreatingCategory(false);
+    } finally {
+      setSavingCategory(false);
+    }
+  }
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<BlobPart[]>([]);
@@ -668,6 +692,53 @@ export function PropertiesPanel({
               return <option key={cat._id} value={cat._id}>{name}</option>;
             })}
           </select>
+
+          {/* Inline create — "+ New category" */}
+          {creatingCategory ? (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCategory(); } }}
+                placeholder={t('newCategoryPlaceholder')}
+                autoFocus
+                className="flex-1 min-w-0 rounded-theme-sm px-3 py-2 text-theme-s outline-none"
+                style={{
+                  background: 'var(--theme-symbol-bg)',
+                  color: 'var(--theme-text)',
+                  border: '1px solid var(--theme-button-highlight)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleCreateCategory}
+                disabled={savingCategory || !newCategoryName.trim()}
+                className="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-theme-sm text-theme-s font-medium disabled:opacity-50"
+                style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-text-on-brand)' }}
+              >
+                {savingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : t('newCategoryCreate')}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCreatingCategory(false); setNewCategoryName(''); }}
+                aria-label={t('cancel')}
+                className="shrink-0 p-2 rounded-theme-sm"
+                style={{ color: 'var(--theme-text)' }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCreatingCategory(true)}
+              className="mt-2 inline-flex items-center gap-1 text-theme-s font-medium"
+              style={{ color: 'var(--theme-brand-primary)' }}
+            >
+              <Plus className="w-4 h-4" /> {t('newCategory')}
+            </button>
+          )}
         </AccordionSection>
       )}
 
