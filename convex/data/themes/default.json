@@ -16,7 +16,7 @@
     "warning": "#FB2C36",
     "primary": "#2B7FFF",
     "banner": "#45556C",
-    "card": "rgba(250, 250, 250, 0.10)",
+    "card": "rgba(250, 250, 250, 0.05)",
     "buttonHighlight": "#E2E8F0",
     "line": "rgba(250, 250, 250, 0.14)",
     "secondaryAltText": "#D4D4D8",
