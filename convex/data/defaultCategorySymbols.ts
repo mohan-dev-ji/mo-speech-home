@@ -50,7 +50,7 @@ export type DropdownGroup = {
 export const DEFAULT_CATEGORIES: CategorySeed[] = [
   {
     id: "actions",
-    name: { en: "Actions", hi: "Actions (hi)" },
+    name: { en: "Actions", es: "Acciones", hi: "काम" },
     icon: "⚡",
     colour: "#F97316",
     folderWord: "play",
@@ -66,7 +66,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "people",
-    name: { en: "People", hi: "People (hi)" },
+    name: { en: "People", es: "Personas", hi: "लोग" },
     icon: "👥",
     colour: "#A855F7",
     folderWord: "family",
@@ -87,7 +87,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "feelings",
-    name: { en: "Feelings", hi: "Feelings (hi)" },
+    name: { en: "Feelings", es: "Emociones", hi: "भावनाएँ" },
     icon: "😊",
     colour: "#EC4899",
     folderWord: "happy",
@@ -107,7 +107,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "describe",
-    name: { en: "Describe", hi: "Describe (hi)" },
+    name: { en: "Describe", es: "Descripciones", hi: "वर्णन" },
     icon: "🔵",
     colour: "#14B8A6",
     folderWord: "beautiful",
@@ -129,7 +129,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "food-and-drink",
-    name: { en: "Food & Drink", hi: "Food & Drink (hi)" },
+    name: { en: "Food & Drink", es: "Comida y bebida", hi: "खाना और पीना" },
     icon: "🍎",
     colour: "#EF4444",
     folderWord: "apple",
@@ -154,7 +154,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "home",
-    name: { en: "Home", hi: "Home (hi)" },
+    name: { en: "Home", es: "Casa", hi: "घर" },
     icon: "🏠",
     colour: "#3B82F6",
     folderWord: "bedroom",
@@ -183,7 +183,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "activities",
-    name: { en: "Activities", hi: "Activities (hi)" },
+    name: { en: "Activities", es: "Actividades", hi: "गतिविधियाँ" },
     icon: "⚽",
     colour: "#22C55E",
     folderWord: "football",
@@ -213,7 +213,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "school",
-    name: { en: "School", hi: "School (hi)" },
+    name: { en: "School", es: "Escuela", hi: "स्कूल" },
     icon: "📚",
     colour: "#EAB308",
     folderWord: "school",
@@ -244,7 +244,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "health",
-    name: { en: "Health", hi: "Health (hi)" },
+    name: { en: "Health", es: "Salud", hi: "सेहत" },
     icon: "❤️",
     colour: "#F43F5E",
     folderWord: "doctor",
@@ -274,7 +274,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "animals",
-    name: { en: "Animals", hi: "Animals (hi)" },
+    name: { en: "Animals", es: "Animales", hi: "जानवर" },
     icon: "🐾",
     colour: "#F59E0B",
     folderWord: "dog",
@@ -301,7 +301,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "nature",
-    name: { en: "Nature", hi: "Nature (hi)" },
+    name: { en: "Nature", es: "Naturaleza", hi: "प्रकृति" },
     icon: "🌿",
     colour: "#10B981",
     folderWord: "sun",
@@ -323,7 +323,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "community",
-    name: { en: "Community", hi: "Community (hi)" },
+    name: { en: "Community", es: "Comunidad", hi: "समुदाय" },
     icon: "🏘️",
     colour: "#6366F1",
     folderWord: "hospital",
@@ -351,7 +351,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "time",
-    name: { en: "Time", hi: "Time (hi)" },
+    name: { en: "Time", es: "Tiempo", hi: "समय" },
     icon: "⏰",
     colour: "#0EA5E9",
     folderWord: "clock",
@@ -377,7 +377,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "numbers",
-    name: { en: "Numbers", hi: "Numbers (hi)" },
+    name: { en: "Numbers", es: "Números", hi: "गिनती" },
     icon: "🔢",
     colour: "#06B6D4",
     folderWord: "number",
@@ -401,7 +401,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "chat",
-    name: { en: "Chat", hi: "Chat (hi)" },
+    name: { en: "Chat", es: "Charla", hi: "बातचीत" },
     icon: "💬",
     colour: "#F472B6",
     folderWord: "hello",
@@ -423,7 +423,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "questions",
-    name: { en: "Questions", hi: "Questions (hi)" },
+    name: { en: "Questions", es: "Preguntas", hi: "सवाल" },
     icon: "❓",
     colour: "#7C3AED",
     folderWord: "what",
@@ -449,7 +449,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
   },
   {
     id: "religion",
-    name: { en: "Religion", hi: "Religion (hi)" },
+    name: { en: "Religion", es: "Religión", hi: "धर्म" },
     icon: "🙏",
     colour: "#D97706",
     folderWord: "pray",
@@ -481,7 +481,7 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
 export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   {
     id: "core-a",
-    name: { en: "Core words A", hi: "Core words A (hi)" },
+    name: { en: "Core words A", es: "Palabras clave A", hi: "मुख्य शब्द A" },
     symbolstixCategories: ["SymbolStix Squares Core Vocabulary Set 1"],
     words: [
       "yes", "please", "more", "stop", "good", "bad", "happy", "sad",
@@ -491,7 +491,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "core-b",
-    name: { en: "Core words B", hi: "Core words B (hi)" },
+    name: { en: "Core words B", es: "Palabras clave B", hi: "मुख्य शब्द B" },
     symbolstixCategories: ["SymbolStix Squares Core Vocabulary Set 2"],
     words: [
       "want", "need", "help", "go", "come", "eat", "drink", "play",
@@ -501,7 +501,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "pronouns",
-    name: { en: "Pronouns", hi: "Pronouns (hi)" },
+    name: { en: "Pronouns", es: "Pronombres", hi: "सर्वनाम" },
     symbolstixCategories: ["Pronouns"],
     words: [
       "I", "you", "he", "she", "we", "they", "me", "him", "her",
@@ -511,7 +511,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "joining-words",
-    name: { en: "Joining words", hi: "Joining words (hi)" },
+    name: { en: "Joining words", es: "Palabras de enlace", hi: "जोड़ने वाले शब्द" },
     symbolstixCategories: ["Conjunctions"],
     words: [
       "and", "but", "or", "because", "if", "when", "where", "who",
@@ -521,7 +521,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "position-words",
-    name: { en: "Position words", hi: "Position words (hi)" },
+    name: { en: "Position words", es: "Palabras de posición", hi: "स्थान शब्द" },
     symbolstixCategories: ["Articles & Prepositions"],
     words: [
       "in", "on", "at", "the", "a", "an", "with", "to", "from",
@@ -531,7 +531,7 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
   },
   {
     id: "time-and-manner",
-    name: { en: "Time & manner", hi: "Time & manner (hi)" },
+    name: { en: "Time & manner", es: "Tiempo y modo", hi: "समय और ढंग" },
     symbolstixCategories: ["Adverbs"],
     words: [
       "now", "today", "tomorrow", "yesterday", "here", "there",

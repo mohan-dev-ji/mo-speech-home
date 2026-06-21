@@ -1,6 +1,6 @@
 {
   "slug": "default",
-  "name": { "en": "Classic", "hi": "Classic (hi)" },
+  "name": { "en": "Classic", "es": "Clásico", "hi": "क्लासिक" },
   "previewColour": "#2B7FFF",
   "type": "flat",
   "defaultTier": "free",
@@ -16,7 +16,7 @@
     "warning": "#FB2C36",
     "primary": "#2B7FFF",
     "banner": "#45556C",
-    "card": "rgba(250, 250, 250, 0.04)",
+    "card": "rgba(250, 250, 250, 0.10)",
     "buttonHighlight": "#E2E8F0",
     "line": "rgba(250, 250, 250, 0.14)",
     "secondaryAltText": "#D4D4D8",

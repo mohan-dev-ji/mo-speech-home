@@ -1,6 +1,6 @@
 {
   "slug": "lime",
-  "name": { "en": "Lime", "hi": "Lime (hi)" },
+  "name": { "en": "Lime", "es": "Lima", "hi": "हरा नींबू" },
   "previewColour": "#5EA500",
   "type": "flat",
   "defaultTier": "free",

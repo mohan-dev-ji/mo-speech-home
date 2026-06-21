@@ -1,9 +1,10 @@
 {
   "slug": "midnight_glass",
-  "name": { "en": "Midnight Glass", "hi": "Midnight Glass (hi)" },
+  "name": { "en": "Midnight Glass", "es": "Cristal de medianoche", "hi": "मिडनाइट ग्लास" },
   "description": {
     "en": "A deep midnight gradient with frosted glass panels and a fine grain.",
-    "hi": "A deep midnight gradient with frosted glass panels and a fine grain. (hi)"
+    "es": "Un degradado de medianoche profundo con paneles de vidrio esmerilado y un grano fino.",
+    "hi": "फ्रॉस्टेड ग्लास पैनल और महीन दाने के साथ एक गहरा मिडनाइट ग्रेडिएंट।"
   },
   "previewColour": "#5B8DEF",
   "type": "tiled",

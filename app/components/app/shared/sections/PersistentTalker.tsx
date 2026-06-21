@@ -4,10 +4,18 @@
 // Owns PlayModal and sentence sequence playback.
 
 import { useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
 import { Header } from '@/app/components/app/shared/ui/Header';
 import { PlayModal } from '@/app/components/app/shared/modals/PlayModal';
+
+// Route segments where the talker is allowed to replace the page banner.
+// Everywhere else (lists, sentences, settings, home) keeps its own permanent
+// header, so the talker bar never appears there. Pathname shape is
+// `/<locale>/<segment>/...`, so segment is index 2. `categories` covers both
+// the listing and the `/categories/[id]` detail page.
+const TALKER_SEGMENTS = ['search', 'categories'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,12 +38,18 @@ function playAudio(audioPath: string) {
 export function PersistentTalker() {
   const { stateFlags, language } = useProfile();
   const { talkerSymbols, talkerMode, addToTalker, clearTalker } = useTalker();
+  const pathname = usePathname();
 
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   const cancelSequenceRef = useRef(false);
 
   // Only render in sentence-builder mode; banner mode shows page-level banners instead
   if (!stateFlags.talker_visible || talkerMode !== 'talker') return null;
+
+  // Only on talker-capable pages — lists/sentences/settings keep a permanent
+  // banner and home owns its own header, so the talker never appears there.
+  const segment = pathname.split('/')[2] ?? '';
+  if (!TALKER_SEGMENTS.includes(segment)) return null;
 
   function handleChipTap(item: TalkerSymbolItem) {
     if (item.audioPath) playAudio(item.audioPath);

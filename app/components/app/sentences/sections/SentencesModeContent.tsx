@@ -34,7 +34,6 @@ import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { useTalker } from '@/app/contexts/TalkerContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -531,7 +530,6 @@ export function SentencesModeContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
-  const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
@@ -875,9 +873,10 @@ export function SentencesModeContent() {
         visible={showAdminButtons && hasPublishedSentence}
       />
 
-      {/* Header — banner + talker stay fixed at the top of the viewport
-          while the rows below scroll. Mirrors the categories listing. */}
-      {stateFlags.talker_visible && talkerMode === 'banner' && (
+      {/* Header — permanent banner: the talker never replaces it on this page,
+          so it shows in both talker and banner modes (gated only on the header
+          on/off flag). Stays fixed at the top while the rows below scroll. */}
+      {stateFlags.talker_visible && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
             {/* In student-view the Edit/Create affordances appear only when the

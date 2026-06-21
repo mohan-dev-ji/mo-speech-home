@@ -16,7 +16,6 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { useTalker } from '@/app/contexts/TalkerContext';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
@@ -51,7 +50,6 @@ export function ListDetailContent({ listId }: Props) {
   const locale = (params?.locale as string | undefined) ?? 'en';
   const { setBreadcrumbExtra } = useBreadcrumb();
   const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
-  const { talkerMode } = useTalker();
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
   const isAdmin = useIsAdmin();
@@ -391,8 +389,9 @@ export function ListDetailContent({ listId }: Props) {
         }
       />
 
-      {/* Header — banner mode only; talker mode renders nothing so no empty div creates phantom gap */}
-      {stateFlags.talker_visible && talkerMode === 'banner' && (
+      {/* Header — permanent banner: the talker never replaces it on a list
+          detail page, so it shows regardless of talker/banner mode. */}
+      {stateFlags.talker_visible && (
         <div className="shrink-0 relative">
           {/* Admin status label — top-right of the banner */}
           {showAdminButtons && packsStatus && (

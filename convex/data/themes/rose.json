@@ -1,6 +1,6 @@
 {
   "slug": "rose",
-  "name": { "en": "Rose", "hi": "Rose (hi)" },
+  "name": { "en": "Rose", "es": "Rosa", "hi": "गुलाबी" },
   "previewColour": "#FF2056",
   "type": "flat",
   "defaultTier": "free",
@@ -16,7 +16,7 @@
     "warning": "#FB2C36",
     "primary": "#FF2056",
     "banner": "#C70036",
-    "card": "rgba(250, 250, 250, 0.04)",
+    "card": "rgba(250, 250, 250, 0.10)",
     "buttonHighlight": "#FFCCD3",
     "line": "rgba(250, 250, 250, 0.14)",
     "secondaryAltText": "#F4F4F5",

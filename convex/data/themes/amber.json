@@ -1,6 +1,6 @@
 {
   "slug": "amber",
-  "name": { "en": "Amber", "hi": "Amber (hi)" },
+  "name": { "en": "Amber", "es": "Ámbar", "hi": "एम्बर" },
   "previewColour": "#FD9A00",
   "type": "flat",
   "defaultTier": "free",

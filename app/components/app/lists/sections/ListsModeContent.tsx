@@ -32,7 +32,6 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -274,7 +273,6 @@ export function ListsModeContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, stateFlags, viewMode } = useProfile();
-  const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
   const adminPacks = useQuery(
@@ -471,9 +469,10 @@ export function ListsModeContent() {
 
       <AdminPackEditingBanner visible={showAdminBadges && hasPublishedList} />
 
-      {/* Header — banner + talker stay fixed at the top of the viewport
-          while the rows below scroll. Mirrors the categories listing. */}
-      {stateFlags.talker_visible && talkerMode === 'banner' && (
+      {/* Header — permanent banner: the talker never replaces it on this page,
+          so it shows in both talker and banner modes (gated only on the header
+          on/off flag). Stays fixed at the top while the rows below scroll. */}
+      {stateFlags.talker_visible && (
         <div className="shrink-0">
           <PageBanner title={t('title')}>
             {/* In student-view the Edit/Create affordances appear only when the

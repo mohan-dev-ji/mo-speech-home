@@ -1,6 +1,6 @@
 {
   "slug": "fuchsia",
-  "name": { "en": "Fuchsia", "hi": "Fuchsia (hi)" },
+  "name": { "en": "Fuchsia", "es": "Fucsia", "hi": "फ्यूशिया" },
   "previewColour": "#E12AFB",
   "type": "flat",
   "defaultTier": "free",
