@@ -32,6 +32,8 @@ The single most important insight from this research: **points 4, 5, and parts o
 | 3 | [`03-glp-and-aac.md`](03-glp-and-aac.md) | How robust AAC is actually built for gestalt processors. | The bridge to product |
 | 4 | [`04-glp-in-mo-speech.md`](04-glp-in-mo-speech.md) | Translating all of it into Mo Speech features + the 7 non-negotiables mapped. | Decisions about the build |
 | 5 | [`05-evidence-and-references.md`](05-evidence-and-references.md) | The honest evidence picture + every source, summarised. | Before you cite or pitch |
+| 6 | [`06-sentence-builder-concept.md`](06-sentence-builder-concept.md) | Brainstorm synthesis: the GLP-driven sentence builder, three-entity model, MVP cut. | Turning theory into Mo Speech architecture |
+| 7 | [`07-container-organisation.md`](07-container-organisation.md) | How content is organised + installed: three trees, type-aligned modules, collections, provenance. | Information architecture decisions |
 
 ## How to use this dossier
 
