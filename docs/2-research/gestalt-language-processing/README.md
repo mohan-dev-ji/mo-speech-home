@@ -34,6 +34,7 @@ The single most important insight from this research: **points 4, 5, and parts o
 | 5 | [`05-evidence-and-references.md`](05-evidence-and-references.md) | The honest evidence picture + every source, summarised. | Before you cite or pitch |
 | 6 | [`06-sentence-builder-concept.md`](06-sentence-builder-concept.md) | Brainstorm synthesis: the GLP-driven sentence builder, three-entity model, MVP cut. | Turning theory into Mo Speech architecture |
 | 7 | [`07-container-organisation.md`](07-container-organisation.md) | How content is organised + installed: three trees, type-aligned modules, collections, provenance. | Information architecture decisions |
+| 8 | [`08-phasing-and-rollout.md`](08-phasing-and-rollout.md) | The two-phase plan (launch prep vs GLP surface) + the language-completeness tiers. | Sequencing the build & localization |
 
 ## How to use this dossier
 
