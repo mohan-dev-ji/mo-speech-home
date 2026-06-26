@@ -128,3 +128,34 @@ This ADR touches four prior decisions; here is how each reconciles.
 - [GLP dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md) — sentence builder / three-entity model.
 - [GLP dossier doc 7](../../2-research/gestalt-language-processing/07-container-organisation.md) — three-tree organisation + type-aligned modules.
 - [GLP dossier doc 8](../../2-research/gestalt-language-processing/08-phasing-and-rollout.md) — phasing; the V1-no-collections decision.
+
+---
+
+## Addendum (2026-06-25) — §4 "text live" scope, clarified during Phase 13 planning
+
+§4 mandates "structure frozen · localised text live" and describes sentences as
+embedding "symbol references" whose labels resolve live. Phase-13 planning against
+the actual code clarified what this means in practice, so we record it here rather
+than over-build:
+
+- **List and sentence *slots* do not carry symbol *labels*.** A sentence's spoken
+  output comes from its whole-sentence `text` field (used to generate TTS audio);
+  symbols inside a sentence are only used at authoring time to *compose* that text
+  and audio. `profileSentences.slots[]` / `profileLists.items[]` store an
+  `imagePath` (+ display/audio paths) — there is no per-slot symbol label to
+  resolve at render. So **no slot-level live-label resolution is needed, and no
+  symbol-reference field is added to slots in Phase 13.**
+- **§4's "text live" guarantee is carried by category symbol labels**, which
+  already resolve live: `profileCategories.getProfileSymbolsWithImages` returns
+  the full `label: Record<lang,string>` from the global `symbols` table, rendered
+  via `displayString`. A new language reaches every category board automatically.
+- **List/sentence *copy* (folder/list/sentence name, item descriptions, sentence
+  text) remains a per-account snapshot** — acceptable because that copy is
+  generated/custom, not symbol-label-derived. Phase 13 re-points `librarySourceId`
+  to module slugs so live-copy resolution *could* be added later if ever wanted,
+  but builds no such machinery now.
+- **"Structure frozen" still holds**: the slot's `imagePath` is the structural
+  snapshot; deleting any category never breaks a saved sentence.
+
+Net: §4 is satisfied with no new resolution code — the live half is the existing
+category-symbol-label path; the frozen half is the existing slot snapshot.

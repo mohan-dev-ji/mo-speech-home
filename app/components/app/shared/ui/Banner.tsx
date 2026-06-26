@@ -1,6 +1,7 @@
 "use client";
 
-import { Pointer, ImageIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Pointer, ImageIcon, ChevronLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
@@ -25,6 +26,10 @@ type BannerProps = {
    *  vertically centered against the [slot + title + buttons] group as
    *  a whole. Used to surface the admin pack-status label. */
   topSlot?: React.ReactNode;
+  /** When set, a back chevron renders left of the title, linking up one
+   *  level (the category's folder) — ADR-014 tree navigation. */
+  backHref?: string;
+  backLabel?: string;
 };
 
 export function Banner({
@@ -37,6 +42,8 @@ export function Banner({
   librarySourceId,
   showAdminContext = false,
   topSlot,
+  backHref,
+  backLabel,
 }: BannerProps) {
   const t = useTranslations('banner');
 
@@ -52,6 +59,16 @@ export function Banner({
       <div className="flex-1 flex flex-col justify-center min-w-0">
         {topSlot && <div className="mb-1.5 self-start">{topSlot}</div>}
         <div className="flex items-center gap-2 min-w-0">
+          {backHref && (
+            <Link
+              href={backHref}
+              aria-label={backLabel ?? 'Back'}
+              className="shrink-0 flex items-center justify-center w-9 h-9 -ml-1 rounded-theme-sm transition-opacity hover:opacity-80"
+              style={{ color: 'var(--theme-text-primary)' }}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Link>
+          )}
           <h1
             className="text-theme-h3 font-bold leading-tight truncate"
             style={{ color: 'var(--theme-text-primary)' }}

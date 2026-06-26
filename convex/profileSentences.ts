@@ -52,6 +52,7 @@ export const getProfileSentences = query({
       publishedToPackId: s.publishedToPackId,
       packSlug: s.packSlug,
       librarySourceId: s.librarySourceId,
+      folderId: s.folderId, // ADR-014 — group membership (Sentences tree)
     }));
   },
 });
@@ -61,6 +62,9 @@ export const getProfileSentences = query({
 export const createProfileSentence = mutation({
   args: {
     name: v.record(v.string(), v.string()),
+    // ADR-014 — file the new sentence into a group (set when created from inside
+    // a Sentence Group). Omit to leave it Ungrouped.
+    folderId: v.optional(v.id("profileFolders")),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -77,6 +81,7 @@ export const createProfileSentence = mutation({
       name:       args.name,
       order:      last ? last.order + 1 : 0,
       slots:      [],
+      ...(args.folderId ? { folderId: args.folderId } : {}),
       updatedAt:  Date.now(),
     });
   },

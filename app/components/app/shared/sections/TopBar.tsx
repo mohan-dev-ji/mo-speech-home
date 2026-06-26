@@ -30,7 +30,7 @@ export function TopBar() {
   const params = useParams();
   const locale = params.locale as string;
   const tNav = useTranslations('nav');
-  const { breadcrumbExtra } = useBreadcrumb();
+  const { breadcrumbExtra, breadcrumbTrail } = useBreadcrumb();
   const [menuOpen, setMenuOpen] = useState(false);
   const { viewMode, stateFlags } = useProfile();
   const isStudent = viewMode === 'student-view';
@@ -109,24 +109,36 @@ export function TopBar() {
     </span>
   );
 
-  const detailNode = isSubPage && breadcrumbExtra && (
-    <span className="flex items-center gap-1.5 text-small font-semibold" style={boldStyle}>
-      {breadcrumbExtra.colour && (
+  // One detail node per crumb in the trail (Section › Folder › Item …).
+  const detailNodes = isSubPage
+    ? breadcrumbTrail.map((crumb, i) => (
         <span
-          className="w-2.5 h-2.5 rounded-full shrink-0"
-          style={{ backgroundColor: breadcrumbExtra.colour }}
-        />
-      )}
-      {breadcrumbExtra.label}
-    </span>
-  );
+          key={`${i}-${crumb.label}`}
+          className="flex items-center gap-1.5 text-small font-semibold"
+          style={boldStyle}
+        >
+          {crumb.colour && (
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: crumb.colour }}
+            />
+          )}
+          {crumb.label}
+        </span>
+      ))
+    : [];
 
   const sep = <span className="text-small" style={linkStyle}>›</span>;
 
   const breadcrumbs = (
     <div className="flex items-center gap-2">
       {sectionNode}
-      {detailNode && <>{sep}{detailNode}</>}
+      {detailNodes.map((node, i) => (
+        <span key={i} className="flex items-center gap-2">
+          {sep}
+          {node}
+        </span>
+      ))}
     </div>
   );
 

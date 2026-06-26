@@ -1,5 +1,7 @@
 "use client";
 
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
 type Props = {
@@ -11,10 +13,17 @@ type Props = {
    * the default static `<h1>` renders.
    */
   titleSlot?: React.ReactNode;
+  /**
+   * When set, a back chevron renders to the left of the title, linking up
+   * one level in the tree hierarchy (ADR-014). Omit on top-level pages.
+   */
+  backHref?: string;
+  /** Accessible label for the back chevron (e.g. "Back to Category Groups"). */
+  backLabel?: string;
   children?: React.ReactNode;
 };
 
-export function PageBanner({ title, titleSlot, children }: Props) {
+export function PageBanner({ title, titleSlot, backHref, backLabel, children }: Props) {
   const { viewMode, stateFlags } = useProfile();
 
   // In student-view, banner action buttons are hidden unless the instructor
@@ -29,6 +38,16 @@ export function PageBanner({ title, titleSlot, children }: Props) {
 
   return (
     <div className="flex items-center gap-4 min-h-[136px] p-theme-general bg-theme-card rounded-theme-card">
+      {backHref && (
+        <Link
+          href={backHref}
+          aria-label={backLabel ?? 'Back'}
+          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-theme-sm transition-opacity hover:opacity-80"
+          style={{ color: 'var(--theme-text-primary)' }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </Link>
+      )}
       <div className="flex-1 flex flex-col justify-center min-w-0">
         {titleSlot ?? (
           <h1

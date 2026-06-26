@@ -46,6 +46,7 @@ export const getProfileLists = query({
         publishedToPackId: list.publishedToPackId,
         packSlug: list.packSlug,
         librarySourceId: list.librarySourceId,
+        folderId: list.folderId, // ADR-014 — group membership (Lists tree)
       };
     });
   },
@@ -72,6 +73,7 @@ export const getProfileListWithItems = query({
       // Exposed so the Republish button can fall back to it when
       // packSlug isn't explicitly set (library-origin lists).
       librarySourceId: list.librarySourceId,
+      folderId: list.folderId, // ADR-014 — group membership (for breadcrumb/back)
       items,
     };
   },
@@ -82,6 +84,9 @@ export const getProfileListWithItems = query({
 export const createProfileList = mutation({
   args: {
     name: v.record(v.string(), v.string()),
+    // ADR-014 — file the new list into a group (set when created from inside a
+    // List Group). Omit to leave it Ungrouped.
+    folderId: v.optional(v.id("profileFolders")),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -102,6 +107,7 @@ export const createProfileList = mutation({
       showNumbers: false,
       showChecklist: false,
       showFirstThen: false,
+      ...(args.folderId ? { folderId: args.folderId } : {}),
       updatedAt: Date.now(),
     });
   },

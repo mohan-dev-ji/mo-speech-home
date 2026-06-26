@@ -88,6 +88,12 @@ export function ListDetailContent({ listId }: Props) {
   const [nameDraft, setNameDraft] = useState('');
 
   const list = useQuery(api.profileLists.getProfileListWithItems, { profileListId: listId });
+  // Group this list belongs to (ADR-014) — drives the Lists › <group> › <list>
+  // breadcrumb + the banner back chevron.
+  const folder = useQuery(
+    api.profileFolders.getProfileFolder,
+    list?.folderId ? { folderId: list.folderId } : 'skip',
+  );
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
@@ -135,9 +141,20 @@ export function ListDetailContent({ listId }: Props) {
   useEffect(() => {
     if (!list) return;
     const label = displayString(list.name, language, DEFAULT_LOCALE);
-    setBreadcrumbExtra({ label });
+    const listCrumb = { label };
+    // Lists › <group|Ungrouped> › <list>.
+    const groupLabel = list.folderId
+      ? folder
+        ? displayString(folder.name, language, DEFAULT_LOCALE)
+        : null
+      : t('ungrouped');
+    if (groupLabel) {
+      setBreadcrumbExtra([{ label: groupLabel }, listCrumb]);
+    } else {
+      setBreadcrumbExtra(listCrumb);
+    }
     return () => setBreadcrumbExtra(null);
-  }, [list, language, setBreadcrumbExtra]);
+  }, [list, folder, language, t, setBreadcrumbExtra]);
 
   // Keep the editable-title draft in sync with the server name. Runs on
   // load and on any remote rename / locale switch; also restores the
@@ -405,6 +422,12 @@ export function ListDetailContent({ listId }: Props) {
           )}
           <PageBanner
             title={listName}
+            backHref={`/${locale}/lists/folder/${list.folderId ?? 'ungrouped'}`}
+            backLabel={t('groupBack', {
+              name: folder
+                ? displayString(folder.name, language, DEFAULT_LOCALE)
+                : t('ungrouped'),
+            })}
             titleSlot={isEditing ? (
               <input
                 type="text"

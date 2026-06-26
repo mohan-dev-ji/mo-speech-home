@@ -22,6 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Bookmark,
+  FolderInput,
   Library,
   Move,
   Plus,
@@ -34,6 +35,7 @@ import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -101,6 +103,7 @@ type SentenceRow = {
   publishedToPackId?: Id<'resourcePacks'>;
   packSlug?: string;
   librarySourceId?: string;
+  folderId?: Id<'profileFolders'>;
 };
 
 type AdminPacksStatus = {
@@ -313,6 +316,7 @@ type SortableSentenceRowProps = {
    *  seeded TTS). Drives the edit-mode "needs generation" nudge. */
   audioReady?: boolean;
   onDeleteRequest: (id: Id<'profileSentences'>, name: string) => void;
+  onMoveRequest: (id: Id<'profileSentences'>, name: string) => void;
   onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
@@ -336,7 +340,7 @@ type SortableSentenceRowProps = {
 
 function SortableSentenceRow({
   sentence, language, isEditing, audioReady = false,
-  onDeleteRequest,
+  onDeleteRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditSentence, onPlay,
   showAdminButtons = false,
@@ -502,6 +506,13 @@ function SortableSentenceRow({
                   <IconButton
                     size="sm"
                     variant="neutral"
+                    icon={<FolderInput />}
+                    label={t('moveToGroup')}
+                    onClick={(e) => { e.stopPropagation(); onMoveRequest(sentence._id, name); }}
+                  />
+                  <IconButton
+                    size="sm"
+                    variant="neutral"
                     className="cursor-grab active:cursor-grabbing touch-none"
                     icon={<Move />}
                     label={t('rowMove')}
@@ -521,7 +532,7 @@ function SortableSentenceRow({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function SentencesModeContent() {
+export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('sentences');
   const tPicker = useTranslations('packPicker');
   const params = useParams();
@@ -530,6 +541,7 @@ export function SentencesModeContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
+  const { setBreadcrumbExtra } = useBreadcrumb();
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
@@ -577,6 +589,57 @@ export function SentencesModeContent() {
   const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefaultV2);
   const setSentenceInLibrary = useMutation(api.resourcePacks.setSentenceInLibraryV2);
   const setLibraryPackTier   = useMutation(api.resourcePacks.setLibraryPackTierV2);
+  const moveSentenceToGroup  = useMutation(api.profileFolders.moveSentenceToGroup);
+
+  // ── Folder scoping (ADR-014 §2) ──────────────────────────────────────────
+  // Rendered under /sentences/folder/[folderId]; show only that group's
+  // sentences. "ungrouped" = sentences with no folder.
+  const isUngrouped = folderId === 'ungrouped';
+  const realFolderId =
+    folderId && !isUngrouped ? (folderId as Id<'profileFolders'>) : undefined;
+  const folderDoc = useQuery(
+    api.profileFolders.getProfileFolder,
+    realFolderId ? { folderId: realFolderId } : 'skip',
+  );
+  const scopedSentences = useMemo(() => {
+    if (!sentences || !folderId) return sentences;
+    return sentences.filter((s) =>
+      isUngrouped ? !s.folderId : s.folderId === realFolderId,
+    );
+  }, [sentences, folderId, isUngrouped, realFolderId]);
+
+  // Breadcrumb: Sentences › <group>
+  const folderName = isUngrouped
+    ? t('ungrouped')
+    : folderDoc
+      ? displayString(folderDoc.name, language, DEFAULT_LOCALE)
+      : '';
+  useEffect(() => {
+    if (!folderId || !folderName) return;
+    setBreadcrumbExtra({ label: folderName });
+    return () => setBreadcrumbExtra(null);
+  }, [folderId, folderName, setBreadcrumbExtra]);
+
+  // Move-to-group dialog state.
+  const [moveTarget, setMoveTarget] = useState<{ id: Id<'profileSentences'>; name: string } | null>(null);
+  const [moveSelection, setMoveSelection] = useState<Id<'profileFolders'> | 'ungrouped' | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
+  const groups = useQuery(api.profileFolders.getProfileFolders, { tree: 'sentences' });
+
+  async function handleMoveConfirm() {
+    if (!moveTarget || !moveSelection) return;
+    setIsMoving(true);
+    try {
+      await moveSentenceToGroup({
+        sentenceId: moveTarget.id,
+        folderId: moveSelection === 'ungrouped' ? null : moveSelection,
+      });
+      setMoveTarget(null);
+      setMoveSelection(null);
+    } finally {
+      setIsMoving(false);
+    }
+  }
 
   // Pack status — drives the per-row Default/Library toggle pressed states + tier.
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
@@ -627,14 +690,14 @@ export function SentencesModeContent() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   useEffect(() => {
-    if (!sentences) return;
+    if (!scopedSentences) return;
     setLocalOrder((prev) => {
-      const serverIds = sentences.map((s) => s._id as string);
+      const serverIds = scopedSentences.map((s) => s._id as string);
       const kept = prev.filter((id) => serverIds.includes(id));
       const added = serverIds.filter((id) => !prev.includes(id));
       return [...kept, ...added];
     });
-  }, [sentences]);
+  }, [scopedSentences]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -658,7 +721,10 @@ export function SentencesModeContent() {
   }
 
   async function handleCreate(name: string) {
-    await createSentence({ name: { en: name } });
+    await createSentence({
+      name: { en: name },
+      ...(realFolderId ? { folderId: realFolderId } : {}),
+    });
     // Drop straight into edit mode so the new sentence's empty slots and
     // audio affordances are visible immediately — same pattern as list
     // creation, just no navigation since sentences live inline on this page.
@@ -776,7 +842,7 @@ export function SentencesModeContent() {
     setSlotEditTarget(null);
   }
 
-  const sentenceMap = Object.fromEntries((sentences ?? []).map((s) => [s._id, s]));
+  const sentenceMap = Object.fromEntries((scopedSentences ?? []).map((s) => [s._id, s]));
   const orderedSentences = localOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
   // ── Filter visibility + options ──────────────────────────────────────────
@@ -864,7 +930,7 @@ export function SentencesModeContent() {
   // Show the admin disclaimer when at least one sentence on this page is
   // published to a pack — admin in admin view editing those sentences will
   // propagate to the pack.
-  const hasPublishedSentence = !!sentences?.some((s) => !!s.librarySourceId);
+  const hasPublishedSentence = !!scopedSentences?.some((s) => !!s.librarySourceId);
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
@@ -878,7 +944,11 @@ export function SentencesModeContent() {
           on/off flag). Stays fixed at the top while the rows below scroll. */}
       {stateFlags.talker_visible && (
         <div className="shrink-0">
-          <PageBanner title={t('title')}>
+          <PageBanner
+            title={folderId ? folderName : t('title')}
+            backHref={folderId ? `/${locale}/sentences` : undefined}
+            backLabel={t('groupBack', { name: t('groupsTitle') })}
+          >
             {/* In student-view the Edit/Create affordances appear only when the
                 instructor has granted `student_can_edit` (matches the detail
                 pages, which render their EditButton unconditionally inside the
@@ -924,7 +994,7 @@ export function SentencesModeContent() {
       {/* Scrollable content area — banner above + modals below stay in
           their own non-scrolling slots. */}
       <div className="flex-1 overflow-auto">
-        {sentences === undefined && (
+        {scopedSentences === undefined && (
           <div className="flex justify-center py-12">
             <div
               className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
@@ -933,15 +1003,15 @@ export function SentencesModeContent() {
           </div>
         )}
 
-        {sentences?.length === 0 && (
+        {scopedSentences?.length === 0 && (
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('empty')}
+              {folderId ? t('groupEmpty') : t('empty')}
             </p>
           </div>
         )}
 
-        {sentences && sentences.length > 0 && filteredSentences.length === 0 && packFilter !== 'all' && (
+        {scopedSentences && scopedSentences.length > 0 && filteredSentences.length === 0 && packFilter !== 'all' && (
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
               {t('filterEmpty')}
@@ -966,6 +1036,7 @@ export function SentencesModeContent() {
                       isEditing={isEditing}
                       audioReady={audioReady}
                       onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                      onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                       onEditSlot={handleEditSlot}
                       onRemoveSlot={handleRemoveSlot}
                       onAddSlot={handleAddSlot}
@@ -1046,6 +1117,66 @@ export function SentencesModeContent() {
               style={{ background: 'var(--theme-warning)', color: '#fff' }}
             >
               {isDeleting ? t('deleting') : t('deleteButton')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move-to-group dialog — select a destination, then Move. */}
+      <Dialog open={moveTarget !== null} onOpenChange={(open) => { if (!open) { setMoveTarget(null); setMoveSelection(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('moveToGroupTitle', { name: moveTarget?.name ?? '' })}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 max-h-[50vh] overflow-auto">
+            {(groups ?? []).map((g) => {
+              const isCurrent = realFolderId === g._id;
+              const isSelected = moveSelection === g._id;
+              return (
+                <button
+                  key={g._id}
+                  type="button"
+                  disabled={isCurrent}
+                  onClick={() => setMoveSelection(g._id)}
+                  className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors disabled:opacity-40"
+                  style={{
+                    background: isSelected ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
+                    color: isSelected ? 'var(--theme-alt-text)' : 'var(--theme-text)',
+                    border: `2px solid ${isSelected ? 'var(--theme-primary)' : 'transparent'}`,
+                  }}
+                >
+                  {displayString(g.name, language, DEFAULT_LOCALE)}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              disabled={isUngrouped}
+              onClick={() => setMoveSelection('ungrouped')}
+              className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors disabled:opacity-40"
+              style={{
+                background: moveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
+                color: moveSelection === 'ungrouped' ? 'var(--theme-alt-text)' : 'var(--theme-text)',
+                border: `2px solid ${moveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'transparent'}`,
+              }}
+            >
+              {t('ungrouped')}
+            </button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}>
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleMoveConfirm}
+              disabled={!moveSelection || isMoving}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
+              style={{ background: 'var(--theme-create)', color: '#fff' }}
+            >
+              {isMoving ? t('deleting') : t('moveToGroup')}
             </button>
           </DialogFooter>
         </DialogContent>

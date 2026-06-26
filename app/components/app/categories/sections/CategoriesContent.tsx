@@ -64,6 +64,7 @@ type SortableTileProps = {
   language: string;
   isEditing: boolean;
   onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
+  onRename: (id: Id<'profileCategories'>, value: string) => void;
   onClick?: () => void;
   adminPacks?: {
     starterSlug: string;
@@ -74,7 +75,7 @@ type SortableTileProps = {
   };
 };
 
-function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onClick, adminPacks }: SortableTileProps) {
+function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onRename, onClick, adminPacks }: SortableTileProps) {
   const {
     attributes,
     listeners,
@@ -100,6 +101,7 @@ function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, 
         isEditing={isEditing}
         onClick={onClick}
         onDeleteRequest={onDeleteRequest}
+        onRename={onRename}
         dragHandleProps={{ listeners, attributes }}
         adminPacks={adminPacks}
       />
@@ -162,6 +164,20 @@ export function CategoriesContent() {
   const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
+  const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
+
+  // Inline rename from the edit-mode dashed title box. Merge into the existing
+  // localised name so other locales are preserved; only the active locale's
+  // value changes.
+  function handleRename(id: Id<'profileCategories'>, value: string) {
+    const cat = categoryMap[id];
+    if (!cat) return;
+    updateCategoryMeta({
+      profileCategoryId: id,
+      name: { ...cat.name, [language]: value },
+      propagateToPack: showAdminBadges,
+    });
+  }
 
   // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
   const packFilter = searchParams.get('pack') ?? 'all';
@@ -374,6 +390,7 @@ export function CategoriesContent() {
                     language={language}
                     isEditing={isEditing}
                     onDeleteRequest={handleDeleteRequest}
+                    onRename={handleRename}
                     onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
                     adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
                   />
