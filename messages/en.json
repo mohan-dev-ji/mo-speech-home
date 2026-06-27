@@ -901,7 +901,18 @@
     "detailSectionLists": "Lists",
     "detailSectionSentences": "Sentences",
     "detailEmpty": "This pack hasn't been published yet.",
-    "detailViewLink": "View pack"
+    "detailViewLink": "View pack",
+    "tabCategories": "Categories",
+    "tabLists": "Lists",
+    "tabSentences": "Sentences",
+    "tabThemes": "Themes",
+    "tabsAriaLabel": "Library content type",
+    "ctaInstall": "Add to profile",
+    "ctaAlreadyInstalled": "Already in your profile",
+    "installSuccessToast": "Added to your profile.",
+    "installErrorToast": "Couldn't add this. Try again.",
+    "errorAlreadyInstalled": "This is already in your profile.",
+    "themesShowcaseHint": "Preview a theme, then pick it for a profile in Settings."
   },
   "upgrade": {
     "proFeatureTitle": "Pro feature",

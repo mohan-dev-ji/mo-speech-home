@@ -7,7 +7,10 @@
 import type { SentenceModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-// (none yet)
+// 13.2 throwaway fixture — remove once 13.4 curation seeds real modules.
+import testPhrases from "./test-phrases.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
-export const SENTENCE_MODULES: Record<string, SentenceModule> = {};
+export const SENTENCE_MODULES: Record<string, SentenceModule> = {
+  "test-phrases": testPhrases as SentenceModule,
+};

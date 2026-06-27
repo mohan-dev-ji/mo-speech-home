@@ -17,6 +17,7 @@ import {
   assertModuleInstallable,
   installContentModule,
   isModuleInstalled,
+  isModuleVisible,
 } from "../lib/contentModuleInstall";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
@@ -68,6 +69,36 @@ export const getMyInstalledListSlugs = query({
     return folders
       .filter((f) => f.source === "module" && f.librarySourceId)
       .map((f) => f.librarySourceId as string);
+  },
+});
+
+/** Public catalogue for the library's Lists tab. See `getPublicCategoryCatalogue`. */
+export const getPublicListCatalogue = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("listLifecycle").collect();
+    const bySlug = new Map(rows.map((r) => [r.slug, r]));
+    const now = Date.now();
+    return getAllModules("lists")
+      .map((module) => {
+        const lifecycle = bySlug.get(module.slug) ?? null;
+        const isStarter = module.isStarter ?? false;
+        if (!isModuleVisible({ isStarter, lifecycle, now })) return null;
+        return {
+          slug: module.slug,
+          name: module.name,
+          description: module.description ?? null,
+          coverImagePath: module.coverImagePath ?? null,
+          isStarter,
+          featured: lifecycle?.featured ?? false,
+          effectiveTier: (lifecycle?.tierOverride ?? module.defaultTier) as
+            | "free"
+            | "pro"
+            | "max",
+          counts: { lists: module.items.length },
+        };
+      })
+      .filter((m): m is NonNullable<typeof m> => m !== null);
   },
 });
 

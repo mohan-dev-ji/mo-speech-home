@@ -72,6 +72,27 @@ export function assertModuleInstallable(opts: {
   }
 }
 
+/**
+ * Non-throwing visibility check for the **public catalogue** (the library tabs),
+ * mirroring `assertModuleInstallable`'s publish-window logic but WITHOUT the tier
+ * gate — gated modules still appear in the catalogue (with a tier badge + an
+ * "Upgrade" CTA), exactly like the pack catalogue shows Pro/Max packs. Starter
+ * modules are always visible. Returns `true` when the module should be listed.
+ */
+export function isModuleVisible(opts: {
+  isStarter: boolean;
+  lifecycle: LifecycleGate;
+  now: number;
+}): boolean {
+  const { isStarter, lifecycle, now } = opts;
+  if (isStarter) return true;
+  if (!lifecycle || lifecycle.publishedAt === undefined) return false;
+  if (lifecycle.publishedAt > now) return false;
+  if (lifecycle.expiresAt !== undefined && lifecycle.expiresAt <= now)
+    return false;
+  return true;
+}
+
 export type InstallModuleResult = {
   tree: ContentModule["tree"];
   slug: string;

@@ -16,7 +16,10 @@
 import type { CategoryModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-// (none yet)
+// 13.2 throwaway fixture — remove once 13.4 curation seeds real modules.
+import testActions from "./test-actions.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
-export const CATEGORY_MODULES: Record<string, CategoryModule> = {};
+export const CATEGORY_MODULES: Record<string, CategoryModule> = {
+  "test-actions": testActions as CategoryModule,
+};

@@ -22,6 +22,7 @@ import {
   assertModuleInstallable,
   installContentModule,
   isCategoryModuleInstalled,
+  isModuleVisible,
 } from "../lib/contentModuleInstall";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
@@ -89,6 +90,41 @@ export const getMyInstalledCategorySlugs = query({
         cats.map((c) => c.librarySourceId).filter((s): s is string => !!s),
       ),
     );
+  },
+});
+
+/**
+ * Public catalogue for the library's Categories tab: every *visible* category
+ * module (starter, or inside its publish window) joined with its lifecycle row.
+ * Tier-gated modules are included (with a badge) — gating is enforced at install,
+ * not at browse, mirroring `resourcePacks.getPublicLibraryCatalogueV2`.
+ */
+export const getPublicCategoryCatalogue = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("categoryLifecycle").collect();
+    const bySlug = new Map(rows.map((r) => [r.slug, r]));
+    const now = Date.now();
+    return getAllModules("categories")
+      .map((module) => {
+        const lifecycle = bySlug.get(module.slug) ?? null;
+        const isStarter = module.isStarter ?? false;
+        if (!isModuleVisible({ isStarter, lifecycle, now })) return null;
+        return {
+          slug: module.slug,
+          name: module.name,
+          description: module.description ?? null,
+          coverImagePath: module.coverImagePath ?? null,
+          isStarter,
+          featured: lifecycle?.featured ?? false,
+          effectiveTier: (lifecycle?.tierOverride ?? module.defaultTier) as
+            | "free"
+            | "pro"
+            | "max",
+          counts: { categories: module.items.length },
+        };
+      })
+      .filter((m): m is NonNullable<typeof m> => m !== null);
   },
 });
 

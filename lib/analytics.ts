@@ -38,6 +38,13 @@ type EventMap = {
     tier_at_load: SubscriptionTier;
     source?: "library" | "post_signup";
   };
+  // A single content module (ADR-014 §3) installed from the four-tab library —
+  // the per-type successor to `pack_loaded`.
+  module_installed:        {
+    slug: string;
+    tree: "categories" | "lists" | "sentences";
+    tier_at_install: SubscriptionTier;
+  };
   pack_browsed:            { tier: SubscriptionTier; filter_tags?: string[] };
   theme_changed:           {
     from_theme: string;

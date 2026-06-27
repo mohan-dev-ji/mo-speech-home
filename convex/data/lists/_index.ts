@@ -7,7 +7,10 @@
 import type { ListModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-// (none yet)
+// 13.2 throwaway fixture — remove once 13.4 curation seeds real modules.
+import testBedtime from "./test-bedtime.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
-export const LIST_MODULES: Record<string, ListModule> = {};
+export const LIST_MODULES: Record<string, ListModule> = {
+  "test-bedtime": testBedtime as ListModule,
+};

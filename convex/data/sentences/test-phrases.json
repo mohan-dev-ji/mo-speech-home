@@ -1,0 +1,43 @@
+{
+  "slug": "test-phrases",
+  "tree": "sentences",
+  "name": { "en": "Everyday phrases (test)" },
+  "description": { "en": "Throwaway 13.2 fixture — a Sentences folder with a couple of phrases. Replaced by real curated content in 13.4." },
+  "icon": "MessageSquare",
+  "colour": "#f97316",
+  "coverImagePath": "symbols/i_want_to_go.png",
+  "defaultTier": "free",
+  "isStarter": true,
+  "provenance": { "author": "fixture", "version": "0", "licence": "internal-test" },
+  "items": [
+    {
+      "name": { "en": "I want to go outside" },
+      "order": 0,
+      "text": { "en": "I want to go outside" },
+      "slots": [
+        {
+          "order": 0,
+          "imagePath": "symbols/i_want_to_go.png",
+          "displayProps": { "bgColour": "#ffffff", "cardShape": "rounded", "showImage": true, "showLabel": true, "textColour": "#111827", "textSize": "sm" }
+        },
+        {
+          "order": 1,
+          "imagePath": "symbols/outside_1.png",
+          "displayProps": { "bgColour": "#ffffff", "cardShape": "rounded", "showImage": true, "showLabel": true, "textColour": "#111827", "textSize": "sm" }
+        }
+      ]
+    },
+    {
+      "name": { "en": "I need help" },
+      "order": 1,
+      "text": { "en": "I need help" },
+      "slots": [
+        {
+          "order": 0,
+          "imagePath": "symbols/brush_teeth.png",
+          "displayProps": { "bgColour": "#ffffff", "cardShape": "rounded", "showImage": true, "showLabel": true, "textColour": "#111827", "textSize": "sm" }
+        }
+      ]
+    }
+  ]
+}
