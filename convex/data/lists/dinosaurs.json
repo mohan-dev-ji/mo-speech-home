@@ -1,0 +1,131 @@
+{
+  "slug": "dinosaurs",
+  "tree": "lists",
+  "name": {
+    "en": "Dinosaurs",
+    "es": "Dinosaurios",
+    "hi": "डायनासोर"
+  },
+  "description": {
+    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
+    "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión.",
+    "hi": "उस बच्चे के लिए जो स्टेगोसॉरस और स्पिनोसॉरस को पहचानता है। सोलह तरह के डायनासोर, उनके जीवाश्म, पैरों के निशान और वे कहाँ रहते थे। उनकी पसंद के हिसाब से शब्द।"
+  },
+  "coverImagePath": "symbols/symbol00192671.png",
+  "defaultTier": "pro",
+  "provenance": {
+    "author": "Mo Speech",
+    "version": "1",
+    "licence": "proprietary"
+  },
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00204614.mp3",
+          "description": {
+            "en": "Buy ticket online",
+            "es": "Comprar entrada online",
+            "hi": "ऑनलाइन टिकट खरीदना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "imagePath": "symbols/symbol00204614.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00196752.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00196752.mp3",
+          "description": {
+            "en": "Get on the train",
+            "es": "Subir al tren",
+            "hi": "ट्रेन में बैठना"
+          },
+          "imagePath": "symbols/symbol00196752.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "defaultAudioPath": "audio/eng/default/walk.mp3",
+          "description": {
+            "en": "Walk to the Museum",
+            "es": "Caminar al museo",
+            "hi": "म्यूज़ियम तक चलना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "imagePath": "symbols/walk.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00094721.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00094721.mp3",
+          "description": {
+            "en": "Queue to get in",
+            "es": "Hacer fila para entrar",
+            "hi": "अंदर जाने के लिए लाइन में लगना"
+          },
+          "imagePath": "symbols/symbol00094721.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "defaultAudioPath": "audio/eng/default/look.mp3",
+          "description": {
+            "en": "Look at the exhibition",
+            "es": "Ver la exposición",
+            "hi": "प्रदर्शनी देखना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "imagePath": "symbols/look.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00109151.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00109151.mp3",
+          "description": {
+            "en": "Snack",
+            "es": "Merienda",
+            "hi": "नाश्ता करना"
+          },
+          "imagePath": "symbols/symbol00109151.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/let_us_go_home.mp3",
+          "defaultAudioPath": "audio/eng/default/let_us_go_home.mp3",
+          "description": {
+            "en": "Go home",
+            "es": "Ir a casa",
+            "hi": "घर जाना"
+          },
+          "imagePath": "symbols/let_us_go_home.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "en": "Museum visit",
+        "es": "Visita al museo",
+        "hi": "म्यूज़ियम जाना"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ]
+}

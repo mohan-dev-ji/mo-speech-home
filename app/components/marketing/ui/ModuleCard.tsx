@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { InstallModuleButton, type ModuleTree } from "./InstallModuleButton";
@@ -43,6 +44,7 @@ export function ModuleCard({
 }) {
   const t = useTranslations("library");
   const name = displayString(module.name, locale, DEFAULT_LOCALE);
+  const detailHref = `/${locale}/library/modules/${tree}/${module.slug}`;
   const coverSrc = module.coverImagePath
     ? `/api/assets?key=${encodeURIComponent(module.coverImagePath)}`
     : null;
@@ -68,29 +70,39 @@ export function ModuleCard({
         : t("itemsSentences", { count: count ?? 0 });
 
   return (
-    <article className="flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-      <div className="relative aspect-square bg-muted">
-        {coverSrc ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={coverSrc}
-            alt={name}
-            loading="lazy"
-            className="w-full h-full object-contain p-6"
-          />
-        ) : (
-          <div className="w-full h-full" aria-hidden />
-        )}
-        <div className="absolute top-2 right-2">
-          <Badge variant={tierBadgeVariant[module.effectiveTier]}>
-            {tierLabel}
-          </Badge>
+    <article className="flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {/* Cover + name + count link to the detail page; the install button sits
+          outside the link so installing doesn't fire on a "view" intent. */}
+      <Link
+        href={detailHref}
+        className="flex flex-col group"
+        aria-label={t("moduleViewLink", { name })}
+      >
+        <div className="relative aspect-square bg-muted">
+          {coverSrc ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={coverSrc}
+              alt={name}
+              loading="lazy"
+              className="w-full h-full object-contain p-6 transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full" aria-hidden />
+          )}
+          <div className="absolute top-2 right-2">
+            <Badge variant={tierBadgeVariant[module.effectiveTier]}>
+              {tierLabel}
+            </Badge>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col p-4 gap-2">
-        <h3 className="text-subheading font-semibold text-foreground">{name}</h3>
-        <p className="text-caption text-muted-foreground">{countLabel}</p>
-      </div>
+        <div className="flex flex-col p-4 gap-2">
+          <h3 className="text-subheading font-semibold text-foreground group-hover:underline">
+            {name}
+          </h3>
+          <p className="text-caption text-muted-foreground">{countLabel}</p>
+        </div>
+      </Link>
       <div className="px-4 pb-4 mt-auto">
         <InstallModuleButton
           slug={module.slug}

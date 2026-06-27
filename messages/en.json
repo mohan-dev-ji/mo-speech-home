@@ -919,7 +919,9 @@
     "installSuccessToast": "Added to your profile.",
     "installErrorToast": "Couldn't add this. Try again.",
     "errorAlreadyInstalled": "This is already in your profile.",
-    "themesShowcaseHint": "Preview a theme, then pick it for a profile in Settings."
+    "themesShowcaseHint": "Preview a theme, then pick it for a profile in Settings.",
+    "moduleDetailBack": "Back to library",
+    "moduleViewLink": "View {name}"
   },
   "upgrade": {
     "proFeatureTitle": "Pro feature",

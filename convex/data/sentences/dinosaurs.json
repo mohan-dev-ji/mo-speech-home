@@ -1,0 +1,75 @@
+{
+  "slug": "dinosaurs",
+  "tree": "sentences",
+  "name": {
+    "en": "Dinosaurs",
+    "es": "Dinosaurios",
+    "hi": "डायनासोर"
+  },
+  "description": {
+    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
+    "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión.",
+    "hi": "उस बच्चे के लिए जो स्टेगोसॉरस और स्पिनोसॉरस को पहचानता है। सोलह तरह के डायनासोर, उनके जीवाश्म, पैरों के निशान और वे कहाँ रहते थे। उनकी पसंद के हिसाब से शब्द।"
+  },
+  "coverImagePath": "symbols/symbol00192671.png",
+  "defaultTier": "pro",
+  "provenance": {
+    "author": "Mo Speech",
+    "version": "1",
+    "licence": "proprietary"
+  },
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/575860aa-cfdb-4825-9dc4-47b917ef8c11.mp3",
+      "name": {
+        "en": "Tyrannosaurus rex is the most fierce dinosaur",
+        "es": "Tyrannosaurus rex es el dinosaurio más feroz",
+        "hi": "टायरानोसॉरस रेक्स सबसे खूंखार डायनासोर है"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00012459.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197400.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00192671.png",
+          "order": 2
+        }
+      ],
+      "text": {
+        "en": "Tyrannosaurus rex is the most fierce dinosaur",
+        "es": "Tyrannosaurus rex es el dinosaurio más feroz",
+        "hi": "टायरानोसॉरस रेक्स सबसे खूंखार डायनासोर है"
+      }
+    }
+  ]
+}

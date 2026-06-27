@@ -7,6 +7,7 @@ import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
 import { STARTER_BACKUPS } from "./data/starter_backups";
 import { LIBRARY_PACKS } from "./data/library_packs/_index";
 import { LANGUAGE_MODULES } from "./data/languages/_index";
+import { getAllModules } from "./lib/contentModules";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -1206,6 +1207,66 @@ export const seedLifecycleFromJSON = mutation({
 
     const summary = { scanned, seeded, alreadyHadRow, skippedStarter };
     console.log(`[seedLifecycleFromJSON] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
+/**
+ * Phase 13.4 — publish the content modules converted from the legacy themed
+ * packs (christmas, dinosaurs, …) so they're visible + installable in the
+ * four-tab library at their pack tier. Mirrors `seedLifecycleFromJSON` but
+ * across the three per-type lifecycle tables.
+ *
+ * For each tree, every non-starter module without a lifecycle row gets one with
+ * `publishedAt = now` (tier comes from the module's `defaultTier`; no override).
+ * Starter modules (test fixtures + the default folders) are skipped — they're
+ * either always-visible or published via the curation flow. Idempotent.
+ */
+export const publishConvertedPackModules = mutation({
+  args: { adminClerkUserId: v.string() },
+  handler: async (ctx, { adminClerkUserId }) => {
+    const now = Date.now();
+    const lifecycleTable = {
+      categories: "categoryLifecycle",
+      lists: "listLifecycle",
+      sentences: "sentenceLifecycle",
+    } as const;
+
+    let seeded = 0;
+    let skippedStarter = 0;
+    let alreadyHadRow = 0;
+
+    for (const tree of ["categories", "lists", "sentences"] as const) {
+      const table = lifecycleTable[tree];
+      for (const mod of getAllModules(tree)) {
+        if (mod.isStarter) {
+          skippedStarter++;
+          continue;
+        }
+        const existing = await ctx.db
+          .query(table)
+          .withIndex("by_slug", (q) => q.eq("slug", mod.slug))
+          .first();
+        if (existing) {
+          alreadyHadRow++;
+          continue;
+        }
+        await ctx.db.insert(table, {
+          slug: mod.slug,
+          name: mod.name,
+          ...(mod.description ? { description: mod.description } : {}),
+          ...(mod.coverImagePath ? { coverImagePath: mod.coverImagePath } : {}),
+          publishedAt: now,
+          featured: false,
+          createdBy: adminClerkUserId,
+          updatedAt: now,
+        });
+        seeded++;
+      }
+    }
+
+    const summary = { seeded, alreadyHadRow, skippedStarter };
+    console.log(`[publishConvertedPackModules] ${JSON.stringify(summary)}`);
     return summary;
   },
 });

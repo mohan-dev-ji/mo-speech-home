@@ -1,0 +1,158 @@
+{
+  "slug": "christmas",
+  "tree": "categories",
+  "name": {
+    "en": "Christmas",
+    "es": "Navidad",
+    "hi": "क्रिसमस"
+  },
+  "description": {
+    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
+    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día.",
+    "hi": "दिसंबर में वो सब कुछ जिस पर वो उंगली रखना चाहते हैं। पेड़, तोहफ़े, वो पुडिंग का टुकड़ा जो किसी को पसंद नहीं। पूरे दिन के लिए शब्द।"
+  },
+  "coverImagePath": "symbols/symbol00059081.png",
+  "defaultTier": "max",
+  "provenance": {
+    "author": "Mo Speech",
+    "version": "1",
+    "licence": "proprietary"
+  },
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00059081.png",
+      "name": {
+        "en": "Christmas",
+        "es": "Navidad",
+        "hi": "क्रिसमस"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "Christmas tree"
+          },
+          "order": 0,
+          "symbolId": "kn75cqcc7q83tg66jpwm5jhqe584m5qf"
+        },
+        {
+          "display": {
+            "bgColour": "#ffffff",
+            "borderColour": "#d1d5db"
+          },
+          "labelOverride": {
+            "en": "Christmas ornament"
+          },
+          "order": 1,
+          "symbolId": "kn7adby4r1y8wvjzm28k3pt66n84nvf3"
+        },
+        {
+          "labelOverride": {
+            "en": "Christmas lights"
+          },
+          "order": 2,
+          "symbolId": "kn7erzcjrh0vcyb8j17eesx6hd84mydd"
+        },
+        {
+          "labelOverride": {
+            "en": "star"
+          },
+          "order": 3,
+          "symbolId": "kn7181q1sdxtmjeewp5g8b84w184m311"
+        },
+        {
+          "labelOverride": {
+            "en": "presents"
+          },
+          "order": 4,
+          "symbolId": "kn7c2xnsgqxketw2x4tx2xsq0984ne5j"
+        },
+        {
+          "labelOverride": {
+            "en": "Santa"
+          },
+          "order": 5,
+          "symbolId": "kn7bq3gn5hq5j753wqaw0dc6zs84nj7a"
+        },
+        {
+          "labelOverride": {
+            "en": "reindeer"
+          },
+          "order": 6,
+          "symbolId": "kn7fd432qft28e74zne7nppqes84mnj5"
+        },
+        {
+          "labelOverride": {
+            "en": "snowman"
+          },
+          "order": 7,
+          "symbolId": "kn7bd4xd4tbtjhg5dqb8fr9kth84nqpw"
+        },
+        {
+          "labelOverride": {
+            "en": "turkey"
+          },
+          "order": 8,
+          "symbolId": "kn7e9xne1ak62shcm05xqqpfqx84n8mb"
+        },
+        {
+          "labelOverride": {
+            "en": "cracker"
+          },
+          "order": 9,
+          "symbolId": "kn72f32sw1a58mxjamarx7734d84ne50"
+        },
+        {
+          "labelOverride": {
+            "en": "mince pie"
+          },
+          "order": 10,
+          "symbolId": "kn770dkw3kb74ewmnb2805wbzx84mt9r"
+        },
+        {
+          "labelOverride": {
+            "en": "snow"
+          },
+          "order": 11,
+          "symbolId": "kn72dzra9kg9jjq2kvfaq1vk4x84nvdc"
+        },
+        {
+          "labelOverride": {
+            "en": "candle"
+          },
+          "order": 12,
+          "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
+        },
+        {
+          "labelOverride": {
+            "en": "Jesus"
+          },
+          "order": 13,
+          "symbolId": "kn723nfecd6q1t6m632fs1dg9x84nedj"
+        },
+        {
+          "labelOverride": {
+            "en": "Mass"
+          },
+          "order": 14,
+          "symbolId": "kn71g1kdsd8wrf3qhhbhabfjv984n76e"
+        },
+        {
+          "labelOverride": {
+            "en": "Christmas carol"
+          },
+          "order": 15,
+          "symbolId": "kn73x88c90q47krhtgwkerrgen84mdc0"
+        },
+        {
+          "labelOverride": {
+            "en": "father christmas"
+          },
+          "order": 16,
+          "symbolId": "kn756yqnzvrvjjnya5ehb34yed84mnxk"
+        }
+      ]
+    }
+  ]
+}
