@@ -4,8 +4,8 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
-import { mutation, query } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import {
   requireCallerAccountId,
   requireCallerIsAdmin,
@@ -19,6 +19,7 @@ import {
   isModuleInstalled,
   isModuleVisible,
 } from "../lib/contentModuleInstall";
+import { collectListOrphanKeys } from "../lib/contentModuleDelete";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -101,6 +102,74 @@ export const getPublicListCatalogue = query({
       .filter((m): m is NonNullable<typeof m> => m !== null);
   },
 });
+
+/**
+ * Personal R2 keys (uploads, recordings) on the lists inside this module's
+ * folder. Collected by the uninstall route BEFORE `deleteListModule` runs.
+ */
+export const getListModuleDeleteOrphanKeys = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }): Promise<string[]> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const folder = await findModuleFolder(ctx, resolved.accountId, slug);
+    if (!folder) return [];
+    const lists = await ctx.db
+      .query("profileLists")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    const keys: string[] = [];
+    for (const list of lists) keys.push(...collectListOrphanKeys(list.items));
+    return Array.from(new Set(keys));
+  },
+});
+
+/**
+ * Uninstall a list module (ADR-014 §5): delete the module-sourced folder and
+ * every list inside it. Matched by `librarySourceId` + `source:"module"`, so a
+ * user folder of the same name is never touched. R2 orphans deleted by the
+ * route afterwards.
+ */
+export const deleteListModule = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+    const folder = await findModuleFolder(ctx, accountId, slug);
+    if (!folder) {
+      throw new ConvexError({
+        code: "NOT_INSTALLED",
+        message: "This list module is not installed.",
+      });
+    }
+    const lists = await ctx.db
+      .query("profileLists")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    for (const list of lists) await ctx.db.delete(list._id);
+    await ctx.db.delete(folder._id);
+    return { slug, foldersDeleted: 1, itemsDeleted: lists.length };
+  },
+});
+
+/** Find the caller's module-sourced "lists" folder for `slug`, or null. */
+async function findModuleFolder(
+  ctx: QueryCtx,
+  accountId: Id<"users">,
+  slug: string
+): Promise<Doc<"profileFolders"> | null> {
+  const folders = await ctx.db
+    .query("profileFolders")
+    .withIndex("by_library_source_id", (q) => q.eq("librarySourceId", slug))
+    .collect();
+  return (
+    folders.find(
+      (f) =>
+        f.accountId === accountId &&
+        f.source === "module" &&
+        f.tree === "lists"
+    ) ?? null
+  );
+}
 
 function deriveStatus(
   lifecycle: Doc<"listLifecycle"> | null,

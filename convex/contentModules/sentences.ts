@@ -4,8 +4,8 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
-import { mutation, query } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import {
   requireCallerAccountId,
   requireCallerIsAdmin,
@@ -19,6 +19,7 @@ import {
   isModuleInstalled,
   isModuleVisible,
 } from "../lib/contentModuleInstall";
+import { collectSentenceOrphanKeys } from "../lib/contentModuleDelete";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -101,6 +102,74 @@ export const getPublicSentenceCatalogue = query({
       .filter((m): m is NonNullable<typeof m> => m !== null);
   },
 });
+
+/**
+ * Personal R2 keys (slot uploads, sentence recordings) on the sentences inside
+ * this module's folder. Collected by the uninstall route BEFORE
+ * `deleteSentenceModule` runs.
+ */
+export const getSentenceModuleDeleteOrphanKeys = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }): Promise<string[]> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const folder = await findModuleFolder(ctx, resolved.accountId, slug);
+    if (!folder) return [];
+    const sentences = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    const keys: string[] = [];
+    for (const s of sentences) keys.push(...collectSentenceOrphanKeys(s));
+    return Array.from(new Set(keys));
+  },
+});
+
+/**
+ * Uninstall a sentence module (ADR-014 §5): delete the module-sourced folder and
+ * every sentence inside it. Matched by `librarySourceId` + `source:"module"`.
+ * R2 orphans deleted by the route afterwards.
+ */
+export const deleteSentenceModule = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+    const folder = await findModuleFolder(ctx, accountId, slug);
+    if (!folder) {
+      throw new ConvexError({
+        code: "NOT_INSTALLED",
+        message: "This sentence module is not installed.",
+      });
+    }
+    const sentences = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    for (const s of sentences) await ctx.db.delete(s._id);
+    await ctx.db.delete(folder._id);
+    return { slug, foldersDeleted: 1, itemsDeleted: sentences.length };
+  },
+});
+
+/** Find the caller's module-sourced "sentences" folder for `slug`, or null. */
+async function findModuleFolder(
+  ctx: QueryCtx,
+  accountId: Id<"users">,
+  slug: string
+): Promise<Doc<"profileFolders"> | null> {
+  const folders = await ctx.db
+    .query("profileFolders")
+    .withIndex("by_library_source_id", (q) => q.eq("librarySourceId", slug))
+    .collect();
+  return (
+    folders.find(
+      (f) =>
+        f.accountId === accountId &&
+        f.source === "module" &&
+        f.tree === "sentences"
+    ) ?? null
+  );
+}
 
 function deriveStatus(
   lifecycle: Doc<"sentenceLifecycle"> | null,

@@ -45,6 +45,11 @@ type EventMap = {
     tree: "categories" | "lists" | "sentences";
     tier_at_install: SubscriptionTier;
   };
+  // A content module removed from an account via the library (ADR-014 §5).
+  module_uninstalled:      {
+    slug: string;
+    tree: "categories" | "lists" | "sentences";
+  };
   pack_browsed:            { tier: SubscriptionTier; filter_tags?: string[] };
   theme_changed:           {
     from_theme: string;

@@ -32,6 +32,7 @@ import type * as imageCache from "../imageCache.js";
 import type * as languages from "../languages.js";
 import type * as lib_access from "../lib/access.js";
 import type * as lib_account from "../lib/account.js";
+import type * as lib_contentModuleDelete from "../lib/contentModuleDelete.js";
 import type * as lib_contentModuleInstall from "../lib/contentModuleInstall.js";
 import type * as lib_contentModules from "../lib/contentModules.js";
 import type * as lib_libraryPacks from "../lib/libraryPacks.js";
@@ -85,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   languages: typeof languages;
   "lib/access": typeof lib_access;
   "lib/account": typeof lib_account;
+  "lib/contentModuleDelete": typeof lib_contentModuleDelete;
   "lib/contentModuleInstall": typeof lib_contentModuleInstall;
   "lib/contentModules": typeof lib_contentModules;
   "lib/libraryPacks": typeof lib_libraryPacks;

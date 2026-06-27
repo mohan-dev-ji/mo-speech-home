@@ -14,6 +14,7 @@
       "name": { "en": "Actions (test)" },
       "icon": "Hand",
       "colour": "#6366f1",
+      "imagePath": "symbols/i_want_to_go.png",
       "symbols": [
         { "labelOverride": { "en": "go" }, "order": 0, "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a" },
         { "labelOverride": { "en": "want" }, "order": 1, "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1" },

@@ -128,6 +128,91 @@ export const getPublicCategoryCatalogue = query({
   },
 });
 
+/**
+ * Personal R2 keys (uploads, image-search picks, recordings) on every category
+ * this module installed flat into the caller's account. Collected by the
+ * uninstall route BEFORE `deleteCategoryModule` runs. Mirrors
+ * `getCategoryReloadOrphanKeys` but spans all of the module's categories.
+ */
+export const getCategoryModuleDeleteOrphanKeys = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }): Promise<string[]> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+    const { accountId } = resolved;
+    const cats = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const keys: string[] = [];
+    for (const cat of cats) {
+      if (cat.librarySourceId !== slug) continue;
+      const symbols = await ctx.db
+        .query("profileSymbols")
+        .withIndex("by_profile_category_id", (q) =>
+          q.eq("profileCategoryId", cat._id)
+        )
+        .collect();
+      for (const s of symbols) {
+        if (
+          s.imageSource.type === "userUpload" ||
+          s.imageSource.type === "imageSearch"
+        ) {
+          keys.push(s.imageSource.imagePath);
+        }
+        const audioMap =
+          (s.audio as Record<
+            string,
+            { type: string; path: string; alternates?: { recorded?: string } } | undefined
+          >) ?? {};
+        for (const a of Object.values(audioMap)) {
+          if (!a) continue;
+          if (a.type === "recorded") keys.push(a.path);
+          if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
+            keys.push(a.alternates.recorded);
+          }
+        }
+      }
+    }
+    return Array.from(new Set(keys));
+  },
+});
+
+/**
+ * Uninstall a category module (ADR-014 §5): delete every flat category the
+ * module installed (matched by `librarySourceId`) plus its symbols. Touches
+ * ONLY module-sourced categories — user-authored categories are never matched.
+ * R2 orphans are deleted by the route afterwards.
+ */
+export const deleteCategoryModule = mutation({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+    const cats = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    let categoriesDeleted = 0;
+    let symbolsDeleted = 0;
+    for (const cat of cats) {
+      if (cat.librarySourceId !== slug) continue;
+      const symbols = await ctx.db
+        .query("profileSymbols")
+        .withIndex("by_profile_category_id", (q) =>
+          q.eq("profileCategoryId", cat._id)
+        )
+        .collect();
+      for (const s of symbols) {
+        await ctx.db.delete(s._id);
+        symbolsDeleted++;
+      }
+      await ctx.db.delete(cat._id);
+      categoriesDeleted++;
+    }
+    return { slug, categoriesDeleted, symbolsDeleted };
+  },
+});
+
 function deriveStatus(
   lifecycle: Doc<"categoryLifecycle"> | null,
   now: number
