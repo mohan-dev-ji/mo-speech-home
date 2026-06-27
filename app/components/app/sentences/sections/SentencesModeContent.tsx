@@ -36,6 +36,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -386,7 +387,7 @@ function SortableSentenceRow({
           'rounded-theme-card px-theme-general py-theme-item transition-colors border-2 border-dashed',
           isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
         ].join(' ')}
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: 'var(--group-card, var(--theme-card))' }}
         onClick={isEditing ? undefined : () => onPlay(sentence)}
         role={isEditing ? undefined : 'button'}
         aria-label={isEditing ? undefined : t('rowPlay')}
@@ -619,6 +620,11 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setBreadcrumbExtra({ label: folderName });
     return () => setBreadcrumbExtra(null);
   }, [folderId, folderName, setBreadcrumbExtra]);
+
+  // Group colour tint (ADR-014) — see ListsModeContent. Drives `--group-card`.
+  const groupTint = folderDoc?.colour
+    ? `color-mix(in srgb, ${getCategoryColour(folderDoc.colour).c500} 30%, transparent)`
+    : undefined;
 
   // Move-to-group dialog state.
   const [moveTarget, setMoveTarget] = useState<{ id: Id<'profileSentences'>; name: string } | null>(null);
@@ -933,7 +939,10 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const hasPublishedSentence = !!scopedSentences?.some((s) => !!s.librarySourceId);
 
   return (
-    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
+    <div
+      className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap"
+      style={groupTint ? ({ '--group-card': groupTint } as React.CSSProperties) : undefined}
+    >
 
       <AdminPackEditingBanner
         visible={showAdminButtons && hasPublishedSentence}

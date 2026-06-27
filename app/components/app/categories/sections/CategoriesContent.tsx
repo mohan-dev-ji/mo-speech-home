@@ -20,9 +20,7 @@ import {
   SortableContext,
   rectSortingStrategy,
   arrayMove,
-  useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -32,7 +30,9 @@ import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
-import { CategoryTile } from '@/app/components/app/categories/ui/CategoryTile';
+import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
+import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
+import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
@@ -56,66 +56,13 @@ const CATEGORIES_GRID_CLASSES = {
   small:  'grid-cols-3 md:grid-cols-6 lg:grid-cols-8',
 } as const;
 
-// ─── Sortable wrapper ─────────────────────────────────────────────────────────
-// Owns the useSortable hook and passes drag handle props down to CategoryTile.
-
-type SortableTileProps = {
-  category: Doc<'profileCategories'>;
-  language: string;
-  isEditing: boolean;
-  onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
-  onRename: (id: Id<'profileCategories'>, value: string) => void;
-  onClick?: () => void;
-  adminPacks?: {
-    starterSlug: string;
-    libraryPacksBySlug: Record<
-      string,
-      { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
-    >;
-  };
-};
-
-function SortableCategoryTile({ category, language, isEditing, onDeleteRequest, onRename, onClick, adminPacks }: SortableTileProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category._id });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 10 : undefined,
-    position: 'relative',
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <CategoryTile
-        category={category}
-        language={language}
-        isEditing={isEditing}
-        onClick={onClick}
-        onDeleteRequest={onDeleteRequest}
-        onRename={onRename}
-        dragHandleProps={{ listeners, attributes }}
-        adminPacks={adminPacks}
-      />
-    </div>
-  );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
 
 export function CategoriesContent() {
   const t = useTranslations('categories');
-  const { language, stateFlags, viewMode } = useProfile();
+  const { language, stateFlags, viewMode, accountId, voiceId } = useProfile();
   const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
@@ -150,6 +97,10 @@ export function CategoriesContent() {
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
+  // Folder-image picker target (the category whose image is being chosen).
+  const [imageTarget, setImageTarget] = useState<
+    { id: Id<'profileCategories'>; name: string; imagePath?: string } | null
+  >(null);
 
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
@@ -177,6 +128,18 @@ export function CategoriesContent() {
       name: { ...cat.name, [language]: value },
       propagateToPack: showAdminBadges,
     });
+  }
+
+  // Colour swatch — drives the category's colour variants (tile + board banner).
+  function handleRecolour(id: Id<'profileCategories'>, key: string) {
+    updateCategoryMeta({ profileCategoryId: id, colour: key, propagateToPack: showAdminBadges });
+  }
+
+  // Folder image — Symbol Editor (image only) writes back via updateCategoryMeta.
+  function handleFolderImageSave(imagePath: string) {
+    if (!imageTarget) return;
+    updateCategoryMeta({ profileCategoryId: imageTarget.id, imagePath, propagateToPack: showAdminBadges });
+    setImageTarget(null);
   }
 
   // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
@@ -383,18 +346,34 @@ export function CategoriesContent() {
           >
             <SortableContext items={filteredOrder} strategy={rectSortingStrategy}>
               <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
-                {filteredCategories.map((cat) => (
-                  <SortableCategoryTile
-                    key={cat._id}
-                    category={cat}
-                    language={language}
-                    isEditing={isEditing}
-                    onDeleteRequest={handleDeleteRequest}
-                    onRename={handleRename}
-                    onClick={() => router.push(`/${locale}/categories/${cat._id}`)}
-                    adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
-                  />
-                ))}
+                {filteredCategories.map((cat) => {
+                  const name = displayString(cat.name, language, DEFAULT_LOCALE);
+                  return (
+                    <GroupTile
+                      key={cat._id}
+                      id={cat._id}
+                      name={name}
+                      colour={cat.colour}
+                      imagePath={cat.imagePath}
+                      isEditing={isEditing}
+                      gridSize={stateFlags.grid_size ?? 'large'}
+                      badgeSlot={
+                        showAdminBadges && adminPacks ? (
+                          <PackStatusLabel
+                            packSlug={cat.librarySourceId}
+                            packs={adminPacks}
+                            language={language}
+                          />
+                        ) : undefined
+                      }
+                      onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
+                      onRename={(value) => handleRename(cat._id, value)}
+                      onRecolour={(key) => handleRecolour(cat._id, key)}
+                      onEditImage={() => setImageTarget({ id: cat._id, name, imagePath: cat.imagePath })}
+                      onDeleteRequest={() => handleDeleteRequest(cat._id, name)}
+                    />
+                  );
+                })}
               </div>
             </SortableContext>
           </DndContext>
@@ -450,6 +429,22 @@ export function CategoriesContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Folder image picker — Symbol Editor restricted to image picking. */}
+      {imageTarget && accountId && (
+        <SymbolEditorModal
+          isOpen={true}
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          folderImageMode={true}
+          initialImagePath={imageTarget.imagePath}
+          initialLabel={imageTarget.name}
+          onClose={() => setImageTarget(null)}
+          onSave={() => {}}
+          onFolderImageSave={handleFolderImageSave}
+        />
+      )}
     </div>
   );
 }

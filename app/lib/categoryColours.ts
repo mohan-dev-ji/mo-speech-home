@@ -25,6 +25,7 @@ export const CATEGORY_COLOURS: Record<string, CategoryColour> = {
   emerald: { c700: '#047857', c500: '#10B981', c100: '#D1FAE5' },
   green:   { c700: '#15803D', c500: '#22C55E', c100: '#DCFCE7' },
   lime:    { c700: '#4D7C0F', c500: '#84CC16', c100: '#ECFCCB' },
+  zinc:    { c700: '#3F3F46', c500: '#71717A', c100: '#F4F4F5' },
 };
 
 // Reverse map — existing seeded data stores hex values, resolve to named pairs

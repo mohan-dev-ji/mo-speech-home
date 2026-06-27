@@ -37,7 +37,10 @@ export function PageBanner({ title, titleSlot, backHref, backLabel, children }: 
     || stateFlags.student_can_filter;
 
   return (
-    <div className="flex items-center gap-4 min-h-[136px] p-theme-general bg-theme-card rounded-theme-card">
+    <div
+      className="flex items-center gap-4 min-h-[136px] p-theme-general rounded-theme-card"
+      style={{ background: 'var(--group-card, var(--theme-card))' }}
+    >
       {backHref && (
         <Link
           href={backHref}

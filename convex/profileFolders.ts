@@ -99,6 +99,32 @@ export const renameFolder = mutation({
 });
 
 /**
+ * Update a folder's presentation metadata (colour swatch, folder image) from the
+ * group-tile edit mode (ADR-014). Mirrors `updateCategoryMeta` for the folder
+ * trees. Tri-state: omit a field to leave it; pass it to set it.
+ */
+export const updateFolderMeta = mutation({
+  args: {
+    folderId: v.id("profileFolders"),
+    colour: v.optional(v.string()),
+    imagePath: v.optional(v.string()),
+  },
+  handler: async (ctx, { folderId, colour, imagePath }) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+    const folder = await ctx.db.get(folderId);
+    if (!folder || folder.accountId !== accountId) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Folder not found." });
+    }
+    await ctx.db.patch(folderId, {
+      ...(colour !== undefined && { colour }),
+      ...(imagePath !== undefined && { imagePath }),
+      updatedAt: Date.now(),
+    });
+    return { folderId };
+  },
+});
+
+/**
  * Delete a folder AND every list/sentence inside it (per owner decision — the
  * delete dialog warns loudly). R2 asset orphans from deleted items are left for
  * the Phase 13.3 orphan-cleanup pass (storage-only, not correctness).

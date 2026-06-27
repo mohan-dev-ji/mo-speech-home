@@ -11,6 +11,7 @@ import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { ArrowLeft, ListOrdered, CheckSquare, Bookmark, Library } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -392,8 +393,18 @@ export function ListDetailContent({ listId }: Props) {
     onItemClick: (index: number) => setPlayModal({ item: localItems[index], index }),
   };
 
+  // Group colour tint (ADR-014) — colour-codes this list's banner + item cards
+  // with its group's colour (via `--group-card`). Unset when the list has no
+  // group / no colour.
+  const groupTint = folder?.colour
+    ? `color-mix(in srgb, ${getCategoryColour(folder.colour).c500} 30%, transparent)`
+    : undefined;
+
   return (
-    <div className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}>
+    <div
+      className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}
+      style={groupTint ? ({ '--group-card': groupTint } as React.CSSProperties) : undefined}
+    >
 
       {/* Admin disclaimer — visible only when admin in admin viewMode is
           editing a list that's published to a pack. */}

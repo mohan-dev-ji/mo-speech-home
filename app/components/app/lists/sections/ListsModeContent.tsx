@@ -33,6 +33,7 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -170,7 +171,7 @@ function SortableListRow({
           'border-2 border-dashed',
           isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
         ].join(' ')}
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: 'var(--group-card, var(--theme-card))' }}
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
         <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
@@ -366,6 +367,14 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     return () => setBreadcrumbExtra(null);
   }, [folderId, folderName, setBreadcrumbExtra]);
 
+  // Group colour tint (ADR-014) — colour-codes the whole group view (banner +
+  // list cards) at the category-detail banner opacity. Exposed as `--group-card`
+  // on the root; surfaces read `var(--group-card, var(--theme-card))`. Unset for
+  // Ungrouped / colourless folders, so those fall back to the plain card.
+  const groupTint = folderDoc?.colour
+    ? `color-mix(in srgb, ${getCategoryColour(folderDoc.colour).c500} 30%, transparent)`
+    : undefined;
+
   // Move-to-group dialog state. `moveSelection` is the chosen destination:
   // a folder id, 'ungrouped', or null (nothing chosen yet).
   const [moveTarget, setMoveTarget] = useState<{ id: Id<'profileLists'>; name: string } | null>(null);
@@ -531,7 +540,10 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const hasPublishedList = !!scopedLists?.some((l) => !!l.librarySourceId);
 
   return (
-    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
+    <div
+      className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap"
+      style={groupTint ? ({ '--group-card': groupTint } as React.CSSProperties) : undefined}
+    >
 
       <AdminPackEditingBanner visible={showAdminBadges && hasPublishedList} />
 

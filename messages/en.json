@@ -1,4 +1,12 @@
 {
+  "group": {
+    "rename": "Rename",
+    "delete": "Delete",
+    "reorder": "Reorder",
+    "colour": "Choose colour",
+    "editImage": "Edit folder image",
+    "open": "Open {name}"
+  },
   "lists": {
     "title": "Lists",
     "create": "Create list",
