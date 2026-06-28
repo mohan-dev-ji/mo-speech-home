@@ -27,22 +27,25 @@ export const installListModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
-    const module = getModuleBySlug("lists", slug);
+    const module = await getModuleBySlug(ctx, "lists", slug);
     if (!module) {
       throw new ConvexError({
         code: "MODULE_NOT_FOUND",
-        message: `List module "${slug}" not found in the JSON catalogue.`,
+        message: `List module "${slug}" not found.`,
       });
     }
-    const lifecycle = await ctx.db
-      .query("listLifecycle")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
     assertModuleInstallable({
       slug,
       isStarter: module.isStarter ?? false,
       defaultTier: module.defaultTier,
-      lifecycle,
+      lifecycle:
+        module.publishedAt === undefined
+          ? null
+          : {
+              publishedAt: module.publishedAt,
+              expiresAt: module.expiresAt,
+              tierOverride: module.tierOverride,
+            },
       hasFullAccess: userHasFullAccess(user),
       now: Date.now(),
     });
@@ -77,22 +80,34 @@ export const getMyInstalledListSlugs = query({
 export const getPublicListCatalogue = query({
   args: {},
   handler: async (ctx) => {
-    const rows = await ctx.db.query("listLifecycle").collect();
-    const bySlug = new Map(rows.map((r) => [r.slug, r]));
     const now = Date.now();
-    return getAllModules("lists")
+    const modules = await getAllModules(ctx, "lists");
+    return modules
       .map((module) => {
-        const lifecycle = bySlug.get(module.slug) ?? null;
         const isStarter = module.isStarter ?? false;
-        if (!isModuleVisible({ isStarter, lifecycle, now })) return null;
+        if (
+          !isModuleVisible({
+            isStarter,
+            lifecycle:
+              module.publishedAt === undefined
+                ? null
+                : {
+                    publishedAt: module.publishedAt,
+                    expiresAt: module.expiresAt,
+                  },
+            now,
+          })
+        )
+          return null;
         return {
           slug: module.slug,
           name: module.name,
           description: module.description ?? null,
           coverImagePath: module.coverImagePath ?? null,
           isStarter,
-          featured: lifecycle?.featured ?? false,
-          effectiveTier: (lifecycle?.tierOverride ?? module.defaultTier) as
+          isDefault: module.isDefault ?? false,
+          featured: module.featured,
+          effectiveTier: (module.tierOverride ?? module.defaultTier) as
             | "free"
             | "pro"
             | "max",
@@ -172,7 +187,7 @@ async function findModuleFolder(
 }
 
 function deriveStatus(
-  lifecycle: Doc<"listLifecycle"> | null,
+  lifecycle: { publishedAt?: number; expiresAt?: number } | null,
   now: number
 ): "draft" | "scheduled" | "live" | "expired" {
   if (!lifecycle || lifecycle.publishedAt === undefined) return "draft";
@@ -186,11 +201,9 @@ export const listAllListModulesForAdmin = query({
   args: {},
   handler: async (ctx) => {
     await requireCallerIsAdmin(ctx);
-    const rows = await ctx.db.query("listLifecycle").collect();
-    const bySlug = new Map(rows.map((r) => [r.slug, r]));
     const now = Date.now();
-    return getAllModules("lists").map((module) => {
-      const lifecycle = bySlug.get(module.slug) ?? null;
+    const modules = await getAllModules(ctx, "lists");
+    return modules.map((module) => {
       return {
         slug: module.slug,
         name: module.name,
@@ -199,17 +212,17 @@ export const listAllListModulesForAdmin = query({
         defaultTier: module.defaultTier,
         isStarter: module.isStarter ?? false,
         provenance: module.provenance ?? null,
-        lifecycleId: lifecycle?._id ?? null,
-        publishedAt: lifecycle?.publishedAt ?? null,
-        expiresAt: lifecycle?.expiresAt ?? null,
-        featured: lifecycle?.featured ?? false,
-        tierOverride: lifecycle?.tierOverride ?? null,
-        tags: lifecycle?.tags ?? [],
-        notes: lifecycle?.notes ?? null,
-        updatedAt: lifecycle?.updatedAt ?? null,
-        createdBy: lifecycle?.createdBy ?? null,
-        status: deriveStatus(lifecycle, now),
-        effectiveTier: (lifecycle?.tierOverride ?? module.defaultTier) as
+        lifecycleId: module._id,
+        publishedAt: module.publishedAt ?? null,
+        expiresAt: module.expiresAt ?? null,
+        featured: module.featured,
+        tierOverride: module.tierOverride ?? null,
+        tags: module.tags ?? [],
+        notes: module.notes ?? null,
+        updatedAt: module.updatedAt,
+        createdBy: module.createdBy,
+        status: deriveStatus(module, now),
+        effectiveTier: (module.tierOverride ?? module.defaultTier) as
           | "free"
           | "pro"
           | "max",
@@ -230,19 +243,21 @@ export const updateListLifecycle = mutation({
     notes: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    const { clerkUserId } = await requireCallerIsAdmin(ctx);
-    if (!getModuleBySlug("lists", args.slug)) {
+    await requireCallerIsAdmin(ctx);
+    const row = await ctx.db
+      .query("libraryModules")
+      .withIndex("by_tree_and_slug", (q) =>
+        q.eq("tree", "lists").eq("slug", args.slug)
+      )
+      .unique();
+    if (!row) {
       throw new ConvexError({
         code: "MODULE_NOT_FOUND",
-        message: `No JSON list module for slug "${args.slug}".`,
+        message: `No list module for slug "${args.slug}".`,
       });
     }
-    const existing = await ctx.db
-      .query("listLifecycle")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .unique();
     const now = Date.now();
-    const patch: Partial<Doc<"listLifecycle">> & { updatedAt: number } = {
+    const patch: Partial<Doc<"libraryModules">> & { updatedAt: number } = {
       updatedAt: now,
     };
     if (args.publishedAt !== undefined)
@@ -260,24 +275,8 @@ export const updateListLifecycle = mutation({
     }
     if (args.notes !== undefined) patch.notes = args.notes ?? undefined;
 
-    if (existing) {
-      await ctx.db.patch(existing._id, patch);
-      return { slug: args.slug, lifecycleId: existing._id };
-    }
-    const lifecycleId = await ctx.db.insert("listLifecycle", {
-      slug: args.slug,
-      featured: patch.featured ?? false,
-      createdBy: clerkUserId,
-      updatedAt: now,
-      ...(patch.publishedAt !== undefined && { publishedAt: patch.publishedAt }),
-      ...(patch.expiresAt !== undefined && { expiresAt: patch.expiresAt }),
-      ...(patch.tierOverride !== undefined && {
-        tierOverride: patch.tierOverride,
-      }),
-      ...(patch.tags !== undefined && { tags: patch.tags }),
-      ...(patch.notes !== undefined && { notes: patch.notes }),
-    });
-    return { slug: args.slug, lifecycleId };
+    await ctx.db.patch(row._id, patch);
+    return { slug: args.slug, lifecycleId: row._id };
   },
 });
 
@@ -286,10 +285,22 @@ export const deleteListLifecycle = mutation({
   handler: async (ctx, { slug }) => {
     await requireCallerIsAdmin(ctx);
     const row = await ctx.db
-      .query("listLifecycle")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .query("libraryModules")
+      .withIndex("by_tree_and_slug", (q) =>
+        q.eq("tree", "lists").eq("slug", slug)
+      )
       .unique();
-    if (row) await ctx.db.delete(row._id);
+    if (row) {
+      await ctx.db.patch(row._id, {
+        publishedAt: undefined,
+        expiresAt: undefined,
+        tierOverride: undefined,
+        tags: undefined,
+        notes: undefined,
+        featured: false,
+        updatedAt: Date.now(),
+      });
+    }
     return { slug };
   },
 });

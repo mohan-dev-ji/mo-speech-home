@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "@/i18n/navigation";
 import { usePreloadedQuery, type Preloaded } from "convex/react";
 import type { api } from "@/convex/_generated/api";
 import { ModuleCard, type ModuleCardData } from "@/app/components/marketing/ui/ModuleCard";
+import {
+  moduleClass,
+  MODULE_CLASSES,
+  MODULE_CLASS_LABEL_KEY,
+  type ModuleClass,
+} from "@/app/components/marketing/ui/moduleClass";
 import { ThemeSwatch } from "@/app/components/app/settings/ui/ThemeSwatch";
 import { getThemeTokens } from "@/lib/themes/registry";
 import { displayString } from "@/lib/languages/displayValue";
@@ -118,6 +124,22 @@ function ModuleGrid({
   locale: string;
   emptyLabel: string;
 }) {
+  const t = useTranslations("library");
+  const [filter, setFilter] = useState<ModuleClass | "all">("all");
+
+  // Count per display class so we only show filters that have modules.
+  const countByClass = useMemo(() => {
+    const c: Record<ModuleClass, number> = { default: 0, free: 0, pro: 0, max: 0 };
+    for (const m of modules) c[moduleClass(m.isDefault, m.effectiveTier)]++;
+    return c;
+  }, [modules]);
+
+  const classesPresent = MODULE_CLASSES.filter((c) => countByClass[c] > 0);
+  const visible =
+    filter === "all"
+      ? modules
+      : modules.filter((m) => moduleClass(m.isDefault, m.effectiveTier) === filter);
+
   if (modules.length === 0) {
     return (
       <p className="text-body text-muted-foreground py-12 text-center">
@@ -125,11 +147,42 @@ function ModuleGrid({
       </p>
     );
   }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-      {modules.map((m) => (
-        <ModuleCard key={m.slug} module={m} tree={tree} locale={locale} />
-      ))}
+    <div className="flex flex-col gap-5">
+      {/* Filter badges — only render when there's more than one class to pick. */}
+      {classesPresent.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {(["all", ...classesPresent] as const).map((c) => {
+            const active = filter === c;
+            const label =
+              c === "all" ? t("filterByClassAll") : t(MODULE_CLASS_LABEL_KEY[c]);
+            const count = c === "all" ? modules.length : countByClass[c];
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setFilter(c)}
+                aria-pressed={active}
+                className={`rounded-full border px-3 py-1 text-caption font-medium transition-colors ${
+                  active
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+                <span className="ml-1.5 opacity-60">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        {visible.map((m) => (
+          <ModuleCard key={m.slug} module={m} tree={tree} locale={locale} />
+        ))}
+      </div>
     </div>
   );
 }

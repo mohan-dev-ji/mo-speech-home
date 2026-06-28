@@ -14,6 +14,7 @@ import type * as admin_overviewStats from "../admin/overviewStats.js";
 import type * as contentModules_categories from "../contentModules/categories.js";
 import type * as contentModules_detail from "../contentModules/detail.js";
 import type * as contentModules_lists from "../contentModules/lists.js";
+import type * as contentModules_publish from "../contentModules/publish.js";
 import type * as contentModules_sentences from "../contentModules/sentences.js";
 import type * as crons from "../crons.js";
 import type * as data__shared_types from "../data/_shared/types.js";
@@ -69,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   "contentModules/categories": typeof contentModules_categories;
   "contentModules/detail": typeof contentModules_detail;
   "contentModules/lists": typeof contentModules_lists;
+  "contentModules/publish": typeof contentModules_publish;
   "contentModules/sentences": typeof contentModules_sentences;
   crons: typeof crons;
   "data/_shared/types": typeof data__shared_types;

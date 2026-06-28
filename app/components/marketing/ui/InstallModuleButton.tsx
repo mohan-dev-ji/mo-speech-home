@@ -9,15 +9,6 @@ import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/app/components/app/shared/ui/Dialog";
 import { track } from "@/lib/analytics";
 
 export type ModuleTree = "categories" | "lists" | "sentences";
@@ -81,30 +72,6 @@ export function InstallModuleButton({
   const install = useMutation(cfg.install);
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
-  const [removeOpen, setRemoveOpen] = useState(false);
-  const [removing, setRemoving] = useState(false);
-
-  // Uninstall (ADR-014 §5) — POSTs to the route that deletes the module's rows
-  // + its personal R2 orphans. The installed-slugs query is reactive, so on
-  // success the CTA flips back to "Add to profile" with no manual refetch.
-  async function handleRemove() {
-    setRemoving(true);
-    try {
-      const res = await fetch("/api/uninstall-content-module", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tree, slug }),
-      });
-      if (!res.ok) throw new Error("uninstall failed");
-      track("module_uninstalled", { slug, tree });
-      showToast({ tone: "info", title: t("removeSuccessToast") });
-      setRemoveOpen(false);
-    } catch {
-      showToast({ tone: "warning", title: t("removeErrorToast") });
-    } finally {
-      setRemoving(false);
-    }
-  }
 
   if (
     !isLoaded ||
@@ -142,41 +109,12 @@ export function InstallModuleButton({
   }
 
   if (installedSlugs?.includes(slug)) {
+    // Install-only card (ADR-014 §5, owner decision 2026-06-28): uninstall lives
+    // in-app, in the tree's edit-mode trash — never on this marketing surface.
     return (
-      <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
-        <div className="flex flex-col items-center gap-2">
-          <Button variant="secondary" size="md" disabled className="w-full">
-            {t("ctaAlreadyInstalled")}
-          </Button>
-          <button
-            type="button"
-            onClick={() => setRemoveOpen(true)}
-            className="text-caption text-muted-foreground underline hover:text-foreground"
-          >
-            {t("ctaRemove")}
-          </button>
-        </div>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("removeTitle")}</DialogTitle>
-            <DialogDescription>{t("removeWarning")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose className="px-4 py-2 rounded-theme-sm text-theme-s font-medium text-theme-secondary-text hover:text-theme-text">
-              {t("removeCancel")}
-            </DialogClose>
-            <button
-              type="button"
-              onClick={handleRemove}
-              disabled={removing}
-              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium text-white disabled:opacity-50"
-              style={{ backgroundColor: "var(--theme-warning)" }}
-            >
-              {removing ? t("ctaLoading") : t("ctaRemoveConfirm")}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Button variant="secondary" size="md" disabled className="w-full">
+        {t("ctaAlreadyInstalled")}
+      </Button>
     );
   }
 

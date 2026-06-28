@@ -13,19 +13,15 @@ import {
   InstallModuleButton,
   type ModuleTree,
 } from "@/app/components/marketing/ui/InstallModuleButton";
+import {
+  moduleClass,
+  MODULE_CLASS_BADGE,
+  MODULE_CLASS_LABEL_KEY,
+} from "@/app/components/marketing/ui/moduleClass";
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
 type LocalisedString = Record<string, string>;
-
-const tierBadgeVariant: Record<
-  "free" | "pro" | "max",
-  "success" | "default" | "warning"
-> = {
-  free: "success",
-  pro: "default",
-  max: "warning",
-};
 
 type Symbol = {
   order: number;
@@ -40,6 +36,7 @@ type ModuleDetail = {
   description: LocalisedString | null;
   coverImagePath: string | null;
   tier: "free" | "pro" | "max";
+  isDefault: boolean;
   isStarter: boolean;
   counts: { categories: number; lists: number; sentences: number };
   categories: Array<{
@@ -99,12 +96,8 @@ export function ModuleDetailContent({
   const coverSrc = module.coverImagePath
     ? `/api/assets?key=${encodeURIComponent(module.coverImagePath)}`
     : null;
-  const tierLabel =
-    module.tier === "free"
-      ? t("tierBadgeFree")
-      : module.tier === "pro"
-        ? t("tierBadgePro")
-        : t("tierBadgeMax");
+  const cls = moduleClass(module.isDefault, module.tier);
+  const tierLabel = t(MODULE_CLASS_LABEL_KEY[cls]);
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl">
@@ -133,7 +126,7 @@ export function ModuleDetailContent({
           <div className="flex items-start gap-3 flex-wrap">
             <h1 className="text-display font-semibold text-foreground">{name}</h1>
             <div className="pt-1">
-              <Badge variant={tierBadgeVariant[module.tier]}>{tierLabel}</Badge>
+              <Badge variant={MODULE_CLASS_BADGE[cls]}>{tierLabel}</Badge>
             </div>
           </div>
           {description && (

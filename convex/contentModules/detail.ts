@@ -18,12 +18,6 @@ const TREE = v.union(
   v.literal("sentences")
 );
 
-const LIFECYCLE_TABLE = {
-  categories: "categoryLifecycle",
-  lists: "listLifecycle",
-  sentences: "sentenceLifecycle",
-} as const;
-
 type ResolvedSymbol = {
   imagePath: string | null;
   label: Record<string, string>;
@@ -55,24 +49,26 @@ async function resolveSymbolRef(
 export const getModuleDetail = query({
   args: { tree: TREE, slug: v.string() },
   handler: async (ctx, { tree, slug }) => {
-    const module = getModuleBySlug(tree, slug);
+    const module = await getModuleBySlug(ctx, tree, slug);
     if (!module) return null;
 
-    const lifecycle = await ctx.db
-      .query(LIFECYCLE_TABLE[tree])
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
     if (
       !isModuleVisible({
         isStarter: module.isStarter ?? false,
-        lifecycle,
+        lifecycle:
+          module.publishedAt === undefined
+            ? null
+            : {
+                publishedAt: module.publishedAt,
+                expiresAt: module.expiresAt,
+              },
         now: Date.now(),
       })
     ) {
       return null;
     }
 
-    const tier = (lifecycle?.tierOverride ?? module.defaultTier) as
+    const tier = (module.tierOverride ?? module.defaultTier) as
       | "free"
       | "pro"
       | "max";
@@ -179,6 +175,7 @@ export const getModuleDetail = query({
       description: module.description ?? null,
       coverImagePath: module.coverImagePath ?? null,
       tier,
+      isDefault: module.isDefault ?? false,
       isStarter: module.isStarter ?? false,
       counts: {
         categories: categories.length,

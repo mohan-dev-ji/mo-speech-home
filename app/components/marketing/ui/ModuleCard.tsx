@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { InstallModuleButton, type ModuleTree } from "./InstallModuleButton";
+import {
+  moduleClass,
+  MODULE_CLASS_BADGE,
+  MODULE_CLASS_LABEL_KEY,
+} from "./moduleClass";
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
@@ -13,25 +18,18 @@ export type ModuleCardData = {
   description: Record<string, string> | null;
   coverImagePath: string | null;
   isStarter: boolean;
+  isDefault: boolean;
   featured: boolean;
   effectiveTier: "free" | "pro" | "max";
   // Exactly one of these is present, matching the module's tree.
   counts: { categories?: number; lists?: number; sentences?: number };
 };
 
-const tierBadgeVariant: Record<
-  ModuleCardData["effectiveTier"],
-  "success" | "default" | "warning"
-> = {
-  free: "success",
-  pro: "default",
-  max: "warning",
-};
-
 /**
  * A content-module card for the four-tab library (ADR-014 §3). Sibling of
- * {@link LibraryPackCard} but single-type and non-navigating (module detail
- * pages are out of scope for 13.2). The whole module installs as one folder.
+ * {@link LibraryPackCard} but single-type: the cover + name + count link to the
+ * module detail page, while the install button sits outside that link. The whole
+ * module installs as one folder.
  */
 export function ModuleCard({
   module,
@@ -48,12 +46,8 @@ export function ModuleCard({
   const coverSrc = module.coverImagePath
     ? `/api/assets?key=${encodeURIComponent(module.coverImagePath)}`
     : null;
-  const tierLabel =
-    module.effectiveTier === "free"
-      ? t("tierBadgeFree")
-      : module.effectiveTier === "pro"
-        ? t("tierBadgePro")
-        : t("tierBadgeMax");
+  const cls = moduleClass(module.isDefault, module.effectiveTier);
+  const tierLabel = t(MODULE_CLASS_LABEL_KEY[cls]);
 
   // One count line, keyed to the tree this card belongs to.
   const count =
@@ -91,9 +85,7 @@ export function ModuleCard({
             <div className="w-full h-full" aria-hidden />
           )}
           <div className="absolute top-2 right-2">
-            <Badge variant={tierBadgeVariant[module.effectiveTier]}>
-              {tierLabel}
-            </Badge>
+            <Badge variant={MODULE_CLASS_BADGE[cls]}>{tierLabel}</Badge>
           </div>
         </div>
         <div className="flex flex-col p-4 gap-2">

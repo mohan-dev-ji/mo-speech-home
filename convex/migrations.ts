@@ -1,13 +1,15 @@
 import { mutation, query, internalMutation, action } from "./_generated/server";
 import { v } from "convex/values";
-import type { Id, TableNames } from "./_generated/dataModel";
+import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
 import { STARTER_BACKUPS } from "./data/starter_backups";
 import { LIBRARY_PACKS } from "./data/library_packs/_index";
 import { LANGUAGE_MODULES } from "./data/languages/_index";
-import { getAllModules } from "./lib/contentModules";
+import { CATEGORY_MODULES } from "./data/categories/_index";
+import { LIST_MODULES } from "./data/lists/_index";
+import { SENTENCE_MODULES } from "./data/sentences/_index";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -1212,50 +1214,63 @@ export const seedLifecycleFromJSON = mutation({
 });
 
 /**
- * Phase 13.4 — publish the content modules converted from the legacy themed
- * packs (christmas, dinosaurs, …) so they're visible + installable in the
- * four-tab library at their pack tier. Mirrors `seedLifecycleFromJSON` but
- * across the three per-type lifecycle tables.
+ * Phase 13.4 Task 0 — seed the `libraryModules` table from the bundled module
+ * JSON (the converted themed packs: christmas, dinosaurs, …). This is the
+ * one-time migration that makes Convex the source of truth (ADR-014 addendum
+ * 2026-06-27); it replaces the now-removed `publishConvertedPackModules`.
  *
- * For each tree, every non-starter module without a lifecycle row gets one with
- * `publishedAt = now` (tier comes from the module's `defaultTier`; no override).
- * Starter modules (test fixtures + the default folders) are skipped — they're
- * either always-visible or published via the curation flow. Idempotent.
+ * Reads the JSON barrels DIRECTLY (not the `getAllModules` reader, which now
+ * queries the table — empty before this runs). Every non-starter module is
+ * inserted with the lifecycle merged onto the row and `publishedAt = now` (tier
+ * falls back to `defaultTier`; no override). The `isStarter` test fixtures are
+ * skipped. Idempotent: an existing `(tree, slug)` row is left untouched.
+ *
+ * Run via the Convex dashboard Functions runner (cannot run from a worktree).
+ * Expected on first run: `{ seeded: 17, skippedStarter: 3, alreadyHadRow: 0 }`.
  */
-export const publishConvertedPackModules = mutation({
+export const seedLibraryModulesFromJSON = mutation({
   args: { adminClerkUserId: v.string() },
   handler: async (ctx, { adminClerkUserId }) => {
     const now = Date.now();
-    const lifecycleTable = {
-      categories: "categoryLifecycle",
-      lists: "listLifecycle",
-      sentences: "sentenceLifecycle",
+    const maps = {
+      categories: CATEGORY_MODULES,
+      lists: LIST_MODULES,
+      sentences: SENTENCE_MODULES,
     } as const;
 
+    let scanned = 0;
     let seeded = 0;
-    let skippedStarter = 0;
     let alreadyHadRow = 0;
+    let skippedStarter = 0;
 
     for (const tree of ["categories", "lists", "sentences"] as const) {
-      const table = lifecycleTable[tree];
-      for (const mod of getAllModules(tree)) {
+      for (const mod of Object.values(maps[tree])) {
+        scanned++;
         if (mod.isStarter) {
           skippedStarter++;
           continue;
         }
         const existing = await ctx.db
-          .query(table)
-          .withIndex("by_slug", (q) => q.eq("slug", mod.slug))
+          .query("libraryModules")
+          .withIndex("by_tree_and_slug", (q) =>
+            q.eq("tree", tree).eq("slug", mod.slug)
+          )
           .first();
         if (existing) {
           alreadyHadRow++;
           continue;
         }
-        await ctx.db.insert(table, {
+        await ctx.db.insert("libraryModules", {
+          tree,
           slug: mod.slug,
           name: mod.name,
           ...(mod.description ? { description: mod.description } : {}),
+          ...(mod.icon ? { icon: mod.icon } : {}),
+          ...(mod.colour ? { colour: mod.colour } : {}),
           ...(mod.coverImagePath ? { coverImagePath: mod.coverImagePath } : {}),
+          defaultTier: mod.defaultTier,
+          ...(mod.provenance ? { provenance: mod.provenance } : {}),
+          items: mod.items,
           publishedAt: now,
           featured: false,
           createdBy: adminClerkUserId,
@@ -1265,8 +1280,96 @@ export const publishConvertedPackModules = mutation({
       }
     }
 
-    const summary = { seeded, alreadyHadRow, skippedStarter };
-    console.log(`[publishConvertedPackModules] ${JSON.stringify(summary)}`);
+    const summary = { scanned, seeded, alreadyHadRow, skippedStarter };
+    console.log(`[seedLibraryModulesFromJSON] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
+/**
+ * Phase 13.4 (re-publish hardening) — backfill the `publishedModuleSlug` /
+ * `publishedModuleClass` provenance link onto source categories/folders that
+ * were published as modules BEFORE the back-link existed. Matches a source to
+ * its module by slug (slugify(name) === module.slug + same tree), the same
+ * derivation the Publish modal uses, so the common "didn't hand-edit the slug"
+ * case links cleanly. Sources with no slug match are skipped (re-publish once to
+ * link). Idempotent: already-linked sources are left alone.
+ *
+ * Run via the dashboard with the owner's Clerk user id.
+ */
+export const backfillPublishedModuleLinks = mutation({
+  args: { adminClerkUserId: v.string() },
+  handler: async (ctx, { adminClerkUserId }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", adminClerkUserId))
+      .first();
+    if (!user) throw new Error(`No user for clerk id ${adminClerkUserId}`);
+    const accountId = user._id;
+    const now = Date.now();
+
+    const slugify = (s: string): string =>
+      s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const classOf = (
+      m: Doc<"libraryModules">
+    ): "default" | "free" | "pro" | "max" =>
+      m.isDefault ? "default" : (m.tierOverride ?? m.defaultTier);
+    const firstName = (n: Record<string, string>): string =>
+      n.en ?? Object.values(n)[0] ?? "";
+
+    let linkedCategories = 0;
+    let linkedFolders = 0;
+    let skipped = 0;
+
+    const cats = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const c of cats) {
+      if (c.publishedModuleSlug) continue;
+      const slug = slugify(firstName(c.name));
+      if (!slug) { skipped++; continue; }
+      const mod = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) =>
+          q.eq("tree", "categories").eq("slug", slug)
+        )
+        .unique();
+      if (!mod) { skipped++; continue; }
+      await ctx.db.patch(c._id, {
+        publishedModuleSlug: slug,
+        publishedModuleClass: classOf(mod),
+        updatedAt: now,
+      });
+      linkedCategories++;
+    }
+
+    const folders = await ctx.db
+      .query("profileFolders")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const f of folders) {
+      if (f.publishedModuleSlug) continue;
+      if (f.tree !== "lists" && f.tree !== "sentences") continue;
+      const slug = slugify(firstName(f.name));
+      if (!slug) { skipped++; continue; }
+      const mod = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) =>
+          q.eq("tree", f.tree).eq("slug", slug)
+        )
+        .unique();
+      if (!mod) { skipped++; continue; }
+      await ctx.db.patch(f._id, {
+        publishedModuleSlug: slug,
+        publishedModuleClass: classOf(mod),
+        updatedAt: now,
+      });
+      linkedFolders++;
+    }
+
+    const summary = { linkedCategories, linkedFolders, skipped };
+    console.log(`[backfillPublishedModuleLinks] ${JSON.stringify(summary)}`);
     return summary;
   },
 });

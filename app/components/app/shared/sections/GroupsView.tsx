@@ -27,9 +27,13 @@ import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { CreateGroupModal } from '@/app/components/app/shared/modals/CreateGroupModal';
 import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
+import { track } from '@/lib/analytics';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { getCategoryColour } from '@/app/lib/categoryColours';
@@ -52,8 +56,20 @@ const GROUPS_GRID_CLASSES = {
 const UNGROUPED_COLOUR = '#6B7280';
 
 type FolderedTree = 'lists' | 'sentences';
-type PendingDelete = { id: Id<'profileFolders'>; name: string; count: number } | null;
+type PendingDelete = {
+  id: Id<'profileFolders'>;
+  name: string;
+  count: number;
+  source?: string;
+  librarySourceId?: string;
+} | null;
 type ImageTarget = { id: Id<'profileFolders'>; name: string; imagePath?: string } | null;
+type PublishTarget = {
+  id: Id<'profileFolders'>;
+  name: string;
+  publishedSlug?: string;
+  publishedClass?: 'default' | 'free' | 'pro' | 'max';
+} | null;
 
 /**
  * Shared groups grid (ADR-014) for the Lists and Sentences trees — the single
@@ -71,12 +87,16 @@ export function GroupsView({
   namespace: FolderedTree;
 }) {
   const t = useTranslations(namespace);
-  const { language, stateFlags, accountId, voiceId } = useProfile();
+  const tGroup = useTranslations('group');
+  const { language, stateFlags, viewMode, accountId, voiceId } = useProfile();
   const { talkerMode } = useTalker();
   const router = useRouter();
   const locale = useParams().locale as string;
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
+  const isAdmin = useIsAdmin();
+  const showPublish = viewMode === 'admin' && isAdmin;
+  const { showToast } = useToast();
 
   const folders = useQuery(api.profileFolders.getProfileFolders, { tree });
   // Item counts feed the delete-confirmation copy only. Query the matching
@@ -97,6 +117,7 @@ export function GroupsView({
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageTarget, setImageTarget] = useState<ImageTarget>(null);
+  const [publishTarget, setPublishTarget] = useState<PublishTarget>(null);
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -157,10 +178,25 @@ export function GroupsView({
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteFolder({ folderId: pendingDelete.id });
+      if (pendingDelete.source === 'module' && pendingDelete.librarySourceId) {
+        // Module-sourced folder → uninstall the module via the route (cascade
+        // delete + R2 orphan cleanup), not the plain folder delete. This is the
+        // in-app home for uninstall (ADR-014 §5, owner decision 2026-06-28).
+        const res = await fetch('/api/uninstall-content-module', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tree, slug: pendingDelete.librarySourceId }),
+        });
+        if (!res.ok) throw new Error('uninstall failed');
+        track('module_uninstalled', { slug: pendingDelete.librarySourceId, tree });
+      } else {
+        await deleteFolder({ folderId: pendingDelete.id });
+      }
+      setPendingDelete(null);
+    } catch {
+      showToast({ tone: 'warning', title: tGroup('uninstallError') });
     } finally {
       setIsDeleting(false);
-      setPendingDelete(null);
     }
   }
 
@@ -228,7 +264,9 @@ export function GroupsView({
                       onRename={(value) => handleRename(folder._id, value)}
                       onRecolour={(key) => handleRecolour(folder._id, key)}
                       onEditImage={() => setImageTarget({ id: folder._id, name, imagePath: folder.imagePath })}
-                      onDeleteRequest={() => setPendingDelete({ id: folder._id, name, count: countByFolder.get(folder._id) ?? 0 })}
+                      onDeleteRequest={() => setPendingDelete({ id: folder._id, name, count: countByFolder.get(folder._id) ?? 0, source: folder.source, librarySourceId: folder.librarySourceId })}
+                      published={!!folder.publishedModuleSlug}
+                      onPublishRequest={showPublish ? () => setPublishTarget({ id: folder._id, name, publishedSlug: folder.publishedModuleSlug, publishedClass: folder.publishedModuleClass }) : undefined}
                     />
                   );
                 })}
@@ -306,6 +344,17 @@ export function GroupsView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {publishTarget && (
+        <PublishModuleModal
+          kind={tree}
+          targetId={publishTarget.id}
+          defaultName={publishTarget.name}
+          publishedSlug={publishTarget.publishedSlug}
+          publishedClass={publishTarget.publishedClass}
+          onClose={() => setPublishTarget(null)}
+        />
+      )}
 
       <UpgradeNudge open={upgradeNudgeOpen} onOpenChange={setUpgradeNudgeOpen} locale={locale} />
     </div>

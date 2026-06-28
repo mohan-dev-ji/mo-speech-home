@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ImageIcon, Trash2, Move } from 'lucide-react';
+import { ImageIcon, Trash2, Move, Upload, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -35,6 +35,10 @@ type Props = {
   /** Open the Symbol Editor (image only) to pick the folder image. */
   onEditImage?: () => void;
   onDeleteRequest?: () => void;
+  /** Admin-only: publish this folder as a content module (ADR-014 Task B). */
+  onPublishRequest?: () => void;
+  /** True when this source is already published as a module → show Update look. */
+  published?: boolean;
 };
 
 /**
@@ -57,6 +61,8 @@ export function GroupTile({
   onRecolour,
   onEditImage,
   onDeleteRequest,
+  onPublishRequest,
+  published,
 }: Props) {
   const t = useTranslations('group');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -165,6 +171,16 @@ export function GroupTile({
               label={t('delete')}
               onClick={(e) => { e.stopPropagation(); onDeleteRequest?.(); }}
             />
+            {onPublishRequest && (
+              <IconButton
+                size="sm"
+                variant="neutral"
+                className={published ? 'text-theme-primary' : undefined}
+                icon={published ? <RefreshCw /> : <Upload />}
+                label={published ? t('updateModule') : t('publish')}
+                onClick={(e) => { e.stopPropagation(); onPublishRequest(); }}
+              />
+            )}
             <IconButton
               size="sm"
               variant="neutral"
