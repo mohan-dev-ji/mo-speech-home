@@ -243,6 +243,75 @@ const libraryModuleSentenceItems = v.array(
   })
 );
 
+// ─── Phase 14 (ADR-015) — composition units ──────────────────────────────────
+// A composition (sentence) or a phrase is an ordered list of units that keeps
+// its parts. A unit is a single word/symbol or a phrase (a snapshot of its
+// words + its own audio). "Structure frozen, text live" (ADR-015 §3): the symbol
+// reference is snapshotted as `imagePath`; the localised `label` resolves live
+// where present. One level deep — a phrase never contains another phrase (§1).
+const slotDisplayProps = v.object({
+  bgColour: v.optional(v.string()),
+  textColour: v.optional(v.string()),
+  textSize: v.optional(
+    v.union(v.literal("sm"), v.literal("md"), v.literal("lg"), v.literal("xl"))
+  ),
+  showLabel: v.optional(v.boolean()),
+  showImage: v.optional(v.boolean()),
+  cardShape: v.optional(
+    v.union(v.literal("square"), v.literal("rounded"), v.literal("circle"))
+  ),
+});
+
+// A single word/symbol inside a composition or phrase (no `kind` — always a word).
+const compositionWord = v.object({
+  order: v.number(),
+  imagePath: v.optional(v.string()),
+  audioPath: v.optional(v.string()), // the symbol's own clip (sequence playback)
+  label: v.optional(localisedString), // resolves live where present
+  displayProps: v.optional(slotDisplayProps),
+});
+
+// A unit in a sentence: a word OR a phrase (snapshot of its words + own clip).
+const compositionUnit = v.union(
+  v.object({
+    kind: v.literal("word"),
+    order: v.number(),
+    imagePath: v.optional(v.string()),
+    audioPath: v.optional(v.string()),
+    label: v.optional(localisedString),
+    displayProps: v.optional(slotDisplayProps),
+  }),
+  v.object({
+    kind: v.literal("phrase"),
+    order: v.number(),
+    name: localisedString,
+    audioPath: v.optional(v.string()), // phrase clip — one chunk in the sequence
+    recordedAudioPath: v.optional(v.string()),
+    librarySourceId: v.optional(v.string()), // phrase-bank slug snapshotted from
+    words: v.array(compositionWord),
+  })
+);
+
+// Phrase-module content array (the Phrases tree's library modules).
+const libraryModulePhraseItems = v.array(
+  v.object({
+    name: localisedString,
+    order: v.number(),
+    audioPath: v.optional(v.string()),
+    recordedAudioPath: v.optional(v.string()),
+    words: v.array(
+      v.object({
+        order: v.number(),
+        symbolId: v.optional(v.string()),
+        imagePath: v.optional(v.string()),
+        label: v.optional(localisedString),
+        displayProps: v.optional(slotDisplayProps),
+        imageSourceType: v.optional(imageSourceTypeLiteral),
+      })
+    ),
+  })
+);
+
 export default defineSchema({
   // ─── EXISTING TABLES (extended) ───────────────────────────────────────────
 
@@ -473,6 +542,10 @@ export default defineSchema({
     // shared organisation primitive; a category (symbol grid) files into one.
     // Optional until the Phase 13 migration assigns rows; null = ungrouped/root.
     folderId: v.optional(v.id("profileFolders")),
+    // ADR-015 §6 — "core" marks a core-word category: surfaced in the talker
+    // dropdown's Core-words tab, filtered out of the main Categories page +
+    // library, locked to zinc-500 with no colour swatch. Absent = normal category.
+    surface: v.optional(v.literal("core")),
     // Admin-only: forward link to the resourcePack this category is the source-of-truth for.
     // Set by setCategoryDefault / setCategoryInLibrary toggle mutations. When set, edits to
     // this category auto-rebuild the pack snapshot. Cleared on toggle-off, on delete, and
@@ -669,20 +742,26 @@ export default defineSchema({
     // Sentence text — feeds TTS and display. Localised: migrated from single-string
     // to localised record in Phase 8.0; union accepts both during migration.
     text: v.optional(localisedStringMigration),
+    // ADR-015 — `slots[]` is the Phase-13 shape and stays the rendered source of
+    // truth until later slices migrate readers to `units[]`. New writes keep it
+    // populated (a flattened view) for back-compat; it is dropped in a later cleanup.
     slots: v.array(
       v.object({
         order: v.number(),
         imagePath: v.optional(v.string()),
-        displayProps: v.optional(v.object({
-          bgColour: v.optional(v.string()),
-          textColour: v.optional(v.string()),
-          textSize: v.optional(v.union(v.literal("sm"), v.literal("md"), v.literal("lg"), v.literal("xl"))),
-          showLabel: v.optional(v.boolean()),
-          showImage: v.optional(v.boolean()),
-          cardShape: v.optional(v.union(v.literal("square"), v.literal("rounded"), v.literal("circle"))),
-        })),
+        displayProps: v.optional(slotDisplayProps),
       })
     ),
+    // ADR-015 — composition model (additive in Phase 14). Each unit is a word or
+    // a phrase (carrying its snapshot). Readers migrate from `slots[]` to `units[]`
+    // across slices; once complete `slots` is dropped. profileSentences always
+    // hold sentences; phrase-bank entries live in `profilePhrases`.
+    kind: v.optional(v.literal("sentence")),
+    units: v.optional(v.array(compositionUnit)),
+    // Playback mode (ADR-015 §9). "sequence" = staggered true-unit clips
+    // (talker-saved, no whole-sentence TTS). "fluent" = whole-utterance TTS
+    // (sentences page). Default resolved by the reader when absent (legacy rows).
+    playback: v.optional(v.union(v.literal("sequence"), v.literal("fluent"))),
     audioPath: v.optional(v.string()), // legacy single key (TTS or recording). Phase 8.5: TTS is resolved dynamically; this is back-compat only.
     // Phase 8.5 — human recording override (voice-independent). Stored under
     // accounts/<id>/audio/...; wins over dynamic TTS at play time. TTS is NOT
@@ -703,6 +782,45 @@ export default defineSchema({
     .index("by_folder_id_and_order", ["folderId", "order"]),
 
   /**
+   * A reusable phrase (ADR-015) — a named, audio-bearing chunk of words, the
+   * building block surfaced in the talker dropdown's phrase banks. Same shape as
+   * a sentence but holds `words[]` only (one level deep, no phrase-in-phrase) and
+   * files into the Phrases tree (`profileFolders.tree === "phrases"`). When a
+   * phrase is inserted into a sentence it is snapshotted into a phrase-unit.
+   */
+  profilePhrases: defineTable({
+    accountId: v.optional(v.id("users")),
+    profileId: v.optional(v.id("studentProfiles")), // legacy parity; new writes omit.
+    kind: v.optional(v.literal("phrase")),
+    name: localisedString,
+    order: v.number(),
+    librarySourceId: v.optional(v.string()),
+    folderId: v.optional(v.id("profileFolders")), // tree: "phrases"
+    words: v.array(compositionWord),
+    // Phrase-level audio — the chunk played when the phrase is a unit, or when
+    // the phrase card is tapped in a bank. Recording wins over dynamic TTS.
+    audioPath: v.optional(v.string()),
+    recordedAudioPath: v.optional(v.string()),
+    // Provenance back-link when published as a phrase module (admin curation),
+    // mirroring profileCategories / profileFolders.
+    publishedModuleSlug: v.optional(v.string()),
+    publishedModuleClass: v.optional(
+      v.union(
+        v.literal("default"),
+        v.literal("free"),
+        v.literal("pro"),
+        v.literal("max")
+      )
+    ),
+    updatedAt: v.number(),
+  })
+    .index("by_account_id", ["accountId"])
+    .index("by_account_id_and_order", ["accountId", "order"])
+    .index("by_profile_id", ["profileId"])
+    .index("by_folder_id_and_order", ["folderId", "order"])
+    .index("by_library_source_id", ["librarySourceId"]),
+
+  /**
    * The shared folder primitive (ADR-014 §2). One mechanism, three trees on
    * top: every folder declares which `tree` it files into. Each tree shows
    * **default folders** (`source: "module"`, created by installing a content
@@ -720,7 +838,8 @@ export default defineSchema({
     tree: v.union(
       v.literal("categories"),
       v.literal("lists"),
-      v.literal("sentences")
+      v.literal("sentences"),
+      v.literal("phrases")
     ),
     name: localisedString,
     icon: v.optional(v.string()),
@@ -1142,8 +1261,14 @@ export default defineSchema({
     tree: v.union(
       v.literal("categories"),
       v.literal("lists"),
-      v.literal("sentences")
+      v.literal("sentences"),
+      v.literal("phrases")
     ),
+    // ADR-015 §6/§7 — "core" marks a category module as a core-word module:
+    // surfaced in the talker dropdown's Core-words tab (not the main Categories
+    // page/library), locked to zinc-500 with no colour swatch. Absent = a normal
+    // semantic category module.
+    surface: v.optional(v.literal("core")),
     slug: v.string(),
     name: localisedString,
     description: v.optional(localisedString),
@@ -1168,7 +1293,8 @@ export default defineSchema({
     items: v.union(
       libraryModuleCategoryItems,
       libraryModuleListItems,
-      libraryModuleSentenceItems
+      libraryModuleSentenceItems,
+      libraryModulePhraseItems
     ),
     // ── Lifecycle, merged onto the row (was the per-type `*Lifecycle` table) ──
     publishedAt: v.optional(v.number()),

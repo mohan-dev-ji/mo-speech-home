@@ -1934,3 +1934,41 @@ export const fixSymbolProperNoun = mutation({
     return { en, locale, native, matched: rows.length, patched };
   },
 });
+
+/**
+ * Phase 14 (ADR-015) — backfill `units[]` on profileSentences from legacy
+ * `slots[]`. Each slot becomes a `{ kind: "word" }` unit; `kind` is set to
+ * "sentence" and `playback` to "fluent" (existing sentences are page-built with
+ * whole-utterance audio). `slots` is left intact (still the rendered source until
+ * later slices migrate readers to `units`). Idempotent — rows that already carry
+ * `units` are skipped, so it is safe to re-run.
+ */
+export const backfillSentenceUnits = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("profileSentences").collect();
+    let migrated = 0;
+    let skipped = 0;
+    for (const s of rows) {
+      if (s.units !== undefined) {
+        skipped++;
+        continue;
+      }
+      const units = [...s.slots]
+        .sort((a, b) => a.order - b.order)
+        .map((slot, i) => ({
+          kind: "word" as const,
+          order: slot.order ?? i,
+          imagePath: slot.imagePath,
+          displayProps: slot.displayProps,
+        }));
+      await ctx.db.patch(s._id, {
+        units,
+        kind: "sentence" as const,
+        playback: s.playback ?? ("fluent" as const),
+      });
+      migrated++;
+    }
+    return { total: rows.length, migrated, skipped };
+  },
+});
