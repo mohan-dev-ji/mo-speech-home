@@ -241,8 +241,7 @@ export async function installContentModule(
       });
       itemsAdded++;
     }
-  } else {
-    // sentences
+  } else if (module.tree === "sentences") {
     let order = 0;
     for (const sentence of module.items) {
       const slots = await Promise.all(
@@ -269,6 +268,48 @@ export async function installContentModule(
         slots,
         ...(sentence.audioPath !== undefined
           ? { audioPath: sentence.audioPath }
+          : {}),
+        folderId,
+        librarySourceId: module.slug,
+        updatedAt: now,
+      });
+      itemsAdded++;
+    }
+  } else {
+    // phrases (ADR-015) — foldered like sentences; materialise into
+    // profilePhrases. Each phrase holds words[] only (one level deep). Phrase
+    // audio is whole-chunk (audioPath/recordedAudioPath); word-level audio
+    // resolves from the symbol at render, so words store imagePath only.
+    let order = 0;
+    for (const phrase of module.items) {
+      const words = await Promise.all(
+        phrase.words.map(async (word) => {
+          let imagePath = word.imagePath;
+          if (word.symbolId) {
+            const sym = await ctx.db.get(word.symbolId as Id<"symbols">);
+            if (sym) imagePath = sym.imagePath;
+          }
+          return {
+            order: word.order,
+            ...(imagePath !== undefined ? { imagePath } : {}),
+            ...(word.label !== undefined ? { label: word.label } : {}),
+            ...(word.displayProps !== undefined
+              ? { displayProps: word.displayProps }
+              : {}),
+          };
+        })
+      );
+      await ctx.db.insert("profilePhrases", {
+        accountId,
+        kind: "phrase",
+        name: phrase.name,
+        order: order++,
+        words,
+        ...(phrase.audioPath !== undefined
+          ? { audioPath: phrase.audioPath }
+          : {}),
+        ...(phrase.recordedAudioPath !== undefined
+          ? { recordedAudioPath: phrase.recordedAudioPath }
           : {}),
         folderId,
         librarySourceId: module.slug,

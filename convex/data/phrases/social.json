@@ -1,0 +1,11 @@
+{
+  "slug": "social",
+  "tree": "phrases",
+  "name": { "en": "Social" },
+  "description": { "en": "An empty bank ready for social / greetings phrases — add your own." },
+  "icon": "Users",
+  "colour": "zinc",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": []
+}

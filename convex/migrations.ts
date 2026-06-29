@@ -10,6 +10,7 @@ import { LANGUAGE_MODULES } from "./data/languages/_index";
 import { CATEGORY_MODULES } from "./data/categories/_index";
 import { LIST_MODULES } from "./data/lists/_index";
 import { SENTENCE_MODULES } from "./data/sentences/_index";
+import { PHRASE_MODULES } from "./data/phrases/_index";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -1236,6 +1237,7 @@ export const seedLibraryModulesFromJSON = mutation({
       categories: CATEGORY_MODULES,
       lists: LIST_MODULES,
       sentences: SENTENCE_MODULES,
+      phrases: PHRASE_MODULES,
     } as const;
 
     let scanned = 0;
@@ -1243,7 +1245,7 @@ export const seedLibraryModulesFromJSON = mutation({
     let alreadyHadRow = 0;
     let skippedStarter = 0;
 
-    for (const tree of ["categories", "lists", "sentences"] as const) {
+    for (const tree of ["categories", "lists", "sentences", "phrases"] as const) {
       for (const mod of Object.values(maps[tree])) {
         scanned++;
         if (mod.isStarter) {

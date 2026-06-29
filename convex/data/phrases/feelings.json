@@ -1,0 +1,11 @@
+{
+  "slug": "feelings",
+  "tree": "phrases",
+  "name": { "en": "Feelings" },
+  "description": { "en": "An empty bank ready for feelings phrases — add your own." },
+  "icon": "Heart",
+  "colour": "zinc",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": []
+}

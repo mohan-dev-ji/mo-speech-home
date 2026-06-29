@@ -43,10 +43,11 @@ export const publishFolderAsModule = mutation({
       throw new ConvexError({ code: "NOT_FOUND", message: "Folder not found." });
     }
     const tree = folder.tree;
-    if (tree !== "lists" && tree !== "sentences") {
+    if (tree !== "lists" && tree !== "sentences" && tree !== "phrases") {
       throw new ConvexError({
         code: "BAD_TREE",
-        message: "Only list and sentence folders can be published as modules.",
+        message:
+          "Only list, sentence, and phrase folders can be published as modules.",
       });
     }
 
@@ -70,7 +71,7 @@ export const publishFolderAsModule = mutation({
         ...(l.showChecklist !== undefined ? { showChecklist: l.showChecklist } : {}),
         ...(l.showFirstThen !== undefined ? { showFirstThen: l.showFirstThen } : {}),
       }));
-    } else {
+    } else if (tree === "sentences") {
       const sentences = await ctx.db
         .query("profileSentences")
         .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
@@ -85,6 +86,33 @@ export const publishFolderAsModule = mutation({
         ...(s.recordedAudioPath !== undefined
           ? { recordedAudioPath: s.recordedAudioPath }
           : {}),
+      }));
+    } else {
+      // phrases (ADR-015) — serialise into phrase module items. Per-word audio is
+      // not carried at module level (resolves from the symbol); only the
+      // whole-phrase audio is preserved.
+      const phrases = await ctx.db
+        .query("profilePhrases")
+        .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
+        .order("asc")
+        .collect();
+      items = phrases.map((p, i) => ({
+        name: p.name,
+        order: i,
+        ...(p.audioPath !== undefined ? { audioPath: p.audioPath } : {}),
+        ...(p.recordedAudioPath !== undefined
+          ? { recordedAudioPath: p.recordedAudioPath }
+          : {}),
+        words: [...p.words]
+          .sort((a, b) => a.order - b.order)
+          .map((w) => ({
+            order: w.order,
+            ...(w.imagePath !== undefined ? { imagePath: w.imagePath } : {}),
+            ...(w.label !== undefined ? { label: w.label } : {}),
+            ...(w.displayProps !== undefined
+              ? { displayProps: w.displayProps }
+              : {}),
+          })),
       }));
     }
 

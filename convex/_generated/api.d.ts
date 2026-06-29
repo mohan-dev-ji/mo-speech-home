@@ -15,6 +15,7 @@ import type * as contentModules_categories from "../contentModules/categories.js
 import type * as contentModules_detail from "../contentModules/detail.js";
 import type * as contentModules_exportModules from "../contentModules/exportModules.js";
 import type * as contentModules_lists from "../contentModules/lists.js";
+import type * as contentModules_phrases from "../contentModules/phrases.js";
 import type * as contentModules_publish from "../contentModules/publish.js";
 import type * as contentModules_sentences from "../contentModules/sentences.js";
 import type * as contentModules_translate from "../contentModules/translate.js";
@@ -27,6 +28,7 @@ import type * as data_languages_types from "../data/languages/types.js";
 import type * as data_library_packs__index from "../data/library_packs/_index.js";
 import type * as data_library_packs_types from "../data/library_packs/types.js";
 import type * as data_lists__index from "../data/lists/_index.js";
+import type * as data_phrases__index from "../data/phrases/_index.js";
 import type * as data_sentences__index from "../data/sentences/_index.js";
 import type * as data_starter_backups_index from "../data/starter_backups/index.js";
 import type * as data_themes__index from "../data/themes/_index.js";
@@ -46,6 +48,7 @@ import type * as modellingSessions from "../modellingSessions.js";
 import type * as profileCategories from "../profileCategories.js";
 import type * as profileFolders from "../profileFolders.js";
 import type * as profileLists from "../profileLists.js";
+import type * as profilePhrases from "../profilePhrases.js";
 import type * as profileSentences from "../profileSentences.js";
 import type * as profileSymbols from "../profileSymbols.js";
 import type * as resourcePacks from "../resourcePacks.js";
@@ -73,6 +76,7 @@ declare const fullApi: ApiFromModules<{
   "contentModules/detail": typeof contentModules_detail;
   "contentModules/exportModules": typeof contentModules_exportModules;
   "contentModules/lists": typeof contentModules_lists;
+  "contentModules/phrases": typeof contentModules_phrases;
   "contentModules/publish": typeof contentModules_publish;
   "contentModules/sentences": typeof contentModules_sentences;
   "contentModules/translate": typeof contentModules_translate;
@@ -85,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   "data/library_packs/_index": typeof data_library_packs__index;
   "data/library_packs/types": typeof data_library_packs_types;
   "data/lists/_index": typeof data_lists__index;
+  "data/phrases/_index": typeof data_phrases__index;
   "data/sentences/_index": typeof data_sentences__index;
   "data/starter_backups/index": typeof data_starter_backups_index;
   "data/themes/_index": typeof data_themes__index;
@@ -104,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   profileCategories: typeof profileCategories;
   profileFolders: typeof profileFolders;
   profileLists: typeof profileLists;
+  profilePhrases: typeof profilePhrases;
   profileSentences: typeof profileSentences;
   profileSymbols: typeof profileSymbols;
   resourcePacks: typeof resourcePacks;

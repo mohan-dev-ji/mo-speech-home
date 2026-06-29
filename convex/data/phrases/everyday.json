@@ -1,0 +1,36 @@
+{
+  "slug": "everyday",
+  "tree": "phrases",
+  "name": { "en": "Everyday" },
+  "description": { "en": "Reusable everyday phrases — tap to drop a whole chunk into the talker." },
+  "icon": "MessageSquare",
+  "colour": "zinc",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "name": { "en": "I want" },
+      "order": 0,
+      "words": [
+        { "order": 0, "label": { "en": "I" } },
+        { "order": 1, "label": { "en": "want" } }
+      ]
+    },
+    {
+      "name": { "en": "all done" },
+      "order": 1,
+      "words": [
+        { "order": 0, "label": { "en": "all" } },
+        { "order": 1, "label": { "en": "done" } }
+      ]
+    },
+    {
+      "name": { "en": "let's go" },
+      "order": 2,
+      "words": [
+        { "order": 0, "label": { "en": "let's" } },
+        { "order": 1, "label": { "en": "go" } }
+      ]
+    }
+  ]
+}

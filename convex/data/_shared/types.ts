@@ -34,7 +34,7 @@ export type {
 } from "../library_packs/types";
 
 /** Which tree a module installs into. The shared folder primitive's axis. */
-export type ModuleTree = "categories" | "lists" | "sentences";
+export type ModuleTree = "categories" | "lists" | "sentences" | "phrases";
 
 /**
  * Crediting + filtering + updates metadata (ADR-014 §6). Metadata only —
@@ -86,11 +86,52 @@ export type SentenceModule = ContentModuleBase & {
   items: LibraryPackSentence[];
 };
 
-export type ContentModule = CategoryModule | ListModule | SentenceModule;
+/** Display overrides on a phrase word (mirrors a sentence slot's displayProps). */
+export type PhraseWordDisplayProps = {
+  bgColour?: string;
+  textColour?: string;
+  textSize?: "sm" | "md" | "lg" | "xl";
+  showLabel?: boolean;
+  showImage?: boolean;
+  cardShape?: "square" | "rounded" | "circle";
+};
+
+/** A single word inside a phrase module (ADR-015). One level deep. */
+export type LibraryPackPhraseWord = {
+  order: number;
+  symbolId?: string;
+  imagePath?: string;
+  label?: LocalisedString;
+  displayProps?: PhraseWordDisplayProps;
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+};
+
+/** A reusable phrase: a named, audio-bearing chunk of words (ADR-015). */
+export type LibraryPackPhrase = {
+  name: LocalisedString;
+  order: number;
+  audioPath?: string;
+  recordedAudioPath?: string;
+  words: LibraryPackPhraseWord[];
+};
+
+/** A Phrases-tree module: one bank (folder) of reusable phrases (ADR-015). */
+export type PhraseModule = ContentModuleBase & {
+  tree: "phrases";
+  items: LibraryPackPhrase[];
+};
+
+export type ContentModule =
+  | CategoryModule
+  | ListModule
+  | SentenceModule
+  | PhraseModule;
 
 /** Maps a tree to its module type — handy for generic helpers. */
 export type ModuleForTree<T extends ModuleTree> = T extends "categories"
   ? CategoryModule
   : T extends "lists"
     ? ListModule
-    : SentenceModule;
+    : T extends "sentences"
+      ? SentenceModule
+      : PhraseModule;
