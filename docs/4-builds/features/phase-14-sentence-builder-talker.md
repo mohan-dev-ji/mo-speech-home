@@ -44,16 +44,17 @@ Curated next-word prediction · auto-navigation · editing a phrase's membership
 - **Tab 1 — Core words:** grid of core-word module tiles (General · Pronouns · Joining words · Position Words · Time · Numbers · Letters). Retires hardcoded `LITTLE_WORDS_GROUPS`.
 - **Tabs 2–6 — Phrases 1–5:** phrase banks = Phrases-tree folders. Each shows phrase cards (zinc boxes with name pill). Tapping a phrase inserts it into the talker as a phrase-unit.
 - Controlled by the existing `core_dropdown_visible` flag.
+- **Open animation:** slides down from the chevron as a surface layer lying *on top of* the navigated category (not a replacement). Honours `reduce_motion` + OS `prefers-reduced-motion` (snaps open, no slide).
 
 ### Talker bar (Figma `3222:5565` top region)
 - Renders `units[]`: white chip for a word-unit, **zinc box + name pill** for a phrase-unit (Symbol/variant=Phrase `3222:5809`; inner chips keep category colour).
 - **Shuffle editing:** `dnd-kit` drag-to-reorder (long-press activation so taps still play audio; keyboard/ARIA fallback) + corner **X-button** remove. Drag unit = a talker unit; a phrase box moves/removes whole.
-- **Play (live, unsaved):** sequence each unit's clip (phrase clip for phrase-units, symbol clip for word-units).
-- **Save:** writes a `kind: "sentence"` composition retaining the decomposition; offers a target Sentences folder (defaulting per ADR-014 §7 soft suggest-on-save when composing within a category).
+- **Play (live, unsaved):** staggered sequence of each unit's clip (phrase clip for phrase-units, symbol clip for word-units).
+- **Save:** writes a `kind: "sentence"`, `playback: "sequence"` composition retaining the decomposition + each unit's audio path. **Requires choosing a target sentence module/folder** (folder picker with a smart default per ADR-014 §7 soft suggest-on-save). No whole-sentence TTS is generated for a talker save.
 
 ### Composition builder (generalised sentences-page editor)
 - Authors both `kind`s: **Save as Phrase** → phrase bank (zinc, word-units only); **Save as Sentence** → Sentences tree (word + phrase units).
-- Sets the whole-utterance audio (recorded / Chirp 3 HD), as sentences do today.
+- Page-authored sentences use **fluent whole-utterance TTS** (`playback: "fluent"`, recorded / Chirp 3 HD), as sentences do today; tone arrives Phase 15. Talker-saved sentences stay on the staggered unit-sequence path (`playback: "sequence"`).
 - Honours the two-level edit pattern — symbol creative editing stays in `SymbolEditorModal`, never inline.
 
 ### Decomposition view (read-only)

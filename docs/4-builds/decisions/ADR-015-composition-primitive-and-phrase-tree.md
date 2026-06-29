@@ -85,27 +85,44 @@ There are **not** two types of sentence. There is one `kind: "sentence"` entity 
 
 A talker-saved sentence and a page-built sentence are the **same row, same shape** — only the entry point differs.
 
-### 6. Core words become modules; the hardcoded little-words list is retired
+### 6. Core words become modules — full parity with top-level group modules
 
-Tab 1 "Core words" is a grid of **core-word modules** (General, Pronouns, Joining words, Position Words, Time, **Numbers**, **Letters** — Numbers/Letters fold in from their old dedicated tabs). These are Category-type modules in the `libraryModules` system, seeded and tier/lifecycle-governed like everything else. The hardcoded `LITTLE_WORDS_GROUPS` in [`convex/data/defaultCategorySymbols.ts`](../../../convex/data/defaultCategorySymbols.ts) — the one content path that bypasses the module system — is **retired** and reseeded as core-word modules.
+Tab 1 "Core words" is a grid of **core-word modules** (General, Pronouns, Joining words, Position Words, Time, **Numbers**, **Letters** — Numbers/Letters fold in from their old dedicated tabs). These are **the same kind of module as the existing top-level group/category modules**, on the same `libraryModules` machinery — **no special-cased path**:
 
-### 7. Zinc is the phrase marker; inner chips keep category colour
+- **Admin-editable defaults + republish** — an admin edits the default core-word modules in admin view and republishes via the same upsert mutation (ADR-014 2026-06-27), no deploy.
+- **User reload-defaults** — a user reloads the default core-word set into their profile via the existing `reloadFromLibrary` flow (Phase 6).
+- **User custom edits** — a user customises core-word modules in their own profile exactly as they customise any category module.
+- Tier/lifecycle-governed like every other module.
 
-The phrase wrapper uses **zinc** (`{ c100, c500, c700 }` already in [`app/lib/categoryColours.ts`](../../../app/lib/categoryColours.ts)) deliberately offset from the category palette, so "this is a phrase" reads at a glance. Inner symbol chips keep their own (white / category) colour. The zinc wrapper + name pill persist identically in the dropdown bank **and** in the talker bar.
+**The one exception: no colour swatch.** Core-word modules have **no per-module colour picker** — their colour is **fixed to zinc-500** (see §7). Everything else (symbols, labels, audio, reorder, reload, republish) is identical to a top-level group module.
+
+The hardcoded `LITTLE_WORDS_GROUPS` in [`convex/data/defaultCategorySymbols.ts`](../../../convex/data/defaultCategorySymbols.ts) — the one content path that bypasses the module system — is **retired** and reseeded as core-word modules.
+
+### 7. Zinc is the structural-layer colour — phrases *and* core words
+
+Zinc (`{ c100, c500, c700 }` already in [`app/lib/categoryColours.ts`](../../../app/lib/categoryColours.ts)) marks the **structural layer** of the language, deliberately offset from the colourful **semantic** categories:
+
+- **Phrase wrapper** uses zinc, so "this is a phrase" reads at a glance. Inner symbol chips keep their own (white / category) colour. The zinc wrapper + name pill persist identically in the dropdown bank **and** in the talker bar.
+- **Core-word modules** are also **locked to zinc-500** and have **no colour swatch** (§6) — core words are the structural glue (the, and, want, go) that phrases are largely built from, so unifying them in zinc is coherent, not arbitrary.
+
+The rule: **zinc = structural (core words + phrase wrappers); colour swatch = semantic fringe categories.** Only semantic category modules expose `ColourSwatchPicker`.
 
 ### 8. Talker shuffle-editing — reorder + remove, touch-first
 
 The talker bar gains **drag-to-reorder** and **remove**, reusing the MVP's proven UX (corner X-button to remove; opacity-on-drag + highlight-drop-target feedback) but with a **touch-capable engine** — the MVP's native-HTML5 drag was mouse-only, unacceptable for a tablet-first AAC device.
 
-- **Engine: `dnd-kit`** — pointer/touch sensors, a long-press **activation delay** so a tap still plays the symbol (the tile is both draggable *and* a play target), and keyboard + ARIA reordering for accessibility.
+- **Engine: `dnd-kit` — already a project dependency** (`@dnd-kit/core`, `/sortable`, `/utilities`), already used for folder reorder (`GroupTile`) and sentence-slot reorder (`SlotStrip` in `SentencesModeContent`). The talker reuses that exact pattern — pointer/touch sensors, a long-press **activation delay** so a tap still plays the symbol (the tile is both draggable *and* a play target), and keyboard + ARIA reordering for accessibility. **No new dependency.**
 - **The drag unit is a talker unit.** A phrase box reorders and removes as one whole zinc block; a word chip moves as a chip. Reorder rewrites `units[].order`; remove splices one unit out. The state logic ports verbatim from the MVP (`reorderUnits(from,to)` = splice; `removeUnit(i)` = filter).
 - **Reordering the talker bar does not violate motor planning.** [Dossier doc 3](../../2-research/gestalt-language-processing/03-glp-and-aac.md) #4's "never reshuffle the board" governs the *fixed dropdown/board*; the talker bar is the composition surface, where reordering the sentence under construction is expected.
 
-### 9. Audio — two modes, two-tier model preserved
+### 9. Audio — two playback modes on the same `units[]` entity
 
-- **Live in the talker (unsaved):** play = sequence each unit's clip — the phrase's own clip for a phrase-unit, the symbol clip for a word-unit. Extends today's symbol-by-symbol playback; no generation.
-- **Saved composition (phrase or sentence):** carries its own whole-utterance natural audio (Chirp 3 HD / recorded), exactly as sentences do today. Prosody is clinically load-bearing for GLP ([dossier doc 3](../../2-research/gestalt-language-processing/03-glp-and-aac.md) #3), so a phrase is a sentence-tier audio object, not a symbol-tier one.
-- The decomposition is for **seeing and modelling, not playback stitching or testing** ([dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md) hard-decision #3): "see how this was built," never "now build it yourself."
+A `playback: "sequence" | "fluent"` flag on the composition picks how it speaks. Both modes keep the full `units[]` decomposition.
+
+- **Unit-built sentences (talker-saved) → `playback: "sequence"` (default for talker saves).** Persisted and played as a **staggered sequence of the true unit clips** — the phrase's own clip for a phrase-unit (one chunk), the symbol clip for a word-unit, with deliberate gaps. Mechanical and less fluent **on purpose**: a beginner hears which audio maps to which word/phrase, reinforcing the build-up/break-down structure. **No whole-sentence TTS is generated for a talker save** — the stored unit clips *are* the audio.
+- **Sentences-page sentences → `playback: "fluent"` (default for page authoring).** A fluent whole-utterance **TTS** clip (Chirp 3 HD / recorded), exactly as sentences do today. Tone / intonation variants arrive in **Phase 15** on this fluent path.
+- **A phrase as a unit** contributes its own phrase clip (recorded / TTS) — one chunk in the sequence; prosody is clinically load-bearing for GLP ([dossier doc 3](../../2-research/gestalt-language-processing/03-glp-and-aac.md) #3).
+- The decomposition is for **seeing and modelling, not testing** ([dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md) hard-decision #3): "see how this was built," never "now build it yourself."
 
 ---
 
@@ -122,7 +139,7 @@ The talker bar gains **drag-to-reorder** and **remove**, reusing the MVP's prove
 
 - A new `profilePhrases` table, a `phraseLifecycle` overlay, a fourth tree, a fifth library tab, and a phrases admin section — all following the existing module recipe, so additive rather than novel.
 - `profileSentences` gains `kind` + `units[]`; a migration is required on a table that just shipped in Phase 13.
-- `TalkerContext` item type becomes a union; `TalkerBar` renders zinc phrase boxes inline; `dnd-kit` is a new dependency.
+- `TalkerContext` item type becomes a union; `TalkerBar` renders zinc phrase boxes inline; talker reorder reuses the existing `dnd-kit` setup (no new dependency).
 - The sentences-page editor generalises into a composition builder (authors phrases *and* sentences; can insert phrase-units). The talker save button is finally wired.
 - `LITTLE_WORDS_GROUPS` is retired in favour of core-word modules — one fewer content path, consistent lifecycle/translation.
 - The build-up / break-down GLP story becomes demonstrable to the SLP with a read-only decomposition view.
