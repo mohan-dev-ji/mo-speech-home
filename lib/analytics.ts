@@ -42,18 +42,18 @@ type EventMap = {
   // the per-type successor to `pack_loaded`.
   module_installed:        {
     slug: string;
-    tree: "categories" | "lists" | "sentences" | "phrases";
+    tree: "categories" | "lists" | "sentences";
     tier_at_install: SubscriptionTier;
   };
   // A content module removed from an account via the library (ADR-014 §5).
   module_uninstalled:      {
     slug: string;
-    tree: "categories" | "lists" | "sentences" | "phrases";
+    tree: "categories" | "lists" | "sentences";
   };
   // An admin published a folder or category as a content module (ADR-014 Task B/C).
   module_published:        {
     slug: string;
-    tree: "categories" | "lists" | "sentences" | "phrases";
+    tree: "categories" | "lists" | "sentences";
     tier: SubscriptionTier | "default";
   };
   pack_browsed:            { tier: SubscriptionTier; filter_tags?: string[] };

@@ -70,11 +70,19 @@ A phrase inserted into a sentence is **copied** (snapshotted), not referenced. R
 Phrases are a **new content-module plugin type** per the [ADR-011](./ADR-011-plugin-architecture-for-content-modules.md) / ADR-014 pattern:
 
 - A **fourth content tree** — Categories (semantic) · Lists (procedural) · Sentences (pragmatic) · **Phrases (reusable chunks)**.
-- A **fifth library tab** — Categories · Lists · Sentences · **Phrases** · Themes.
-- A `phraseLifecycle` overlay + the three universal admin functions (`listAllPhrasesForAdmin`, `updatePhraseLifecycle`, `deletePhraseLifecycle`) + an admin section, exactly as the other module types.
-- Per the [ADR-014 2026-06-27 addendum](./ADR-014-content-modules-and-three-tree-organisation.md), curated/default phrase modules live in Convex (`libraryModules`, `tree: "phrases"`), published by admin mutation — not committed JSON.
+- A `phraseLifecycle` overlay + the universal lifecycle admin functions (`listAllPhraseModulesForAdmin`, `updatePhraseLifecycle`, `deletePhraseLifecycle`), exactly as the other module types.
+- Per the [ADR-014 2026-06-27 addendum](./ADR-014-content-modules-and-three-tree-organisation.md), curated/default phrase modules live in Convex (`libraryModules`, `tree: "phrases"`) — not committed JSON.
 
 The phrase banks shown as dropdown tabs 2–6 are **views into the Phrases tree** — its folders surfaced in the talker. No parallel talker-only storage.
+
+> **Amended 2026-06-30 — no public library tab.** Unlike the other three content
+> trees, phrases are **not** surfaced as a public library browse tab. A phrase is
+> an incomplete *part* of a sentence; shown as a standalone library card it reads
+> as a broken half-sentence and invites the wrong mental model. Default phrase
+> banks reach an account via `seedDefaultAccount` (the `isDefault` modules
+> auto-install); from there **instructors develop them in the talker dropdown**.
+> The backend tree, install, CRUD, lifecycle, and seed all stand — only the public
+> browse/install surface is dropped.
 
 ### 5. Two authoring surfaces, one entity — the "two sentences" reconciliation
 
@@ -137,7 +145,7 @@ A `playback: "sequence" | "fluent"` flag on the composition picks how it speaks.
 
 ## Consequences
 
-- A new `profilePhrases` table, a `phraseLifecycle` overlay, a fourth tree, a fifth library tab, and a phrases admin section — all following the existing module recipe, so additive rather than novel.
+- A new `profilePhrases` table, a `phraseLifecycle` overlay, and a fourth tree — all following the existing module recipe, so additive rather than novel. (No public library tab — phrases are developed in the dropdown; see §4 amendment.)
 - `profileSentences` gains `kind` + `units[]`; a migration is required on a table that just shipped in Phase 13.
 - `TalkerContext` item type becomes a union; `TalkerBar` renders zinc phrase boxes inline; talker reorder reuses the existing `dnd-kit` setup (no new dependency).
 - The sentences-page editor generalises into a composition builder (authors phrases *and* sentences; can insert phrase-units). The talker save button is finally wired.

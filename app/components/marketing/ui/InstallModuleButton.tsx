@@ -11,7 +11,7 @@ import { Button } from "@/app/components/app/shared/ui/Button";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
 import { track } from "@/lib/analytics";
 
-export type ModuleTree = "categories" | "lists" | "sentences" | "phrases";
+export type ModuleTree = "categories" | "lists" | "sentences";
 
 // Same tier-tint convention as LoadPackButton — colour reinforces what the
 // user unlocks. References the raw `:root` colour variables directly.
@@ -38,13 +38,6 @@ const TREE_CONFIG = {
     install: api.contentModules.sentences.installSentenceModule,
     installedSlugs: api.contentModules.sentences.getMyInstalledSentenceSlugs,
     landing: "/sentences",
-  },
-  phrases: {
-    install: api.contentModules.phrases.installPhraseModule,
-    installedSlugs: api.contentModules.phrases.getMyInstalledPhraseSlugs,
-    // Phrase banks surface in the talker dropdown (on the categories surface),
-    // not a dedicated tree page.
-    landing: "/categories",
   },
 } as const;
 

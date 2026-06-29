@@ -14,7 +14,7 @@ This is **the opposite of today's model**, where one symbol can carry a whole se
 
 ## In scope (the MVP spine)
 
-1. **Phrase as a first-class unit** — a named, audio-bearing chunk made of word-units, rendered as a **zinc** box, stored in a new **Phrases tree** (4th content tree, 5th library tab).
+1. **Phrase as a first-class unit** — a named, audio-bearing chunk made of word-units, rendered as a **zinc** box, stored in a new **Phrases tree** (4th content tree). No public library tab — phrases are developed in the dropdown (amended 2026-06-30; see ADR-015 §4).
 2. **Compositions that keep their parts** — `profileSentences` gains `kind` + `units[]`; a saved sentence retains which units were phrases vs words (never flattened to text).
 3. **Talker dropdown renovation** — Tab 1 = **Core words** (a grid of core-word modules, Numbers/Letters folded in); Tabs 2–6 = **phrase banks** (views into the Phrases tree).
 4. **Talker bar renovation** — holds a mix of white symbol chips and zinc phrase boxes; **drag-to-reorder + remove** (`dnd-kit`, touch-first); the **save button** writes a `kind: "sentence"` composition.
@@ -74,7 +74,7 @@ Curated next-word prediction · auto-navigation · editing a phrase's membership
 ## Suggested build slices (firmed up during writing-plans)
 
 1. **Schema + migration** — `kind`, `units[]`, `profilePhrases`, `phraseLifecycle`; migrate existing `profileSentences`; back up first. Verify with `tsc -p convex/tsconfig.json` (no `convex dev` in worktree).
-2. **Phrases tree + library tab + admin section** — the module recipe applied; seed core-word modules + showcase phrases + empty banks.
+2. **Phrases tree backend** — the module recipe applied (install/catalogue/lifecycle/CRUD); seed showcase + empty banks (auto-installed via `seedDefaultAccount`). No public library tab — developed in the dropdown.
 3. **Talker dropdown renovation** — Tab 1 core-word modules, Tabs 2–6 phrase banks.
 4. **Talker bar — phrase rendering + shuffle editing** — `dnd-kit`, zinc boxes, reorder/remove, sequence-play.
 5. **Talker save → composition** — wire the save button; write `kind: "sentence"` with decomposition.
