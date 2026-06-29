@@ -18,12 +18,13 @@ import { getThemeTokens } from "@/lib/themes/registry";
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 
-type TabKey = "categories" | "lists" | "sentences" | "themes";
+type TabKey = "categories" | "lists" | "sentences" | "phrases" | "themes";
 
 type Props = {
   categories: Preloaded<typeof api.contentModules.categories.getPublicCategoryCatalogue>;
   lists: Preloaded<typeof api.contentModules.lists.getPublicListCatalogue>;
   sentences: Preloaded<typeof api.contentModules.sentences.getPublicSentenceCatalogue>;
+  phrases: Preloaded<typeof api.contentModules.phrases.getPublicPhraseCatalogue>;
   themes: Preloaded<typeof api.themes.getPublicThemeCatalogue>;
   locale: string;
 };
@@ -32,6 +33,7 @@ export function ModuleLibrary({
   categories,
   lists,
   sentences,
+  phrases,
   themes,
   locale,
 }: Props) {
@@ -41,12 +43,14 @@ export function ModuleLibrary({
   const categoryModules = usePreloadedQuery(categories);
   const listModules = usePreloadedQuery(lists);
   const sentenceModules = usePreloadedQuery(sentences);
+  const phraseModules = usePreloadedQuery(phrases);
   const themeItems = usePreloadedQuery(themes);
 
   const tabs: { key: TabKey; label: string; count: number }[] = [
     { key: "categories", label: t("tabCategories"), count: categoryModules.length },
     { key: "lists", label: t("tabLists"), count: listModules.length },
     { key: "sentences", label: t("tabSentences"), count: sentenceModules.length },
+    { key: "phrases", label: t("tabPhrases"), count: phraseModules.length },
     { key: "themes", label: t("tabThemes"), count: themeItems.length },
   ];
 
@@ -106,6 +110,14 @@ export function ModuleLibrary({
           emptyLabel={t("empty")}
         />
       )}
+      {tab === "phrases" && (
+        <ModuleGrid
+          modules={phraseModules}
+          tree="phrases"
+          locale={locale}
+          emptyLabel={t("empty")}
+        />
+      )}
       {tab === "themes" && (
         <ThemesShowcase themes={themeItems} locale={locale} />
       )}
@@ -120,7 +132,7 @@ function ModuleGrid({
   emptyLabel,
 }: {
   modules: ModuleCardData[];
-  tree: "categories" | "lists" | "sentences";
+  tree: "categories" | "lists" | "sentences" | "phrases";
   locale: string;
   emptyLabel: string;
 }) {

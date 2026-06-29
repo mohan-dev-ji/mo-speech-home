@@ -26,10 +26,11 @@ export default async function ModuleLibraryPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "library" });
 
-  const [categories, lists, sentences, themes] = await Promise.all([
+  const [categories, lists, sentences, phrases, themes] = await Promise.all([
     preloadQuery(api.contentModules.categories.getPublicCategoryCatalogue, {}),
     preloadQuery(api.contentModules.lists.getPublicListCatalogue, {}),
     preloadQuery(api.contentModules.sentences.getPublicSentenceCatalogue, {}),
+    preloadQuery(api.contentModules.phrases.getPublicPhraseCatalogue, {}),
     preloadQuery(api.themes.getPublicThemeCatalogue, {}),
   ]);
 
@@ -48,6 +49,7 @@ export default async function ModuleLibraryPage({ params }: Props) {
         categories={categories}
         lists={lists}
         sentences={sentences}
+        phrases={phrases}
         themes={themes}
         locale={locale}
       />
