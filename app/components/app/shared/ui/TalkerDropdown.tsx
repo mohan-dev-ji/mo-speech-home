@@ -11,7 +11,7 @@
 //   bottom, overlaying page content. Bottom corners rounded so it reads as the
 //   rectangle growing downward.
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -54,6 +54,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
   const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 0 });
+  // Entry animation: the panel slides down from the chevron so it reads as a
+  // surface layer settling on top of the navigated category (ADR-015 / Slice 4).
+  // `entered` flips on the frame after open so the CSS transition runs; the
+  // `motion-reduce:` variant makes it snap open under OS reduced-motion.
+  const [entered, setEntered]     = useState(false);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
 
@@ -62,6 +67,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (r) setPanelPos({ top: r.top, left: r.left, width: r.width });
     setIsOpen(true);
   }
+
+  useEffect(() => {
+    if (!isOpen) {
+      setEntered(false);
+      return;
+    }
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, [isOpen]);
 
   const activeGroup = LITTLE_WORDS_GROUPS.find((g) => g.id === activeTab);
 
@@ -185,7 +199,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
             <div
               ref={panelRef}
-              className="flex flex-col glass-surface"
+              className="flex flex-col glass-surface transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none"
               style={{
                 position: 'fixed',
                 top: panelPos.top,
@@ -196,6 +210,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 borderRadius: '0 0 var(--theme-card-roundness) var(--theme-card-roundness)',
                 overflow: 'hidden',
                 background: 'var(--theme-background)',
+                transformOrigin: 'top',
+                transform: entered ? 'translateY(0)' : 'translateY(-12px)',
+                opacity: entered ? 1 : 0,
               }}
             >
               {/* Chevron close — same position as the closed-state bar */}
