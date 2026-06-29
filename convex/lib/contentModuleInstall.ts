@@ -168,6 +168,10 @@ export async function installContentModule(
         order: order++,
         librarySourceId: module.slug,
         librarySourceCategoryKey: cat.name.en,
+        // ADR-015 §6 — core-word modules carry surface:"core" through to the
+        // installed category, so the main board filters it out and the dropdown
+        // surfaces it.
+        ...(module.surface ? { surface: module.surface } : {}),
         updatedAt: now,
       });
       itemsAdded++;

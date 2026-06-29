@@ -132,11 +132,34 @@ export const getProfileCategories = query({
     const resolved = await resolveCallerAccountId(ctx);
     if (!resolved) return [];
 
-    return ctx.db
+    const cats = await ctx.db
       .query("profileCategories")
       .withIndex("by_account_id_and_order", (q) => q.eq("accountId", resolved.accountId))
       .order("asc")
       .collect();
+    // ADR-015 §6 — core-word categories never appear on the main board; they
+    // surface only in the talker dropdown's Core-words tab.
+    return cats.filter((c) => c.surface !== "core");
+  },
+});
+
+/**
+ * Core-word categories (ADR-015 §6) — the `surface:"core"` categories that
+ * power the talker dropdown's Core-words tab. Separate from
+ * `getProfileCategories` (which excludes them) so the two surfaces never bleed.
+ */
+export const getCoreWordCategories = query({
+  args: {},
+  handler: async (ctx) => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
+
+    const cats = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id_and_order", (q) => q.eq("accountId", resolved.accountId))
+      .order("asc")
+      .collect();
+    return cats.filter((c) => c.surface === "core");
   },
 });
 

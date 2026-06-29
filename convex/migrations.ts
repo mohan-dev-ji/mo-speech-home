@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { DEFAULT_CATEGORIES } from "./data/defaultCategorySymbols";
+import { DEFAULT_CATEGORIES, LITTLE_WORDS_GROUPS } from "./data/defaultCategorySymbols";
 import { STARTER_BACKUPS } from "./data/starter_backups";
 import { LIBRARY_PACKS } from "./data/library_packs/_index";
 import { LANGUAGE_MODULES } from "./data/languages/_index";
@@ -1229,6 +1229,101 @@ export const seedLifecycleFromJSON = mutation({
  * Run via the Convex dashboard Functions runner (cannot run from a worktree).
  * Expected on first run: `{ seeded: 17, skippedStarter: 3, alreadyHadRow: 0 }`.
  */
+/**
+ * Phase 14 (ADR-015 §6) — seed the core-word category modules. Unlike the other
+ * module seeds (static JSON), core words must resolve each word to its symbol at
+ * seed time (DB lookup), so this is its own mutation. Produces `surface:"core"`
+ * category modules (locked to zinc, isDefault, free) that auto-install into new
+ * accounts via `seedDefaultAccount` and surface in the talker dropdown's
+ * Core-words tab. Idempotent — re-running upserts by slug. Numbers/Letters are
+ * fixed sets surfaced by the dropdown directly, not editable modules.
+ */
+export const seedCoreWordModules = mutation({
+  args: { adminClerkUserId: v.string() },
+  handler: async (ctx, { adminClerkUserId }) => {
+    const now = Date.now();
+    const byId = Object.fromEntries(LITTLE_WORDS_GROUPS.map((g) => [g.id, g] as const));
+    // General merges the two SymbolStix core sets; the rest map 1:1.
+    const groups: { slug: string; name: string; words: string[] }[] = [
+      {
+        slug: "core-general",
+        name: "General",
+        words: [...(byId["core-a"]?.words ?? []), ...(byId["core-b"]?.words ?? [])],
+      },
+      { slug: "core-pronouns", name: "Pronouns", words: byId["pronouns"]?.words ?? [] },
+      { slug: "core-joining-words", name: "Joining words", words: byId["joining-words"]?.words ?? [] },
+      { slug: "core-position-words", name: "Position Words", words: byId["position-words"]?.words ?? [] },
+      { slug: "core-time", name: "Time", words: byId["time-and-manner"]?.words ?? [] },
+    ];
+
+    let seeded = 0;
+    let updated = 0;
+    let symbolsResolved = 0;
+    let symbolsMissing = 0;
+
+    for (const group of groups) {
+      const symbols: { order: number; symbolId: string }[] = [];
+      for (const word of group.words) {
+        const sym = await ctx.db
+          .query("symbols")
+          .withIndex("by_words_en", (q) => q.eq("words.en", word))
+          .first();
+        if (sym) {
+          symbols.push({ order: symbols.length, symbolId: sym._id });
+          symbolsResolved++;
+        } else {
+          symbolsMissing++;
+        }
+      }
+      const item = {
+        name: { en: group.name },
+        icon: "MessageSquare",
+        colour: "zinc",
+        symbols,
+      };
+      const existing = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) =>
+          q.eq("tree", "categories").eq("slug", group.slug)
+        )
+        .first();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          surface: "core",
+          colour: "zinc",
+          isDefault: true,
+          name: { en: group.name },
+          items: [item],
+          lastPublishedAt: now,
+          updatedAt: now,
+        });
+        updated++;
+      } else {
+        await ctx.db.insert("libraryModules", {
+          tree: "categories",
+          surface: "core",
+          slug: group.slug,
+          name: { en: group.name },
+          icon: "MessageSquare",
+          colour: "zinc",
+          defaultTier: "free",
+          isDefault: true,
+          items: [item],
+          publishedAt: now,
+          featured: false,
+          createdBy: adminClerkUserId,
+          updatedAt: now,
+        });
+        seeded++;
+      }
+    }
+
+    const summary = { seeded, updated, symbolsResolved, symbolsMissing };
+    console.log(`[seedCoreWordModules] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
 export const seedLibraryModulesFromJSON = mutation({
   args: { adminClerkUserId: v.string() },
   handler: async (ctx, { adminClerkUserId }) => {

@@ -59,6 +59,10 @@ type ContentModuleBase = {
   coverImagePath?: string;
   /** Default tier; the per-type lifecycle `tierOverride` can override at runtime. */
   defaultTier: PackTier;
+  /** ADR-015 §6 — "core" marks a category module as a core-word module:
+   * surfaced in the talker dropdown's Core-words tab (not the main Categories
+   * page/library), locked to zinc-500 with no colour swatch. Categories only. */
+  surface?: "core";
   /** `isStarter` is retained for the legacy starter folder so it can be flagged. */
   isStarter?: boolean;
   /** Default ("core") module — auto-installed for new accounts + free to access
