@@ -1,22 +1,10 @@
 {
-  "slug": "space",
-  "tree": "categories",
-  "name": {
-    "en": "Space",
-    "es": "Espacio",
-    "hi": "अंतरिक्ष"
-  },
+  "coverImagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
+  "defaultTier": "free",
   "description": {
     "en": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there.",
     "es": "Planetas, cohetes, estrellas por su nombre. Para el niño que siempre pregunta qué hay allá afuera.",
     "hi": "ग्रह, रॉकेट, तारों के नाम। उस बच्चे के लिए जिसके मन में हमेशा यह जानने की उत्सुकता रहती है कि बाहर क्या है।"
-  },
-  "coverImagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
-  "defaultTier": "free",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -232,5 +220,17 @@
         }
       ]
     }
-  ]
+  ],
+  "name": {
+    "en": "Space",
+    "es": "Espacio",
+    "hi": "अंतरिक्ष"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "space",
+  "tree": "categories"
 }

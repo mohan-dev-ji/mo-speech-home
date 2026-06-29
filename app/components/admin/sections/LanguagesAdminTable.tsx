@@ -111,6 +111,36 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
     });
   }
 
+  async function runTranslateModules(code: string) {
+    setBusyCode(code);
+    try {
+      const res = await fetch("/api/admin/translate-modules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const body = (await res.json()) as {
+        ok?: boolean;
+        modules?: number;
+        translated?: number;
+        skipped?: number;
+        error?: string;
+      };
+      if (!res.ok || !body.ok) {
+        alert(`Module translation failed: ${body.error ?? `HTTP ${res.status}`}`);
+        return;
+      }
+      alert(
+        `Translated ${body.translated} module-copy strings to "${code}" ` +
+          `across ${body.modules} modules. ${body.skipped} unchanged.`
+      );
+    } catch (err) {
+      alert(`Module translation error: ${err instanceof Error ? err.message : err}`);
+    } finally {
+      setBusyCode(null);
+    }
+  }
+
   async function runTranslate(code: string) {
     setBusyCode(code);
     try {
@@ -266,6 +296,7 @@ export function LanguagesAdminTable({ initialLanguages }: Props) {
                       })
                     }
                     onTranslate={() => runTranslate(l.code)}
+                    onTranslateModules={() => runTranslateModules(l.code)}
                     onTranslateSymbols={() => setTranslateSymbolsTarget(l)}
                     onEdit={() => setEditTarget(l)}
                     onDelete={() => setDeleteTarget(l)}
@@ -387,6 +418,7 @@ function RowActions({
   onPromoteToStable,
   onDemoteToMachine,
   onTranslate,
+  onTranslateModules,
   onTranslateSymbols,
   onEdit,
   onDelete,
@@ -399,6 +431,7 @@ function RowActions({
   onPromoteToStable: () => void;
   onDemoteToMachine: () => void;
   onTranslate: () => void;
+  onTranslateModules: () => void;
   onTranslateSymbols: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -452,9 +485,14 @@ function RowActions({
 
           <MenuItem onSelect={onTranslate}>Translate UI strings…</MenuItem>
           {lang.code !== "en" && (
-            <MenuItem onSelect={onTranslateSymbols}>
-              Translate symbols…
-            </MenuItem>
+            <>
+              <MenuItem onSelect={onTranslateModules}>
+                Translate module copy…
+              </MenuItem>
+              <MenuItem onSelect={onTranslateSymbols}>
+                Translate symbols…
+              </MenuItem>
+            </>
           )}
           <MenuItem onSelect={onEdit}>Edit lifecycle…</MenuItem>
 

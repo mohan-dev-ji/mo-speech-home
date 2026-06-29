@@ -1,0 +1,307 @@
+{
+  "colour": "#F472B6",
+  "coverImagePath": "symbols/symbol00213947.png",
+  "defaultTier": "free",
+  "icon": "💬",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#F472B6",
+      "icon": "💬",
+      "imagePath": "symbols/symbol00213947.png",
+      "name": {
+        "en": "Chat",
+        "es": "Charla",
+        "hi": "बातचीत"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "Hello",
+            "es": "Hola",
+            "hi": "नमस्ते"
+          },
+          "order": 0,
+          "symbolId": "kn7bsbcwdqzqde0mq3zr1xajxx84n9cq"
+        },
+        {
+          "labelOverride": {
+            "en": "How are you?",
+            "es": "¿Cómo estás?",
+            "hi": "आप कैसे हैं?"
+          },
+          "order": 1,
+          "symbolId": "kn716yef2zjdsvssh1e90v9dvh84njfe"
+        },
+        {
+          "labelOverride": {
+            "en": "I am okay.",
+            "es": "Estoy bien.",
+            "hi": "मैं ठीक हूँ।"
+          },
+          "order": 2,
+          "symbolId": "kn7dnmdc7p5n8m7c3g6xcp3jd984msrb"
+        },
+        {
+          "labelOverride": {
+            "en": "Good morning!",
+            "es": "¡Buenos días!",
+            "hi": "सुप्रभात!"
+          },
+          "order": 3,
+          "symbolId": "kn7129kfy0189k5k0259gje4ns84nzcj"
+        },
+        {
+          "labelOverride": {
+            "en": "Good night.",
+            "es": "Buenas noches.",
+            "hi": "शुभ रात्रि।"
+          },
+          "order": 4,
+          "symbolId": "kn7c5f6m7t3g7a8p49b58zv0an84mqhn"
+        },
+        {
+          "labelOverride": {
+            "en": "See you later!",
+            "es": "¡Hasta luego!",
+            "hi": "फिर मिलेंगे!"
+          },
+          "order": 5,
+          "symbolId": "kn7fsqqkyhh6jfkdjyjf1r058h84m402"
+        },
+        {
+          "labelOverride": {
+            "en": "Thank you!",
+            "es": "¡Gracias!",
+            "hi": "धन्यवाद!"
+          },
+          "order": 6,
+          "symbolId": "kn7bnwbxpakx3fjrxqeqv06gkn84m88c"
+        },
+        {
+          "labelOverride": {
+            "en": "no thank you",
+            "es": "no, gracias",
+            "hi": "नहीं, धन्यवाद"
+          },
+          "order": 7,
+          "symbolId": "kn7cm2jkm8gtcpttwrec8r9kkd84nfwg"
+        },
+        {
+          "labelOverride": {
+            "en": "I need help.",
+            "es": "Necesito ayuda.",
+            "hi": "मुझे मदद चाहिए।"
+          },
+          "order": 8,
+          "symbolId": "kn7dxmnaawyms6e64e4vvtcqe184mxwn"
+        },
+        {
+          "labelOverride": {
+            "en": "I forgot.",
+            "es": "Lo olvidé.",
+            "hi": "मैं भूल गया।"
+          },
+          "order": 9,
+          "symbolId": "kn754tkacbx7hvzz9kszkztk8984meak"
+        },
+        {
+          "labelOverride": {
+            "en": "Give me that.",
+            "es": "Dame eso.",
+            "hi": "मुझे वो दो"
+          },
+          "order": 10,
+          "symbolId": "kn7828ph73c4sfxmyhrqv32km184ma9h"
+        },
+        {
+          "labelOverride": {
+            "en": "I am lost.",
+            "es": "Estoy perdido.",
+            "hi": "मैं खो गया हूँ।"
+          },
+          "order": 11,
+          "symbolId": "kn757zbh0v9h9y3xpy3975rbzh84m5jx"
+        },
+        {
+          "labelOverride": {
+            "en": "What are you doing tomorrow?",
+            "es": "¿Qué haces mañana?",
+            "hi": "कल क्या कर रहे हो?"
+          },
+          "order": 12,
+          "symbolId": "kn7epv6w4b32dd438yb3vns7th84ntc0"
+        },
+        {
+          "labelOverride": {
+            "en": "Are you tired?",
+            "es": "¿Estás cansado?",
+            "hi": "क्या तुम थक गए हो?"
+          },
+          "order": 13,
+          "symbolId": "kn78164zccwxm4s7hg2ys5a3h184njc2"
+        },
+        {
+          "labelOverride": {
+            "en": "I am having fun.",
+            "es": "Me estoy divirtiendo.",
+            "hi": "मुझे मज़ा आ रहा है।"
+          },
+          "order": 14,
+          "symbolId": "kn70nanjx6nm8cbm6cas7k0hds84n3jy"
+        },
+        {
+          "labelOverride": {
+            "en": "I am joking.",
+            "es": "Estoy bromeando.",
+            "hi": "मैं मज़ाक कर रहा हूँ।"
+          },
+          "order": 15,
+          "symbolId": "kn78japq4ha7dbx0cas8ethdpx84md9s"
+        },
+        {
+          "labelOverride": {
+            "en": "do not feel well",
+            "es": "no me siento bien",
+            "hi": "अच्छा नहीं लग रहा"
+          },
+          "order": 16,
+          "symbolId": "kn762gc1xyy9qevjb0ry2zcnyx84n3g2"
+        },
+        {
+          "labelOverride": {
+            "en": "It is time.",
+            "es": "Es hora.",
+            "hi": "समय हो गया है"
+          },
+          "order": 17,
+          "symbolId": "kn78k93rm2g11b49p3rpb7bv3584nskm"
+        },
+        {
+          "labelOverride": {
+            "en": "yes",
+            "es": "sí",
+            "hi": "हाँ"
+          },
+          "order": 18,
+          "symbolId": "kn7edcf1f58e661q54eych76pn84m0sp"
+        },
+        {
+          "labelOverride": {
+            "en": "no",
+            "es": "no",
+            "hi": "नहीं"
+          },
+          "order": 19,
+          "symbolId": "kn7fdzrgq94ze8apwmmbms0bjn84nhms"
+        },
+        {
+          "labelOverride": {
+            "en": "okay",
+            "es": "bien",
+            "hi": "ठीक है"
+          },
+          "order": 20,
+          "symbolId": "kn76e8b51w1k6q8bsgnhjda9y584n7j7"
+        },
+        {
+          "labelOverride": {
+            "en": "please",
+            "es": "por favor",
+            "hi": "कृपया"
+          },
+          "order": 21,
+          "symbolId": "kn7b1x0z1n881hgz6zk3zd7bxn84nwjf"
+        },
+        {
+          "labelOverride": {
+            "en": "sorry",
+            "es": "lo siento",
+            "hi": "माफ़ करना"
+          },
+          "order": 22,
+          "symbolId": "kn737gmeq524gr5ypke1pr9k5984nn04"
+        },
+        {
+          "labelOverride": {
+            "en": "of course",
+            "es": "por supuesto",
+            "hi": "बिल्कुल"
+          },
+          "order": 23,
+          "symbolId": "kn7agypne0pa0hppxyjs1ehb6s84m4wv"
+        },
+        {
+          "labelOverride": {
+            "en": "amazing",
+            "es": "increíble",
+            "hi": "कमाल का"
+          },
+          "order": 24,
+          "symbolId": "kn77343w3fq6zhaqprfh1bz3nh84neav"
+        },
+        {
+          "labelOverride": {
+            "en": "awesome",
+            "es": "increíble",
+            "hi": "कमाल"
+          },
+          "order": 25,
+          "symbolId": "kn77brhtns6pp6k5wvm38qh9n184mb5a"
+        },
+        {
+          "labelOverride": {
+            "en": "Where are we going?",
+            "es": "¿Adónde vamos?",
+            "hi": "हम कहाँ जा रहे हैं?"
+          },
+          "order": 26,
+          "symbolId": "kn7eh44hfscfym8hgf9njgs9dd84mjv5"
+        },
+        {
+          "labelOverride": {
+            "en": "really",
+            "es": "de verdad",
+            "hi": "सच में"
+          },
+          "order": 27,
+          "symbolId": "kn7bz62wy832fe6csb4fq28fcd84mrts"
+        },
+        {
+          "labelOverride": {
+            "en": "what",
+            "es": "qué",
+            "hi": "क्या"
+          },
+          "order": 28,
+          "symbolId": "kn7dxc077h1xaq1tbp8ecqtdf184nyv0"
+        },
+        {
+          "labelOverride": {
+            "en": "well",
+            "es": "bien",
+            "hi": "ठीक"
+          },
+          "order": 29,
+          "symbolId": "kn7a9ak43jzzbmvw4v72kxt0g184makc"
+        },
+        {
+          "labelOverride": {
+            "en": "come back",
+            "es": "volver",
+            "hi": "वापस आना"
+          },
+          "order": 30,
+          "symbolId": "kn73bm0tcx26rvyx5abyfv8e4x84nmb1"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Chat",
+    "es": "Charla",
+    "hi": "बातचीत"
+  },
+  "slug": "chat",
+  "tree": "categories"
+}

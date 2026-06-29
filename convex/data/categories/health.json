@@ -1,0 +1,459 @@
+{
+  "colour": "#F43F5E",
+  "coverImagePath": "symbols/doctor.png",
+  "defaultTier": "free",
+  "icon": "❤️",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#F43F5E",
+      "icon": "❤️",
+      "imagePath": "symbols/doctor.png",
+      "name": {
+        "en": "Health",
+        "es": "Salud",
+        "hi": "सेहत"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "head",
+            "es": "cabeza",
+            "hi": "सिर"
+          },
+          "order": 0,
+          "symbolId": "kn7e3xk4d17s402ykfyrt00kqs84mq9v"
+        },
+        {
+          "labelOverride": {
+            "en": "face",
+            "es": "cara",
+            "hi": "चेहरा"
+          },
+          "order": 1,
+          "symbolId": "kn78qa3km6534c75tk6h3ed02d84nex3"
+        },
+        {
+          "labelOverride": {
+            "en": "eye",
+            "es": "ojo",
+            "hi": "आँख"
+          },
+          "order": 2,
+          "symbolId": "kn78ge388s7hy58cyr0cp5n58h84mgnf"
+        },
+        {
+          "labelOverride": {
+            "en": "ear",
+            "es": "oreja",
+            "hi": "कान"
+          },
+          "order": 3,
+          "symbolId": "kn7fecdak3gjben0mz6pbqz83d84m2qs"
+        },
+        {
+          "labelOverride": {
+            "en": "nose",
+            "es": "Nariz",
+            "hi": "नाक"
+          },
+          "order": 4,
+          "symbolId": "kn7a56xhmx51hy7jdjr46vdkqx84n90y"
+        },
+        {
+          "labelOverride": {
+            "en": "mouth",
+            "es": "boca",
+            "hi": "मुँह"
+          },
+          "order": 5,
+          "symbolId": "kn7bp6awnansrbhtj7cz2xggk584n27q"
+        },
+        {
+          "labelOverride": {
+            "en": "teeth",
+            "es": "dientes",
+            "hi": "दाँत"
+          },
+          "order": 6,
+          "symbolId": "kn7ffzgttpf44rw9ph8frxng7d84n5gn"
+        },
+        {
+          "labelOverride": {
+            "en": "hand",
+            "es": "mano",
+            "hi": "हाथ"
+          },
+          "order": 7,
+          "symbolId": "kn7fk3jp3ma2gc7g27ghh4qt5184n6d2"
+        },
+        {
+          "labelOverride": {
+            "en": "arm",
+            "es": "brazo",
+            "hi": "बांह"
+          },
+          "order": 8,
+          "symbolId": "kn723dfvpm27zehyrxxaq09s2584mffv"
+        },
+        {
+          "labelOverride": {
+            "en": "leg",
+            "es": "pierna",
+            "hi": "पैर"
+          },
+          "order": 9,
+          "symbolId": "kn7a0nm8yrapsd1f6wmx90h2k584nkgn"
+        },
+        {
+          "labelOverride": {
+            "en": "foot",
+            "es": "pie",
+            "hi": "पैर"
+          },
+          "order": 10,
+          "symbolId": "kn703tkg01yw261exvemk49rq584nype"
+        },
+        {
+          "labelOverride": {
+            "en": "tummy",
+            "es": "Barriga",
+            "hi": "पेट"
+          },
+          "order": 11,
+          "symbolId": "kn710k2j4j29rxks0x9jb0mc2n84m27v"
+        },
+        {
+          "labelOverride": {
+            "en": "sick",
+            "es": "enfermo",
+            "hi": "बीमार"
+          },
+          "order": 12,
+          "symbolId": "kn7csda8zb5df60j1ved3kg8fh84n82t"
+        },
+        {
+          "labelOverride": {
+            "en": "pain",
+            "es": "dolor",
+            "hi": "दर्द"
+          },
+          "order": 13,
+          "symbolId": "kn75454qhnkv0sgrzfvzpw3vv584mn9k"
+        },
+        {
+          "labelOverride": {
+            "en": "hurt",
+            "es": "doler",
+            "hi": "दर्द"
+          },
+          "order": 14,
+          "symbolId": "kn79n9ecnnq0392k3vj7mf6jvx84m37x"
+        },
+        {
+          "labelOverride": {
+            "en": "fever",
+            "es": "fiebre",
+            "hi": "बुखार"
+          },
+          "order": 15,
+          "symbolId": "kn7c6jv06xrb8978q7ez2maek984m6k2"
+        },
+        {
+          "labelOverride": {
+            "en": "headache",
+            "es": "dolor de cabeza",
+            "hi": "सिरदर्द"
+          },
+          "order": 16,
+          "symbolId": "kn75fhhya0ae0c3vr4fn9mp1bd84nwbb"
+        },
+        {
+          "labelOverride": {
+            "en": "cold",
+            "es": "frío",
+            "hi": "ठंडा"
+          },
+          "order": 17,
+          "symbolId": "kn75ym5rc7ehk94a6fe5tkgk6d84mwd5"
+        },
+        {
+          "labelOverride": {
+            "en": "cough",
+            "es": "tos",
+            "hi": "खाँसी"
+          },
+          "order": 18,
+          "symbolId": "kn773kd1tse4cdy42602t56emn84m76y"
+        },
+        {
+          "labelOverride": {
+            "en": "sneeze",
+            "es": "estornudar",
+            "hi": "छींकना"
+          },
+          "order": 19,
+          "symbolId": "kn722a0spedc33pgnsejq8rjsn84m2ss"
+        },
+        {
+          "labelOverride": {
+            "en": "dizzy",
+            "es": "mareado",
+            "hi": "चक्कर"
+          },
+          "order": 20,
+          "symbolId": "kn7br2rc0w54rxthsxxmhv0ajs84n6yg"
+        },
+        {
+          "labelOverride": {
+            "en": "rash",
+            "es": "sarpullido",
+            "hi": "चकत्ते"
+          },
+          "order": 21,
+          "symbolId": "kn7fa8n5pqng4cc4gkwe2n3rws84n9xk"
+        },
+        {
+          "labelOverride": {
+            "en": "doctor",
+            "es": "doctor",
+            "hi": "डॉक्टर"
+          },
+          "order": 22,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "en": "nurse",
+            "es": "enfermera",
+            "hi": "नर्स"
+          },
+          "order": 23,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "en": "hospital",
+            "es": "Hospital",
+            "hi": "अस्पताल"
+          },
+          "order": 24,
+          "symbolId": "kn7cptdjskwjk162z6s0n2x9nn84mddy"
+        },
+        {
+          "labelOverride": {
+            "en": "medicine",
+            "es": "medicina",
+            "hi": "दवा"
+          },
+          "order": 25,
+          "symbolId": "kn7255zfhf1cy9nh8ngvcn913s84m448"
+        },
+        {
+          "labelOverride": {
+            "en": "bandage",
+            "es": "venda",
+            "hi": "पट्टी"
+          },
+          "order": 26,
+          "symbolId": "kn75tsbxrvt0w3q772bwvsyyhs84mw6a"
+        },
+        {
+          "labelOverride": {
+            "en": "injection",
+            "es": "inyección",
+            "hi": "इंजेक्शन"
+          },
+          "order": 27,
+          "symbolId": "kn7dshftzb26adxdsceetpm29d84m8q2"
+        },
+        {
+          "labelOverride": {
+            "en": "ambulance",
+            "es": "ambulancia",
+            "hi": "एम्बुलेंस"
+          },
+          "order": 28,
+          "symbolId": "kn7e5afbt877y8x4zxr47hmba984mxm6"
+        },
+        {
+          "labelOverride": {
+            "en": "wheelchair",
+            "es": "silla de ruedas",
+            "hi": "व्हीलचेयर"
+          },
+          "order": 29,
+          "symbolId": "kn7bjhrenqe616wzr1gxawp1wx84nhgn"
+        },
+        {
+          "labelOverride": {
+            "en": "hearing aid",
+            "es": "audífono",
+            "hi": "श्रवण यंत्र"
+          },
+          "order": 30,
+          "symbolId": "kn7br1wxekpj2tdyk62htcp9rs84n2mx"
+        },
+        {
+          "labelOverride": {
+            "en": "glasses",
+            "es": "gafas",
+            "hi": "चश्मा"
+          },
+          "order": 31,
+          "symbolId": "kn7dnk9ry7rjvhdb33h1g524cx84nd19"
+        },
+        {
+          "labelOverride": {
+            "en": "wash",
+            "es": "lavar",
+            "hi": "धोना"
+          },
+          "order": 32,
+          "symbolId": "kn788hzg0ft3jwre65q4ent58984ndbj"
+        },
+        {
+          "labelOverride": {
+            "en": "brush teeth",
+            "es": "cepillar los dientes",
+            "hi": "दाँत ब्रश करना"
+          },
+          "order": 33,
+          "symbolId": "kn79zgcjaabrxbed72qmtyg09s84ms2f"
+        },
+        {
+          "labelOverride": {
+            "en": "brush hair",
+            "es": "cepillar el pelo",
+            "hi": "बाल बनाना"
+          },
+          "order": 34,
+          "symbolId": "kn79c7gnm30gw4hnh1bkj8b07584nnm8"
+        },
+        {
+          "labelOverride": {
+            "en": "shower",
+            "hi": "नहाना"
+          },
+          "order": 35,
+          "symbolId": "kn7d1qzaphpjjmpjp9z7arnxt584m8d9"
+        },
+        {
+          "labelOverride": {
+            "en": "toilet",
+            "es": "inodoro",
+            "hi": "पॉटी"
+          },
+          "order": 36,
+          "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
+        },
+        {
+          "labelOverride": {
+            "en": "sleep",
+            "es": "dormir",
+            "hi": "सोना"
+          },
+          "order": 37,
+          "symbolId": "kn74szjezc2fnemzxzttxbm7vd84m4f2"
+        },
+        {
+          "labelOverride": {
+            "en": "rest",
+            "es": "descansar",
+            "hi": "आराम"
+          },
+          "order": 38,
+          "symbolId": "kn7bsy1rer5gm54v4p9b2deqeh84n4xj"
+        },
+        {
+          "labelOverride": {
+            "en": "exercise",
+            "es": "ejercicio",
+            "hi": "कसरत"
+          },
+          "order": 39,
+          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+        },
+        {
+          "labelOverride": {
+            "en": "relax",
+            "es": "relajarse",
+            "hi": "आराम करो"
+          },
+          "order": 40,
+          "symbolId": "kn71219gxfv8ctdw1vpt80dqvd84n2a1"
+        },
+        {
+          "labelOverride": {
+            "en": "emergency",
+            "es": "emergencia",
+            "hi": "आपातकाल"
+          },
+          "order": 41,
+          "symbolId": "kn7brsk1byhymtz9mq6s5g4qqh84mqwd"
+        },
+        {
+          "labelOverride": {
+            "en": "hungry",
+            "es": "tengo hambre",
+            "hi": "भूखा"
+          },
+          "order": 42,
+          "symbolId": "kn75eqcw6m7epm140jcfcap32h84m2m9"
+        },
+        {
+          "labelOverride": {
+            "en": "thirsty",
+            "es": "sediento",
+            "hi": "प्यासा"
+          },
+          "order": 43,
+          "symbolId": "kn72av2rh00wv6j2dmmvvxbzhx84nxgp"
+        },
+        {
+          "labelOverride": {
+            "en": "tired",
+            "es": "cansado",
+            "hi": "थका हुआ"
+          },
+          "order": 44,
+          "symbolId": "kn77gz38x0ew3hh2v18zfevan584mzfy"
+        },
+        {
+          "labelOverride": {
+            "en": "inhaler",
+            "es": "inhalador",
+            "hi": "इनहेलर"
+          },
+          "order": 45,
+          "symbolId": "kn761sa4vfrpddw62jj6pdmbz984mpxm"
+        },
+        {
+          "labelOverride": {
+            "en": "appointment",
+            "es": "cita",
+            "hi": "मुलाक़ात"
+          },
+          "order": 46,
+          "symbolId": "kn7exawrqgmrm908fe7627jkk184nh0q"
+        },
+        {
+          "labelOverride": {
+            "en": "thermometer",
+            "es": "termómetro",
+            "hi": "थर्मामीटर"
+          },
+          "order": 47,
+          "symbolId": "kn79mawen4ygg7n168q5hm5d0984nf2n"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Health",
+    "es": "Salud",
+    "hi": "सेहत"
+  },
+  "slug": "health",
+  "tree": "categories"
+}

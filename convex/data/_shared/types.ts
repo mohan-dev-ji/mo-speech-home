@@ -59,9 +59,12 @@ type ContentModuleBase = {
   coverImagePath?: string;
   /** Default tier; the per-type lifecycle `tierOverride` can override at runtime. */
   defaultTier: PackTier;
-  /** Modules auto-installed for new accounts are listed in `_defaults.json`;
-   * `isStarter` is retained for the starter folder so it can be flagged. */
+  /** `isStarter` is retained for the legacy starter folder so it can be flagged. */
   isStarter?: boolean;
+  /** Default ("core") module — auto-installed for new accounts + free to access
+   * (ADR-014 Task C/D). Present in the git-export artifact so a re-seed restores
+   * the flag. The live source of truth is `libraryModules.isDefault`. */
+  isDefault?: boolean;
   provenance?: ModuleProvenance;
 };
 

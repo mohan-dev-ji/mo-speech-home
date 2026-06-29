@@ -1186,6 +1186,12 @@ export default defineSchema({
     // paid tier in the UI: a Default module shows a "Default" badge instead of
     // a Free/Pro/Max one. Replaces the bundled-`core` idea (ADR-014 Task C/D).
     isDefault: v.optional(v.boolean()),
+    // Translation bookkeeping (ADR-014 Task E) — a flat map of
+    // fieldPath → the English value that the current non-English translations
+    // were produced from. Lets the translator (re)translate only what's missing
+    // or whose English source changed; never overwrites a good translation.
+    // English is master. Omitted from the git export (rebuilt safely on run).
+    translationSnapshot: v.optional(v.record(v.string(), v.string())),
     createdBy: v.string(),
     updatedAt: v.number(),
   })

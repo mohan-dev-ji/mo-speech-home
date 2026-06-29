@@ -1,22 +1,10 @@
 {
-  "slug": "dinosaurs",
-  "tree": "sentences",
-  "name": {
-    "en": "Dinosaurs",
-    "es": "Dinosaurios",
-    "hi": "डायनासोर"
-  },
+  "coverImagePath": "symbols/symbol00192671.png",
+  "defaultTier": "pro",
   "description": {
     "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
     "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión.",
     "hi": "उस बच्चे के लिए जो स्टेगोसॉरस और स्पिनोसॉरस को पहचानता है। सोलह तरह के डायनासोर, उनके जीवाश्म, पैरों के निशान और वे कहाँ रहते थे। उनकी पसंद के हिसाब से शब्द।"
-  },
-  "coverImagePath": "symbols/symbol00192671.png",
-  "defaultTier": "pro",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -71,5 +59,17 @@
         "hi": "टायरानोसॉरस रेक्स सबसे खूंखार डायनासोर है"
       }
     }
-  ]
+  ],
+  "name": {
+    "en": "Dinosaurs",
+    "es": "Dinosaurios",
+    "hi": "डायनासोर"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "dinosaurs",
+  "tree": "sentences"
 }

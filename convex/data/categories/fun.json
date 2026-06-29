@@ -1,22 +1,10 @@
 {
-  "slug": "fun",
-  "tree": "categories",
-  "name": {
-    "en": "Fun",
-    "es": "Diversión",
-    "hi": "मस्ती"
-  },
+  "coverImagePath": "symbols/fun.png",
+  "defaultTier": "free",
   "description": {
     "en": "Toys, games, and everything they reach for when no one's making them work. Words for play.",
     "es": "Juguetes, juegos y todo lo que quieren hacer cuando nadie les dice qué hacer. Palabras para jugar.",
     "hi": "खिलौने, खेल, और वो सब कुछ जो बच्चे तब करते हैं जब कोई उनसे काम नहीं करवा रहा होता। खेलने के लिए शब्द।"
-  },
-  "coverImagePath": "symbols/fun.png",
-  "defaultTier": "free",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -185,5 +173,17 @@
         }
       ]
     }
-  ]
+  ],
+  "name": {
+    "en": "Fun",
+    "es": "Diversión",
+    "hi": "मस्ती"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "fun",
+  "tree": "categories"
 }

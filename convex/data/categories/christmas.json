@@ -1,22 +1,10 @@
 {
-  "slug": "christmas",
-  "tree": "categories",
-  "name": {
-    "en": "Christmas",
-    "es": "Navidad",
-    "hi": "क्रिसमस"
-  },
+  "coverImagePath": "symbols/symbol00059081.png",
+  "defaultTier": "max",
   "description": {
     "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
     "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día.",
     "hi": "दिसंबर में वो सब कुछ जिस पर वो उंगली रखना चाहते हैं। पेड़, तोहफ़े, वो पुडिंग का टुकड़ा जो किसी को पसंद नहीं। पूरे दिन के लिए शब्द।"
-  },
-  "coverImagePath": "symbols/symbol00059081.png",
-  "defaultTier": "max",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -154,5 +142,17 @@
         }
       ]
     }
-  ]
+  ],
+  "name": {
+    "en": "Christmas",
+    "es": "Navidad",
+    "hi": "क्रिसमस"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "christmas",
+  "tree": "categories"
 }

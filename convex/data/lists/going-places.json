@@ -1,0 +1,172 @@
+{
+  "colour": "green",
+  "coverImagePath": "symbols/where_are_you_going.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00185696.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00185696.mp3",
+          "description": {
+            "en": "put tablet into backpack",
+            "es": "Poner la tablet en la mochila",
+            "hi": "टैबलेट बैग में रखो"
+          },
+          "imagePath": "symbols/symbol00185696.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212450.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "description": {
+            "en": "put on shoe",
+            "es": "Ponerse el zapato",
+            "hi": "जूता पहनो"
+          },
+          "imagePath": "symbols/symbol00212450.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00167101.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
+          "description": {
+            "en": "put on coat",
+            "es": "Ponerse el abrigo",
+            "hi": "कोट पहनो"
+          },
+          "imagePath": "symbols/symbol00167101.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00184311.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00184311.mp3",
+          "description": {
+            "en": "Bye!",
+            "es": "¡Adiós!",
+            "hi": "बाय!"
+          },
+          "imagePath": "symbols/symbol00184311.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/8616ec1f-e178-4ddf-86e3-1ef6532852ea.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00137611.mp3",
+          "description": {
+            "en": "get on school bus",
+            "es": "Subir al autobús escolar",
+            "hi": "स्कूल बस में बैठो"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/8616ec1f-e178-4ddf-86e3-1ef6532852ea.mp3",
+          "imagePath": "symbols/symbol00137611.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Going to school",
+        "es": "Ir al colegio",
+        "hi": "स्कूल जाना"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00167101.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
+          "description": {
+            "en": "put on coat",
+            "es": "Ponerse el abrigo",
+            "hi": "कोट पहनो"
+          },
+          "imagePath": "symbols/symbol00167101.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212450.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "description": {
+            "en": "put on shoe",
+            "es": "Ponerse el zapato",
+            "hi": "जूता पहनो"
+          },
+          "imagePath": "symbols/symbol00212450.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190434.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
+          "description": {
+            "en": "walk",
+            "es": "Caminar",
+            "hi": "चलो"
+          },
+          "imagePath": "symbols/symbol00190434.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/park_2.mp3",
+          "defaultAudioPath": "audio/eng/default/park_2.mp3",
+          "description": {
+            "en": "park",
+            "es": "Parque",
+            "hi": "पार्क"
+          },
+          "imagePath": "symbols/park_2.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/home.mp3",
+          "defaultAudioPath": "audio/eng/default/home.mp3",
+          "description": {
+            "en": "home",
+            "es": "Casa",
+            "hi": "घर"
+          },
+          "imagePath": "symbols/home.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Going to the park",
+        "es": "Ir al parque",
+        "hi": "पार्क जाना"
+      },
+      "order": 1,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "name": {
+    "en": "Going Places"
+  },
+  "slug": "going-places",
+  "tree": "lists"
+}

@@ -1,0 +1,450 @@
+{
+  "colour": "#22C55E",
+  "coverImagePath": "symbols/symbol00102991.png",
+  "defaultTier": "free",
+  "icon": "⚽",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#22C55E",
+      "icon": "⚽",
+      "imagePath": "symbols/symbol00102991.png",
+      "name": {
+        "en": "Activities",
+        "es": "Actividades",
+        "hi": "गतिविधियाँ"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "work out",
+            "hi": "व्यायाम करना"
+          },
+          "order": 0,
+          "symbolId": "kn77648gzn6et6z2kmw08tj6v184nb83"
+        },
+        {
+          "labelOverride": {
+            "en": "swim",
+            "es": "nadar",
+            "hi": "तैरना"
+          },
+          "order": 1,
+          "symbolId": "kn70j879bzcm86fkbybffet1xh84nwrb"
+        },
+        {
+          "labelOverride": {
+            "en": "run",
+            "es": "correr",
+            "hi": "दौड़ना"
+          },
+          "order": 2,
+          "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
+        },
+        {
+          "labelOverride": {
+            "en": "football",
+            "es": "fútbol americano",
+            "hi": "फुटबॉल"
+          },
+          "order": 3,
+          "symbolId": "kn7cgmt1vq59zb7e1z6bc1tgsn84mxp3"
+        },
+        {
+          "labelOverride": {
+            "en": "basketball",
+            "es": "baloncesto",
+            "hi": "बास्केटबॉल"
+          },
+          "order": 4,
+          "symbolId": "kn77p48be94ews8ykn0q1w569584mx21"
+        },
+        {
+          "labelOverride": {
+            "en": "tennis",
+            "es": "tenis",
+            "hi": "टेनिस"
+          },
+          "order": 5,
+          "symbolId": "kn71bavhpdfa32164h5x29rmsh84mq9z"
+        },
+        {
+          "labelOverride": {
+            "en": "gymnastics",
+            "es": "gimnasia",
+            "hi": "जिम्नास्टिक"
+          },
+          "order": 6,
+          "symbolId": "kn771mwrdny20c9pe2c8010wan84nkc3"
+        },
+        {
+          "labelOverride": {
+            "en": "karate",
+            "es": "kárate",
+            "hi": "कराटे"
+          },
+          "order": 7,
+          "symbolId": "kn7802mms4tkpdd2vy6w7zd6tn84mphv"
+        },
+        {
+          "labelOverride": {
+            "en": "yoga",
+            "es": "yoga",
+            "hi": "योग"
+          },
+          "order": 8,
+          "symbolId": "kn73v22vq0zsk0ep7gg450c0qd84nsjn"
+        },
+        {
+          "labelOverride": {
+            "en": "dance",
+            "es": "bailar",
+            "hi": "नाचना"
+          },
+          "order": 9,
+          "symbolId": "kn7d6t3y6tzrrvp2vwd5b65ge184nxep"
+        },
+        {
+          "labelOverride": {
+            "en": "cycling",
+            "es": "ciclismo",
+            "hi": "साइकिल चलाना"
+          },
+          "order": 10,
+          "symbolId": "kn70m22akxvyeae0zkgv033anx84myac"
+        },
+        {
+          "labelOverride": {
+            "en": "surfing",
+            "es": "surf",
+            "hi": "सर्फिंग"
+          },
+          "order": 11,
+          "symbolId": "kn73cysb0zb1zn71fb0h85vz1h84m0rw"
+        },
+        {
+          "labelOverride": {
+            "en": "race",
+            "es": "carrera",
+            "hi": "दौड़"
+          },
+          "order": 12,
+          "symbolId": "kn70sam6dmjed7w0z4v6errg4d84n0t1"
+        },
+        {
+          "labelOverride": {
+            "en": "art",
+            "es": "Arte",
+            "hi": "कला"
+          },
+          "order": 13,
+          "symbolId": "kn7f64xyytd7ttq48ejdb1pwkd84mqc1"
+        },
+        {
+          "labelOverride": {
+            "en": "craft",
+            "es": "manualidad",
+            "hi": "शिल्प"
+          },
+          "order": 14,
+          "symbolId": "kn7a5n9d2q93qnw6x1xw9rzags84m8mz"
+        },
+        {
+          "labelOverride": {
+            "en": "painting",
+            "es": "pintura",
+            "hi": "चित्रकला"
+          },
+          "order": 15,
+          "symbolId": "kn7cy2eg8db5ptv58yq0y7h02n84mj5n"
+        },
+        {
+          "labelOverride": {
+            "en": "drawing",
+            "es": "dibujo",
+            "hi": "चित्रकला"
+          },
+          "order": 16,
+          "symbolId": "kn7e737vawq3affpe85cwf871h84mxhx"
+        },
+        {
+          "labelOverride": {
+            "en": "music",
+            "es": "música",
+            "hi": "संगीत"
+          },
+          "order": 17,
+          "symbolId": "kn79bhs2gfbgm1xkx1r4h0cknd84n043"
+        },
+        {
+          "labelOverride": {
+            "en": "sing",
+            "es": "cantar",
+            "hi": "गाना"
+          },
+          "order": 18,
+          "symbolId": "kn7dg927wyv18xy10ap3rp15a984mtmw"
+        },
+        {
+          "labelOverride": {
+            "en": "song",
+            "es": "canción",
+            "hi": "गाना"
+          },
+          "order": 19,
+          "symbolId": "kn73m96vgzmy726savpcgvmnyx84mxm4"
+        },
+        {
+          "labelOverride": {
+            "en": "piano",
+            "es": "piano",
+            "hi": "पियानो"
+          },
+          "order": 20,
+          "symbolId": "kn7an13qv15kfvkd8b4ydpsc9184m7xw"
+        },
+        {
+          "labelOverride": {
+            "en": "game",
+            "es": "juego",
+            "hi": "खेल"
+          },
+          "order": 21,
+          "symbolId": "kn76a9t81pcy8pdc294yjc548984mggx"
+        },
+        {
+          "labelOverride": {
+            "en": "video game",
+            "es": "videojuego",
+            "hi": "वीडियो गेम"
+          },
+          "order": 22,
+          "symbolId": "kn739knbmfya36dnm4hcqxhbjs84m18v"
+        },
+        {
+          "labelOverride": {
+            "en": "board game",
+            "es": "juego de mesa",
+            "hi": "बोर्ड गेम"
+          },
+          "order": 23,
+          "symbolId": "kn7f63re0sc10pmzxzahy82w5s84n2ef"
+        },
+        {
+          "labelOverride": {
+            "en": "puzzle",
+            "es": "rompecabezas",
+            "hi": "पहेली"
+          },
+          "order": 24,
+          "symbolId": "kn7bezhnta9dh97cx6gdg3gcwx84m79v"
+        },
+        {
+          "labelOverride": {
+            "en": "chess",
+            "es": "ajedrez",
+            "hi": "शतरंज"
+          },
+          "order": 25,
+          "symbolId": "kn7f0vb82qq7bd6gk8fnm6vc3d84nyrt"
+        },
+        {
+          "labelOverride": {
+            "en": "hide and seek",
+            "es": "el escondite",
+            "hi": "लुका-छिपी"
+          },
+          "order": 26,
+          "symbolId": "kn79az2t3gw1qbq7nfdfanwakd84ntkt"
+        },
+        {
+          "labelOverride": {
+            "en": "doll",
+            "es": "muñeca",
+            "hi": "गुड़िया"
+          },
+          "order": 27,
+          "symbolId": "kn75rmbv5rjfh9k1k4p4r6jmd984nsy2"
+        },
+        {
+          "labelOverride": {
+            "en": "ball",
+            "es": "pelota",
+            "hi": "गेंद"
+          },
+          "order": 28,
+          "symbolId": "kn76jzbjhcr8t926sxaz7kz86d84n41y"
+        },
+        {
+          "labelOverride": {
+            "en": "trampoline",
+            "es": "cama elástica",
+            "hi": "ट्रैम्पोलिन"
+          },
+          "order": 29,
+          "symbolId": "kn7dtk9ree8arqben756f08m1x84nqst"
+        },
+        {
+          "labelOverride": {
+            "en": "party",
+            "es": "fiesta",
+            "hi": "पार्टी"
+          },
+          "order": 30,
+          "symbolId": "kn73rmc3kbthtk86zkm0r24vh584nc1z"
+        },
+        {
+          "labelOverride": {
+            "en": "birthday",
+            "es": "cumpleaños",
+            "hi": "जन्मदिन"
+          },
+          "order": 31,
+          "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+        },
+        {
+          "labelOverride": {
+            "en": "movie",
+            "es": "película",
+            "hi": "फिल्म"
+          },
+          "order": 32,
+          "symbolId": "kn77q8s0ang619dn4yrgmye31184mp5b"
+        },
+        {
+          "labelOverride": {
+            "en": "television",
+            "es": "televisión",
+            "hi": "टीवी"
+          },
+          "order": 33,
+          "symbolId": "kn74r9vm7n3ra4semdxr1mw5ns84mpnn"
+        },
+        {
+          "labelOverride": {
+            "en": "park",
+            "es": "parque",
+            "hi": "पार्क"
+          },
+          "order": 34,
+          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+        },
+        {
+          "labelOverride": {
+            "en": "playground",
+            "es": "parque infantil",
+            "hi": "खेल का मैदान"
+          },
+          "order": 35,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "en": "beach",
+            "es": "playa",
+            "hi": "बीच"
+          },
+          "order": 36,
+          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+        },
+        {
+          "labelOverride": {
+            "en": "library",
+            "es": "biblioteca",
+            "hi": "पुस्तकालय"
+          },
+          "order": 37,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "en": "camping",
+            "es": "acampar",
+            "hi": "कैंपिंग"
+          },
+          "order": 38,
+          "symbolId": "kn78pedh9f8dfbd25n54tyqam584m120"
+        },
+        {
+          "labelOverride": {
+            "en": "exercise",
+            "es": "ejercicio",
+            "hi": "कसरत"
+          },
+          "order": 39,
+          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+        },
+        {
+          "labelOverride": {
+            "en": "sport",
+            "es": "deporte",
+            "hi": "खेल"
+          },
+          "order": 40,
+          "symbolId": "kn726apnpbra0ryewwa9e8n73d84n44s"
+        },
+        {
+          "labelOverride": {
+            "en": "walk",
+            "es": "caminar",
+            "hi": "चलना"
+          },
+          "order": 41,
+          "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
+        },
+        {
+          "labelOverride": {
+            "en": "hike",
+            "es": "caminata",
+            "hi": "लंबी पैदल यात्रा"
+          },
+          "order": 42,
+          "symbolId": "kn7b1xz7jw7rdydg4xrntvbfzs84ndww"
+        },
+        {
+          "labelOverride": {
+            "en": "gardening",
+            "es": "Jardinería",
+            "hi": "बागवानी"
+          },
+          "order": 43,
+          "symbolId": "kn7a9dg5z58m551hxckrsh0pd184m59f"
+        },
+        {
+          "labelOverride": {
+            "en": "outdoors",
+            "es": "al aire libre",
+            "hi": "बाहर"
+          },
+          "order": 44,
+          "symbolId": "kn7b525q8pxmts13x50n2jxyhh84mpqv"
+        },
+        {
+          "labelOverride": {
+            "en": "trip",
+            "es": "viaje",
+            "hi": "यात्रा"
+          },
+          "order": 45,
+          "symbolId": "kn7eg40dnv9mbp62pk9nzmfj1n84n86y"
+        },
+        {
+          "labelOverride": {
+            "en": "holiday",
+            "es": "día festivo",
+            "hi": "छुट्टी"
+          },
+          "order": 46,
+          "symbolId": "kn7ag03qbap8ht3ns7smr40g4x84nqm5"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Activities",
+    "es": "Actividades",
+    "hi": "गतिविधियाँ"
+  },
+  "slug": "activities",
+  "tree": "categories"
+}

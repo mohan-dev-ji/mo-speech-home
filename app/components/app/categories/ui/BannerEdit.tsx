@@ -1,115 +1,37 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { FolderOpen, ImageIcon, ChevronDown, Bookmark, Library, RotateCcw } from 'lucide-react';
+import { ImageIcon, Bookmark, Library, RotateCcw } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
 import { useTranslations } from 'next-intl';
-import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { PlanTierPicker, type PlanTier } from '@/app/components/app/shared/ui/PlanTierPicker';
 import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 
-// ─── Colour picker ────────────────────────────────────────────────────────────
+// ─── Folder image (static) ───────────────────────────────────────────────────
+//
+// Display-only on the detail banner. Folder presentation (colour + image) is
+// edited one level up, on the category tile in the grid's edit mode — so the
+// detail edit banner just shows the image as context and stays focused on
+// symbol editing (owner decision 2026-06-29).
 
-function ColourPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (name: string) => void;
-}) {
-  const t = useTranslations('categoryDetail');
-  const [open, setOpen] = useState(false);
-  const current = getCategoryColour(value);
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-theme-elements px-theme-btn-x py-theme-btn-y rounded-theme-button border border-theme-line bg-theme-surface text-theme-alt-text text-theme-s font-medium transition-colors hover:bg-theme-card"
-      >
-        <span
-          className="w-4 h-4 rounded-theme-sm shrink-0 border border-black/10"
-          style={{ backgroundColor: current.c500 }}
-        />
-        {t('bannerColourPicker')}
-        <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
-      </button>
-
-      {open && (
-        <div
-          className="absolute top-full left-0 mt-1 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50 overflow-hidden"
-          style={{ minWidth: '180px' }}
-        >
-          {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => {
-            const selected = getCategoryColour(value).c500 === pair.c500;
-            return (
-              <button
-                key={name}
-                type="button"
-                title={name}
-                onClick={() => { onChange(name); setOpen(false); }}
-                className="block w-full h-6"
-                style={{
-                  backgroundColor: pair.c500,
-                  boxShadow: selected ? 'inset 0 0 0 2px white' : undefined,
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Image card with edit overlay ────────────────────────────────────────────
-
-function EditableImageCard({
+function FolderImageCard({
   imagePath,
   colour,
   categoryName,
-  onClick,
 }: {
   imagePath?: string;
   colour: string;
   categoryName: string;
-  onClick: () => void;
 }) {
   const colourPair = getCategoryColour(colour);
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
 
   return (
-    <div className="relative w-[136px] h-[136px] shrink-0 cursor-pointer" onClick={onClick}>
-      {/* Orange dashed border */}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 10,
-        }}
-      >
-        <rect
-          x="2" y="2" rx="16" ry="16"
-          style={{
-            width: 'calc(100% - 4px)',
-            height: 'calc(100% - 4px)',
-            fill: 'none',
-            stroke: 'var(--theme-enter-mode)',
-            strokeWidth: 4,
-            strokeDasharray: '12 6',
-          }}
-        />
-      </svg>
-
-      {/* Card body */}
+    <div className="relative w-[136px] h-[136px] shrink-0">
       <div
         className="w-full h-full p-2 rounded-2xl overflow-hidden relative flex items-center justify-center"
         style={{ backgroundColor: colourPair.c100 }}
@@ -125,7 +47,6 @@ function EditableImageCard({
         ) : (
           <ImageIcon className="w-12 h-12" style={{ color: colourPair.c500 }} />
         )}
-
       </div>
     </div>
   );
@@ -140,11 +61,11 @@ export type BannerEditProps = {
    *  banner renders the name as plain text instead of an input. */
   onCategoryNameChange?: (name: string) => void;
   imagePath?: string;
+  /** The category's colour — display-only here (drives the folder thumbnail
+   *  tint). Edited on the grid tile a level up, not in this banner. */
   draftColour: string;
-  onColourChange: (colour: string) => void;
   onExit: () => void;
   onAddSymbol: () => void;
-  onEditFolderImage: () => void;
   // Admin-only affordances. Parent decides visibility via `showAdminButtons`
   // (gated on viewMode === 'admin' && useIsAdmin()). When false, the entire
   // admin row is hidden. See ADR-008.
@@ -173,10 +94,8 @@ export function BannerEdit({
   onCategoryNameChange,
   imagePath,
   draftColour,
-  onColourChange,
   onExit,
   onAddSymbol,
-  onEditFolderImage,
   showAdminButtons = false,
   isDefault = false,
   isInLibrary = false,
@@ -276,19 +195,6 @@ export function BannerEdit({
               label={t('bannerAddSymbol')}
             />
 
-            {/* Colour picker */}
-            <ColourPicker value={draftColour} onChange={onColourChange} />
-
-            {/* Edit folder image */}
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onEditFolderImage}
-              icon={<FolderOpen className="w-3.5 h-3.5" />}
-            >
-              {t('bannerEditFolderImage')}
-            </Button>
-
             {/* Reload Defaults — visible only when this category was loaded
                 from a library pack and the parent supplied a handler. Destructive
                 styling matches the Delete pattern in other modals. */}
@@ -347,12 +253,11 @@ export function BannerEdit({
         </div>
       </div>
 
-      {/* Right: editable image card */}
-      <EditableImageCard
+      {/* Right: folder image (display-only — edited on the grid tile a level up) */}
+      <FolderImageCard
         imagePath={imagePath}
         colour={draftColour}
         categoryName={categoryName}
-        onClick={onEditFolderImage}
       />
     </div>
   );

@@ -1,0 +1,459 @@
+{
+  "colour": "#EF4444",
+  "coverImagePath": "symbols/symbol00188596.png",
+  "defaultTier": "free",
+  "icon": "🍎",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#EF4444",
+      "icon": "🍎",
+      "imagePath": "symbols/symbol00188596.png",
+      "name": {
+        "en": "Food & Drink",
+        "es": "Comida y bebida",
+        "hi": "खाना और पीना"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "food",
+            "es": "comida",
+            "hi": "खाना"
+          },
+          "order": 0,
+          "symbolId": "kn76epmnwftswbswwn3wtb1z7s84mqhp"
+        },
+        {
+          "labelOverride": {
+            "en": "drink",
+            "es": "beber",
+            "hi": "पीना"
+          },
+          "order": 1,
+          "symbolId": "kn7ehv1pp3askgswygsmqcyg8n84nsqr"
+        },
+        {
+          "labelOverride": {
+            "en": "breakfast",
+            "es": "desayuno",
+            "hi": "नाश्ता"
+          },
+          "order": 2,
+          "symbolId": "kn70789m7ga2y6fc3bbk4ehm2h84n1qb"
+        },
+        {
+          "labelOverride": {
+            "en": "lunch",
+            "es": "almuerzo",
+            "hi": "दोपहर का खाना"
+          },
+          "order": 3,
+          "symbolId": "kn7emrjk4gj62xeq5r8b57wv6h84mxr9"
+        },
+        {
+          "labelOverride": {
+            "en": "dinner",
+            "es": "cena",
+            "hi": "रात का खाना"
+          },
+          "order": 4,
+          "symbolId": "kn78fyqnb25x6qznh8khej4va984m0nk"
+        },
+        {
+          "labelOverride": {
+            "en": "snack",
+            "es": "merienda",
+            "hi": "नाश्ता"
+          },
+          "order": 5,
+          "symbolId": "kn71rgnpy42sg88kbe6cnsbrq584m8mp"
+        },
+        {
+          "labelOverride": {
+            "en": "water",
+            "es": "agua",
+            "hi": "पानी"
+          },
+          "order": 6,
+          "symbolId": "kn75zb9xxvc622tc9z998jk0p584mq5s"
+        },
+        {
+          "labelOverride": {
+            "en": "juice",
+            "es": "jugo",
+            "hi": "जूस"
+          },
+          "order": 7,
+          "symbolId": "kn79rex6bxcaebt1zzasq8evvn84n61z"
+        },
+        {
+          "labelOverride": {
+            "en": "milk",
+            "es": "leche",
+            "hi": "दूध"
+          },
+          "order": 8,
+          "symbolId": "kn7ayj2kq5x9ygh7vy99802mp584m54a"
+        },
+        {
+          "labelOverride": {
+            "en": "tea",
+            "es": "té",
+            "hi": "चाय"
+          },
+          "order": 9,
+          "symbolId": "kn706kdhsmyrfrdynkyh46ztch84ntjz"
+        },
+        {
+          "labelOverride": {
+            "en": "coffee",
+            "es": "café",
+            "hi": "कॉफ़ी"
+          },
+          "order": 10,
+          "symbolId": "kn74qaypjz6sd98e90kq23dpmx84mj1s"
+        },
+        {
+          "labelOverride": {
+            "en": "hot chocolate",
+            "es": "chocolate caliente"
+          },
+          "order": 11,
+          "symbolId": "kn7a8sa4jtyj9kwg7jvsyjhs0184nf92"
+        },
+        {
+          "labelOverride": {
+            "en": "smoothie",
+            "es": "batido",
+            "hi": "स्मूदी"
+          },
+          "order": 12,
+          "symbolId": "kn72wz76nb38b0mpchz6v56ndn84mhvm"
+        },
+        {
+          "labelOverride": {
+            "en": "bread",
+            "es": "Pan",
+            "hi": "ब्रेड"
+          },
+          "order": 13,
+          "symbolId": "kn7dt3aqbsk6s19dctmrw8jjkd84mn2p"
+        },
+        {
+          "labelOverride": {
+            "en": "toast",
+            "es": "tostada",
+            "hi": "टोस्ट"
+          },
+          "order": 14,
+          "symbolId": "kn79bwy7vjetah7jg4j6gs2xkd84n487"
+        },
+        {
+          "labelOverride": {
+            "en": "cereal",
+            "es": "cereal",
+            "hi": "सीरियल"
+          },
+          "order": 15,
+          "symbolId": "kn78aqyg3zfwy0ys0w91jtjv0184nper"
+        },
+        {
+          "labelOverride": {
+            "en": "rice",
+            "es": "arroz",
+            "hi": "चावल"
+          },
+          "order": 16,
+          "symbolId": "kn7dsvxxf1xk1thp5tn3s4hhtd84nyp4"
+        },
+        {
+          "labelOverride": {
+            "en": "pasta",
+            "es": "pasta",
+            "hi": "पास्ता"
+          },
+          "order": 17,
+          "symbolId": "kn72n7xwcyy0cz61wsv4yrp47d84mz1r"
+        },
+        {
+          "labelOverride": {
+            "en": "egg",
+            "es": "huevo",
+            "hi": "अंडा"
+          },
+          "order": 18,
+          "symbolId": "kn75wn59eywc67xybzssxkgvdd84nws0"
+        },
+        {
+          "labelOverride": {
+            "en": "cheese",
+            "es": "queso",
+            "hi": "पनीर"
+          },
+          "order": 19,
+          "symbolId": "kn72y8a7r404xtamysyt12p22s84nqff"
+        },
+        {
+          "labelOverride": {
+            "en": "butter",
+            "es": "mantequilla",
+            "hi": "मक्खन"
+          },
+          "order": 20,
+          "symbolId": "kn79bxsjv5qwxwwrwnpgmvk5fh84n3rx"
+        },
+        {
+          "labelOverride": {
+            "en": "chicken",
+            "es": "pollo",
+            "hi": "चिकन"
+          },
+          "order": 21,
+          "symbolId": "kn704y3rvwq1g3rhdq19r3hkvd84n8wd"
+        },
+        {
+          "labelOverride": {
+            "en": "sausage",
+            "es": "salchicha",
+            "hi": "सॉसेज"
+          },
+          "order": 22,
+          "symbolId": "kn78gyyx19grbvbchxmvje9kp984mzbc"
+        },
+        {
+          "labelOverride": {
+            "en": "ham",
+            "es": "jamón",
+            "hi": "हैम"
+          },
+          "order": 23,
+          "symbolId": "kn73fhhdqa71c1cw2wpx69c1jd84nznq"
+        },
+        {
+          "labelOverride": {
+            "en": "bacon",
+            "es": "tocino",
+            "hi": "बेकन"
+          },
+          "order": 24,
+          "symbolId": "kn7d62y3aq3fb2ez2d0x8hae4h84mza6"
+        },
+        {
+          "labelOverride": {
+            "en": "fish",
+            "es": "pez",
+            "hi": "मछली"
+          },
+          "order": 25,
+          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+        },
+        {
+          "labelOverride": {
+            "en": "apple",
+            "es": "manzana",
+            "hi": "सेब"
+          },
+          "order": 26,
+          "symbolId": "kn74gf55dbg7w96fsy67k66dxn84n3sw"
+        },
+        {
+          "labelOverride": {
+            "en": "banana",
+            "es": "plátano",
+            "hi": "केला"
+          },
+          "order": 27,
+          "symbolId": "kn798msyn3fvv48bgg334hm01n84m6e6"
+        },
+        {
+          "labelOverride": {
+            "en": "orange",
+            "es": "naranja",
+            "hi": "नारंगी"
+          },
+          "order": 28,
+          "symbolId": "kn78gj32c6mqn03t1mhq7wz6x984n6xv"
+        },
+        {
+          "labelOverride": {
+            "en": "grapes",
+            "es": "uvas",
+            "hi": "अंगूर"
+          },
+          "order": 29,
+          "symbolId": "kn7e3cjzmvb6pj1sxd7jsm3rjs84m8zd"
+        },
+        {
+          "labelOverride": {
+            "en": "strawberry",
+            "es": "fresa",
+            "hi": "स्ट्रॉबेरी"
+          },
+          "order": 30,
+          "symbolId": "kn79q9t5m3vpy3javca9dg3mq184npx0"
+        },
+        {
+          "labelOverride": {
+            "en": "pear",
+            "es": "pera",
+            "hi": "नाशपाती"
+          },
+          "order": 31,
+          "symbolId": "kn71vwhyv64g97df5515aapes584m1f3"
+        },
+        {
+          "labelOverride": {
+            "en": "mango",
+            "es": "Mango",
+            "hi": "आम"
+          },
+          "order": 32,
+          "symbolId": "kn7d679bvteh1djce9cmcdg5g984nyy4"
+        },
+        {
+          "labelOverride": {
+            "en": "carrot",
+            "es": "zanahoria",
+            "hi": "गाजर"
+          },
+          "order": 33,
+          "symbolId": "kn7ajsvz463qw926s0g37jy17h84n1zq"
+        },
+        {
+          "labelOverride": {
+            "en": "peas",
+            "es": "guisantes",
+            "hi": "मटर"
+          },
+          "order": 34,
+          "symbolId": "kn790v8ejzg0anxxq3wd5d3ay184nc16"
+        },
+        {
+          "labelOverride": {
+            "en": "broccoli",
+            "es": "brócoli",
+            "hi": "ब्रोकली"
+          },
+          "order": 35,
+          "symbolId": "kn7f5jy8bmvd4xyz3zf0j5d7as84nq92"
+        },
+        {
+          "labelOverride": {
+            "en": "potato",
+            "es": "patata",
+            "hi": "आलू"
+          },
+          "order": 36,
+          "symbolId": "kn751989shaa1f164yrabr9j6n84nteq"
+        },
+        {
+          "labelOverride": {
+            "en": "tomato",
+            "es": "tomate",
+            "hi": "टमाटर"
+          },
+          "order": 37,
+          "symbolId": "kn752zhbkda55d6khxrrmcxb2n84nh3b"
+        },
+        {
+          "labelOverride": {
+            "en": "pizza",
+            "es": "pizza",
+            "hi": "पिज़्ज़ा"
+          },
+          "order": 38,
+          "symbolId": "kn722g14qvwgzw2ssf5pm0ahz584ms7q"
+        },
+        {
+          "labelOverride": {
+            "en": "sandwich",
+            "es": "sándwich",
+            "hi": "सैंडविच"
+          },
+          "order": 39,
+          "symbolId": "kn78zv86xy4vx1m93g3hdphmy184n0w6"
+        },
+        {
+          "labelOverride": {
+            "en": "soup",
+            "es": "sopa",
+            "hi": "सूप"
+          },
+          "order": 40,
+          "symbolId": "kn70w0yg8n8nb9mczmkqcyeh3184mzwh"
+        },
+        {
+          "labelOverride": {
+            "en": "salad",
+            "es": "ensalada",
+            "hi": "सलाद"
+          },
+          "order": 41,
+          "symbolId": "kn7dv84p6dwyt5x9zhxnkysyfd84mxbj"
+        },
+        {
+          "labelOverride": {
+            "en": "chips",
+            "es": "papas fritas",
+            "hi": "चिप्स"
+          },
+          "order": 42,
+          "symbolId": "kn70f2x5pqtssbzyj0k4zekn4h84m1s8"
+        },
+        {
+          "labelOverride": {
+            "en": "ice cream",
+            "es": "helado",
+            "hi": "आइसक्रीम"
+          },
+          "order": 43,
+          "symbolId": "kn78d2zf8cqk5ng4zqez2yap7n84npqz"
+        },
+        {
+          "labelOverride": {
+            "en": "cake",
+            "es": "pastel",
+            "hi": "केक"
+          },
+          "order": 44,
+          "symbolId": "kn7810cafq5fb68pa70ve0gf1n84nrpv"
+        },
+        {
+          "labelOverride": {
+            "en": "cookie",
+            "es": "galleta",
+            "hi": "कुकी"
+          },
+          "order": 45,
+          "symbolId": "kn7fnxy003tn4madg92db5r9jn84nttw"
+        },
+        {
+          "labelOverride": {
+            "en": "sweets",
+            "es": "dulces",
+            "hi": "मिठाई"
+          },
+          "order": 46,
+          "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
+        },
+        {
+          "labelOverride": {
+            "en": "donut",
+            "es": "donut",
+            "hi": "डोनट"
+          },
+          "order": 47,
+          "symbolId": "kn7ccr5btshdfzmckaafava14h84ns1j"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Food & Drink",
+    "es": "Comida y bebida",
+    "hi": "खाना और पीना"
+  },
+  "slug": "food-drink",
+  "tree": "categories"
+}

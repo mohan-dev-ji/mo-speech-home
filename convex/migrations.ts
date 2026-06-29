@@ -1269,6 +1269,7 @@ export const seedLibraryModulesFromJSON = mutation({
           ...(mod.colour ? { colour: mod.colour } : {}),
           ...(mod.coverImagePath ? { coverImagePath: mod.coverImagePath } : {}),
           defaultTier: mod.defaultTier,
+          ...(mod.isDefault ? { isDefault: true } : {}),
           ...(mod.provenance ? { provenance: mod.provenance } : {}),
           items: mod.items,
           publishedAt: now,

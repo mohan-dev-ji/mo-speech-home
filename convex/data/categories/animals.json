@@ -1,0 +1,460 @@
+{
+  "colour": "#F59E0B",
+  "coverImagePath": "symbols/symbol00000992.png",
+  "defaultTier": "free",
+  "icon": "🐾",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#F59E0B",
+      "icon": "🐾",
+      "imagePath": "symbols/symbol00000992.png",
+      "name": {
+        "en": "Animals",
+        "es": "Animales",
+        "hi": "जानवर"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "dog",
+            "es": "perro",
+            "hi": "कुत्ता"
+          },
+          "order": 0,
+          "symbolId": "kn7d44hengbb2pmq26a5bscnbd84njkp"
+        },
+        {
+          "labelOverride": {
+            "en": "cat",
+            "es": "gato",
+            "hi": "बिल्ली"
+          },
+          "order": 1,
+          "symbolId": "kn77knahbs1jy7gqr63mty7zph84ntbw"
+        },
+        {
+          "labelOverride": {
+            "en": "rabbit",
+            "es": "conejo",
+            "hi": "खरगोश"
+          },
+          "order": 2,
+          "symbolId": "kn7bhn4wk4fq7r5c99whdz25fd84ny90"
+        },
+        {
+          "labelOverride": {
+            "en": "hamster",
+            "es": "hámster",
+            "hi": "हम्सटर"
+          },
+          "order": 3,
+          "symbolId": "kn742twceemdrgjrc15168j0vs84mjxj"
+        },
+        {
+          "labelOverride": {
+            "en": "goldfish",
+            "es": "Pez dorado",
+            "hi": "सुनहरी मछली"
+          },
+          "order": 4,
+          "symbolId": "kn7egv8yvd1z578q433bjy7ajx84mn68"
+        },
+        {
+          "labelOverride": {
+            "en": "horse",
+            "es": "caballo",
+            "hi": "घोड़ा"
+          },
+          "order": 5,
+          "symbolId": "kn75gpfz97bzv0k8qqb3p2748x84mff0"
+        },
+        {
+          "labelOverride": {
+            "en": "cow",
+            "es": "vaca",
+            "hi": "गाय"
+          },
+          "order": 6,
+          "symbolId": "kn732wx85whs2df7q7kwkaghjs84n2ns"
+        },
+        {
+          "labelOverride": {
+            "en": "pig",
+            "es": "cerdo",
+            "hi": "सुअर"
+          },
+          "order": 7,
+          "symbolId": "kn736v0wajxgz9d3714w00gnw584nqt8"
+        },
+        {
+          "labelOverride": {
+            "en": "sheep",
+            "es": "oveja",
+            "hi": "भेड़"
+          },
+          "order": 8,
+          "symbolId": "kn7engteaawh7z8q9kbasph88s84nj61"
+        },
+        {
+          "labelOverride": {
+            "en": "goat",
+            "es": "cabra",
+            "hi": "बकरी"
+          },
+          "order": 9,
+          "symbolId": "kn766q6fj18xj0mntasjbbgb3184nqzn"
+        },
+        {
+          "labelOverride": {
+            "en": "chicken",
+            "es": "pollo",
+            "hi": "मुर्गी"
+          },
+          "order": 10,
+          "symbolId": "kn704zk4cmwfjqxyqat7h8j73h84m1rt"
+        },
+        {
+          "labelOverride": {
+            "en": "duck",
+            "es": "pato",
+            "hi": "बत्तख"
+          },
+          "order": 11,
+          "symbolId": "kn72a5rfdkhpth2bkygzm0jf9n84nwrz"
+        },
+        {
+          "labelOverride": {
+            "en": "lion",
+            "es": "león",
+            "hi": "शेर"
+          },
+          "order": 12,
+          "symbolId": "kn72jcv4sbs5t0ag72tk4hkstn84mrht"
+        },
+        {
+          "labelOverride": {
+            "en": "tiger",
+            "es": "tigre",
+            "hi": "बाघ"
+          },
+          "order": 13,
+          "symbolId": "kn79q5nhkdvyb7a2c2xzqr7fa184mwgk"
+        },
+        {
+          "labelOverride": {
+            "en": "elephant",
+            "es": "elefante",
+            "hi": "हाथी"
+          },
+          "order": 14,
+          "symbolId": "kn71c4gt8et70njt5m5p48m13n84me1f"
+        },
+        {
+          "labelOverride": {
+            "en": "giraffe",
+            "es": "jirafa",
+            "hi": "जिराफ़"
+          },
+          "order": 15,
+          "symbolId": "kn71jsmzbdjxn1t6hy89y3kz0s84mpt9"
+        },
+        {
+          "labelOverride": {
+            "en": "monkey",
+            "es": "mono",
+            "hi": "बंदर"
+          },
+          "order": 16,
+          "symbolId": "kn74rk6jthgsf5g9rr0d5sfjzs84nhs3"
+        },
+        {
+          "labelOverride": {
+            "en": "zebra",
+            "es": "cebra",
+            "hi": "ज़ेबरा"
+          },
+          "order": 17,
+          "symbolId": "kn7f0h7d6e9y5yehxkycq45p5n84mfmd"
+        },
+        {
+          "labelOverride": {
+            "en": "fox",
+            "es": "zorro",
+            "hi": "लोमड़ी"
+          },
+          "order": 18,
+          "symbolId": "kn75sweaejp49t29g5n087mav584n8ex"
+        },
+        {
+          "labelOverride": {
+            "en": "deer",
+            "es": "ciervo",
+            "hi": "हिरण"
+          },
+          "order": 19,
+          "symbolId": "kn752y3sa5x6av7nca9w06zyj984ne53"
+        },
+        {
+          "labelOverride": {
+            "en": "wolf",
+            "es": "lobo",
+            "hi": "भेड़िया"
+          },
+          "order": 20,
+          "symbolId": "kn73te27p7v1h9bgrhs8nstb8s84mk86"
+        },
+        {
+          "labelOverride": {
+            "en": "crocodile",
+            "es": "cocodrilo",
+            "hi": "मगरमच्छ"
+          },
+          "order": 21,
+          "symbolId": "kn7fzta59e9d369dcq98s5kg4n84m57v"
+        },
+        {
+          "labelOverride": {
+            "en": "rhinoceros",
+            "es": "rinoceronte",
+            "hi": "गेंडा"
+          },
+          "order": 22,
+          "symbolId": "kn7cvfde2kawd2k2801sxtt18184n985"
+        },
+        {
+          "labelOverride": {
+            "en": "cheetah",
+            "es": "guepardo",
+            "hi": "चीता"
+          },
+          "order": 23,
+          "symbolId": "kn787nj8n3y7teypd6a4z2kf7d84np54"
+        },
+        {
+          "labelOverride": {
+            "en": "shark",
+            "es": "tiburón",
+            "hi": "शार्क"
+          },
+          "order": 24,
+          "symbolId": "kn79ke367weg5q4hwn1gx33pt984m4dz"
+        },
+        {
+          "labelOverride": {
+            "en": "dolphin",
+            "es": "delfín",
+            "hi": "डॉल्फ़िन"
+          },
+          "order": 25,
+          "symbolId": "kn7dy7p58nqfxmd6shm9e6tvgs84mdkm"
+        },
+        {
+          "labelOverride": {
+            "en": "fish",
+            "es": "pez",
+            "hi": "मछली"
+          },
+          "order": 26,
+          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+        },
+        {
+          "labelOverride": {
+            "en": "crab",
+            "es": "cangrejo",
+            "hi": "केकड़ा"
+          },
+          "order": 27,
+          "symbolId": "kn76c7x7qp8h9j7r2bqxjd4j2h84n1zn"
+        },
+        {
+          "labelOverride": {
+            "en": "octopus",
+            "es": "pulpo",
+            "hi": "ऑक्टोपस"
+          },
+          "order": 28,
+          "symbolId": "kn72vgz1bcpw568me0swargxcd84n5vp"
+        },
+        {
+          "labelOverride": {
+            "en": "turtle",
+            "es": "tortuga",
+            "hi": "कछुआ"
+          },
+          "order": 29,
+          "symbolId": "kn7ancpf6wj3mcdndgs0z8vzr184nej5"
+        },
+        {
+          "labelOverride": {
+            "en": "seahorse",
+            "es": "caballito de mar",
+            "hi": "समुद्री घोड़ा"
+          },
+          "order": 30,
+          "symbolId": "kn7dvd95whhzzvp4zb812031hn84nz81"
+        },
+        {
+          "labelOverride": {
+            "en": "jellyfish",
+            "es": "medusa",
+            "hi": "जेलीफ़िश"
+          },
+          "order": 31,
+          "symbolId": "kn7dwtzvm99z9n2yg9t8ypamt184nsj4"
+        },
+        {
+          "labelOverride": {
+            "en": "eagle",
+            "es": "águila",
+            "hi": "गरुड़"
+          },
+          "order": 32,
+          "symbolId": "kn743djwbyqm6dxafgn37mdcfh84nq2x"
+        },
+        {
+          "labelOverride": {
+            "en": "owl",
+            "es": "búho",
+            "hi": "उल्लू"
+          },
+          "order": 33,
+          "symbolId": "kn702ka9s6t1tpdtdykvd23qbd84nvvx"
+        },
+        {
+          "labelOverride": {
+            "en": "penguin",
+            "es": "pingüino",
+            "hi": "पेंग्विन"
+          },
+          "order": 34,
+          "symbolId": "kn768nj61shrxrpmdt19c6s3ph84ncnd"
+        },
+        {
+          "labelOverride": {
+            "en": "flamingo",
+            "es": "flamenco",
+            "hi": "फ्लेमिंगो"
+          },
+          "order": 35,
+          "symbolId": "kn749fzy94dz77dkeqf6h1wez584nxhy"
+        },
+        {
+          "labelOverride": {
+            "en": "robin",
+            "es": "petirrojo",
+            "hi": "रॉबिन"
+          },
+          "order": 36,
+          "symbolId": "kn7bzd2e3xhzjfh9kqh928rqnh84m7hm"
+        },
+        {
+          "labelOverride": {
+            "en": "parrot",
+            "es": "Loro",
+            "hi": "तोता"
+          },
+          "order": 37,
+          "symbolId": "kn76pb3wb4by1ze8xrwzzwbj4584mnsa"
+        },
+        {
+          "labelOverride": {
+            "en": "peacock",
+            "es": "pavo real",
+            "hi": "मोर"
+          },
+          "order": 38,
+          "symbolId": "kn70hr5eg24e4kmfmz9g5tpvwn84m255"
+        },
+        {
+          "labelOverride": {
+            "en": "crow",
+            "es": "cuervo",
+            "hi": "कौआ"
+          },
+          "order": 39,
+          "symbolId": "kn785je0aefgsqh2vcta9xeg1d84m4ew"
+        },
+        {
+          "labelOverride": {
+            "en": "butterfly",
+            "es": "mariposa",
+            "hi": "तितली"
+          },
+          "order": 40,
+          "symbolId": "kn7fekbv6cpc7fsp482mhf1x9s84m4d0"
+        },
+        {
+          "labelOverride": {
+            "en": "bee",
+            "es": "abeja",
+            "hi": "मधुमक्खी"
+          },
+          "order": 41,
+          "symbolId": "kn7bkxzp37an8274btcsjcb12s84n4a0"
+        },
+        {
+          "labelOverride": {
+            "en": "spider",
+            "es": "araña",
+            "hi": "मकड़ी"
+          },
+          "order": 42,
+          "symbolId": "kn7bhd8yaf6wmt58wawaga0f3d84n7nq"
+        },
+        {
+          "labelOverride": {
+            "en": "ladybug",
+            "es": "mariquita",
+            "hi": "इंद्रगोप"
+          },
+          "order": 43,
+          "symbolId": "kn746n9pqmwq0tks693sa853cd84nm0f"
+        },
+        {
+          "labelOverride": {
+            "en": "caterpillar",
+            "es": "oruga",
+            "hi": "इल्ली"
+          },
+          "order": 44,
+          "symbolId": "kn774y9vq2nmfgw62rzc2bwkpx84mb4m"
+        },
+        {
+          "labelOverride": {
+            "en": "dragonfly",
+            "es": "libélula",
+            "hi": "राम तितली"
+          },
+          "order": 45,
+          "symbolId": "kn79arhrymwtey16dxahfeexcs84nzh8"
+        },
+        {
+          "labelOverride": {
+            "en": "grasshopper",
+            "es": "saltamontes",
+            "hi": "टिड्डा"
+          },
+          "order": 46,
+          "symbolId": "kn7e63mqssjkms7hrmtm79azdn84mzd0"
+        },
+        {
+          "labelOverride": {
+            "en": "moth",
+            "es": "polilla",
+            "hi": "पतंगा"
+          },
+          "order": 47,
+          "symbolId": "kn7ejyv34bysh7t905dwjzv7xx84nsan"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Animals",
+    "es": "Animales",
+    "hi": "जानवर"
+  },
+  "slug": "animals",
+  "tree": "categories"
+}

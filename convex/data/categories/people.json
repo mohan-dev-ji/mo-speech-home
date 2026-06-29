@@ -1,0 +1,451 @@
+{
+  "colour": "#A855F7",
+  "coverImagePath": "symbols/family.png",
+  "defaultTier": "free",
+  "icon": "👥",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#A855F7",
+      "icon": "👥",
+      "imagePath": "symbols/family.png",
+      "name": {
+        "en": "People",
+        "es": "Personas",
+        "hi": "लोग"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "father",
+            "es": "papá",
+            "hi": "पापा"
+          },
+          "order": 0,
+          "symbolId": "kn754n819gr195822s9pphyxf184nh6x"
+        },
+        {
+          "labelOverride": {
+            "en": "brother",
+            "es": "hermano",
+            "hi": "भाई"
+          },
+          "order": 1,
+          "symbolId": "kn783skgpa2nkfqtacwdvah5ex84mmnm"
+        },
+        {
+          "labelOverride": {
+            "en": "sister",
+            "es": "hermana",
+            "hi": "बहन"
+          },
+          "order": 2,
+          "symbolId": "kn7cqgtxz868rwmbzdz4044m9584n99q"
+        },
+        {
+          "labelOverride": {
+            "en": "baby",
+            "es": "bebé",
+            "hi": "बच्चा"
+          },
+          "order": 3,
+          "symbolId": "kn76k2100sh8ajg84z1nmtyyns84m43n"
+        },
+        {
+          "labelOverride": {
+            "en": "family",
+            "es": "familia",
+            "hi": "परिवार"
+          },
+          "order": 4,
+          "symbolId": "kn74khvh60ahhq4ga867hfqbn584nxxp"
+        },
+        {
+          "labelOverride": {
+            "en": "grandmother",
+            "es": "Abuela",
+            "hi": "दादी"
+          },
+          "order": 5,
+          "symbolId": "kn7fre6naq6aghzes3yqzksbh584mmw4"
+        },
+        {
+          "labelOverride": {
+            "en": "grandfather",
+            "es": "Abuelo",
+            "hi": "दादा"
+          },
+          "order": 6,
+          "symbolId": "kn77hf997nfxdbetncb1ppsynx84m03y"
+        },
+        {
+          "labelOverride": {
+            "en": "aunt",
+            "es": "Tía",
+            "hi": "मौसी"
+          },
+          "order": 7,
+          "symbolId": "kn716d7n9437q7507fm9wdc1xs84mb3x"
+        },
+        {
+          "labelOverride": {
+            "en": "uncle",
+            "es": "tío",
+            "hi": "चाचा"
+          },
+          "order": 8,
+          "symbolId": "kn7cft94yre9rnk27wv431pesh84n5dk"
+        },
+        {
+          "labelOverride": {
+            "en": "daughter",
+            "es": "hija",
+            "hi": "बेटी"
+          },
+          "order": 9,
+          "symbolId": "kn709828txb73nb050r9vgv0cn84ngfe"
+        },
+        {
+          "labelOverride": {
+            "en": "son",
+            "es": "hijo",
+            "hi": "बेटा"
+          },
+          "order": 10,
+          "symbolId": "kn7deths0g44kzs20fg9xfemb184nqxt"
+        },
+        {
+          "labelOverride": {
+            "en": "husband",
+            "es": "esposo",
+            "hi": "पति"
+          },
+          "order": 11,
+          "symbolId": "kn72rs95nvf66jj9ssvyvw9x2984mbz5"
+        },
+        {
+          "labelOverride": {
+            "en": "wife",
+            "es": "esposa",
+            "hi": "पत्नी"
+          },
+          "order": 12,
+          "symbolId": "kn7ecw11c7pk8yk8nh7cwn0dbh84nsek"
+        },
+        {
+          "labelOverride": {
+            "en": "parent",
+            "es": "padre",
+            "hi": "अभिभावक"
+          },
+          "order": 13,
+          "symbolId": "kn79dard599vrx4ajtcbhkgx1584ns3p"
+        },
+        {
+          "labelOverride": {
+            "en": "cousin",
+            "es": "primo",
+            "hi": "कज़िन"
+          },
+          "order": 14,
+          "symbolId": "kn71ktttjy45mwy8jegv3tjwy984nd6f"
+        },
+        {
+          "labelOverride": {
+            "en": "twin",
+            "es": "gemelo",
+            "hi": "जुड़वाँ"
+          },
+          "order": 15,
+          "symbolId": "kn76je92pfv0a6zvzxedypb1fn84mzga"
+        },
+        {
+          "labelOverride": {
+            "en": "partner",
+            "es": "compañero",
+            "hi": "साथी"
+          },
+          "order": 16,
+          "symbolId": "kn7dx3rfbcsnneske3z78pshv184m7bc"
+        },
+        {
+          "labelOverride": {
+            "en": "friend",
+            "es": "amigo",
+            "hi": "दोस्त"
+          },
+          "order": 17,
+          "symbolId": "kn72th2pdjmvq1g4xd6mj4fdcx84n36t"
+        },
+        {
+          "labelOverride": {
+            "en": "boy",
+            "es": "niño",
+            "hi": "लड़का"
+          },
+          "order": 18,
+          "symbolId": "kn77vk9mdttpjjzb5vfk7dzr3184nk09"
+        },
+        {
+          "labelOverride": {
+            "en": "girl",
+            "es": "niña",
+            "hi": "लड़की"
+          },
+          "order": 19,
+          "symbolId": "kn7b17b150am73pwk1nmcdg9k984mfs1"
+        },
+        {
+          "labelOverride": {
+            "en": "man",
+            "es": "hombre",
+            "hi": "आदमी"
+          },
+          "order": 20,
+          "symbolId": "kn71enq6wetp188vkqxyaky4js84ncgg"
+        },
+        {
+          "labelOverride": {
+            "en": "woman",
+            "es": "mujer",
+            "hi": "औरत"
+          },
+          "order": 21,
+          "symbolId": "kn7bgy0e43bkrp0ndk0rh3sb5h84nznn"
+        },
+        {
+          "labelOverride": {
+            "en": "child",
+            "es": "niño",
+            "hi": "बच्चा"
+          },
+          "order": 22,
+          "symbolId": "kn70hwx3wz2ejwz63mmdt09gb984nfac"
+        },
+        {
+          "labelOverride": {
+            "en": "children",
+            "es": "niños",
+            "hi": "बच्चे"
+          },
+          "order": 23,
+          "symbolId": "kn72derk97t9v1fa6w0jj2s95h84n0z5"
+        },
+        {
+          "labelOverride": {
+            "en": "adult",
+            "es": "adulto",
+            "hi": "बड़ा"
+          },
+          "order": 24,
+          "symbolId": "kn7e4x511dtj61ttkbfjjz50pn84nwy2"
+        },
+        {
+          "labelOverride": {
+            "en": "teenager",
+            "es": "adolescente",
+            "hi": "टीनेजर"
+          },
+          "order": 25,
+          "symbolId": "kn7f3v7a55f6848v6zsdbekhhx84m6wz"
+        },
+        {
+          "labelOverride": {
+            "en": "toddler",
+            "es": "niño pequeño",
+            "hi": "छोटा बच्चा"
+          },
+          "order": 26,
+          "symbolId": "kn7742b3ybcfg835jgn6e8g20184nwzm"
+        },
+        {
+          "labelOverride": {
+            "en": "patient",
+            "es": "paciente",
+            "hi": "धैर्यवान"
+          },
+          "order": 27,
+          "symbolId": "kn70f8bsmp9q66nfzk8kbwm97584nm2y"
+        },
+        {
+          "labelOverride": {
+            "en": "student",
+            "es": "estudiante",
+            "hi": "छात्र"
+          },
+          "order": 28,
+          "symbolId": "kn7fp8xc7tv60gjxewkwctdnzx84ngss"
+        },
+        {
+          "labelOverride": {
+            "en": "stranger",
+            "es": "desconocido",
+            "hi": "अजनबी"
+          },
+          "order": 29,
+          "symbolId": "kn7f54zw22nsn9prxcggj35v4x84nq1z"
+        },
+        {
+          "labelOverride": {
+            "en": "neighbor",
+            "es": "vecino",
+            "hi": "पड़ोसी"
+          },
+          "order": 30,
+          "symbolId": "kn7ahbbrbqyc8kaf6ac7j0gzd184nntz"
+        },
+        {
+          "labelOverride": {
+            "en": "helper",
+            "es": "ayudante",
+            "hi": "सहायक"
+          },
+          "order": 31,
+          "symbolId": "kn70pda88g1yh46vh9hyn1fynx84nc6z"
+        },
+        {
+          "labelOverride": {
+            "en": "volunteer",
+            "es": "voluntario",
+            "hi": "स्वयंसेवक"
+          },
+          "order": 32,
+          "symbolId": "kn7fd8rfn69gw88sp4b9dakxws84m6xx"
+        },
+        {
+          "labelOverride": {
+            "en": "team",
+            "es": "equipo",
+            "hi": "टीम"
+          },
+          "order": 33,
+          "symbolId": "kn7d4r4nmcjx1zwmzvaxw1rdbs84n6md"
+        },
+        {
+          "labelOverride": {
+            "en": "anybody",
+            "es": "cualquiera",
+            "hi": "कोई भी"
+          },
+          "order": 34,
+          "symbolId": "kn7e0m0hberfka2kewrd2z7zss84n1md"
+        },
+        {
+          "labelOverride": {
+            "en": "teacher",
+            "es": "maestro",
+            "hi": "शिक्षक"
+          },
+          "order": 35,
+          "symbolId": "kn700ctrhasxj9kd1rw52sv9ah84mx3t"
+        },
+        {
+          "labelOverride": {
+            "en": "doctor",
+            "es": "doctor",
+            "hi": "डॉक्टर"
+          },
+          "order": 36,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "en": "nurse",
+            "es": "enfermera",
+            "hi": "नर्स"
+          },
+          "order": 37,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "en": "firefighter",
+            "es": "bombero",
+            "hi": "दमकलकर्मी"
+          },
+          "order": 38,
+          "symbolId": "kn74fg2zfnx4g43np32ve04a2184mxbf"
+        },
+        {
+          "labelOverride": {
+            "en": "police officer",
+            "es": "oficial de policía",
+            "hi": "पुलिसवाला"
+          },
+          "order": 39,
+          "symbolId": "kn7chs5fwa2xfkk9an41npz1gd84mjyg"
+        },
+        {
+          "labelOverride": {
+            "en": "dentist",
+            "es": "dentista",
+            "hi": "डेंटिस्ट"
+          },
+          "order": 40,
+          "symbolId": "kn78wjxsjnbtpgqw25crt4k4js84nvz4"
+        },
+        {
+          "labelOverride": {
+            "en": "driver",
+            "es": "conductor",
+            "hi": "ड्राइवर"
+          },
+          "order": 41,
+          "symbolId": "kn770hmt27b77qfj034n2gh4cs84ns0k"
+        },
+        {
+          "labelOverride": {
+            "en": "hero",
+            "es": "héroe",
+            "hi": "नायक"
+          },
+          "order": 42,
+          "symbolId": "kn7d1npf7svr4qs9gv0dq5xyp984nr88"
+        },
+        {
+          "labelOverride": {
+            "en": "princess",
+            "es": "princesa",
+            "hi": "राजकुमारी"
+          },
+          "order": 43,
+          "symbolId": "kn76x3pcbjdw934r38shbfj1w184mvdn"
+        },
+        {
+          "labelOverride": {
+            "en": "prince",
+            "es": "príncipe",
+            "hi": "राजकुमार"
+          },
+          "order": 44,
+          "symbolId": "kn72jvpk703h7ejdmsje0md85h84mnw9"
+        },
+        {
+          "labelOverride": {
+            "en": "king",
+            "es": "rey",
+            "hi": "राजा"
+          },
+          "order": 45,
+          "symbolId": "kn74d8c7msh6rm381dr2c0203h84m735"
+        },
+        {
+          "labelOverride": {
+            "en": "queen",
+            "es": "reina",
+            "hi": "रानी"
+          },
+          "order": 46,
+          "symbolId": "kn71kmf62451cjjjvswv9a0zgd84mxtp"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "People",
+    "es": "Personas",
+    "hi": "लोग"
+  },
+  "slug": "people",
+  "tree": "categories"
+}

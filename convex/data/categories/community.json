@@ -1,0 +1,460 @@
+{
+  "colour": "#6366F1",
+  "coverImagePath": "symbols/community.png",
+  "defaultTier": "free",
+  "icon": "🏘️",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6366F1",
+      "icon": "🏘️",
+      "imagePath": "symbols/community.png",
+      "name": {
+        "en": "Community",
+        "es": "Comunidad",
+        "hi": "समुदाय"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "hospital",
+            "es": "Hospital",
+            "hi": "अस्पताल"
+          },
+          "order": 0,
+          "symbolId": "kn7cptdjskwjk162z6s0n2x9nn84mddy"
+        },
+        {
+          "labelOverride": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 1,
+          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+        },
+        {
+          "labelOverride": {
+            "en": "library",
+            "es": "biblioteca",
+            "hi": "पुस्तकालय"
+          },
+          "order": 2,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "en": "park",
+            "es": "parque",
+            "hi": "पार्क"
+          },
+          "order": 3,
+          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+        },
+        {
+          "labelOverride": {
+            "en": "playground",
+            "es": "parque infantil",
+            "hi": "खेल का मैदान"
+          },
+          "order": 4,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "en": "restaurant",
+            "es": "restaurante",
+            "hi": "रेस्तरां"
+          },
+          "order": 5,
+          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
+        },
+        {
+          "labelOverride": {
+            "en": "shop",
+            "es": "tienda",
+            "hi": "खरीदारी करना"
+          },
+          "order": 6,
+          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
+        },
+        {
+          "labelOverride": {
+            "en": "supermarket",
+            "es": "supermercado",
+            "hi": "सुपरमार्केट"
+          },
+          "order": 7,
+          "symbolId": "kn7axjv8ya02astax0tzvbmymd84ndw0"
+        },
+        {
+          "labelOverride": {
+            "en": "church",
+            "es": "iglesia",
+            "hi": "गिरजाघर"
+          },
+          "order": 8,
+          "symbolId": "kn77d4k792a0c350bzdba9yxhd84nzx8"
+        },
+        {
+          "labelOverride": {
+            "en": "police station",
+            "es": "comisaría de policía",
+            "hi": "पुलिस थाना"
+          },
+          "order": 9,
+          "symbolId": "kn76smafqg1sgeq3vwphwt4jpd84mq1t"
+        },
+        {
+          "labelOverride": {
+            "en": "fire station",
+            "es": "estación de bomberos",
+            "hi": "फायर स्टेशन"
+          },
+          "order": 10,
+          "symbolId": "kn714g44t2cfe80fbn68g6t1q984mc1k"
+        },
+        {
+          "labelOverride": {
+            "en": "bank",
+            "es": "banco",
+            "hi": "बैंक"
+          },
+          "order": 11,
+          "symbolId": "kn70ewnn74nz03dhxdm1vyya7184mcnf"
+        },
+        {
+          "labelOverride": {
+            "en": "post office",
+            "es": "oficina de correos",
+            "hi": "डाकघर"
+          },
+          "order": 12,
+          "symbolId": "kn72q5e2qtfxvbfkx2a5mw3fg184m5q3"
+        },
+        {
+          "labelOverride": {
+            "en": "pharmacy",
+            "es": "farmacia",
+            "hi": "दवा की दुकान"
+          },
+          "order": 13,
+          "symbolId": "kn73zhygkmejxw4c3rv47f5sh184mmyt"
+        },
+        {
+          "labelOverride": {
+            "en": "car",
+            "es": "coche",
+            "hi": "कार"
+          },
+          "order": 14,
+          "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
+        },
+        {
+          "labelOverride": {
+            "en": "bus",
+            "es": "autobús",
+            "hi": "बस"
+          },
+          "order": 15,
+          "symbolId": "kn748yfp678vxhv42gmfq4zp2984nx9h"
+        },
+        {
+          "labelOverride": {
+            "en": "train",
+            "es": "tren",
+            "hi": "ट्रेन"
+          },
+          "order": 16,
+          "symbolId": "kn7bzp8rma9refexp43f7s9zed84mk2x"
+        },
+        {
+          "labelOverride": {
+            "en": "bicycle",
+            "es": "bicicleta",
+            "hi": "साइकिल"
+          },
+          "order": 17,
+          "symbolId": "kn72ejzd5xhanyyqnv7hrqevc184m8nh"
+        },
+        {
+          "labelOverride": {
+            "en": "airplane",
+            "es": "avión",
+            "hi": "हवाई जहाज़"
+          },
+          "order": 18,
+          "symbolId": "kn7c0xypx55pbe29e56ajyvnq184mehn"
+        },
+        {
+          "labelOverride": {
+            "en": "helicopter",
+            "es": "helicóptero",
+            "hi": "हेलीकॉप्टर"
+          },
+          "order": 19,
+          "symbolId": "kn7b5nwz7y467gnfth0b5c7pk984mkny"
+        },
+        {
+          "labelOverride": {
+            "en": "boat",
+            "es": "barco",
+            "hi": "नाव"
+          },
+          "order": 20,
+          "symbolId": "kn7a7gbspbdxwyjqpxfhbwgjkx84mv4r"
+        },
+        {
+          "labelOverride": {
+            "en": "ship",
+            "es": "barco",
+            "hi": "जहाज़"
+          },
+          "order": 21,
+          "symbolId": "kn74cj3gxg8ebg8nqce857fp1984mc33"
+        },
+        {
+          "labelOverride": {
+            "en": "taxi",
+            "es": "taxi",
+            "hi": "टैक्सी"
+          },
+          "order": 22,
+          "symbolId": "kn79vwqw2xdeps78g2mz9hffas84nqv2"
+        },
+        {
+          "labelOverride": {
+            "en": "ambulance",
+            "es": "ambulancia",
+            "hi": "एम्बुलेंस"
+          },
+          "order": 23,
+          "symbolId": "kn7e5afbt877y8x4zxr47hmba984mxm6"
+        },
+        {
+          "labelOverride": {
+            "en": "police car",
+            "es": "coche de policía",
+            "hi": "पुलिस की गाड़ी"
+          },
+          "order": 24,
+          "symbolId": "kn740vq84hhxym80de4pd92jws84m214"
+        },
+        {
+          "labelOverride": {
+            "en": "lorry",
+            "es": "camión",
+            "hi": "ट्रक"
+          },
+          "order": 25,
+          "symbolId": "kn75ntkhtchgc1p5ne51grm3nn84nr0q"
+        },
+        {
+          "labelOverride": {
+            "en": "truck",
+            "es": "camión",
+            "hi": "ट्रक"
+          },
+          "order": 26,
+          "symbolId": "kn75bc0amajg89h5d1fqd435m984nzh0"
+        },
+        {
+          "labelOverride": {
+            "en": "van",
+            "es": "furgoneta",
+            "hi": "वैन"
+          },
+          "order": 27,
+          "symbolId": "kn7as0bgy81wr13zkjjwkdnq2x84nx1a"
+        },
+        {
+          "labelOverride": {
+            "en": "motorbike",
+            "es": "moto",
+            "hi": "मोटरसाइकिल"
+          },
+          "order": 28,
+          "symbolId": "kn7cnv36kyaxeqgxnwfq0bnt2n84mrh5"
+        },
+        {
+          "labelOverride": {
+            "en": "tractor",
+            "es": "tractor",
+            "hi": "ट्रैक्टर"
+          },
+          "order": 29,
+          "symbolId": "kn741fv0t2v44ac0zc0hhpkvzx84nf9n"
+        },
+        {
+          "labelOverride": {
+            "en": "police officer",
+            "es": "oficial de policía",
+            "hi": "पुलिसवाला"
+          },
+          "order": 30,
+          "symbolId": "kn7chs5fwa2xfkk9an41npz1gd84mjyg"
+        },
+        {
+          "labelOverride": {
+            "en": "firefighter",
+            "es": "bombero",
+            "hi": "दमकलकर्मी"
+          },
+          "order": 31,
+          "symbolId": "kn74fg2zfnx4g43np32ve04a2184mxbf"
+        },
+        {
+          "labelOverride": {
+            "en": "doctor",
+            "es": "doctor",
+            "hi": "डॉक्टर"
+          },
+          "order": 32,
+          "symbolId": "kn7cpmbda6cek4kvs823tfka8x84nstv"
+        },
+        {
+          "labelOverride": {
+            "en": "nurse",
+            "es": "enfermera",
+            "hi": "नर्स"
+          },
+          "order": 33,
+          "symbolId": "kn7c54z1jyyvbgfxrrgtaxb1fd84mqrx"
+        },
+        {
+          "labelOverride": {
+            "en": "money",
+            "es": "dinero",
+            "hi": "पैसा"
+          },
+          "order": 34,
+          "symbolId": "kn7984vqkkbtkqvkbwqcsd8crx84nwgn"
+        },
+        {
+          "labelOverride": {
+            "en": "coin",
+            "es": "moneda",
+            "hi": "सिक्का"
+          },
+          "order": 35,
+          "symbolId": "kn7b0f5nmqkwbdd32wvbc91f3184mf9k"
+        },
+        {
+          "labelOverride": {
+            "en": "pay",
+            "es": "pagar",
+            "hi": "पैसे देना"
+          },
+          "order": 36,
+          "symbolId": "kn7avv9kqg4ph8t31vpacxxg0584mbd6"
+        },
+        {
+          "labelOverride": {
+            "en": "road",
+            "es": "carretera",
+            "hi": "सड़क"
+          },
+          "order": 37,
+          "symbolId": "kn76xnvk4g4jgtb35ffeprqmqn84msaf"
+        },
+        {
+          "labelOverride": {
+            "en": "street",
+            "es": "calle",
+            "hi": "सड़क"
+          },
+          "order": 38,
+          "symbolId": "kn7amr0rdshma2p0q16agy1f1184nrqq"
+        },
+        {
+          "labelOverride": {
+            "en": "bridge",
+            "es": "puente",
+            "hi": "पुल"
+          },
+          "order": 39,
+          "symbolId": "kn75cv3523p7vz17fnrkms7nr984n2sv"
+        },
+        {
+          "labelOverride": {
+            "en": "zoo",
+            "es": "zoo",
+            "hi": "चिड़ियाघर"
+          },
+          "order": 40,
+          "symbolId": "kn7efvh1f17h92x3hrtvfsp15n84nmjs"
+        },
+        {
+          "labelOverride": {
+            "en": "museum",
+            "es": "museo",
+            "hi": "संग्रहालय"
+          },
+          "order": 41,
+          "symbolId": "kn74fhnbd627m151z63ar96v7s84ncbe"
+        },
+        {
+          "labelOverride": {
+            "en": "farm",
+            "es": "granja",
+            "hi": "खेत"
+          },
+          "order": 42,
+          "symbolId": "kn7dn0qdt3361ttymkmc36tfmh84nt7q"
+        },
+        {
+          "labelOverride": {
+            "en": "town",
+            "es": "pueblo",
+            "hi": "कस्बा"
+          },
+          "order": 43,
+          "symbolId": "kn7d6rkxvhatvpawayz27ntpmd84mmk3"
+        },
+        {
+          "labelOverride": {
+            "en": "city",
+            "es": "ciudad",
+            "hi": "शहर"
+          },
+          "order": 44,
+          "symbolId": "kn750xnxn9djmk5rg0rg95kkgn84mzhy"
+        },
+        {
+          "labelOverride": {
+            "en": "swimming pool",
+            "es": "piscina",
+            "hi": "स्विमिंग पूल"
+          },
+          "order": 45,
+          "symbolId": "kn71x6aaj1hncp3vkfqck6wn3184mf11"
+        },
+        {
+          "labelOverride": {
+            "en": "hotel",
+            "es": "hotel",
+            "hi": "होटल"
+          },
+          "order": 46,
+          "symbolId": "kn73e5bqbbnswfg92z7r6scxnh84n2ag"
+        },
+        {
+          "labelOverride": {
+            "en": "market",
+            "es": "mercado",
+            "hi": "बाज़ार"
+          },
+          "order": 47,
+          "symbolId": "kn71eny80w4prn779ysts1vmh984n9f3"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Community",
+    "es": "Comunidad",
+    "hi": "समुदाय"
+  },
+  "slug": "community",
+  "tree": "categories"
+}

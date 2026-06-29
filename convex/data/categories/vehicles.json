@@ -1,20 +1,9 @@
 {
-  "slug": "vehicles",
-  "tree": "categories",
-  "name": {
-    "en": "Vehicles",
-    "hi": "गाड़ियाँ"
-  },
+  "coverImagePath": "symbols/symbol00109461.png",
+  "defaultTier": "pro",
   "description": {
     "en": "Curated by an admin",
     "hi": "एडमिन ने बनाया है"
-  },
-  "coverImagePath": "symbols/symbol00109461.png",
-  "defaultTier": "pro",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -196,5 +185,16 @@
         }
       ]
     }
-  ]
+  ],
+  "name": {
+    "en": "Vehicles",
+    "hi": "गाड़ियाँ"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "vehicles",
+  "tree": "categories"
 }

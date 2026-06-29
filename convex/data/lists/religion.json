@@ -1,22 +1,10 @@
 {
-  "slug": "religion",
-  "tree": "lists",
-  "name": {
-    "en": "Religion",
-    "es": "Religión",
-    "hi": "धर्म"
-  },
+  "coverImagePath": "symbols/pray.png",
+  "defaultTier": "free",
   "description": {
     "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
     "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio.",
     "hi": "विश्वास की बातें। प्रार्थना, पूजा, आशीर्वाद। ये वो शब्द हैं जो आप ज़्यादातर धर्मों में सुनेंगे। अपनी पसंद के शब्द जोड़ने से पहले एक शुरुआत।"
-  },
-  "coverImagePath": "symbols/pray.png",
-  "defaultTier": "free",
-  "provenance": {
-    "author": "Mo Speech",
-    "version": "1",
-    "licence": "proprietary"
   },
   "items": [
     {
@@ -99,5 +87,17 @@
       "showFirstThen": false,
       "showNumbers": false
     }
-  ]
+  ],
+  "name": {
+    "en": "Religion",
+    "es": "Religión",
+    "hi": "धर्म"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "religion",
+  "tree": "lists"
 }

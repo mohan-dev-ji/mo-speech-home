@@ -1,0 +1,226 @@
+{
+  "colour": "lime",
+  "coverImagePath": "symbols/places.png",
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "lime",
+      "icon": "📁",
+      "imagePath": "symbols/places.png",
+      "name": {
+        "en": "Places",
+        "es": "Lugares",
+        "hi": "जगहें"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "city",
+            "es": "ciudad",
+            "hi": "शहर"
+          },
+          "order": 0,
+          "symbolId": "kn7d94vj1vw9gzy5kf4ykgnwvx84nth0"
+        },
+        {
+          "labelOverride": {
+            "en": "countryside",
+            "es": "campo",
+            "hi": "देहात"
+          },
+          "order": 1,
+          "symbolId": "kn7b1qf8g84mh4zfk8vd4cb23h84n80f"
+        },
+        {
+          "labelOverride": {
+            "en": "dentist's office",
+            "es": "consultorio del dentista",
+            "hi": "दांतों का क्लिनिक"
+          },
+          "order": 2,
+          "symbolId": "kn7feb6vpqwgyhgd1zt11azxw584mbt5"
+        },
+        {
+          "labelOverride": {
+            "en": "surgery room",
+            "es": "quirófano",
+            "hi": "ऑपरेशन थिएटर"
+          },
+          "order": 3,
+          "symbolId": "kn74xm5vqw4bjx0qvewmhqc7en84m7hc"
+        },
+        {
+          "labelOverride": {
+            "en": "speech therapy",
+            "es": "logopedia",
+            "hi": "स्पीच थेरेपी"
+          },
+          "order": 4,
+          "symbolId": "kn7b536ckvwz1x12jjarkatjqn84n60s"
+        },
+        {
+          "labelOverride": {
+            "en": "music therapy",
+            "es": "musicoterapia",
+            "hi": "संगीत चिकित्सा"
+          },
+          "order": 5,
+          "symbolId": "kn7cbm2dedqnyqcqp1xfk4qc1184mh9q"
+        },
+        {
+          "labelOverride": {
+            "en": "therapy room",
+            "es": "sala de terapia",
+            "hi": "थेरेपी रूम"
+          },
+          "order": 6,
+          "symbolId": "kn7deaxcak4qxp73av27enfhpd84m4v0"
+        },
+        {
+          "labelOverride": {
+            "en": "shop",
+            "es": "tienda",
+            "hi": "खरीदारी करना"
+          },
+          "order": 7,
+          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
+        },
+        {
+          "labelOverride": {
+            "en": "restaurant",
+            "es": "restaurante",
+            "hi": "रेस्तरां"
+          },
+          "order": 8,
+          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
+        },
+        {
+          "labelOverride": {
+            "en": "playground",
+            "es": "parque infantil",
+            "hi": "खेल का मैदान"
+          },
+          "order": 9,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "en": "living room",
+            "es": "sala de estar",
+            "hi": "बैठक"
+          },
+          "order": 10,
+          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+        },
+        {
+          "labelOverride": {
+            "en": "classroom",
+            "es": "aula",
+            "hi": "कक्षा"
+          },
+          "order": 11,
+          "symbolId": "kn72p6xke1wzmfr3v1wbm3s01x84ntsr"
+        },
+        {
+          "labelOverride": {
+            "en": "car",
+            "es": "coche",
+            "hi": "कार"
+          },
+          "order": 12,
+          "symbolId": "kn7cp3wan5gh76sqgwfq5jkkgs84ncsv"
+        },
+        {
+          "labelOverride": {
+            "en": "cafeteria",
+            "es": "cafetería",
+            "hi": "कैफेटेरिया"
+          },
+          "order": 13,
+          "symbolId": "kn72as5vhqqpha19q35n5h6q2184nzqq"
+        },
+        {
+          "labelOverride": {
+            "en": "bus",
+            "es": "autobús",
+            "hi": "बस"
+          },
+          "order": 14,
+          "symbolId": "kn748yfp678vxhv42gmfq4zp2984nx9h"
+        },
+        {
+          "labelOverride": {
+            "en": "mini bus",
+            "es": "minibús",
+            "hi": "मिनी बस"
+          },
+          "order": 15,
+          "symbolId": "kn7753rkhwgeerxj20ywcpzzbs84m3s9"
+        },
+        {
+          "labelOverride": {
+            "en": "bathroom",
+            "es": "baño",
+            "hi": "बाथरूम"
+          },
+          "order": 16,
+          "symbolId": "kn72kxvzp8v15z63zy9gxncy5n84m7d1"
+        },
+        {
+          "labelOverride": {
+            "en": "apartment",
+            "es": "apartamento",
+            "hi": "अपार्टमेंट"
+          },
+          "order": 17,
+          "symbolId": "kn7cx9eq8vbkd8gpfm36hzzejs84mj3m"
+        },
+        {
+          "labelOverride": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 18,
+          "symbolId": "kn7f9dtkyfvy0e2n8yeyppsggx84nevy"
+        },
+        {
+          "labelOverride": {
+            "en": "home",
+            "es": "casa",
+            "hi": "घर"
+          },
+          "order": 19,
+          "symbolId": "kn7e4b2m8jjpz4ydatz4x978m584mbp3"
+        },
+        {
+          "labelOverride": {
+            "en": "outside",
+            "es": "afuera",
+            "hi": "बाहर"
+          },
+          "order": 20,
+          "symbolId": "kn790ca6hr8me6a7c08htde7s584m982"
+        },
+        {
+          "labelOverride": {
+            "en": "inside",
+            "es": "Dentro",
+            "hi": "अंदर"
+          },
+          "order": 21,
+          "symbolId": "kn7ayschda5jr6nxen41z9x62h84mqyf"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Places",
+    "es": "Lugares",
+    "hi": "जगहें"
+  },
+  "slug": "places",
+  "tree": "categories"
+}

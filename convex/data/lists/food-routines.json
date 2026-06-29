@@ -1,0 +1,184 @@
+{
+  "colour": "yellow",
+  "coverImagePath": "symbols/symbol00188596.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00119151.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00119151.mp3",
+          "description": {
+            "en": "sit down",
+            "es": "Sentarse",
+            "hi": "बैठ जाओ"
+          },
+          "imagePath": "symbols/symbol00119151.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00191925.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00191925.mp3",
+          "description": {
+            "en": "put napkin on lap",
+            "es": "Poner la servilleta en las piernas",
+            "hi": "नैपकिन गोद में रखो"
+          },
+          "imagePath": "symbols/symbol00191925.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/eat.mp3",
+          "defaultAudioPath": "audio/eng/default/eat.mp3",
+          "description": {
+            "en": "eat",
+            "es": "Comer",
+            "hi": "खाओ"
+          },
+          "imagePath": "symbols/eat.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00195039.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00195039.mp3",
+          "description": {
+            "en": "drink",
+            "es": "Beber",
+            "hi": "पियो"
+          },
+          "imagePath": "symbols/symbol00195039.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00194802.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00194802.mp3",
+          "description": {
+            "en": "finished",
+            "es": "Terminado",
+            "hi": "हो गया"
+          },
+          "imagePath": "symbols/symbol00194802.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/clear_table.mp3",
+          "defaultAudioPath": "audio/eng/default/clear_table.mp3",
+          "description": {
+            "en": "clear table",
+            "es": "Recoger la mesa",
+            "hi": "टेबल साफ करो"
+          },
+          "imagePath": "symbols/clear_table.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "en": "Mealtime",
+        "es": "Hora de comer",
+        "hi": "खाने का समय"
+      },
+      "order": 0,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wash_hands2.mp3",
+          "defaultAudioPath": "audio/eng/default/wash_hands2.mp3",
+          "description": {
+            "en": "wash hands",
+            "es": "Lavarse las manos",
+            "hi": "हाथ धो लो"
+          },
+          "imagePath": "symbols/wash_hands2.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00203025.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00203025.mp3",
+          "description": {
+            "en": "choose snacks",
+            "es": "Elegir la merienda",
+            "hi": "नाश्ता चुनो"
+          },
+          "imagePath": "symbols/symbol00203025.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190597.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190597.mp3",
+          "description": {
+            "en": "sit",
+            "es": "Sentarse",
+            "hi": "बैठो"
+          },
+          "imagePath": "symbols/symbol00190597.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/eat.mp3",
+          "defaultAudioPath": "audio/eng/default/eat.mp3",
+          "description": {
+            "en": "eat",
+            "es": "Comer",
+            "hi": "खाओ"
+          },
+          "imagePath": "symbols/eat.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00194802.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00194802.mp3",
+          "description": {
+            "en": "finished",
+            "es": "Terminado",
+            "hi": "हो गया"
+          },
+          "imagePath": "symbols/symbol00194802.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Snack time",
+        "es": "Hora de la merienda",
+        "hi": "नाश्ते का समय"
+      },
+      "order": 1,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "name": {
+    "en": "Food Routines"
+  },
+  "slug": "food-routines",
+  "tree": "lists"
+}
