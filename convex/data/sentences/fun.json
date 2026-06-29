@@ -1,0 +1,87 @@
+{
+  "coverImagePath": "symbols/fun.png",
+  "defaultTier": "free",
+  "description": {
+    "en": "Toys, games, and everything they reach for when no one's making them work. Words for play.",
+    "es": "Juguetes, juegos y todo lo que quieren hacer cuando nadie les dice qué hacer. Palabras para jugar.",
+    "hi": "खिलौने, खेल, और वो सब कुछ जो बच्चे तब करते हैं जब कोई उनसे काम नहीं करवा रहा होता। खेलने के लिए शब्द।"
+  },
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/06d16411-4307-4162-93f9-1a4ee315d262.mp3",
+      "name": {
+        "en": "I want to watch YouTube",
+        "es": "Quiero ver YouTube",
+        "hi": "मुझे YouTube देखना है"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/look.png",
+          "order": 2
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00192519.png",
+          "order": 3
+        }
+      ],
+      "text": {
+        "en": "I want to watch YouTube",
+        "es": "Quiero ver YouTube",
+        "hi": "मुझे YouTube देखना है"
+      }
+    }
+  ],
+  "name": {
+    "en": "Fun",
+    "es": "Diversión",
+    "hi": "मस्ती"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "fun",
+  "tree": "sentences"
+}

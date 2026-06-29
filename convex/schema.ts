@@ -130,6 +130,119 @@ const profileSymbolAudioMigration = v.union(
 // During migration: accepts both. Tighten after migration completes.
 const localisedStringMigration = v.union(v.string(), localisedString);
 
+// ─── Content-module item validators (ADR-014 §1, addendum 2026-06-27) ─────────
+//
+// `libraryModules.items` stores the per-tree content array. These mirror the
+// snapshot shapes already on the `resourcePacks` table (categories/lists/
+// sentences), minus the `sourceProfile*Id` reverse-link fields (modules are
+// authored templates, not per-account snapshots). The category-symbol shape is
+// widened to the full `LibraryPackCategorySymbol` (symbolId optional + custom-
+// image fields) so custom-image symbols validate, not just symbolstix refs.
+const imageSourceTypeLiteral = v.union(
+  v.literal("symbolstix"),
+  v.literal("upload"),
+  v.literal("imageSearch"),
+  v.literal("aiGenerated")
+);
+
+const libraryModuleCategoryItems = v.array(
+  v.object({
+    name: localisedString,
+    icon: v.string(),
+    colour: v.string(),
+    imagePath: v.optional(v.string()), // R2 folder cover
+    symbols: v.array(
+      v.object({
+        order: v.number(),
+        symbolId: v.optional(v.string()), // loose ref — absent for custom images
+        labelOverride: v.optional(localisedString),
+        label: v.optional(localisedString),
+        display: v.optional(v.any()), // mirrors profileSymbol.display shape
+        imageSourceType: v.optional(imageSourceTypeLiteral),
+        imagePath: v.optional(v.string()),
+        imageSourceUrl: v.optional(v.string()),
+        attribution: v.optional(v.string()),
+        license: v.optional(v.string()),
+        aiPrompt: v.optional(v.string()),
+        recordedAudioPath: v.optional(v.string()),
+      })
+    ),
+  })
+);
+
+const libraryModuleListItems = v.array(
+  v.object({
+    name: localisedString,
+    order: v.number(),
+    items: v.array(
+      v.object({
+        order: v.number(),
+        symbolId: v.optional(v.string()),
+        imagePath: v.optional(v.string()),
+        description: v.optional(localisedStringMigration),
+        audioPath: v.optional(v.string()),
+        activeAudioSource: v.optional(
+          v.union(
+            v.literal("default"),
+            v.literal("generate"),
+            v.literal("record")
+          )
+        ),
+        defaultAudioPath: v.optional(v.string()),
+        generatedAudioPath: v.optional(v.string()),
+        recordedAudioPath: v.optional(v.string()),
+        imageSourceType: v.optional(imageSourceTypeLiteral),
+      })
+    ),
+    displayFormat: v.optional(
+      v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))
+    ),
+    showNumbers: v.optional(v.boolean()),
+    showChecklist: v.optional(v.boolean()),
+    showFirstThen: v.optional(v.boolean()),
+  })
+);
+
+const libraryModuleSentenceItems = v.array(
+  v.object({
+    name: localisedString,
+    order: v.number(),
+    text: v.optional(localisedStringMigration),
+    slots: v.array(
+      v.object({
+        order: v.number(),
+        symbolId: v.optional(v.string()),
+        imagePath: v.optional(v.string()),
+        displayProps: v.optional(
+          v.object({
+            bgColour: v.optional(v.string()),
+            textColour: v.optional(v.string()),
+            textSize: v.optional(
+              v.union(
+                v.literal("sm"),
+                v.literal("md"),
+                v.literal("lg"),
+                v.literal("xl")
+              )
+            ),
+            showLabel: v.optional(v.boolean()),
+            showImage: v.optional(v.boolean()),
+            cardShape: v.optional(
+              v.union(
+                v.literal("square"),
+                v.literal("rounded"),
+                v.literal("circle")
+              )
+            ),
+          })
+        ),
+      })
+    ),
+    audioPath: v.optional(v.string()),
+    recordedAudioPath: v.optional(v.string()),
+  })
+);
+
 export default defineSchema({
   // ─── EXISTING TABLES (extended) ───────────────────────────────────────────
 
@@ -356,6 +469,10 @@ export default defineSchema({
     // even after the instructor renames the category. Optional for back-compat
     // with rows loaded before this field existed.
     librarySourceCategoryKey: v.optional(v.string()),
+    // ADR-014 — parent folder within the Categories tree. The folder is the
+    // shared organisation primitive; a category (symbol grid) files into one.
+    // Optional until the Phase 13 migration assigns rows; null = ungrouped/root.
+    folderId: v.optional(v.id("profileFolders")),
     // Admin-only: forward link to the resourcePack this category is the source-of-truth for.
     // Set by setCategoryDefault / setCategoryInLibrary toggle mutations. When set, edits to
     // this category auto-rebuild the pack snapshot. Cleared on toggle-off, on delete, and
@@ -369,6 +486,19 @@ export default defineSchema({
     // delete, and on starter pack restore. Coexists with `publishedToPackId`
     // during the cutover; the latter is dropped in the deferred Phase X.
     packSlug: v.optional(v.string()),
+    // ADR-014 Task C — provenance back-link set when this category has been
+    // published as a content module (admin curation). Drives the Publish modal's
+    // Update mode (lock slug + preselect classification) and the "published"
+    // tile marker. `publishedModuleClass` mirrors the module's current class.
+    publishedModuleSlug: v.optional(v.string()),
+    publishedModuleClass: v.optional(
+      v.union(
+        v.literal("default"),
+        v.literal("free"),
+        v.literal("pro"),
+        v.literal("max")
+      )
+    ),
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
@@ -376,7 +506,8 @@ export default defineSchema({
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
     .index("by_published_to_pack_id", ["publishedToPackId"])
-    .index("by_pack_slug", ["packSlug"]),
+    .index("by_pack_slug", ["packSlug"])
+    .index("by_folder_id_and_order", ["folderId", "order"]),
 
   /**
    * The most important table. Every symbol in a student's profile is a
@@ -480,6 +611,8 @@ export default defineSchema({
     name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
+    // ADR-014 — parent folder within the Lists tree. See profileCategories.folderId.
+    folderId: v.optional(v.id("profileFolders")),
     items: v.array(
       v.object({
         imagePath: v.optional(v.string()),
@@ -518,7 +651,8 @@ export default defineSchema({
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
     .index("by_published_to_pack_id", ["publishedToPackId"])
-    .index("by_pack_slug", ["packSlug"]),
+    .index("by_pack_slug", ["packSlug"])
+    .index("by_folder_id_and_order", ["folderId", "order"]),
 
   /**
    * A pre-built sentence. Profile-level — not tied to a category.
@@ -530,6 +664,8 @@ export default defineSchema({
     name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
+    // ADR-014 — parent folder within the Sentences tree. See profileCategories.folderId.
+    folderId: v.optional(v.id("profileFolders")),
     // Sentence text — feeds TTS and display. Localised: migrated from single-string
     // to localised record in Phase 8.0; union accepts both during migration.
     text: v.optional(localisedStringMigration),
@@ -563,7 +699,60 @@ export default defineSchema({
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_and_order", ["profileId", "order"])
     .index("by_published_to_pack_id", ["publishedToPackId"])
-    .index("by_pack_slug", ["packSlug"]),
+    .index("by_pack_slug", ["packSlug"])
+    .index("by_folder_id_and_order", ["folderId", "order"]),
+
+  /**
+   * The shared folder primitive (ADR-014 §2). One mechanism, three trees on
+   * top: every folder declares which `tree` it files into. Each tree shows
+   * **default folders** (`source: "module"`, created by installing a content
+   * module) and the user's own **custom folders** (`source: "user"`).
+   *
+   * A folder groups items from exactly one of profileCategories / profileLists /
+   * profileSentences (matching `tree`); those rows carry `folderId` back here.
+   * Deleting a `source: "module"` folder removes its module-sourced items;
+   * `source: "user"` folders and user-authored items are never touched by a
+   * module delete (ADR-014 §5).
+   */
+  profileFolders: defineTable({
+    accountId: v.optional(v.id("users")), // owner account; new writes always set this.
+    profileId: v.optional(v.id("studentProfiles")), // legacy parity; new writes omit.
+    tree: v.union(
+      v.literal("categories"),
+      v.literal("lists"),
+      v.literal("sentences")
+    ),
+    name: localisedString,
+    icon: v.optional(v.string()),
+    colour: v.optional(v.string()),
+    imagePath: v.optional(v.string()), // R2 folder cover
+    order: v.number(),
+    // "module" = a default folder materialised from an installed content module;
+    // "user" = a folder the instructor created. Drives the delete boundary.
+    source: v.union(v.literal("module"), v.literal("user")),
+    // Module slug this folder was installed from (set when source === "module").
+    // Used for dedup-on-install, delete, and reload. Mirrors the item-level
+    // `librarySourceId` addressing (ADR-012 §7 / ADR-014 §91).
+    librarySourceId: v.optional(v.string()),
+    // ADR-014 Task C — provenance back-link set when this folder has been
+    // published as a content module (admin curation). Distinct from
+    // `librarySourceId` (which records what a folder was INSTALLED from). Drives
+    // the Publish modal's Update mode + the "published" tile marker.
+    publishedModuleSlug: v.optional(v.string()),
+    publishedModuleClass: v.optional(
+      v.union(
+        v.literal("default"),
+        v.literal("free"),
+        v.literal("pro"),
+        v.literal("max")
+      )
+    ),
+    updatedAt: v.number(),
+  })
+    .index("by_account_id", ["accountId"])
+    .index("by_account_id_and_tree_and_order", ["accountId", "tree", "order"])
+    .index("by_profile_id", ["profileId"])
+    .index("by_library_source_id", ["librarySourceId"]),
 
   /**
    * Real-time modelling session. Instructor pushes; student device subscribes.
@@ -862,6 +1051,154 @@ export default defineSchema({
   })
     .index("by_slug", ["slug"])
     .index("by_status", ["status"]),
+
+  /**
+   * Content-module lifecycle overlays (ADR-014 §1) — the per-type equivalent of
+   * `packLifecycle`, one table per module tree. Token values / content live in
+   * `convex/data/{categories,lists,sentences}/<slug>.json`; the deploy-free
+   * runtime metadata (publish window, featured, tier override, tags) lives here.
+   *
+   * Visibility rule is identical to `packLifecycle`: a module is visible iff a
+   * row exists AND `publishedAt <= now` AND (`expiresAt` unset OR `expiresAt >
+   * now`); tier = `tierOverride ?? module.defaultTier`. The three universal admin
+   * functions (`listAll<Type>ForAdmin`, `update<Type>Lifecycle`,
+   * `delete<Type>Lifecycle`) read/write these rows.
+   */
+  categoryLifecycle: defineTable({
+    slug: v.string(),
+    name: v.optional(localisedString),
+    description: v.optional(localisedString),
+    coverImagePath: v.optional(v.string()),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    lastPublishedAt: v.optional(v.number()),
+    featured: v.boolean(),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    tags: v.optional(v.array(v.string())),
+    notes: v.optional(v.string()),
+    createdBy: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_createdBy", ["createdBy"]),
+
+  listLifecycle: defineTable({
+    slug: v.string(),
+    name: v.optional(localisedString),
+    description: v.optional(localisedString),
+    coverImagePath: v.optional(v.string()),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    lastPublishedAt: v.optional(v.number()),
+    featured: v.boolean(),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    tags: v.optional(v.array(v.string())),
+    notes: v.optional(v.string()),
+    createdBy: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_createdBy", ["createdBy"]),
+
+  sentenceLifecycle: defineTable({
+    slug: v.string(),
+    name: v.optional(localisedString),
+    description: v.optional(localisedString),
+    coverImagePath: v.optional(v.string()),
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    lastPublishedAt: v.optional(v.number()),
+    featured: v.boolean(),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    tags: v.optional(v.array(v.string())),
+    notes: v.optional(v.string()),
+    createdBy: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_createdBy", ["createdBy"]),
+
+  /**
+   * Content modules — the source of truth for curated/default module content
+   * (ADR-014 §1, addendum 2026-06-27). Supersedes the bundled-JSON +
+   * `*Lifecycle`-overlay model: one row per module, with the lifecycle fields
+   * (publish window, tier override, featured, tags, notes) **merged onto the
+   * row**. The JSON files in `convex/data/{categories,lists,sentences}/` become
+   * seed input / git-export artifacts, no longer read at runtime.
+   *
+   * `slug` is unique *per tree* (the same slug can exist as a category, a list,
+   * and a sentence module). Visibility: a module is browsable iff `isStarter` OR
+   * (`publishedAt <= now` AND `expiresAt` unset/future); effective tier =
+   * `tierOverride ?? defaultTier`. Publish/unpublish + curation are mutations
+   * (no deploy) — see `contentModules/*` and `migrations.seedLibraryModulesFromJSON`.
+   */
+  libraryModules: defineTable({
+    tree: v.union(
+      v.literal("categories"),
+      v.literal("lists"),
+      v.literal("sentences")
+    ),
+    slug: v.string(),
+    name: localisedString,
+    description: v.optional(localisedString),
+    icon: v.optional(v.string()),
+    colour: v.optional(v.string()),
+    coverImagePath: v.optional(v.string()),
+    defaultTier: v.union(
+      v.literal("free"),
+      v.literal("pro"),
+      v.literal("max")
+    ),
+    provenance: v.optional(
+      v.object({
+        author: v.optional(v.string()),
+        version: v.optional(v.string()),
+        licence: v.optional(v.string()),
+      })
+    ),
+    // Per-tree content array. Distinct enough that union member resolution is
+    // unambiguous (categories require icon+colour+symbols; lists carry items[];
+    // sentences carry slots[]).
+    items: v.union(
+      libraryModuleCategoryItems,
+      libraryModuleListItems,
+      libraryModuleSentenceItems
+    ),
+    // ── Lifecycle, merged onto the row (was the per-type `*Lifecycle` table) ──
+    publishedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    lastPublishedAt: v.optional(v.number()),
+    tierOverride: v.optional(
+      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
+    ),
+    featured: v.boolean(),
+    tags: v.optional(v.array(v.string())),
+    notes: v.optional(v.string()),
+    isStarter: v.optional(v.boolean()),
+    // Default ("core") module — auto-installed into every new account
+    // (seedDefaultAccount) and always free to access. Mutually exclusive with a
+    // paid tier in the UI: a Default module shows a "Default" badge instead of
+    // a Free/Pro/Max one. Replaces the bundled-`core` idea (ADR-014 Task C/D).
+    isDefault: v.optional(v.boolean()),
+    // Translation bookkeeping (ADR-014 Task E) — a flat map of
+    // fieldPath → the English value that the current non-English translations
+    // were produced from. Lets the translator (re)translate only what's missing
+    // or whose English source changed; never overwrites a good translation.
+    // English is master. Omitted from the git export (rebuilt safely on run).
+    translationSnapshot: v.optional(v.record(v.string(), v.string())),
+    createdBy: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_tree_and_slug", ["tree", "slug"]) // unique lookup
+    .index("by_tree", ["tree"]) // catalogue / admin list
+    .index("by_tree_and_published", ["tree", "publishedAt"])
+    .index("by_default", ["isDefault"]), // new-account seed manifest
 
   /**
    * Translation job tracking — Phase 8.2 + 8.3. One row per (slug, kind) pair.

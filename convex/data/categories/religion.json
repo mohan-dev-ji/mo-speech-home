@@ -1,0 +1,210 @@
+{
+  "coverImagePath": "symbols/pray.png",
+  "defaultTier": "free",
+  "description": {
+    "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
+    "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio.",
+    "hi": "विश्वास की बातें। प्रार्थना, पूजा, आशीर्वाद। ये वो शब्द हैं जो आप ज़्यादातर धर्मों में सुनेंगे। अपनी पसंद के शब्द जोड़ने से पहले एक शुरुआत।"
+  },
+  "items": [
+    {
+      "colour": "#D97706",
+      "icon": "🙏",
+      "imagePath": "symbols/pray.png",
+      "name": {
+        "en": "Religion",
+        "es": "Religión",
+        "hi": "धर्म"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "Vishnu"
+          },
+          "order": 0,
+          "symbolId": "kn7egffqwfqmx3j97hwsdkk5mx84nf9b"
+        },
+        {
+          "labelOverride": {
+            "en": "gurdwara"
+          },
+          "order": 1,
+          "symbolId": "kn7eex6hs690mj8webrxb9pnah84n0pg"
+        },
+        {
+          "labelOverride": {
+            "en": "Muslim"
+          },
+          "order": 2,
+          "symbolId": "kn75x2xxm8yyg3rrqpxmvzjt5d84mrdb"
+        },
+        {
+          "labelOverride": {
+            "en": "Jewish temple"
+          },
+          "order": 3,
+          "symbolId": "kn74b2bm93tenkbzx6bff1jxv584mtss"
+        },
+        {
+          "labelOverride": {
+            "en": "Hinduism"
+          },
+          "order": 4,
+          "symbolId": "kn7d5dnqevnb75ne6newaqrkmd84n1vg"
+        },
+        {
+          "labelOverride": {
+            "en": "Sikh"
+          },
+          "order": 5,
+          "symbolId": "kn7963mmj48gvh3ene6vxp95gn84m541"
+        },
+        {
+          "labelOverride": {
+            "en": "pray"
+          },
+          "order": 6,
+          "symbolId": "kn78p1519k7j7qrfdgc3rddg8x84nk9r"
+        },
+        {
+          "labelOverride": {
+            "en": "prayer"
+          },
+          "order": 7,
+          "symbolId": "kn7b1vd6njyyegngmbve90eb6h84m1ph"
+        },
+        {
+          "labelOverride": {
+            "en": "holy"
+          },
+          "order": 8,
+          "symbolId": "kn724110a3424yrn35gdac5bv584n5sw"
+        },
+        {
+          "labelOverride": {
+            "en": "worship"
+          },
+          "order": 9,
+          "symbolId": "kn7981vq3mk3y4cpsew07w2am584m8b0"
+        },
+        {
+          "labelOverride": {
+            "en": "miracle"
+          },
+          "order": 10,
+          "symbolId": "kn727ggdcd6zeqs3hd07s4awg984mnk2"
+        },
+        {
+          "labelOverride": {
+            "en": "soul"
+          },
+          "order": 11,
+          "symbolId": "kn79gybcperxqm9jnth1pj8x3n84mcgh"
+        },
+        {
+          "labelOverride": {
+            "en": "grace"
+          },
+          "order": 12,
+          "symbolId": "kn78q139e5vnkhpcrajv6rqegd84nfa8"
+        },
+        {
+          "labelOverride": {
+            "en": "religion"
+          },
+          "order": 13,
+          "symbolId": "kn7dgafm5zhb0xf07egrs0kwdx84msdc"
+        },
+        {
+          "labelOverride": {
+            "en": "angel"
+          },
+          "order": 14,
+          "symbolId": "kn7azpmz6ystazw6ga7ry0n9f984m1qb"
+        },
+        {
+          "labelOverride": {
+            "en": "heaven"
+          },
+          "order": 15,
+          "symbolId": "kn7234yx8583h218q6ah7qnbg984nyz7"
+        },
+        {
+          "labelOverride": {
+            "en": "church"
+          },
+          "order": 16,
+          "symbolId": "kn77d4k792a0c350bzdba9yxhd84nzx8"
+        },
+        {
+          "labelOverride": {
+            "en": "cross"
+          },
+          "order": 17,
+          "symbolId": "kn7ddtdjxhvv6cj6g6tytyc5x584n3j5"
+        },
+        {
+          "labelOverride": {
+            "en": "baptism"
+          },
+          "order": 18,
+          "symbolId": "kn70za4x16j29rgznrqa1qwmjx84mcfy"
+        },
+        {
+          "labelOverride": {
+            "en": "saint"
+          },
+          "order": 19,
+          "symbolId": "kn798s6svv14mchrjnjmt0b4zx84mnaz"
+        },
+        {
+          "labelOverride": {
+            "en": "hymn"
+          },
+          "order": 20,
+          "symbolId": "kn7105p1ne4k3kpjmnygy5kj6x84mrb6"
+        },
+        {
+          "labelOverride": {
+            "en": "mosque"
+          },
+          "order": 21,
+          "symbolId": "kn77h06gj3ztmp7th62mpga9fx84meq1"
+        },
+        {
+          "labelOverride": {
+            "en": "synagogue"
+          },
+          "order": 22,
+          "symbolId": "kn7cwj77wtmfbmdcnf7gktnnax84nyy9"
+        },
+        {
+          "labelOverride": {
+            "en": "menorah"
+          },
+          "order": 23,
+          "symbolId": "kn74h8wz57gn75xv4emxyn39ns84nn6f"
+        },
+        {
+          "labelOverride": {
+            "en": "temple"
+          },
+          "order": 24,
+          "symbolId": "kn7ecp3kcsvac1aehg32d955s584nnad"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Religion",
+    "es": "Religión",
+    "hi": "धर्म"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "religion",
+  "tree": "categories"
+}

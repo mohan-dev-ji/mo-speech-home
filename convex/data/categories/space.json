@@ -1,0 +1,236 @@
+{
+  "coverImagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
+  "defaultTier": "free",
+  "description": {
+    "en": "Planets, rockets, stars by name. For the student whose first questions are always about what's out there.",
+    "es": "Planetas, cohetes, estrellas por su nombre. Para el niño que siempre pregunta qué hay allá afuera.",
+    "hi": "ग्रह, रॉकेट, तारों के नाम। उस बच्चे के लिए जिसके मन में हमेशा यह जानने की उत्सुकता रहती है कि बाहर क्या है।"
+  },
+  "items": [
+    {
+      "colour": "indigo",
+      "icon": "📁",
+      "imagePath": "library_packs/space/images/ebc0b943-f5bb-4aa3-8a47-e7892e7e637e.jpg",
+      "name": {
+        "en": "Space",
+        "es": "Espacio",
+        "hi": "अंतरिक्ष"
+      },
+      "symbols": [
+        {
+          "attribution": "AlexAntropov86",
+          "imagePath": "library_packs/space/images/f814ddee-577f-45ec-9317-18734af2b8ca.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/earth-planet-atmosphere-space-2113656/",
+          "label": {
+            "en": "Earth",
+            "es": "Tierra",
+            "hi": "धरती"
+          },
+          "license": "Pixabay License",
+          "order": 0
+        },
+        {
+          "attribution": "Vivek Doshi",
+          "imagePath": "library_packs/space/images/199875aa-abc5-45b5-9c32-d296c8effc01.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/low-light-photo-of-sun-obsBswnv7FI",
+          "label": {
+            "en": "Sun",
+            "es": "Sol",
+            "hi": "सूरज"
+          },
+          "license": "Unsplash License",
+          "order": 1
+        },
+        {
+          "attribution": "Pedro Lastra",
+          "imagePath": "library_packs/space/images/56dc9e53-7624-4f78-9a08-36efaf54ac5d.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/moon-wCujVcf0JDw",
+          "label": {
+            "en": "Moon",
+            "es": "Luna",
+            "hi": "चाँद"
+          },
+          "license": "Unsplash License",
+          "order": 2
+        },
+        {
+          "attribution": "Jacob Spence",
+          "imagePath": "library_packs/space/images/dcd78b10-f2b7-48e8-ab9e-efa5c8af6e30.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/galaxy-digital-wallpaper-Bolre_2dEZI",
+          "label": {
+            "en": "stars",
+            "es": "estrellas",
+            "hi": "तारे"
+          },
+          "license": "Unsplash License",
+          "order": 3
+        },
+        {
+          "attribution": "TheSpaceway",
+          "imagePath": "library_packs/space/images/782006f2-925f-4469-8fcf-82882dfe313e.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/pluto-planet-space-astronomy-6595130/",
+          "label": {
+            "en": "Pluto",
+            "es": "Plutón",
+            "hi": "प्लूटो"
+          },
+          "license": "Pixabay License",
+          "order": 4
+        },
+        {
+          "attribution": "BoliviaInteligente",
+          "imagePath": "library_packs/space/images/a91d356b-ce85-497f-bad2-df1e26dd5c43.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/a-red-planet-with-a-star-in-the-background-BsHarhZMmpg",
+          "label": {
+            "en": "Mars",
+            "es": "Marte",
+            "hi": "मंगल"
+          },
+          "license": "Unsplash License",
+          "order": 5
+        },
+        {
+          "attribution": "NASA",
+          "imagePath": "library_packs/space/images/9ab0b610-f343-4004-9814-c0da5b2991fa.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/neptune-on-a-black-background-ScBkW9AKgcA",
+          "label": {
+            "en": "Neptune",
+            "es": "Neptuno",
+            "hi": "नेपच्यून"
+          },
+          "license": "Unsplash License",
+          "order": 6
+        },
+        {
+          "attribution": "TheSpaceway",
+          "imagePath": "library_packs/space/images/2b08d74b-043e-45a2-ad43-0ebf5b99c845.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/jupiter-planet-outer-space-galaxy-6595135/",
+          "label": {
+            "en": "Jupiter",
+            "es": "Júpiter",
+            "hi": "बृहस्पति"
+          },
+          "license": "Pixabay License",
+          "order": 7
+        },
+        {
+          "attribution": "Zelch Csaba",
+          "imagePath": "library_packs/space/images/a3a31de6-b8e2-4ad2-afc6-7b3e375353f0.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/planet-with-rings-20337604/",
+          "label": {
+            "en": "Uranus",
+            "es": "Urano",
+            "hi": "यूरेनस"
+          },
+          "license": "Pexels License",
+          "order": 8
+        },
+        {
+          "attribution": "WikiImages",
+          "imagePath": "library_packs/space/images/d79940ff-9654-4343-b4e0-e8149c0c0531.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/galaxy-space-universe-night-sky-11098/",
+          "label": {
+            "en": "galaxy",
+            "es": "galaxia",
+            "hi": "आकाशगंगा"
+          },
+          "license": "Pixabay License",
+          "order": 9
+        },
+        {
+          "attribution": "Dns Dgn",
+          "imagePath": "library_packs/space/images/ed026bbf-ce02-4962-91e8-047b47d182cb.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/milky-way-on-mountains-9wH624ALFQA",
+          "label": {
+            "en": "Milky Way",
+            "es": "Vía Láctea",
+            "hi": "मिल्की वे"
+          },
+          "license": "Unsplash License",
+          "order": 10
+        },
+        {
+          "imagePath": "library_packs/space/images/7bc1787b-283f-4b79-be88-17a57ef470d8.png",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "space rocket",
+            "es": "cohete espacial",
+            "hi": "अंतरिक्ष रॉकेट"
+          },
+          "order": 11
+        },
+        {
+          "labelOverride": {
+            "en": "NASA",
+            "es": "NASA"
+          },
+          "order": 12,
+          "symbolId": "kn7c8pgzbsqm7786hp6yc770nx84m82d"
+        },
+        {
+          "attribution": "WikiImages",
+          "display": {
+            "bgColour": "#ffffff",
+            "borderColour": "#d1d5db"
+          },
+          "imagePath": "library_packs/space/images/1258bb45-3ceb-4217-b237-71fc22a5a6d2.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/international-space-station-63128/",
+          "label": {
+            "en": "space station",
+            "es": "estación espacial",
+            "hi": "अंतरिक्ष स्टेशन"
+          },
+          "license": "Pixabay License",
+          "order": 13
+        },
+        {
+          "imagePath": "library_packs/space/images/534c9d59-71bb-4d1f-ac16-39ecad7c24cb.png",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "satellite",
+            "es": "satélite",
+            "hi": "उपग्रह"
+          },
+          "order": 14
+        },
+        {
+          "attribution": "Prime Minister's Office",
+          "imagePath": "library_packs/space/images/0fa6fab2-a123-4136-a958-bbb8b92b89b6.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_meeting_Mr._Elon_Musk_in_New_York,_USA_on_June_20,_2023_(2)_(cropped).jpg",
+          "label": {
+            "en": "Elon Musk",
+            "es": "Elon Musk",
+            "hi": "एलन मस्क"
+          },
+          "license": "GODL-India",
+          "order": 15
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Space",
+    "es": "Espacio",
+    "hi": "अंतरिक्ष"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "space",
+  "tree": "categories"
+}

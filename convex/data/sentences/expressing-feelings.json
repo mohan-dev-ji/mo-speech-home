@@ -1,0 +1,133 @@
+{
+  "colour": "purple",
+  "coverImagePath": "symbols/feelings.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/cf001866-3b73-46d2-bbb7-a88aeb96776f.mp3",
+      "name": {
+        "en": "I feel happy",
+        "es": "Me siento feliz",
+        "hi": "मैं खुश हूँ"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I feel happy",
+        "es": "Estoy feliz",
+        "hi": "मैं खुश हूँ"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",
+      "name": {
+        "en": "My stomach hurts",
+        "es": "Me duele la barriga",
+        "hi": "मेरे पेट में दर्द है"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00055155.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/stomach_ache.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "My stomach hurts",
+        "es": "Me duele la barriga",
+        "hi": "मेरे पेट में दर्द है"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/a5cc2c8b-bc52-4d95-a4ab-af947e48add9.mp3",
+      "name": {
+        "en": "I like music",
+        "es": "Me gusta la música",
+        "hi": "मुझे गाना पसंद है"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/like_2.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00193569.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I like music",
+        "es": "Me gusta la música",
+        "hi": "मुझे गाना पसंद है"
+      }
+    }
+  ],
+  "name": {
+    "en": "Expressing Feelings"
+  },
+  "slug": "expressing-feelings",
+  "tree": "sentences"
+}

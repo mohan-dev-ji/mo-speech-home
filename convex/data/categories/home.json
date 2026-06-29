@@ -1,0 +1,450 @@
+{
+  "colour": "#3B82F6",
+  "coverImagePath": "symbols/home.png",
+  "defaultTier": "free",
+  "icon": "🏠",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#3B82F6",
+      "icon": "🏠",
+      "imagePath": "symbols/home.png",
+      "name": {
+        "en": "Home",
+        "es": "Casa",
+        "hi": "घर"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "bedroom",
+            "es": "dormitorio",
+            "hi": "सोने का कमरा"
+          },
+          "order": 0,
+          "symbolId": "kn7076g2te0akzdqhhkc1829rs84mdfz"
+        },
+        {
+          "labelOverride": {
+            "en": "bathroom",
+            "es": "baño",
+            "hi": "बाथरूम"
+          },
+          "order": 1,
+          "symbolId": "kn7fr001d0k0fw9ch1fmtnp7rn84mjg3"
+        },
+        {
+          "labelOverride": {
+            "en": "kitchen",
+            "es": "cocina",
+            "hi": "रसोई"
+          },
+          "order": 2,
+          "symbolId": "kn74bej9crfw01p3w877bvejpd84ncm1"
+        },
+        {
+          "labelOverride": {
+            "en": "living room",
+            "es": "sala de estar",
+            "hi": "बैठक"
+          },
+          "order": 3,
+          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+        },
+        {
+          "labelOverride": {
+            "en": "toilet",
+            "es": "inodoro",
+            "hi": "पॉटी"
+          },
+          "order": 4,
+          "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
+        },
+        {
+          "labelOverride": {
+            "en": "bed",
+            "es": "cama",
+            "hi": "बिस्तर"
+          },
+          "order": 5,
+          "symbolId": "kn7ba1q9hajzjywasr7xa2sy6h84n1a5"
+        },
+        {
+          "labelOverride": {
+            "en": "chair",
+            "es": "silla",
+            "hi": "कुर्सी"
+          },
+          "order": 6,
+          "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
+        },
+        {
+          "labelOverride": {
+            "en": "table",
+            "es": "Mesa",
+            "hi": "मेज"
+          },
+          "order": 7,
+          "symbolId": "kn72txh01jwmgczyh87033y0x984mp19"
+        },
+        {
+          "labelOverride": {
+            "en": "desk",
+            "es": "escritorio",
+            "hi": "मेज़"
+          },
+          "order": 8,
+          "symbolId": "kn74nz1pzpmmgnfvfs7bdjj3h584mnvb"
+        },
+        {
+          "labelOverride": {
+            "en": "wardrobe",
+            "es": "armario",
+            "hi": "अलमारी"
+          },
+          "order": 9,
+          "symbolId": "kn7a3b97fmjk8ym16gc93c1wb584nv9e"
+        },
+        {
+          "labelOverride": {
+            "en": "pillow",
+            "es": "almohada",
+            "hi": "तकिया"
+          },
+          "order": 10,
+          "symbolId": "kn733sskr8gxbxp8761hb2mk7n84mwa6"
+        },
+        {
+          "labelOverride": {
+            "en": "blanket",
+            "es": "manta",
+            "hi": "कंबल"
+          },
+          "order": 11,
+          "symbolId": "kn76dky0a78agsytm6pw53bfxs84mzky"
+        },
+        {
+          "labelOverride": {
+            "en": "cup",
+            "es": "taza",
+            "hi": "कप"
+          },
+          "order": 12,
+          "symbolId": "kn71x134zanvpxak5rth4bpcdx84n494"
+        },
+        {
+          "labelOverride": {
+            "en": "plate",
+            "es": "plato",
+            "hi": "प्लेट"
+          },
+          "order": 13,
+          "symbolId": "kn73trhe8apbrdwfkpyrb4bjm184mh4d"
+        },
+        {
+          "labelOverride": {
+            "en": "bowl",
+            "es": "cuenco",
+            "hi": "कटोरी"
+          },
+          "order": 14,
+          "symbolId": "kn774nh6d13j3azek9qrney09s84me0s"
+        },
+        {
+          "labelOverride": {
+            "en": "spoon",
+            "es": "cuchara",
+            "hi": "चम्मच"
+          },
+          "order": 15,
+          "symbolId": "kn75kh9b4k56tfw0aacqbt3fqh84mpvx"
+        },
+        {
+          "labelOverride": {
+            "en": "fork",
+            "es": "tenedor",
+            "hi": "काँटा"
+          },
+          "order": 16,
+          "symbolId": "kn700kmzf95q2xfvkv6tnjpjys84nfzz"
+        },
+        {
+          "labelOverride": {
+            "en": "knife",
+            "es": "cuchillo",
+            "hi": "चाकू"
+          },
+          "order": 17,
+          "symbolId": "kn7f5smwszaferq79bczsnd04n84n5c6"
+        },
+        {
+          "labelOverride": {
+            "en": "oven",
+            "es": "horno",
+            "hi": "ओवन"
+          },
+          "order": 18,
+          "symbolId": "kn78c7t7hw8w42437v641fmg0184nxkz"
+        },
+        {
+          "labelOverride": {
+            "en": "microwave",
+            "es": "microondas",
+            "hi": "माइक्रोवेव"
+          },
+          "order": 19,
+          "symbolId": "kn79xs5gtpwrtyfxhpq05h2xph84mpp3"
+        },
+        {
+          "labelOverride": {
+            "en": "kettle",
+            "es": "Tetera",
+            "hi": "केतली"
+          },
+          "order": 20,
+          "symbolId": "kn789467c8wd5p5z5xyhn5eaq184mg1k"
+        },
+        {
+          "labelOverride": {
+            "en": "toaster",
+            "es": "tostadora",
+            "hi": "टोस्टर"
+          },
+          "order": 21,
+          "symbolId": "kn7f8970e575ybhcz01rbvzy2984mx2w"
+        },
+        {
+          "labelOverride": {
+            "en": "sink",
+            "es": "lavabo",
+            "hi": "धोना"
+          },
+          "order": 22,
+          "symbolId": "kn7a4n6kbcfc1ztv0j3e5v105184n0ej"
+        },
+        {
+          "labelOverride": {
+            "en": "dishwasher",
+            "es": "lavavajillas",
+            "hi": "डिशवॉशर"
+          },
+          "order": 23,
+          "symbolId": "kn78e80ap5kw8v7xwzz6ng6zy584mpgd"
+        },
+        {
+          "labelOverride": {
+            "en": "shower",
+            "hi": "नहाना"
+          },
+          "order": 24,
+          "symbolId": "kn79bw0rhjfp9y17dkw3w5yf3x84mxv5"
+        },
+        {
+          "labelOverride": {
+            "en": "toothbrush",
+            "es": "cepillo de dientes",
+            "hi": "टूथब्रश"
+          },
+          "order": 25,
+          "symbolId": "kn7bmdqffmkyb11y0zybvbgd3984mh6a"
+        },
+        {
+          "labelOverride": {
+            "en": "toothpaste",
+            "es": "pasta de dientes",
+            "hi": "टूथपेस्ट"
+          },
+          "order": 26,
+          "symbolId": "kn7088a2qjdggh9c2ar9tzhn3d84ntfw"
+        },
+        {
+          "labelOverride": {
+            "en": "soap",
+            "es": "jabón",
+            "hi": "साबुन"
+          },
+          "order": 27,
+          "symbolId": "kn768rhe1c6r8ksb0hfq4j1cd984mgpf"
+        },
+        {
+          "labelOverride": {
+            "en": "towel",
+            "es": "toalla",
+            "hi": "तौलिया"
+          },
+          "order": 28,
+          "symbolId": "kn78f0hmeqmshq12snjt3w7mhn84nyjf"
+        },
+        {
+          "labelOverride": {
+            "en": "toilet paper",
+            "es": "papel higiénico",
+            "hi": "टॉयलेट पेपर"
+          },
+          "order": 29,
+          "symbolId": "kn723xjv9a1cjypb8qq9zyzz8d84nr0a"
+        },
+        {
+          "labelOverride": {
+            "en": "computer",
+            "es": "computadora",
+            "hi": "कंप्यूटर"
+          },
+          "order": 30,
+          "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
+        },
+        {
+          "labelOverride": {
+            "en": "remote control",
+            "es": "Mando a distancia",
+            "hi": "रिमोट कंट्रोल"
+          },
+          "order": 31,
+          "symbolId": "kn729djqe2p96j5aez12v5t0d584nzfb"
+        },
+        {
+          "labelOverride": {
+            "en": "washing machine",
+            "es": "lavadora",
+            "hi": "कपड़े धोने की मशीन"
+          },
+          "order": 32,
+          "symbolId": "kn7ckxry7as466e08rjhe8p9jh84mv7v"
+        },
+        {
+          "labelOverride": {
+            "en": "vacuum",
+            "es": "aspiradora",
+            "hi": "वैक्यूम क्लीनर"
+          },
+          "order": 33,
+          "symbolId": "kn7db072x376sw6z83zjqjmj6184n8ty"
+        },
+        {
+          "labelOverride": {
+            "en": "iron",
+            "es": "hierro",
+            "hi": "लोहा"
+          },
+          "order": 34,
+          "symbolId": "kn7c2m89hkj2d4skam8hzj23bd84nst4"
+        },
+        {
+          "labelOverride": {
+            "en": "door",
+            "es": "puerta",
+            "hi": "दरवाज़ा"
+          },
+          "order": 35,
+          "symbolId": "kn76akrq78heh531s9dqhdhpf984n33s"
+        },
+        {
+          "labelOverride": {
+            "en": "window",
+            "es": "ventana",
+            "hi": "खिड़की"
+          },
+          "order": 36,
+          "symbolId": "kn73ttsrdx2t2rw0xyjy4za63984nw4d"
+        },
+        {
+          "labelOverride": {
+            "en": "stairs",
+            "es": "escaleras",
+            "hi": "सीढ़ियाँ"
+          },
+          "order": 37,
+          "symbolId": "kn7ef6046nt75mbyksnwzdpxrn84n8js"
+        },
+        {
+          "labelOverride": {
+            "en": "floor",
+            "es": "suelo",
+            "hi": "फ़र्श"
+          },
+          "order": 38,
+          "symbolId": "kn79a5ct8nr44rd38n8f849kdh84nzda"
+        },
+        {
+          "labelOverride": {
+            "en": "wall",
+            "es": "pared",
+            "hi": "दीवार"
+          },
+          "order": 39,
+          "symbolId": "kn75w83jjq82yt975vh0v4q0q984nrk1"
+        },
+        {
+          "labelOverride": {
+            "en": "lamp",
+            "es": "lámpara",
+            "hi": "लैंप"
+          },
+          "order": 40,
+          "symbolId": "kn70fjt5w1ctrmgnxrpq5j28rn84mjpc"
+        },
+        {
+          "labelOverride": {
+            "en": "alarm clock",
+            "es": "despertador",
+            "hi": "अलार्म घड़ी"
+          },
+          "order": 41,
+          "symbolId": "kn7349r3g5veq5fkt915ekhppd84nv8z"
+        },
+        {
+          "labelOverride": {
+            "en": "key",
+            "es": "Llave",
+            "hi": "चाबी"
+          },
+          "order": 42,
+          "symbolId": "kn73vn24gqyj4w2d672nbd9nx584mp9z"
+        },
+        {
+          "labelOverride": {
+            "en": "bin",
+            "es": "cubo",
+            "hi": "डिब्बा"
+          },
+          "order": 43,
+          "symbolId": "kn72nx6spn8f3fwnsvm9n24crn84nvvp"
+        },
+        {
+          "labelOverride": {
+            "en": "garden",
+            "es": "Jardín",
+            "hi": "बगीचा"
+          },
+          "order": 44,
+          "symbolId": "kn7fzcyzhrnfxt297rqcpws1yn84nf8g"
+        },
+        {
+          "labelOverride": {
+            "en": "car",
+            "es": "coche",
+            "hi": "कार"
+          },
+          "order": 45,
+          "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
+        },
+        {
+          "labelOverride": {
+            "en": "book",
+            "es": "libro",
+            "hi": "किताब"
+          },
+          "order": 46,
+          "symbolId": "kn79e3vx3r0atqtmnk0sq4vjy584m95b"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Home",
+    "es": "Casa",
+    "hi": "घर"
+  },
+  "slug": "home",
+  "tree": "categories"
+}

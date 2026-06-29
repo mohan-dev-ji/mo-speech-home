@@ -1,0 +1,90 @@
+{
+  "coverImagePath": "symbols/fun.png",
+  "defaultTier": "free",
+  "description": {
+    "en": "Toys, games, and everything they reach for when no one's making them work. Words for play.",
+    "es": "Juguetes, juegos y todo lo que quieren hacer cuando nadie les dice qué hacer. Palabras para jugar.",
+    "hi": "खिलौने, खेल, और वो सब कुछ जो बच्चे तब करते हैं जब कोई उनसे काम नहीं करवा रहा होता। खेलने के लिए शब्द।"
+  },
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
+          "defaultAudioPath": "audio/eng/default/toilet.mp3",
+          "description": {
+            "en": "go to the toilet",
+            "es": "ir al baño",
+            "hi": "टॉयलेट जाना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/3cbe61b2-e366-4247-a4f1-aecdb8e09874.mp3",
+          "imagePath": "symbols/toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00105241.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00105241.mp3",
+          "description": {
+            "en": "drive to trampoline park",
+            "es": "ir en coche al parque de trampolines",
+            "hi": "गाड़ी से ट्रैम्पोलिन पार्क जाना"
+          },
+          "imagePath": "symbols/symbol00105241.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00061831.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00061831.mp3",
+          "description": {
+            "en": "put on special socks",
+            "es": "ponerme calcetines especiales",
+            "hi": "खास मोज़े पहनना"
+          },
+          "imagePath": "symbols/symbol00061831.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00106261.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00106261.mp3",
+          "description": {
+            "en": "jump on trampolines",
+            "es": "saltar en los trampolines",
+            "hi": "ट्रैम्पोलिन पर कूदना"
+          },
+          "imagePath": "symbols/symbol00106261.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        }
+      ],
+      "name": {
+        "en": "Going to the trampoline park",
+        "es": "Ir al parque de trampolines",
+        "hi": "ट्रैम्पोलिन पार्क जाना"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "name": {
+    "en": "Fun",
+    "es": "Diversión",
+    "hi": "मस्ती"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "fun",
+  "tree": "lists"
+}

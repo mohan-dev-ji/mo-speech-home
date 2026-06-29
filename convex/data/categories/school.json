@@ -1,0 +1,433 @@
+{
+  "colour": "green",
+  "coverImagePath": "symbols/symbol00114621.png",
+  "defaultTier": "free",
+  "icon": "📚",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "green",
+      "icon": "📚",
+      "imagePath": "symbols/symbol00114621.png",
+      "name": {
+        "en": "School",
+        "es": "Escuela",
+        "hi": "स्कूल"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 0,
+          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+        },
+        {
+          "labelOverride": {
+            "en": "classroom",
+            "es": "aula",
+            "hi": "कक्षा"
+          },
+          "order": 1,
+          "symbolId": "kn72p6xke1wzmfr3v1wbm3s01x84ntsr"
+        },
+        {
+          "labelOverride": {
+            "en": "library",
+            "es": "biblioteca",
+            "hi": "पुस्तकालय"
+          },
+          "order": 2,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "labelOverride": {
+            "en": "playground",
+            "es": "parque infantil",
+            "hi": "खेल का मैदान"
+          },
+          "order": 3,
+          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
+        },
+        {
+          "labelOverride": {
+            "en": "gym",
+            "es": "gimnasio",
+            "hi": "जिम"
+          },
+          "order": 4,
+          "symbolId": "kn74zmdrx0b5hy2ag6scd2a1qh84mx5j"
+        },
+        {
+          "labelOverride": {
+            "en": "teacher",
+            "es": "maestro",
+            "hi": "शिक्षक"
+          },
+          "order": 5,
+          "symbolId": "kn700ctrhasxj9kd1rw52sv9ah84mx3t"
+        },
+        {
+          "labelOverride": {
+            "en": "student",
+            "es": "estudiante",
+            "hi": "छात्र"
+          },
+          "order": 6,
+          "symbolId": "kn7fp8xc7tv60gjxewkwctdnzx84ngss"
+        },
+        {
+          "labelOverride": {
+            "en": "math",
+            "es": "matemáticas",
+            "hi": "गणित"
+          },
+          "order": 7,
+          "symbolId": "kn77rrqzgnrytbjmf947nb8ct984n3hs"
+        },
+        {
+          "labelOverride": {
+            "en": "science",
+            "es": "ciencia",
+            "hi": "साइंस"
+          },
+          "order": 8,
+          "symbolId": "kn7drgm27tdqj15cjge8dt93m184m29e"
+        },
+        {
+          "labelOverride": {
+            "en": "art",
+            "es": "Arte",
+            "hi": "कला"
+          },
+          "order": 9,
+          "symbolId": "kn7f64xyytd7ttq48ejdb1pwkd84mqc1"
+        },
+        {
+          "labelOverride": {
+            "en": "music",
+            "es": "música",
+            "hi": "संगीत"
+          },
+          "order": 10,
+          "symbolId": "kn79bhs2gfbgm1xkx1r4h0cknd84n043"
+        },
+        {
+          "labelOverride": {
+            "en": "history",
+            "es": "historia",
+            "hi": "इतिहास"
+          },
+          "order": 11,
+          "symbolId": "kn76vgch2qm6f4kfvv9he04rc984mtzd"
+        },
+        {
+          "labelOverride": {
+            "en": "pencil",
+            "es": "lápiz",
+            "hi": "पेंसिल"
+          },
+          "order": 12,
+          "symbolId": "kn75fv71eshp3zbrhz6ma5emkh84mzps"
+        },
+        {
+          "labelOverride": {
+            "en": "pen",
+            "es": "bolígrafo",
+            "hi": "कलम"
+          },
+          "order": 13,
+          "symbolId": "kn75zjgehseqvn5skdryxsy7c984nexe"
+        },
+        {
+          "labelOverride": {
+            "en": "scissors",
+            "es": "tijeras",
+            "hi": "कैंची"
+          },
+          "order": 14,
+          "symbolId": "kn7afsqfsfe3tab36fgzhg5k8184mc2c"
+        },
+        {
+          "labelOverride": {
+            "en": "paper",
+            "es": "papel",
+            "hi": "कागज़"
+          },
+          "order": 15,
+          "symbolId": "kn79vzfpq205rhs410gth8t47184m14d"
+        },
+        {
+          "labelOverride": {
+            "en": "glue",
+            "es": "pegamento",
+            "hi": "गोंद"
+          },
+          "order": 16,
+          "symbolId": "kn75a2q0167f1mmgh5tymn32x984mdet"
+        },
+        {
+          "labelOverride": {
+            "en": "book",
+            "es": "libro",
+            "hi": "किताब"
+          },
+          "order": 17,
+          "symbolId": "kn79e3vx3r0atqtmnk0sq4vjy584m95b"
+        },
+        {
+          "labelOverride": {
+            "en": "notebook",
+            "es": "cuaderno",
+            "hi": "कॉपी"
+          },
+          "order": 18,
+          "symbolId": "kn77ezjayekz664zzrbwsjvpwn84m3zt"
+        },
+        {
+          "labelOverride": {
+            "en": "backpack",
+            "es": "mochila",
+            "hi": "बस्ता"
+          },
+          "order": 19,
+          "symbolId": "kn7e67tsypsc7m9mcannrv7z9s84mw8g"
+        },
+        {
+          "labelOverride": {
+            "en": "eraser",
+            "es": "goma de borrar",
+            "hi": "रबर"
+          },
+          "order": 20,
+          "symbolId": "kn7aq3bjhx0g7xc1rrnts7vdps84nnsj"
+        },
+        {
+          "labelOverride": {
+            "en": "desk",
+            "es": "escritorio",
+            "hi": "मेज़"
+          },
+          "order": 21,
+          "symbolId": "kn74nz1pzpmmgnfvfs7bdjj3h584mnvb"
+        },
+        {
+          "labelOverride": {
+            "en": "chair",
+            "es": "silla",
+            "hi": "कुर्सी"
+          },
+          "order": 22,
+          "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
+        },
+        {
+          "labelOverride": {
+            "en": "whiteboard",
+            "es": "pizarra blanca",
+            "hi": "सफेद बोर्ड"
+          },
+          "order": 23,
+          "symbolId": "kn76zqymfaehjxv9sn2c7fg4x184md87"
+        },
+        {
+          "labelOverride": {
+            "en": "computer",
+            "es": "computadora",
+            "hi": "कंप्यूटर"
+          },
+          "order": 24,
+          "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
+        },
+        {
+          "labelOverride": {
+            "en": "tablet",
+            "es": "tableta",
+            "hi": "टैबलेट"
+          },
+          "order": 25,
+          "symbolId": "kn71a4nk9nkhfx8tyk15xhkr5d84ndq1"
+        },
+        {
+          "labelOverride": {
+            "en": "alphabet",
+            "es": "alfabeto",
+            "hi": "वर्णमाला"
+          },
+          "order": 26,
+          "symbolId": "kn783r8t2nsq5mhyjn9yn6mep584ndj0"
+        },
+        {
+          "labelOverride": {
+            "en": "number",
+            "es": "número",
+            "hi": "संख्या"
+          },
+          "order": 27,
+          "symbolId": "kn7cxmc8npkta1vvee6tbe5jd584n7za"
+        },
+        {
+          "labelOverride": {
+            "en": "letter",
+            "es": "letra",
+            "hi": "अक्षर"
+          },
+          "order": 28,
+          "symbolId": "kn74cwd9hv02773qrjpar4q7r184mfkf"
+        },
+        {
+          "labelOverride": {
+            "en": "word",
+            "es": "palabra",
+            "hi": "शब्द"
+          },
+          "order": 29,
+          "symbolId": "kn75fws0qtsvh021vp44wy6hjd84mt4k"
+        },
+        {
+          "labelOverride": {
+            "en": "sentence",
+            "es": "oración",
+            "hi": "वाक्य"
+          },
+          "order": 30,
+          "symbolId": "kn74fs3tvznkq5b5bx74sd16rd84nfs0"
+        },
+        {
+          "labelOverride": {
+            "en": "question",
+            "es": "pregunta",
+            "hi": "सवाल"
+          },
+          "order": 31,
+          "symbolId": "kn7emegfzk2krjr13aw7nwvzvh84n6wg"
+        },
+        {
+          "labelOverride": {
+            "en": "answer",
+            "es": "responder",
+            "hi": "जवाब"
+          },
+          "order": 32,
+          "symbolId": "kn7cw6rzezye50fhh9zfvsckhh84mqbp"
+        },
+        {
+          "labelOverride": {
+            "en": "read",
+            "es": "leer",
+            "hi": "पढ़ना"
+          },
+          "order": 33,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+        },
+        {
+          "labelOverride": {
+            "en": "write",
+            "es": "escribir",
+            "hi": "लिखना"
+          },
+          "order": 34,
+          "symbolId": "kn73p5hmh97n8xqh7af3hda6g584maqh"
+        },
+        {
+          "labelOverride": {
+            "en": "draw",
+            "es": "dibujar",
+            "hi": "बनाना"
+          },
+          "order": 35,
+          "symbolId": "kn744d6bbh5py1wfk5x7dgnyhs84m2fr"
+        },
+        {
+          "labelOverride": {
+            "en": "count",
+            "es": "contar",
+            "hi": "गिनना"
+          },
+          "order": 36,
+          "symbolId": "kn7bsmy974zddafbsr2dztcjv184nghw"
+        },
+        {
+          "labelOverride": {
+            "en": "learn",
+            "es": "aprender",
+            "hi": "सीखना"
+          },
+          "order": 37,
+          "symbolId": "kn789a6veh95c1t6ap2g314gnh84n447"
+        },
+        {
+          "labelOverride": {
+            "en": "friend",
+            "es": "amigo",
+            "hi": "दोस्त"
+          },
+          "order": 38,
+          "symbolId": "kn72th2pdjmvq1g4xd6mj4fdcx84n36t"
+        },
+        {
+          "labelOverride": {
+            "en": "team",
+            "es": "equipo",
+            "hi": "टीम"
+          },
+          "order": 39,
+          "symbolId": "kn7d4r4nmcjx1zwmzvaxw1rdbs84n6md"
+        },
+        {
+          "labelOverride": {
+            "en": "school bus",
+            "es": "autobús escolar",
+            "hi": "स्कूल बस"
+          },
+          "order": 40,
+          "symbolId": "kn70dvj4sk7r35wtg54y577n1s84mnbm"
+        },
+        {
+          "labelOverride": {
+            "en": "homework",
+            "es": "tarea",
+            "hi": "होमवर्क"
+          },
+          "order": 41,
+          "symbolId": "kn7a04tbrc2hj0crjy7jt8fwwh84mmf1"
+        },
+        {
+          "labelOverride": {
+            "en": "test",
+            "es": "prueba",
+            "hi": "जाँच"
+          },
+          "order": 42,
+          "symbolId": "kn7c9qzkmyzdr3v8d3cr95wgkd84mpgx"
+        },
+        {
+          "labelOverride": {
+            "en": "recess",
+            "es": "recreo",
+            "hi": "छुट्टी"
+          },
+          "order": 43,
+          "symbolId": "kn75rfbczdnwpdd6ej8d3br1b984mxdm"
+        },
+        {
+          "labelOverride": {
+            "en": "lunch",
+            "es": "almuerzo",
+            "hi": "दोपहर का खाना"
+          },
+          "order": 44,
+          "symbolId": "kn7emrjk4gj62xeq5r8b57wv6h84mxr9"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "School",
+    "es": "Escuela",
+    "hi": "स्कूल"
+  },
+  "slug": "school",
+  "tree": "categories"
+}

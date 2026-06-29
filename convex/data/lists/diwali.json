@@ -1,0 +1,106 @@
+{
+  "coverImagePath": "symbols/symbol00212646.png",
+  "defaultTier": "max",
+  "description": {
+    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table.",
+    "es": "El festival de las luces con el vocabulario para la ocasión. Diyas, rangoli, los dulces por su nombre y la familia alrededor de la mesa.",
+    "hi": "रोशनी का त्योहार, जिसके लिए ज़रूरी शब्द हैं। दीये, रंगोली, मिठाइयों के नाम, और परिवार के साथ खाना।"
+  },
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212646.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212646.mp3",
+          "description": {
+            "en": "shower",
+            "es": "ducharse",
+            "hi": "नहाना"
+          },
+          "imagePath": "symbols/symbol00212646.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
+          "description": {
+            "en": "put on new clothes",
+            "es": "ponerse ropa nueva",
+            "hi": "नए कपड़े पहनना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/6ad73541-6a1a-4726-9fbf-9e6f4593e90c.mp3",
+          "imagePath": "symbols/symbol00066341.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00188535.mp3",
+          "description": {
+            "en": "light diyas",
+            "es": "encender diyas",
+            "hi": "दीये जलाना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/c454cae6-acdf-4371-8b08-0daea3fcec9d.mp3",
+          "imagePath": "symbols/symbol00188535.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00207426.mp3",
+          "description": {
+            "en": "eat Indian food",
+            "es": "comer comida india",
+            "hi": "भारतीय खाना खाना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/51ce7f39-30f8-4ece-86c6-742160f3dff4.mp3",
+          "imagePath": "symbols/symbol00207426.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00188531.mp3",
+          "description": {
+            "en": "go to Diwali festival",
+            "es": "ir al festival de Diwali",
+            "hi": "दिवाली मेले में जाना"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/8531d9bc-9b49-482a-8249-2dd70b47ad0d.mp3",
+          "imagePath": "symbols/symbol00188531.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Getting ready for Diwali",
+        "es": "Preparándonos para Diwali",
+        "hi": "दिवाली की तैयारी"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "name": {
+    "en": "Diwali",
+    "es": "Diwali",
+    "hi": "दिवाली"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "diwali",
+  "tree": "lists"
+}

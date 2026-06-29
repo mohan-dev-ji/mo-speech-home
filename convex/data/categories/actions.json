@@ -1,0 +1,460 @@
+{
+  "colour": "red",
+  "coverImagePath": "symbols/play.png",
+  "defaultTier": "free",
+  "icon": "⚡",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "red",
+      "icon": "⚡",
+      "imagePath": "symbols/play.png",
+      "name": {
+        "en": "Actions",
+        "es": "Acciones",
+        "hi": "काम"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 0,
+          "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a"
+        },
+        {
+          "labelOverride": {
+            "en": "want",
+            "es": "querer",
+            "hi": "चाहिए"
+          },
+          "order": 1,
+          "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1"
+        },
+        {
+          "labelOverride": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
+          },
+          "order": 2,
+          "symbolId": "kn7bqp8w7tn53a6dysev66hhp984nshr"
+        },
+        {
+          "labelOverride": {
+            "en": "stop",
+            "es": "parar",
+            "hi": "रुकना"
+          },
+          "order": 3,
+          "symbolId": "kn77vqh14r04s8rk8r7ng0y46n84nmk4"
+        },
+        {
+          "labelOverride": {
+            "en": "eat",
+            "es": "comer",
+            "hi": "खाना"
+          },
+          "order": 4,
+          "symbolId": "kn76k6jpevb6hgghcn7qn31pw984mdvy"
+        },
+        {
+          "labelOverride": {
+            "en": "drink",
+            "es": "bebida",
+            "hi": "पीना"
+          },
+          "order": 5,
+          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
+        },
+        {
+          "labelOverride": {
+            "en": "help",
+            "es": "ayuda",
+            "hi": "मदद"
+          },
+          "order": 6,
+          "symbolId": "kn76c4bbv7sk92vceyb1pegr1984nrje"
+        },
+        {
+          "labelOverride": {
+            "en": "play",
+            "es": "jugar",
+            "hi": "खेलना"
+          },
+          "order": 7,
+          "symbolId": "kn77bjf6mgbnns10bxkar5tbj184m99m"
+        },
+        {
+          "labelOverride": {
+            "en": "look",
+            "es": "mirar",
+            "hi": "देखो"
+          },
+          "order": 8,
+          "symbolId": "kn73bwrrf4y9ys8fwyypmydgbs84m8jr"
+        },
+        {
+          "labelOverride": {
+            "en": "come",
+            "es": "venir",
+            "hi": "आओ"
+          },
+          "order": 9,
+          "symbolId": "kn73fcp7jsscfb73q74kdwpcvd84ns0y"
+        },
+        {
+          "labelOverride": {
+            "en": "get",
+            "es": "conseguir",
+            "hi": "लेना"
+          },
+          "order": 10,
+          "symbolId": "kn73g9e9svgf4vr7b07xj07n2n84m2re"
+        },
+        {
+          "labelOverride": {
+            "en": "open",
+            "es": "abrir",
+            "hi": "खोलो"
+          },
+          "order": 11,
+          "symbolId": "kn70s0tv43aby8v1jdfm622y7x84n01n"
+        },
+        {
+          "labelOverride": {
+            "en": "close",
+            "es": "cerca",
+            "hi": "बंद करना"
+          },
+          "order": 12,
+          "symbolId": "kn7eejpzks7erwbt73es2ys3bn84nyev"
+        },
+        {
+          "labelOverride": {
+            "en": "give",
+            "es": "dar",
+            "hi": "देना"
+          },
+          "order": 13,
+          "symbolId": "kn745hgzrnmaqz6aeyxke9t6t584nw97"
+        },
+        {
+          "labelOverride": {
+            "en": "put",
+            "es": "poner",
+            "hi": "रखो"
+          },
+          "order": 14,
+          "symbolId": "kn76jebnwzchvaf6kzanxpb76n84mkxw"
+        },
+        {
+          "labelOverride": {
+            "en": "see",
+            "es": "ver",
+            "hi": "देखना"
+          },
+          "order": 15,
+          "symbolId": "kn735p07bj4aabn0vg8msvd3yd84na80"
+        },
+        {
+          "labelOverride": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
+          "order": 16,
+          "symbolId": "kn738dd2fge139z2m9t809vgzs84nvf1"
+        },
+        {
+          "labelOverride": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 17,
+          "symbolId": "kn7bthxrdx9ss6nka0ye217mz984mjzh"
+        },
+        {
+          "labelOverride": {
+            "en": "love",
+            "es": "amor",
+            "hi": "प्यार"
+          },
+          "order": 18,
+          "symbolId": "kn7at2ysp6cvs5t0gd5pd5qgm184mkff"
+        },
+        {
+          "labelOverride": {
+            "en": "sit",
+            "es": "sentarse",
+            "hi": "बैठना"
+          },
+          "order": 19,
+          "symbolId": "kn7a90xq8dh5dj3np7c9rhshe184na1y"
+        },
+        {
+          "labelOverride": {
+            "en": "walk",
+            "es": "caminar",
+            "hi": "चलना"
+          },
+          "order": 20,
+          "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
+        },
+        {
+          "labelOverride": {
+            "en": "watch",
+            "es": "reloj",
+            "hi": "घड़ी"
+          },
+          "order": 21,
+          "symbolId": "kn7arzppbbk4basr3mbmxp8t1184mtg9"
+        },
+        {
+          "labelOverride": {
+            "en": "sleep",
+            "es": "dormir",
+            "hi": "सोना"
+          },
+          "order": 22,
+          "symbolId": "kn74szjezc2fnemzxzttxbm7vd84m4f2"
+        },
+        {
+          "labelOverride": {
+            "en": "wash",
+            "es": "lavar",
+            "hi": "धोना"
+          },
+          "order": 23,
+          "symbolId": "kn71hezkxcw0y00vcvs0pp6fed84n5b5"
+        },
+        {
+          "labelOverride": {
+            "en": "read",
+            "es": "leer",
+            "hi": "पढ़ना"
+          },
+          "order": 24,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+        },
+        {
+          "labelOverride": {
+            "en": "listen",
+            "es": "escuchar",
+            "hi": "सुनना"
+          },
+          "order": 25,
+          "symbolId": "kn7a183ssnwdk044x6zh6ynfeh84ne4d"
+        },
+        {
+          "labelOverride": {
+            "en": "talk",
+            "es": "hablar",
+            "hi": "बात करना"
+          },
+          "order": 26,
+          "symbolId": "kn7av90qyr653ezef764f6se0584mfyd"
+        },
+        {
+          "labelOverride": {
+            "en": "say",
+            "es": "decir",
+            "hi": "कहना"
+          },
+          "order": 27,
+          "symbolId": "kn7f8ztx8v2q0fnye39cxvta5x84mh0f"
+        },
+        {
+          "labelOverride": {
+            "en": "make",
+            "es": "Hacer",
+            "hi": "बनाना"
+          },
+          "order": 28,
+          "symbolId": "kn74w1km22htz4ztwck3ea6df184nt85"
+        },
+        {
+          "labelOverride": {
+            "en": "take",
+            "es": "tomar",
+            "hi": "लेना"
+          },
+          "order": 29,
+          "symbolId": "kn7avr67zy5bkx7hr08jkmfz8584m2wm"
+        },
+        {
+          "labelOverride": {
+            "en": "have",
+            "es": "tener",
+            "hi": "पास होना"
+          },
+          "order": 30,
+          "symbolId": "kn78dn60mpj7w3rc3da944zjn184mbwt"
+        },
+        {
+          "labelOverride": {
+            "en": "feel",
+            "es": "sentir",
+            "hi": "महसूस करना"
+          },
+          "order": 31,
+          "symbolId": "kn7fgb31ekn67yrvrw8zhza6s984nfj8"
+        },
+        {
+          "labelOverride": {
+            "en": "run",
+            "es": "correr",
+            "hi": "दौड़ना"
+          },
+          "order": 32,
+          "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
+        },
+        {
+          "labelOverride": {
+            "en": "jump",
+            "es": "saltar",
+            "hi": "कूदना"
+          },
+          "order": 33,
+          "symbolId": "kn7c5xx95apwrg10k2fp132jp584m40b"
+        },
+        {
+          "labelOverride": {
+            "en": "throw",
+            "es": "lanzar",
+            "hi": "फेंकना"
+          },
+          "order": 34,
+          "symbolId": "kn79sey6cr3p7wgd4nab65y06n84na8f"
+        },
+        {
+          "labelOverride": {
+            "en": "catch",
+            "es": "atrapar",
+            "hi": "पकड़ना"
+          },
+          "order": 35,
+          "symbolId": "kn72snjvd4v0wkz5hwhvfddf1184n60m"
+        },
+        {
+          "labelOverride": {
+            "en": "draw",
+            "es": "dibujar",
+            "hi": "बनाना"
+          },
+          "order": 36,
+          "symbolId": "kn744d6bbh5py1wfk5x7dgnyhs84m2fr"
+        },
+        {
+          "labelOverride": {
+            "en": "write",
+            "es": "escribir",
+            "hi": "लिखना"
+          },
+          "order": 37,
+          "symbolId": "kn73p5hmh97n8xqh7af3hda6g584maqh"
+        },
+        {
+          "labelOverride": {
+            "en": "sing",
+            "es": "cantar",
+            "hi": "गाना"
+          },
+          "order": 38,
+          "symbolId": "kn7dg927wyv18xy10ap3rp15a984mtmw"
+        },
+        {
+          "labelOverride": {
+            "en": "dance",
+            "es": "bailar",
+            "hi": "नाचना"
+          },
+          "order": 39,
+          "symbolId": "kn7722kh6n7n6v73n7rhfspnrx84njnf"
+        },
+        {
+          "labelOverride": {
+            "en": "try",
+            "es": "intentar",
+            "hi": "कोशिश करो"
+          },
+          "order": 40,
+          "symbolId": "kn7e6zmccgbf6sn1gztjm2y05s84n19p"
+        },
+        {
+          "labelOverride": {
+            "en": "wait",
+            "es": "esperar",
+            "hi": "रुकना"
+          },
+          "order": 41,
+          "symbolId": "kn70sz82dxqs87p75q6stv832984m023"
+        },
+        {
+          "labelOverride": {
+            "en": "share",
+            "es": "compartir",
+            "hi": "बाँटना"
+          },
+          "order": 42,
+          "symbolId": "kn786724xa145sx60xa1rxxrk984nrw7"
+        },
+        {
+          "labelOverride": {
+            "en": "smile",
+            "es": "sonreír",
+            "hi": "मुस्कुराना"
+          },
+          "order": 43,
+          "symbolId": "kn75dqs3nyk3ewmd0e9gj1s0c584n3r7"
+        },
+        {
+          "labelOverride": {
+            "en": "laugh",
+            "es": "reír",
+            "hi": "हँसना"
+          },
+          "order": 44,
+          "symbolId": "kn73m4jex2zrh0w0tq7thpkh7d84m8sy"
+        },
+        {
+          "labelOverride": {
+            "en": "cry",
+            "es": "llorar",
+            "hi": "रोना"
+          },
+          "order": 45,
+          "symbolId": "kn7e25vb7jf30ezjft5hmqarx584nr7y"
+        },
+        {
+          "labelOverride": {
+            "en": "hug",
+            "es": "abrazo",
+            "hi": "झप्पी"
+          },
+          "order": 46,
+          "symbolId": "kn76v62y4fwcgymn5z39jdrqqh84mwgs"
+        },
+        {
+          "labelOverride": {
+            "en": "turn",
+            "es": "girar",
+            "hi": "मोड़ना"
+          },
+          "order": 47,
+          "symbolId": "kn70ngj1xdgkka55gcty81gzf584n7q1"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Actions",
+    "es": "Acciones",
+    "hi": "काम"
+  },
+  "slug": "actions",
+  "tree": "categories"
+}

@@ -1,0 +1,460 @@
+{
+  "colour": "#14B8A6",
+  "coverImagePath": "symbols/symbol00200090.png",
+  "defaultTier": "free",
+  "icon": "🔵",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#14B8A6",
+      "icon": "🔵",
+      "imagePath": "symbols/symbol00200090.png",
+      "name": {
+        "en": "Descriptions",
+        "es": "Descripciones",
+        "hi": "वर्णन"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "red",
+            "es": "rojo",
+            "hi": "लाल"
+          },
+          "order": 0,
+          "symbolId": "kn75pzppak6tvh4rtz4v0rz2hs84n0df"
+        },
+        {
+          "labelOverride": {
+            "en": "blue",
+            "es": "azul",
+            "hi": "नीला"
+          },
+          "order": 1,
+          "symbolId": "kn7dknztjyfd3tc17w68shjy8x84nrb7"
+        },
+        {
+          "labelOverride": {
+            "en": "green",
+            "es": "verde",
+            "hi": "हरा"
+          },
+          "order": 2,
+          "symbolId": "kn71eyd8ead6p77qn7e2275g8h84nzb5"
+        },
+        {
+          "labelOverride": {
+            "en": "yellow",
+            "es": "amarillo",
+            "hi": "पीला"
+          },
+          "order": 3,
+          "symbolId": "kn75fq49q23mcmhpwhrwc0jgms84mrek"
+        },
+        {
+          "labelOverride": {
+            "en": "orange",
+            "es": "naranja",
+            "hi": "नारंगी"
+          },
+          "order": 4,
+          "symbolId": "kn7f23g4za288b59nyf8zwqg0584m7gm"
+        },
+        {
+          "labelOverride": {
+            "en": "purple",
+            "es": "morado",
+            "hi": "बैंगनी"
+          },
+          "order": 5,
+          "symbolId": "kn73h7eccwh63pcn3smmvb9xch84n86g"
+        },
+        {
+          "labelOverride": {
+            "en": "pink",
+            "es": "rosa",
+            "hi": "गुलाबी"
+          },
+          "order": 6,
+          "symbolId": "kn7baaagefm75v0es4vqzy8ags84n0q6"
+        },
+        {
+          "labelOverride": {
+            "en": "black",
+            "es": "negro",
+            "hi": "काला"
+          },
+          "order": 7,
+          "symbolId": "kn70ne0gfxsbqh8h5a4gfzd73184mkwq"
+        },
+        {
+          "labelOverride": {
+            "en": "white",
+            "es": "blanco",
+            "hi": "सफेद"
+          },
+          "order": 8,
+          "symbolId": "kn765hzcdhwtfbeanymc3jfbyd84mq0c"
+        },
+        {
+          "labelOverride": {
+            "en": "brown",
+            "es": "marrón",
+            "hi": "भूरा"
+          },
+          "order": 9,
+          "symbolId": "kn75mk5hsrr1k8dr13sxn6xcpd84m6t0"
+        },
+        {
+          "labelOverride": {
+            "en": "big",
+            "es": "grande",
+            "hi": "बड़ा"
+          },
+          "order": 10,
+          "symbolId": "kn78t28gqxmp0tyz1q4m5ytfgx84nsj8"
+        },
+        {
+          "labelOverride": {
+            "en": "small",
+            "es": "pequeño",
+            "hi": "छोटा"
+          },
+          "order": 11,
+          "symbolId": "kn71spsfn3626n0scgdces3g7x84m1zw"
+        },
+        {
+          "labelOverride": {
+            "en": "tall",
+            "es": "alto",
+            "hi": "लंबा"
+          },
+          "order": 12,
+          "symbolId": "kn73ykf3pny468y1y5h7c50ytn84m72x"
+        },
+        {
+          "labelOverride": {
+            "en": "short",
+            "es": "bajo",
+            "hi": "छोटा"
+          },
+          "order": 13,
+          "symbolId": "kn70x779pnked8gywzwzg62p9s84mvdj"
+        },
+        {
+          "labelOverride": {
+            "en": "long",
+            "es": "largo",
+            "hi": "लंबा"
+          },
+          "order": 14,
+          "symbolId": "kn77pmptv0nxyph3ktvnhqc20584n61s"
+        },
+        {
+          "labelOverride": {
+            "en": "thin",
+            "es": "delgado",
+            "hi": "पतला"
+          },
+          "order": 15,
+          "symbolId": "kn7efcbrh8g65c0evfsyy235b984nrvr"
+        },
+        {
+          "labelOverride": {
+            "en": "hot",
+            "es": "caliente",
+            "hi": "गरम"
+          },
+          "order": 16,
+          "symbolId": "kn71xew7n74gbbgjk6tnszbvy184mbmf"
+        },
+        {
+          "labelOverride": {
+            "en": "cold",
+            "es": "frío",
+            "hi": "ठंडा"
+          },
+          "order": 17,
+          "symbolId": "kn75ym5rc7ehk94a6fe5tkgk6d84mwd5"
+        },
+        {
+          "labelOverride": {
+            "en": "warm",
+            "es": "cálido",
+            "hi": "गरम"
+          },
+          "order": 18,
+          "symbolId": "kn73e7zj57pfwxg1z1h6ndv20n84meb7"
+        },
+        {
+          "labelOverride": {
+            "en": "soft",
+            "es": "suave",
+            "hi": "नरम"
+          },
+          "order": 19,
+          "symbolId": "kn7cg4segftdjn5b6zfmh6x9c984nraa"
+        },
+        {
+          "labelOverride": {
+            "en": "hard",
+            "es": "difícil",
+            "hi": "मुश्किल"
+          },
+          "order": 20,
+          "symbolId": "kn7anajsk0ez9xr3e5xqky3gf584m6x5"
+        },
+        {
+          "labelOverride": {
+            "en": "wet",
+            "es": "mojado",
+            "hi": "गीला"
+          },
+          "order": 21,
+          "symbolId": "kn77nj173dktmab13ye4mfc08x84nb8y"
+        },
+        {
+          "labelOverride": {
+            "en": "dry",
+            "es": "seco",
+            "hi": "सूखा"
+          },
+          "order": 22,
+          "symbolId": "kn778dp671vhj929v0dxxk881984npp8"
+        },
+        {
+          "labelOverride": {
+            "en": "heavy",
+            "es": "pesado",
+            "hi": "भारी"
+          },
+          "order": 23,
+          "symbolId": "kn78nge6hryhxe4xjwmpnj1kg984myw3"
+        },
+        {
+          "labelOverride": {
+            "en": "light",
+            "es": "luz",
+            "hi": "रोशनी"
+          },
+          "order": 24,
+          "symbolId": "kn7c61h8e6d1n047deyrc9zm9584nd63"
+        },
+        {
+          "labelOverride": {
+            "en": "fast",
+            "es": "rápido",
+            "hi": "तेज़"
+          },
+          "order": 25,
+          "symbolId": "kn79ja1cekwxs5d9shs2fa0byd84m17e"
+        },
+        {
+          "labelOverride": {
+            "en": "slow",
+            "es": "lento",
+            "hi": "धीमा"
+          },
+          "order": 26,
+          "symbolId": "kn708wq7e2ekysvsxha4ph6tnx84msqh"
+        },
+        {
+          "labelOverride": {
+            "en": "loud",
+            "es": "ruidoso",
+            "hi": "ज़ोर से"
+          },
+          "order": 27,
+          "symbolId": "kn70ry9s36f8a6tw3q592rvy9s84n7ba"
+        },
+        {
+          "labelOverride": {
+            "en": "quiet",
+            "es": "tranquilo",
+            "hi": "शांत"
+          },
+          "order": 28,
+          "symbolId": "kn77f3r975mv7fj66vhse58m2184nnhd"
+        },
+        {
+          "labelOverride": {
+            "en": "sweet",
+            "es": "dulce",
+            "hi": "मीठा"
+          },
+          "order": 29,
+          "symbolId": "kn73rcpskyv6qs9eyfj8xkmnyx84mqps"
+        },
+        {
+          "labelOverride": {
+            "en": "sour",
+            "es": "agrio",
+            "hi": "खट्टा"
+          },
+          "order": 30,
+          "symbolId": "kn71c0bvm7v7habcm0j4t53dth84n8fc"
+        },
+        {
+          "labelOverride": {
+            "en": "spicy",
+            "es": "picante",
+            "hi": "मसालेदार"
+          },
+          "order": 31,
+          "symbolId": "kn74r9ktgsf88w5sbv433pts9984nnx2"
+        },
+        {
+          "labelOverride": {
+            "en": "yummy",
+            "es": "rico",
+            "hi": "स्वादिष्ट"
+          },
+          "order": 32,
+          "symbolId": "kn79mmdp7dky21hn0rmrrc88ax84mbxx"
+        },
+        {
+          "labelOverride": {
+            "en": "good",
+            "es": "bueno",
+            "hi": "बढ़िया"
+          },
+          "order": 33,
+          "symbolId": "kn7arrhpvse84vtjakdemdnxad84n905"
+        },
+        {
+          "labelOverride": {
+            "en": "nice",
+            "es": "bonito",
+            "hi": "अच्छा"
+          },
+          "order": 34,
+          "symbolId": "kn77057gd5t05wpca121d7bcm584ntkd"
+        },
+        {
+          "labelOverride": {
+            "en": "beautiful",
+            "es": "hermoso",
+            "hi": "सुंदर"
+          },
+          "order": 35,
+          "symbolId": "kn779kaktbwzz6gyp9p7573mqn84ny4f"
+        },
+        {
+          "labelOverride": {
+            "en": "clean",
+            "es": "limpiar",
+            "hi": "साफ़ करना"
+          },
+          "order": 36,
+          "symbolId": "kn75dwxy9kem6be1n8cwkaqnwn84nxjh"
+        },
+        {
+          "labelOverride": {
+            "en": "dirty",
+            "es": "sucio",
+            "hi": "गंदा"
+          },
+          "order": 37,
+          "symbolId": "kn77r2hz4fq7dx82wdxq505xgx84mq5s"
+        },
+        {
+          "labelOverride": {
+            "en": "new",
+            "es": "nuevo",
+            "hi": "नया"
+          },
+          "order": 38,
+          "symbolId": "kn73kd6j47eweawb89a0d6em4584nt8h"
+        },
+        {
+          "labelOverride": {
+            "en": "old",
+            "es": "viejo",
+            "hi": "बूढ़ा"
+          },
+          "order": 39,
+          "symbolId": "kn706nxcaje15wp7kxd7ydg9gh84n0e6"
+        },
+        {
+          "labelOverride": {
+            "en": "special",
+            "es": "especial",
+            "hi": "खास"
+          },
+          "order": 40,
+          "symbolId": "kn75fy1g4t4s4c217md5tgj3ex84msga"
+        },
+        {
+          "labelOverride": {
+            "en": "same",
+            "es": "igual",
+            "hi": "एक जैसा"
+          },
+          "order": 41,
+          "symbolId": "kn7f3pr79yqdmgd9gg24wxebvh84m2w6"
+        },
+        {
+          "labelOverride": {
+            "en": "different",
+            "es": "diferente",
+            "hi": "अलग"
+          },
+          "order": 42,
+          "symbolId": "kn7cc0vq1h6jbwnywwwehgp5e184nwc0"
+        },
+        {
+          "labelOverride": {
+            "en": "more",
+            "es": "más",
+            "hi": "और"
+          },
+          "order": 43,
+          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
+        },
+        {
+          "labelOverride": {
+            "en": "less",
+            "es": "menos",
+            "hi": "कम"
+          },
+          "order": 44,
+          "symbolId": "kn71c2r8r8qkgr1mmnrbtb8xgd84m2h5"
+        },
+        {
+          "labelOverride": {
+            "en": "first",
+            "es": "primero",
+            "hi": "पहला"
+          },
+          "order": 45,
+          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
+        },
+        {
+          "labelOverride": {
+            "en": "last",
+            "es": "último",
+            "hi": "आखिरी"
+          },
+          "order": 46,
+          "symbolId": "kn75vac87h0ppax18z0mxh4bn984m5n2"
+        },
+        {
+          "labelOverride": {
+            "en": "next",
+            "es": "siguiente",
+            "hi": "अगला"
+          },
+          "order": 47,
+          "symbolId": "kn7ee061xpaje5mvrrj3y5xx4x84nax3"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Descriptions",
+    "es": "Descripciones",
+    "hi": "वर्णन"
+  },
+  "slug": "descriptions",
+  "tree": "categories"
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { ImageIcon, Trash2, Move } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
@@ -38,6 +39,8 @@ type Props = {
   isEditing: boolean;
   onClick?: () => void;
   onDeleteRequest: (id: Id<'profileCategories'>, name: string) => void;
+  /** Inline rename committed from the edit-mode dashed title box. */
+  onRename?: (id: Id<'profileCategories'>, value: string) => void;
   dragHandleProps?: {
     listeners?: SyntheticListenerMap;
     attributes?: DraggableAttributes;
@@ -53,11 +56,22 @@ export function CategoryTile({
   isEditing,
   onClick,
   onDeleteRequest,
+  onRename,
   dragHandleProps,
   adminPacks,
 }: Props) {
   const t = useTranslations('categories');
   const name = displayString(category.name, language, DEFAULT_LOCALE);
+
+  // Inline title editing — in edit mode the title becomes a dashed text box,
+  // committing on blur/Enter (ADR-014 unified group/tile edit UX).
+  const [draft, setDraft] = useState(name);
+  useEffect(() => { setDraft(name); }, [name]);
+  function commitName() {
+    const v = draft.trim();
+    if (v && v !== name) onRename?.(category._id, v);
+    else setDraft(name);
+  }
 
   const colourPair = getCategoryColour(category.colour);
   const Tag = isEditing ? ('div' as const) : ('button' as const);
@@ -87,13 +101,29 @@ export function CategoryTile({
         ].filter(Boolean).join(' ')}
         style={{ backgroundColor: `color-mix(in srgb, ${colourPair.c500} 30%, transparent)` }}
       >
-        {/* Title — plain centred text on top (Noto Sans Regular per Figma). */}
-        <p
-          className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"
-          style={{ fontSize: nameFontSize }}
-        >
-          {name}
-        </p>
+        {/* Title — plain centred text; in edit mode a dashed editable box. */}
+        {isEditing ? (
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={t('rename', { name })}
+            className="w-full text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
+            style={{ fontSize: nameFontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
+          />
+        ) : (
+          <p
+            className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"
+            style={{ fontSize: nameFontSize }}
+          >
+            {name}
+          </p>
+        )}
 
         {/* Thumb — light c100 box holding the category image (or fallback icon). */}
         <div

@@ -1,0 +1,451 @@
+{
+  "colour": "cyan",
+  "coverImagePath": "symbols/symbol00202158.png",
+  "defaultTier": "free",
+  "icon": "🌿",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "cyan",
+      "icon": "🌿",
+      "imagePath": "symbols/symbol00202158.png",
+      "name": {
+        "en": "Nature",
+        "es": "Naturaleza",
+        "hi": "प्रकृति"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "Sun",
+            "es": "Sol",
+            "hi": "सूरज"
+          },
+          "order": 0,
+          "symbolId": "kn74qv7nq6hxf6ze5fdh4s6ynd84mwqc"
+        },
+        {
+          "labelOverride": {
+            "en": "foggy",
+            "es": "con niebla",
+            "hi": "कोहरे वाला"
+          },
+          "order": 1,
+          "symbolId": "kn79tpc0v6y85n83makv9cyhw584mk20"
+        },
+        {
+          "labelOverride": {
+            "en": "rain",
+            "es": "lluvia",
+            "hi": "बारिश"
+          },
+          "order": 2,
+          "symbolId": "kn7dgvgwz1nmbydhk6amrf0t8584mjgw"
+        },
+        {
+          "labelOverride": {
+            "en": "snow",
+            "es": "Nieve",
+            "hi": "बर्फ"
+          },
+          "order": 3,
+          "symbolId": "kn792ypvapt87np41h5j43dxfh84mm6p"
+        },
+        {
+          "labelOverride": {
+            "en": "cloud",
+            "es": "nube",
+            "hi": "बादल"
+          },
+          "order": 4,
+          "symbolId": "kn72afmcb6tq2z3etnvwwzd2vs84nx4y"
+        },
+        {
+          "labelOverride": {
+            "en": "wind",
+            "es": "viento",
+            "hi": "हवा"
+          },
+          "order": 5,
+          "symbolId": "kn7akd50mjnz8xm2qt514tdq6184mswv"
+        },
+        {
+          "labelOverride": {
+            "en": "rainbow",
+            "es": "arcoíris",
+            "hi": "इंद्रधनुष"
+          },
+          "order": 6,
+          "symbolId": "kn78e9j8cpcbv7kv8kmqbg0h8n84m1db"
+        },
+        {
+          "labelOverride": {
+            "en": "storm",
+            "es": "tormenta",
+            "hi": "तूफ़ान"
+          },
+          "order": 7,
+          "symbolId": "kn7chvmnc727pbd50cvhq7fm2d84mer4"
+        },
+        {
+          "labelOverride": {
+            "en": "thunder",
+            "es": "trueno",
+            "hi": "गरज"
+          },
+          "order": 8,
+          "symbolId": "kn73yc3pznydyzn48ap8sdvsbh84ntpv"
+        },
+        {
+          "labelOverride": {
+            "en": "fog",
+            "es": "niebla",
+            "hi": "कोहरा"
+          },
+          "order": 9,
+          "symbolId": "kn7drq53atbyvv8qqqr2wat9dn84nyng"
+        },
+        {
+          "labelOverride": {
+            "en": "ice",
+            "es": "hielo",
+            "hi": "बर्फ"
+          },
+          "order": 10,
+          "symbolId": "kn71d39exwg26x044p7bfrjzf984m9e1"
+        },
+        {
+          "labelOverride": {
+            "en": "weather",
+            "es": "clima",
+            "hi": "मौसम"
+          },
+          "order": 11,
+          "symbolId": "kn7f0s7zcjnv16c8q09s37j08584mcyy"
+        },
+        {
+          "labelOverride": {
+            "en": "sky",
+            "es": "cielo",
+            "hi": "आसमान"
+          },
+          "order": 12,
+          "symbolId": "kn7f3tdpgq7nwnss23pjqj7z8184n1jm"
+        },
+        {
+          "labelOverride": {
+            "en": "spring",
+            "es": "primavera",
+            "hi": "वसंत"
+          },
+          "order": 13,
+          "symbolId": "kn77at46yk8rrv86k9cba6tba584m2n6"
+        },
+        {
+          "labelOverride": {
+            "en": "summer",
+            "es": "verano",
+            "hi": "गर्मी"
+          },
+          "order": 14,
+          "symbolId": "kn74zrft822mmaby971thnag6984mw1b"
+        },
+        {
+          "labelOverride": {
+            "en": "autumn",
+            "es": "Otoño",
+            "hi": "पतझड़"
+          },
+          "order": 15,
+          "symbolId": "kn78gdhmb6rwxpax1ytspn4zrx84n7mg"
+        },
+        {
+          "labelOverride": {
+            "en": "winter",
+            "es": "invierno",
+            "hi": "सर्दी"
+          },
+          "order": 16,
+          "symbolId": "kn76822h893j53p57y13vjw7zn84n3f3"
+        },
+        {
+          "labelOverride": {
+            "en": "mountain",
+            "es": "montaña",
+            "hi": "पहाड़"
+          },
+          "order": 17,
+          "symbolId": "kn79m5zs9k5z2d8rr3x6dyb5h184n2n1"
+        },
+        {
+          "labelOverride": {
+            "en": "hill",
+            "es": "colina",
+            "hi": "पहाड़ी"
+          },
+          "order": 18,
+          "symbolId": "kn71rhxc7w2gcy33rw6pjmhe4s84n70w"
+        },
+        {
+          "labelOverride": {
+            "en": "river",
+            "es": "río",
+            "hi": "नदी"
+          },
+          "order": 19,
+          "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
+        },
+        {
+          "labelOverride": {
+            "en": "lake",
+            "es": "lago",
+            "hi": "झील"
+          },
+          "order": 20,
+          "symbolId": "kn7dr90wzd0paknmz9b4y775bn84mga3"
+        },
+        {
+          "labelOverride": {
+            "en": "ocean",
+            "es": "océano",
+            "hi": "समुद्र"
+          },
+          "order": 21,
+          "symbolId": "kn7a011kprcg1q6vehfr4657g984my5w"
+        },
+        {
+          "labelOverride": {
+            "en": "sea",
+            "es": "mar",
+            "hi": "समुद्र"
+          },
+          "order": 22,
+          "symbolId": "kn706wyp3g3dtescg2qr56fddh84npmt"
+        },
+        {
+          "labelOverride": {
+            "en": "beach",
+            "es": "playa",
+            "hi": "बीच"
+          },
+          "order": 23,
+          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+        },
+        {
+          "labelOverride": {
+            "en": "waterfall",
+            "es": "cascada",
+            "hi": "झरना"
+          },
+          "order": 24,
+          "symbolId": "kn7f3bccmvz6r5vc39qd1c9n3s84n7qy"
+        },
+        {
+          "labelOverride": {
+            "en": "forest",
+            "es": "bosque",
+            "hi": "जंगल"
+          },
+          "order": 25,
+          "symbolId": "kn7bv6pmf2rz3fxj8e46xg8mmx84nw3n"
+        },
+        {
+          "labelOverride": {
+            "en": "desert",
+            "es": "desierto",
+            "hi": "रेगिस्तान"
+          },
+          "order": 26,
+          "symbolId": "kn7bbtnvdqqy5y7t72t3fbhreh84n377"
+        },
+        {
+          "labelOverride": {
+            "en": "cave",
+            "es": "cueva",
+            "hi": "गुफा"
+          },
+          "order": 27,
+          "symbolId": "kn778sa8m064yye4b8wrnmmn2984mx1f"
+        },
+        {
+          "labelOverride": {
+            "en": "valley",
+            "es": "valle",
+            "hi": "घाटी"
+          },
+          "order": 28,
+          "symbolId": "kn715r4w4htfyq1sxffn9qnvvd84nmfr"
+        },
+        {
+          "labelOverride": {
+            "en": "rock",
+            "es": "roca",
+            "hi": "पत्थर"
+          },
+          "order": 29,
+          "symbolId": "kn7d5zyc28g95aq2zw3vy8fhh184nma5"
+        },
+        {
+          "labelOverride": {
+            "en": "sand",
+            "es": "Arena",
+            "hi": "रेत"
+          },
+          "order": 30,
+          "symbolId": "kn7anmva6wzzht348a6kfqhths84nmg3"
+        },
+        {
+          "labelOverride": {
+            "en": "mud",
+            "es": "barro",
+            "hi": "कीचड़"
+          },
+          "order": 31,
+          "symbolId": "kn73yv9mvn6cxxhrxzpq3abhr984ncvm"
+        },
+        {
+          "labelOverride": {
+            "en": "soil",
+            "es": "tierra",
+            "hi": "मिट्टी"
+          },
+          "order": 32,
+          "symbolId": "kn7acwhmjw5v05tsd725fdde9h84nhn1"
+        },
+        {
+          "labelOverride": {
+            "en": "grass",
+            "es": "césped",
+            "hi": "घास"
+          },
+          "order": 33,
+          "symbolId": "kn7a0xc33t5n85gtzrcq9dmgr584nq7v"
+        },
+        {
+          "labelOverride": {
+            "en": "leaf",
+            "es": "hoja",
+            "hi": "पत्ता"
+          },
+          "order": 34,
+          "symbolId": "kn79ta4dp1nx6g7ntebzv5m6r984mfrn"
+        },
+        {
+          "labelOverride": {
+            "en": "tree",
+            "es": "árbol",
+            "hi": "पेड़"
+          },
+          "order": 35,
+          "symbolId": "kn77e2c6zkdpks64f5maajf4m584nhsa"
+        },
+        {
+          "labelOverride": {
+            "en": "flower",
+            "es": "Flor",
+            "hi": "फूल"
+          },
+          "order": 36,
+          "symbolId": "kn73p8ya7ppje976wjbq4gm28d84nf2k"
+        },
+        {
+          "labelOverride": {
+            "en": "bush",
+            "es": "arbusto",
+            "hi": "झाड़ी"
+          },
+          "order": 37,
+          "symbolId": "kn78qxhv6adenq1dj48ch107vh84nm2z"
+        },
+        {
+          "labelOverride": {
+            "en": "seed",
+            "es": "semilla",
+            "hi": "बीज"
+          },
+          "order": 38,
+          "symbolId": "kn7283fxg0ftyhqt09fna5rzrx84nx75"
+        },
+        {
+          "labelOverride": {
+            "en": "garden",
+            "es": "Jardín",
+            "hi": "बगीचा"
+          },
+          "order": 39,
+          "symbolId": "kn7fzcyzhrnfxt297rqcpws1yn84nf8g"
+        },
+        {
+          "labelOverride": {
+            "en": "jungle",
+            "es": "selva",
+            "hi": "जंगल"
+          },
+          "order": 40,
+          "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
+        },
+        {
+          "labelOverride": {
+            "en": "meadow",
+            "es": "prado",
+            "hi": "घास का मैदान"
+          },
+          "order": 41,
+          "symbolId": "kn74fazwcsycz2dg4wq7677fex84n9x5"
+        },
+        {
+          "labelOverride": {
+            "en": "field",
+            "es": "campo",
+            "hi": "मैदान"
+          },
+          "order": 42,
+          "symbolId": "kn7d7n2rsgpe1fy5k0th8xncpx84n6pb"
+        },
+        {
+          "labelOverride": {
+            "en": "star",
+            "es": "estrella",
+            "hi": "तारा"
+          },
+          "order": 43,
+          "symbolId": "kn7ffj2zxvdysgfzzc9yzw1h5x84msbk"
+        },
+        {
+          "labelOverride": {
+            "en": "sunrise",
+            "es": "amanecer",
+            "hi": "सूर्योदय"
+          },
+          "order": 44,
+          "symbolId": "kn75angnzet9hca4azcxx8cgg584mgba"
+        },
+        {
+          "labelOverride": {
+            "en": "sunset",
+            "es": "atardecer",
+            "hi": "सूर्यास्त"
+          },
+          "order": 45,
+          "symbolId": "kn78qgxbagstgcr17p9d530rgh84naqt"
+        },
+        {
+          "labelOverride": {
+            "en": "night",
+            "es": "noche",
+            "hi": "रात"
+          },
+          "order": 46,
+          "symbolId": "kn70kkhhp242qgpmjp1dexgpn584nac4"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Nature",
+    "es": "Naturaleza",
+    "hi": "प्रकृति"
+  },
+  "slug": "nature",
+  "tree": "categories"
+}

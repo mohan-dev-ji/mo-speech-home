@@ -1,0 +1,147 @@
+{
+  "coverImagePath": "symbols/symbol00192671.png",
+  "defaultTier": "pro",
+  "description": {
+    "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
+    "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión.",
+    "hi": "उस बच्चे के लिए जो स्टेगोसॉरस और स्पिनोसॉरस को पहचानता है। सोलह तरह के डायनासोर, उनके जीवाश्म, पैरों के निशान और वे कहाँ रहते थे। उनकी पसंद के हिसाब से शब्द।"
+  },
+  "items": [
+    {
+      "colour": "yellow",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00192671.png",
+      "name": {
+        "en": "Dinosaurs",
+        "es": "Dinosaurios",
+        "hi": "डायनासोर"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "Tyrannosaurus rex"
+          },
+          "order": 0,
+          "symbolId": "kn7a94c6jakq68p0httwnjan5s84m9v2"
+        },
+        {
+          "labelOverride": {
+            "en": "ancient footprints"
+          },
+          "order": 1,
+          "symbolId": "kn710bzj2fa7c4h3gg893ca3j984nwsm"
+        },
+        {
+          "labelOverride": {
+            "en": "triceratops"
+          },
+          "order": 2,
+          "symbolId": "kn75pd4q99pgmthj9wv80xh0j584md65"
+        },
+        {
+          "labelOverride": {
+            "en": "stegosaurus"
+          },
+          "order": 3,
+          "symbolId": "kn7avx0frxvkwdr7mena38tyb184mdg1"
+        },
+        {
+          "labelOverride": {
+            "en": "velociraptor"
+          },
+          "order": 4,
+          "symbolId": "kn74ky8mxf7ed25wadmkhgwn8x84mmc5"
+        },
+        {
+          "labelOverride": {
+            "en": "brachiosaurus"
+          },
+          "order": 5,
+          "symbolId": "kn7fqbwxkpstkxt9e2y4k722d184ng16"
+        },
+        {
+          "labelOverride": {
+            "en": "pterodactyl"
+          },
+          "order": 6,
+          "symbolId": "kn7ap7n6rksw5axs6rwgdmeqf984mt67"
+        },
+        {
+          "labelOverride": {
+            "en": "fossil"
+          },
+          "order": 7,
+          "symbolId": "kn72fayv75ynym9492402pt7r984nwfw"
+        },
+        {
+          "labelOverride": {
+            "en": "dig"
+          },
+          "order": 8,
+          "symbolId": "kn7336efxhb04fnk3ggea45tmh84nrme"
+        },
+        {
+          "labelOverride": {
+            "en": "museum"
+          },
+          "order": 9,
+          "symbolId": "kn7ck3ckft14raevrdxbqk22ax84m6z7"
+        },
+        {
+          "labelOverride": {
+            "en": "jungle"
+          },
+          "order": 10,
+          "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
+        },
+        {
+          "labelOverride": {
+            "en": "volcano"
+          },
+          "order": 11,
+          "symbolId": "kn7199z1erpv5fvbhgdcpsh8md84mgph"
+        },
+        {
+          "labelOverride": {
+            "en": "river"
+          },
+          "order": 12,
+          "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
+        },
+        {
+          "labelOverride": {
+            "en": "plants"
+          },
+          "order": 13,
+          "symbolId": "kn788bybwpwt5zcdeh9fpmmggh84nx3x"
+        },
+        {
+          "labelOverride": {
+            "en": "fierce"
+          },
+          "order": 14,
+          "symbolId": "kn77xhhx1yysyg6r1qdceb5z3584mex9"
+        },
+        {
+          "labelOverride": {
+            "en": "gentle"
+          },
+          "order": 15,
+          "symbolId": "kn7aser87f3trrx7zte4v77xp984nqpk"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Dinosaurs",
+    "es": "Dinosaurios",
+    "hi": "डायनासोर"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "dinosaurs",
+  "tree": "categories"
+}

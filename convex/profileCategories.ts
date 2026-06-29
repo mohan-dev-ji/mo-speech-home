@@ -5,11 +5,12 @@ import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import {
-  loadStarterTemplateInlineV2,
   materialiseSymbolsFromJson,
   removeCategoryFromPack,
   syncCategoryToPackIfPublished,
 } from "./resourcePacks";
+import { installContentModule } from "./lib/contentModuleInstall";
+import type { ContentModule } from "./data/_shared/types";
 import { getLibraryPackBySlug } from "./lib/libraryPacks";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 
@@ -21,17 +22,17 @@ const DEFAULT_VOICE_ID = "en-GB-News-M";
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
 /**
- * Seed the default categories + symbols onto a fresh account at signup.
- * Account-scoped: idempotent — skips if the account already has any categories.
+ * Seed a fresh account at signup by installing every Default ("core") content
+ * module (ADR-014 Task D). The `libraryModules` rows flagged `isDefault` are the
+ * new-account manifest — published + curated by an admin, no committed JSON.
+ * Account-scoped + idempotent: skips if the account already has any categories.
  *
- * Per ADR-010 (Phase 5): this delegates to `loadStarterTemplateInlineV2`, which
- * materialises the JSON starter pack at `convex/data/library_packs/_starter.json`.
- * The DEFAULT_CATEGORIES module is no longer load-bearing at runtime — it
- * remains in the repo as the historical source-of-truth recipe.
+ * Uses `installContentModule` directly (the shared materialise helper), which
+ * bypasses tier/visibility/dedup gates — correct for seeding. Order is
+ * categories → lists → sentences so the new account's trees read sensibly.
  *
- * Pre-condition: a starter pack JSON file exists in the catalogue with
- * `isStarter: true`. If not, the helper logs a warning and returns; the
- * new account ends up with zero categories until a starter is published.
+ * If no module is flagged `isDefault`, a new account starts empty until an admin
+ * marks default modules (Publish modal → "Default").
  */
 export const seedDefaultAccount = internalMutation({
   args: {
@@ -44,12 +45,35 @@ export const seedDefaultAccount = internalMutation({
       .first();
     if (existing) {
       console.log(
-        `[seedDefaultAccount] account ${args.accountId} already has categories — skipping`
+        `[seedDefaultAccount] account ${args.accountId} already seeded — skipping`
       );
       return;
     }
 
-    await loadStarterTemplateInlineV2(ctx, args.accountId);
+    const defaults = await ctx.db
+      .query("libraryModules")
+      .withIndex("by_default", (q) => q.eq("isDefault", true))
+      .collect();
+    // categories < lists < sentences alphabetically — install in that order.
+    defaults.sort(
+      (a, b) => a.tree.localeCompare(b.tree) || a.slug.localeCompare(b.slug)
+    );
+
+    let installed = 0;
+    for (const row of defaults) {
+      // The row's tree + items are correlated in the data even though the table
+      // validator types them as the cross-tree union — safe to treat as a
+      // ContentModule (same cast rationale as lib/contentModules.rowToStored).
+      await installContentModule(
+        ctx,
+        args.accountId,
+        row as unknown as ContentModule
+      );
+      installed++;
+    }
+    console.log(
+      `[seedDefaultAccount] account ${args.accountId}: installed ${installed} default modules`
+    );
   },
 });
 

@@ -1,0 +1,451 @@
+{
+  "colour": "fuchsia",
+  "coverImagePath": "symbols/feelings.png",
+  "defaultTier": "free",
+  "icon": "😊",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "fuchsia",
+      "icon": "😊",
+      "imagePath": "symbols/feelings.png",
+      "name": {
+        "en": "Feelings",
+        "es": "Emociones",
+        "hi": "भावनाएँ"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
+          },
+          "order": 0,
+          "symbolId": "kn770fvp1mzrxej3xkd0xeyqtn84nf69"
+        },
+        {
+          "labelOverride": {
+            "en": "sad",
+            "es": "Triste",
+            "hi": "उदास"
+          },
+          "order": 1,
+          "symbolId": "kn7784v062saq80pg1jtv17cn584mpqp"
+        },
+        {
+          "labelOverride": {
+            "en": "angry",
+            "es": "enojado",
+            "hi": "गुस्सा"
+          },
+          "order": 2,
+          "symbolId": "kn74ftd6mhctkj4ernswmds7k984mmb4"
+        },
+        {
+          "labelOverride": {
+            "en": "scared",
+            "es": "asustado",
+            "hi": "डरा हुआ"
+          },
+          "order": 3,
+          "symbolId": "kn7dcxeekpecq8gv9m3qf9gr3584m09p"
+        },
+        {
+          "labelOverride": {
+            "en": "excited",
+            "es": "emocionado",
+            "hi": "उत्साहित"
+          },
+          "order": 4,
+          "symbolId": "kn765219q82zgz2psyd1c1bdjs84na3d"
+        },
+        {
+          "labelOverride": {
+            "en": "surprised",
+            "es": "sorprendido",
+            "hi": "हैरान"
+          },
+          "order": 5,
+          "symbolId": "kn7by20bdz72x5a4gfgm62wv5s84m5mx"
+        },
+        {
+          "labelOverride": {
+            "en": "calm",
+            "es": "calmar",
+            "hi": "शांत"
+          },
+          "order": 6,
+          "symbolId": "kn74f2dj2tg6d3xca5vwak7khs84ne2g"
+        },
+        {
+          "labelOverride": {
+            "en": "confused",
+            "es": "confundido",
+            "hi": "उलझन में"
+          },
+          "order": 7,
+          "symbolId": "kn71xpqeyt7vdxe4ma2bw5x70x84m24a"
+        },
+        {
+          "labelOverride": {
+            "en": "worried",
+            "es": "preocupado",
+            "hi": "चिंतित"
+          },
+          "order": 8,
+          "symbolId": "kn719cbhw77r4ard71rvzthcyn84n61v"
+        },
+        {
+          "labelOverride": {
+            "en": "frustrated",
+            "es": "frustrado",
+            "hi": "परेशान"
+          },
+          "order": 9,
+          "symbolId": "kn70cfsy9ytfatp8emdjgzj0rs84mvpt"
+        },
+        {
+          "labelOverride": {
+            "en": "overstimulated",
+            "es": "sobreestimulado",
+            "hi": "अति उत्तेजित"
+          },
+          "order": 10,
+          "symbolId": "kn7eeadjya3c6gzv7ns9m594mx84ntd9"
+        },
+        {
+          "labelOverride": {
+            "en": "bored",
+            "es": "aburrido",
+            "hi": "ऊब गया"
+          },
+          "order": 11,
+          "symbolId": "kn75xkbw93zzt2rzzpnqjyezgh84n5wx"
+        },
+        {
+          "labelOverride": {
+            "en": "nervous",
+            "es": "nervioso",
+            "hi": "घबराया हुआ"
+          },
+          "order": 12,
+          "symbolId": "kn7fa4gqjs6n9p8w38zyxtp84184nt1x"
+        },
+        {
+          "labelOverride": {
+            "en": "proud",
+            "es": "orgulloso",
+            "hi": "गर्व"
+          },
+          "order": 13,
+          "symbolId": "kn7beq8amxsgsbjvqxbjx2c7m584nhrc"
+        },
+        {
+          "labelOverride": {
+            "en": "silly",
+            "es": "tonto",
+            "hi": "शरारती"
+          },
+          "order": 14,
+          "symbolId": "kn74y1byfnd0g4vz46gma3gj3584m225"
+        },
+        {
+          "labelOverride": {
+            "en": "lonely",
+            "es": "solo",
+            "hi": "अकेला"
+          },
+          "order": 15,
+          "symbolId": "kn72jq06j887gzdnqa0msex6rx84m2xe"
+        },
+        {
+          "labelOverride": {
+            "en": "embarrassed",
+            "es": "avergonzado",
+            "hi": "शर्मिंदा"
+          },
+          "order": 16,
+          "symbolId": "kn76ec7tyrdyg0v3cys55ydrkn84mbqq"
+        },
+        {
+          "labelOverride": {
+            "en": "shy",
+            "es": "tímido",
+            "hi": "शर्मीला"
+          },
+          "order": 17,
+          "symbolId": "kn766dmrfefjvdre512vn9fzzd84n25q"
+        },
+        {
+          "labelOverride": {
+            "en": "curious",
+            "es": "curioso",
+            "hi": "जिज्ञासु"
+          },
+          "order": 18,
+          "symbolId": "kn77fzj7stpdpzkt4mfs6p7abh84m0v2"
+        },
+        {
+          "labelOverride": {
+            "en": "jealous",
+            "es": "celoso",
+            "hi": "जलन"
+          },
+          "order": 19,
+          "symbolId": "kn74rwr6nnp3za64wt6x8ctabx84mc9w"
+        },
+        {
+          "labelOverride": {
+            "en": "disappointed",
+            "es": "Decepcionado",
+            "hi": "निराश"
+          },
+          "order": 20,
+          "symbolId": "kn789wwzmvwfdvtqwne9n5rsns84nbqz"
+        },
+        {
+          "labelOverride": {
+            "en": "upset",
+            "es": "molesto",
+            "hi": "परेशान"
+          },
+          "order": 21,
+          "symbolId": "kn73a46936mn7qaz2jfyazfsxx84nrcm"
+        },
+        {
+          "labelOverride": {
+            "en": "guilty",
+            "es": "culpable",
+            "hi": "दोषी"
+          },
+          "order": 22,
+          "symbolId": "kn79zz6s0ayhpkn8rfh7ea5jhs84mk8h"
+        },
+        {
+          "labelOverride": {
+            "en": "amused",
+            "es": "Divertido",
+            "hi": "मनोरंजित"
+          },
+          "order": 23,
+          "symbolId": "kn798px8ws95zzyyezfan7zk6584mmm6"
+        },
+        {
+          "labelOverride": {
+            "en": "hungry",
+            "es": "tengo hambre",
+            "hi": "भूखा"
+          },
+          "order": 24,
+          "symbolId": "kn75eqcw6m7epm140jcfcap32h84m2m9"
+        },
+        {
+          "labelOverride": {
+            "en": "sick",
+            "es": "enfermo",
+            "hi": "बीमार"
+          },
+          "order": 25,
+          "symbolId": "kn7csda8zb5df60j1ved3kg8fh84n82t"
+        },
+        {
+          "labelOverride": {
+            "en": "hurt feelings",
+            "es": "sentimientos heridos",
+            "hi": "बुरा लगा"
+          },
+          "order": 26,
+          "symbolId": "kn73j44kqjxg8c4d0dewfhrbw184mwqs"
+        },
+        {
+          "labelOverride": {
+            "en": "okay",
+            "es": "bien",
+            "hi": "ठीक है"
+          },
+          "order": 27,
+          "symbolId": "kn7apqy79w8ky9qbb83txkvxps84m5xy"
+        },
+        {
+          "labelOverride": {
+            "en": "good",
+            "es": "bueno",
+            "hi": "अच्छा"
+          },
+          "order": 28,
+          "symbolId": "kn72f9q2wb5h5qw9c2abb75gwn84mddr"
+        },
+        {
+          "labelOverride": {
+            "en": "bad",
+            "es": "malo",
+            "hi": "बुरा"
+          },
+          "order": 29,
+          "symbolId": "kn7627040bv3gxerf984we3bf584ndt5"
+        },
+        {
+          "labelOverride": {
+            "en": "glad",
+            "es": "contento",
+            "hi": "खुश"
+          },
+          "order": 30,
+          "symbolId": "kn780rdebd6jdckqr4a4bmvbq984m7c0"
+        },
+        {
+          "labelOverride": {
+            "en": "mad",
+            "es": "enojado",
+            "hi": "गुस्सा"
+          },
+          "order": 31,
+          "symbolId": "kn7fbydc1y6wwq70rxfrvkn4y984nq5d"
+        },
+        {
+          "labelOverride": {
+            "en": "grumpy",
+            "es": "gruñón",
+            "hi": "चिड़चिड़ा"
+          },
+          "order": 32,
+          "symbolId": "kn72rnj4yhmgntxmz6asaashbn84mbff"
+        },
+        {
+          "labelOverride": {
+            "en": "annoyed",
+            "es": "molesto",
+            "hi": "परेशान"
+          },
+          "order": 33,
+          "symbolId": "kn7be22nxpp1aydxdjhy7zdvkh84ngz7"
+        },
+        {
+          "labelOverride": {
+            "en": "afraid",
+            "es": "asustado",
+            "hi": "डरा हुआ"
+          },
+          "order": 34,
+          "symbolId": "kn7ezrzxk0rp9yans5wkfgxsx984nbme"
+        },
+        {
+          "labelOverride": {
+            "en": "ashamed",
+            "es": "avergonzado",
+            "hi": "शर्मिंदा"
+          },
+          "order": 35,
+          "symbolId": "kn716wqfdhta52swbmwx20qvw184n1kh"
+        },
+        {
+          "labelOverride": {
+            "en": "stressed",
+            "es": "estresado",
+            "hi": "तनाव में"
+          },
+          "order": 36,
+          "symbolId": "kn7e5p8fzp4k1me4pc7b9gstt584nqca"
+        },
+        {
+          "labelOverride": {
+            "en": "relieved",
+            "es": "aliviado",
+            "hi": "राहत मिली"
+          },
+          "order": 37,
+          "symbolId": "kn790vs2c9cj7j0v6mkqpr4tcs84n7qy"
+        },
+        {
+          "labelOverride": {
+            "en": "terrified",
+            "es": "aterrorizado",
+            "hi": "बहुत डरा हुआ"
+          },
+          "order": 38,
+          "symbolId": "kn7bdjvpvgfxvh73hzzq860j9n84mx3d"
+        },
+        {
+          "labelOverride": {
+            "en": "meh",
+            "es": "Meh",
+            "hi": "ठीक-ठाक"
+          },
+          "order": 39,
+          "symbolId": "kn7dm0akcggpbt34h1p7yet9fx84mqyw"
+        },
+        {
+          "labelOverride": {
+            "en": "cheeky",
+            "es": "travieso",
+            "hi": "शरारती"
+          },
+          "order": 40,
+          "symbolId": "kn78ee7n8fy4t1yh39yrt3bvyx84mg00"
+        },
+        {
+          "labelOverride": {
+            "en": "depressed",
+            "es": "deprimido",
+            "hi": "उदास"
+          },
+          "order": 41,
+          "symbolId": "kn7bjxv1k1w08katsdafx0sf7h84nq20"
+        },
+        {
+          "labelOverride": {
+            "en": "discouraged",
+            "es": "Desanimado",
+            "hi": "निराश"
+          },
+          "order": 42,
+          "symbolId": "kn787et0d9k7vsv33ww5s6xcwx84myz5"
+        },
+        {
+          "labelOverride": {
+            "en": "irritated",
+            "es": "irritado",
+            "hi": "चिड़चिड़ा"
+          },
+          "order": 43,
+          "symbolId": "kn71jpaabfn59ssx9fnk7akd3584n5wv"
+        },
+        {
+          "labelOverride": {
+            "en": "uncertain",
+            "es": "incierto",
+            "hi": "अनिश्चित"
+          },
+          "order": 44,
+          "symbolId": "kn73m4mxd7vsz0cg91gdbbszds84mnyd"
+        },
+        {
+          "labelOverride": {
+            "en": "brave",
+            "es": "Valiente",
+            "hi": "बहादुर"
+          },
+          "order": 45,
+          "symbolId": "kn73ve12gp82sebjw7eke9mh5d84nqrq"
+        },
+        {
+          "labelOverride": {
+            "en": "homesick",
+            "es": "nostalgia",
+            "hi": "घर की याद"
+          },
+          "order": 46,
+          "symbolId": "kn73n42se3rn2f1wph56s91rxh84m101"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Feelings",
+    "es": "Emociones",
+    "hi": "भावनाएँ"
+  },
+  "slug": "feelings",
+  "tree": "categories"
+}

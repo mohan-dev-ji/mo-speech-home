@@ -192,7 +192,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [draftColour, setDraftColour] = useState('orange');
   const [draftImagePath, setDraftImagePath] = useState<string | undefined>(undefined);
   const [symbolEditorState, setSymbolEditorState] = useState<SymbolEditorState>({ isOpen: false });
-  const [folderImageModalOpen, setFolderImageModalOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
@@ -293,8 +292,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   // ── Edit mode handlers ──────────────────────────────────────────────────────
 
   // Free-tier gate on entering edit mode. Cascades: blocking the toggle
-  // means Add Symbol, Reorder, Reload Defaults, Folder Image, Rename, and
-  // Colour Picker (all only reachable inside BannerEdit) are auto-locked.
+  // means Add Symbol, Reorder, Reload Defaults, and Rename (all only
+  // reachable inside BannerEdit) are auto-locked. Folder colour + image are
+  // edited on the grid tile a level up, not here.
   const isFree = subscription.tier === 'free';
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
   const params = useParams();
@@ -309,17 +309,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleEditExit() {
     setIsEditing(false);
-  }
-
-  function handleColourChange(colour: string) {
-    setDraftColour(colour);
-    updateCategoryMeta({
-      profileCategoryId,
-      colour,
-      propagateToPack: showAdminButtons,
-    }).catch((e) =>
-      console.error('[CategoryDetailContent] colour update failed', e)
-    );
   }
 
   function handleCategoryNameChange(nextName: string) {
@@ -377,22 +366,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleAddSymbol() {
     setSymbolEditorState({ isOpen: true });
-  }
-
-  function handleEditFolderImage() {
-    setFolderImageModalOpen(true);
-  }
-
-  function handleFolderImageSave(imagePath: string) {
-    setDraftImagePath(imagePath);
-    updateCategoryMeta({
-      profileCategoryId,
-      imagePath,
-      propagateToPack: showAdminButtons,
-    }).catch((e) =>
-      console.error('[CategoryDetailContent] folder image update failed', e)
-    );
-    setFolderImageModalOpen(false);
   }
 
   // The "Default" toggle was historically a publish gate that set
@@ -526,10 +499,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   onCategoryNameChange={handleCategoryNameChange}
                   imagePath={draftImagePath}
                   draftColour={draftColour}
-                  onColourChange={handleColourChange}
                   onExit={handleEditExit}
                   onAddSymbol={handleAddSymbol}
-                  onEditFolderImage={handleEditFolderImage}
                   showAdminButtons={showAdminButtons}
                   isDefault={republishGateOpen}
                   isInLibrary={isInLibrary}
@@ -652,24 +623,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
           voiceId={voiceId}
           onClose={() => setSymbolEditorState({ isOpen: false })}
           onSave={() => setSymbolEditorState({ isOpen: false })}
-        />
-      )}
-
-      {/* Folder image picker modal — opens on the SymbolStix tab with the
-          category name pre-filled in the search bar so the user lands on
-          a relevant symbol grid immediately. */}
-      {folderImageModalOpen && accountId && (
-        <SymbolEditorModal
-          isOpen={true}
-          accountId={accountId}
-          language={language}
-          voiceId={voiceId}
-          folderImageMode={true}
-          initialImagePath={draftImagePath}
-          initialLabel={categoryName}
-          onClose={() => setFolderImageModalOpen(false)}
-          onSave={() => {}}
-          onFolderImageSave={handleFolderImageSave}
         />
       )}
 

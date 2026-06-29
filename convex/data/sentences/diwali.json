@@ -1,0 +1,115 @@
+{
+  "coverImagePath": "symbols/let_us.png",
+  "defaultTier": "max",
+  "description": {
+    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table.",
+    "es": "El festival de las luces con el vocabulario para la ocasión. Diyas, rangoli, los dulces por su nombre y la familia alrededor de la mesa.",
+    "hi": "रोशनी का त्योहार, जिसके लिए ज़रूरी शब्द हैं। दीये, रंगोली, मिठाइयों के नाम, और परिवार के साथ खाना।"
+  },
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/8b482bb7-1b95-4400-99a8-b9d4f1ebfb3a.mp3",
+      "name": {
+        "en": "Let's light the candles",
+        "es": "Vamos a encender las velas",
+        "hi": "चलो मोमबत्तियाँ जलाते हैं"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/let_us.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00000326.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "Let's light the candles",
+        "es": "Vamos a encender las velas",
+        "hi": "चलो मोमबत्तियाँ जलाते हैं"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/b88a3173-2336-4e2b-925f-d71aaf29f24f.mp3",
+      "name": {
+        "en": "Time to be quiet for prayers",
+        "es": "Hora de estar callados para rezar",
+        "hi": "प्रार्थना के लिए चुप रहने का समय"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/it_is_time.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00200191.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00081191.png",
+          "order": 2
+        }
+      ],
+      "text": {
+        "en": "Time to be quiet for prayers",
+        "es": "Hora de estar callados para rezar",
+        "hi": "प्रार्थना के लिए चुप रहने का समय"
+      }
+    }
+  ],
+  "name": {
+    "en": "Diwali",
+    "es": "Diwali",
+    "hi": "दिवाली"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "diwali",
+  "tree": "sentences"
+}

@@ -128,3 +128,129 @@ This ADR touches four prior decisions; here is how each reconciles.
 - [GLP dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md) — sentence builder / three-entity model.
 - [GLP dossier doc 7](../../2-research/gestalt-language-processing/07-container-organisation.md) — three-tree organisation + type-aligned modules.
 - [GLP dossier doc 8](../../2-research/gestalt-language-processing/08-phasing-and-rollout.md) — phasing; the V1-no-collections decision.
+
+---
+
+## Addendum (2026-06-25) — §4 "text live" scope, clarified during Phase 13 planning
+
+§4 mandates "structure frozen · localised text live" and describes sentences as
+embedding "symbol references" whose labels resolve live. Phase-13 planning against
+the actual code clarified what this means in practice, so we record it here rather
+than over-build:
+
+- **List and sentence *slots* do not carry symbol *labels*.** A sentence's spoken
+  output comes from its whole-sentence `text` field (used to generate TTS audio);
+  symbols inside a sentence are only used at authoring time to *compose* that text
+  and audio. `profileSentences.slots[]` / `profileLists.items[]` store an
+  `imagePath` (+ display/audio paths) — there is no per-slot symbol label to
+  resolve at render. So **no slot-level live-label resolution is needed, and no
+  symbol-reference field is added to slots in Phase 13.**
+- **§4's "text live" guarantee is carried by category symbol labels**, which
+  already resolve live: `profileCategories.getProfileSymbolsWithImages` returns
+  the full `label: Record<lang,string>` from the global `symbols` table, rendered
+  via `displayString`. A new language reaches every category board automatically.
+- **List/sentence *copy* (folder/list/sentence name, item descriptions, sentence
+  text) remains a per-account snapshot** — acceptable because that copy is
+  generated/custom, not symbol-label-derived. Phase 13 re-points `librarySourceId`
+  to module slugs so live-copy resolution *could* be added later if ever wanted,
+  but builds no such machinery now.
+- **"Structure frozen" still holds**: the slot's `imagePath` is the structural
+  snapshot; deleting any category never breaks a saved sentence.
+
+Net: §4 is satisfied with no new resolution code — the live half is the existing
+category-symbol-label path; the frozen half is the existing slot snapshot.
+
+---
+
+## Addendum (2026-06-27) — module content lives in Convex, not committed JSON
+
+§1 inherited ADR-010/011's storage model: module content as committed JSON files
+(`convex/data/<tree>/<slug>.json`), bundled at deploy, with a Convex `*Lifecycle`
+overlay for publish-window + tier. During Phase 13.4 (curation pipeline) the owner
+and Claude re-examined this and decided to **make Convex the single source of
+truth for curated/default module content.** This supersedes the *storage
+substrate* of §1 for the module system; it does **not** change the conceptual
+model — modules, three trees, 1:1 install, lifecycle visibility, delete/reinstall
+all stand. Only *where the template lives and how it is published* changes.
+
+### Why
+The JSON-as-source approach has two real benefits — git-versioned content and a
+zero-cost bundled catalogue — but both are weak at module scale and outweighed by
+its costs:
+
+- **Publish is dev-only.** Writing a committed JSON file requires the dev server
+  running on the author's own machine plus a git commit + deploy per change. It
+  cannot be done in production or by a non-technical curator — a hard blocker for
+  the ADR-013 SLP-contributor direction.
+- **Scale.** A growing catalogue inflates the deploy bundle and is loaded into
+  function memory; more languages ship in every file always. A Convex table is
+  indexed, paginated, and can project a single locale. The four scale axes that
+  track growth — catalogue size, languages, contributor throughput, live updates
+  — all favour the database. JSON wins only on read-cost (cacheable; the catalogue
+  query is already SSR-cached) and reproducibility (recovered below).
+- **Live updates.** A content fix in Convex is live on reload; in JSON it needs a
+  redeploy.
+
+The "git-reviewable translation diffs" benefit is preserved another way (below),
+and the genuinely irreplaceable translated asset — the global `symbols` table
+(52k rows) — already lives in Convex with its own git-committed `.jsonl` backup,
+unaffected by this decision.
+
+### The decision, three parts
+1. **Convex is the live source of truth for curated/default module content.** A
+   table (working name `libraryModules`) holds each module as a row in the
+   `ContentModule` shape (`convex/data/_shared/types.ts`) with the lifecycle
+   fields merged in (`publishedAt`, `expiresAt`, `tierOverride`/`defaultTier`,
+   `featured`, `provenance`, `tree`, `slug`). Catalogue / detail / install reads
+   query this table; **publish is an admin mutation** that upserts a row — works
+   in production, by any admin, no commit, no deploy.
+2. **Translations are surgical and idempotent**, so a re-run can never silently
+   rewrite everything (the failure mode that would also destroy JSON's diff
+   value). Each translatable string is keyed by a hash of its English source; a
+   run only (re)translates a locale value that is *missing* or whose source hash
+   changed, and never overwrites a good existing translation. This mirrors the
+   UI-string pipeline rule (translate only keys absent from a locale) and is the
+   property that makes database storage safe for translated content.
+3. **Periodic export to committed JSON** preserves the audit trail and
+   reproducibility without coupling content to deploys — the same snapshot-to-git
+   discipline already used for `symbols` (`scripts/backup-symbols.mjs`). A small
+   exporter dumps `libraryModules` to `convex/data/<tree>/<slug>.json` (stable
+   key order) on demand / at milestones; these files become a *backup + review
+   artifact*, not the live source.
+
+### Scope — what changes, what stays
+- **Changes (module content layer only):** the readers in
+  `convex/lib/contentModules.ts` (bundled-map lookups → Convex table reads, so
+  they take `ctx` and become async; all callers are inside Convex functions and
+  can pass it); the per-type public catalogue + `getModuleDetail` queries (query
+  the table + visibility filter); the install mutations (`getModuleBySlug` → table
+  read); the themed-pack conversion + `publishConvertedPackModules` (replaced by a
+  one-time seed of the existing 17 converted modules + the new `core` categories
+  module into the table); and curation publish (FS-write route →
+  upsert mutation).
+- **Unchanged:** install/materialise into per-account `profile*` rows, the
+  three-tree UI, the four-tab library, delete/reinstall + R2 orphan cleanup,
+  breadcrumbs, the `_defaults` manifest concept (now a small table or committed
+  list of `{tree, slug}` refs; `seedDefaultAccount` iterates it →
+  `installContentModule`). These copy from a *template* and are indifferent to
+  whether the template is a file or a row.
+- **Themes are the principled exception — not moved.** Theme *tokens* are design
+  assets, not translatable curated content: no AI translation, no per-account
+  materialise, a small designer-authored set, and they must be **bundled
+  client-side** so `ThemeContext` applies CSS variables instantly with no
+  round-trip/flash. Their visibility (`themeLifecycle`) is already in Convex. The
+  built-in theme tokens stay in the bundled registry (`lib/themes/registry`);
+  only future *user-created* themes would live per-account in Convex.
+- **Legacy `library_packs/` JSON stays inert** as ADR-014 already planned — not
+  migrated, dropped in a later cleanup.
+
+### Consequences
+- Gain: production publishing, contributor-ready curation, live content updates,
+  a catalogue that scales in size + languages, and the deletion of the only
+  genuinely unusual part of the design (dev-only file writes).
+- Cost: module-content changes are no longer a git diff *by default* — recovered
+  via part 3 (periodic export) for the rare moments review/rollback is wanted.
+  Curated content now lives in the Convex deployment, so it must be covered by the
+  backup discipline (`npx convex export`) — already standard practice here.
+- This is contained to the module storage layer; it does not touch the
+  per-account content model or any shipped UI.

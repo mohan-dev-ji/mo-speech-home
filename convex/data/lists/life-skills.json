@@ -1,0 +1,718 @@
+{
+  "colour": "sky",
+  "coverImagePath": "symbols/symbol00196892.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00207295.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00207295.mp3",
+          "description": {
+            "en": "Bath time",
+            "es": "Hora del baño",
+            "hi": "नहाने का समय"
+          },
+          "imagePath": "symbols/symbol00207295.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/brush_teeth.mp3",
+          "defaultAudioPath": "audio/eng/default/brush_teeth.mp3",
+          "description": {
+            "en": "Brush your teeth",
+            "es": "Cepillarse los dientes",
+            "hi": "दांत साफ करो"
+          },
+          "imagePath": "symbols/brush_teeth.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wear_pajamas.mp3",
+          "defaultAudioPath": "audio/eng/default/wear_pajamas.mp3",
+          "description": {
+            "en": "Put on pyjamas",
+            "es": "Ponerse el pijama",
+            "hi": "पायजामा पहनो"
+          },
+          "imagePath": "symbols/wear_pajamas.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/story_time.mp3",
+          "defaultAudioPath": "audio/eng/default/story_time.mp3",
+          "description": {
+            "en": "Story time",
+            "es": "Hora del cuento",
+            "hi": "कहानी का समय"
+          },
+          "imagePath": "symbols/story_time.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/sleep2.mp3",
+          "defaultAudioPath": "audio/eng/default/sleep2.mp3",
+          "description": {
+            "en": "Sleep",
+            "es": "Dormir",
+            "hi": "सो जाओ"
+          },
+          "imagePath": "symbols/sleep2.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Bedtime routine",
+        "es": "Rutina para dormir",
+        "hi": "सोने का समय"
+      },
+      "order": 0,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wake_up.mp3",
+          "defaultAudioPath": "audio/eng/default/wake_up.mp3",
+          "description": {
+            "en": "Wake up",
+            "es": "Despertarse",
+            "hi": "उठो"
+          },
+          "imagePath": "symbols/wake_up.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/brush_teeth.mp3",
+          "defaultAudioPath": "audio/eng/default/brush_teeth.mp3",
+          "description": {
+            "en": "brush your teeth",
+            "es": "Cepillarse los dientes",
+            "hi": "दांत साफ करो"
+          },
+          "imagePath": "symbols/brush_teeth.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/shower_wash_face.mp3",
+          "defaultAudioPath": "audio/eng/default/shower_wash_face.mp3",
+          "description": {
+            "en": "Have a shower",
+            "es": "Ducharse",
+            "hi": "नहाओ"
+          },
+          "imagePath": "symbols/shower_wash_face.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00066341.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00066341.mp3",
+          "description": {
+            "en": "put on clean clothes",
+            "es": "Ponerse ropa limpia",
+            "hi": "साफ कपड़े पहनो"
+          },
+          "imagePath": "symbols/symbol00066341.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00103761.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00103761.mp3",
+          "description": {
+            "en": "Eat Breakfast",
+            "es": "Desayunar",
+            "hi": "नाश्ता करो"
+          },
+          "imagePath": "symbols/symbol00103761.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Morning Routine",
+        "es": "Rutina de la mañana",
+        "hi": "सुबह की दिनचर्या"
+      },
+      "order": 1,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190103.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190103.mp3",
+          "description": {
+            "en": "rinse your toothbrush",
+            "es": "Enjuagar el cepillo",
+            "hi": "टूथब्रश धो लो"
+          },
+          "imagePath": "symbols/symbol00190103.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055140.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055140.mp3",
+          "description": {
+            "en": "put the toothpaste",
+            "es": "Poner la pasta",
+            "hi": "टूथपेस्ट लगाओ"
+          },
+          "imagePath": "symbols/symbol00055140.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00200281.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00200281.mp3",
+          "description": {
+            "en": "brush your teeth",
+            "es": "Cepillarse los dientes",
+            "hi": "दांत साफ करो"
+          },
+          "imagePath": "symbols/symbol00200281.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/rinse_mouth.mp3",
+          "defaultAudioPath": "audio/eng/default/rinse_mouth.mp3",
+          "description": {
+            "en": "rinse your mouth",
+            "es": "Enjuagarse la boca",
+            "hi": "कुल्ला करो"
+          },
+          "imagePath": "symbols/rinse_mouth.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00133501.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00133501.mp3",
+          "description": {
+            "en": "spit water in sink",
+            "es": "Escupir en el lavabo",
+            "hi": "सिंक में पानी थूको"
+          },
+          "imagePath": "symbols/symbol00133501.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/dry_face.mp3",
+          "defaultAudioPath": "audio/eng/default/dry_face.mp3",
+          "description": {
+            "en": "dry your face",
+            "es": "Secarse la cara",
+            "hi": "चेहरा पोंछो"
+          },
+          "imagePath": "symbols/dry_face.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/e2764ffd-7e15-492a-8d5c-5b9e3f5ae971.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": {
+            "en": "Leave bathroom",
+            "es": "Salir del baño",
+            "hi": "बाथरूम से बाहर आओ"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/e2764ffd-7e15-492a-8d5c-5b9e3f5ae971.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "en": "Brushing teeth",
+        "es": "Cepillarse los dientes",
+        "hi": "दांत साफ करना"
+      },
+      "order": 2,
+      "showChecklist": true,
+      "showFirstThen": false,
+      "showNumbers": true
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055375.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055375.mp3",
+          "description": {
+            "en": "underwear",
+            "es": "Ropa interior",
+            "hi": "अंडरवियर"
+          },
+          "imagePath": "symbols/symbol00055375.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/socks.mp3",
+          "defaultAudioPath": "audio/eng/default/socks.mp3",
+          "description": {
+            "en": "socks",
+            "es": "Calcetines",
+            "hi": "जुराबें"
+          },
+          "imagePath": "symbols/socks.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055357.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055357.mp3",
+          "description": {
+            "en": "pants",
+            "es": "Pantalones",
+            "hi": "पैंट"
+          },
+          "imagePath": "symbols/symbol00055357.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055360.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055360.mp3",
+          "description": {
+            "en": "T-shirt",
+            "es": "Camiseta",
+            "hi": "टी-शर्ट"
+          },
+          "imagePath": "symbols/symbol00055360.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00195571.mp3",
+          "description": {
+            "en": "jumper",
+            "es": "Jersey",
+            "hi": "स्वेटर"
+          },
+          "generatedAudioPath": "audio/eng/default/symbol00195571.mp3",
+          "imagePath": "accounts/j577z5p1bb8k9qqq4w3scewgsd85vw2f/images/69e1ffea-55d7-4ed1-b72a-8c62b0b78689.jpg",
+          "imageSourceType": "imageSearch",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00199429.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00001988.mp3",
+          "description": {
+            "en": "shoes",
+            "es": "Zapatos",
+            "hi": "जूते"
+          },
+          "generatedAudioPath": "audio/eng/default/symbol00199429.mp3",
+          "imagePath": "symbols/symbol00001988.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/jacket2.mp3",
+          "defaultAudioPath": "audio/eng/default/jacket2.mp3",
+          "description": {
+            "en": "jacket",
+            "es": "Chaqueta",
+            "hi": "जैकेट"
+          },
+          "imagePath": "symbols/jacket2.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
+        }
+      ],
+      "name": {
+        "en": "Getting dressed",
+        "es": "Vestirse",
+        "hi": "कपड़े पहनना"
+      },
+      "order": 3,
+      "showChecklist": true,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00183204.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00183204.mp3",
+          "description": {
+            "en": "lift up toilet seat",
+            "es": "Levantar la tapa del váter",
+            "hi": "टॉयलेट सीट ऊपर उठाओ"
+          },
+          "imagePath": "symbols/symbol00183204.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055834.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055834.mp3",
+          "description": {
+            "en": "use toilet",
+            "es": "Usar el váter",
+            "hi": "टॉयलेट इस्तेमाल करो"
+          },
+          "imagePath": "symbols/symbol00055834.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/flush_toilet.mp3",
+          "defaultAudioPath": "audio/eng/default/flush_toilet.mp3",
+          "description": {
+            "en": "flush toilet",
+            "es": "Tirar de la cadena",
+            "hi": "फ्लश करो"
+          },
+          "imagePath": "symbols/flush_toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00198122.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00198122.mp3",
+          "description": {
+            "en": "wash hands",
+            "es": "Lavarse las manos",
+            "hi": "हाथ धो लो"
+          },
+          "imagePath": "symbols/symbol00198122.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": {
+            "en": "leave toilet",
+            "es": "Salir del baño",
+            "hi": "टॉयलेट से बाहर आओ"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        }
+      ],
+      "name": {
+        "en": "Toilet routine - seat up",
+        "es": "Rutina del baño - tapa arriba",
+        "hi": "टॉयलेट की दिनचर्या - सीट ऊपर"
+      },
+      "order": 4,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00183203.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00183203.mp3",
+          "description": {
+            "en": "lower toilet seat",
+            "es": "Bajar la tapa del váter",
+            "hi": "टॉयलेट सीट नीचे करो"
+          },
+          "imagePath": "symbols/symbol00183203.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00191937.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00191937.mp3",
+          "description": {
+            "en": "sit on toilet",
+            "es": "Sentarse en el váter",
+            "hi": "टॉयलेट पर बैठो"
+          },
+          "imagePath": "symbols/symbol00191937.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00062181.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00062181.mp3",
+          "description": {
+            "en": "wipe self",
+            "es": "Limpiarse",
+            "hi": "खुद को पोंछो"
+          },
+          "imagePath": "symbols/symbol00062181.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/flush_toilet.mp3",
+          "defaultAudioPath": "audio/eng/default/flush_toilet.mp3",
+          "description": {
+            "en": "flush toilet",
+            "es": "Tirar de la cadena",
+            "hi": "फ्लश करो"
+          },
+          "imagePath": "symbols/flush_toilet.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00198122.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00198122.mp3",
+          "description": {
+            "en": "wash hands",
+            "es": "Lavarse las manos",
+            "hi": "हाथ धो लो"
+          },
+          "imagePath": "symbols/symbol00198122.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "defaultAudioPath": "audio/eng/default/close_door.mp3",
+          "description": {
+            "en": "leave toilet",
+            "es": "Salir del baño",
+            "hi": "टॉयलेट से बाहर आओ"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ad3bd651-9210-4248-8a46-73d6ea349d30.mp3",
+          "imagePath": "symbols/close_door.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "en": "Toilet routine - seat down",
+        "es": "Rutina del baño - tapa abajo",
+        "hi": "टॉयलेट की दिनचर्या - सीट नीचे"
+      },
+      "order": 5,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/turn_water_on.mp3",
+          "defaultAudioPath": "audio/eng/default/turn_water_on.mp3",
+          "description": {
+            "en": "turn water on",
+            "es": "Abrir el grifo",
+            "hi": "पानी खोलो"
+          },
+          "imagePath": "symbols/turn_water_on.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/wash_hands2.mp3",
+          "defaultAudioPath": "audio/eng/default/wash_hands2.mp3",
+          "description": {
+            "en": "wash hands",
+            "es": "Lavarse las manos",
+            "hi": "हाथ धो लो"
+          },
+          "imagePath": "symbols/wash_hands2.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00056066.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00056066.mp3",
+          "description": {
+            "en": "rinse soap",
+            "es": "Enjuagar el jabón",
+            "hi": "साबुन धो लो"
+          },
+          "imagePath": "symbols/symbol00056066.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/dry_hands.mp3",
+          "defaultAudioPath": "audio/eng/default/dry_hands.mp3",
+          "description": {
+            "en": "dry hands",
+            "es": "Secarse las manos",
+            "hi": "हाथ पोंछो"
+          },
+          "imagePath": "symbols/dry_hands.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        }
+      ],
+      "name": {
+        "en": "Handwashing",
+        "es": "Lavarse las manos",
+        "hi": "हाथ धोना"
+      },
+      "order": 6,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/undress.mp3",
+          "defaultAudioPath": "audio/eng/default/undress.mp3",
+          "description": {
+            "en": "undress",
+            "es": "Quitarse la ropa",
+            "hi": "कपड़े उतारो"
+          },
+          "imagePath": "symbols/undress.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/f8cddec7-2072-49e2-bae1-974d5b5aa450.mp3",
+          "defaultAudioPath": "audio/eng/default/bathtub.mp3",
+          "description": {
+            "en": "water in bathtub",
+            "es": "Agua en la bañera",
+            "hi": "बाथटब में पानी"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/f8cddec7-2072-49e2-bae1-974d5b5aa450.mp3",
+          "imagePath": "symbols/bathtub.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/eng/default/symbol00188605.mp3",
+          "defaultAudioPath": "audio/eng/default/bath_bubble.mp3",
+          "description": {
+            "en": "wash",
+            "es": "Lavarse",
+            "hi": "धो लो"
+          },
+          "generatedAudioPath": "audio/eng/default/symbol00188605.mp3",
+          "imagePath": "symbols/bath_bubble.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/161ce087-a316-41d5-ab19-7a8a0eedb737.mp3",
+          "defaultAudioPath": "audio/eng/default/out.mp3",
+          "description": {
+            "en": "get out the bath",
+            "es": "Salir de la bañera",
+            "hi": "नहाने से बाहर आओ"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/161ce087-a316-41d5-ab19-7a8a0eedb737.mp3",
+          "imagePath": "symbols/out.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00055149.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00055149.mp3",
+          "description": {
+            "en": "dry off",
+            "es": "Secarse",
+            "hi": "पोंछ लो"
+          },
+          "imagePath": "symbols/symbol00055149.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/c560f172-0514-464d-b45d-d84363d2e047.mp3",
+          "defaultAudioPath": "audio/eng/default/get_dressed.mp3",
+          "description": {
+            "en": "pyjamas",
+            "es": "Pijama",
+            "hi": "पायजामा"
+          },
+          "generatedAudioPath": "audio/en-GB-News-M/tts/c560f172-0514-464d-b45d-d84363d2e047.mp3",
+          "imagePath": "symbols/get_dressed.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        }
+      ],
+      "name": {
+        "en": "Bath time",
+        "es": "Hora del baño",
+        "hi": "नहाने का समय"
+      },
+      "order": 7,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    }
+  ],
+  "name": {
+    "en": "Life skills"
+  },
+  "slug": "life-skills",
+  "tree": "lists"
+}

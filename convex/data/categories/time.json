@@ -1,0 +1,316 @@
+{
+  "colour": "#0EA5E9",
+  "coverImagePath": "symbols/clock_blank.png",
+  "defaultTier": "free",
+  "icon": "⏰",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#0EA5E9",
+      "icon": "⏰",
+      "imagePath": "symbols/clock_blank.png",
+      "name": {
+        "en": "Time",
+        "es": "Tiempo",
+        "hi": "समय"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "April",
+            "es": "abril",
+            "hi": "अप्रैल"
+          },
+          "order": 0,
+          "symbolId": "kn71aac8bfn5pszw6ffje7s23184nr5h"
+        },
+        {
+          "labelOverride": {
+            "en": "spring",
+            "es": "primavera",
+            "hi": "वसंत"
+          },
+          "order": 1,
+          "symbolId": "kn77at46yk8rrv86k9cba6tba584m2n6"
+        },
+        {
+          "labelOverride": {
+            "en": "summer",
+            "es": "verano",
+            "hi": "गर्मी"
+          },
+          "order": 2,
+          "symbolId": "kn74zrft822mmaby971thnag6984mw1b"
+        },
+        {
+          "labelOverride": {
+            "en": "autumn",
+            "es": "Otoño",
+            "hi": "पतझड़"
+          },
+          "order": 3,
+          "symbolId": "kn78gdhmb6rwxpax1ytspn4zrx84n7mg"
+        },
+        {
+          "labelOverride": {
+            "en": "winter",
+            "es": "invierno",
+            "hi": "सर्दी"
+          },
+          "order": 4,
+          "symbolId": "kn76822h893j53p57y13vjw7zn84n3f3"
+        },
+        {
+          "labelOverride": {
+            "en": "March",
+            "es": "marzo",
+            "hi": "March"
+          },
+          "order": 5,
+          "symbolId": "kn790eeby896yecvty44qz025n84mdem"
+        },
+        {
+          "labelOverride": {
+            "en": "May",
+            "es": "mayo",
+            "hi": "मई"
+          },
+          "order": 6,
+          "symbolId": "kn71qnsy4apb7y1m851k3fae5584mjsn"
+        },
+        {
+          "labelOverride": {
+            "en": "morning",
+            "es": "mañana",
+            "hi": "सुबह"
+          },
+          "order": 7,
+          "symbolId": "kn7dszfm8xags4y3dy4kg4hnz984ngb4"
+        },
+        {
+          "labelOverride": {
+            "en": "afternoon",
+            "es": "Tarde",
+            "hi": "दोपहर"
+          },
+          "order": 8,
+          "symbolId": "kn7cg88bfynmqc0kga1d5njtms84mqbr"
+        },
+        {
+          "labelOverride": {
+            "en": "evening",
+            "es": "tarde",
+            "hi": "शाम"
+          },
+          "order": 9,
+          "symbolId": "kn7ffkc6gtqb50reapwzrf93qn84mvdm"
+        },
+        {
+          "labelOverride": {
+            "en": "night",
+            "es": "noche",
+            "hi": "रात"
+          },
+          "order": 10,
+          "symbolId": "kn70kkhhp242qgpmjp1dexgpn584nac4"
+        },
+        {
+          "labelOverride": {
+            "en": "bedtime",
+            "es": "hora de dormir",
+            "hi": "सोने का समय"
+          },
+          "order": 11,
+          "symbolId": "kn70a2j4sm3y22e5q2w4qtattn84mbkd"
+        },
+        {
+          "labelOverride": {
+            "en": "today",
+            "es": "hoy",
+            "hi": "आज"
+          },
+          "order": 12,
+          "symbolId": "kn78d5kdrxqvbhvns0pk1zrjm984m3fz"
+        },
+        {
+          "labelOverride": {
+            "en": "tomorrow",
+            "es": "mañana",
+            "hi": "कल"
+          },
+          "order": 13,
+          "symbolId": "kn79qqnrf66epydj4njfxm85x984m63d"
+        },
+        {
+          "labelOverride": {
+            "en": "yesterday",
+            "es": "ayer",
+            "hi": "कल"
+          },
+          "order": 14,
+          "symbolId": "kn7885k2f32wzhw3mc2fwccqzn84mg8j"
+        },
+        {
+          "labelOverride": {
+            "en": "now",
+            "es": "ahora",
+            "hi": "अब"
+          },
+          "order": 15,
+          "symbolId": "kn7fcvvwthszkgm2qt3bcv5dq184ndd2"
+        },
+        {
+          "labelOverride": {
+            "en": "soon",
+            "es": "pronto",
+            "hi": "जल्दी"
+          },
+          "order": 16,
+          "symbolId": "kn7ek7trn00cc14m6qq06nynrx84n16h"
+        },
+        {
+          "labelOverride": {
+            "en": "later",
+            "es": "más tarde",
+            "hi": "बाद में"
+          },
+          "order": 17,
+          "symbolId": "kn7b04vk7wgbfqx1pg8crgy8px84n8z4"
+        },
+        {
+          "labelOverride": {
+            "en": "before",
+            "es": "antes",
+            "hi": "पहले"
+          },
+          "order": 18,
+          "symbolId": "kn74096vxg71g3ba4axvfgrzhn84mm49"
+        },
+        {
+          "labelOverride": {
+            "en": "after",
+            "es": "Después",
+            "hi": "बाद"
+          },
+          "order": 19,
+          "symbolId": "kn72wfzwmkjd7eg267jqwbxp9x84nkan"
+        },
+        {
+          "labelOverride": {
+            "en": "first",
+            "es": "primero",
+            "hi": "पहला"
+          },
+          "order": 20,
+          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
+        },
+        {
+          "labelOverride": {
+            "en": "last",
+            "es": "último",
+            "hi": "आखिरी"
+          },
+          "order": 21,
+          "symbolId": "kn75vac87h0ppax18z0mxh4bn984m5n2"
+        },
+        {
+          "labelOverride": {
+            "en": "next",
+            "es": "siguiente",
+            "hi": "अगला"
+          },
+          "order": 22,
+          "symbolId": "kn7ee061xpaje5mvrrj3y5xx4x84nax3"
+        },
+        {
+          "labelOverride": {
+            "en": "early",
+            "es": "temprano",
+            "hi": "जल्दी"
+          },
+          "order": 23,
+          "symbolId": "kn7efc5c49x85qafnyjp3gbwzh84m055"
+        },
+        {
+          "labelOverride": {
+            "en": "always",
+            "es": "siempre",
+            "hi": "हमेशा"
+          },
+          "order": 24,
+          "symbolId": "kn7f2fxkva09ftp17g9harn5yh84mrv6"
+        },
+        {
+          "labelOverride": {
+            "en": "never",
+            "es": "nunca",
+            "hi": "कभी नहीं"
+          },
+          "order": 25,
+          "symbolId": "kn7eprn7mkxr4h2b2rfy5ax1rd84mkx4"
+        },
+        {
+          "labelOverride": {
+            "en": "sometimes",
+            "es": "a veces",
+            "hi": "कभी-कभी"
+          },
+          "order": 26,
+          "symbolId": "kn73fzvbt8qdmn5nwarnx9xgtx84ma6n"
+        },
+        {
+          "labelOverride": {
+            "en": "minute",
+            "es": "Minuto",
+            "hi": "मिनट"
+          },
+          "order": 27,
+          "symbolId": "kn7dprmdt4jandjg8jx2d8d64h84n0rg"
+        },
+        {
+          "labelOverride": {
+            "en": "hour",
+            "es": "hora",
+            "hi": "घंटा"
+          },
+          "order": 28,
+          "symbolId": "kn76tdyrhc036mfrsvcwy10zf184m6ae"
+        },
+        {
+          "labelOverride": {
+            "en": "week",
+            "es": "Semana",
+            "hi": "हफ़्ता"
+          },
+          "order": 29,
+          "symbolId": "kn73bwghrb6v08wayzac0rbmt584npqr"
+        },
+        {
+          "labelOverride": {
+            "en": "year",
+            "es": "año",
+            "hi": "साल"
+          },
+          "order": 30,
+          "symbolId": "kn7a93mxmbt0gxbsb1r8vbe12n84ne71"
+        },
+        {
+          "labelOverride": {
+            "en": "birthday",
+            "es": "cumpleaños",
+            "hi": "जन्मदिन"
+          },
+          "order": 31,
+          "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Time",
+    "es": "Tiempo",
+    "hi": "समय"
+  },
+  "slug": "time",
+  "tree": "categories"
+}

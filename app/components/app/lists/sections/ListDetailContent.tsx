@@ -11,6 +11,7 @@ import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { ArrowLeft, ListOrdered, CheckSquare, Bookmark, Library } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -88,6 +89,12 @@ export function ListDetailContent({ listId }: Props) {
   const [nameDraft, setNameDraft] = useState('');
 
   const list = useQuery(api.profileLists.getProfileListWithItems, { profileListId: listId });
+  // Group this list belongs to (ADR-014) — drives the Lists › <group> › <list>
+  // breadcrumb + the banner back chevron.
+  const folder = useQuery(
+    api.profileFolders.getProfileFolder,
+    list?.folderId ? { folderId: list.folderId } : 'skip',
+  );
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
@@ -135,9 +142,20 @@ export function ListDetailContent({ listId }: Props) {
   useEffect(() => {
     if (!list) return;
     const label = displayString(list.name, language, DEFAULT_LOCALE);
-    setBreadcrumbExtra({ label });
+    const listCrumb = { label };
+    // Lists › <group|Ungrouped> › <list>.
+    const groupLabel = list.folderId
+      ? folder
+        ? displayString(folder.name, language, DEFAULT_LOCALE)
+        : null
+      : t('ungrouped');
+    if (groupLabel) {
+      setBreadcrumbExtra([{ label: groupLabel }, listCrumb]);
+    } else {
+      setBreadcrumbExtra(listCrumb);
+    }
     return () => setBreadcrumbExtra(null);
-  }, [list, language, setBreadcrumbExtra]);
+  }, [list, folder, language, t, setBreadcrumbExtra]);
 
   // Keep the editable-title draft in sync with the server name. Runs on
   // load and on any remote rename / locale switch; also restores the
@@ -375,8 +393,18 @@ export function ListDetailContent({ listId }: Props) {
     onItemClick: (index: number) => setPlayModal({ item: localItems[index], index }),
   };
 
+  // Group colour tint (ADR-014) — colour-codes this list's banner + item cards
+  // with its group's colour (via `--group-card`). Unset when the list has no
+  // group / no colour.
+  const groupTint = folder?.colour
+    ? `color-mix(in srgb, ${getCategoryColour(folder.colour).c500} 30%, transparent)`
+    : undefined;
+
   return (
-    <div className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}>
+    <div
+      className={`p-theme-mobile-general md:p-theme-general flex flex-col gap-theme-mobile-gap md:gap-theme-gap${isColumns ? ' h-full overflow-hidden' : ''}`}
+      style={groupTint ? ({ '--group-card': groupTint } as React.CSSProperties) : undefined}
+    >
 
       {/* Admin disclaimer — visible only when admin in admin viewMode is
           editing a list that's published to a pack. */}
@@ -405,6 +433,12 @@ export function ListDetailContent({ listId }: Props) {
           )}
           <PageBanner
             title={listName}
+            backHref={`/${locale}/lists/folder/${list.folderId ?? 'ungrouped'}`}
+            backLabel={t('groupBack', {
+              name: folder
+                ? displayString(folder.name, language, DEFAULT_LOCALE)
+                : t('ungrouped'),
+            })}
             titleSlot={isEditing ? (
               <input
                 type="text"

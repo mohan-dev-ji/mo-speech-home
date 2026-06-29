@@ -1,0 +1,173 @@
+{
+  "colour": "green",
+  "coverImagePath": "symbols/symbol00062051.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/df19507b-d9dd-4bbd-a695-649d13747cfd.mp3",
+      "name": {
+        "en": "I want to go outside",
+        "es": "Quiero salir afuera",
+        "hi": "मुझे बाहर जाना है"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I want to go outside",
+        "es": "Quiero salir",
+        "hi": "मुझे बाहर जाना है"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
+      "name": {
+        "en": "I'm hungry",
+        "es": "Tengo hambre",
+        "hi": "मुझे भूख लगी है"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/hungry_2.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I'm hungry",
+        "es": "Tengo hambre",
+        "hi": "मुझे भूख लगी है"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/1ccdf0a8-15b4-4827-8d3f-1bb7818963b3.mp3",
+      "name": {
+        "en": "I'm not hungry",
+        "es": "No tengo hambre",
+        "hi": "मुझे भूख नहीं लगी है"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_am_not_hungry.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I'm not hungry",
+        "es": "No tengo hambre",
+        "hi": "मुझे भूख नहीं लगी है"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/6080b5ed-151b-4f91-926d-48afe153a2aa.mp3",
+      "name": {
+        "en": "I'm thirsty",
+        "es": "Tengo sed",
+        "hi": "मुझे प्यास लगी है"
+      },
+      "order": 3,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/thirsty.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I'm thirsty",
+        "es": "Tengo sed",
+        "hi": "मुझे प्यास लगी है"
+      }
+    }
+  ],
+  "name": {
+    "en": "Talking about food"
+  },
+  "slug": "talking-about-food",
+  "tree": "sentences"
+}

@@ -19,7 +19,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash2, Move, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X, FolderInput } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
@@ -30,8 +30,10 @@ import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -60,6 +62,7 @@ type ListRow = {
   publishedToPackId?: Id<'resourcePacks'>;
   packSlug?: string;
   librarySourceId?: string;
+  folderId?: Id<'profileFolders'>;
 };
 
 type AdminPacksStatus = {
@@ -129,6 +132,7 @@ type SortableListRowProps = {
   onEditNameSave: () => void;
   onEditNameCancel: () => void;
   onDeleteRequest: (id: Id<'profileLists'>, name: string) => void;
+  onMoveRequest: (id: Id<'profileLists'>, name: string) => void;
   onOpen: (id: Id<'profileLists'>) => void;
   adminPacks?: AdminPacksStatus;
 };
@@ -137,7 +141,7 @@ function SortableListRow({
   list, language, isEditing,
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
-  onDeleteRequest, onOpen,
+  onDeleteRequest, onMoveRequest, onOpen,
   adminPacks,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
@@ -167,7 +171,7 @@ function SortableListRow({
           'border-2 border-dashed',
           isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
         ].join(' ')}
-        style={{ background: 'var(--theme-card)' }}
+        style={{ background: 'var(--group-card, var(--theme-card))' }}
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
         <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
@@ -248,6 +252,13 @@ function SortableListRow({
                 <IconButton
                   size="sm"
                   variant="neutral"
+                  icon={<FolderInput />}
+                  label={t('moveToGroup')}
+                  onClick={(e) => { e.stopPropagation(); onMoveRequest(list._id, name); }}
+                />
+                <IconButton
+                  size="sm"
+                  variant="neutral"
                   className="cursor-grab active:cursor-grabbing touch-none"
                   icon={<Move />}
                   label={t('rowMove')}
@@ -265,7 +276,7 @@ function SortableListRow({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ListsModeContent() {
+export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('lists');
   const router = useRouter();
   const params = useParams();
@@ -273,6 +284,7 @@ export function ListsModeContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, stateFlags, viewMode } = useProfile();
+  const { setBreadcrumbExtra } = useBreadcrumb();
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
   const adminPacks = useQuery(
@@ -324,18 +336,78 @@ export function ListsModeContent() {
   const deleteList = useMutation(api.profileLists.deleteProfileList);
   const renameList = useMutation(api.profileLists.updateProfileListName);
   const reorderLists = useMutation(api.profileLists.reorderProfileLists);
+  const moveListToGroup = useMutation(api.profileFolders.moveListToGroup);
+
+  // ── Folder scoping (ADR-014 §2) ──────────────────────────────────────────
+  // Rendered under /lists/folder/[folderId]; show only that group's lists.
+  // "ungrouped" = lists with no folder. (The /lists root is the groups view.)
+  const isUngrouped = folderId === 'ungrouped';
+  const realFolderId =
+    folderId && !isUngrouped ? (folderId as Id<'profileFolders'>) : undefined;
+  const folderDoc = useQuery(
+    api.profileFolders.getProfileFolder,
+    realFolderId ? { folderId: realFolderId } : 'skip',
+  );
+  const scopedLists = useMemo(() => {
+    if (!lists || !folderId) return lists;
+    return lists.filter((l) =>
+      isUngrouped ? !l.folderId : l.folderId === realFolderId,
+    );
+  }, [lists, folderId, isUngrouped, realFolderId]);
+
+  // Breadcrumb: Lists › <group>
+  const folderName = isUngrouped
+    ? t('ungrouped')
+    : folderDoc
+      ? displayString(folderDoc.name, language, DEFAULT_LOCALE)
+      : '';
+  useEffect(() => {
+    if (!folderId || !folderName) return;
+    setBreadcrumbExtra({ label: folderName });
+    return () => setBreadcrumbExtra(null);
+  }, [folderId, folderName, setBreadcrumbExtra]);
+
+  // Group colour tint (ADR-014) — colour-codes the whole group view (banner +
+  // list cards) at the category-detail banner opacity. Exposed as `--group-card`
+  // on the root; surfaces read `var(--group-card, var(--theme-card))`. Unset for
+  // Ungrouped / colourless folders, so those fall back to the plain card.
+  const groupTint = folderDoc?.colour
+    ? `color-mix(in srgb, ${getCategoryColour(folderDoc.colour).c500} 30%, transparent)`
+    : undefined;
+
+  // Move-to-group dialog state. `moveSelection` is the chosen destination:
+  // a folder id, 'ungrouped', or null (nothing chosen yet).
+  const [moveTarget, setMoveTarget] = useState<{ id: Id<'profileLists'>; name: string } | null>(null);
+  const [moveSelection, setMoveSelection] = useState<Id<'profileFolders'> | 'ungrouped' | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
+  const groups = useQuery(api.profileFolders.getProfileFolders, { tree: 'lists' });
+
+  async function handleMoveConfirm() {
+    if (!moveTarget || !moveSelection) return;
+    setIsMoving(true);
+    try {
+      await moveListToGroup({
+        listId: moveTarget.id,
+        folderId: moveSelection === 'ungrouped' ? null : moveSelection,
+      });
+      setMoveTarget(null);
+      setMoveSelection(null);
+    } finally {
+      setIsMoving(false);
+    }
+  }
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   useEffect(() => {
-    if (!lists) return;
+    if (!scopedLists) return;
     setLocalOrder((prev) => {
-      const serverIds = lists.map((l) => l._id as string);
+      const serverIds = scopedLists.map((l) => l._id as string);
       const kept = prev.filter((id) => serverIds.includes(id));
       const added = serverIds.filter((id) => !prev.includes(id));
       return [...kept, ...added];
     });
-  }, [lists]);
+  }, [scopedLists]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -362,7 +434,10 @@ export function ListsModeContent() {
   }
 
   async function handleCreate(name: string, steps: string[]) {
-    const id = await createList({ name: { en: name } });
+    const id = await createList({
+      name: { en: name },
+      ...(realFolderId ? { folderId: realFolderId } : {}),
+    });
     const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
     if (nonEmpty.length > 0) {
       await updateListItems({
@@ -404,7 +479,7 @@ export function ListsModeContent() {
     setEditingNameId(null);
   }
 
-  const listMap = Object.fromEntries((lists ?? []).map((l) => [l._id, l]));
+  const listMap = Object.fromEntries((scopedLists ?? []).map((l) => [l._id, l]));
   const orderedLists = localOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
   // ── Filter visibility + options ──────────────────────────────────────────
@@ -462,10 +537,13 @@ export function ListsModeContent() {
 
   // Admin-view reminder: any list on screen that's published means
   // reorder / rename / delete here propagates to the live pack.
-  const hasPublishedList = !!lists?.some((l) => !!l.librarySourceId);
+  const hasPublishedList = !!scopedLists?.some((l) => !!l.librarySourceId);
 
   return (
-    <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
+    <div
+      className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap"
+      style={groupTint ? ({ '--group-card': groupTint } as React.CSSProperties) : undefined}
+    >
 
       <AdminPackEditingBanner visible={showAdminBadges && hasPublishedList} />
 
@@ -474,7 +552,11 @@ export function ListsModeContent() {
           on/off flag). Stays fixed at the top while the rows below scroll. */}
       {stateFlags.talker_visible && (
         <div className="shrink-0">
-          <PageBanner title={t('title')}>
+          <PageBanner
+            title={folderId ? folderName : t('title')}
+            backHref={folderId ? `/${locale}/lists` : undefined}
+            backLabel={t('groupBack', { name: t('groupsTitle') })}
+          >
             {/* In student-view the Edit/Create affordances appear only when the
                 instructor has granted `student_can_edit` (matches the detail
                 pages, which render their EditButton unconditionally inside the
@@ -508,7 +590,7 @@ export function ListsModeContent() {
       {/* Scrollable content area — banner above + modals below stay in
           their own non-scrolling slots. */}
       <div className="flex-1 overflow-auto">
-        {lists === undefined && (
+        {scopedLists === undefined && (
           <div className="flex justify-center py-12">
             <div
               className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
@@ -517,15 +599,15 @@ export function ListsModeContent() {
           </div>
         )}
 
-        {lists?.length === 0 && (
+        {scopedLists?.length === 0 && (
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('empty')}
+              {folderId ? t('groupEmpty') : t('empty')}
             </p>
           </div>
         )}
 
-        {lists && lists.length > 0 && filteredLists.length === 0 && packFilter !== 'all' && (
+        {scopedLists && scopedLists.length > 0 && filteredLists.length === 0 && packFilter !== 'all' && (
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
               {t('filterEmpty')}
@@ -550,6 +632,7 @@ export function ListsModeContent() {
                     onEditNameSave={handleEditNameSave}
                     onEditNameCancel={() => setEditingNameId(null)}
                     onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                    onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                     onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
                     adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
                   />
@@ -603,6 +686,67 @@ export function ListsModeContent() {
               style={{ background: 'var(--theme-warning)', color: '#fff' }}
             >
               {isDeleting ? t('deleting') : t('deleteButton')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move-to-group dialog — select a destination, then Move. Current group
+          is disabled. */}
+      <Dialog open={moveTarget !== null} onOpenChange={(open) => { if (!open) { setMoveTarget(null); setMoveSelection(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('moveToGroupTitle', { name: moveTarget?.name ?? '' })}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 max-h-[50vh] overflow-auto">
+            {(groups ?? []).map((g) => {
+              const isCurrent = realFolderId === g._id;
+              const isSelected = moveSelection === g._id;
+              return (
+                <button
+                  key={g._id}
+                  type="button"
+                  disabled={isCurrent}
+                  onClick={() => setMoveSelection(g._id)}
+                  className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors disabled:opacity-40"
+                  style={{
+                    background: isSelected ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
+                    color: isSelected ? 'var(--theme-alt-text)' : 'var(--theme-text)',
+                    border: `2px solid ${isSelected ? 'var(--theme-primary)' : 'transparent'}`,
+                  }}
+                >
+                  {displayString(g.name, language, DEFAULT_LOCALE)}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              disabled={isUngrouped}
+              onClick={() => setMoveSelection('ungrouped')}
+              className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors disabled:opacity-40"
+              style={{
+                background: moveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
+                color: moveSelection === 'ungrouped' ? 'var(--theme-alt-text)' : 'var(--theme-text)',
+                border: `2px solid ${moveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'transparent'}`,
+              }}
+            >
+              {t('ungrouped')}
+            </button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}>
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleMoveConfirm}
+              disabled={!moveSelection || isMoving}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
+              style={{ background: 'var(--theme-create)', color: '#fff' }}
+            >
+              {isMoving ? t('deleting') : t('moveToGroup')}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -1,0 +1,260 @@
+{
+  "colour": "#f97316",
+  "coverImagePath": "symbols/i_want_to_go.png",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "name": {
+        "en": "I want to go outside"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I want to go outside"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/c9360455-f32e-4f83-9361-b2776aa35369.mp3",
+      "name": {
+        "en": "I don't want it",
+        "es": "No lo quiero",
+        "hi": "मुझे यह नहीं चाहिए"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/do_not_want.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I don't want it",
+        "es": "No lo quiero",
+        "hi": "मुझे यह नहीं चाहिए"
+      }
+    },
+    {
+      "name": {
+        "en": "I need help"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00164331.png",
+          "order": 0
+        }
+      ],
+      "text": {
+        "en": "I need help"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/6f035756-5706-4113-9b7c-1ac376fb2438.mp3",
+      "name": {
+        "en": "More music please",
+        "es": "Más música por favor",
+        "hi": "और गाना चाहिए"
+      },
+      "order": 3,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/more.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00200772.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "More music please",
+        "es": "Más música, por favor",
+        "hi": "और गाना चाहिए"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/07af06f9-e80f-434b-83e9-527c8cbfa94b.mp3",
+      "name": {
+        "en": "Can I have some water",
+        "es": "¿Me das un poco de agua?",
+        "hi": "मुझे पानी चाहिए"
+      },
+      "order": 4,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00055288.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00195039.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "Can I have some water",
+        "es": "¿Puedo beber agua?",
+        "hi": "मुझे पानी चाहिए"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/696e4df2-81a9-47e0-bad7-e3e272ad274e.mp3",
+      "name": {
+        "en": "Look at me",
+        "es": "Mírame",
+        "hi": "मुझे देखो"
+      },
+      "order": 5,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/look.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/me.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "Look at me",
+        "es": "Mírame",
+        "hi": "मुझे देखो"
+      }
+    },
+    {
+      "audioPath": "audio/en-GB-News-M/tts/66e9e7f2-8457-4bed-b07a-7476d422839d.mp3",
+      "name": {
+        "en": "It's my turn",
+        "es": "Es mi turno",
+        "hi": "अब मेरी बारी है"
+      },
+      "order": 6,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my_turn.png",
+          "order": 0
+        }
+      ],
+      "text": {
+        "en": "It's my turn",
+        "es": "Es mi turno",
+        "hi": "अब मेरी बारी है"
+      }
+    }
+  ],
+  "name": {
+    "en": "Everyday phrases"
+  },
+  "slug": "everyday-phrases",
+  "tree": "sentences"
+}

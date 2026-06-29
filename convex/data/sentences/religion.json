@@ -1,0 +1,63 @@
+{
+  "coverImagePath": "symbols/pray.png",
+  "defaultTier": "free",
+  "description": {
+    "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
+    "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio.",
+    "hi": "विश्वास की बातें। प्रार्थना, पूजा, आशीर्वाद। ये वो शब्द हैं जो आप ज़्यादातर धर्मों में सुनेंगे। अपनी पसंद के शब्द जोड़ने से पहले एक शुरुआत।"
+  },
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/e62614ce-06ab-4d81-ae82-9a68b5d81c37.mp3",
+      "name": {
+        "en": "Let's be quiet for the prayer",
+        "es": "Vamos a hacer silencio para la oración",
+        "hi": "चलो प्रार्थना के लिए चुप रहें"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/quiet_time.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00081191.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "Let's be quiet for the prayer",
+        "es": "Vamos a hacer silencio para la oración",
+        "hi": "चलो प्रार्थना के लिए चुप रहें"
+      }
+    }
+  ],
+  "name": {
+    "en": "Religion",
+    "es": "Religión",
+    "hi": "धर्म"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "religion",
+  "tree": "sentences"
+}

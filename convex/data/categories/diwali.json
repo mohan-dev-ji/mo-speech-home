@@ -1,0 +1,161 @@
+{
+  "coverImagePath": "symbols/symbol00204004.png",
+  "defaultTier": "max",
+  "description": {
+    "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table.",
+    "es": "El festival de las luces con el vocabulario para la ocasión. Diyas, rangoli, los dulces por su nombre y la familia alrededor de la mesa.",
+    "hi": "रोशनी का त्योहार, जिसके लिए ज़रूरी शब्द हैं। दीये, रंगोली, मिठाइयों के नाम, और परिवार के साथ खाना।"
+  },
+  "items": [
+    {
+      "colour": "rose",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00204004.png",
+      "name": {
+        "en": "Diwali",
+        "es": "Diwali",
+        "hi": "दिवाली"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "festival activities"
+          },
+          "order": 0,
+          "symbolId": "kn715c1fsv5pzff0n4dyhrt5k984n2fb"
+        },
+        {
+          "labelOverride": {
+            "en": "Diwali lantern"
+          },
+          "order": 1,
+          "symbolId": "kn7ag5r5fp5f15pdvtjbhq1q2h84m14k"
+        },
+        {
+          "labelOverride": {
+            "en": "Diwali festival"
+          },
+          "order": 2,
+          "symbolId": "kn7fd5h7cnhmb42rks582h2m9d84myb3"
+        },
+        {
+          "labelOverride": {
+            "en": "Diwali"
+          },
+          "order": 3,
+          "symbolId": "kn7anb5dn392yr6swwcwb1fbrh84mrs8"
+        },
+        {
+          "labelOverride": {
+            "en": "happy"
+          },
+          "order": 4,
+          "symbolId": "kn77edpvpxsk4vrww1k88ngb5h84mjrx"
+        },
+        {
+          "labelOverride": {
+            "en": "diya"
+          },
+          "order": 5,
+          "symbolId": "kn7b0vhn8mmz51tbp4ebx7aae584nvc2"
+        },
+        {
+          "labelOverride": {
+            "en": "rangoli"
+          },
+          "order": 6,
+          "symbolId": "kn77dds5gn088y4gdavg76tbc984n51a"
+        },
+        {
+          "labelOverride": {
+            "en": "fireworks"
+          },
+          "order": 7,
+          "symbolId": "kn77hza6dr0atkrsaqfsqt2wss84n90a"
+        },
+        {
+          "labelOverride": {
+            "en": "sweets"
+          },
+          "order": 8,
+          "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
+        },
+        {
+          "labelOverride": {
+            "en": "gifts"
+          },
+          "order": 9,
+          "symbolId": "kn75nbjpjksbp1czsw9me2cfr584mjn9"
+        },
+        {
+          "labelOverride": {
+            "en": "India"
+          },
+          "order": 10,
+          "symbolId": "kn79261k3jnw2jzeps1tztd4zh84mmrv"
+        },
+        {
+          "labelOverride": {
+            "en": "new clothes"
+          },
+          "order": 11,
+          "symbolId": "kn724bxcxtk2mtc38ddbxdp3cn84mscq"
+        },
+        {
+          "labelOverride": {
+            "en": "blessed"
+          },
+          "order": 12,
+          "symbolId": "kn7c6e0vr391z7hjrqxrtkdw2184n0q3"
+        },
+        {
+          "labelOverride": {
+            "en": "lights"
+          },
+          "order": 13,
+          "symbolId": "kn75kxkw4rmbvzms1qaat9s3wx84ncb4"
+        },
+        {
+          "labelOverride": {
+            "en": "family"
+          },
+          "order": 14,
+          "symbolId": "kn76k525dn6h32rd8w2nb10hv984men6"
+        },
+        {
+          "labelOverride": {
+            "en": "prayer"
+          },
+          "order": 15,
+          "symbolId": "kn7bz6r742s7sm9p122rs7pze184mgfj"
+        },
+        {
+          "labelOverride": {
+            "en": "sparkler"
+          },
+          "order": 16,
+          "symbolId": "kn76xgd99zdfak19xw2rapnzd984nv3f"
+        },
+        {
+          "labelOverride": {
+            "en": "candle"
+          },
+          "order": 17,
+          "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Diwali",
+    "es": "Diwali",
+    "hi": "दिवाली"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "diwali",
+  "tree": "categories"
+}

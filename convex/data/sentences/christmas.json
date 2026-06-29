@@ -1,0 +1,87 @@
+{
+  "coverImagePath": "symbols/symbol00059081.png",
+  "defaultTier": "max",
+  "description": {
+    "en": "Everything they want to point at in December. The tree, the presents, the bit of pudding nobody likes. Words for the whole day.",
+    "es": "Todo lo que quieren señalar en diciembre. El árbol, los regalos, el trocito de pudín que a nadie le gusta. Palabras para todo el día.",
+    "hi": "दिसंबर में वो सब कुछ जिस पर वो उंगली रखना चाहते हैं। पेड़, तोहफ़े, वो पुडिंग का टुकड़ा जो किसी को पसंद नहीं। पूरे दिन के लिए शब्द।"
+  },
+  "items": [
+    {
+      "audioPath": "audio/en-GB-News-M/tts/d6c59a86-0b13-410c-ba97-0e952346764a.mp3",
+      "name": {
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos",
+        "hi": "मुझे अपने तोहफ़े खोलने हैं"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/open_2.png",
+          "order": 2
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00188421.png",
+          "order": 3
+        }
+      ],
+      "text": {
+        "en": "I want to open my presents",
+        "es": "Quiero abrir mis regalos",
+        "hi": "मुझे अपने तोहफ़े खोलने हैं"
+      }
+    }
+  ],
+  "name": {
+    "en": "Christmas",
+    "es": "Navidad",
+    "hi": "क्रिसमस"
+  },
+  "provenance": {
+    "author": "Mo Speech",
+    "licence": "proprietary",
+    "version": "1"
+  },
+  "slug": "christmas",
+  "tree": "sentences"
+}
