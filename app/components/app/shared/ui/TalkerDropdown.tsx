@@ -14,7 +14,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronLeft, Hash, Type } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { SymbolCard } from './SymbolCard';
@@ -66,8 +66,23 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // the frame after open so the CSS transition runs; `motion-reduce:` snaps it
   // open under OS reduced-motion.
   const [entered, setEntered]     = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
+
+  // One-tap backfill of the Phase-14 defaults (core-word categories + phrase
+  // banks) into the caller's account — for accounts created before these
+  // defaults shipped (seedDefaultAccount only fires at creation). Idempotent;
+  // the core/bank queries refresh reactively once it resolves.
+  const installDefaults = useMutation(api.profilePhrases.installDefaultBanksAndCore);
+  async function handleLoadDefaults() {
+    setLoadingDefaults(true);
+    try {
+      await installDefaults({});
+    } finally {
+      setLoadingDefaults(false);
+    }
+  }
 
   function openPanel() {
     const r = barRef.current?.getBoundingClientRect();
@@ -209,10 +224,21 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         ))}
         <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'numbers' })} />
         <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'letters' })} />
-        {coreCats.length === 0 && (
-          <span className="text-caption opacity-60 self-center" style={{ color: 'var(--theme-nav-text)' }}>
-            {t('emptyCore')}
-          </span>
+        {coreCats.length === 0 && coreCategories !== undefined && (
+          <div className="flex flex-col items-start gap-2 self-center">
+            <span className="text-caption opacity-60" style={{ color: 'var(--theme-nav-text)' }}>
+              {t('emptyCore')}
+            </span>
+            <button
+              type="button"
+              onClick={handleLoadDefaults}
+              disabled={loadingDefaults}
+              className="rounded-theme-sm px-4 py-2 text-body font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: 'var(--theme-brand-primary)', color: '#fff' }}
+            >
+              {loadingDefaults ? t('loadingDefaults') : t('loadDefaults')}
+            </button>
+          </div>
         )}
       </div>
     );
