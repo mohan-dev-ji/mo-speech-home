@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
 import { Header } from '@/app/components/app/shared/ui/Header';
+import type { QuickSymbolItem } from '@/app/components/app/shared/ui/Header';
 import { PlayModal } from '@/app/components/app/shared/modals/PlayModal';
 
 // Route segments where the talker is allowed to replace the page banner.
@@ -37,7 +38,7 @@ function playAudio(audioPath: string) {
 
 export function PersistentTalker() {
   const { stateFlags, language } = useProfile();
-  const { talkerSymbols, talkerMode, addToTalker, clearTalker } = useTalker();
+  const { talkerSymbols, talkerMode, addToTalker, removeFromTalker, reorderTalker, clearTalker } = useTalker();
   const pathname = usePathname();
 
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
@@ -88,13 +89,18 @@ export function PersistentTalker() {
     if (!cancelSequenceRef.current) setPlayModal(null);
   }
 
-  function handleQuickSymbolTap(item: { symbolId: string; label: string; imagePath?: string; audioPath?: string }) {
+  function handleQuickSymbolTap(item: QuickSymbolItem) {
     if (item.audioPath) playAudio(item.audioPath);
     addToTalker({
       symbolId: item.symbolId,
       label: item.label,
       imagePath: item.imagePath,
       audioPath: item.audioPath,
+      // Phrase units carry their kind + name + decomposition through to the bar
+      // (ADR-015). Word units leave these undefined and behave as before.
+      ...(item.kind ? { kind: item.kind } : {}),
+      ...(item.phraseName ? { phraseName: item.phraseName } : {}),
+      ...(item.words ? { words: item.words } : {}),
     });
   }
 
@@ -110,6 +116,8 @@ export function PersistentTalker() {
           onPlaySentence={handlePlaySentence}
           onClear={clearTalker}
           onQuickSymbolTap={handleQuickSymbolTap}
+          onRemove={removeFromTalker}
+          onReorder={reorderTalker}
         />
       </div>
 

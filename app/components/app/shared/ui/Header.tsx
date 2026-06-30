@@ -30,6 +30,8 @@ type HeaderProps = {
   onClear: () => void;
   onSave?: () => void;
   onQuickSymbolTap: (item: QuickSymbolItem) => void;
+  onRemove?: (instanceId: string) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -43,6 +45,8 @@ export function Header({
   onClear,
   onSave,
   onQuickSymbolTap,
+  onRemove,
+  onReorder,
 }: HeaderProps) {
   const t = useTranslations('talker');
 
@@ -64,6 +68,8 @@ export function Header({
             symbols={symbols}
             placeholder={placeholder}
             onChipTap={onChipTap}
+            onRemove={onRemove}
+            onReorder={onReorder}
           />
 
           {/* Control buttons — play / clear / save */}
