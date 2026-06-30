@@ -26,6 +26,9 @@ import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { getCategoryColour } from '@/app/lib/categoryColours';
+
+const ZINC = getCategoryColour('zinc');
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -93,6 +96,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     api.symbols.getSymbolsByWords,
     isOpen && activeTab === 'letters'      ? { words: LETTERS }           : 'skip'
   );
+  // Phrase banks (ADR-015) — the dropdown's reusable-chunk tabs. One query
+  // returns each phrases-tree folder with its phrases nested.
+  const phraseBanks = useQuery(
+    api.profilePhrases.getPhraseBanks,
+    isOpen ? {} : 'skip'
+  );
+  const banks = phraseBanks ?? [];
 
   // O(1) word → symbol lookup — built from whichever query is active
   function buildMap(symbols: typeof groupSymbols) {
@@ -102,6 +112,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   function getTabLabel(id: TabId): string {
     if (id === 'numbers') return t('tabNumbers');
     if (id === 'letters') return t('tabLetters');
+    if (id.startsWith('bank-')) {
+      const bank = banks.find((b) => `bank-${b.folderId}` === id);
+      return bank ? displayString(bank.name, language, DEFAULT_LOCALE) : id;
+    }
     const group = LITTLE_WORDS_GROUPS.find((g) => g.id === id);
     if (!group) return id;
     return displayString(group.name, language, DEFAULT_LOCALE);
@@ -111,6 +125,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     ...GROUP_TABS.map((g) => g.id),
     'numbers',
     'letters',
+    ...banks.map((b) => `bank-${b.folderId}`),
   ];
 
   function handleTap(item: QuickSymbolItem) {
@@ -167,7 +182,50 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   function renderItems() {
     if (activeTab === 'numbers') return renderWordList(NUMBERS, numberSymbols);
     if (activeTab === 'letters') return renderWordList(LETTERS, letterSymbols);
-    return renderWordList(activeGroup!.words, groupSymbols);
+    if (activeTab.startsWith('bank-') || !activeGroup) return null;
+    return renderWordList(activeGroup.words, groupSymbols);
+  }
+
+  // Phrase-bank tab: zinc phrase cards. Tapping inserts a phrase-unit into the
+  // talker (ADR-015) — carries its decomposition (words) + its own clip.
+  function renderPhraseBank() {
+    const bank = banks.find((b) => `bank-${b.folderId}` === activeTab);
+    if (!bank) return null;
+    if (bank.phrases.length === 0) {
+      return (
+        <span className="text-caption opacity-60 self-center" style={{ color: 'var(--theme-nav-text)' }}>
+          {t('emptyBank')}
+        </span>
+      );
+    }
+    return bank.phrases.map((p) => {
+      const name = displayString(p.name, language, DEFAULT_LOCALE);
+      const audioPath = p.recordedAudioPath ?? p.audioPath ?? undefined;
+      // Word list for the bar's phrase-unit — RAW imagePath keys (the bar builds
+      // the /api/assets URL itself).
+      const words = p.words.map((w) => ({
+        imagePath: w.imagePath,
+        audioPath: w.audioPath,
+        label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
+      }));
+      return (
+        <PhraseDropdownCard
+          key={p._id}
+          name={name}
+          words={words}
+          onTap={() =>
+            handleTap({
+              symbolId: `phrase-${p._id}`,
+              label: name,
+              kind: 'phrase',
+              phraseName: name,
+              audioPath,
+              words,
+            })
+          }
+        />
+      );
+    });
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -236,17 +294,75 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 ))}
               </div>
 
-              {/* Scrollable symbol grid — columns follow the active profile's
-                  grid_size (instructor or student), same as the board. */}
+              {/* Content: phrase banks render as zinc cards in a wrap; word
+                  tabs use the symbol grid (columns follow grid_size). */}
               <div className="flex-1 overflow-y-auto px-4 pb-2">
-                <CategoryBoardGrid>
-                  {renderItems()}
-                </CategoryBoardGrid>
+                {activeTab.startsWith('bank-') ? (
+                  <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
+                ) : (
+                  <CategoryBoardGrid>{renderItems()}</CategoryBoardGrid>
+                )}
               </div>
             </div>
           </>,
           document.body
         )}
     </>
+  );
+}
+
+// ─── Phrase card (zinc box) for a phrase-bank tab ───────────────────────────────
+
+function PhraseDropdownCard({
+  name,
+  words,
+  onTap,
+}: {
+  name: string;
+  words: { imagePath?: string; label: string }[];
+  onTap: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onTap}
+      aria-label={name}
+      className="flex flex-col items-center gap-2 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
+      style={{ background: ZINC.c500 }}
+    >
+      <div className="flex items-end gap-2">
+        {words.length === 0 ? (
+          <div className="w-20 h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
+        ) : (
+          words.map((w, i) => (
+            <div
+              key={i}
+              className="w-20 h-20 rounded-theme-sm overflow-hidden flex items-center justify-center"
+              style={{ background: ZINC.c100 }}
+            >
+              {w.imagePath ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={`/api/assets?key=${w.imagePath}`}
+                  alt={w.label}
+                  className="w-full h-full object-contain p-1.5"
+                  draggable={false}
+                />
+              ) : (
+                <span className="text-caption px-1 text-center" style={{ color: ZINC.c700 }}>
+                  {w.label}
+                </span>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      <span
+        className="text-caption font-medium rounded-full px-3 py-0.5"
+        style={{ background: ZINC.c700, color: '#fff' }}
+      >
+        {name}
+      </span>
+    </button>
   );
 }

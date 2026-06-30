@@ -375,7 +375,8 @@
     "closeDropdown": "Close quick symbols",
     "tabCoreWords": "Core Words",
     "tabNumbers": "Numbers",
-    "tabLetters": "Letters"
+    "tabLetters": "Letters",
+    "emptyBank": "No phrases yet — build one to fill this bank."
   },
   "categoryDetail": {
     "back": "Categories",
