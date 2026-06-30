@@ -1,26 +1,25 @@
 "use client";
 
-// Quick-access dropdown — the bottom section of the Talker rectangle.
+// Quick-access dropdown — the bottom section of the Talker rectangle (ADR-015).
 //
-// Closed: a full-width inline bar (a chevron). It sits inside the Talker's
-//   `overflow-clip rounded-theme-card` wrapper, so it's clipped into the
-//   rectangle's bottom edge. Fill = `primary-25`, with a top hairline.
+// Tab 1 "Core words": tiles for the core-word categories (+ Numbers, Letters).
+//   Tapping a tile drills into its symbols. Core words are the structural layer
+//   (zinc), pinned for motor planning.
+// Tabs 2+ : phrase banks — reusable chunks; tapping inserts a phrase-unit.
 //
-// Open: a portal-rendered overlay panel. It self-measures the inline bar to
-//   anchor itself (top = bar top, full bar width) and expands to the viewport
-//   bottom, overlaying page content. Bottom corners rounded so it reads as the
-//   rectangle growing downward.
+// Closed: a chevron bar clipped into the rectangle's bottom edge. Open: a portal
+// overlay that slides down from the chevron and overlays the page.
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Hash, Type } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
 import { SymbolCard } from './SymbolCard';
 import { NavTabButton } from './NavTabButton';
 import { CategoryBoardGrid } from './CategoryBoardGrid';
-import { LITTLE_WORDS_GROUPS } from '@/convex/data/defaultCategorySymbols';
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
@@ -36,13 +35,17 @@ const ZINC = getCategoryColour('zinc');
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '20'];
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
-
-type TabId = 'numbers' | 'letters' | string;
-
-const GROUP_TABS = LITTLE_WORDS_GROUPS.map((g) => ({ id: g.id, name: g.name }));
-
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+// 'core' = the Core-words tab; `bank-<folderId>` = a phrase bank.
+type TabId = 'core' | string;
+
+// Drill-in state inside the Core-words tab. null = the tile grid.
+type CoreSel =
+  | null
+  | { kind: 'category'; id: Id<'profileCategories'>; name: string }
+  | { kind: 'numbers' }
+  | { kind: 'letters' };
 
 type TalkerDropdownProps = {
   language: string;
@@ -55,12 +58,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
   const { voiceId } = useProfile();
   const [isOpen, setIsOpen]       = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>(LITTLE_WORDS_GROUPS[0].id);
+  const [activeTab, setActiveTab] = useState<TabId>('core');
+  const [coreSel, setCoreSel]     = useState<CoreSel>(null);
   const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 0 });
   // Entry animation: the panel slides down from the chevron so it reads as a
-  // surface layer settling on top of the navigated category (ADR-015 / Slice 4).
-  // `entered` flips on the frame after open so the CSS transition runs; the
-  // `motion-reduce:` variant makes it snap open under OS reduced-motion.
+  // surface layer settling on top of the navigated category. `entered` flips on
+  // the frame after open so the CSS transition runs; `motion-reduce:` snaps it
+  // open under OS reduced-motion.
   const [entered, setEntered]     = useState(false);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
@@ -80,91 +84,82 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     return () => cancelAnimationFrame(id);
   }, [isOpen]);
 
-  const activeGroup = LITTLE_WORDS_GROUPS.find((g) => g.id === activeTab);
-
-  // All three queries use 'skip' unless the dropdown is open on the matching tab.
-  // Convex caches per args so switching back to a viewed tab costs nothing.
-  const groupSymbols  = useQuery(
-    api.symbols.getSymbolsByWords,
-    isOpen && activeGroup                  ? { words: activeGroup.words } : 'skip'
+  // ── Queries — all 'skip' unless the dropdown is open on the matching view.
+  //    Convex caches per args so re-visiting a view costs nothing.
+  const coreCategories = useQuery(
+    api.profileCategories.getCoreWordCategories,
+    isOpen ? {} : 'skip'
+  );
+  const coreSymbols = useQuery(
+    api.profileCategories.getProfileSymbolsWithImages,
+    isOpen && coreSel?.kind === 'category'
+      ? { profileCategoryId: coreSel.id, voiceId }
+      : 'skip'
   );
   const numberSymbols = useQuery(
     api.symbols.getSymbolsByWords,
-    isOpen && activeTab === 'numbers'      ? { words: NUMBERS }           : 'skip'
+    isOpen && coreSel?.kind === 'numbers' ? { words: NUMBERS } : 'skip'
   );
   const letterSymbols = useQuery(
     api.symbols.getSymbolsByWords,
-    isOpen && activeTab === 'letters'      ? { words: LETTERS }           : 'skip'
+    isOpen && coreSel?.kind === 'letters' ? { words: LETTERS } : 'skip'
   );
-  // Phrase banks (ADR-015) — the dropdown's reusable-chunk tabs. One query
-  // returns each phrases-tree folder with its phrases nested.
+  // Phrase banks (ADR-015) — the reusable-chunk tabs. One query returns each
+  // phrases-tree folder with its phrases nested.
   const phraseBanks = useQuery(
     api.profilePhrases.getPhraseBanks,
     isOpen ? {} : 'skip'
   );
   const banks = phraseBanks ?? [];
+  const coreCats = coreCategories ?? [];
 
-  // O(1) word → symbol lookup — built from whichever query is active
-  function buildMap(symbols: typeof groupSymbols) {
+  // O(1) word → symbol lookup — built from a getSymbolsByWords result.
+  function buildMap(symbols: typeof numberSymbols) {
     return new Map((symbols ?? []).map((s) => [s.words.en ?? '', s]));
   }
 
   function getTabLabel(id: TabId): string {
-    if (id === 'numbers') return t('tabNumbers');
-    if (id === 'letters') return t('tabLetters');
-    if (id.startsWith('bank-')) {
-      const bank = banks.find((b) => `bank-${b.folderId}` === id);
-      return bank ? displayString(bank.name, language, DEFAULT_LOCALE) : id;
-    }
-    const group = LITTLE_WORDS_GROUPS.find((g) => g.id === id);
-    if (!group) return id;
-    return displayString(group.name, language, DEFAULT_LOCALE);
+    if (id === 'core') return t('tabCoreWords');
+    const bank = banks.find((b) => `bank-${b.folderId}` === id);
+    return bank ? displayString(bank.name, language, DEFAULT_LOCALE) : id;
   }
 
-  const allTabs: TabId[] = [
-    ...GROUP_TABS.map((g) => g.id),
-    'numbers',
-    'letters',
-    ...banks.map((b) => `bank-${b.folderId}`),
-  ];
+  const allTabs: TabId[] = ['core', ...banks.map((b) => `bank-${b.folderId}`)];
+
+  function selectTab(id: TabId) {
+    setActiveTab(id);
+    if (id !== 'core') setCoreSel(null);
+  }
 
   function handleTap(item: QuickSymbolItem) {
     onSymbolTap(item);
   }
 
-  // ── Symbol grid content ───────────────────────────────────────────────────
+  // ── Renderers ───────────────────────────────────────────────────────────────
 
-  function renderWordList(words: string[], symbols: typeof groupSymbols) {
-    if (symbols === undefined) {
-      return (
-        <div className="col-span-full flex items-center justify-center py-8">
-          <div
-            className="w-5 h-5 rounded-full border-2 animate-spin"
-            style={{ borderColor: 'var(--theme-nav-text)', borderTopColor: 'transparent' }}
-          />
-        </div>
-      );
-    }
+  function spinner() {
+    return (
+      <div className="col-span-full flex items-center justify-center py-8">
+        <div
+          className="w-5 h-5 rounded-full border-2 animate-spin"
+          style={{ borderColor: 'var(--theme-nav-text)', borderTopColor: 'transparent' }}
+        />
+      </div>
+    );
+  }
+
+  // Numbers / Letters drill-in — symbols resolved by word (getSymbolsByWords).
+  function renderWordList(words: string[], symbols: typeof numberSymbols) {
+    if (symbols === undefined) return spinner();
     const map = buildMap(symbols);
     return words.map((word) => {
       const sym       = map.get(word);
-      const label     = sym
-        ? displayString(sym.words, language, DEFAULT_LOCALE)
-        : word;
+      const label     = sym ? displayString(sym.words, language, DEFAULT_LOCALE) : word;
       const imagePath = sym ? `/api/assets?key=${sym.imagePath}` : undefined;
-      // Per ADR-009 §4 the audio path is convention-resolved. The boolean map
-      // records "is this voice seeded"; resolveSymbolAudioPath turns that into
-      // an R2 key (with the legacy `audio/eng/default/<basename>.mp3`
-      // fallback for the en-GB-News-M voice until Phase 8.4 re-seeds it).
-      const audioMap = (sym?.audio as Record<string, boolean> | undefined) ?? {};
-      const seeded   = audioMap[voiceId] === true;
+      const audioMap  = (sym?.audio as Record<string, boolean> | undefined) ?? {};
+      const seeded    = audioMap[voiceId] === true;
       const audioPath = sym
-        ? resolveSymbolAudioPath(
-            voiceId,
-            sym.words.en ?? word,
-            seeded,
-            sym.audioBasename,
-          ) ?? undefined
+        ? resolveSymbolAudioPath(voiceId, sym.words.en ?? word, seeded, sym.audioBasename) ?? undefined
         : undefined;
       return (
         <SymbolCard
@@ -179,15 +174,81 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
-  function renderItems() {
-    if (activeTab === 'numbers') return renderWordList(NUMBERS, numberSymbols);
-    if (activeTab === 'letters') return renderWordList(LETTERS, letterSymbols);
-    if (activeTab.startsWith('bank-') || !activeGroup) return null;
-    return renderWordList(activeGroup.words, groupSymbols);
+  // Core-category drill-in — the installed profileSymbols of a core category.
+  function renderCoreSymbols(symbols: typeof coreSymbols) {
+    if (symbols === undefined) return spinner();
+    return symbols.map((row) => {
+      const label     = displayString(row.label, language, DEFAULT_LOCALE);
+      const imagePath = row.imagePath ? `/api/assets?key=${row.imagePath}` : undefined;
+      const audioPath = row.audio[language] ?? row.audio[DEFAULT_LOCALE] ?? row.audio.en;
+      return (
+        <SymbolCard
+          key={row._id}
+          symbolId={row._id}
+          imagePath={imagePath}
+          label={label}
+          language={language}
+          onTap={() => handleTap({ symbolId: row._id, label, imagePath, audioPath })}
+        />
+      );
+    });
   }
 
-  // Phrase-bank tab: zinc phrase cards. Tapping inserts a phrase-unit into the
-  // talker (ADR-015) — carries its decomposition (words) + its own clip.
+  // Core tile grid — category tiles + the fixed Numbers / Letters tiles.
+  function renderCoreTiles() {
+    return (
+      <div className="flex flex-wrap gap-3 py-2">
+        {coreCats.map((c) => (
+          <CoreTile
+            key={c._id}
+            label={displayString(c.name, language, DEFAULT_LOCALE)}
+            onClick={() =>
+              setCoreSel({ kind: 'category', id: c._id, name: displayString(c.name, language, DEFAULT_LOCALE) })
+            }
+          />
+        ))}
+        <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'numbers' })} />
+        <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'letters' })} />
+        {coreCats.length === 0 && (
+          <span className="text-caption opacity-60 self-center" style={{ color: 'var(--theme-nav-text)' }}>
+            {t('emptyCore')}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  function renderCoreContent() {
+    if (coreSel === null) return renderCoreTiles();
+
+    const backLabel =
+      coreSel.kind === 'category' ? coreSel.name
+        : coreSel.kind === 'numbers' ? t('tabNumbers')
+        : t('tabLetters');
+
+    let grid: ReactNode;
+    if (coreSel.kind === 'category') grid = renderCoreSymbols(coreSymbols);
+    else if (coreSel.kind === 'numbers') grid = renderWordList(NUMBERS, numberSymbols);
+    else grid = renderWordList(LETTERS, letterSymbols);
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setCoreSel(null)}
+          className="flex items-center gap-1 mb-2 text-caption font-medium hover:opacity-70 transition-opacity"
+          style={{ color: 'var(--theme-nav-text)' }}
+        >
+          <ChevronLeft className="w-4 h-4" />
+          {t('tabCoreWords')} · {backLabel}
+        </button>
+        <CategoryBoardGrid>{grid}</CategoryBoardGrid>
+      </>
+    );
+  }
+
+  // Phrase-bank tab: zinc phrase cards. Tapping inserts a phrase-unit (its
+  // decomposition + clip) into the talker bar (ADR-015).
   function renderPhraseBank() {
     const bank = banks.find((b) => `bank-${b.folderId}` === activeTab);
     if (!bank) return null;
@@ -201,8 +262,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     return bank.phrases.map((p) => {
       const name = displayString(p.name, language, DEFAULT_LOCALE);
       const audioPath = p.recordedAudioPath ?? p.audioPath ?? undefined;
-      // Word list for the bar's phrase-unit — RAW imagePath keys (the bar builds
-      // the /api/assets URL itself).
+      // RAW imagePath keys (the bar/card build the /api/assets URL themselves).
       const words = p.words.map((w) => ({
         imagePath: w.imagePath,
         audioPath: w.audioPath,
@@ -214,14 +274,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           name={name}
           words={words}
           onTap={() =>
-            handleTap({
-              symbolId: `phrase-${p._id}`,
-              label: name,
-              kind: 'phrase',
-              phraseName: name,
-              audioPath,
-              words,
-            })
+            handleTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, audioPath, words })
           }
         />
       );
@@ -229,8 +282,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
-  // The inline bar always renders (so the rectangle keeps its bottom edge / flow
-  // height); the overlay panel renders on top of it via portal when open.
   return (
     <>
       <button
@@ -241,8 +292,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         style={{ background: 'var(--theme-primary-25)', color: 'var(--theme-nav-text)' }}
         aria-label={isOpen ? t('closeDropdown') : t('openDropdown')}
       >
-        {/* Hidden while open — the overlay panel owns the close chevron, and the
-            translucent panel would otherwise show this one bleeding through. */}
         {!isOpen && <ChevronDown className="w-5 h-5" />}
       </button>
 
@@ -284,23 +333,21 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 <ChevronDown className="w-5 h-5 rotate-180" />
               </button>
 
-              {/* Scrollable tab bar. Sits on `background` (the Talker "stage") so the
-                  active NavTabButton's surface pill reads against it. */}
+              {/* Tab bar — Core words + phrase banks. */}
               <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
                 {allTabs.map((id) => (
-                  <NavTabButton key={id} active={activeTab === id} onClick={() => setActiveTab(id)}>
+                  <NavTabButton key={id} active={activeTab === id} onClick={() => selectTab(id)}>
                     {getTabLabel(id)}
                   </NavTabButton>
                 ))}
               </div>
 
-              {/* Content: phrase banks render as zinc cards in a wrap; word
-                  tabs use the symbol grid (columns follow grid_size). */}
+              {/* Content. */}
               <div className="flex-1 overflow-y-auto px-4 pb-2">
-                {activeTab.startsWith('bank-') ? (
-                  <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
+                {activeTab === 'core' ? (
+                  renderCoreContent()
                 ) : (
-                  <CategoryBoardGrid>{renderItems()}</CategoryBoardGrid>
+                  <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
                 )}
               </div>
             </div>
@@ -308,6 +355,31 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           document.body
         )}
     </>
+  );
+}
+
+// ─── Core tile (zinc) ───────────────────────────────────────────────────────────
+
+function CoreTile({
+  label,
+  icon,
+  onClick,
+}: {
+  label: string;
+  icon?: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex flex-col items-center justify-center gap-2 w-32 h-28 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
+      style={{ background: ZINC.c500, color: '#fff' }}
+    >
+      {icon}
+      <span className="text-body font-medium text-center">{label}</span>
+    </button>
   );
 }
 
