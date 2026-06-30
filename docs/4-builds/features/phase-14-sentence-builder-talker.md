@@ -61,6 +61,17 @@ Curated next-word prediction · auto-navigation · editing a phrase's membership
 - Shows a saved sentence as its ordered units; a phrase-unit expands to reveal its words. Tapping a unit plays *that unit's* audio.
 - UX copy is model-not-test: "See how this was built." No fill-in-the-blank affordance.
 
+### Dropdown edit modes (added 2026-06-30 — Figma `core-word-edit` / `phrases-edit`)
+
+The dropdown's two content types are **instructor-authorable in place**, reusing the existing category-edit and sentence-edit machinery rather than new editors. An Edit/Done toggle in the dropdown flips the active tab into edit mode.
+
+- **Core-words edit** ≈ **category edit mode**. Editable core category: dashed editable name, draggable/deletable symbol tiles, an **add-symbol placeholder** that opens `SymbolEditorModal` in `categoryBoard` mode (image + audio generator). Likely the *same* editable-board component as the categories page.
+- **Phrases edit** ≈ **sentence edit mode**, restyled. Same features as editing a sentence — add symbol, edit text + audio (Generate TTS / Record), move, delete, **and the move-to-folder ("move group") button** (reuse the one in the sentence row) — but laid out **stacked** (symbol over text) so a phrase reads like a symbol that sits among symbols in the talker, not like a side-by-side sentence row.
+- **Create a core group** = the **New category** flow adjusted for core: name + proposed words → the new group opens in edit mode with empty placeholders, each click opening the symbol editor (with audio) to bind a real symbol. Materialises a `surface:"core"` category.
+- **Create a phrase** = the **New sentence** modal: type the phrase name → an empty phrase block opens → add a symbol (no audio at the word level) → tapping the text opens the **Edit Sentence** modal to change text + Generate/Record the phrase's audio.
+
+Intent: *no bespoke editors* — refactor the category-board editor and the sentence editor (`SlotStrip` + Edit-Sentence modal + move-to-folder) for dropdown usage; only the phrase layout (stacked) and the surface (dropdown vs page) differ.
+
 ---
 
 ## Seed content
