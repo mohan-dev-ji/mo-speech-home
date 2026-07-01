@@ -95,17 +95,32 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     setIsOpen(true);
   }
 
+  // Mount on open; on close, slide out first then unmount after the transition.
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      const id = requestAnimationFrame(() => setEntered(true));
-      return () => cancelAnimationFrame(id);
+      return;
     }
-    // Closing: slide out, then unmount after the transition.
     setEntered(false);
     const id = setTimeout(() => setMounted(false), 380);
     return () => clearTimeout(id);
   }, [isOpen]);
+
+  // Once mounted (portal painted at translateY(-100%)), flip `entered` on the
+  // next-but-one frame so the slide-in transition actually runs. A single rAF
+  // can set the entered state before the initial frame paints, which "pops" the
+  // panel open with no animation — the double rAF guarantees a painted start.
+  useEffect(() => {
+    if (!mounted) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setEntered(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [mounted]);
 
   // ── Queries — all 'skip' unless the dropdown is open on the matching view.
   //    Convex caches per args so re-visiting a view costs nothing.
@@ -335,14 +350,8 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       {mounted &&
         createPortal(
           <>
-            {/* Dim the grid area below the talker; click closes. Starts at the
-                bar's bottom so the talker + chevron stay interactive above it. */}
-            <div
-              onClick={() => setIsOpen(false)}
-              style={{ position: 'fixed', top: panelPos.top, left: 0, right: 0, bottom: 0, zIndex: 49, background: 'rgba(0,0,0,0.35)' }}
-            />
-
-            {/* Clip window over the grid area. The inner panel starts fully
+            {/* No backdrop — the dropdown opens/closes only from the chevron bar.
+                Clip window over the grid area. The inner panel starts fully
                 translated up (hidden behind the talker) and slides DOWN to cover
                 the grid — slower than the chevron, reading as content pulled out
                 from behind the talker. */}
