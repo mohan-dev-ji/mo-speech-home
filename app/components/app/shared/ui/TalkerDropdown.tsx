@@ -116,6 +116,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [pendingSymDelete, setPendingSymDelete] = useState<
     { id: Id<'profileSymbols'>; name: string } | null
   >(null);
+  // Core group folder-image picker (mirrors the category board's GroupTile).
+  const [coreImageTarget, setCoreImageTarget] = useState<
+    { id: Id<'profileCategories'>; name: string; imagePath?: string } | null
+  >(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [coreOrder, setCoreOrder] = useState<string[]>([]);
   const [symOrder, setSymOrder]   = useState<string[]>([]);
@@ -295,6 +299,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       profileCategoryId: id,
       name: { ...current, [language]: next },
     }).catch((e) => console.error('[TalkerDropdown] rename category failed', e));
+  }
+
+  function handleCoreFolderImageSave(imagePath: string) {
+    if (!coreImageTarget) return;
+    updateCategoryMeta({ profileCategoryId: coreImageTarget.id, imagePath }).catch((e) =>
+      console.error('[TalkerDropdown] core folder image save failed', e)
+    );
+    setCoreImageTarget(null);
   }
 
   async function handleCatDeleteConfirm() {
@@ -550,19 +562,34 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
-  // Core tile grid — category tiles + the fixed Numbers / Letters tiles.
+  // Core tile grid — category tiles (GroupTile, same as category/list/sentence
+  // folders) + the fixed Numbers / Letters tiles.
   function renderCoreTiles() {
     return (
       <div className="flex flex-wrap gap-3 py-2">
-        {coreCats.map((c) => (
-          <CoreTile
-            key={c._id}
-            label={displayString(c.name, language, DEFAULT_LOCALE)}
-            onClick={() =>
-              setCoreSel({ kind: 'category', id: c._id, name: displayString(c.name, language, DEFAULT_LOCALE) })
-            }
-          />
-        ))}
+        {/* GroupTile calls useSortable internally, so mount it inside a
+            (drag-inert) sortable context — no drag handles render out of edit
+            mode, matching the category/list/sentence folder tiles. */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter}>
+          <SortableContext items={coreCats.map((c) => c._id as string)} strategy={rectSortingStrategy}>
+            {coreCats.map((c) => {
+              const label = displayString(c.name, language, DEFAULT_LOCALE);
+              return (
+                <div key={c._id} className="w-32">
+                  <GroupTile
+                    id={c._id}
+                    name={label}
+                    colour="zinc"
+                    imagePath={c.imagePath}
+                    isEditing={false}
+                    gridSize="small"
+                    onOpen={() => setCoreSel({ kind: 'category', id: c._id, name: label })}
+                  />
+                </div>
+              );
+            })}
+          </SortableContext>
+        </DndContext>
         <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'numbers' })} />
         <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'letters' })} />
         {coreCats.length === 0 && coreCategories !== undefined && (
@@ -606,6 +633,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                       gridSize="small"
                       onOpen={() => setCoreSel({ kind: 'category', id: c._id, name: label })}
                       onRename={(v) => handleRenameCategory(c._id, c.name, v)}
+                      onEditImage={() => setCoreImageTarget({ id: c._id, name: label, imagePath: c.imagePath })}
                       onDeleteRequest={() => setPendingCatDelete({ id: c._id, name: label })}
                     />
                   </div>
@@ -900,6 +928,22 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           editorMode="categoryBoard"
           onClose={() => setSymbolEditor({ open: false })}
           onSave={() => setSymbolEditor({ open: false })}
+        />
+      )}
+
+      {/* Core group folder-image picker (Symbol Editor restricted to image). */}
+      {coreImageTarget && accountId && (
+        <SymbolEditorModal
+          isOpen
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          folderImageMode
+          initialImagePath={coreImageTarget.imagePath}
+          initialLabel={coreImageTarget.name}
+          onClose={() => setCoreImageTarget(null)}
+          onSave={() => {}}
+          onFolderImageSave={handleCoreFolderImageSave}
         />
       )}
 
