@@ -39,6 +39,7 @@ import { CategoryBoardGrid } from './CategoryBoardGrid';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
+import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
@@ -119,6 +120,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [coreOrder, setCoreOrder] = useState<string[]>([]);
   const [symOrder, setSymOrder]   = useState<string[]>([]);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [createPhraseOpen, setCreatePhraseOpen] = useState(false);
   // Phrase edit-mode state (Step 4).
   const [phraseOrder, setPhraseOrder] = useState<string[]>([]);
   const [phraseWordEditor, setPhraseWordEditor] = useState<
@@ -155,6 +157,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const deleteProfilePhrase      = useMutation(api.profilePhrases.deleteProfilePhrase);
   const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
   const moveProfilePhraseToFolder = useMutation(api.profilePhrases.moveProfilePhraseToFolder);
+  const createProfilePhrase       = useMutation(api.profilePhrases.createProfilePhrase);
 
   // One-tap backfill of the Phase-14 defaults (core-word categories + phrase
   // banks) into the caller's account — for accounts created before these
@@ -462,7 +465,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // "Create Group" (core tab) / "Create Phrase" (bank tab).
   function handleCreateClick() {
     if (activeTab === 'core') setCreateGroupOpen(true);
-    // Bank tab (Create Phrase) wired in Step 5.
+    else setCreatePhraseOpen(true);
+  }
+
+  // Create an empty phrase in the current bank; it appears in place as an empty
+  // edit card (we're already in edit mode) ready for symbols + audio.
+  async function handleCreatePhrase(name: string) {
+    if (!activeBank) return;
+    await createProfilePhrase({ name: { [language]: name }, folderId: activeBank.folderId });
   }
 
   // Create a core group (surface:"core") + optional placeholder symbols from the
@@ -868,6 +878,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         isOpen={createGroupOpen}
         onClose={() => setCreateGroupOpen(false)}
         onCreate={handleCreateGroup}
+      />
+
+      {/* Create Phrase — reuses the New-sentence modal; files into the bank. */}
+      <CreateSentenceModal
+        isOpen={createPhraseOpen}
+        onClose={() => setCreatePhraseOpen(false)}
+        onCreate={handleCreatePhrase}
       />
 
       {/* Symbol editor — create / edit a core symbol (categoryBoard mode). Its
