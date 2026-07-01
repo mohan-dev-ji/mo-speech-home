@@ -275,6 +275,11 @@ export const createProfileCategory = mutation({
     // the saved label drives the SymbolStix search so picking a matching
     // symbol is a one-tap action.
     symbolLabels: v.optional(v.array(v.string())),
+    // When "core", the category joins the structural core-word surface (the
+    // talker dropdown's Core-words tab) instead of the main Categories board.
+    // getCoreWordCategories / getProfileCategories partition on this field so
+    // the two surfaces never bleed (ADR-015 dropdown edit modes).
+    surface: v.optional(v.literal("core")),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -293,6 +298,7 @@ export const createProfileCategory = mutation({
       icon: "📁",
       colour: "#6B7280",
       order: last ? last.order + 1 : 0,
+      ...(args.surface && { surface: args.surface }),
       updatedAt: now,
     });
 

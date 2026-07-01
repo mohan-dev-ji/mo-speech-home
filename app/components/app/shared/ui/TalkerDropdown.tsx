@@ -38,6 +38,7 @@ import { TabBar } from '@/app/components/app/settings/ui/TabBar';
 import { CategoryBoardGrid } from './CategoryBoardGrid';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
+import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
 import {
   Dialog,
   DialogContent,
@@ -115,6 +116,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [coreOrder, setCoreOrder] = useState<string[]>([]);
   const [symOrder, setSymOrder]   = useState<string[]>([]);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
 
@@ -123,6 +125,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   );
 
   // Core-word edit mutations (Step 2).
+  const createProfileCategory  = useMutation(api.profileCategories.createProfileCategory);
   const updateCategoryMeta     = useMutation(api.profileCategories.updateCategoryMeta);
   const deleteCategory         = useMutation(api.profileCategories.deleteCategory);
   const reorderCategories      = useMutation(api.profileCategories.reorderCategories);
@@ -317,9 +320,22 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (id !== 'core') setCoreSel(null);
   }
 
-  // "Create Group" (core tab) / "Create Phrase" (bank tab). Wired in Steps 3 & 5.
+  // "Create Group" (core tab) / "Create Phrase" (bank tab).
   function handleCreateClick() {
-    // Populated by Step 3 (Create Group) and Step 5 (Create Phrase).
+    if (activeTab === 'core') setCreateGroupOpen(true);
+    // Bank tab (Create Phrase) wired in Step 5.
+  }
+
+  // Create a core group (surface:"core") + optional placeholder symbols from the
+  // typed words, then drop straight into its edit board so the instructor can
+  // bind each placeholder to a symbol.
+  async function handleCreateGroup(name: string, symbolLabels: string[]) {
+    const id = await createProfileCategory({
+      name: { [language]: name },
+      symbolLabels,
+      surface: 'core',
+    });
+    setCoreSel({ kind: 'category', id, name });
   }
 
   function handleTap(item: QuickSymbolItem) {
@@ -652,6 +668,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </>,
           document.body
         )}
+
+      {/* Create Group — reuses the New-category modal; stamps surface:"core". */}
+      <CreateCategoryModal
+        isOpen={createGroupOpen}
+        onClose={() => setCreateGroupOpen(false)}
+        onCreate={handleCreateGroup}
+      />
 
       {/* Symbol editor — create / edit a core symbol (categoryBoard mode). Its
           own portal, so it layers above the dropdown panel. */}
