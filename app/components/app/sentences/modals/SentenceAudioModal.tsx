@@ -16,6 +16,14 @@ import {
   DialogTitle,
 } from '@/app/components/app/shared/ui/Dialog';
 
+// Payload handed to a `saveOverride` (e.g. phrase audio, ADR-015). `text` is the
+// trimmed field value; `recordedAudioPath` is a new R2 recording key, `null` to
+// clear the recording (TTS chosen), or `undefined` to leave audio untouched.
+export type AudioSavePayload = {
+  text: string;
+  recordedAudioPath?: string | null;
+};
+
 type Props = {
   isOpen: boolean;
   sentenceId: Id<'profileSentences'> | null;
@@ -23,6 +31,14 @@ type Props = {
   initialValue?: string;   // single sentence field — used as both display name and TTS text
   initialAudioPath?: string;
   onClose: () => void;
+  // When provided, the modal skips its built-in sentence mutations and hands
+  // the trimmed text + resolved recording path to this callback instead. Lets
+  // the same record/generate UI drive other targets (phrase audio). `sentenceId`
+  // may be null in this mode.
+  saveOverride?: (payload: AudioSavePayload) => Promise<void>;
+  // Optional copy overrides — default to the sentence strings when omitted.
+  title?: string;
+  fieldLabel?: string;
 };
 
 async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
@@ -39,6 +55,9 @@ export function SentenceAudioModal({
   accountId,
   initialValue = '',
   onClose,
+  saveOverride,
+  title,
+  fieldLabel,
 }: Props) {
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
@@ -152,13 +171,10 @@ export function SentenceAudioModal({
   }
 
   async function handleSave() {
-    if (!sentenceId) return;
+    if (!saveOverride && !sentenceId) return;
     setIsSaving(true);
     try {
       const trimmedValue = value.trim();
-      if (trimmedValue) {
-        await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue }, propagateToPack });
-      }
       // Phase 8.5: never store TTS — it lives in the global ttsCache and is
       // resolved per voice at play time. A new recording is the only audio we
       // persist; generating TTS this session (ttsKey set) means "use TTS" → clear
@@ -172,12 +188,19 @@ export function SentenceAudioModal({
       } else if (ttsKey) {
         recordedAudioPath = null; // chose TTS → drop any existing recording
       }
-      await updateAudio({
-        profileSentenceId: sentenceId,
-        text: trimmedValue || undefined,
-        ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
-        propagateToPack,
-      });
+      if (saveOverride) {
+        await saveOverride({ text: trimmedValue, recordedAudioPath });
+      } else if (sentenceId) {
+        if (trimmedValue) {
+          await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue }, propagateToPack });
+        }
+        await updateAudio({
+          profileSentenceId: sentenceId,
+          text: trimmedValue || undefined,
+          ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
+          propagateToPack,
+        });
+      }
       onClose();
     } finally {
       setIsSaving(false);
@@ -190,7 +213,7 @@ export function SentenceAudioModal({
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>{t('editModalTitle')}</DialogTitle>
+          <DialogTitle>{title ?? t('editModalTitle')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
@@ -198,7 +221,7 @@ export function SentenceAudioModal({
           {/* Single sentence field */}
           <div className="flex flex-col gap-1.5">
             <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-              {t('editModalSentenceLabel')}
+              {fieldLabel ?? t('editModalSentenceLabel')}
             </label>
             <input
               type="text"

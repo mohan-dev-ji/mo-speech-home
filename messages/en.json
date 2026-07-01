@@ -396,6 +396,8 @@
     "phraseRemoveSymbol": "Remove symbol",
     "phraseAudioReady": "Audio ready",
     "phraseAudioGenerate": "Tap to add audio",
+    "phraseEditTitle": "Edit Phrase",
+    "phraseFieldLabel": "Phrase name",
     "phraseDeleteTitle": "Delete Phrase",
     "phraseDeleteConfirm": "This will permanently delete \"{name}\". This cannot be undone.",
     "deleteCancel": "Cancel",

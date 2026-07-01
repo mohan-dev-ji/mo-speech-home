@@ -12,7 +12,7 @@
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronLeft, Hash, Type, Pencil, Plus } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Hash, Type, Pencil, Plus, Trash2, Move, FolderInput, X, Volume2, Mic } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import {
@@ -39,6 +39,8 @@ import { CategoryBoardGrid } from './CategoryBoardGrid';
 import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
+import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
+import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
   Dialog,
   DialogContent,
@@ -117,6 +119,22 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [coreOrder, setCoreOrder] = useState<string[]>([]);
   const [symOrder, setSymOrder]   = useState<string[]>([]);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  // Phrase edit-mode state (Step 4).
+  const [phraseOrder, setPhraseOrder] = useState<string[]>([]);
+  const [phraseWordEditor, setPhraseWordEditor] = useState<
+    | { open: false }
+    | { open: true; phraseId: Id<'profilePhrases'>; wordIndex: number }
+  >({ open: false });
+  const [phraseAudioTarget, setPhraseAudioTarget] = useState<
+    { id: Id<'profilePhrases'>; nameRec: Record<string, string> } | null
+  >(null);
+  const [pendingPhraseDelete, setPendingPhraseDelete] = useState<
+    { id: Id<'profilePhrases'>; name: string } | null
+  >(null);
+  const [phraseMoveTarget, setPhraseMoveTarget] = useState<
+    { id: Id<'profilePhrases'>; name: string } | null
+  >(null);
+  const [phraseMoveSelection, setPhraseMoveSelection] = useState<Id<'profileFolders'> | 'ungrouped' | null>(null);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
 
@@ -130,6 +148,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const deleteCategory         = useMutation(api.profileCategories.deleteCategory);
   const reorderCategories      = useMutation(api.profileCategories.reorderCategories);
   const reorderProfileSymbols  = useMutation(api.profileSymbols.reorderProfileSymbols);
+  // Phrase edit mutations (Step 4).
+  const updateProfilePhraseName  = useMutation(api.profilePhrases.updateProfilePhraseName);
+  const updateProfilePhraseWords = useMutation(api.profilePhrases.updateProfilePhraseWords);
+  const updateProfilePhraseAudio = useMutation(api.profilePhrases.updateProfilePhraseAudio);
+  const deleteProfilePhrase      = useMutation(api.profilePhrases.deleteProfilePhrase);
+  const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
+  const moveProfilePhraseToFolder = useMutation(api.profilePhrases.moveProfilePhraseToFolder);
 
   // One-tap backfill of the Phase-14 defaults (core-word categories + phrase
   // banks) into the caller's account — for accounts created before these
@@ -299,6 +324,120 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     } finally {
       setIsDeleting(false);
       setPendingSymDelete(null);
+    }
+  }
+
+  // ── Phrase edit (Step 4) ────────────────────────────────────────────────────
+  const activeBank = banks.find((b) => `bank-${b.folderId}` === activeTab);
+
+  // Keep the active bank's phrase order in sync; a tab switch resets it to the
+  // new bank's server order.
+  useEffect(() => {
+    if (phraseBanks === undefined) return;
+    const ids = (activeBank?.phrases ?? []).map((p) => p._id as string);
+    setPhraseOrder((prev) => {
+      const kept = prev.filter((id) => ids.includes(id));
+      const added = ids.filter((id) => !prev.includes(id));
+      return [...kept, ...added];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phraseBanks, activeTab]);
+
+  const phraseMap = new Map((activeBank?.phrases ?? []).map((p) => [p._id as string, p]));
+  const orderedPhrases = phraseOrder.map((id) => phraseMap.get(id)).filter(Boolean) as NonNullable<typeof activeBank>['phrases'];
+
+  function findPhrase(id: Id<'profilePhrases'>) {
+    for (const b of banks) {
+      const p = b.phrases.find((x) => x._id === id);
+      if (p) return p;
+    }
+    return undefined;
+  }
+
+  // Normalise a phrase's words to the mutation arg shape (drops derived fields,
+  // reindexes order).
+  function normaliseWords(words: NonNullable<typeof activeBank>['phrases'][number]['words']) {
+    return words.map((w, i) => ({
+      order: i,
+      imagePath: w.imagePath,
+      audioPath: w.audioPath,
+      label: w.label,
+      displayProps: w.displayProps,
+    }));
+  }
+
+  function handlePhraseDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setPhraseOrder((prev) => {
+      const next = arrayMove(prev, prev.indexOf(active.id as string), prev.indexOf(over.id as string));
+      reorderProfilePhrases({ orderedIds: next as Id<'profilePhrases'>[] }).catch((e) =>
+        console.error('[TalkerDropdown] reorder phrases failed', e)
+      );
+      return next;
+    });
+  }
+
+  function handleRenamePhrase(id: Id<'profilePhrases'>, current: Record<string, string>, next: string) {
+    updateProfilePhraseName({ profilePhraseId: id, name: { ...current, [language]: next } }).catch((e) =>
+      console.error('[TalkerDropdown] rename phrase failed', e)
+    );
+  }
+
+  function handleRemovePhraseWord(phraseId: Id<'profilePhrases'>, wordIndex: number) {
+    const phrase = findPhrase(phraseId);
+    if (!phrase) return;
+    const words = normaliseWords(phrase.words.filter((_, i) => i !== wordIndex));
+    updateProfilePhraseWords({ profilePhraseId: phraseId, words }).catch((e) =>
+      console.error('[TalkerDropdown] remove phrase word failed', e)
+    );
+  }
+
+  function handlePhraseWordSave(result: SentenceSlotSaveResult) {
+    if (!phraseWordEditor.open) return;
+    const { phraseId, wordIndex } = phraseWordEditor;
+    const phrase = findPhrase(phraseId);
+    if (!phrase) { setPhraseWordEditor({ open: false }); return; }
+    const current = normaliseWords(phrase.words);
+    if (wordIndex === -1) {
+      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
+    } else if (current[wordIndex]) {
+      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath, displayProps: result.displayProps };
+    }
+    const reindexed = current.map((w, i) => ({ ...w, order: i }));
+    updateProfilePhraseWords({ profilePhraseId: phraseId, words: reindexed }).catch((e) =>
+      console.error('[TalkerDropdown] save phrase word failed', e)
+    );
+    setPhraseWordEditor({ open: false });
+  }
+
+  async function handlePhraseDeleteConfirm() {
+    if (!pendingPhraseDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteProfilePhrase({ profilePhraseId: pendingPhraseDelete.id });
+    } catch (e) {
+      console.error('[TalkerDropdown] delete phrase failed', e);
+    } finally {
+      setIsDeleting(false);
+      setPendingPhraseDelete(null);
+    }
+  }
+
+  async function handlePhraseMoveConfirm() {
+    if (!phraseMoveTarget || !phraseMoveSelection) return;
+    setIsDeleting(true);
+    try {
+      await moveProfilePhraseToFolder({
+        profilePhraseId: phraseMoveTarget.id,
+        folderId: phraseMoveSelection === 'ungrouped' ? null : phraseMoveSelection,
+      });
+    } catch (e) {
+      console.error('[TalkerDropdown] move phrase failed', e);
+    } finally {
+      setIsDeleting(false);
+      setPhraseMoveTarget(null);
+      setPhraseMoveSelection(null);
     }
   }
 
@@ -572,6 +711,59 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
+  // Editable phrase bank (Step 4) — each phrase becomes a stacked authorable
+  // card: word chips (× delete) + add-symbol placeholder, dashed name, audio
+  // button; below, delete / move-to-bank / drag-reorder.
+  function renderEditablePhraseBank() {
+    if (!activeBank) return null;
+    if (activeBank.phrases.length === 0) {
+      return (
+        <span className="text-caption opacity-60 self-center" style={{ color: 'var(--theme-nav-text)' }}>
+          {t('emptyBank')}
+        </span>
+      );
+    }
+    return (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handlePhraseDragEnd}>
+        <SortableContext items={phraseOrder} strategy={rectSortingStrategy}>
+          <div className="flex flex-wrap gap-4 py-2">
+            {orderedPhrases.map((p) => {
+              const name = displayString(p.name, language, DEFAULT_LOCALE);
+              const words = p.words.map((w) => ({
+                imagePath: w.imagePath,
+                label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
+              }));
+              const hasAudio = !!(p.recordedAudioPath ?? p.audioPath);
+              return (
+                <PhraseEditCard
+                  key={p._id}
+                  id={p._id}
+                  name={name}
+                  words={words}
+                  hasAudio={hasAudio}
+                  audioReadyLabel={t('phraseAudioReady')}
+                  audioGenerateLabel={t('phraseAudioGenerate')}
+                  renameLabel={t('phraseRename')}
+                  addLabel={t('phraseAddSymbol')}
+                  removeLabel={t('phraseRemoveSymbol')}
+                  deleteLabel={t('phraseDelete')}
+                  moveLabel={t('phraseMove')}
+                  onRename={(v) => handleRenamePhrase(p._id, p.name, v)}
+                  onWordAdd={() => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: -1 })}
+                  onWordEdit={(i) => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: i })}
+                  onWordDelete={(i) => handleRemovePhraseWord(p._id, i)}
+                  onAudio={() => setPhraseAudioTarget({ id: p._id, nameRec: p.name })}
+                  onDelete={() => setPendingPhraseDelete({ id: p._id, name })}
+                  onMove={() => { setPhraseMoveTarget({ id: p._id, name }); setPhraseMoveSelection(null); }}
+                />
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
+    );
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
@@ -659,6 +851,8 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 <div className="flex-1 overflow-y-auto px-4 pb-2">
                   {activeTab === 'core' ? (
                     renderCoreContent()
+                  ) : editing ? (
+                    renderEditablePhraseBank()
                   ) : (
                     <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
                   )}
@@ -750,6 +944,129 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Phrase word editor — pick / swap the symbol for a phrase word
+          (sentenceSlot mode, no per-word audio). */}
+      {phraseWordEditor.open && accountId && (
+        <SymbolEditorModal
+          isOpen
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          editorMode="sentenceSlot"
+          initialImagePath={
+            phraseWordEditor.wordIndex >= 0
+              ? findPhrase(phraseWordEditor.phraseId)?.words[phraseWordEditor.wordIndex]?.imagePath
+              : undefined
+          }
+          onClose={() => setPhraseWordEditor({ open: false })}
+          onSave={() => {}}
+          onSentenceSlotSave={handlePhraseWordSave}
+        />
+      )}
+
+      {/* Phrase audio — reuses the sentence audio modal via saveOverride. */}
+      {phraseAudioTarget && accountId && (
+        <SentenceAudioModal
+          isOpen
+          sentenceId={null}
+          accountId={accountId}
+          initialValue={displayString(phraseAudioTarget.nameRec, language, DEFAULT_LOCALE)}
+          title={t('phraseEditTitle')}
+          fieldLabel={t('phraseFieldLabel')}
+          onClose={() => setPhraseAudioTarget(null)}
+          saveOverride={async ({ text, recordedAudioPath }) => {
+            const target = phraseAudioTarget;
+            if (!target) return;
+            if (text) {
+              await updateProfilePhraseName({
+                profilePhraseId: target.id,
+                name: { ...target.nameRec, [language]: text },
+              });
+            }
+            if (recordedAudioPath !== undefined) {
+              await updateProfilePhraseAudio({ profilePhraseId: target.id, recordedAudioPath });
+            }
+          }}
+        />
+      )}
+
+      {/* Phrase delete confirmation. */}
+      <Dialog open={pendingPhraseDelete !== null} onOpenChange={(o) => { if (!o) setPendingPhraseDelete(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('phraseDeleteTitle')}</DialogTitle>
+            <DialogDescription>{t('phraseDeleteConfirm', { name: pendingPhraseDelete?.name ?? '' })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+              >
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handlePhraseDeleteConfirm}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-warning)', color: '#fff' }}
+            >
+              {isDeleting ? t('deleting') : t('deleteConfirm')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phrase move-to-bank. */}
+      <Dialog open={phraseMoveTarget !== null} onOpenChange={(o) => { if (!o) { setPhraseMoveTarget(null); setPhraseMoveSelection(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('moveTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 max-h-[50vh] overflow-auto">
+            {banks.map((b) => {
+              const isCurrent = activeBank?.folderId === b.folderId;
+              const isSelected = phraseMoveSelection === b.folderId;
+              return (
+                <button
+                  key={b.folderId}
+                  type="button"
+                  disabled={isCurrent}
+                  onClick={() => setPhraseMoveSelection(b.folderId)}
+                  className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors disabled:opacity-40"
+                  style={{
+                    background: isSelected ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
+                    color: isSelected ? 'var(--theme-alt-text)' : 'var(--theme-text)',
+                    border: `2px solid ${isSelected ? 'var(--theme-primary)' : 'transparent'}`,
+                  }}
+                >
+                  {displayString(b.name, language, DEFAULT_LOCALE)}
+                </button>
+              );
+            })}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}>
+                {t('moveCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handlePhraseMoveConfirm}
+              disabled={!phraseMoveSelection || isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
+              style={{ background: 'var(--theme-create)', color: '#fff' }}
+            >
+              {t('phraseMove')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -792,6 +1109,193 @@ function SortableCoreSymbol({
         dragHandleListeners={listeners}
         dragHandleAttributes={attributes}
       />
+    </div>
+  );
+}
+
+// ─── Phrase edit card (stacked) ─────────────────────────────────────────────────
+
+function WordChip({
+  imagePath,
+  label,
+  removeLabel,
+  onEdit,
+  onDelete,
+}: {
+  imagePath?: string;
+  label: string;
+  removeLabel: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label={label}
+        className="w-16 h-16 rounded-theme-sm overflow-hidden flex items-center justify-center"
+        style={{ background: ZINC.c100 }}
+      >
+        {imagePath ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={`/api/assets?key=${imagePath}`} alt={label} className="w-full h-full object-contain p-1" draggable={false} />
+        ) : (
+          <span className="text-caption px-1 text-center" style={{ color: ZINC.c700 }}>{label}</span>
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label={removeLabel}
+        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center shadow"
+        style={{ background: 'var(--theme-warning)', color: '#fff' }}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
+function PhraseEditCard({
+  id,
+  name,
+  words,
+  hasAudio,
+  audioReadyLabel,
+  audioGenerateLabel,
+  renameLabel,
+  addLabel,
+  removeLabel,
+  deleteLabel,
+  moveLabel,
+  onRename,
+  onWordAdd,
+  onWordEdit,
+  onWordDelete,
+  onAudio,
+  onDelete,
+  onMove,
+}: {
+  id: string;
+  name: string;
+  words: { imagePath?: string; label: string }[];
+  hasAudio: boolean;
+  audioReadyLabel: string;
+  audioGenerateLabel: string;
+  renameLabel: string;
+  addLabel: string;
+  removeLabel: string;
+  deleteLabel: string;
+  moveLabel: string;
+  onRename: (value: string) => void;
+  onWordAdd: () => void;
+  onWordEdit: (index: number) => void;
+  onWordDelete: (index: number) => void;
+  onAudio: () => void;
+  onDelete: () => void;
+  onMove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  };
+
+  const [draft, setDraft] = useState(name);
+  useEffect(() => { setDraft(name); }, [name]);
+  function commitName() {
+    const v = draft.trim();
+    if (v && v !== name) onRename(v);
+    else setDraft(name);
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="w-[320px] max-w-full flex flex-col gap-2">
+      <div className="flex flex-col gap-3 p-3 rounded-theme-card border-2 border-dashed border-theme-enter-mode" style={{ background: ZINC.c500 }}>
+        {/* Word chips + add placeholder */}
+        <div className="flex flex-wrap items-center gap-2">
+          {words.map((w, i) => (
+            <WordChip
+              key={i}
+              imagePath={w.imagePath}
+              label={w.label}
+              removeLabel={removeLabel}
+              onEdit={() => onWordEdit(i)}
+              onDelete={() => onWordDelete(i)}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={onWordAdd}
+            aria-label={addLabel}
+            className="w-16 h-16 rounded-theme-sm border-2 border-dashed border-theme-enter-mode flex items-center justify-center transition-opacity hover:opacity-80 shrink-0"
+          >
+            <Plus className="w-6 h-6" style={{ color: 'var(--theme-enter-mode)' }} />
+          </button>
+        </div>
+
+        {/* Name + audio */}
+        <div className="flex items-center gap-2">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
+            }}
+            aria-label={renameLabel}
+            className="flex-1 min-w-0 text-caption font-medium rounded-full px-3 py-1 outline-none"
+            style={{ background: ZINC.c700, color: '#fff', border: '2px dashed var(--theme-enter-mode)' }}
+          />
+          <button
+            type="button"
+            onClick={onAudio}
+            className="flex items-center gap-1 text-caption font-medium rounded-full px-2.5 py-1 shrink-0"
+            style={{ background: ZINC.c700, color: '#fff' }}
+          >
+            {hasAudio ? <Volume2 className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+            {hasAudio ? audioReadyLabel : audioGenerateLabel}
+          </button>
+        </div>
+      </div>
+
+      {/* Below-card controls: delete / move-to-bank / drag-reorder. */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label={deleteLabel}
+          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line"
+          style={{ color: 'var(--theme-warning)' }}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onMove}
+          aria-label={moveLabel}
+          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line"
+          style={{ color: 'var(--theme-nav-text)' }}
+        >
+          <FolderInput className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          aria-label={moveLabel}
+          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line cursor-grab active:cursor-grabbing touch-none"
+          style={{ color: 'var(--theme-nav-text)' }}
+          {...listeners}
+          {...attributes}
+        >
+          <Move className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }

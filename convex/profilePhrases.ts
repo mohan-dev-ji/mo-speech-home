@@ -240,6 +240,24 @@ export const deleteProfilePhrase = mutation({
   },
 });
 
+export const moveProfilePhraseToFolder = mutation({
+  args: {
+    profilePhraseId: v.id("profilePhrases"),
+    // Destination bank (Phrases-tree folder). Null moves the phrase to Ungrouped.
+    folderId: v.union(v.id("profileFolders"), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const phrase = await ctx.db.get(args.profilePhraseId);
+    if (!phrase || phrase.accountId !== accountId) throw new Error("Not authorised");
+    await ctx.db.patch(args.profilePhraseId, {
+      folderId: args.folderId ?? undefined,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 export const reorderProfilePhrases = mutation({
   args: { orderedIds: v.array(v.id("profilePhrases")) },
   handler: async (ctx, args) => {
