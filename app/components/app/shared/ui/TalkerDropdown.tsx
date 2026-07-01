@@ -12,13 +12,13 @@
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronLeft, Hash, Type } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Hash, Type, Pencil, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { SymbolCard } from './SymbolCard';
-import { NavTabButton } from './NavTabButton';
+import { TabBar } from '@/app/components/app/settings/ui/TabBar';
 import { CategoryBoardGrid } from './CategoryBoardGrid';
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
@@ -60,6 +60,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
   const [coreSel, setCoreSel]     = useState<CoreSel>(null);
+  // Instructor edit mode — turns the core tiles / phrase cards authorable in
+  // place (ADR-015 dropdown edit modes). Off = talker/tap mode.
+  const [editing, setEditing]     = useState(false);
   const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 0 });
   // Entry animation: the panel slides down from the chevron so it reads as a
   // surface layer settling on top of the navigated category. `entered` flips on
@@ -167,6 +170,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   function selectTab(id: TabId) {
     setActiveTab(id);
     if (id !== 'core') setCoreSel(null);
+  }
+
+  // "Create Group" (core tab) / "Create Phrase" (bank tab). Wired in Steps 3 & 5.
+  function handleCreateClick() {
+    // Populated by Step 3 (Create Group) and Step 5 (Create Phrase).
   }
 
   function handleTap(item: QuickSymbolItem) {
@@ -376,12 +384,41 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 }}
               >
                 {/* Tab bar — Core words + phrase banks. */}
-                <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
-                  {allTabs.map((id) => (
-                    <NavTabButton key={id} active={activeTab === id} onClick={() => selectTab(id)}>
-                      {getTabLabel(id)}
-                    </NavTabButton>
-                  ))}
+                <div className="px-4 pt-3 shrink-0 bg-theme-background">
+                  <TabBar
+                    tabs={allTabs.map((id) => ({ id, label: getTabLabel(id) }))}
+                    activeId={activeTab}
+                    onSelect={(id) => selectTab(id)}
+                  />
+                </div>
+
+                {/* Edit / Create chrome — enters instructor edit mode; Create is
+                    contextual (Group on the core tab, Phrase on a bank tab). */}
+                <div className="flex items-center gap-2 px-4 py-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setEditing((e) => !e)}
+                    className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90"
+                    style={
+                      editing
+                        ? { background: 'var(--theme-brand-primary)', color: '#fff' }
+                        : { border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }
+                    }
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    {editing ? t('doneLabel') : t('editLabel')}
+                  </button>
+                  {editing && (
+                    <button
+                      type="button"
+                      onClick={handleCreateClick}
+                      className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90"
+                      style={{ border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {activeTab === 'core' ? t('createGroup') : t('createPhrase')}
+                    </button>
+                  )}
                 </div>
 
                 {/* Content. */}
