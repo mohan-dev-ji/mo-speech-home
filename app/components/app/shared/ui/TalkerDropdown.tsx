@@ -15,11 +15,38 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronLeft, Hash, Type, Pencil, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  arrayMove,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { SymbolCard } from './SymbolCard';
+import { SymbolCard, type SymbolDisplay } from './SymbolCard';
+import { GroupTile } from './GroupTile';
 import { TabBar } from '@/app/components/app/settings/ui/TabBar';
 import { CategoryBoardGrid } from './CategoryBoardGrid';
+import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCardEditable';
+import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/app/components/app/shared/ui/Dialog';
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
@@ -56,7 +83,7 @@ type TalkerDropdownProps = {
 
 export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
-  const { voiceId } = useProfile();
+  const { voiceId, accountId } = useProfile();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
   const [coreSel, setCoreSel]     = useState<CoreSel>(null);
@@ -73,8 +100,33 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // too; `entered` drives the transform (in = translateY(0), out = -100%).
   const [mounted, setMounted]     = useState(false);
   const [loadingDefaults, setLoadingDefaults] = useState(false);
+  // Core edit-mode state (Step 2). Symbol editor + delete confirms + local
+  // drag order for both the category tiles and a category's symbol board.
+  const [symbolEditor, setSymbolEditor] = useState<
+    | { open: false }
+    | { open: true; categoryId: Id<'profileCategories'>; profileSymbolId?: Id<'profileSymbols'> }
+  >({ open: false });
+  const [pendingCatDelete, setPendingCatDelete] = useState<
+    { id: Id<'profileCategories'>; name: string } | null
+  >(null);
+  const [pendingSymDelete, setPendingSymDelete] = useState<
+    { id: Id<'profileSymbols'>; name: string } | null
+  >(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [coreOrder, setCoreOrder] = useState<string[]>([]);
+  const [symOrder, setSymOrder]   = useState<string[]>([]);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  // Core-word edit mutations (Step 2).
+  const updateCategoryMeta     = useMutation(api.profileCategories.updateCategoryMeta);
+  const deleteCategory         = useMutation(api.profileCategories.deleteCategory);
+  const reorderCategories      = useMutation(api.profileCategories.reorderCategories);
+  const reorderProfileSymbols  = useMutation(api.profileSymbols.reorderProfileSymbols);
 
   // One-tap backfill of the Phase-14 defaults (core-word categories + phrase
   // banks) into the caller's account — for accounts created before these
@@ -153,6 +205,99 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   );
   const banks = phraseBanks ?? [];
   const coreCats = coreCategories ?? [];
+
+  // ── Local drag order (Step 2) — keep new server rows, drop removed ones,
+  //    preserve the instructor's in-flight ordering.
+  useEffect(() => {
+    if (coreCategories === undefined) return;
+    const ids = coreCats.map((c) => c._id as string);
+    setCoreOrder((prev) => {
+      const kept = prev.filter((id) => ids.includes(id));
+      const added = ids.filter((id) => !prev.includes(id));
+      return [...kept, ...added];
+    });
+  }, [coreCategories]);
+
+  useEffect(() => {
+    if (coreSymbols === undefined) return;
+    const ids = coreSymbols.map((s) => s._id as string);
+    setSymOrder((prev) => {
+      const kept = prev.filter((id) => ids.includes(id));
+      const added = ids.filter((id) => !prev.includes(id));
+      return [...kept, ...added];
+    });
+  }, [coreSymbols]);
+
+  const coreCatMap = new Map(coreCats.map((c) => [c._id as string, c]));
+  const orderedCoreCats = coreOrder.map((id) => coreCatMap.get(id)).filter(Boolean) as typeof coreCats;
+  const coreSymMap = new Map((coreSymbols ?? []).map((s) => [s._id as string, s]));
+  const orderedCoreSymbols = symOrder.map((id) => coreSymMap.get(id)).filter(Boolean) as NonNullable<typeof coreSymbols>;
+
+  // ── Core-word edit handlers (Step 2) ────────────────────────────────────────
+  function handleCatDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setCoreOrder((prev) => {
+      const next = arrayMove(prev, prev.indexOf(active.id as string), prev.indexOf(over.id as string));
+      reorderCategories({ orderedIds: next as Id<'profileCategories'>[] }).catch((e) =>
+        console.error('[TalkerDropdown] reorder categories failed', e)
+      );
+      return next;
+    });
+  }
+
+  function handleSymDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id || coreSel?.kind !== 'category') return;
+    const categoryId = coreSel.id;
+    setSymOrder((prev) => {
+      const next = arrayMove(prev, prev.indexOf(active.id as string), prev.indexOf(over.id as string));
+      reorderProfileSymbols({ profileCategoryId: categoryId, orderedIds: next as Id<'profileSymbols'>[] }).catch((e) =>
+        console.error('[TalkerDropdown] reorder symbols failed', e)
+      );
+      return next;
+    });
+  }
+
+  function handleRenameCategory(id: Id<'profileCategories'>, current: Record<string, string>, next: string) {
+    updateCategoryMeta({
+      profileCategoryId: id,
+      name: { ...current, [language]: next },
+    }).catch((e) => console.error('[TalkerDropdown] rename category failed', e));
+  }
+
+  async function handleCatDeleteConfirm() {
+    if (!pendingCatDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteCategory({ profileCategoryId: pendingCatDelete.id });
+    } catch (e) {
+      console.error('[TalkerDropdown] delete category failed', e);
+    } finally {
+      setIsDeleting(false);
+      setPendingCatDelete(null);
+    }
+  }
+
+  async function handleSymDeleteConfirm() {
+    if (!pendingSymDelete) return;
+    setIsDeleting(true);
+    try {
+      // Route through the API so personal R2 media is swept too — same policy
+      // as the category board's delete.
+      const res = await fetch('/api/delete-profile-symbol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileSymbolId: pendingSymDelete.id }),
+      });
+      if (!res.ok) console.error('[TalkerDropdown] delete symbol failed', await res.text());
+    } catch (e) {
+      console.error('[TalkerDropdown] delete symbol errored', e);
+    } finally {
+      setIsDeleting(false);
+      setPendingSymDelete(null);
+    }
+  }
 
   // O(1) word → symbol lookup — built from a getSymbolsByWords result.
   function buildMap(symbols: typeof numberSymbols) {
@@ -275,18 +420,91 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     );
   }
 
+  // Editable core-tile grid (Step 2) — dashed cards with inline rename, delete
+  // and drag-reorder. Numbers / Letters stay structural (non-authorable).
+  function renderEditableCoreTiles() {
+    return (
+      <div className="py-2">
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCatDragEnd}>
+          <SortableContext items={coreOrder} strategy={rectSortingStrategy}>
+            <div className="flex flex-wrap gap-3">
+              {orderedCoreCats.map((c) => {
+                const label = displayString(c.name, language, DEFAULT_LOCALE);
+                return (
+                  <div key={c._id} className="w-32">
+                    <GroupTile
+                      id={c._id}
+                      name={label}
+                      colour="zinc"
+                      imagePath={c.imagePath}
+                      isEditing
+                      gridSize="small"
+                      onOpen={() => setCoreSel({ kind: 'category', id: c._id, name: label })}
+                      onRename={(v) => handleRenameCategory(c._id, c.name, v)}
+                      onDeleteRequest={() => setPendingCatDelete({ id: c._id, name: label })}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
+        <div className="flex flex-wrap gap-3 mt-3 opacity-60">
+          <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => {}} />
+          <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => {}} />
+        </div>
+      </div>
+    );
+  }
+
+  // Editable symbol board for a core category drill-in (Step 2) — reuses the
+  // category board's editable card + add-symbol placeholder → SymbolEditorModal.
+  function renderEditableSymbolBoard() {
+    if (coreSel?.kind !== 'category') return null;
+    if (coreSymbols === undefined) return spinner();
+    const categoryId = coreSel.id;
+    return (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSymDragEnd}>
+        <SortableContext items={symOrder} strategy={rectSortingStrategy}>
+          <CategoryBoardGrid>
+            {orderedCoreSymbols.map((sym) => (
+              <SortableCoreSymbol
+                key={sym._id}
+                id={sym._id}
+                imagePath={sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined}
+                label={displayString(sym.label, language, DEFAULT_LOCALE)}
+                display={sym.display as SymbolDisplay | undefined}
+                onEdit={() => setSymbolEditor({ open: true, categoryId, profileSymbolId: sym._id })}
+                onDelete={() =>
+                  setPendingSymDelete({ id: sym._id, name: displayString(sym.label, language, DEFAULT_LOCALE) })
+                }
+              />
+            ))}
+            <AddTile label={t('symbolAdd')} onClick={() => setSymbolEditor({ open: true, categoryId })} />
+          </CategoryBoardGrid>
+        </SortableContext>
+      </DndContext>
+    );
+  }
+
   function renderCoreContent() {
-    if (coreSel === null) return renderCoreTiles();
+    if (coreSel === null) return editing ? renderEditableCoreTiles() : renderCoreTiles();
 
     const backLabel =
       coreSel.kind === 'category' ? coreSel.name
         : coreSel.kind === 'numbers' ? t('tabNumbers')
         : t('tabLetters');
 
-    let grid: ReactNode;
-    if (coreSel.kind === 'category') grid = renderCoreSymbols(coreSymbols);
-    else if (coreSel.kind === 'numbers') grid = renderWordList(NUMBERS, numberSymbols);
-    else grid = renderWordList(LETTERS, letterSymbols);
+    let body: ReactNode;
+    if (coreSel.kind === 'category') {
+      body = editing
+        ? renderEditableSymbolBoard()
+        : <CategoryBoardGrid>{renderCoreSymbols(coreSymbols)}</CategoryBoardGrid>;
+    } else if (coreSel.kind === 'numbers') {
+      body = <CategoryBoardGrid>{renderWordList(NUMBERS, numberSymbols)}</CategoryBoardGrid>;
+    } else {
+      body = <CategoryBoardGrid>{renderWordList(LETTERS, letterSymbols)}</CategoryBoardGrid>;
+    }
 
     return (
       <>
@@ -299,7 +517,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           <ChevronLeft className="w-4 h-4" />
           {t('tabCoreWords')} · {backLabel}
         </button>
-        <CategoryBoardGrid>{grid}</CategoryBoardGrid>
+        {body}
       </>
     );
   }
@@ -434,7 +652,139 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </>,
           document.body
         )}
+
+      {/* Symbol editor — create / edit a core symbol (categoryBoard mode). Its
+          own portal, so it layers above the dropdown panel. */}
+      {symbolEditor.open && accountId && (
+        <SymbolEditorModal
+          isOpen
+          profileSymbolId={symbolEditor.profileSymbolId}
+          profileCategoryId={symbolEditor.categoryId}
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          editorMode="categoryBoard"
+          onClose={() => setSymbolEditor({ open: false })}
+          onSave={() => setSymbolEditor({ open: false })}
+        />
+      )}
+
+      {/* Delete confirmations — core group + core symbol. */}
+      <Dialog open={pendingCatDelete !== null} onOpenChange={(o) => { if (!o) setPendingCatDelete(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('groupDeleteTitle')}</DialogTitle>
+            <DialogDescription>{t('groupDeleteConfirm', { name: pendingCatDelete?.name ?? '' })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+              >
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleCatDeleteConfirm}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-warning)', color: '#fff' }}
+            >
+              {isDeleting ? t('deleting') : t('deleteConfirm')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={pendingSymDelete !== null} onOpenChange={(o) => { if (!o) setPendingSymDelete(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('symbolDelete')}</DialogTitle>
+            <DialogDescription>{t('groupDeleteConfirm', { name: pendingSymDelete?.name ?? '' })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+              >
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleSymDeleteConfirm}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-warning)', color: '#fff' }}
+            >
+              {isDeleting ? t('deleting') : t('deleteConfirm')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+// ─── Sortable core symbol (edit board) ──────────────────────────────────────────
+
+function SortableCoreSymbol({
+  id,
+  imagePath,
+  label,
+  display,
+  onEdit,
+  onDelete,
+}: {
+  id: string;
+  imagePath?: string;
+  label: string;
+  display?: SymbolDisplay;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  };
+  return (
+    <div ref={setNodeRef} style={style}>
+      <SymbolCardEditable
+        imagePath={imagePath}
+        label={label}
+        display={display}
+        categoryColour="zinc"
+        onEdit={onEdit}
+        onDelete={onDelete}
+        dragHandleListeners={listeners}
+        dragHandleAttributes={attributes}
+      />
+    </div>
+  );
+}
+
+// ─── Add-symbol placeholder tile ─────────────────────────────────────────────────
+
+function AddTile({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="w-full aspect-square rounded-theme-card border-2 border-dashed border-theme-enter-mode flex items-center justify-center transition-opacity hover:opacity-80"
+    >
+      <Plus className="w-8 h-8" style={{ color: 'var(--theme-enter-mode)' }} />
+    </button>
   );
 }
 
