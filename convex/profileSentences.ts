@@ -18,6 +18,37 @@ const displayPropsSchema = v.optional(
   })
 );
 
+// Composition unit validators (ADR-015) — mirror schema.ts `compositionUnit`.
+// Used by talker saves (createProfileSentence) to persist the bar's units[]
+// while keeping phrase decomposition + per-unit clips.
+const compositionWordSchema = v.object({
+  order:        v.number(),
+  imagePath:    v.optional(v.string()),
+  audioPath:    v.optional(v.string()),
+  label:        v.optional(v.record(v.string(), v.string())),
+  displayProps: displayPropsSchema,
+});
+
+const compositionUnitSchema = v.union(
+  v.object({
+    kind:         v.literal("word"),
+    order:        v.number(),
+    imagePath:    v.optional(v.string()),
+    audioPath:    v.optional(v.string()),
+    label:        v.optional(v.record(v.string(), v.string())),
+    displayProps: displayPropsSchema,
+  }),
+  v.object({
+    kind:              v.literal("phrase"),
+    order:             v.number(),
+    name:              v.record(v.string(), v.string()),
+    audioPath:         v.optional(v.string()),
+    recordedAudioPath: v.optional(v.string()),
+    librarySourceId:   v.optional(v.string()),
+    words:             v.array(compositionWordSchema),
+  })
+);
+
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 export const getProfileSentences = query({
@@ -65,6 +96,21 @@ export const createProfileSentence = mutation({
     // ADR-014 — file the new sentence into a group (set when created from inside
     // a Sentence Group). Omit to leave it Ungrouped.
     folderId: v.optional(v.id("profileFolders")),
+    // ADR-015 — talker saves persist a full composition: `units[]` retains phrase
+    // decomposition + per-unit clips; `slots[]` stays the flat rendered source;
+    // `playback:"sequence"` plays each unit's clip in turn (no whole-sentence TTS).
+    kind:     v.optional(v.literal("sentence")),
+    playback: v.optional(v.union(v.literal("sequence"), v.literal("fluent"))),
+    units:    v.optional(v.array(compositionUnitSchema)),
+    slots:    v.optional(
+      v.array(
+        v.object({
+          order:        v.number(),
+          imagePath:    v.optional(v.string()),
+          displayProps: displayPropsSchema,
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -80,7 +126,10 @@ export const createProfileSentence = mutation({
       accountId,
       name:       args.name,
       order:      last ? last.order + 1 : 0,
-      slots:      [],
+      slots:      args.slots ?? [],
+      ...(args.kind ? { kind: args.kind } : {}),
+      ...(args.units ? { units: args.units } : {}),
+      ...(args.playback ? { playback: args.playback } : {}),
       ...(args.folderId ? { folderId: args.folderId } : {}),
       updatedAt:  Date.now(),
     });

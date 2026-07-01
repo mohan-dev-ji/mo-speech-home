@@ -407,7 +407,12 @@
     "moveCancel": "Cancel",
     "symbolDelete": "Delete symbol",
     "symbolEdit": "Edit symbol",
-    "symbolAdd": "Add symbol"
+    "symbolAdd": "Add symbol",
+    "saveModalTitle": "Save to sentences",
+    "saveUngrouped": "Ungrouped",
+    "saveCancel": "Cancel",
+    "saveConfirm": "Save",
+    "saveSaving": "Saving…"
   },
   "categoryDetail": {
     "back": "Categories",
