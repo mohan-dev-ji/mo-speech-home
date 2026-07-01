@@ -66,6 +66,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // the frame after open so the CSS transition runs; `motion-reduce:` snaps it
   // open under OS reduced-motion.
   const [entered, setEntered]     = useState(false);
+  // `mounted` keeps the panel in the DOM through the slide-out so close animates
+  // too; `entered` drives the transform (in = translateY(0), out = -100%).
+  const [mounted, setMounted]     = useState(false);
   const [loadingDefaults, setLoadingDefaults] = useState(false);
   const barRef                    = useRef<HTMLButtonElement>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
@@ -86,17 +89,22 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   function openPanel() {
     const r = barRef.current?.getBoundingClientRect();
-    if (r) setPanelPos({ top: r.top, left: r.left, width: r.width });
+    // Anchor at the bar's BOTTOM: the chevron bar stays put (part of the talker)
+    // and the contents slide down from behind it to cover the grid area below.
+    if (r) setPanelPos({ top: r.bottom, left: r.left, width: r.width });
     setIsOpen(true);
   }
 
   useEffect(() => {
-    if (!isOpen) {
-      setEntered(false);
-      return;
+    if (isOpen) {
+      setMounted(true);
+      const id = requestAnimationFrame(() => setEntered(true));
+      return () => cancelAnimationFrame(id);
     }
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
+    // Closing: slide out, then unmount after the transition.
+    setEntered(false);
+    const id = setTimeout(() => setMounted(false), 380);
+    return () => clearTimeout(id);
   }, [isOpen]);
 
   // ── Queries — all 'skip' unless the dropdown is open on the matching view.
@@ -318,21 +326,27 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         style={{ background: 'var(--theme-primary-25)', color: 'var(--theme-nav-text)' }}
         aria-label={isOpen ? t('closeDropdown') : t('openDropdown')}
       >
-        {!isOpen && <ChevronDown className="w-5 h-5" />}
+        {/* Bar stays put; only the chevron rotates on open/close. */}
+        <ChevronDown
+          className={`w-5 h-5 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
-      {isOpen &&
+      {mounted &&
         createPortal(
           <>
-            {/* Overlay — blocks board taps; click triggers click-outside close */}
+            {/* Dim the grid area below the talker; click closes. Starts at the
+                bar's bottom so the talker + chevron stay interactive above it. */}
             <div
               onClick={() => setIsOpen(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 49, background: 'rgba(0,0,0,0.45)' }}
+              style={{ position: 'fixed', top: panelPos.top, left: 0, right: 0, bottom: 0, zIndex: 49, background: 'rgba(0,0,0,0.35)' }}
             />
 
+            {/* Clip window over the grid area. The inner panel starts fully
+                translated up (hidden behind the talker) and slides DOWN to cover
+                the grid — slower than the chevron, reading as content pulled out
+                from behind the talker. */}
             <div
-              ref={panelRef}
-              className="flex flex-col glass-surface transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none"
               style={{
                 position: 'fixed',
                 top: panelPos.top,
@@ -340,41 +354,35 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 width: panelPos.width,
                 bottom: 0,
                 zIndex: 50,
-                borderRadius: '0 0 var(--theme-card-roundness) var(--theme-card-roundness)',
                 overflow: 'hidden',
-                background: 'var(--theme-background)',
-                transformOrigin: 'top',
-                transform: entered ? 'translateY(0)' : 'translateY(-12px)',
-                opacity: entered ? 1 : 0,
               }}
             >
-              {/* Chevron close — same position as the closed-state bar */}
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="shrink-0 flex items-center justify-center w-full h-[50px] hover:opacity-70 transition-opacity"
-                style={{ color: 'var(--theme-nav-text)' }}
-                aria-label={t('closeDropdown')}
+              <div
+                ref={panelRef}
+                className="flex flex-col h-full glass-surface transition-transform duration-[380ms] ease-out motion-reduce:transition-none"
+                style={{
+                  background: 'var(--theme-background)',
+                  borderRadius: '0 0 var(--theme-card-roundness) var(--theme-card-roundness)',
+                  transform: entered ? 'translateY(0)' : 'translateY(-100%)',
+                }}
               >
-                <ChevronDown className="w-5 h-5 rotate-180" />
-              </button>
+                {/* Tab bar — Core words + phrase banks. */}
+                <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
+                  {allTabs.map((id) => (
+                    <NavTabButton key={id} active={activeTab === id} onClick={() => selectTab(id)}>
+                      {getTabLabel(id)}
+                    </NavTabButton>
+                  ))}
+                </div>
 
-              {/* Tab bar — Core words + phrase banks. */}
-              <div className="flex gap-2 px-4 py-3 shrink-0 overflow-x-auto bg-theme-background" style={{ scrollbarWidth: 'none' }}>
-                {allTabs.map((id) => (
-                  <NavTabButton key={id} active={activeTab === id} onClick={() => selectTab(id)}>
-                    {getTabLabel(id)}
-                  </NavTabButton>
-                ))}
-              </div>
-
-              {/* Content. */}
-              <div className="flex-1 overflow-y-auto px-4 pb-2">
-                {activeTab === 'core' ? (
-                  renderCoreContent()
-                ) : (
-                  <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
-                )}
+                {/* Content. */}
+                <div className="flex-1 overflow-y-auto px-4 pb-2">
+                  {activeTab === 'core' ? (
+                    renderCoreContent()
+                  ) : (
+                    <div className="flex flex-wrap gap-3 py-2">{renderPhraseBank()}</div>
+                  )}
+                </div>
               </div>
             </div>
           </>,
