@@ -540,4 +540,19 @@ export const LITTLE_WORDS_GROUPS: DropdownGroup[] = [
       "yet", "well", "else", "instead", "even",
     ],
   },
+  {
+    id: "numbers",
+    name: { en: "Numbers", es: "Números", hi: "संख्याएँ" },
+    symbolstixCategories: ["Numbers"],
+    words: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "20"],
+  },
+  {
+    id: "letters",
+    name: { en: "Letters", es: "Letras", hi: "अक्षर" },
+    symbolstixCategories: ["Letters"],
+    words: [
+      "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+      "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+    ],
+  },
 ];

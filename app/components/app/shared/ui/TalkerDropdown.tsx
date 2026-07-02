@@ -10,9 +10,9 @@
 // Closed: a chevron bar clipped into the rectangle's bottom edge. Open: a portal
 // overlay that slides down from the chevron and overlays the page.
 
-import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronLeft, Hash, Type, Pencil, Plus, Trash2, Move, FolderInput, X, Volume2, Mic } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Pencil, Plus, Trash2, Move, FolderInput, X, Volume2, Mic } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import {
@@ -54,29 +54,22 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 
 const ZINC = getCategoryColour('zinc');
-
-// ─── Static data ──────────────────────────────────────────────────────────────
-
-// These match the exact words.en values in the symbols table.
-const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '20'];
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // 'core' = the Core-words tab; `bank-<folderId>` = a phrase bank.
 type TabId = 'core' | string;
 
-// Drill-in state inside the Core-words tab. null = the tile grid.
+// Drill-in state inside the Core-words tab. null = the tile grid. Numbers and
+// Letters are ordinary installed core groups (surface:"core" modules), so they
+// need no special-casing here.
 type CoreSel =
   | null
-  | { kind: 'category'; id: Id<'profileCategories'>; name: string }
-  | { kind: 'numbers' }
-  | { kind: 'letters' };
+  | { kind: 'category'; id: Id<'profileCategories'>; name: string };
 
 type TalkerDropdownProps = {
   language: string;
@@ -223,14 +216,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     isOpen && coreSel?.kind === 'category'
       ? { profileCategoryId: coreSel.id, voiceId }
       : 'skip'
-  );
-  const numberSymbols = useQuery(
-    api.symbols.getSymbolsByWords,
-    isOpen && coreSel?.kind === 'numbers' ? { words: NUMBERS } : 'skip'
-  );
-  const letterSymbols = useQuery(
-    api.symbols.getSymbolsByWords,
-    isOpen && coreSel?.kind === 'letters' ? { words: LETTERS } : 'skip'
   );
   // Phrase banks (ADR-015) — the reusable-chunk tabs. One query returns each
   // phrases-tree folder with its phrases nested.
@@ -456,11 +441,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     }
   }
 
-  // O(1) word → symbol lookup — built from a getSymbolsByWords result.
-  function buildMap(symbols: typeof numberSymbols) {
-    return new Map((symbols ?? []).map((s) => [s.words.en ?? '', s]));
-  }
-
   function getTabLabel(id: TabId): string {
     if (id === 'core') return t('tabCoreWords');
     const bank = banks.find((b) => `bank-${b.folderId}` === id);
@@ -516,32 +496,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     );
   }
 
-  // Numbers / Letters drill-in — symbols resolved by word (getSymbolsByWords).
-  function renderWordList(words: string[], symbols: typeof numberSymbols) {
-    if (symbols === undefined) return spinner();
-    const map = buildMap(symbols);
-    return words.map((word) => {
-      const sym       = map.get(word);
-      const label     = sym ? displayString(sym.words, language, DEFAULT_LOCALE) : word;
-      const imagePath = sym ? `/api/assets?key=${sym.imagePath}` : undefined;
-      const audioMap  = (sym?.audio as Record<string, boolean> | undefined) ?? {};
-      const seeded    = audioMap[voiceId] === true;
-      const audioPath = sym
-        ? resolveSymbolAudioPath(voiceId, sym.words.en ?? word, seeded, sym.audioBasename) ?? undefined
-        : undefined;
-      return (
-        <SymbolCard
-          key={word}
-          symbolId={sym?._id ?? `quick-${word}`}
-          imagePath={imagePath}
-          label={label}
-          language={language}
-          onTap={() => handleTap({ symbolId: sym?._id ?? `quick-${word}`, label, imagePath, audioPath })}
-        />
-      );
-    });
-  }
-
   // Core-category drill-in — the installed profileSymbols of a core category.
   function renderCoreSymbols(symbols: typeof coreSymbols) {
     if (symbols === undefined) return spinner();
@@ -562,12 +516,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
-  // Core tile grid — category tiles (GroupTile, same component as the
-  // category/list/sentence folders) + the fixed Numbers / Letters tiles.
-  // ONE DndContext across both modes (onDragEnd always present): swapping
-  // between a with-/without-onDragEnd DndContext at the same position makes
-  // dnd-kit's internal effect deps change size ("useLayoutEffect changed size").
-  // Reorder only fires when the edit-mode drag handle renders.
+  // Core tile grid — every core group (incl. Numbers & Letters) is an installed
+  // surface:"core" category, rendered with the shared GroupTile like the
+  // category/list/sentence folders. ONE DndContext across both modes (onDragEnd
+  // always present): swapping between a with-/without-onDragEnd DndContext at the
+  // same position makes dnd-kit's internal effect deps change size
+  // ("useLayoutEffect changed size"). Reorder only fires when the edit-mode drag
+  // handle renders.
   function renderCoreTileGrid() {
     return (
       <div className="flex flex-wrap gap-3 py-2">
@@ -595,20 +550,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
             })}
           </SortableContext>
         </DndContext>
-        {/* Numbers / Letters are fixed system word-lists, not editable folders —
-            rendered as their own icon tiles, dimmed + inert while editing. */}
-        <CoreTile
-          label={t('tabNumbers')}
-          icon={<Hash className="w-6 h-6" />}
-          className={editing ? 'opacity-60' : undefined}
-          onClick={editing ? undefined : () => setCoreSel({ kind: 'numbers' })}
-        />
-        <CoreTile
-          label={t('tabLetters')}
-          icon={<Type className="w-6 h-6" />}
-          className={editing ? 'opacity-60' : undefined}
-          onClick={editing ? undefined : () => setCoreSel({ kind: 'letters' })}
-        />
         {coreCats.length === 0 && coreCategories !== undefined && (
           <div className="flex flex-col items-start gap-2 self-center">
             <span className="text-caption opacity-60" style={{ color: 'var(--theme-nav-text)' }}>
@@ -662,21 +603,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   function renderCoreContent() {
     if (coreSel === null) return renderCoreTileGrid();
 
-    const backLabel =
-      coreSel.kind === 'category' ? coreSel.name
-        : coreSel.kind === 'numbers' ? t('tabNumbers')
-        : t('tabLetters');
-
-    let body: ReactNode;
-    if (coreSel.kind === 'category') {
-      body = editing
-        ? renderEditableSymbolBoard()
-        : <CategoryBoardGrid>{renderCoreSymbols(coreSymbols)}</CategoryBoardGrid>;
-    } else if (coreSel.kind === 'numbers') {
-      body = <CategoryBoardGrid>{renderWordList(NUMBERS, numberSymbols)}</CategoryBoardGrid>;
-    } else {
-      body = <CategoryBoardGrid>{renderWordList(LETTERS, letterSymbols)}</CategoryBoardGrid>;
-    }
+    const body = editing
+      ? renderEditableSymbolBoard()
+      : <CategoryBoardGrid>{renderCoreSymbols(coreSymbols)}</CategoryBoardGrid>;
 
     return (
       <>
@@ -687,7 +616,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           style={{ color: 'var(--theme-nav-text)' }}
         >
           <ChevronLeft className="w-4 h-4" />
-          {t('tabCoreWords')} · {backLabel}
+          {t('tabCoreWords')} · {coreSel.name}
         </button>
         {body}
       </>
@@ -1351,34 +1280,6 @@ function AddTile({ label, onClick }: { label: string; onClick: () => void }) {
       className="w-full aspect-square rounded-theme-card border-2 border-dashed border-theme-enter-mode flex items-center justify-center transition-opacity hover:opacity-80"
     >
       <Plus className="w-8 h-8" style={{ color: 'var(--theme-enter-mode)' }} />
-    </button>
-  );
-}
-
-// ─── Core tile (zinc) ───────────────────────────────────────────────────────────
-
-function CoreTile({
-  label,
-  icon,
-  onClick,
-  className,
-}: {
-  label: string;
-  icon?: ReactNode;
-  onClick?: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
-      aria-label={label}
-      className={`flex flex-col items-center justify-center gap-2 w-32 h-28 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0 ${className ?? ''}`}
-      style={{ background: ZINC.c500, color: '#fff' }}
-    >
-      {icon}
-      <span className="text-body font-medium text-center">{label}</span>
     </button>
   );
 }

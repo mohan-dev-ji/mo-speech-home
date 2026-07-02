@@ -1254,6 +1254,8 @@ export const seedCoreWordModules = mutation({
       { slug: "core-joining-words", name: "Joining words", words: byId["joining-words"]?.words ?? [] },
       { slug: "core-position-words", name: "Position Words", words: byId["position-words"]?.words ?? [] },
       { slug: "core-time", name: "Time", words: byId["time-and-manner"]?.words ?? [] },
+      { slug: "core-numbers", name: "Numbers", words: byId["numbers"]?.words ?? [] },
+      { slug: "core-letters", name: "Letters", words: byId["letters"]?.words ?? [] },
     ];
 
     let seeded = 0;
