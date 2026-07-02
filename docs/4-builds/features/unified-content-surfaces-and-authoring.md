@@ -1,156 +1,186 @@
-# Unified Content Surfaces & Authoring — Design Doc
+# Talker Dropdown as a Fringe Board — & Unified Authoring
 
-**Status:** Draft for review (read slowly, not ready to build) · **Date:** 2026-07-02
+**Status:** Draft for review (read slowly, not ready to build) · **Date:** 2026-07-02 · **Supersedes:** the folder-drill-in version of this doc.
 **Relates to:** [ADR-014 (content modules + three trees)](../decisions/ADR-014-content-modules-and-three-tree-organisation.md) · [ADR-015 (composition primitive + phrase tree)](../decisions/ADR-015-composition-primitive-and-phrase-tree.md) · builds on the shipped Phase 14 dropdown edit modes.
 
-> **One-line vision:** every place a user organises content — the Categories board, Lists, Sentences, and the talker dropdown's Core words and Phrases — is the *same* thing: a grid of **groups** (GroupTile) you drill into to reach **items**, with *one* editing flow and *one* admin authoring system (Defaults → Publish → Republish) behind all of it.
+> **One-line vision:** the talker dropdown is a **flat fringe board** — up to six instructor-curated tabs of loose, mixed **words and phrases**, one tap to insert. It is deliberately *not* the same shape as the organised library pages (Categories / Lists / Sentences), which keep folders. What's shared across everything is the **editing vocabulary** and the **authoring pipeline** — not the structure.
 
-This doc is a **design/vision** doc, not a step-by-step plan. It captures the model, the decisions still open, and a rough build order so we can talk it through before committing to a phased plan. Nothing here is built yet unless the "What already exists" section says so.
-
----
-
-## 1. The north star: sameness
-
-Today we have five content surfaces that *look* related but were built at different times with slightly different mechanics:
-
-| Surface | Tree | Group primitive | Item | Where it lives |
-|---|---|---|---|---|
-| Categories board | `categories` | GroupTile (folder) | symbol | Categories page |
-| Lists | `lists` | GroupTile (folder) | list item | Lists page |
-| Sentences | `sentences` | GroupTile (folder) | sentence | Sentences page |
-| Core words | `categories` + `surface:"core"` | GroupTile *(as of Phase 14)* | symbol | Talker dropdown |
-| Phrases | `phrases` | *(N top-level tabs — inconsistent)* | phrase | Talker dropdown |
-
-The goal is to make **all five identical in shape**:
-
-> **tab / page → grid of GroupTiles (groups) → drill into a group → items** — with the same rename / image / delete / reorder / add / create gestures, and the same admin authoring system underneath.
-
-When every surface is the same, there is *one* thing to learn (for users), *one* set of components to maintain (for us), and *one* authoring pipeline (for you). That's the whole bet.
+This is a **design/vision** doc, not a step-by-step plan. Read it slowly, mark it up; once the open decisions (§9) are settled I'll turn it into a phased build plan.
 
 ---
 
-## 2. The dropdown, simplified to two tabs
+## 1. The correction: speed beats sameness
 
-**Today:** the dropdown has a *Core words* tab plus **one tab per phrase bank** (`Phrases 1`, `Phrases 2`, …). Bank tabs don't scale (they eat horizontal space) and they're structurally different from the core tab.
+An earlier draft of this doc tried to make *every* surface identical — folders and drill-in everywhere, including the dropdown. That was wrong for one reason:
 
-**Proposed:** exactly **two tabs**, symmetric:
+> **The dropdown's only job is to communicate *now*, in the fewest taps.** Every folder you nest inside it is another tap between a user and the word they need mid-utterance. `tab → folder → word` is two levels deeper than what's already on the market, and it makes a fast AAC feel slow.
 
-```
-┌ Core words ─┬─ Phrases ─┐
-│  [Edit] [Create Group] [Load defaults]        ← same chrome both tabs
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐
-│  │Group │ │Group │ │Group │ │Group │          ← GroupTiles
-│  │tile  │ │tile  │ │tile  │ │tile  │
-│  └──────┘ └──────┘ └──────┘ └──────┘
-```
+The fix is the classic AAC distinction we'd blurred:
 
-- **Core words tab** → GroupTiles for core groups (General, Pronouns, …, Numbers, Letters). Drill in → the group's **symbols**.
-- **Phrases tab** → GroupTiles for phrase groups (the old "banks" — a `tree:"phrases"` folder is now just a *group*). Drill in → the group's **phrases**.
-
-Both tabs are the **same component** parameterised by surface. The only difference is what an *item* is (a symbol vs a phrase) and what happens on tap (insert a word-unit vs a phrase-unit into the talker bar).
-
-### Interaction model (identical both tabs)
-
-| Mode | Tap a GroupTile | Tap an item (drilled in) |
+| | **Fringe board** (the dropdown) | **Library** (the pages) |
 |---|---|---|
-| **Normal** | drill into the group | insert the item into the talker bar |
-| **Edit** | drill into the group (to edit its items) | open the item editor (symbol editor / phrase editor) |
+| Job | say it *now* | organise, teach, build |
+| Shape | **flat** — tab → item → done | **foldered** — browse → folder → items |
+| When | mid-conversation | between conversations |
+| Content | high-frequency words + phrases, mixed | the long tail, by topic |
+| Layout owner | the SLP/instructor (motor-planned) | the instructor, loosely |
 
-Group-level editing (rename, image, delete, reorder, **create group**) lives on the GroupTile / edit chrome, exactly as it does on the Categories board today. This is already how Phase 14 core words behave — we're extending the *same* behaviour to phrases and collapsing the bank tabs into one Phrases tab.
+So **sameness moves from structure to two things that genuinely should be uniform**:
+- the **editing gestures** (create a symbol, create a phrase, edit an item, reorder), and
+- the **authoring pipeline** (Defaults → Publish → Republish).
 
-### What this changes vs. today
-- `TalkerDropdown`'s `activeTab` goes from `'core' | 'bank-<folderId>'` to just `'core' | 'phrases'`.
-- The Phrases tab renders a **GroupTile grid** (phrase groups) instead of a flat card list; drilling into a group shows that group's phrases (insert cards in normal mode, editable phrase cards in edit mode — both already exist from Phase 14).
-- "Create Group" on the Phrases tab creates a phrase **group** (folder); "Create Phrase" moves *inside* a group's drill-in (you create a phrase where it lives, not at the tab root).
-
----
-
-## 3. One authoring system for everything
-
-There are two distinct roles, and keeping them on separate surfaces is the key architectural decision:
-
-- **Instructor** edits *their own installed copy* of a group/item — in place (dropdown, Categories page, etc.). Already built for core words in Phase 14.
-- **Admin (you)** authors the *source modules* that ship to everyone — via **Defaults → Publish → Republish**, the same flow categories/lists/sentences already use (`PublishModuleModal`, `RepublishButton`, `librarySourceId` linkage, `sync*ToPackIfPublished`).
-
-> **Do not** put admin publish/republish controls on the instructor dropdown. It clutters the instructor surface and blurs "am I editing my copy or the canonical default?". Route all default authoring through the library/module surface.
-
-The authoring system is **uniform across all module types**:
-
-| Module type | Tree | Authorable as default today? | Gap |
-|---|---|---|---|
-| Categories | `categories` | ✅ full publish/republish | — |
-| Lists | `lists` | ✅ | — |
-| Sentences | `sentences` | ✅ | — |
-| **Core words** | `categories` + `surface:"core"` | ⚠️ installs carry `surface`; **publish direction unverified** | confirm publish preserves `surface:"core"` |
-| **Phrases** | `phrases` | ❌ newer (post-ADR-010, no pack propagation) | **needs a publish/republish path** — the main net-new backend work |
-
-So "authoring for everything" mostly *already exists* for the category-shaped surfaces. The real work is: (a) confirm core-word publish preserves `surface`, and (b) give the **phrases tree** the same publish/republish/default machinery the other trees have.
+The dropdown stays flat. The pages keep folders. That's the whole correction — and flat is *less* to build, not more.
 
 ---
 
-## 4. The Resource Library gets a section per type
+## 2. The dropdown model: flat tabs of mixed items
 
-The library browse UI filters by **class** (Default/Free/Pro/Max) today. Add **type sections** so each surface is discoverable and authorable in one place:
+```
+┌ Core words ─┬─ Phrases ─┬─ (＋) ─┐        ← up to 6 tabs; “＋” adds one (edit mode)
+│  [Edit]                                    ← Edit toggles create/reorder/delete
+│  ┌────┐ ┌────────┐ ┌────┐ ┌────┐ ┌────────┐
+│  │word│ │ phrase │ │word│ │word│ │ phrase │  ← loose, mixed, one tap = insert
+│  └────┘ └────────┘ └────┘ └────┘ └────────┘
+│  ┌────┐ ┌────┐ ┌────────┐ ┌────┐
+│  │word│ │word│ │ phrase │ │word│              ← stable grid slots (motor planning)
+│  └────┘ └────┘ └────────┘ └────┘
+└─────────────────────────────────────┘
+```
 
-- **Categories** (existing)
-- **Lists** (existing)
-- **Sentences** (existing)
-- **Core words** — a **`surface:"core"` filter over the categories tree**, *not* a new tree. Core groups are structurally categories (a folder of symbols); a new tree would fork all the install/reload/publish machinery for no benefit. A surface-filtered section gives browse + author + publish for free while keeping them distinct (zinc, "default" class, dropdown-pinned).
-- **Phrase groups** — the existing `phrases` tree. **Granularity = the group (bank), not the individual phrase.** A phrase group (folder + its phrases) is the analogue of a category module; individual phrases are *items inside*, exactly like symbols inside a category. Installing atomised single phrases would break the pattern (install-management, dedup, ordering) and fight the group model.
+- **Up to 6 tabs.** Ships with **2 seed tabs** ("Core words", "Phrases") as a starting point; the instructor renames/adds up to four more. There is nothing special about the seed names — they're a default the SLP reshapes.
+- **Each tab is a flat, ordered grid of items.** Each item is **either a single symbol or a phrase**, mixed freely. No folders, no drill-in.
+- **One tap inserts** the item into the talker bar. Then: close drop → back to categories or search. That's the entire fast path: *open drop → choose → close.*
+- **Edit mode** (per the Phase 14 chrome): reorder items, delete items, rename/add/delete tabs, and **"Create symbol" / "Create phrase"** to add a new item to the current tab — reusing the existing symbol editor and phrase editor.
+- **Motor planning = stable slots** (see §3): an item holds its position; adding or removing another item must **not** reflow the board, or the muscle memory that makes fringe boards fast is destroyed.
 
----
+### Interaction (dead simple)
 
-## 5. Reload defaults, per group (instructor-facing)
+| Mode | Tap an item | Tap "＋ / Create" |
+|---|---|---|
+| **Normal** | insert word/phrase into the bar | — |
+| **Edit** | open that item's editor | create a new symbol or phrase in this tab |
 
-Once source modules are first-class for every surface, the instructor complement is **reload defaults on a single group in edit mode** — restore a group's items from its module source (`reloadCategoryFromLibrary` already does this for categories; each installed core category carries `librarySourceId` = its module slug). Phrases would get the equivalent once they have a module source.
-
-We shipped a first piece of this already: a **"Load defaults"** button in the core edit chrome that backfills *missing* default modules (install-only). Per-group *reload* (re-sync an existing group) is the next increment, with a confirm dialog + toast matching the category detail page.
-
----
-
-## 6. Open decisions (your call — flagged for the slow read)
-
-1. **Core colour lock.** Core groups are zinc-locked today (no swatch), for motor-planning consistency. Now that they're full groups, do we (a) keep the zinc lock, or (b) allow colour like other groups? *Recommendation: keep the lock — core's value is visual consistency.*
-2. **Phrase group images/colour.** Phrase groups as GroupTiles *can* have a folder image + colour. Do we want that, or keep phrase groups plain? *Recommendation: allow both — they're just groups.*
-3. **Phrase module granularity.** Confirm: modules are **phrase groups (banks)**, not individual phrases. *Recommendation: groups.*
-4. **Numbers/Letters as editable defaults.** Already done — but note the domain caution (§8): editable ≠ should-diverge. Keep the canonical default curated.
-5. **Where "Create Phrase" lives.** Inside a phrase group's drill-in (create-where-it-lives), vs. at the Phrases tab root with a group picker. *Recommendation: inside the drill-in, for symmetry with symbols.*
-
----
-
-## 7. Rough build order (not a commitment)
-
-Small, shippable phases, each independently verifiable:
-
-1. **Dropdown → 2 tabs.** Collapse bank tabs into one *Phrases* tab of phrase-group GroupTiles + drill-in. Reuses the Phase 14 phrase edit cards inside the drill-in. *(Front-end only; no schema change.)*
-2. **Phrases publish/republish.** Give the phrases tree the default/publish/republish machinery the other trees have (the main backend piece).
-3. **Confirm core publish preserves `surface`.** Small backend check + fix if needed.
-4. **Library sections.** Add *Core words* (surface filter) + *Phrase groups* (tree) to the library browse/author UI.
-5. **Per-group reload defaults** in dropdown edit mode (confirm dialog + toast).
-
-Order rationale: (1) is pure UX simplification and de-risks the dropdown; (2)–(3) unlock authoring; (4) makes it discoverable; (5) is the instructor complement.
+No group-tap, no drill-in, no back button. The dropdown never goes more than one level deep.
 
 ---
 
-## 8. Domain caution (worth keeping in view)
+## 3. What is an item? (data model)
 
-Core vocabulary's value in AAC is **consistency** — same words, same positions, for motor planning. Making cores *editable* is on-brand for Mo Speech's customisability, and per-account tweaks are good. The thing to protect is the **canonical default**: a new user's core layout should be predictable. The module model gives you exactly this — one curated source + per-account snapshots that may diverge. So: author defaults deliberately; let instructors customise on top; don't let "editable" quietly mean "every account's core is different from day one."
+A dropdown item is exactly an **ADR-015 `compositionUnit`** — the `word | phrase` primitive we already defined for sentences:
+
+- **word unit:** `{ kind:"word", slot, imagePath, audioPath?, label? }` — a snapshot of a symbol (image frozen, label resolves live per ADR-014 §4).
+- **phrase unit:** `{ kind:"phrase", slot, name, audioPath?, words[] }` — carries its decomposition + its own clip, so tapping it inserts a phrase-unit into the bar exactly as today.
+
+So **a tab is a named, ordered list of composition units.** That's the same shape as a saved sentence's `units[]`, just persisted as a reusable board instead of a finished sentence — we've already designed and shipped this primitive.
+
+**Model options (a decision for §9):**
+
+- **A — units array per tab (lean).** A `dropbarTabs` row: `{ accountId, name, order, slots: compositionUnit[] }`. Mixed words+phrases fall out for free; self-contained; minimal new surface area. Snapshot semantics (like sentence slots) — editing an item edits the tab's copy.
+- **B — tab references library entities by id.** Each item points at a `profileSymbol` / `profilePhrase`. More normalised, keeps board + library in sync, but mixing reference-types is fiddlier and heavier.
+
+**Lean: Option A.** A fringe board is a curated, self-contained artefact; snapshotting matches how sentence slots already work and keeps the primitive simple. Phrases that need to be *reused* live in the phrases library separately.
+
+**Stable slots.** Store a fixed `slot` index (a grid position), not just array order. Deleting an item leaves a gap rather than repacking; the instructor decides whether to fill it. This is the one thing worth designing in from day one rather than retrofitting.
 
 ---
 
-## 9. What already exists (grounding)
+## 4. Move reference content to Categories
 
-- **Phase 14 (shipped):** core words render as GroupTiles in both modes with full edit (rename/image/delete/reorder/create); editable symbol drill-in board; phrase edit cards (word chips, name, audio, delete/move/reorder); talker Save → sentence composition; Numbers/Letters converted to `surface:"core"` modules; a "Load defaults" backfill button.
-- **Authoring infra (shipped, category-shaped):** `PublishModuleModal`, `RepublishButton`, `setCategoryInLibrary`, `reloadCategoryFromLibrary`, `librarySourceId`/`librarySourceCategoryKey` linkage, module `class` (Default/Free/Pro/Max), install via `installContentModule` (propagates `surface`).
-- **Phrases (shipped, but authoring-light):** `profilePhrases` table, `getPhraseBanks`, phrase CRUD + `moveProfilePhraseToFolder`; **no** publish/republish path yet.
+Not everything belongs on a speed surface:
+
+- **Numbers, Letters, clock/date → Categories.** These are *lookup/reference* content — you rarely need "the letter q" or "17" mid-sentence at speed, and when you do, a folder is fine. They become ordinary `categories`-tree folders on the Categories board (fully editable there like any category).
+- **The core fringe words → seed the flat tabs.** General, Pronouns, Joining words, Position words are exactly the high-frequency vocabulary a fringe board is *for*. Their symbols become seed items in the default dropdown tabs (mixed with a few starter phrases) — they stop being dropdown *folders*.
+- **Split "Time".** The calendar/clock half → a Categories folder; a few high-frequency **time adverbs** ("now", "today", "soon", "later") earn a place *as items* in a tab. "Time" isn't one thing.
+
+Net effect: the dropdown holds only what you reach for *while talking*; everything else is a tap-slower in the library, which is correct.
 
 ---
 
-## 10. Summary
+## 5. Seed content & the SLP curation loop
 
-- **Two dropdown tabs** (Core words, Phrases), each a GroupTile grid → drill-in. Symmetric, scalable, one component.
-- **Every surface is the same shape** and the same edit flow.
-- **One authoring system** (Defaults/Publish/Republish) for all module types; instructors edit copies, admins author sources.
-- **Library sections:** Core words (surface filter on categories) + Phrase groups (existing phrases tree) — no new trees.
-- **Main net-new work:** publish/republish for the phrases tree; a small check that core publish preserves `surface`.
-- **Keep core defaults curated** even though they're editable.
+The board's quality *is* the product here, and it's a **content/research problem, not an engineering one**:
+
+- Ship **opinionated, science-backed defaults** tuned for the **median user** — not a blank grid. Most instructors won't heavily customise, so the out-of-the-box tab set has to already be good (evidence-based core vocabulary, sensible motor-planned positions).
+- **Field loop:** ship a small, showcase-quality starter (a handful of core words + a couple of phrases across the 2 seed tabs) → SLPs test → collect their best tab/item/position suggestions → fold the strongest, evidence-backed selection back into the shipped default.
+- Pair the default with **short guidelines** (keep positions consistent for motor planning; group by function; don't overfill) so a customising SLP stays on the rails.
+
+This decouples cleanly: engineering builds the flat-board mechanism + authoring; the *content* of the default board is curated over time from field feedback.
+
+---
+
+## 6. One authoring system (unchanged from before)
+
+Two roles, two surfaces — keep them separate:
+
+- **Instructor** edits *their own* board in place (the dropdown edit mode). Already partly built in Phase 14.
+- **Admin (you)** authors the *shipped default* — the **starter tab set** — via **Defaults → Publish → Republish**, the same pipeline categories/lists/sentences use (`PublishModuleModal`, `RepublishButton`, `librarySourceId` linkage).
+
+The only shift from the previous draft: the publishable "core" default is now a **starter dropbar tab set** (an ordered set of tabs, each a list of composition units) rather than a set of core-category folders. Everything else about the authoring pipeline is reused. Instructors who've customised keep their board; "reload defaults" restores the shipped starter.
+
+> Still **do not** put admin publish/republish controls on the instructor dropdown — author defaults from the library/admin surface.
+
+---
+
+## 7. The library pages stay foldered
+
+Categories / Lists / Sentences keep GroupTile folders and drill-in — that's right for organising and teaching. What they **share** with the dropdown:
+
+- the **item editors** (symbol editor, phrase editor, audio modal),
+- the **create gestures** (create symbol / create phrase),
+- the **authoring pipeline** (Defaults/Publish/Republish, `librarySourceId`, reload-defaults).
+
+What they **don't** share: structure. Pages nest; the dropdown is flat. That's intentional, not an inconsistency.
+
+---
+
+## 8. What Phase 14 gives us / what changes
+
+**Reused as-is (backend + editors all stand):**
+- `compositionUnit` (word|phrase), the talker bar's phrase-units, the symbol editor, the phrase editor, the generalised audio modal, `profilePhrases` CRUD, `surface` propagation, talker Save → sentence composition.
+
+**Superseded / simplified in the dropdown:**
+- The **folder drill-in** (core groups as GroupTiles you tap into) is *removed* from the dropdown — the dropdown flattens to tabs of loose items. GroupTile stays for the library pages.
+- The **N-bank-tabs** model collapses; phrases become loose items in tabs.
+- **Numbers/Letters** stop being `surface:"core"` dropdown categories and become ordinary Categories folders (a content migration, not a schema fight).
+
+**Net:** Phase 14 was the right groundwork — the primitives and editors carry over; the dropdown *structure* gets simpler.
+
+---
+
+## 9. Open decisions (your call — flagged for the slow read)
+
+1. **Data model:** Option A (units[] per tab, snapshot) vs Option B (references). *Lean: A.*
+2. **Stable slots:** fixed grid positions with gaps, vs simple reorderable list. *Lean: fixed slots — motor planning.*
+3. **Max tabs:** 6 total (2 seed + 4). Confirm the cap, or make it soft.
+4. **Phrase reuse:** are phrases on a tab self-contained snapshots, or linked to a reusable phrases library? *Lean: snapshot for v1; library linkage later if needed.*
+5. **Default board content:** owned by the SLP field loop (§5) — engineering ships the mechanism + a showcase starter, not the final vocabulary.
+6. **What happens to General/Pronouns/etc. as categories:** do they survive on the Categories board too, or fully dissolve into the fringe tabs? *Lean: dissolve — they're fringe, not topical.*
+
+---
+
+## 10. Rough build order (not a commitment)
+
+1. **Flatten the dropdown** to tabs-of-loose-items: remove folder drill-in; render each tab as a flat grid of composition units; tap = insert. *(Front-end; introduces the tab/units store.)*
+2. **Tab CRUD + item CRUD:** add/rename/delete/reorder tabs; create-symbol / create-phrase into a tab; reorder/delete items; stable slots.
+3. **Content migration:** Numbers/Letters/clock → Categories; seed the 2 starter tabs from the core fringe words + a couple of phrases.
+4. **Authoring:** make the starter tab set a publishable default (Defaults/Publish/Republish) + per-board "reload defaults."
+5. **(Content, parallel track):** SLP field loop → science-backed default board.
+
+---
+
+## 11. Domain notes / cautions
+
+- **Fringe vs category is evidence-based**, not just tidiness — high-frequency core vocabulary always-available is a core AAC principle; the flat board honours it.
+- **Motor-planning stability** is a real clinical requirement — protect item positions.
+- **Opinionated defaults win** — a blank-canvas-with-guidelines fails the median instructor; ship a genuinely good board and let SLPs refine.
+- **Editable ≠ should-diverge** — customisation is on-brand, but a good curated default is what most users actually live with.
+
+---
+
+## 12. Summary
+
+- The dropdown becomes a **flat fringe board**: up to 6 tabs, loose mixed words+phrases, one tap to insert, no folders. *open drop → choose → close.*
+- An item is an **ADR-015 composition unit**; a tab is an ordered list of them (lean model: a units array per tab, with stable slots).
+- **Numbers/Letters/clock → Categories**; core fringe words + a few phrases + a few time adverbs **seed the tabs**.
+- **Pages keep folders.** Shared across everything: editors, create gestures, and the **Defaults/Publish/Republish** authoring pipeline — not structure.
+- The **default board content** is a science-backed, SLP-field-tested curation effort, decoupled from the engineering.
