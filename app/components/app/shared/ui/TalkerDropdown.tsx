@@ -562,17 +562,18 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
-  // Core tile grid — category tiles (GroupTile, same as category/list/sentence
-  // folders) + the fixed Numbers / Letters tiles.
-  function renderCoreTiles() {
+  // Core tile grid — category tiles (GroupTile, same component as the
+  // category/list/sentence folders) + the fixed Numbers / Letters tiles.
+  // ONE DndContext across both modes (onDragEnd always present): swapping
+  // between a with-/without-onDragEnd DndContext at the same position makes
+  // dnd-kit's internal effect deps change size ("useLayoutEffect changed size").
+  // Reorder only fires when the edit-mode drag handle renders.
+  function renderCoreTileGrid() {
     return (
       <div className="flex flex-wrap gap-3 py-2">
-        {/* GroupTile calls useSortable internally, so mount it inside a
-            (drag-inert) sortable context — no drag handles render out of edit
-            mode, matching the category/list/sentence folder tiles. */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter}>
-          <SortableContext items={coreCats.map((c) => c._id as string)} strategy={rectSortingStrategy}>
-            {coreCats.map((c) => {
+        <DndContext key="core-tiles" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCatDragEnd}>
+          <SortableContext items={coreOrder} strategy={rectSortingStrategy}>
+            {orderedCoreCats.map((c) => {
               const label = displayString(c.name, language, DEFAULT_LOCALE);
               return (
                 <div key={c._id} className="w-32">
@@ -581,17 +582,33 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     name={label}
                     colour="zinc"
                     imagePath={c.imagePath}
-                    isEditing={false}
+                    isEditing={editing}
+                    allowOpenInEditMode
                     gridSize="small"
                     onOpen={() => setCoreSel({ kind: 'category', id: c._id, name: label })}
+                    onRename={(v) => handleRenameCategory(c._id, c.name, v)}
+                    onEditImage={() => setCoreImageTarget({ id: c._id, name: label, imagePath: c.imagePath })}
+                    onDeleteRequest={() => setPendingCatDelete({ id: c._id, name: label })}
                   />
                 </div>
               );
             })}
           </SortableContext>
         </DndContext>
-        <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'numbers' })} />
-        <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => setCoreSel({ kind: 'letters' })} />
+        {/* Numbers / Letters are fixed system word-lists, not editable folders —
+            rendered as their own icon tiles, dimmed + inert while editing. */}
+        <CoreTile
+          label={t('tabNumbers')}
+          icon={<Hash className="w-6 h-6" />}
+          className={editing ? 'opacity-60' : undefined}
+          onClick={editing ? undefined : () => setCoreSel({ kind: 'numbers' })}
+        />
+        <CoreTile
+          label={t('tabLetters')}
+          icon={<Type className="w-6 h-6" />}
+          className={editing ? 'opacity-60' : undefined}
+          onClick={editing ? undefined : () => setCoreSel({ kind: 'letters' })}
+        />
         {coreCats.length === 0 && coreCategories !== undefined && (
           <div className="flex flex-col items-start gap-2 self-center">
             <span className="text-caption opacity-60" style={{ color: 'var(--theme-nav-text)' }}>
@@ -612,44 +629,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     );
   }
 
-  // Editable core-tile grid (Step 2) — dashed cards with inline rename, delete
-  // and drag-reorder. Numbers / Letters stay structural (non-authorable).
-  function renderEditableCoreTiles() {
-    return (
-      <div className="py-2">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCatDragEnd}>
-          <SortableContext items={coreOrder} strategy={rectSortingStrategy}>
-            <div className="flex flex-wrap gap-3">
-              {orderedCoreCats.map((c) => {
-                const label = displayString(c.name, language, DEFAULT_LOCALE);
-                return (
-                  <div key={c._id} className="w-32">
-                    <GroupTile
-                      id={c._id}
-                      name={label}
-                      colour="zinc"
-                      imagePath={c.imagePath}
-                      isEditing
-                      gridSize="small"
-                      onOpen={() => setCoreSel({ kind: 'category', id: c._id, name: label })}
-                      onRename={(v) => handleRenameCategory(c._id, c.name, v)}
-                      onEditImage={() => setCoreImageTarget({ id: c._id, name: label, imagePath: c.imagePath })}
-                      onDeleteRequest={() => setPendingCatDelete({ id: c._id, name: label })}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
-        <div className="flex flex-wrap gap-3 mt-3 opacity-60">
-          <CoreTile label={t('tabNumbers')} icon={<Hash className="w-6 h-6" />} onClick={() => {}} />
-          <CoreTile label={t('tabLetters')} icon={<Type className="w-6 h-6" />} onClick={() => {}} />
-        </div>
-      </div>
-    );
-  }
-
   // Editable symbol board for a core category drill-in (Step 2) — reuses the
   // category board's editable card + add-symbol placeholder → SymbolEditorModal.
   function renderEditableSymbolBoard() {
@@ -657,7 +636,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (coreSymbols === undefined) return spinner();
     const categoryId = coreSel.id;
     return (
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSymDragEnd}>
+      <DndContext key="core-symbols" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSymDragEnd}>
         <SortableContext items={symOrder} strategy={rectSortingStrategy}>
           <CategoryBoardGrid>
             {orderedCoreSymbols.map((sym) => (
@@ -681,7 +660,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   }
 
   function renderCoreContent() {
-    if (coreSel === null) return editing ? renderEditableCoreTiles() : renderCoreTiles();
+    if (coreSel === null) return renderCoreTileGrid();
 
     const backLabel =
       coreSel.kind === 'category' ? coreSel.name
@@ -762,7 +741,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       );
     }
     return (
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handlePhraseDragEnd}>
+      <DndContext key="phrase-cards" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handlePhraseDragEnd}>
         <SortableContext items={phraseOrder} strategy={rectSortingStrategy}>
           <div className="flex flex-wrap gap-4 py-2">
             {orderedPhrases.map((p) => {
@@ -1382,17 +1361,20 @@ function CoreTile({
   label,
   icon,
   onClick,
+  className,
 }: {
   label: string;
   icon?: ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={!onClick}
       aria-label={label}
-      className="flex flex-col items-center justify-center gap-2 w-32 h-28 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
+      className={`flex flex-col items-center justify-center gap-2 w-32 h-28 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0 ${className ?? ''}`}
       style={{ background: ZINC.c500, color: '#fff' }}
     >
       {icon}

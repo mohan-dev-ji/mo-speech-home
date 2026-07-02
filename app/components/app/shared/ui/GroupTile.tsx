@@ -28,6 +28,14 @@ type Props = {
   /** Slot rendered between the image and the edit panel — e.g. an admin badge. */
   badgeSlot?: React.ReactNode;
   onOpen?: () => void;
+  /**
+   * When true, `onOpen` also fires from a tap on the tile body IN edit mode
+   * (default: edit-mode tiles don't open). The rename input, folder-image box
+   * and edit-panel buttons all stopPropagation, so only an empty-body tap
+   * drills in. Used by the talker dropdown's core groups, where folder editing
+   * and content editing share one surface.
+   */
+  allowOpenInEditMode?: boolean;
   /** Inline rename committed from the dashed title box (blur / Enter). */
   onRename?: (value: string) => void;
   /** New colour key from the swatch picker. */
@@ -57,6 +65,7 @@ export function GroupTile({
   gridSize = 'large',
   badgeSlot,
   onOpen,
+  allowOpenInEditMode,
   onRename,
   onRecolour,
   onEditImage,
@@ -94,7 +103,11 @@ export function GroupTile({
   return (
     <div ref={setNodeRef} style={style}>
       <Tag
-        {...(!isEditing && { type: 'button', onClick: onOpen })}
+        {...(!isEditing
+          ? { type: 'button' as const, onClick: onOpen }
+          : allowOpenInEditMode && onOpen
+            ? { onClick: onOpen }
+            : {})}
         className={[
           'relative w-full @container flex flex-col items-center justify-center text-center',
           'gap-theme-gap p-theme-folder rounded-theme-card border-2 border-dashed',
