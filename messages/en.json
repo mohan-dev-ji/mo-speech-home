@@ -380,6 +380,7 @@
     "emptyCore": "No core words yet — load the defaults to fill this tab.",
     "loadDefaults": "Load default core words & phrases",
     "loadingDefaults": "Loading…",
+    "restoreDefaults": "Load defaults",
     "editLabel": "Edit",
     "doneLabel": "Done",
     "createGroup": "Create Group",

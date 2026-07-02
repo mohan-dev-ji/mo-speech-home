@@ -12,7 +12,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronLeft, Pencil, Plus, Trash2, Move, FolderInput, X, Volume2, Mic } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Pencil, Plus, Trash2, Move, FolderInput, X, Volume2, Mic, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import {
@@ -789,6 +789,21 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     >
                       <Plus className="w-3.5 h-3.5" />
                       {activeTab === 'core' ? t('createGroup') : t('createPhrase')}
+                    </button>
+                  )}
+                  {/* Backfill any default core groups / phrase banks the account
+                      is missing (e.g. modules added after signup). Idempotent —
+                      already-installed modules are skipped. */}
+                  {editing && activeTab === 'core' && coreSel === null && (
+                    <button
+                      type="button"
+                      onClick={handleLoadDefaults}
+                      disabled={loadingDefaults}
+                      className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                      style={{ border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingDefaults ? 'animate-spin' : ''}`} />
+                      {loadingDefaults ? t('loadingDefaults') : t('restoreDefaults')}
                     </button>
                   )}
                 </div>
