@@ -13,9 +13,14 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (name: string) => Promise<void>;
+  // Optional copy overrides — default to the sentence strings. The talker
+  // dropbar reuses this modal for "Create Phrase" and passes phrase copy.
+  title?: string;
+  nameLabel?: string;
+  placeholder?: string;
 };
 
-export function CreateSentenceModal({ isOpen, onClose, onCreate }: Props) {
+export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabel, placeholder }: Props) {
   const t = useTranslations('sentences');
   const [name, setName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -49,19 +54,19 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate }: Props) {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>{t('createModalTitle')}</DialogTitle>
+          <DialogTitle>{title ?? t('createModalTitle')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-              {t('createModalNameLabel')}
+              {nameLabel ?? t('createModalNameLabel')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={t('createModalNamePlaceholder')}
+              placeholder={placeholder ?? t('createModalNamePlaceholder')}
               autoFocus
               className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
               style={{

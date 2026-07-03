@@ -575,6 +575,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         isOpen={createPhraseOpen}
         onClose={() => setCreatePhraseOpen(false)}
         onCreate={handleCreatePhrase}
+        title={t('createPhraseTitle')}
+        nameLabel={t('createPhraseNameLabel')}
+        placeholder={t('createPhrasePlaceholder')}
       />
 
       {/* Admin: publish the current tab's container as the shipped default.
