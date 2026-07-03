@@ -40,6 +40,8 @@ import { TabBar } from '@/app/components/app/settings/ui/TabBar';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
+import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
   Dialog,
@@ -75,6 +77,7 @@ type TalkerDropdownProps = {
 export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
   const { voiceId, accountId } = useProfile();
+  const isAdmin = useIsAdmin();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
   const [editing, setEditing]     = useState(false);
@@ -105,6 +108,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   >(null);
   const [pendingPhraseDelete, setPendingPhraseDelete] = useState<
     { id: Id<'profilePhrases'>; name: string } | null
+  >(null);
+
+  // Admin: publish the current tab's container as the shipped default. Slug is
+  // forced to the sentinel so re-seeding converges on the same containers.
+  const [publishTarget, setPublishTarget] = useState<
+    | { kind: 'category'; targetId: string; slug: string; name: string }
+    | { kind: 'phrases'; targetId: string; slug: string; name: string }
+    | null
   >(null);
 
   const barRef   = useRef<HTMLButtonElement>(null);
@@ -530,6 +541,23 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                       {t('createPhrase')}
                     </button>
                   )}
+                  {/* Admin: publish this tab's container as the shipped default. */}
+                  {editing && isAdmin && (
+                    (activeTab === 'core' ? coreCategoryId : board?.phrasesFolderId) && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          activeTab === 'core'
+                            ? setPublishTarget({ kind: 'category', targetId: coreCategoryId!, slug: 'dropbar-core', name: 'Core words' })
+                            : setPublishTarget({ kind: 'phrases', targetId: board!.phrasesFolderId!, slug: 'dropbar-phrases', name: 'Phrases' })
+                        }
+                        className="ml-auto flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90"
+                        style={{ border: '1px solid var(--theme-primary)', color: 'var(--theme-primary)' }}
+                      >
+                        {t('publishDefault')}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 {/* Content. */}
@@ -548,6 +576,19 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         onClose={() => setCreatePhraseOpen(false)}
         onCreate={handleCreatePhrase}
       />
+
+      {/* Admin: publish the current tab's container as the shipped default.
+          publishedSlug forces the sentinel slug + opens in default class. */}
+      {publishTarget && (
+        <PublishModuleModal
+          kind={publishTarget.kind}
+          targetId={publishTarget.targetId}
+          defaultName={publishTarget.name}
+          publishedSlug={publishTarget.slug}
+          publishedClass="default"
+          onClose={() => setPublishTarget(null)}
+        />
+      )}
 
       {/* Tab 1 symbol editor — create-at-slot (createSlot) or edit an existing. */}
       {symbolEditor.open && accountId && coreCategoryId && (

@@ -53,7 +53,7 @@ type EventMap = {
   // An admin published a folder or category as a content module (ADR-014 Task B/C).
   module_published:        {
     slug: string;
-    tree: "categories" | "lists" | "sentences";
+    tree: "categories" | "lists" | "sentences" | "phrases";
     tier: SubscriptionTier | "default";
   };
   pack_browsed:            { tier: SubscriptionTier; filter_tags?: string[] };

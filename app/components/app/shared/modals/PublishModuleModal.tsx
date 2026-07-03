@@ -23,7 +23,7 @@ import {
   DialogClose,
 } from "@/app/components/app/shared/ui/Dialog";
 
-type Kind = "category" | "lists" | "sentences";
+type Kind = "category" | "lists" | "sentences" | "phrases";
 type Classification = "default" | "free" | "pro" | "max";
 const CLASSES: Classification[] = ["default", "free", "pro", "max"];
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
