@@ -48,6 +48,10 @@ export type SymbolEditorModalProps = {
   isOpen: boolean;
   profileSymbolId?: Id<'profileSymbols'>;        // edit mode (categoryBoard)
   profileCategoryId?: Id<'profileCategories'>;    // create mode default category
+  // Fixed-slot placement (talker dropbar core board): create the new symbol at
+  // this exact slot (= order) instead of prepending at 0. categoryBoard create
+  // mode only; ignored on edit.
+  createSlot?: number;
   accountId: Id<'users'>;                         // R2 key prefix + ownership context
   language: string;
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
@@ -104,6 +108,7 @@ export function SymbolEditorModal({
   isOpen,
   profileSymbolId,
   profileCategoryId: initCategoryId,
+  createSlot,
   accountId,
   language,
   voiceId = DEFAULT_VOICE_ID,
@@ -808,6 +813,7 @@ export function SymbolEditorModal({
           audio,
           display,
           propagateToPack,
+          ...(createSlot !== undefined ? { slot: createSlot } : {}),
         });
       }
 
