@@ -315,6 +315,9 @@ export const publishCategoryAsModule = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         name: moduleName,
+        // Carry the core-word surface so a published dropbar board re-seeds as
+        // surface:"core" (stays off the Categories page, lands in the dropdown).
+        ...(cat.surface ? { surface: cat.surface } : {}),
         ...(cat.icon ? { icon: cat.icon } : {}),
         ...(cat.colour ? { colour: cat.colour } : {}),
         ...(cat.imagePath ? { coverImagePath: cat.imagePath } : {}),
@@ -330,6 +333,7 @@ export const publishCategoryAsModule = mutation({
     } else {
       moduleId = await ctx.db.insert("libraryModules", {
         tree: "categories",
+        ...(cat.surface ? { surface: cat.surface } : {}),
         slug,
         name: moduleName,
         ...(cat.icon ? { icon: cat.icon } : {}),

@@ -103,6 +103,10 @@ export const createProfileSymbol = mutation({
     audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
     propagateToPack: v.optional(v.boolean()),
+    // Stable-slot placement (talker dropbar core board): insert at this exact
+    // slot index (= `order`) without bumping other symbols, so gaps are
+    // preserved. Omit for the default "prepend at 0 + bump" behaviour.
+    slot: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -112,24 +116,31 @@ export const createProfileSymbol = mutation({
     if (!category) throw new Error("Category not found");
     if (category.accountId !== accountId) throw new Error("Not authorised");
 
-    const existing = await ctx.db
-      .query("profileSymbols")
-      .withIndex("by_profile_category_id", (q) =>
-        q.eq("profileCategoryId", args.profileCategoryId)
-      )
-      .collect();
-
     const now = Date.now();
 
-    // Bump existing symbols up by 1 to make room at position 0
-    await Promise.all(
-      existing.map((s) => ctx.db.patch(s._id, { order: s.order + 1, updatedAt: now }))
-    );
+    let order: number;
+    if (args.slot !== undefined) {
+      // Fixed-slot placement — occupy `slot` as-is, leaving all other slots
+      // (and any gaps) untouched. Caller places into an empty cell.
+      order = args.slot;
+    } else {
+      // Default: make room at position 0 by bumping existing symbols up by 1.
+      const existing = await ctx.db
+        .query("profileSymbols")
+        .withIndex("by_profile_category_id", (q) =>
+          q.eq("profileCategoryId", args.profileCategoryId)
+        )
+        .collect();
+      await Promise.all(
+        existing.map((s) => ctx.db.patch(s._id, { order: s.order + 1, updatedAt: now }))
+      );
+      order = 0;
+    }
 
     const newId = await ctx.db.insert("profileSymbols", {
       accountId,
       profileCategoryId: args.profileCategoryId,
-      order: 0,
+      order,
       imageSource: args.imageSource,
       label: args.label,
       audio: args.audio,
@@ -142,6 +153,42 @@ export const createProfileSymbol = mutation({
     }
 
     return newId;
+  },
+});
+
+/**
+ * Move a symbol to a fixed slot index (= `order`) on the talker dropbar core
+ * board. If another symbol already occupies the target slot they swap, so the
+ * grid never collapses gaps. Unlike `reorderProfileSymbols` this does NOT
+ * renumber densely — slots stay stable for motor planning.
+ */
+export const moveProfileSymbolToSlot = mutation({
+  args: {
+    profileSymbolId: v.id("profileSymbols"),
+    slot: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+
+    const sym = await ctx.db.get(args.profileSymbolId);
+    if (!sym || sym.accountId !== accountId) throw new Error("Symbol not found or not authorised");
+    if (sym.order === args.slot) return;
+
+    const now = Date.now();
+
+    // Swap with whatever symbol currently holds the target slot in this board.
+    const occupant = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id_and_order", (q) =>
+        q.eq("profileCategoryId", sym.profileCategoryId).eq("order", args.slot)
+      )
+      .first();
+
+    if (occupant) {
+      await ctx.db.patch(occupant._id, { order: sym.order, updatedAt: now });
+    }
+    await ctx.db.patch(args.profileSymbolId, { order: args.slot, updatedAt: now });
   },
 });
 
