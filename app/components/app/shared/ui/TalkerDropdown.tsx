@@ -557,14 +557,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 <div className="flex items-center gap-2 px-4 py-3 shrink-0">
                   <Button
                     type="button"
-                    variant="edit-mode"
-                    active={editing}
+                    variant={editing ? 'edit-mode' : 'primary'}
                     size="sm"
                     onClick={() => setEditing((e) => !e)}
                     icon={<Pencil className="w-3.5 h-3.5" />}
                     className="px-3 py-1.5"
                   >
-                    {editing ? t('doneLabel') : t('editLabel')}
+                    {editing ? t('exitEditLabel') : t('editLabel')}
                   </Button>
                   {editing && activeTab === 'phrases' && (
                     <button

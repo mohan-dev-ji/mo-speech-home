@@ -388,6 +388,7 @@
     "restoreDefaults": "Load defaults",
     "editLabel": "Edit",
     "doneLabel": "Done",
+    "exitEditLabel": "Exit Edit",
     "createGroup": "Create Group",
     "createPhrase": "Create Phrase",
     "groupRename": "Edit group name",
