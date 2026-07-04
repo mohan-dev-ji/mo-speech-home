@@ -67,6 +67,12 @@ const ZINC = getCategoryColour('zinc');
 const CORE_GRID_COLS = { large: 4, medium: 8, small: 12 } as const;
 const MIN_ROWS = 3;
 
+// Authoring toggle. false = "nudge" mode: symbols pack contiguously and moving
+// one shifts the rest across (dense arrayMove) — easier while curating. Flip to
+// true once the SLP-confirmed set lands to get true stable slots (a symbol
+// holds its numbered cell, deletes leave gaps, moves swap).
+const STABLE_SLOTS = false;
+
 type TabId = 'core' | 'phrases';
 
 type TalkerDropdownProps = {
@@ -133,6 +139,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const ensureContainers         = useMutation(api.dropbar.ensureDropbarContainers);
   const injectCoreModules        = useMutation(api.dropbar.injectCoreModulesIntoDropbar);
   const moveProfileSymbolToSlot  = useMutation(api.profileSymbols.moveProfileSymbolToSlot);
+  const reorderProfileSymbols    = useMutation(api.profileSymbols.reorderProfileSymbols);
   const updateProfilePhraseName  = useMutation(api.profilePhrases.updateProfilePhraseName);
   const updateProfilePhraseWords = useMutation(api.profilePhrases.updateProfilePhraseWords);
   const updateProfilePhraseAudio = useMutation(api.profilePhrases.updateProfilePhraseAudio);
@@ -183,10 +190,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // Leaving edit mode / switching tab drops any transient empty rows.
   useEffect(() => { if (!editing) setAddedRows(0); }, [editing]);
 
-  // ── Tab 1 (Core words) — stable-slot grid ───────────────────────────────────
+  // ── Tab 1 (Core words) grid ─────────────────────────────────────────────────
+  // Stable mode renders by fixed slot (order = cell index, gaps allowed); nudge
+  // mode renders the symbols packed contiguously in sorted order.
   const slotMap = new Map((coreSymbols ?? []).map((s) => [s.order, s]));
+  const sortedSyms = [...(coreSymbols ?? [])].sort((a, b) => a.order - b.order);
   const occupiedMax = (coreSymbols ?? []).reduce((m, s) => Math.max(m, s.order), -1);
-  const contentRows = Math.ceil((occupiedMax + 1) / cols);
+  const filledCells = STABLE_SLOTS ? occupiedMax + 1 : sortedSyms.length;
+  const contentRows = Math.ceil(filledCells / cols);
   const rows = Math.max(MIN_ROWS, contentRows) + (editing ? addedRows : 0);
   const totalCells = rows * cols;
 
@@ -202,9 +213,27 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (!over) return;
     const overId = String(over.id);
     if (!overId.startsWith('slot-')) return;
-    const slot = Number(overId.slice('slot-'.length));
-    moveProfileSymbolToSlot({ profileSymbolId: active.id as Id<'profileSymbols'>, slot }).catch((e) =>
-      console.error('[TalkerDropdown] move symbol to slot failed', e)
+    const targetCell = Number(overId.slice('slot-'.length));
+
+    if (STABLE_SLOTS) {
+      // Stable: the dragged symbol takes the target cell (swap on collision).
+      moveProfileSymbolToSlot({ profileSymbolId: active.id as Id<'profileSymbols'>, slot: targetCell }).catch((e) =>
+        console.error('[TalkerDropdown] move symbol to slot failed', e)
+      );
+      return;
+    }
+
+    // Nudge: insert at the target position and shift the rest across (dense
+    // arrayMove, renumbered). Dropping onto a trailing empty cell moves to end.
+    if (!coreCategoryId) return;
+    const ids = sortedSyms.map((s) => s._id as string);
+    const from = ids.indexOf(String(active.id));
+    if (from === -1) return;
+    const to = Math.min(targetCell, ids.length - 1);
+    if (from === to) return;
+    const next = arrayMove(ids, from, to);
+    reorderProfileSymbols({ profileCategoryId: coreCategoryId, orderedIds: next as Id<'profileSymbols'>[] }).catch((e) =>
+      console.error('[TalkerDropdown] reorder symbols failed', e)
     );
   }
 
@@ -346,7 +375,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: totalCells }, (_, slot) => {
-            const sym = slotMap.get(slot);
+            const sym = STABLE_SLOTS ? slotMap.get(slot) : sortedSyms[slot];
+            // Nudge mode packs contiguously, so a new symbol appends after the
+            // last one (occupiedMax + 1) rather than into this exact cell.
+            const addSlot = STABLE_SLOTS ? slot : occupiedMax + 1;
             return (
               <SlotCell
                 key={slot}
@@ -360,7 +392,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 addLabel={t('symbolAdd')}
                 removeLabel={t('symbolDelete')}
                 onTap={sym ? () => handleTapSymbol(sym) : undefined}
-                onAddAt={() => setSymbolEditor({ open: true, slot })}
+                onAddAt={() => setSymbolEditor({ open: true, slot: addSlot })}
                 onEdit={sym ? () => setSymbolEditor({ open: true, profileSymbolId: sym._id, slot }) : undefined}
                 onDelete={sym ? () => setPendingSymDelete({ id: sym._id, name: displayString(sym.label, language, DEFAULT_LOCALE) }) : undefined}
               />
