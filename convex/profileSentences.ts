@@ -80,6 +80,11 @@ export const getProfileSentences = query({
         s.recordedAudioPath ??
         (s.audioPath?.startsWith("accounts/") ? s.audioPath : undefined),
       slots:     [...s.slots].sort((a, b) => a.order - b.order),
+      // ADR-015 — expose the composition so talker-saved ("sequence") sentences
+      // can render + play as blocks. `slots` stays for the fluent/legacy path.
+      units:     s.units,
+      kind:      s.kind,
+      playback:  s.playback,
       publishedToPackId: s.publishedToPackId,
       packSlug: s.packSlug,
       librarySourceId: s.librarySourceId,
