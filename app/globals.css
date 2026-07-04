@@ -177,6 +177,9 @@
   --theme-nav-indicator:      var(--theme-primary);
   --theme-overlay:            rgba(0, 0, 0, 0.82);
   --theme-error:              var(--theme-warning);
+  /* Stepped-glow highlight for the block play modal (amber-400). Fixed hue —
+     not theme-derived — so the "now playing" block reads clearly on any theme. */
+  --theme-play-glow:          #FACC15;
 }
 
 .dark {
