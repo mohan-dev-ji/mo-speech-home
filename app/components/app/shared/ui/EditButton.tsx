@@ -16,9 +16,10 @@ type EditButtonProps = {
 
 /**
  * Edit / Exit-edit convenience composition over `Button`. Renders the prominent
- * `primary` variant by default; the orange `edit-mode` is used **only as the
- * active highlight while the page is in edit mode** (per the Figma banner). Owns
- * the icon + label flip; all styling lives in `Button` (the Figma "Button" atom).
+ * `primary` (white) variant when idle and the solid orange `edit-mode` variant
+ * while editing — at FULL opacity (no `active` dim), matching the talker
+ * dropbar so every edit toggle reads the same. Owns the icon + label flip; all
+ * styling lives in `Button` (the Figma "Button" atom).
  */
 export function EditButton({
   isEditing,
@@ -31,7 +32,6 @@ export function EditButton({
     <Button
       variant={isEditing ? "edit-mode" : "primary"}
       size="sm"
-      active={isEditing}
       onClick={onClick}
       className={className}
       icon={
