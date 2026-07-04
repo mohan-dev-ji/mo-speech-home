@@ -122,7 +122,7 @@
     "empty": "No sentences yet",
     "create": "Create sentence",
     "edit": "Edit",
-    "exitEdit": "Done",
+    "exitEdit": "Exit Edit",
     "audioGenerated": "Audio ready",
     "audioNeedsGeneration": "No audio — tap to generate",
     "rowDelete": "Delete sentence",
