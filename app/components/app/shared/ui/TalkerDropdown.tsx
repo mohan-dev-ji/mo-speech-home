@@ -565,16 +565,29 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                   >
                     {editing ? t('exitEditLabel') : t('editLabel')}
                   </Button>
-                  {editing && activeTab === 'phrases' && (
-                    <button
+                  {editing && activeTab === 'core' && (
+                    <Button
                       type="button"
-                      onClick={() => setCreatePhraseOpen(true)}
-                      className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90"
-                      style={{ border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }}
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setSymbolEditor({ open: true, slot: occupiedMax + 1 })}
+                      icon={<Plus className="w-3.5 h-3.5" />}
+                      className="px-3 py-1.5"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      {t('createWord')}
+                    </Button>
+                  )}
+                  {editing && activeTab === 'phrases' && (
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setCreatePhraseOpen(true)}
+                      icon={<Plus className="w-3.5 h-3.5" />}
+                      className="px-3 py-1.5"
+                    >
                       {t('createPhrase')}
-                    </button>
+                    </Button>
                   )}
                   {/* Admin: bulk-populate the Core-words tab from the core-* modules. */}
                   {editing && isAdmin && activeTab === 'core' && (
