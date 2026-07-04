@@ -59,9 +59,9 @@ import { CreateSentenceModal } from '@/app/components/app/sentences/modals/Creat
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
 import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
+import { InlinePhraseEditor } from '@/app/components/app/sentences/sections/InlinePhraseEditor';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
 import { blocksFromUnits, type CompositionUnitClient, type PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
-import { playKey, playTts } from '@/lib/audio/playTts';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import type { SentenceSlotSaveResult, ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
@@ -336,7 +336,7 @@ type UnitStripProps = {
   onRemoveUnit: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
   onAddWord: (sentenceId: Id<'profileSentences'>) => void;
   onReorderUnits: (sentenceId: Id<'profileSentences'>, from: number, to: number) => void;
-  onPlayBlock: (block: PlayBlock) => void;
+  onPhraseChange: (sentenceId: Id<'profileSentences'>, unitIndex: number, updated: CompositionUnitClient) => void;
   rowRemoveLabel: string;
   rowAddLabel: string;
 };
@@ -388,7 +388,7 @@ function SortableUnitBlock({
 
 function UnitStrip({
   sentenceId, units, language,
-  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPlayBlock,
+  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPhraseChange,
   rowRemoveLabel, rowAddLabel,
 }: UnitStripProps) {
   const sensors = useSensors(
@@ -410,17 +410,31 @@ function UnitStrip({
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
         <div className="flex flex-wrap gap-2 items-center">
-          {blocks.map((b, i) => (
-            <SortableUnitBlock
-              key={itemIds[i]}
-              id={itemIds[i]}
-              block={b}
-              unitIndex={i}
-              sentenceId={sentenceId}
-              onTap={() => (b.kind === 'word' ? onEditWord(sentenceId, i) : onPlayBlock(b))}
-              onRemove={onRemoveUnit}
-              rowRemoveLabel={rowRemoveLabel}
-            />
+          {units.map((u, i) => (
+            u.kind === 'phrase' ? (
+              // Phrase: the dropbar builder rendered inline; edits save instantly.
+              <InlinePhraseEditor
+                key={itemIds[i]}
+                id={itemIds[i]}
+                unit={u}
+                unitIndex={i}
+                sentenceId={sentenceId}
+                onChange={onPhraseChange}
+                onRemove={onRemoveUnit}
+              />
+            ) : (
+              // Word: a block tile — tap to edit (symbol editor), X to remove.
+              <SortableUnitBlock
+                key={itemIds[i]}
+                id={itemIds[i]}
+                block={blocks[i]}
+                unitIndex={i}
+                sentenceId={sentenceId}
+                onTap={() => onEditWord(sentenceId, i)}
+                onRemove={onRemoveUnit}
+                rowRemoveLabel={rowRemoveLabel}
+              />
+            )
           ))}
           <button
             type="button"
@@ -461,7 +475,7 @@ type SortableSentenceRowProps = {
   onRemoveUnit: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
   onAddWord: (sentenceId: Id<'profileSentences'>) => void;
   onReorderUnits: (sentenceId: Id<'profileSentences'>, from: number, to: number) => void;
-  onPlayBlock: (block: PlayBlock) => void;
+  onPhraseChange: (sentenceId: Id<'profileSentences'>, unitIndex: number, updated: CompositionUnitClient) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
   // Admin-only per-row affordances. Parent gates on viewMode === 'admin' && useIsAdmin().
@@ -483,7 +497,7 @@ function SortableSentenceRow({
   sentence, language, isEditing, audioReady = false,
   onDeleteRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
-  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPlayBlock,
+  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPhraseChange,
   onEditSentence, onPlay,
   showAdminButtons = false,
   isDefault = false,
@@ -547,7 +561,7 @@ function SortableSentenceRow({
                   onRemoveUnit={onRemoveUnit}
                   onAddWord={onAddWord}
                   onReorderUnits={onReorderUnits}
-                  onPlayBlock={onPlayBlock}
+                  onPhraseChange={onPhraseChange}
                   rowRemoveLabel={t('rowRemoveSlot')}
                   rowAddLabel={t('rowAddWord')}
                 />
@@ -1045,10 +1059,13 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setUnitEditTarget({ sentenceId, unitIndex: -1 });
   }
 
-  // Play a block in edit mode (phrase tap): its own clip, else TTS its name.
-  function handlePlayBlock(block: PlayBlock) {
-    if (block.audioKey) { playKey(block.audioKey); return; }
-    void playTts(block.kind === 'phrase' ? block.name : block.label, voiceId);
+  // The inline phrase editor saves instantly (ADR-015): each edit replaces the
+  // phrase unit in place and persists, local to this sentence's snapshot.
+  function handlePhraseChange(sentenceId: Id<'profileSentences'>, unitIndex: number, updated: CompositionUnitClient) {
+    const units = [...unitsOf(sentenceId)];
+    if (units[unitIndex]?.kind !== 'phrase') return;
+    units[unitIndex] = updated;
+    persistUnits(sentenceId, units);
   }
 
   // Word units use the full listItem editor (label + audio), so an added/edited
@@ -1295,7 +1312,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                       onRemoveUnit={handleRemoveUnit}
                       onAddWord={handleAddWord}
                       onReorderUnits={handleReorderUnits}
-                      onPlayBlock={handlePlayBlock}
+                      onPhraseChange={handlePhraseChange}
                       onEditSentence={(s) => setSentenceEditTarget({
                         sentenceId: s._id,
                         // `text` is a localised record post Phase 8.0; the schema
