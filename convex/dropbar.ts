@@ -8,6 +8,7 @@
  *   - Tab 2 "Phrases"    → one profileFolders row (tree:"phrases").
  */
 
+import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
@@ -19,6 +20,16 @@ import {
 
 export const CORE_SLUG = "dropbar-core";
 export const PHRASES_SLUG = "dropbar-phrases";
+
+// The core-word modules whose symbols seed the dropbar Core-words tab by
+// default — the four "little words" groups. Numbers, Letters and Time are
+// reference content that belongs on the Categories board, so they're excluded.
+export const DEFAULT_CORE_INJECT_SLUGS = [
+  "core-general",
+  "core-pronouns",
+  "core-joining-words",
+  "core-position-words",
+];
 
 async function findCoreContainer(ctx: QueryCtx | MutationCtx, accountId: Id<"users">) {
   const cats = await ctx.db
@@ -121,6 +132,97 @@ export const getDropbarPhrases = query({
           p.recordedAudioPath ??
           (p.audioPath?.startsWith("accounts/") ? p.audioPath : undefined),
       }));
+  },
+});
+
+/**
+ * Bulk-populate the caller's Core-words tab from the seeded `core-*` library
+ * modules — a fast alternative to hand-searching each symbol in the editor.
+ * Resolves each module symbol (all symbolstix-backed) and appends it into the
+ * next free slot of the dropbar-core container. Idempotent: symbols already on
+ * the board (same symbolstix id) are skipped, so re-running only adds new ones.
+ * Defaults to the four little-words groups (Numbers/Letters/Time excluded);
+ * pass `slugs` to override.
+ */
+export const injectCoreModulesIntoDropbar = mutation({
+  args: { slugs: v.optional(v.array(v.string())) },
+  handler: async (ctx, args) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+    const now = Date.now();
+    const slugs = args.slugs ?? DEFAULT_CORE_INJECT_SLUGS;
+
+    // Ensure the core container exists (mirrors ensureDropbarContainers).
+    let core = await findCoreContainer(ctx, accountId);
+    if (!core) {
+      const id = await ctx.db.insert("profileCategories", {
+        accountId,
+        name: { en: "Core words" },
+        icon: "MessageSquare",
+        colour: "zinc",
+        order: 0,
+        surface: "core",
+        librarySourceId: CORE_SLUG,
+        librarySourceCategoryKey: "Core words",
+        updatedAt: now,
+      });
+      core = await ctx.db.get(id);
+    }
+    const coreCategoryId = core!._id;
+
+    // Existing symbols → dedup set (by symbolstix id) + next free slot.
+    const existing = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id_and_order", (q) =>
+        q.eq("profileCategoryId", coreCategoryId)
+      )
+      .collect();
+    const seen = new Set<string>();
+    for (const s of existing) {
+      if (s.imageSource.type === "symbolstix") seen.add(s.imageSource.symbolId);
+    }
+    let slot = existing.reduce((m, s) => Math.max(m, s.order), -1) + 1;
+
+    let added = 0;
+    let skippedDuplicate = 0;
+    let missing = 0;
+    let modulesFound = 0;
+
+    for (const slug of slugs) {
+      const mod = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) =>
+          q.eq("tree", "categories").eq("slug", slug)
+        )
+        .first();
+      if (!mod) continue;
+      modulesFound++;
+
+      // Core modules hold a single category item; its `symbols` are
+      // `{ order, symbolId, labelOverride? }` (all symbolstix-backed).
+      const items = mod.items as Array<{
+        symbols: Array<{ order: number; symbolId?: string; labelOverride?: Record<string, string> }>;
+      }>;
+      const symbols = [...(items[0]?.symbols ?? [])].sort((a, b) => a.order - b.order);
+
+      for (const sym of symbols) {
+        if (!sym.symbolId) { missing++; continue; }
+        if (seen.has(sym.symbolId)) { skippedDuplicate++; continue; }
+        const symbolDoc = await ctx.db.get(sym.symbolId as Id<"symbols">);
+        if (!symbolDoc) { missing++; continue; }
+        await ctx.db.insert("profileSymbols", {
+          accountId,
+          profileCategoryId: coreCategoryId,
+          order: slot++,
+          imageSource: { type: "symbolstix", symbolId: symbolDoc._id },
+          label: { ...symbolDoc.words, ...(sym.labelOverride ?? {}) },
+          updatedAt: now,
+        });
+        seen.add(sym.symbolId);
+        added++;
+      }
+    }
+
+    return { added, skippedDuplicate, missing, modulesFound, slugs };
   },
 });
 

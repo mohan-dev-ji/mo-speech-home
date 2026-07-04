@@ -13,7 +13,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Pencil, Plus, Trash2, Move, X, Volume2, Mic } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, Trash2, Move, X, Volume2, Mic, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import {
@@ -86,6 +86,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [mounted, setMounted]     = useState(false);
   const [addedRows, setAddedRows] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [injecting, setInjecting] = useState(false);
   const [createPhraseOpen, setCreatePhraseOpen] = useState(false);
 
   // Tab 1 symbol editor + delete.
@@ -127,6 +128,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   // Mutations.
   const ensureContainers         = useMutation(api.dropbar.ensureDropbarContainers);
+  const injectCoreModules        = useMutation(api.dropbar.injectCoreModulesIntoDropbar);
   const moveProfileSymbolToSlot  = useMutation(api.profileSymbols.moveProfileSymbolToSlot);
   const updateProfilePhraseName  = useMutation(api.profilePhrases.updateProfilePhraseName);
   const updateProfilePhraseWords = useMutation(api.profilePhrases.updateProfilePhraseWords);
@@ -539,6 +541,22 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     >
                       <Plus className="w-3.5 h-3.5" />
                       {t('createPhrase')}
+                    </button>
+                  )}
+                  {/* Admin: bulk-populate the Core-words tab from the core-* modules. */}
+                  {editing && isAdmin && activeTab === 'core' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setInjecting(true);
+                        try { await injectCoreModules({}); } finally { setInjecting(false); }
+                      }}
+                      disabled={injecting}
+                      className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                      style={{ border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${injecting ? 'animate-spin' : ''}`} />
+                      {injecting ? t('loadingDefaults') : t('injectCore')}
                     </button>
                   )}
                   {/* Admin: publish this tab's container as the shipped default. */}
