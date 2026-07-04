@@ -60,9 +60,10 @@ import { SentenceAudioModal } from '@/app/components/app/sentences/modals/Senten
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
 import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
-import { blocksFromUnits, type CompositionUnitClient } from '@/app/components/app/shared/ui/composition/blocks';
+import { blocksFromUnits, type CompositionUnitClient, type PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
+import { playKey, playTts } from '@/lib/audio/playTts';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
-import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
+import type { SentenceSlotSaveResult, ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
   LibraryPackPickerModal,
   type PackPickerTarget,
@@ -321,6 +322,125 @@ function SlotStrip({
   );
 }
 
+// ─── Unit strip (edit mode, sequence sentences) ──────────────────────────────
+// Block-level editing for talker-saved sentences (ADR-015): word blocks
+// tap-to-edit (symbol editor), phrase blocks tap-to-play and stay atomic (no
+// inner-word editing — rebuild a phrase in the dropbar to change it). All blocks
+// drag to reorder + X to remove; a trailing "Add word" appends a word unit.
+
+type UnitStripProps = {
+  sentenceId: Id<'profileSentences'>;
+  units: CompositionUnitClient[];
+  language: string;
+  onEditWord: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
+  onRemoveUnit: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
+  onAddWord: (sentenceId: Id<'profileSentences'>) => void;
+  onReorderUnits: (sentenceId: Id<'profileSentences'>, from: number, to: number) => void;
+  onPlayBlock: (block: PlayBlock) => void;
+  rowRemoveLabel: string;
+  rowAddLabel: string;
+};
+
+function SortableUnitBlock({
+  id, block, unitIndex, sentenceId, onTap, onRemove, rowRemoveLabel,
+}: {
+  id: string;
+  block: PlayBlock;
+  unitIndex: number;
+  sentenceId: Id<'profileSentences'>;
+  onTap: () => void;
+  onRemove: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
+  rowRemoveLabel: string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group shrink-0 touch-none"
+      {...listeners}
+      {...attributes}
+    >
+      <CompositionBlock block={block} onTap={onTap} />
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onRemove(sentenceId, unitIndex); }}
+        // Block pointer-down from the drag listeners so tapping X never starts a
+        // drag (mirrors SortableSlot / TalkerBar).
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label={rowRemoveLabel}
+        className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow z-10"
+        style={{ background: 'var(--theme-warning)', color: '#fff' }}
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function UnitStrip({
+  sentenceId, units, language,
+  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPlayBlock,
+  rowRemoveLabel, rowAddLabel,
+}: UnitStripProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+  const blocks = blocksFromUnits(units, language);
+  const itemIds = units.map((_, i) => `unit-${i}`);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const from = itemIds.indexOf(active.id as string);
+    const to = itemIds.indexOf(over.id as string);
+    if (from < 0 || to < 0) return;
+    onReorderUnits(sentenceId, from, to);
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
+        <div className="flex flex-wrap gap-2 items-center">
+          {blocks.map((b, i) => (
+            <SortableUnitBlock
+              key={itemIds[i]}
+              id={itemIds[i]}
+              block={b}
+              unitIndex={i}
+              sentenceId={sentenceId}
+              onTap={() => (b.kind === 'word' ? onEditWord(sentenceId, i) : onPlayBlock(b))}
+              onRemove={onRemoveUnit}
+              rowRemoveLabel={rowRemoveLabel}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => onAddWord(sentenceId)}
+            aria-label={rowAddLabel}
+            className="w-[60px] h-[60px] rounded-theme-sm flex items-center justify-center transition-opacity hover:opacity-80 shrink-0"
+            style={{
+              background: 'transparent',
+              border: '1.5px dashed var(--theme-brand-primary)',
+              color: 'var(--theme-brand-primary)',
+            }}
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
 // ─── Sortable sentence row ────────────────────────────────────────────────────
 
 type SortableSentenceRowProps = {
@@ -336,6 +456,12 @@ type SortableSentenceRowProps = {
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
   onReorderSlots: (sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) => void;
+  // Unit-level editing (sequence sentences only — ADR-015).
+  onEditWord: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
+  onRemoveUnit: (sentenceId: Id<'profileSentences'>, unitIndex: number) => void;
+  onAddWord: (sentenceId: Id<'profileSentences'>) => void;
+  onReorderUnits: (sentenceId: Id<'profileSentences'>, from: number, to: number) => void;
+  onPlayBlock: (block: PlayBlock) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
   // Admin-only per-row affordances. Parent gates on viewMode === 'admin' && useIsAdmin().
@@ -357,6 +483,7 @@ function SortableSentenceRow({
   sentence, language, isEditing, audioReady = false,
   onDeleteRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
+  onEditWord, onRemoveUnit, onAddWord, onReorderUnits, onPlayBlock,
   onEditSentence, onPlay,
   showAdminButtons = false,
   isDefault = false,
@@ -411,17 +538,32 @@ function SortableSentenceRow({
           {/* Symbol preview area */}
           <div className="shrink-0" onClick={isEditing ? undefined : (e) => e.stopPropagation()}>
             {isEditing ? (
-              <SlotStrip
-                sentenceId={sentence._id}
-                slots={sentence.slots}
-                onEditSlot={onEditSlot}
-                onRemoveSlot={onRemoveSlot}
-                onAddSlot={onAddSlot}
-                onReorderSlots={onReorderSlots}
-                rowEditLabel={t('rowEditSlot')}
-                rowRemoveLabel={t('rowRemoveSlot')}
-                rowAddLabel={t('rowAddSlot')}
-              />
+              isSequenceRow(sentence) ? (
+                <UnitStrip
+                  sentenceId={sentence._id}
+                  units={sentence.units!}
+                  language={language}
+                  onEditWord={onEditWord}
+                  onRemoveUnit={onRemoveUnit}
+                  onAddWord={onAddWord}
+                  onReorderUnits={onReorderUnits}
+                  onPlayBlock={onPlayBlock}
+                  rowRemoveLabel={t('rowRemoveSlot')}
+                  rowAddLabel={t('rowAddWord')}
+                />
+              ) : (
+                <SlotStrip
+                  sentenceId={sentence._id}
+                  slots={sentence.slots}
+                  onEditSlot={onEditSlot}
+                  onRemoveSlot={onRemoveSlot}
+                  onAddSlot={onAddSlot}
+                  onReorderSlots={onReorderSlots}
+                  rowEditLabel={t('rowEditSlot')}
+                  rowRemoveLabel={t('rowRemoveSlot')}
+                  rowAddLabel={t('rowAddSlot')}
+                />
+              )
             ) : isSequenceRow(sentence) ? (
               // Talker-saved: render the composition as blocks (phrase = zinc box,
               // words = tiles). Read-only in view mode — no onTap.
@@ -600,6 +742,9 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
+  // Unit-level edit target (sequence sentences). unitIndex -1 = append a word.
+  const [unitEditTarget, setUnitEditTarget] =
+    useState<{ sentenceId: Id<'profileSentences'>; unitIndex: number } | null>(null);
   const [sentenceEditTarget, setSentenceEditTarget] = useState<SentenceEditTarget>(null);
   const [playTarget, setPlayTarget] = useState<SentenceRow | null>(null);
   const [packPickerSentence, setPackPickerSentence] = useState<SentenceRow | null>(null);
@@ -607,6 +752,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const sentences = useQuery(api.profileSentences.getProfileSentences, {});
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
+  const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
   const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefaultV2);
@@ -870,6 +1016,65 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setSlotEditTarget(null);
   }
 
+  // ── Unit-level editing (sequence sentences, ADR-015) ──────────────────────
+  // Operations rebuild the units array (phrases stay atomic) and persist via
+  // updateProfileSentenceUnits, which also regenerates the flat `slots` mirror.
+
+  function unitsOf(sentenceId: Id<'profileSentences'>): CompositionUnitClient[] {
+    return (sentences?.find((s) => s._id === sentenceId)?.units ?? []) as CompositionUnitClient[];
+  }
+
+  function persistUnits(sentenceId: Id<'profileSentences'>, units: CompositionUnitClient[]) {
+    const reindexed = units.map((u, i) => ({ ...u, order: i }));
+    updateUnits({ profileSentenceId: sentenceId, units: reindexed, propagateToPack: showAdminButtons });
+  }
+
+  function handleRemoveUnit(sentenceId: Id<'profileSentences'>, unitIndex: number) {
+    persistUnits(sentenceId, unitsOf(sentenceId).filter((_, i) => i !== unitIndex));
+  }
+
+  function handleReorderUnits(sentenceId: Id<'profileSentences'>, from: number, to: number) {
+    persistUnits(sentenceId, arrayMove(unitsOf(sentenceId), from, to));
+  }
+
+  function handleEditWord(sentenceId: Id<'profileSentences'>, unitIndex: number) {
+    setUnitEditTarget({ sentenceId, unitIndex });
+  }
+
+  function handleAddWord(sentenceId: Id<'profileSentences'>) {
+    setUnitEditTarget({ sentenceId, unitIndex: -1 });
+  }
+
+  // Play a block in edit mode (phrase tap): its own clip, else TTS its name.
+  function handlePlayBlock(block: PlayBlock) {
+    if (block.audioKey) { playKey(block.audioKey); return; }
+    void playTts(block.kind === 'phrase' ? block.name : block.label, voiceId);
+  }
+
+  // Word units use the full listItem editor (label + audio), so an added/edited
+  // word carries a spoken clip + label — it plays in the block modal instead of
+  // glowing silently. `order` is reindexed in persistUnits.
+  function handleUnitSave(result: ListItemSaveResult) {
+    if (!unitEditTarget) return;
+    const label = result.description?.trim();
+    const wordUnit: CompositionUnitClient = {
+      kind: 'word',
+      order: 0,
+      ...(result.imagePath ? { imagePath: result.imagePath } : {}),
+      ...(result.audioPath ? { audioPath: result.audioPath } : {}),
+      ...(label ? { label: { [language]: label } } : {}),
+    };
+    const units = [...unitsOf(unitEditTarget.sentenceId)];
+    if (unitEditTarget.unitIndex === -1) {
+      units.push(wordUnit);
+    } else if (units[unitEditTarget.unitIndex]?.kind === 'word') {
+      // Only word units are editable; phrase units stay atomic (untouched).
+      units[unitEditTarget.unitIndex] = wordUnit;
+    }
+    persistUnits(unitEditTarget.sentenceId, units);
+    setUnitEditTarget(null);
+  }
+
   const sentenceMap = Object.fromEntries((scopedSentences ?? []).map((s) => [s._id, s]));
   const orderedSentences = localOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
@@ -951,6 +1156,20 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     slotEditTarget && slotEditTarget.slotIndex >= 0
       ? slotEditorSentence?.slots[slotEditTarget.slotIndex]?.imagePath
       : undefined;
+
+  // Seed the unit editor when editing an existing word unit (label + image +
+  // audio). Passing the stored clip as initialAudioPath preserves it on an
+  // untouched re-save (listItem back-compat treats it as the default source).
+  const editingUnit = (() => {
+    if (!unitEditTarget || unitEditTarget.unitIndex < 0) return undefined;
+    const u = sentences?.find((s) => s._id === unitEditTarget.sentenceId)?.units?.[unitEditTarget.unitIndex];
+    return u && u.kind === 'word' ? u : undefined;
+  })();
+  const existingUnitImagePath = editingUnit?.imagePath;
+  const existingUnitAudioPath = editingUnit?.audioPath;
+  const existingUnitLabel = editingUnit?.label
+    ? displayString(editingUnit.label, language, DEFAULT_LOCALE)
+    : undefined;
 
   // Only render sentences page if state flag allows it (same pattern as lists)
   if (stateFlags && !stateFlags.sentences_visible) return null;
@@ -1072,6 +1291,11 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                       onRemoveSlot={handleRemoveSlot}
                       onAddSlot={handleAddSlot}
                       onReorderSlots={handleReorderSlots}
+                      onEditWord={handleEditWord}
+                      onRemoveUnit={handleRemoveUnit}
+                      onAddWord={handleAddWord}
+                      onReorderUnits={handleReorderUnits}
+                      onPlayBlock={handlePlayBlock}
                       onEditSentence={(s) => setSentenceEditTarget({
                         sentenceId: s._id,
                         // `text` is a localised record post Phase 8.0; the schema
@@ -1225,6 +1449,25 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           onClose={() => setSlotEditTarget(null)}
           onSave={() => {}}
           onSentenceSlotSave={handleSlotSave}
+        />
+      )}
+
+      {/* Unit (word) editor — sequence sentences. Uses the full listItem editor
+          (label + audio) so an added/edited word speaks in the block modal
+          instead of being a silent tile. Save rebuilds the units array. */}
+      {unitEditTarget && accountId && (
+        <SymbolEditorModal
+          isOpen
+          accountId={accountId}
+          language={language}
+          voiceId={voiceId}
+          editorMode="listItem"
+          initialLabel={existingUnitLabel}
+          initialImagePath={existingUnitImagePath}
+          initialAudioPath={existingUnitAudioPath}
+          onClose={() => setUnitEditTarget(null)}
+          onSave={() => {}}
+          onListItemSave={handleUnitSave}
         />
       )}
 

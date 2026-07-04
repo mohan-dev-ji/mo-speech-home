@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import {
@@ -48,6 +48,28 @@ const compositionUnitSchema = v.union(
     words:             v.array(compositionWordSchema),
   })
 );
+
+type CompositionUnit = Infer<typeof compositionUnitSchema>;
+
+// Flatten units → flat word slots (the back-compat / fluent-fallback view kept in
+// sync on every unit write). A phrase expands to its words' imagePaths; a word
+// contributes its own. Order is reindexed. Mirrors the talker-save flatten in
+// PersistentTalker.handleSaveConfirm.
+function flattenUnitsToSlots(
+  units: CompositionUnit[]
+): Array<{ order: number; imagePath?: string }> {
+  const slots: Array<{ order: number; imagePath?: string }> = [];
+  for (const u of units) {
+    if (u.kind === "phrase") {
+      for (const w of u.words) {
+        slots.push({ order: slots.length, ...(w.imagePath ? { imagePath: w.imagePath } : {}) });
+      }
+    } else {
+      slots.push({ order: slots.length, ...(u.imagePath ? { imagePath: u.imagePath } : {}) });
+    }
+  }
+  return slots;
+}
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -182,6 +204,31 @@ export const updateProfileSentenceSlots = mutation({
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
       slots:     args.slots,
+      updatedAt: Date.now(),
+    });
+    if (args.propagateToPack) {
+      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
+    }
+  },
+});
+
+// ADR-015 — edit a talker-saved ("sequence") sentence at the unit level (phrases
+// stay atomic blocks). Patches `units` and regenerates `slots` from them so the
+// flat fallback view stays valid for the fluent path + any slot readers.
+export const updateProfileSentenceUnits = mutation({
+  args: {
+    profileSentenceId: v.id("profileSentences"),
+    units: v.array(compositionUnitSchema),
+    propagateToPack: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const sentence = await ctx.db.get(args.profileSentenceId);
+    if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
+    await ctx.db.patch(args.profileSentenceId, {
+      units:     args.units,
+      slots:     flattenUnitsToSlots(args.units),
       updatedAt: Date.now(),
     });
     if (args.propagateToPack) {
