@@ -58,6 +58,9 @@ import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
+import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
+import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
+import { blocksFromUnits, type CompositionUnitClient } from '@/app/components/app/shared/ui/composition/blocks';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import {
@@ -101,11 +104,22 @@ type SentenceRow = {
   audioPath?: string;
   recordedAudioPath?: string;
   slots: Slot[];
+  // ADR-015 — talker-saved sentences carry the block composition. A row is
+  // "sequence" when playback === 'sequence' AND it has units; those render + play
+  // as blocks. Fluent/legacy rows leave these undefined and use slots + TTS.
+  units?: CompositionUnitClient[];
+  kind?: 'sentence';
+  playback?: 'sequence' | 'fluent';
   publishedToPackId?: Id<'resourcePacks'>;
   packSlug?: string;
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
 };
+
+// A talker-saved sentence that renders + plays as blocks (vs. fluent/legacy).
+function isSequenceRow(s: Pick<SentenceRow, 'playback' | 'units'>): boolean {
+  return s.playback === 'sequence' && (s.units?.length ?? 0) > 0;
+}
 
 type AdminPacksStatus = {
   starterSlug: string;
@@ -408,6 +422,14 @@ function SortableSentenceRow({
                 rowRemoveLabel={t('rowRemoveSlot')}
                 rowAddLabel={t('rowAddSlot')}
               />
+            ) : isSequenceRow(sentence) ? (
+              // Talker-saved: render the composition as blocks (phrase = zinc box,
+              // words = tiles). Read-only in view mode — no onTap.
+              <div className="flex flex-wrap gap-2">
+                {blocksFromUnits(sentence.units!, language).map((b, i) => (
+                  <CompositionBlock key={i} block={b} />
+                ))}
+              </div>
             ) : (
               <ThumbnailStrip slots={sentence.slots} />
             )}
@@ -1217,22 +1239,32 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
         />
       )}
 
-      {/* Fullscreen play modal */}
-      <SentencePlayModal
-        isOpen={playTarget !== null}
-        sentenceText={
-          playTarget
-            ? ((typeof playTarget.text === 'string'
-                ? playTarget.text
-                : displayString(playTarget.text, language, DEFAULT_LOCALE)) ||
-              displayString(playTarget.name, language, DEFAULT_LOCALE))
-            : ''
-        }
-        slots={playTarget?.slots ?? []}
-        recordedAudioPath={playTarget?.recordedAudioPath}
-        voiceId={voiceId}
-        onClose={() => setPlayTarget(null)}
-      />
+      {/* Fullscreen play modal — talker-saved (sequence) sentences play as blocks
+          with stepped glow; fluent/legacy sentences keep whole-sentence TTS. */}
+      {playTarget && isSequenceRow(playTarget) ? (
+        <CompositionPlayModal
+          isOpen
+          blocks={blocksFromUnits(playTarget.units!, language)}
+          voiceId={voiceId}
+          onClose={() => setPlayTarget(null)}
+        />
+      ) : (
+        <SentencePlayModal
+          isOpen={playTarget !== null}
+          sentenceText={
+            playTarget
+              ? ((typeof playTarget.text === 'string'
+                  ? playTarget.text
+                  : displayString(playTarget.text, language, DEFAULT_LOCALE)) ||
+                displayString(playTarget.name, language, DEFAULT_LOCALE))
+              : ''
+          }
+          slots={playTarget?.slots ?? []}
+          recordedAudioPath={playTarget?.recordedAudioPath}
+          voiceId={voiceId}
+          onClose={() => setPlayTarget(null)}
+        />
+      )}
 
       {/* Make Default + Library are now toggle buttons in each row's edit
           action group — no confirmation dialog needed. */}
