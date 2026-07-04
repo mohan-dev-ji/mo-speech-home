@@ -102,8 +102,9 @@ export const searchSymbols = query({
   },
   handler: async (ctx, args) => {
     const { searchTerm, language, limit = 20 } = args;
+    const term = searchTerm.trim();
 
-    if (!searchTerm.trim()) return [];
+    if (!term) return [];
 
     // Per ADR-009 §6.6: Convex search indexes are static, so each
     // searchable language needs its own `searchIndex(...)` declared in
@@ -115,7 +116,7 @@ export const searchSymbols = query({
       return ctx.db
         .query("symbols")
         .withSearchIndex("search_text_hi", (q) =>
-          q.search("searchText.hi", searchTerm)
+          q.search("searchText.hi", term)
         )
         .take(limit);
     }
@@ -124,17 +125,50 @@ export const searchSymbols = query({
       return ctx.db
         .query("symbols")
         .withSearchIndex("search_text_es", (q) =>
-          q.search("searchText.es", searchTerm)
+          q.search("searchText.es", term)
         )
         .take(limit);
     }
 
-    return ctx.db
+    // English (+ non-indexed languages that fall back to the en index).
+    const fuzzy = await ctx.db
       .query("symbols")
       .withSearchIndex("search_text_en", (q) =>
-        q.search("searchText.en", searchTerm)
+        q.search("searchText.en", term)
       )
       .take(limit);
+
+    // Boost EXACT whole-word matches to the front. Convex full-text search is
+    // prefix/relevance-ranked, so short function words get buried under longer
+    // tokens ("is" → Islam/Israel/isthmus…; "go" → goalkeeper/gondolier…). The
+    // canonical symbol a word resolves to lives on `words.en` (the same index
+    // the seed uses), so surface those first. Case-sensitive exact + a
+    // capitalised variant covers the common label casings. English only —
+    // that's where `by_words_en` exists.
+    const variants = Array.from(
+      new Set([term, term.toLowerCase(), term.charAt(0).toUpperCase() + term.slice(1)]),
+    );
+    const exactLists = await Promise.all(
+      variants.map((w) =>
+        ctx.db
+          .query("symbols")
+          .withIndex("by_words_en", (q) => q.eq("words.en", w))
+          .take(8),
+      ),
+    );
+    const exact = exactLists.flat();
+    if (exact.length === 0) return fuzzy;
+
+    const seen = new Set(exact.map((s) => s._id));
+    const merged = [...exact];
+    for (const s of fuzzy) {
+      if (merged.length >= limit) break;
+      if (!seen.has(s._id)) {
+        seen.add(s._id);
+        merged.push(s);
+      }
+    }
+    return merged;
   },
 });
 
