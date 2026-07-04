@@ -60,9 +60,11 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 
 const ZINC = getCategoryColour('zinc');
 
-// Fixed grid — columns are constant for v1 (wire to grid_size later). MIN_ROWS
-// keeps the board a recognisable shape even when nearly empty.
-const COLS = 6;
+// Column count follows the profile's grid-size setting (matches the main
+// symbol board's lg tier). Fewer columns → larger cells + text. Changing size
+// reflows the slots across rows but each keeps its numbered position (order).
+// MIN_ROWS keeps the board a recognisable shape even when nearly empty.
+const CORE_GRID_COLS = { large: 4, medium: 8, small: 12 } as const;
 const MIN_ROWS = 3;
 
 type TabId = 'core' | 'phrases';
@@ -76,7 +78,8 @@ type TalkerDropdownProps = {
 
 export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
-  const { voiceId, accountId } = useProfile();
+  const { voiceId, accountId, stateFlags } = useProfile();
+  const cols = CORE_GRID_COLS[stateFlags.grid_size ?? 'large'];
   const isAdmin = useIsAdmin();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
@@ -183,9 +186,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // ── Tab 1 (Core words) — stable-slot grid ───────────────────────────────────
   const slotMap = new Map((coreSymbols ?? []).map((s) => [s.order, s]));
   const occupiedMax = (coreSymbols ?? []).reduce((m, s) => Math.max(m, s.order), -1);
-  const contentRows = Math.ceil((occupiedMax + 1) / COLS);
+  const contentRows = Math.ceil((occupiedMax + 1) / cols);
   const rows = Math.max(MIN_ROWS, contentRows) + (editing ? addedRows : 0);
-  const totalCells = rows * COLS;
+  const totalCells = rows * cols;
 
   function handleTapSymbol(sym: NonNullable<typeof coreSymbols>[number]) {
     const label = displayString(sym.label, language, DEFAULT_LOCALE);
@@ -340,7 +343,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       <DndContext key="core-grid" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSymbolDragEnd}>
         <div
           className="grid gap-2 py-2"
-          style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: totalCells }, (_, slot) => {
             const sym = slotMap.get(slot);
