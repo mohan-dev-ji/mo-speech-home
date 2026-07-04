@@ -37,6 +37,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { SymbolCard, type SymbolDisplay } from './SymbolCard';
 import { TabBar } from '@/app/components/app/settings/ui/TabBar';
+import { Button } from '@/app/components/app/shared/ui/Button';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
@@ -554,19 +555,17 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
                 {/* Edit chrome. */}
                 <div className="flex items-center gap-2 px-4 py-3 shrink-0">
-                  <button
+                  <Button
                     type="button"
+                    variant="edit-mode"
+                    active={editing}
+                    size="sm"
                     onClick={() => setEditing((e) => !e)}
-                    className="flex items-center gap-1.5 rounded-theme-sm px-3 py-1.5 text-caption font-medium transition-opacity hover:opacity-90"
-                    style={
-                      editing
-                        ? { background: 'var(--theme-brand-primary)', color: '#fff' }
-                        : { border: '1px solid var(--theme-line)', color: 'var(--theme-nav-text)' }
-                    }
+                    icon={<Pencil className="w-3.5 h-3.5" />}
+                    className="px-3 py-1.5"
                   >
-                    <Pencil className="w-3.5 h-3.5" />
                     {editing ? t('doneLabel') : t('editLabel')}
-                  </button>
+                  </Button>
                   {editing && activeTab === 'phrases' && (
                     <button
                       type="button"
@@ -828,7 +827,14 @@ function SlotCell({
     <div
       ref={setDropRef}
       className="aspect-square relative"
-      style={{ outline: isOver && editing ? '2px solid var(--theme-brand-primary)' : undefined, borderRadius: 'var(--theme-card-roundness)' }}
+      style={{
+        // Dashed edit-mode border signals the symbol is authorable (delete via
+        // the X badge, tap to open the editor) — no edit panel, so the symbol
+        // keeps its full surface.
+        border: editing ? '2px dashed var(--theme-enter-mode)' : undefined,
+        outline: isOver && editing ? '2px solid var(--theme-brand-primary)' : undefined,
+        borderRadius: 'var(--theme-card-roundness)',
+      }}
     >
       <div
         ref={setDragRef}
