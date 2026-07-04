@@ -1,9 +1,9 @@
 "use client";
 
 // Renders in the app layout shell above all pages.
-// Owns PlayModal and sentence sequence playback.
+// Owns the block play modal (CompositionPlayModal) for talker sentence playback.
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
@@ -14,7 +14,8 @@ import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { Header } from '@/app/components/app/shared/ui/Header';
 import type { QuickSymbolItem } from '@/app/components/app/shared/ui/Header';
-import { PlayModal } from '@/app/components/app/shared/modals/PlayModal';
+import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
+import { blocksFromTalker } from '@/app/components/app/shared/ui/composition/blocks';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ import {
 } from '@/app/components/app/shared/ui/Dialog';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { playTts } from '@/lib/audio/playTts';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -41,15 +43,6 @@ function rawKey(path?: string): string | undefined {
 // the listing and the `/categories/[id]` detail page.
 const TALKER_SEGMENTS = ['search', 'categories'];
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type PlayModalState = {
-  symbolId: string;
-  imagePath?: string;
-  audioPath?: string;
-  label: string;
-} | null;
-
 // ─── Audio ────────────────────────────────────────────────────────────────────
 
 function playAudio(audioPath: string) {
@@ -61,13 +54,12 @@ function playAudio(audioPath: string) {
 
 export function PersistentTalker() {
   const t = useTranslations('talker');
-  const { stateFlags, language } = useProfile();
+  const { stateFlags, language, voiceId } = useProfile();
   const { talkerSymbols, talkerMode, addToTalker, removeFromTalker, reorderTalker, clearTalker } = useTalker();
   const { breadcrumbExtra } = useBreadcrumb();
   const pathname = usePathname();
 
-  const [playModal, setPlayModal] = useState<PlayModalState>(null);
-  const cancelSequenceRef = useRef(false);
+  const [playing, setPlaying] = useState(false);
 
   // Talker Save (ADR-015 Slice 6) — folder picker + smart default.
   const sentenceFolders = useQuery(api.profileFolders.getProfileFolders, { tree: 'sentences' });
@@ -84,41 +76,23 @@ export function PersistentTalker() {
   const segment = pathname.split('/')[2] ?? '';
   if (!TALKER_SEGMENTS.includes(segment)) return null;
 
-  function handleChipTap(item: TalkerSymbolItem) {
-    if (item.audioPath) playAudio(item.audioPath);
-    setPlayModal({
-      symbolId: item.symbolId,
-      imagePath: item.imagePath,
-      audioPath: item.audioPath,
-      label: item.label,
-    });
+  // Play a talker item's clip. A clip-less phrase (no recorded/generated audio)
+  // speaks its name via TTS so adding or tapping a phrase is never silent —
+  // mirrors the block modal's fallback and matches how word symbols always sound.
+  function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; label: string }) {
+    if (item.audioPath) { playAudio(item.audioPath); return; }
+    if (item.kind === 'phrase') void playTts(item.phraseName ?? item.label, voiceId);
   }
 
-  async function handlePlaySentence() {
-    if (talkerSymbols.length === 0) return;
-    cancelSequenceRef.current = false;
+  // Single chip tap plays that chip's own clip (whole-composition playback is the
+  // block modal, opened by Play).
+  function handleChipTap(item: TalkerSymbolItem) {
+    playItem(item);
+  }
 
-    for (const symbol of talkerSymbols) {
-      if (cancelSequenceRef.current) break;
-      setPlayModal({
-        symbolId: symbol.symbolId,
-        imagePath: symbol.imagePath,
-        audioPath: symbol.audioPath,
-        label: symbol.label,
-      });
-      if (symbol.audioPath) {
-        const path = symbol.audioPath;
-        await new Promise<void>((resolve) => {
-          const audio = new Audio(`/api/assets?key=${path}`);
-          audio.addEventListener('ended', () => resolve());
-          audio.addEventListener('error', () => resolve());
-          audio.play().catch(() => resolve());
-        });
-      } else {
-        await new Promise<void>((resolve) => setTimeout(resolve, 600));
-      }
-    }
-    if (!cancelSequenceRef.current) setPlayModal(null);
+  // Play opens the block modal, which owns the stepped-glow sequence playback.
+  function handlePlaySentence() {
+    if (talkerSymbols.length > 0) setPlaying(true);
   }
 
   // Smart default (ADR-014 §7): if working inside a category, default the save
@@ -202,7 +176,7 @@ export function PersistentTalker() {
   }
 
   function handleQuickSymbolTap(item: QuickSymbolItem) {
-    if (item.audioPath) playAudio(item.audioPath);
+    playItem(item);
     addToTalker({
       symbolId: item.symbolId,
       label: item.label,
@@ -291,14 +265,12 @@ export function PersistentTalker() {
         </DialogContent>
       </Dialog>
 
-      {playModal && (
-        <PlayModal
-          isOpen={true}
-          symbolId={playModal.symbolId}
-          imagePath={playModal.imagePath}
-          label={playModal.label}
-          language={language}
-          onClose={() => { cancelSequenceRef.current = true; setPlayModal(null); }}
+      {playing && (
+        <CompositionPlayModal
+          isOpen
+          blocks={blocksFromTalker(talkerSymbols)}
+          voiceId={voiceId}
+          onClose={() => setPlaying(false)}
         />
       )}
     </>

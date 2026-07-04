@@ -46,3 +46,4 @@ Slots vs fixed phrases: items 5, 6, 10 above are fixed; the rest have slots. Mix
 Yes / No: I left these off the sentence list because they're better as single-symbol responses than sentences. Worth confirming the starter pack already has them prominently in core vocab.
 Greetings / manners ("Hello", "Thank you"): also better as core single symbols than sentences. Mention in case you'd rather swap in "Hello, my name is ___" as a 13th sentence for first-meet contexts.
 Toileting language: I added it as a list, but you might also want a sentence ("I need the toilet") — it's one of the highest-stakes utterances and worth redundancy.
+

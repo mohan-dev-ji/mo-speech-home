@@ -31,10 +31,10 @@ export function playKey(r2Key: string): HTMLAudioElement {
 
 /**
  * Resolve `(text, voiceId)` through /api/tts (cache hit, or synthesise on a cold
- * first tap) and play the result. Returns the resolved r2Key (or undefined on
- * failure). Use `playKey` instead when a pre-resolved key is already in hand.
+ * first tap) to an r2Key WITHOUT playing it. Use when the caller wants to drive
+ * playback itself — e.g. to await the clip's `ended` event for stepped playback.
  */
-export async function playTts(
+export async function resolveTtsKey(
   text: string,
   voiceId: string
 ): Promise<string | undefined> {
@@ -48,10 +48,23 @@ export async function playTts(
     });
     if (!res.ok) return undefined;
     const { r2Key } = (await res.json()) as { r2Key?: string };
-    if (!r2Key) return undefined;
-    playKey(r2Key);
-    return r2Key;
+    return r2Key ?? undefined;
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Resolve `(text, voiceId)` through /api/tts (cache hit, or synthesise on a cold
+ * first tap) and play the result. Returns the resolved r2Key (or undefined on
+ * failure). Use `playKey` instead when a pre-resolved key is already in hand.
+ */
+export async function playTts(
+  text: string,
+  voiceId: string
+): Promise<string | undefined> {
+  const r2Key = await resolveTtsKey(text, voiceId);
+  if (!r2Key) return undefined;
+  playKey(r2Key);
+  return r2Key;
 }

@@ -10,6 +10,7 @@
 // (PointerSensor, 8px activation so a tap still plays). Tapping a chip calls
 // onChipTap; the parent decides play-vs-other.
 
+import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -197,13 +198,25 @@ function SortableUnit({
 
 function PhraseBox({ item, onTap }: { item: TalkerSymbolItem; onTap: () => void }) {
   const words = item.words ?? [];
+  // Mirror SymbolCard's press feedback: a hover primary outline + active
+  // scale-down, so a phrase chip behaves like a word chip when pressed. The
+  // border is always 4px (transparent at rest) so hover never shifts layout.
+  const [hovered, setHovered] = useState(false);
   return (
     <button
       type="button"
       onClick={onTap}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       aria-label={item.phraseName ?? item.label}
-      className="flex flex-col items-center gap-2 rounded-theme p-3 transition-opacity hover:opacity-90"
-      style={{ background: ZINC.c500 }}
+      className="flex flex-col items-center gap-2 rounded-theme p-3 transition-transform active:scale-95"
+      style={{
+        background: ZINC.c500,
+        borderWidth: 4,
+        borderStyle: "solid",
+        borderColor: hovered ? "var(--theme-brand-primary)" : "transparent",
+        transition: "border-color 150ms ease, transform 150ms ease",
+      }}
     >
       <div className="flex items-end gap-2">
         {words.length === 0 ? (

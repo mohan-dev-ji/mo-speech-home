@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { RotateCcw } from 'lucide-react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
-import { playTts } from '@/lib/audio/playTts';
+import { resolveTtsKey } from '@/lib/audio/playTts';
 
 // Block play modal (ADR-015). Shows the whole composition at once and steps a
 // yellow glow through each block in time with its audio. Replay re-runs the
@@ -15,48 +15,78 @@ export function CompositionPlayModal({
   isOpen, blocks, voiceId, onClose,
 }: { isOpen: boolean; blocks: PlayBlock[]; voiceId: string; onClose: () => void }) {
   const t = useTranslations('talker');
-  const cancelRef = useRef(false);
+  // Monotonic run token: every new sequence/tap/close bumps it, so any older
+  // in-flight run bails at its next check. Guards against React StrictMode's
+  // double-invoked mount effect launching two concurrent runs — which is what
+  // made blocks play twice and overlap.
+  const runIdRef = useRef(0);
+  const activeAudioRef = useRef<{ audio: HTMLAudioElement; done: () => void } | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  function clipKey(b: PlayBlock) { return b.audioKey; }          // word/phrase own clip
   function ttsText(b: PlayBlock) { return b.kind === 'word' ? b.label : b.name; }
 
-  async function playOne(b: PlayBlock): Promise<void> {
-    const key = clipKey(b);
-    if (key) {
-      await new Promise<void>((res) => {
-        const a = new Audio(`/api/assets?key=${key}`);
-        a.addEventListener('ended', () => res());
-        a.addEventListener('error', () => res());
-        a.play().catch(() => res());
-      });
-    } else {
-      // no stored clip → speak the label/name (better than silence)
-      await playTts(ttsText(b), voiceId);
-      await new Promise<void>((res) => setTimeout(res, 200));
+  // Stop whatever is currently sounding and resolve its awaiting promise, so a
+  // superseded loop unwinds instead of hanging forever waiting on 'ended'.
+  function stopActive() {
+    const cur = activeAudioRef.current;
+    if (cur) { activeAudioRef.current = null; cur.audio.pause(); cur.done(); }
+  }
+
+  // Play one block and resolve only when its audio has actually ENDED, so the
+  // glow lasts exactly as long as the sound. A clip-less block (a phrase with no
+  // recorded/generated audio) is synthesised to a clip first, then played the
+  // same way — so its glow matches too, instead of jumping ahead of the speech.
+  async function playOne(b: PlayBlock, runId: number): Promise<void> {
+    let key = b.audioKey;
+    if (!key) {
+      key = await resolveTtsKey(ttsText(b), voiceId);
+      if (runIdRef.current !== runId) return;   // superseded during synth — don't play
     }
+    if (!key) { await new Promise<void>((res) => setTimeout(res, 300)); return; } // nothing to play
+    await new Promise<void>((res) => {
+      const audio = new Audio(`/api/assets?key=${key}`);
+      const done = () => { if (activeAudioRef.current?.audio === audio) activeAudioRef.current = null; res(); };
+      activeAudioRef.current = { audio, done };
+      audio.addEventListener('ended', done);
+      audio.addEventListener('error', done);
+      audio.play().catch(done);
+    });
   }
 
   async function runSequence() {
-    cancelRef.current = false;
+    const myRun = ++runIdRef.current;
+    stopActive();
     for (let i = 0; i < blocks.length; i++) {
-      if (cancelRef.current) break;
+      if (runIdRef.current !== myRun) return;
       setActiveIndex(i);
-      await playOne(blocks[i]);
+      await playOne(blocks[i], myRun);
+      if (runIdRef.current !== myRun) return;   // re-check after the await
     }
-    if (!cancelRef.current) setActiveIndex(null);
+    if (runIdRef.current === myRun) setActiveIndex(null);
   }
 
-  useEffect(() => { if (isOpen) runSequence(); return () => { cancelRef.current = true; }; }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  function playSingle(i: number) {
+    const myRun = ++runIdRef.current;   // cancel any running sequence
+    stopActive();
+    setActiveIndex(i);
+    playOne(blocks[i], myRun).then(() => { if (runIdRef.current === myRun) setActiveIndex(null); });
+  }
+
+  function close() { runIdRef.current++; stopActive(); onClose(); }
+
+  useEffect(() => {
+    if (isOpen) runSequence();
+    return () => { runIdRef.current++; stopActive(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-8 p-8"
-         style={{ background: 'var(--theme-overlay)' }} onClick={() => { cancelRef.current = true; onClose(); }}>
+         style={{ background: 'var(--theme-overlay)' }} onClick={close}>
       <div className="flex flex-wrap gap-4 justify-center max-w-5xl" onClick={(e) => e.stopPropagation()}>
         {blocks.map((b, i) => (
-          <CompositionBlock key={i} block={b} active={activeIndex === i}
-            onTap={() => { cancelRef.current = true; setActiveIndex(i); playOne(b).then(() => setActiveIndex(null)); }} />
+          <CompositionBlock key={i} block={b} active={activeIndex === i} onTap={() => playSingle(i)} />
         ))}
       </div>
       <button type="button" onClick={(e) => { e.stopPropagation(); runSequence(); }}
