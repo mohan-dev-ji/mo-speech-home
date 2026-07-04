@@ -972,12 +972,12 @@ function PhraseEditCard({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="w-[320px] max-w-full flex flex-col gap-2">
+    <div ref={setNodeRef} style={style} className="w-fit min-w-[320px] max-w-full flex flex-col gap-2">
       <div
         className="flex flex-col gap-3 p-3 rounded-theme-card border-2 border-dashed"
         style={{ background: ZINC.c500, borderColor: incomplete ? 'var(--theme-warning)' : 'var(--theme-enter-mode)' }}
       >
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           {words.map((w, i) => (
             <WordChip
               key={i}
