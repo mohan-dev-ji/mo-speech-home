@@ -369,6 +369,7 @@
   },
   "talker": {
     "playLabel": "Play sentence",
+    "replay": "Replay",
     "clearLabel": "Clear sentence",
     "saveLabel": "Save sentence",
     "openDropdown": "Open quick symbols",
