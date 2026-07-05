@@ -570,7 +570,7 @@ The student-facing "Recent symbols" home strip (a UX feature, not an analytics f
 
 ### 7.5 Product Analytics (PostHog) — NEW, current phase
 
-> **Status:** Planned, doc written, ready to implement.
+> **Status:** Shipped.
 
 The post-MVP correction: wire proper product analytics before any of the bigger architectural projects. Tool chosen: **PostHog** (open source, EU residency available, free up to 1M events/month, ships feature flags + experimentation, generous privacy controls).
 
@@ -597,7 +597,7 @@ What this phase delivers:
 
 ### 7.6 ADR-011 — Plugin architecture for content modules — NEW
 
-> **Status:** Planned, no code. Half-day write-up.
+> **Status:** Accepted — ADR written.
 
 Codify the "content-as-data, app-as-runtime" pattern that already underpins resource packs (per ADR-010) so the same shape applies to languages, themes, and future plugin types without re-deriving it twice.
 
@@ -610,7 +610,7 @@ What the ADR captures:
 
 The ADR is the contract between Phase 8 (Languages) and Phase 9 (Themes). Both follow the same pattern; without it, they'd end up subtly different.
 
-### 7.5 Future slots
+### 7.7 Future slots
 
 Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into this dashboard as additional sections, not separate routes.
 
@@ -620,7 +620,7 @@ Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into thi
 
 ## Phase 8 — Languages (dedicated plugin refactor)
 
-> **Status:** Sub-phased 8.0 → 8.6. Phase 8.0 in progress on branch `phase-8-0-foundation-migration`. The "Languages as a running thread" discipline (no `"eng"` hard-coding etc.) remains valid — see the section below — but the *implementation* of pluggable languages lives here.
+> **Status:** Shipped (8.0 → 8.6). The "Languages as a running thread" discipline (no `"eng"` hard-coding etc.) remains valid — see the section below — but the *implementation* of pluggable languages lives here.
 
 **Goal:** Make adding a new language a self-contained, pluggable operation — no schema changes, no architectural rework, no app-shell editing. Hindi proves the architecture; Punjabi is the third-language plugin-pattern verification; Bengali, Spanish, Arabic and others follow the same pattern.
 
@@ -630,7 +630,7 @@ This is the strategic differentiator. No serious AAC platform treats Hindi (or a
 
 **Sub-phase summary** (the spec is the authoritative reference; this list is for scanning):
 
-- **8.0 Foundation migration** (in progress) — schema migration `{eng, hin}` → `{[iso]: string}` open record; key rename `eng → en`, `hin → hi`; registry refactored to load from `convex/data/languages/*.json`; audio resolver moves to voice-first R2 paths with legacy `audio/eng/default/` fallback; `languageLifecycle` table added; Punjabi (`pa`) stub created to prove the registry actually loads N languages dynamically (not just two hardcoded). Plan file: `~/.claude/plans/i-wanted-to-open-splendid-turing.md`.
+- **8.0 Foundation migration** — schema migration `{eng, hin}` → `{[iso]: string}` open record; key rename `eng → en`, `hin → hi`; registry refactored to load from `convex/data/languages/*.json`; audio resolver moves to voice-first R2 paths with legacy `audio/eng/default/` fallback; `languageLifecycle` table added; Punjabi (`pa`) stub created to prove the registry actually loads N languages dynamically (not just two hardcoded). Plan file: `~/.claude/plans/i-wanted-to-open-splendid-turing.md`.
 - **8.1 Admin Languages section + UI strings pipeline** — `/admin/languages` page cloned from the Library section; AI translation pipeline writes `messages/<code>.json`; "Add language" button replaces 8.0's manual stub creation.
 - **8.2 Symbol translation pipeline** — 52k-symbol AI translation pass per language, batched and resumable; Latin transliterations into the `synonyms` field for non-Latin scripts (per ADR-009 §9) so users without a script-native keyboard can still search phonetically.
 - **8.3 Default-pack translation** — twelve lists × twelve sentences translated to real native quality (not stubbed); native-speaker review checkbox per (pack, language).
@@ -644,7 +644,7 @@ This is the strategic differentiator. No serious AAC platform treats Hindi (or a
 
 ## Phase 9 — Themes as pluggable packs
 
-> **Status:** Reordered from original Phase 8. Same plugin pattern as Languages.
+> **Status:** Shipped. Reordered from original Phase 8. Same plugin pattern as Languages.
 > **Reviewed 2026-06-05** against the Phase 8 dynamic-content architecture — see findings below.
 
 **Goal:** Student profiles have selectable colour themes, and any admin (and eventually any Max user) can introduce a new theme without code changes.
@@ -704,7 +704,7 @@ PostHog tracks which themes get loaded, which get changed away from, time-on-the
 
 ## Phase 10 — UI Design Polish Pass
 
-> **Status:** New phase. Design-led. Slot after Themes so polish lands on a stable architecture and real multi-language / multi-theme content.
+> **Status:** In progress — finishing (minor non-essential gaps). Design-led; slots after Themes so polish lands on a stable architecture and real multi-language / multi-theme content.
 
 **Goal:** The final visual polish to make the product feel slick and considered, not assembled.
 
