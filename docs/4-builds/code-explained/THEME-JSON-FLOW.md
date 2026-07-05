@@ -2,7 +2,7 @@
 
 > **What this is.** A code-level trace of what happens between editing a theme's
 > token value (e.g. `convex/data/themes/amber.json`) and the colour changing on a
-> user's screen. Companion to the plain-English [`theme-system-explained.md`](../theme-system-explained.md)
+> user's screen. Companion to the plain-English [`theme-system-explained.md`](./theme-system-explained.md)
 > and the architecture in [ADR-011 §2](../decisions/ADR-011-plugin-architecture-for-content-modules.md).
 >
 > The short version: theme token values are a **compile-time import chain**, not a
@@ -76,7 +76,7 @@ getThemeTokens("amber") → current amber tokens
 So new values for `amber` are picked up the next time the slug resolves. Nobody
 has to re-select their theme, and there is no per-account data to migrate. (This
 is the same "don't photocopy — resolve live" model used for content/languages —
-see [`theme-system-explained.md`](../theme-system-explained.md).)
+see [`theme-system-explained.md`](./theme-system-explained.md).)
 
 ---
 

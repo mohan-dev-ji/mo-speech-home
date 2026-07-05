@@ -66,7 +66,7 @@ The ADR-010 pack-publish API route (write-back-to-JSON via local dev) is the pro
 
 Themes are the next plugin to formalise after packs. The current `ThemeContext` ships six flat themes hard-coded; this ADR makes themes pluggable with a deliberate, principled shape.
 
-> **Amended 2026-06-05 (Phase 9 review).** Two findings reshaped this section. **(1)** Themes already use *dynamic resolution* — a profile stores only a `themeSlug` and resolves the token definition live at render; they never had content's copy-at-seed staleness (§2.0 below). **(2)** A vestigial `themes` Convex table + `convex/themes.ts` exist with a *different, older* token shape and are dead at runtime; they get the deferred-cleanup treatment ADR-010 gives `resourcePacks` (§2.5). The plain-English companion is [`theme-system-explained.md`](../theme-system-explained.md).
+> **Amended 2026-06-05 (Phase 9 review).** Two findings reshaped this section. **(1)** Themes already use *dynamic resolution* — a profile stores only a `themeSlug` and resolves the token definition live at render; they never had content's copy-at-seed staleness (§2.0 below). **(2)** A vestigial `themes` Convex table + `convex/themes.ts` exist with a *different, older* token shape and are dead at runtime; they get the deferred-cleanup treatment ADR-010 gives `resourcePacks` (§2.5). The plain-English companion is [`theme-system-explained.md`](../code-explained/theme-system-explained.md).
 
 #### 2.0 Themes already resolve live — what that does and doesn't give us
 
@@ -168,7 +168,7 @@ A customised theme is **not** a full copy of the base theme's tokens. It is the 
   resolve(token) = userOverride[token] ?? baseTheme[token] ?? cssDefault
 ```
 
-Each token is independently **borrowed** (resolved live from the base theme) or **yours** (overridden, frozen). The two properties this guarantees are identical to the content model in [`language-system-explained.md` §3](../language-system-explained.md):
+Each token is independently **borrowed** (resolved live from the base theme) or **yours** (overridden, frozen). The two properties this guarantees are identical to the content model in [`language-system-explained.md` §3](../code-explained/language-system-explained.md):
 
 - **Changing one token never freezes the rest.** Override the accent and only the accent becomes yours; a later admin refinement to the base theme's background still flows in.
 - **New token layers flow into untouched slots.** When the texture layer (§2.1) ships, every custom theme that didn't override texture gains it automatically.
@@ -295,9 +295,9 @@ Each plugin type's lifecycle events (`<type>_published`, `<type>_loaded`, `<type
 - [ADR-008](./ADR-008-admin-role-and-view-modes.md) — admin role and view modes; the role gate that this ADR's admin sections inherit.
 - [ADR-009](./ADR-009-multi-language-multi-voice-architecture.md) — multi-language registry, schema, voices, R2 paths, transliterations. ADR-011 builds on this without replacing any of it.
 - [ADR-010](./ADR-010-pack-storage-shift.md) — the proof-of-concept for the pattern this ADR generalises. Pack lifecycle table, JSON-as-source-of-truth, local-dev publish API route.
-- [`docs/1-inbox/ideas/00-build-plan.md`](../../1-inbox/ideas/00-build-plan.md) — Phases 8 (Languages plugin refactor) and 9 (Themes as pluggable packs) implement this ADR.
+- [`docs/00-roadmap.md`](../../00-roadmap.md) — Phases 8 (Languages plugin refactor) and 9 (Themes as pluggable packs) implement this ADR.
 - [`docs/1-inbox/ideas/15-themes.md`](../../1-inbox/ideas/15-themes.md) — original themes spec; the design principles in §2 of this ADR supersede it where they conflict (notably its "stored in a Convex table" model — §2.0/§2.3/§2.5 here).
-- [`docs/4-builds/theme-system-explained.md`](../theme-system-explained.md) — plain-English companion to this §2; the "don't photocopy — resolve live" model applied to themes.
+- [`docs/4-builds/theme-system-explained.md`](../code-explained/theme-system-explained.md) — plain-English companion to this §2; the "don't photocopy — resolve live" model applied to themes.
 - [ADR-012 §7](./ADR-012-language-operations-console.md) — dynamic resolution + per-field "borrowed vs yours" for content; §2.0/§2.6 here apply the same model to themes.
 - [`app/contexts/ThemeContext.tsx`](../../../app/contexts/ThemeContext.tsx) — the live `THEME_TOKENS` catalogue + `ThemeTokens` canonical shape (§2.2); [`app/contexts/ProfileContext.tsx`](../../../app/contexts/ProfileContext.tsx) — the slug→tokens live resolution (§2.0).
 - [`docs/1-inbox/ideas/21-product-analytics-posthog.md`](../../1-inbox/ideas/21-product-analytics-posthog.md) — PostHog event-shape discipline that keeps the analytics layer plugin-compatible (plugin dimensions are open strings, not literal unions).

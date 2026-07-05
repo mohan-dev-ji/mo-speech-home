@@ -327,5 +327,5 @@ node --env-file=.env.local scripts/seed-voice-audio.mjs --voice <id> --flags-onl
 - Translation pipeline: `convex/translationActions.ts`, `convex/translationJobs.ts`, `convex/symbols.ts` (`fetchUntranslatedPage`, `applyTranslationsBatch`)
 - Voices: `lib/r2-paths.ts` (`TTS_VOICES`), `lib/audio/resolveVoiceId.ts`, `scripts/seed-voice-audio.mjs`
 - Audio resolution: `lib/audio/resolveAudioPath.ts`, `lib/audio/playTts.ts`, `app/api/tts/route.ts`, `convex/ttsCache.ts`
-- Content-ops playbook: `docs/1-inbox/ideas/22-pack-translation-workflow.md`
+- Content-ops playbook: `docs/4-builds/plans/pack-translation-workflow.md`
 - Architecture: `docs/4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md`

@@ -3,7 +3,7 @@
 > **Status (amended 2026-06-05, Phase 9 review).** This is the original themes spec. Its
 > *token reference* and *design rationale* (below) remain accurate and useful, but its
 > **storage/architecture model is superseded** by [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md)
-> and the plain-English [`theme-system-explained.md`](../../4-builds/theme-system-explained.md).
+> and the plain-English [`theme-system-explained.md`](../../4-builds/code-explained/theme-system-explained.md).
 > The two corrections to read this doc through:
 > 1. **Themes are not stored "in a Convex table" per profile.** A profile stores only a
 >    `themeSlug`; the token definition resolves **live** from a central catalogue at render

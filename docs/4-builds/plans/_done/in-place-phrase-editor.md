@@ -1,6 +1,6 @@
 # In-Place Phrase Editor Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. **Self-contained** — a fresh session can start cold. Design spec: `in-place-phrase-editor-design.md` (same folder).
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. **Self-contained** — a fresh session can start cold. Design spec: [`FEAT-003-in-place-phrase-editor.md`](../../features/FEAT-003-in-place-phrase-editor.md).
 
 **Goal:** Let an instructor edit a phrase in place while editing a talker-saved ("sequence") sentence — words, name, and audio — reusing the talker dropbar's phrase builder, with edits scoped to that one sentence's snapshot only.
 

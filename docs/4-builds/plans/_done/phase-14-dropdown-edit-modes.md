@@ -2,7 +2,7 @@
 
 **Status:** Ready to run (fresh session) · **Date:** 2026-06-30 · **Branch:** `claude/practical-hofstadter-c6b656` (worktree)
 
-> Self-contained plan. Make the talker dropdown's **core-word categories** and **phrase banks** instructor-authorable *in place*, reusing the existing category-edit and sentence-edit flows — no bespoke editors. Architecture: [ADR-015](../decisions/ADR-015-composition-primitive-and-phrase-tree.md). Feature context: [phase-14-sentence-builder-talker.md → "Dropdown edit modes"](./phase-14-sentence-builder-talker.md).
+> Self-contained plan. Make the talker dropdown's **core-word categories** and **phrase banks** instructor-authorable *in place*, reusing the existing category-edit and sentence-edit flows — no bespoke editors. Architecture: [ADR-015](../../decisions/ADR-015-composition-primitive-and-phrase-tree.md). Feature context: [FEAT-004-sentence-builder-talker.md → "Dropdown edit modes"](../../features/FEAT-004-sentence-builder-talker.md).
 
 ---
 

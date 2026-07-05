@@ -1,6 +1,6 @@
 # In-Place Phrase Editor (sentence snapshots) — Design Spec
 
-> **Status:** Approved design (brainstormed 2026-07-04). Next step: turn into an implementation plan via the writing-plans skill. Builds on the shipped "Block-Aware Play Modal & Unit-Based Sentences" work (see `block-play-modal-and-unit-sentences.md`).
+> **Status:** Approved design (brainstormed 2026-07-04). Next step: turn into an implementation plan via the writing-plans skill. Builds on the shipped "Block-Aware Play Modal & Unit-Based Sentences" work (see [`../plans/block-play-modal-and-unit-sentences.md`](../plans/_done/block-play-modal-and-unit-sentences.md)).
 
 ## Goal
 

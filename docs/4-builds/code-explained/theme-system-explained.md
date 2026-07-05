@@ -7,7 +7,7 @@
 >
 > It's the sister doc to [`language-system-explained.md`](./language-system-explained.md),
 > and it deliberately reuses the same mental model: **don't photocopy — resolve live.**
-> The detailed technical version lives in [ADR-011 §2](./decisions/ADR-011-plugin-architecture-for-content-modules.md).
+> The detailed technical version lives in [ADR-011 §2](../decisions/ADR-011-plugin-architecture-for-content-modules.md).
 
 ---
 
@@ -85,7 +85,7 @@ So an admin re-colouring a theme is a (small) code release — but a brand-new c
 released, flows to every existing family with no migration. And turning a theme **on/off**,
 making it **free or premium**, or scheduling a **seasonal** theme needs no release at all.
 This is the same split packs and languages use, written down in
-[ADR-010](./decisions/ADR-010-pack-storage-shift.md) and [ADR-012 §2](./decisions/ADR-012-language-operations-console.md).
+[ADR-010](../decisions/ADR-010-pack-storage-shift.md) and [ADR-012 §2](../decisions/ADR-012-language-operations-console.md).
 
 ---
 
@@ -154,7 +154,7 @@ from the source unless the family specifically changed *that* one."
 ## 5. A note on what a theme *is* (the new shape)
 
 Today's six themes (Sky, Rose, Amber…) get their personality from one **dominant accent
-colour**. The Phase 9 redesign ([ADR-011 §2](./decisions/ADR-011-plugin-architecture-for-content-modules.md))
+colour**. The Phase 9 redesign ([ADR-011 §2](../decisions/ADR-011-plugin-architecture-for-content-modules.md))
 flips that: personality comes from the **background**, with the accent stepped back to a
 highlight. A theme becomes four stackable layers:
 
@@ -205,14 +205,14 @@ family automatically, while a family's personal tweaks stay theirs.
 
 | In this doc | The official name | Where it's detailed |
 |---|---|---|
-| The name a profile stores | `themeSlug` | [ADR-011 §2](./decisions/ADR-011-plugin-architecture-for-content-modules.md) |
+| The name a profile stores | `themeSlug` | [ADR-011 §2](../decisions/ADR-011-plugin-architecture-for-content-modules.md) |
 | The central list of theme colours | the theme catalogue / `convex/data/themes/*.json` | ADR-011 §2 |
-| Looking colours up live instead of photocopying | dynamic resolution | [ADR-012 §7](./decisions/ADR-012-language-operations-console.md) |
+| Looking colours up live instead of photocopying | dynamic resolution | [ADR-012 §7](../decisions/ADR-012-language-operations-console.md) |
 | The "now showing" list | the `themeLifecycle` overlay | ADR-011 §1, §2 |
 | Free / premium gating | tier gating | ADR-011 §2 |
 | A custom theme = base name + just-your-changes | per-field / per-token overrides (borrowed-or-yours) | ADR-012 §7 |
 | The four-layer theme shape | background · texture · surface · accent | ADR-011 §2 |
-| Colours-are-content, on/off-is-lifecycle | the repo-writer constraint | [ADR-010](./decisions/ADR-010-pack-storage-shift.md), ADR-012 §2 |
+| Colours-are-content, on/off-is-lifecycle | the repo-writer constraint | [ADR-010](../decisions/ADR-010-pack-storage-shift.md), ADR-012 §2 |
 
 ---
 

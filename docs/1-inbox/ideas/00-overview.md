@@ -76,11 +76,10 @@ Full detail: `07-home-school-connection.md`
 
 ## Document Index
 
-Start here before any other document: **`00-build-plan.md`**
+Start here before any other document: the roadmap — **[`docs/00-roadmap.md`](../../00-roadmap.md)** (promoted out of this folder; it is the living phased build plan).
 
 
 ```
-00-build-plan.md                      ← BUILD THIS FIRST — phased build plan for the coding agent
 00-overview.md                        ← product overview and document index
 01-navigation-and-permissions.md      ← four nav items, state flags, permission system
 02-categories.md                      ← categories as the root container, four modes

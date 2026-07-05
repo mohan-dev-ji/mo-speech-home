@@ -1,5 +1,7 @@
 # Audio Architecture
 
+> **Partially superseded — R2 path model.** The two-tier TTS + cache concept still holds, but audio paths are now **voice-first, not language-first** (voice IDs encode the language) per [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md). Where this doc's R2 path layout conflicts with ADR-009, the ADR wins.
+
 ## Two-Tier System
 
 Mo Speech uses two distinct voice types. This is a deliberate product decision, not a cost compromise.

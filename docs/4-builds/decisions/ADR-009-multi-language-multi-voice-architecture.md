@@ -214,7 +214,7 @@ The original "separate transliteration into its own field later" escape hatch is
 ## References
 
 - [ADR-011](./ADR-011-plugin-architecture-for-content-modules.md) — generalises this ADR's registry-as-data principle to a shared plugin pattern across packs, themes, and languages. Adds tier-based language slots (Free=1, Pro=2, Max=3) and the admin-dashboard creation flow that this ADR's runtime architecture feeds into.
-- [`docs/4-builds/features/language-plugin-phase-8.md`](../features/language-plugin-phase-8.md) — Phase 8 implementation spec (8.0 foundation through 8.6 stable ship). Punjabi (`pa`) is the third language verifying the plugin pattern beyond bilingual.
+- [`docs/4-builds/features/language-plugin-phase-8.md`](../plans/_done/language-plugin-phase-8.md) — Phase 8 implementation spec (8.0 foundation through 8.6 stable ship). Punjabi (`pa`) is the third language verifying the plugin pattern beyond bilingual.
 - [`docs/1-inbox/ideas/06-resource-library.md`](../../1-inbox/ideas/06-resource-library.md) — pack content is copied to user accounts at seed; relevant to why `(hi)` placeholders work for messages but not for content data
 - [`convex/schema.ts`](../../../convex/schema.ts) — current bilingual field shapes
 - [`convex/ttsCache.ts`](../../../convex/ttsCache.ts) — TTS lookup pattern that the per-voice fallback model extends

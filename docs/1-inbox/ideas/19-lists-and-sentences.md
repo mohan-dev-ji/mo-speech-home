@@ -1,5 +1,7 @@
 # Lists and Sentences
 
+> **⚠️ Superseded — organisation & data model.** Lists and sentences are now **profile-level content modules** filed into three separate trees, not category-nested arrays; sentences are first-class compositions that retain their decomposition. Current source of truth: [ADR-002](../../4-builds/decisions/ADR-002-global-lists-sentences-nav.md) (lists/sentences as global nav), [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md) (three-tree modules), [ADR-015](../../4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md) (composition primitive; `profileFirstThens` folded into a display toggle on lists). The *feature* intent below still holds; the *structure* is governed by the ADRs.
+
 ## Overview
 
 Lists and Sentences are global content types that belong directly to a student profile. They are **not** attached to a category. Each appears as its own top-level nav item alongside Categories.

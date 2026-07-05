@@ -1,6 +1,8 @@
 # Resource Library and Seasonal Packs
 
 > **Storage update (2026-05-14):** [ADR-010](../../4-builds/decisions/ADR-010-pack-storage-shift.md) shifts pack **content** from the `resourcePacks` Convex table to versioned JSON files in the repo (`convex/data/library_packs/`). The `resourcePacks` table is kept as a legacy backup through the cutover and dropped later. Lifecycle metadata (publish/expire/feature/tier overrides) moves to a small new `packLifecycle` table. The `LibraryPackPickerModal` UX stays unchanged; on Save it now writes JSON via a local-dev Next.js API route. Sections below describing `resourcePacks` writes should be read alongside ADR-010.
+>
+> **⚠️ Further superseded (2026-06-24).** The bundled *pack* itself is now retired. Content ships as **per-type modules** — Categories / Lists / Sentences, each a first-class JSON plugin in its own tree — not one bundled `library_packs/<slug>.json`. Current source of truth: [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern), [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md) (bundled pack → three-tree modules), [ADR-015](../../4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md) (composition primitive). The library *product* intent below (seasonal content, admin curation, discovery) still holds; the *bundling & storage* mechanics do not.
 
 ## What It Is
 

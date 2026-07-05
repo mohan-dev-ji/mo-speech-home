@@ -8,7 +8,12 @@ Mo Speech Home is a fresh build — not an extension of the MVP. A template has 
 
 The MVP was a single-screen symbol search tool. Mo Speech Home is a full AAC platform. The routing, layout, component architecture, and context system must be designed from scratch. The Stripe integration, R2 setup, service worker, admin dashboard, and Convex schema foundation carry over directly.
 
-Everything in this app is JSON-driven. Student profiles, categories, symbols, lists, sentences, first-thens, themes, resource packs — all Convex documents. The app shell is a renderer. Keep this mental model throughout the build.
+The app shell is a renderer over a **hybrid store** — keep this mental model throughout. Two roles, deliberately split ([ADR-010](4-builds/decisions/ADR-010-pack-storage-shift.md) → [ADR-011](4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) → [ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md)):
+
+- **Shipped content = JSON files, source of truth.** Every installable module — categories, lists, sentences, themes, languages — is a versioned JSON file under `convex/data/<type>/*.json`, shipped per-deploy. This is the pristine catalogue of what *can* be installed.
+- **Convex = runtime state.** A thin `<type>Lifecycle` table per module type controls visibility (publish window, tier, featured, expiry); **user/instance data** (student profiles, installed content materialised into the three trees, custom folders, authored sentences) and the global **`symbols`** table live here too. Installed content snapshots its *structure* into Convex but resolves *localised text/audio live* from source, so new languages and label fixes flow into already-saved content ([ADR-012 §7](4-builds/decisions/ADR-012-language-operations-console.md)).
+
+So: **JSON is canonical for the module catalogue; Convex holds lifecycle + all user/instance data + symbols.** The old "everything is one bundled pack" model is superseded — content is now per-type modules across three trees (ADR-014).
 
 **The single most important architectural rule: never hard-code `"eng"` anywhere. Every query, every component, every audio path accepts a language parameter.**
 
@@ -41,7 +46,7 @@ Execute in this order:
 | ✅ | Phase 7 — Admin Dashboard (slice 1) | shipped | Library + Users + Overview + custom access (grant/revoke + audit history + expiry cron) + tag system on packLifecycle |
 | ✅ | **Phase 7.5 — Product Analytics (PostHog)** | shipped | Funnel data, retention, feature usage, opt-out toggle, child-privacy hard rules. Unblocks evidence-based design for everything below. See `21-product-analytics-posthog.md`. |
 | ✅ | **ADR-011 — Plugin architecture for content modules** | accepted | Codifies the "content-as-data, app-as-runtime" pattern (proven by ADR-010 packs). Generalised to languages, themes, future plugin types. Status: Accepted; folded into the Phase 8 spec. |
-| ✅ | **Phase 8 — Languages (dedicated plugin refactor)** | shipped — 8.0 → 8.6 | The strategic differentiator. Full spec in [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/features/language-plugin-phase-8.md). **8.0**: schema migration `{eng, hin}` → `{[iso]: string}`, registry refactor (JSON-loaded), audio resolver (voice-first R2 paths), `languageLifecycle` table, Punjabi (`pa`) stub for plugin-pattern verification. **8.1**: admin Languages section + UI-strings AI translation pipeline. **8.2**: 52k-symbol translation pipeline + Latin transliterations (ADR-009 §9). **8.3**: default-pack translation. **8.4**: voice seeding (4 voices per language). **8.5**: tier-based language access (Free=1 language, Pro/Max=all — boolean, not a slot counter; see ADR-011 §3 amended 2026-06-03), beta badge, font activation. **8.6**: native-speaker review queue, promote Hindi/Punjabi to stable. |
+| ✅ | **Phase 8 — Languages (dedicated plugin refactor)** | shipped — 8.0 → 8.6 | The strategic differentiator. Full spec in [`docs/4-builds/plans/_done/language-plugin-phase-8.md`](4-builds/plans/_done/language-plugin-phase-8.md). **8.0**: schema migration `{eng, hin}` → `{[iso]: string}`, registry refactor (JSON-loaded), audio resolver (voice-first R2 paths), `languageLifecycle` table, Punjabi (`pa`) stub for plugin-pattern verification. **8.1**: admin Languages section + UI-strings AI translation pipeline. **8.2**: 52k-symbol translation pipeline + Latin transliterations (ADR-009 §9). **8.3**: default-pack translation. **8.4**: voice seeding (4 voices per language). **8.5**: tier-based language access (Free=1 language, Pro/Max=all — boolean, not a slot counter; see ADR-011 §3 amended 2026-06-03), beta badge, font activation. **8.6**: native-speaker review queue, promote Hindi/Punjabi to stable. |
 | ✅ | **Phase 9 — Themes as pluggable packs** | shipped | Same plugin pattern. JSON theme definitions + `themeLifecycle` overlay. User uploads as natural next step. Adds a "Themes" section to the admin dashboard. |
 | 🔨 | **Phase 10 — UI design polish pass** | design-led — finishing, minor non-essential gaps | Figma + Claude Design exploration. Polish AFTER architecture is right and AFTER real content (Devanagari, themes, multi-language) is rendering. PostHog data informs which surfaces deserve most attention. |
 | ➡️ | **Phase 11 — Home/School connection review** | review — folded into Phase 16 testing | The original Phase 9 (convex-identity + convex-school separation) may have been **accidentally solved** by the existing student-profile + accountMembers invite architecture. Review + rescope, not a build. See "Home/School Hypothesis" inside Phase 11 below. |
@@ -59,7 +64,7 @@ Phases inside the admin dashboard (Phase 7) are revisited as needed when new plu
 
 The "Language — Running Thread Throughout" section below remains valid as an **architectural discipline** (no component hard-codes `"eng"`, etc.). Phase 8 is the dedicated refactor that makes the running thread truly pluggable.
 
-> **Direction update — 2026-06-24 (GLP / sentence-construction).** Phases 0–10 are effectively complete (Phase 10 polish finishing — minor non-essential gaps). The roadmap is now reordered around the **Gestalt Language Processing dossier** ([`docs/2-research/gestalt-language-processing/`](../../2-research/gestalt-language-processing/README.md)): Mo Speech grows from a symbol-exposure app into a deep surface for **constructing phrases and sentences** within the GLP framework. New Phases **13–18** (detailed below, after Phase 12) take priority over Phase 12 (Affiliates). **Two phase-numbering systems — do not confuse them:** the dossier's *Phase 1 (launch prep)* = build Phases **13–16**; the dossier's *Phase 2 (GLP surface)* = build Phases **17–18**.
+> **Direction update — 2026-06-24 (GLP / sentence-construction).** Phases 0–10 are effectively complete (Phase 10 polish finishing — minor non-essential gaps). The roadmap is now reordered around the **Gestalt Language Processing dossier** ([`docs/2-research/gestalt-language-processing/`](2-research/gestalt-language-processing/README.md)): Mo Speech grows from a symbol-exposure app into a deep surface for **constructing phrases and sentences** within the GLP framework. New Phases **13–18** (detailed below, after Phase 12) take priority over Phase 12 (Affiliates). **Two phase-numbering systems — do not confuse them:** the dossier's *Phase 1 (launch prep)* = build Phases **13–16**; the dossier's *Phase 2 (GLP surface)* = build Phases **17–18**.
 
 ---
 
@@ -621,7 +626,7 @@ Themes admin (after Phase 8) and Affiliates admin (after Phase 10) plug into thi
 
 This is the strategic differentiator. No serious AAC platform treats Hindi (or any South Asian language) as first-class. Building this properly opens markets nobody else can serve.
 
-**Full spec:** [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/features/language-plugin-phase-8.md)
+**Full spec:** [`docs/4-builds/plans/_done/language-plugin-phase-8.md`](4-builds/plans/_done/language-plugin-phase-8.md)
 
 **Sub-phase summary** (the spec is the authoritative reference; this list is for scanning):
 
@@ -633,7 +638,7 @@ This is the strategic differentiator. No serious AAC platform treats Hindi (or a
 - **8.5 Runtime UX** — tier-based language access (Free = 1 language chosen at sign-up; Pro/Max = all published languages, switchable at will — a boolean entitlement, not the old Free=1/Pro=2/Max=3 slot counter; see ADR-011 §3 amended 2026-06-03). Multi-language pattern is one student profile per language; switching is non-destructive (ADR-009 §6). Beta badge in pickers; per-language font activation; "Translate to <current language>" inline action for user-created content (Pro+ gated).
 - **8.6 Native-speaker review + ship** — editorial pass for Hindi and Punjabi (using owner's local translator contacts); promote `machine-translated` → `beta` → `stable`. Beta is the launch state; stable comes after real-user feedback.
 
-**References:** [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`11-language-and-i18n.md`](./11-language-and-i18n.md) (historical context — ADRs are now the architectural source of truth).
+**References:** [ADR-009](4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md), [ADR-011](4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`11-language-and-i18n.md`](1-inbox/ideas/11-language-and-i18n.md) (historical context — ADRs are now the architectural source of truth).
 
 ---
 
@@ -644,7 +649,7 @@ This is the strategic differentiator. No serious AAC platform treats Hindi (or a
 
 **Goal:** Student profiles have selectable colour themes, and any admin (and eventually any Max user) can introduce a new theme without code changes.
 
-**Key finding from the 2026-06-05 review (read [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) + [`theme-system-explained.md`](../../4-builds/theme-system-explained.md)):** themes **already resolve dynamically** — a profile stores only `themeSlug` ([`studentProfiles.themeSlug`](../../../convex/schema.ts) / `users.themeSlug`) and `ProfileContext` resolves the token definition live by slug at render. They never had content's copy-at-seed staleness. So goal (a) — *an admin's edit to a published theme reaches existing users automatically* — is **structurally already true** (no migration needed, ever). Phase 9 is therefore **not** a copy→reference conversion. It is four distinct pieces of work:
+**Key finding from the 2026-06-05 review (read [ADR-011 §2](4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) + [`theme-system-explained.md`](4-builds/code-explained/theme-system-explained.md)):** themes **already resolve dynamically** — a profile stores only `themeSlug` ([`studentProfiles.themeSlug`](../convex/schema.ts) / `users.themeSlug`) and `ProfileContext` resolves the token definition live by slug at render. They never had content's copy-at-seed staleness. So goal (a) — *an admin's edit to a published theme reaches existing users automatically* — is **structurally already true** (no migration needed, ever). Phase 9 is therefore **not** a copy→reference conversion. It is four distinct pieces of work:
 
 1. **Source move** — relocate the central catalogue from the hard-coded `THEME_TOKENS` object in `ThemeContext.tsx` to JSON plugin files `convex/data/themes/*.json` (the ADR-010/011 pattern), bundled via a barrel and resolved by slug. Token *values* stay content (deploy to change; still reaches everyone live); behaviour is otherwise unchanged.
 2. **Lifecycle overlay** — add `themeLifecycle` (parallel to `packLifecycle`) so publish/unpublish/tier/featured/season is deploy-free → delivers goal (b): newly published themes appear in every user's picker, tier/lifecycle-gated, with no deploy for the publish.
@@ -693,7 +698,7 @@ Same shape as Library:
 
 PostHog tracks which themes get loaded, which get changed away from, time-on-theme — feeds into commissioning priorities.
 
-**Reference:** [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`theme-system-explained.md`](../../4-builds/theme-system-explained.md), [`15-themes.md`](./15-themes.md) (token reference; storage model superseded), [ADR-012 §7](../../4-builds/decisions/ADR-012-language-operations-console.md) (the dynamic-resolution + per-field model this mirrors)
+**Reference:** [ADR-011 §2](4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [`theme-system-explained.md`](4-builds/code-explained/theme-system-explained.md), [`15-themes.md`](1-inbox/ideas/15-themes.md) (token reference; storage model superseded), [ADR-012 §7](4-builds/decisions/ADR-012-language-operations-console.md) (the dynamic-resolution + per-field model this mirrors)
 
 ---
 
@@ -794,26 +799,26 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ## GLP & Sentence-Construction Roadmap (Phases 13–18)
 
-> Added 2026-06-24. New direction driven by the **Gestalt Language Processing dossier** ([`docs/2-research/gestalt-language-processing/`](../../2-research/gestalt-language-processing/README.md)) and SLP feedback. These phases turn Mo Speech from a symbol-exposure app into a **deep surface for constructing phrases and sentences** within the GLP framework. They are sequenced *ahead of* Phase 12 (Affiliates).
+> Added 2026-06-24. New direction driven by the **Gestalt Language Processing dossier** ([`docs/2-research/gestalt-language-processing/`](2-research/gestalt-language-processing/README.md)) and SLP feedback. These phases turn Mo Speech from a symbol-exposure app into a **deep surface for constructing phrases and sentences** within the GLP framework. They are sequenced *ahead of* Phase 12 (Affiliates).
 >
-> **Phase-numbering map:** dossier **Phase 1 (launch prep)** = build Phases **13–16**; dossier **Phase 2 (GLP surface)** = build Phases **17–18**. The architectural contract for all of them is **[ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md)**.
+> **Phase-numbering map:** dossier **Phase 1 (launch prep)** = build Phases **13–16**; dossier **Phase 2 (GLP surface)** = build Phases **17–18**. The architectural contract for all of them is **[ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md)**.
 
 ---
 
 ## Phase 13 — Content Module + Three-Tree Refactor
 
-> **Status:** Next up. Implements [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md). The foundation — Phases 14–18 build on it, so it goes first.
+> **Status:** Next up. Implements [ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md). The foundation — Phases 14–18 build on it, so it goes first.
 
 **Goal:** Replace the bundled pack with first-class content modules and three organisation trees, so content can be constructed and organised the way each type is actually used.
 
 - **Split packs → modules.** Promote categories, lists, sentences from sub-arrays of `library_packs/<slug>.json` to first-class plugin types (`convex/data/{categories,lists,sentences}/*.json` + `<type>Lifecycle`), per the ADR-011 pattern. Themes and languages are already plugins. One-time migration walks existing packs and re-points `librarySourceId` (ADR-014 migration section).
 - **Three organisation trees** — Categories (semantic) · Lists (procedural) · Sentences (pragmatic). Shared folder primitive, separate trees; each = default folders (installed) + user custom folders.
 - **Resource library = 4 tabs** (Categories · Lists · Sentences · Themes); module → tree install is 1:1.
-- **Self-contained sentences** — embed structural symbol references (never break on delete) but resolve localised **text live** per [ADR-012 §7](../../4-builds/decisions/ADR-012-language-operations-console.md). *Structure frozen, text live.*
+- **Self-contained sentences** — embed structural symbol references (never break on delete) but resolve localised **text live** per [ADR-012 §7](4-builds/decisions/ADR-012-language-operations-console.md). *Structure frozen, text live.*
 - **Delete + reinstall** — hard line between installed modules and user content; reinstall = fresh copy, warn on delete.
 - **Soft suggest-on-save links** between rhyming folders. **Collections deferred** (V1 = no bundles).
 
-**Reference:** [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md), dossier docs [6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md) / [7](../../2-research/gestalt-language-processing/07-container-organisation.md) / [8](../../2-research/gestalt-language-processing/08-phasing-and-rollout.md).
+**Reference:** [ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md), dossier docs [6](2-research/gestalt-language-processing/06-sentence-builder-concept.md) / [7](2-research/gestalt-language-processing/07-container-organisation.md) / [8](2-research/gestalt-language-processing/08-phasing-and-rollout.md).
 
 ---
 
@@ -828,7 +833,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **Complete talker dropdown renovation** — Tab 1 = **core words** (the core/fringe model, replacing the half-formed "little words"); further tabs = **phrase banks**.
 - **Read-only decomposition view** — for the child to *see* and the instructor to *model with* (model, don't test — dossier doc 5 caution).
 
-**Reference:** dossier docs [1](../../2-research/gestalt-language-processing/01-glp-introduction.md) / [2](../../2-research/gestalt-language-processing/02-the-six-stages.md) / [6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md); doc [3](../../2-research/gestalt-language-processing/03-glp-and-aac.md) (core/fringe, motor planning).
+**Reference:** dossier docs [1](2-research/gestalt-language-processing/01-glp-introduction.md) / [2](2-research/gestalt-language-processing/02-the-six-stages.md) / [6](2-research/gestalt-language-processing/06-sentence-builder-concept.md); doc [3](2-research/gestalt-language-processing/03-glp-and-aac.md) (core/fringe, motor planning).
 
 ---
 
@@ -841,7 +846,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **Bilingual symbols** — per-symbol language override (label + audio). Common case: a Hindi board with *some* symbols shown in English. Smallest lift; delights the advising SLP. (dossier doc 4 #1)
 - **Tone TTS** — multiple intonations of the same utterance (excited / asking / calm). Prototype via the **existing on-demand TTS pipeline** already used for lists/sentences — likely an easy win. Fall back to pre-recorded variants only where prosody truly needs a human voice. (dossier doc 4 #4)
 
-**Reference:** dossier doc [4](../../2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 (the TTS pipeline).
+**Reference:** dossier doc [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 (the TTS pipeline).
 
 ---
 
@@ -868,11 +873,11 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 - **Level 1 — machine translation** *gets a language done*: the ADR-012 pipelines (UI strings, 52k symbols, modules) bring a language to `machine-translated` / `beta`. This is **breadth** — many languages, fast.
 - **Level 2 — humanisation + GLP datasets** *makes a language deep*:
-  - **Humanise** — freelancers + SLPs correct and approve via the **[ADR-013](../../4-builds/decisions/ADR-013-translator-editing-and-staging-area.md)** translator workbench (→ `stable`).
+  - **Humanise** — freelancers + SLPs correct and approve via the **[ADR-013](4-builds/decisions/ADR-013-translator-editing-and-staging-area.md)** translator workbench (→ `stable`).
   - **GLP dataset** — build the inflected forms (tense / plural / comparative), the core-word set, and the phrase predictions. This is a **new content type** ADR-013 does not cover — it needs **its own submission tooling**, modelled on the ADR-013 staging pattern (**a future ADR**).
 - **Language-completeness tiers** (dossier doc 8): **Tier 0** UI-localized · **Tier 1** vocabulary-localized (usable board) · **Tier 2** GLP-complete (= ADR-012's eight ingredients **+ the GLP dataset as a ninth**). **English + Hindi** are the first Tier-2 languages (the advising SLP can build both).
 
-**Reference:** [ADR-012](../../4-builds/decisions/ADR-012-language-operations-console.md), [ADR-013](../../4-builds/decisions/ADR-013-translator-editing-and-staging-area.md), dossier doc [8](../../2-research/gestalt-language-processing/08-phasing-and-rollout.md); future "GLP dataset" ADR.
+**Reference:** [ADR-012](4-builds/decisions/ADR-012-language-operations-console.md), [ADR-013](4-builds/decisions/ADR-013-translator-editing-and-staging-area.md), dossier doc [8](2-research/gestalt-language-processing/08-phasing-and-rollout.md); future "GLP dataset" ADR.
 
 ---
 
@@ -887,7 +892,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **Keyboard page** — type-and-speak free composition (Stage 6); gateable. Directly answers "what if a non-verbal beginner takes to the keyboard."
 - **Auto-navigation — DEFERRED.** Likely too jarring; research how other AAC tools handle it before building (motor-planning concerns, dossier doc 3).
 
-**Reference:** dossier docs [2](../../2-research/gestalt-language-processing/02-the-six-stages.md) / [4](../../2-research/gestalt-language-processing/04-glp-in-mo-speech.md); Phase 17 datasets.
+**Reference:** dossier docs [2](2-research/gestalt-language-processing/02-the-six-stages.md) / [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md); Phase 17 datasets.
 
 ---
 

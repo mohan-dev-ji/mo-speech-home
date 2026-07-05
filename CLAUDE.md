@@ -8,10 +8,10 @@ All product design, feature specs, and build plans are in `docs/`:
 
 | File | Purpose |
 |---|---|
-| `docs/1-inbox/ideas/00-build-plan.md` | **Start here** — phased build plan |
+| `docs/00-roadmap.md` | **Start here** — phased build plan |
 | `docs/1-inbox/ideas/00-overview.md` | Product vision, account model, doc index |
 | `docs/1-inbox/ideas/12-convex-schema.md` | Full schema across all 3 Convex projects |
-| `docs/1-inbox/ideas/` | All feature concepts — numbered 01–17 |
+| `docs/1-inbox/ideas/` | Origin feature specs — numbered 01–21 (some carry a "superseded by ADR-NNN" banner) |
 | `docs/1-inbox/ideas/20-profile-lock-and-pin.md` | Profile lock edge case + proposed PIN-as-sudo confirmation gate |
 | `docs/3-design/screens/` | Figma screen exports by feature |
 | `docs/3-design/design-systems/` | Design system reference image and Tokenised themes |
@@ -63,6 +63,12 @@ Node version: the Convex CLI requires Node 20+. If you have multiple Node versio
 4. Auth: Clerk JWT → `ConvexProviderWithClerk`. Admin role via `publicMetadata: { role: "admin" }`
 5. **Always use AAC theme tokens** — never hard-code colours, spacing, radii, or font sizes in AAC UI. This project uses **Tailwind CSS 4** — there is no `tailwind.config.ts`. All `--theme-*` CSS variables are declared in `:root` in `app/globals.css` and mapped to Tailwind utilities via the `@theme inline` block in the same file. Use `bg-theme-*`, `text-theme-*`, `rounded-theme` / `rounded-theme-sm`, `p-theme-*`, `gap-theme-*` etc. `ThemeContext` overwrites the CSS vars at runtime per student profile — any hard-coded value will break theme switching.
 6. **Components live in `app/components/{domain}/{type}/`** — domain is `app`, `marketing`, or `admin`; type is `sections` (page-level compositions), `ui` (reusable atoms), or `modals` (dialogs); `page.tsx` files must be thin and import only from these folders.
+7. **Docs live by artifact type — never dump a plan in the repo root or leave it in the global autosave.** The four durable homes under `docs/4-builds/`:
+   - `decisions/` — ADRs. Immutable, `ADR-NNN-slug.md`, append-only. The canonical architecture record; read before proposing changes.
+   - `features/` — **evergreen feature specs** (problem / acceptance / edge cases). Track the *shipped* product. These feed `docs/5-prd/`. A file here must describe a capability, not steps.
+   - `plans/` — **implementation plans** (Claude Code step-by-step for one phase/slice). Disposable. Name `phase-NN-slug.md`. When the work ships, move the plan to `plans/_done/`.
+   - `code-explained/` — explainers for how shipped code works (update on architecture pivots).
+   When you write or approve an implementation plan worth keeping, **save it to `docs/4-builds/plans/` and commit it with the work.** The harness's global `~/.claude/plans/` autosave is scratch only — never treat it as the plan's home. The tell: a doc ending `-plan`, `-continuation-prompt`, or `stage-N-…`, or describing steps/phases, is a plan → `plans/`, not `features/`. See `docs/4-builds/plans/README.md`.
 
 ## Reference Repos (working auth + payments)
 - Template: `/Users/mohanveraitch/Projects/mo-starter`

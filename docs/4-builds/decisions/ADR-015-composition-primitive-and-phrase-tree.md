@@ -7,7 +7,7 @@
 
 ## Context
 
-Phase 14 ([build plan](../../1-inbox/ideas/00-build-plan.md)) turns Mo Speech from a symbol-exposure app into a surface for *constructing* phrases and sentences — the Gestalt Language Processing (GLP) "build-up / break-down" loop made real ([dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md)). The advising SLP's framing: students should learn that **phrases can be reused to make other sentences**. Today the app does the opposite — a "sentence" can be one symbol carrying whole-utterance audio. Phase 14 brings multiple symbols *together* into a named, reusable, prosodic chunk.
+Phase 14 ([build plan](../../00-roadmap.md)) turns Mo Speech from a symbol-exposure app into a surface for *constructing* phrases and sentences — the Gestalt Language Processing (GLP) "build-up / break-down" loop made real ([dossier doc 6](../../2-research/gestalt-language-processing/06-sentence-builder-concept.md)). The advising SLP's framing: students should learn that **phrases can be reused to make other sentences**. Today the app does the opposite — a "sentence" can be one symbol carrying whole-utterance audio. Phase 14 brings multiple symbols *together* into a named, reusable, prosodic chunk.
 
 Three structural facts about the current build force an architecture decision:
 

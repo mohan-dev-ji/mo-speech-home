@@ -1,6 +1,6 @@
 # Language and Internationalisation
 
-> **Architectural source of truth:** [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md) (multi-language + multi-voice), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern), and the [Phase 8 implementation spec](../../4-builds/features/language-plugin-phase-8.md) supersede the architectural specifics in this doc (schema shape, R2 paths, the "two options" question, etc.). This document is preserved as strategic context — the *why* and the *market opportunity*. The *how* lives in the ADRs.
+> **Architectural source of truth:** [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md) (multi-language + multi-voice), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern), and the [Phase 8 implementation spec](../../4-builds/plans/_done/language-plugin-phase-8.md) supersede the architectural specifics in this doc (schema shape, R2 paths, the "two options" question, etc.). This document is preserved as strategic context — the *why* and the *market opportunity*. The *how* lives in the ADRs.
 
 ## The Strategic Opportunity
 
@@ -120,7 +120,7 @@ A Hindi user never downloads the Arabic font. Next.js handles per-locale font lo
 
 ## Symbol Label Translation
 
-> Implementation: Phase 8.2 (AI translation pipeline). Spec in [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/features/language-plugin-phase-8.md) §8.2.
+> Implementation: Phase 8.2 (AI translation pipeline). Spec in [`docs/4-builds/features/language-plugin-phase-8.md`](../../4-builds/plans/_done/language-plugin-phase-8.md) §8.2.
 
 ~52,000 symbol labels need an equivalent in each new language. Approach:
 

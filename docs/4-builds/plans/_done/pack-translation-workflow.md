@@ -2,7 +2,7 @@
 
 > **What this is.** The operational playbook for fixing content issues in library pack JSON files — typos, capitalisation, mistranslations, register tweaks — across English and any translated locale. Use when a tester reports something wrong in a pack, or when content needs polish before a release.
 >
-> **Companion docs:** [11-language-and-i18n](./11-language-and-i18n.md) (the strategic why), [19-lists-and-sentences](./19-lists-and-sentences.md) (the schema of the fields you'll edit), ADR-009 (the LocalisedString architecture).
+> **Companion docs:** [11-language-and-i18n](../../../1-inbox/ideas/11-language-and-i18n.md) (the strategic why), [19-lists-and-sentences](../../../1-inbox/ideas/19-lists-and-sentences.md) (the schema of the fields you'll edit), ADR-009 (the LocalisedString architecture).
 >
 > **Required tools:** a code editor and Node 20+. The `scripts/translate-pack.mjs` Gemini pipeline does the AI translation when needed.
 

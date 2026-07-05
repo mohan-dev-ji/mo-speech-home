@@ -14,7 +14,7 @@ The talker dropbar now composes single words and phrases as visually distinct bl
 
 ## For a fresh session — read these first (grounds every task; no re-exploration needed)
 
-Repo root on `main`: `/Users/mohanveraitch/Projects/mo-speech-home`. Design basis: [ADR-015](../decisions/ADR-015-composition-primitive-and-phrase-tree.md) (composition primitive: a sentence/phrase is an ordered list of `units`, each a **word** or a **phrase** snapshot). Background: the 2-tab talker dropbar shipped; the talker bar composes word + phrase blocks.
+Repo root on `main`: `/Users/mohanveraitch/Projects/mo-speech-home`. Design basis: [ADR-015](../../decisions/ADR-015-composition-primitive-and-phrase-tree.md) (composition primitive: a sentence/phrase is an ordered list of `units`, each a **word** or a **phrase** snapshot). Background: the 2-tab talker dropbar shipped; the talker bar composes word + phrase blocks.
 
 **The two existing play modals (today):**
 - `app/components/app/shared/modals/PlayModal.tsx` — talker's single-symbol pop-up (swaps one symbol at a time). Used only by `PersistentTalker` (grep to confirm); this plan replaces its role with the block modal.

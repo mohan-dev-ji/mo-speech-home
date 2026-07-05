@@ -7,7 +7,7 @@ Status: Proposed
 
 ## Context
 
-A language in Mo Speech is "fully made" when eight ingredients exist (see [`docs/4-builds/adding-a-language.md`](../adding-a-language.md)): the language module, lifecycle/visibility, UI strings, symbol translations, the search index, library-pack translations, voices, and per-voice seeded audio. Building Hindi end-to-end (Phase 8) surfaced a structural problem: **the operations that produce those ingredients are triggered from four different places, with wildly different ergonomics, and no shared status or history.**
+A language in Mo Speech is "fully made" when eight ingredients exist (see [`docs/4-builds/adding-a-language.md`](../code-explained/adding-a-language.md)): the language module, lifecycle/visibility, UI strings, symbol translations, the search index, library-pack translations, voices, and per-voice seeded audio. Building Hindi end-to-end (Phase 8) surfaced a structural problem: **the operations that produce those ingredients are triggered from four different places, with wildly different ergonomics, and no shared status or history.**
 
 | Operation | Trigger today | Execution | Durable record |
 |---|---|---|---|
@@ -188,7 +188,7 @@ The console is the concrete admin surface ADR-011 gestured at for languages: tie
 - [ADR-010](./ADR-010-pack-storage-shift.md) — pack JSON-as-source-of-truth and the GitHub-API authoring "future hook" this ADR defers to.
 - [ADR-011](./ADR-011-plugin-architecture-for-content-modules.md) — tier-based language slots and the admin-dashboard creation flow the console concretises.
 - [ADR-013](./ADR-013-translator-editing-and-staging-area.md) — the non-admin translator staging/editing layer; its review queue is a stage on this console (§1b) and its approved suggestions are what the publish step ships.
-- [`docs/4-builds/adding-a-language.md`](../adding-a-language.md) — the playbook the console encodes.
+- [`docs/4-builds/adding-a-language.md`](../code-explained/adding-a-language.md) — the playbook the console encodes.
 - [`convex/translationJobs.ts`](../../../convex/translationJobs.ts) — the job model generalised into `languageJobs`.
 - [`convex/translationActions.ts`](../../../convex/translationActions.ts) — the self-scheduling-batch pattern the voice-seed action reuses.
 - [`app/api/admin/translate-ui-strings/route.ts`](../../../app/api/admin/translate-ui-strings/route.ts) — the dev-only repo-writer constraint (§2).

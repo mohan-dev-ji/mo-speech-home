@@ -1,5 +1,7 @@
 # Convex Schema
 
+> **Partially superseded — content-catalogue tables.** The `studentProfiles` / user-data core is current, but the content-catalogue tables described here (`resourcePacks`, per-profile theme storage) are historical: shipped content now lives as versioned JSON under `convex/data/<type>/*.json` with thin `<type>Lifecycle` overlays. Current source of truth: [ADR-010](../../4-builds/decisions/ADR-010-pack-storage-shift.md), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md), [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md). Read the schema through those.
+
 ## Three Projects
 
 ```

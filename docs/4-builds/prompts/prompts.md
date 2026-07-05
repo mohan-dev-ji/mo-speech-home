@@ -49,7 +49,7 @@ I'm building Mo Speech Home, a full AAC (Augmentative and Alternative Communicat
   - convex/_generated/ai/guidelines.md (Convex patterns)                                                                                               
   - docs/1-inbox/ideas/05-symbol-editor.md (full feature spec)
   - docs/1-inbox/ideas/10-audio-architecture.md (two-tier audio, R2 paths)                                                                             
-  - docs/4-builds/features/01-categories.md (edit mode architecture — Level 1 / Level 2 distinction, critical)                                         
+  - docs/4-builds/features/FEAT-001-categories.md (edit mode architecture — Level 1 / Level 2 distinction, critical)                                         
   - convex/schema.ts — focus on profileSymbols, audioSource validator, and symbols table                                                               
                                                                                                                                                        
   What it is                                                                                                                                           
@@ -200,7 +200,7 @@ I'm building Mo Speech Home (Next.js 16 / React 19 / Convex / Clerk /
 
   1. CLAUDE.md (project rules — especially rule 5 on theme tokens and rule 6 on component folder layout)
   2. docs/1-inbox/ideas/04-modelling-mode.md — full feature spec
-  3. docs/1-inbox/ideas/00-build-plan.md — Phase 5 section (around line 346) for ordered build steps and ADR references
+  3. docs/00-roadmap.md — Phase 5 section (around line 346) for ordered build steps and ADR references
   4. docs/4-builds/decisions/ — any ADR mentioning modelling, overlays, or dual-profile (ADR-006 referenced in the build plan)
   5. convex/_generated/ai/guidelines.md — Convex API patterns
   6. convex/schema.ts — confirm modellingSession table state
@@ -230,7 +230,7 @@ I'm building Mo Speech Home (Next.js 16 / React 19 / Convex / Clerk /
 
   To kick off slice 5.1, start a fresh Claude session with a prompt like:
 
-Phase 5 modelling-mode, slice 5.1 — Convex backend layer. Previous slice (foundation) is merged. Read docs/1-inbox/ideas/00-build-plan.md Phase 5.1 section and docs/1-inbox/ideas/04-modelling-mode.md for the spec. Write a plan covering createModellingSession, advanceStep, cancelModellingSession mutations and getActiveModellingSession, getModellingSessionById queries. Wire ModellingSessionContext to subscribe to the active session for the current student profile. Drop the dev-only __setFakeSession helper (it served its purpose). Don't write code yet — present the plan first.
+Phase 5 modelling-mode, slice 5.1 — Convex backend layer. Previous slice (foundation) is merged. Read docs/00-roadmap.md Phase 5.1 section and docs/1-inbox/ideas/04-modelling-mode.md for the spec. Write a plan covering createModellingSession, advanceStep, cancelModellingSession mutations and getActiveModellingSession, getModellingSessionById queries. Wire ModellingSessionContext to subscribe to the active session for the current student profile. Drop the dev-only __setFakeSession helper (it served its purpose). Don't write code yet — present the plan first.
 
 Three setup reminders for the new worktree:
 

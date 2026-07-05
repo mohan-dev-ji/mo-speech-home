@@ -221,5 +221,5 @@ The `packLifecycle` table is designed to be edited from a Phase 7 admin dashboar
 - [ADR-008 — Admin Role and View Modes](./ADR-008-admin-role-and-view-modes.md) — defines the hybrid authoring model this ADR evolves
 - [ADR-009 — Multi-language and Multi-voice Architecture](./ADR-009-multi-language-multi-voice-architecture.md) — JSON open-record schema convention this ADR aligns with
 - [`docs/1-inbox/ideas/06-resource-library.md`](../../1-inbox/ideas/06-resource-library.md) — original resource library spec; back-merge after this ADR lands
-- [`docs/4-builds/features/resource-library-catalogue.md`](../features/resource-library-catalogue.md) — operational catalogue tracker; format unchanged (add slug column)
+- [`docs/4-builds/features/FEAT-002-resource-library-catalogue.md`](../features/FEAT-002-resource-library-catalogue.md) — operational catalogue tracker; format unchanged (add slug column)
 - [`convex/data/defaultCategorySymbols.ts`](../../../convex/data/defaultCategorySymbols.ts) — current starter-pack recipe; `_starter.json` produced by the migration takes over its role

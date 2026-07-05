@@ -1,6 +1,6 @@
 # Language Plugin — Phase 8 Build Order
 
-Spec for Phase 8 of `docs/1-inbox/ideas/00-build-plan.md`. Combines [ADR-009](../decisions/ADR-009-multi-language-multi-voice-architecture.md) (multi-language architecture) with [ADR-011](../decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern). Phase 7 admin shell is in production — the Library section is the template we clone.
+Spec for Phase 8 of `docs/00-roadmap.md`. Combines [ADR-009](../../decisions/ADR-009-multi-language-multi-voice-architecture.md) (multi-language architecture) with [ADR-011](../../decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern). Phase 7 admin shell is in production — the Library section is the template we clone.
 
 ---
 
