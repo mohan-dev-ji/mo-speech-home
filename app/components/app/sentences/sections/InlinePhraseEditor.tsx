@@ -1,13 +1,15 @@
 "use client";
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Trash2, Move } from 'lucide-react';
-import { useSortable } from '@dnd-kit/sortable';
+import { useQuery } from 'convex/react';
+import { useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { PhraseBuilderBody } from '@/app/components/app/shared/ui/composition/PhraseBuilderBody';
+import { BlockEditControls } from '@/app/components/app/shared/ui/composition/BlockEditControls';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
@@ -51,7 +53,15 @@ export function InlinePhraseEditor({
     imagePath: w.imagePath,
     label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
   }));
-  const hasAudio = !!(unit.recordedAudioPath ?? unit.audioPath);
+  // Audio-ready mirrors the legacy sentence indicator: a human recording, OR the
+  // TTS clip for the CURRENT name+voice is already cached (so it stays in sync
+  // with the text — a rename that isn't yet generated reads as "needs audio").
+  const nameKey = nameStr.toLowerCase().trim();
+  const audioAvail = useQuery(
+    api.ttsCache.checkMany,
+    nameKey ? { texts: [nameKey], voiceId } : 'skip'
+  );
+  const hasAudio = !!unit.recordedAudioPath || audioAvail?.[nameKey]?.available === true;
   const incomplete = unit.words.length < 2;
 
   function emit(updated: PhraseUnit) { onChange(sentenceId, unitIndex, updated); }
@@ -61,6 +71,9 @@ export function InlinePhraseEditor({
   }
   function handleWordDelete(i: number) {
     emit({ ...unit, words: unit.words.filter((_, idx) => idx !== i).map((w, idx) => ({ ...w, order: idx })) });
+  }
+  function handleWordReorder(from: number, to: number) {
+    emit({ ...unit, words: arrayMove(unit.words, from, to).map((w, idx) => ({ ...w, order: idx })) });
   }
   function handleWordSave(result: SentenceSlotSaveResult) {
     if (!wordEditor) return;
@@ -89,13 +102,12 @@ export function InlinePhraseEditor({
     wordEditor && wordEditor.index >= 0 ? unit.words[wordEditor.index]?.imagePath : undefined;
 
   return (
-    <div ref={setNodeRef} style={style} className="shrink-0 w-fit min-w-[280px] max-w-full flex flex-col gap-2">
+    <div ref={setNodeRef} style={style} className="shrink-0 w-fit min-w-0 sm:min-w-[280px] max-w-full">
       <PhraseBuilderBody
         name={nameStr}
         words={builderWords}
         hasAudio={hasAudio}
         incomplete={incomplete}
-        incompleteLabel={t('phraseNeedsTwo')}
         audioReadyLabel={t('phraseAudioReady')}
         audioGenerateLabel={t('phraseAudioGenerate')}
         renameLabel={t('phraseRename')}
@@ -105,32 +117,17 @@ export function InlinePhraseEditor({
         onWordAdd={() => setWordEditor({ index: -1 })}
         onWordEdit={(i) => setWordEditor({ index: i })}
         onWordDelete={handleWordDelete}
+        onWordReorder={handleWordReorder}
         onAudio={() => setAudioOpen(true)}
+        controls={
+          <BlockEditControls
+            onDelete={() => onRemove(sentenceId, unitIndex)}
+            deleteLabel={t('phraseDelete')}
+            moveLabel={t('phraseMove')}
+            dragProps={{ ...listeners, ...attributes }}
+          />
+        }
       />
-
-      {/* Below-body controls: remove the phrase unit + drag-reorder handle. Drag
-          listeners live ONLY on the handle so the builder's inputs stay usable. */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onRemove(sentenceId, unitIndex)}
-          aria-label={t('phraseDelete')}
-          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line"
-          style={{ color: 'var(--theme-warning)' }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          aria-label={t('phraseMove')}
-          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line cursor-grab active:cursor-grabbing touch-none"
-          style={{ color: 'var(--theme-nav-text)' }}
-          {...listeners}
-          {...attributes}
-        >
-          <Move className="w-4 h-4" />
-        </button>
-      </div>
 
       {/* Word editor — image-only (sentenceSlot); the phrase plays as one clip. */}
       {wordEditor && accountId && (

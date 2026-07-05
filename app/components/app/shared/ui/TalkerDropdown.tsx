@@ -13,7 +13,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Pencil, Plus, Trash2, Move, X } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation } from 'convex/react';
 import {
@@ -39,6 +39,7 @@ import { SymbolCard, type SymbolDisplay } from './SymbolCard';
 import { TabBar } from '@/app/components/app/settings/ui/TabBar';
 import { Button } from '@/app/components/app/shared/ui/Button';
 import { PhraseBuilderBody } from '@/app/components/app/shared/ui/composition/PhraseBuilderBody';
+import { BlockEditControls } from '@/app/components/app/shared/ui/composition/BlockEditControls';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
@@ -315,6 +316,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     );
   }
 
+  function handleReorderPhraseWord(phraseId: Id<'profilePhrases'>, from: number, to: number) {
+    const phrase = findPhrase(phraseId);
+    if (!phrase) return;
+    const words = normaliseWords(arrayMove(phrase.words, from, to));
+    updateProfilePhraseWords({ profilePhraseId: phraseId, words }).catch((e) =>
+      console.error('[TalkerDropdown] reorder phrase word failed', e)
+    );
+  }
+
   function handlePhraseWordSave(result: SentenceSlotSaveResult) {
     if (!phraseWordEditor.open) return;
     const { phraseId, wordIndex } = phraseWordEditor;
@@ -448,7 +458,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     words={words}
                     hasAudio={hasAudio}
                     incomplete={incomplete}
-                    incompleteLabel={t('phraseNeedsTwo')}
                     audioReadyLabel={t('phraseAudioReady')}
                     audioGenerateLabel={t('phraseAudioGenerate')}
                     renameLabel={t('phraseRename')}
@@ -460,6 +469,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     onWordAdd={() => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: -1 })}
                     onWordEdit={(i) => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: i })}
                     onWordDelete={(i) => handleRemovePhraseWord(p._id, i)}
+                    onWordReorder={(from, to) => handleReorderPhraseWord(p._id, from, to)}
                     onAudio={() => setPhraseAudioTarget({ id: p._id, nameRec: p.name })}
                     onDelete={() => setPendingPhraseDelete({ id: p._id, name })}
                   />
@@ -872,7 +882,6 @@ function PhraseEditCard({
   words,
   hasAudio,
   incomplete,
-  incompleteLabel,
   audioReadyLabel,
   audioGenerateLabel,
   renameLabel,
@@ -884,6 +893,7 @@ function PhraseEditCard({
   onWordAdd,
   onWordEdit,
   onWordDelete,
+  onWordReorder,
   onAudio,
   onDelete,
 }: {
@@ -892,7 +902,6 @@ function PhraseEditCard({
   words: { imagePath?: string; label: string }[];
   hasAudio: boolean;
   incomplete: boolean;
-  incompleteLabel: string;
   audioReadyLabel: string;
   audioGenerateLabel: string;
   renameLabel: string;
@@ -904,6 +913,7 @@ function PhraseEditCard({
   onWordAdd: () => void;
   onWordEdit: (index: number) => void;
   onWordDelete: (index: number) => void;
+  onWordReorder: (from: number, to: number) => void;
   onAudio: () => void;
   onDelete: () => void;
 }) {
@@ -918,13 +928,12 @@ function PhraseEditCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="w-fit min-w-[320px] max-w-full flex flex-col gap-2">
+    <div ref={setNodeRef} style={style} className="w-fit min-w-0 sm:min-w-[320px] max-w-full">
       <PhraseBuilderBody
         name={name}
         words={words}
         hasAudio={hasAudio}
         incomplete={incomplete}
-        incompleteLabel={incompleteLabel}
         audioReadyLabel={audioReadyLabel}
         audioGenerateLabel={audioGenerateLabel}
         renameLabel={renameLabel}
@@ -934,31 +943,17 @@ function PhraseEditCard({
         onWordAdd={onWordAdd}
         onWordEdit={onWordEdit}
         onWordDelete={onWordDelete}
+        onWordReorder={onWordReorder}
         onAudio={onAudio}
+        controls={
+          <BlockEditControls
+            onDelete={onDelete}
+            deleteLabel={deleteLabel}
+            moveLabel={moveLabel}
+            dragProps={{ ...listeners, ...attributes }}
+          />
+        }
       />
-
-      {/* Below-card controls: delete + drag-reorder. */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={deleteLabel}
-          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line"
-          style={{ color: 'var(--theme-warning)' }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          aria-label={moveLabel}
-          className="w-8 h-8 rounded-theme-sm flex items-center justify-center border border-theme-line cursor-grab active:cursor-grabbing touch-none"
-          style={{ color: 'var(--theme-nav-text)' }}
-          {...listeners}
-          {...attributes}
-        >
-          <Move className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   );
 }
