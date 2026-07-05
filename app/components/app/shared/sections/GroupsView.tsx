@@ -29,7 +29,6 @@ import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
@@ -89,7 +88,6 @@ export function GroupsView({
   const t = useTranslations(namespace);
   const tGroup = useTranslations('group');
   const { language, stateFlags, viewMode, accountId, voiceId } = useProfile();
-  const { talkerMode } = useTalker();
   const router = useRouter();
   const locale = useParams().locale as string;
   const { subscription } = useAppState();
@@ -217,7 +215,7 @@ export function GroupsView({
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap">
-      {stateFlags.talker_visible && talkerMode === 'banner' && (
+      {stateFlags.talker_visible && (
         <div className="shrink-0">
           <PageBanner title={t('groupsTitle')}>
             <EditButton
