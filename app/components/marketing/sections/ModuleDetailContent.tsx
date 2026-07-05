@@ -136,7 +136,16 @@ export function ModuleDetailContent({
           )}
           <ul className="flex flex-col gap-0.5 text-caption text-muted-foreground">
             {module.counts.categories > 0 && (
-              <li>{t("itemsCategories", { count: module.counts.categories })}</li>
+              // A category module is one folder; report its symbols, not the
+              // (always-1) category count — matches the library card.
+              <li>
+                {t("itemsSymbols", {
+                  count: module.categories.reduce(
+                    (sum, cat) => sum + cat.symbols.length,
+                    0,
+                  ),
+                })}
+              </li>
             )}
             {module.counts.lists > 0 && (
               <li>{t("itemsLists", { count: module.counts.lists })}</li>

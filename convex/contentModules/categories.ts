@@ -135,7 +135,14 @@ export const getPublicCategoryCatalogue = query({
             | "free"
             | "pro"
             | "max",
-          counts: { categories: module.items.length },
+          // A category module is one folder; its meaningful size is the number
+          // of symbols across its grids, not the (always-1) category count.
+          counts: {
+            symbols: module.items.reduce(
+              (sum, cat) => sum + cat.symbols.length,
+              0,
+            ),
+          },
         };
       })
       .filter((m): m is NonNullable<typeof m> => m !== null);

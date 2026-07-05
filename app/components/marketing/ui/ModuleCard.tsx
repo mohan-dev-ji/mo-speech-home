@@ -21,8 +21,10 @@ export type ModuleCardData = {
   isDefault: boolean;
   featured: boolean;
   effectiveTier: "free" | "pro" | "max";
-  // Exactly one of these is present, matching the module's tree.
-  counts: { categories?: number; lists?: number; sentences?: number };
+  // Exactly one of these is present, matching the module's tree. Category
+  // modules count symbols (one folder = one category, so symbols is the
+  // meaningful size); lists/sentences count their items.
+  counts: { symbols?: number; lists?: number; sentences?: number };
 };
 
 /**
@@ -52,13 +54,13 @@ export function ModuleCard({
   // One count line, keyed to the tree this card belongs to.
   const count =
     tree === "categories"
-      ? module.counts.categories
+      ? module.counts.symbols
       : tree === "lists"
         ? module.counts.lists
         : module.counts.sentences;
   const countLabel =
     tree === "categories"
-      ? t("itemsCategories", { count: count ?? 0 })
+      ? t("itemsSymbols", { count: count ?? 0 })
       : tree === "lists"
         ? t("itemsLists", { count: count ?? 0 })
         : t("itemsSentences", { count: count ?? 0 });
