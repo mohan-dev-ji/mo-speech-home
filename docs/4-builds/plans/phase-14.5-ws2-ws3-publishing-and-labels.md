@@ -38,10 +38,18 @@ item UI (`RepublishButton`, "Save to pack", `LibrarySourceBadge`, `PackStatusLab
 
 ## Scope note
 
-Single cohesive subsystem (the admin publishing surface). One plan. Tasks are ordered so
-each ends at a `tsc`-clean, committable state. Do them in order — later tasks assume the
-shared badge from Task 1 exists and that publish triggers have moved (Tasks 2–3) before
-the legacy removal (Task 4).
+Executed on a **dedicated worktree/branch** in two stages:
+
+- **Stage 1 — WS2 + WS3 (Tasks 1–6):** relocate publishing + consolidate labels. Leaves
+  the old resource-pack *backend* dormant. Each task ends `tsc`-clean and committable.
+- **Stage 2 — dead-component cleanup + full library-pack teardown (Tasks 7–9):** with
+  Stage 1 done, the pack UI is fully orphaned, so this rips out the entire resource-pack
+  system (UI, backend, data, schema). Data/schema-touching → **backup first**.
+
+Do them in order — later Stage 1 tasks assume the shared badge from Task 1 exists and that
+publish triggers moved (Tasks 2–3) before the legacy removal (Task 4). Stage 2 assumes all
+of Stage 1 has landed. WS4/WS5/WS6 (the rest of Phase 14.5) proceed independently on `main`
+and are NOT part of this worktree.
 
 ---
 
@@ -490,7 +498,8 @@ npx eslint app/components/app/shared/ui/ModuleClassBadge.tsx \
 
 - [ ] **Step 3: Update the Phase 14.5 tracker.** In
   `docs/4-builds/plans/phase-14.5-refinement-pass.md`, mark WS2 and WS3 done with commit
-  refs; note the follow-up in Task 7 below.
+  refs. (Stage 1 ends here; Stage 2 — the pack teardown, Tasks 7–9 — continues on this
+  same worktree.)
 
 - [ ] **Step 4: Manual acceptance pass** (admin view, running server):
   - Group tiles (categories, list folders, sentence folders): single publish-class badge,
@@ -510,13 +519,129 @@ git commit -m "docs: mark Phase 14.5 WS2+WS3 shipped"
 
 ---
 
-## Task 7: Follow-ups to record (not implemented here)
+# Stage 2 — dead-component cleanup + full library-pack teardown
 
-- [ ] Note in the tracker: **old-pack backend teardown** now also owns the dead
-  `PackStatusLabel` / `LibrarySourceBadge` / `RepublishButton` component files and the
-  `packSlug` schema fields — fold into the deferred pack-teardown follow-up.
-- [ ] Note: the pack **filter dropdown** on the categories page still reads `adminPacks`
-  (old system). Out of scope here; revisit with the taxonomy/reseed work (WS-C).
+> Begins only after **all of Stage 1 has landed** on this branch. This removes the entire
+> legacy resource-pack system that WS1.1 deferred and Stage 1 orphaned. It touches
+> **backend, data files, and schema**, so it is gated on a backup and a fresh recon that
+> produces the exact deletion manifest — the code below is the *known* surface, not the
+> full list.
+
+## Task 7: Backup + full pack-surface recon → deletion manifest
+
+**Files:** none changed — this task produces a written manifest appended to this plan.
+
+- [ ] **Step 1: Full deployment backup** (disaster recovery before any data/schema change)
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20.17.0
+npx convex export --path backups/2026-07-06-pre-pack-teardown.zip
+```
+
+  `backups/` is gitignored (local-only). Restore path if needed:
+  `npx convex import --replace backups/2026-07-06-pre-pack-teardown.zip`.
+
+- [ ] **Step 2: Recon the complete pack surface.** Grep for every reference and record
+  file + line in a manifest. Known starting surface (verify + extend):
+
+  - **Orphaned-by-Stage-1 UI components** (now unused): `app/components/app/shared/ui/packStatusBadge.tsx`, `app/components/app/categories/ui/LibrarySourceBadge.tsx`, `app/components/app/shared/ui/RepublishButton.tsx`.
+  - **Marketing pack UI**: `LibraryGrid.tsx`, `PackDetailContent.tsx`, `LibraryPackCard.tsx`, `LoadPackButton.tsx`.
+  - **In-app home**: `app/components/app/home/sections/LibraryPacksSection.tsx` (+ its `/library` link + its mount in the home page).
+  - **Deprecated public routes**: `app/[locale]/(public)/library/page.tsx`, `app/[locale]/(public)/library/[slug]/page.tsx` (currently redirect stubs from WS1.1 — decide: keep 308 redirects for SEO, or delete).
+  - **Admin pack UI**: `/admin/library` page, `EditPackLifecycleModal`, `ConfirmDeletePackLifecycleModal`, admin `PackStatusBadge`, `SavePackChangesConfirmModal`, `LibraryPackPickerModal`.
+  - **API routes**: `app/api/admin/pack-publish/route.ts`.
+  - **Convex backend**: `convex/resourcePacks.ts` (all `*V2` queries/mutations incl. `setListInLibraryV2`, `getPublicLibraryCatalogueV2`, `getPackDetailV2`, lifecycle mutations), `convex/lib/libraryPacks.ts`, `convex/data/library_packs/` directory.
+  - **Schema**: the `resourcePacks` table + any pack-lifecycle table in `convex/schema.ts`; the `packSlug` field on `profileCategories`, `profileLists` items, `profileSentences`.
+  - **i18n**: `packPicker.*`, `packStatus.*`, and `categoryDetail` pack-only keys in `messages/en.json`.
+
+```bash
+grep -rn "resourcePacks\|libraryPacks\|library_packs\|packSlug\|LibraryPack\|pack-publish\|LibraryGrid\|PackDetail\|LoadPackButton\|LibraryPacksSection" app convex 2>/dev/null | grep -v "_generated" > /tmp/pack-teardown-manifest.txt
+```
+
+- [ ] **Step 3: Write the manifest** into this plan (append under Task 7) as an exact
+  checklist of files to delete, functions to remove, and schema fields to drop — grouped
+  UI → routes → backend → data → schema. Every subsequent task deletes from this manifest.
+
+- [ ] **Step 4: Commit the manifest**
+
+```bash
+git add docs/4-builds/plans/phase-14.5-ws2-ws3-publishing-and-labels.md
+git commit -m "docs: pack-teardown deletion manifest (Stage 2 recon)"
+```
+
+## Task 8: Delete pack UI, routes, and backend (code + data)
+
+**Files:** everything in the manifest EXCEPT schema fields (Task 9). Order matters — delete
+consumers before the code they import, so `tsc` stays green between deletions.
+
+- [ ] **Step 1: Remove in-app + marketing pack UI.** Delete `LibraryPacksSection` and its
+  mount in the home page; delete `LibraryGrid`, `PackDetailContent`, `LibraryPackCard`,
+  `LoadPackButton`. Decide `/library` routes: keep the 308 redirect stubs (recommended —
+  preserves inbound links) OR delete. Update any remaining imports.
+
+- [ ] **Step 2: Remove admin pack UI + route.** Delete the `/admin/library` page, the pack
+  lifecycle modals, admin `PackStatusBadge`, `SavePackChangesConfirmModal`,
+  `LibraryPackPickerModal`, and `app/api/admin/pack-publish/route.ts`. Remove the
+  `/admin/library` entry from `app/(admin)/layout.tsx`.
+
+- [ ] **Step 3: Remove orphaned Stage-1 components.** Delete `packStatusBadge.tsx`,
+  `LibrarySourceBadge.tsx`, `RepublishButton.tsx`.
+
+- [ ] **Step 4: Remove Convex backend + data.** Delete `convex/resourcePacks.ts`,
+  `convex/lib/libraryPacks.ts`, and the `convex/data/library_packs/` directory. Remove
+  their imports/re-exports.
+
+- [ ] **Step 5: Remove dead i18n keys** (`packPicker.*`, `packStatus.*`, pack-only
+  `categoryDetail` keys) from `messages/en.json`.
+
+- [ ] **Step 6: Verify**
+
+```bash
+grep -rn "resourcePacks\|libraryPacks\|library_packs\|pack-publish\|LibraryGrid\|LibraryPacksSection" app convex 2>/dev/null | grep -v "_generated"   # expect: only packSlug schema refs (handled in Task 9), if any
+npx tsc --noEmit 2>&1 | grep "error TS" | grep -v "lib/stripe.ts"   # expect: no output
+source ~/.nvm/nvm.sh && nvm use 20.17.0 >/dev/null 2>&1 && npx tsc -p convex/tsconfig.json --noEmit   # expect: no output
+```
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add -A
+git commit -m "Pack teardown: remove pack UI, admin, routes, backend, data (Stage 2)"
+```
+
+## Task 9: Schema teardown — drop `resourcePacks` table + `packSlug` fields
+
+**Files:** `convex/schema.ts` + a one-off cleanup migration. **Riskiest — backup from Task 7
+must exist.** Convex requires a field to be absent from all docs before the validator can
+drop it, so null-out first, then remove from schema.
+
+- [ ] **Step 1: Write a migration** that patches every `profileCategories`,
+  `profileLists`, `profileSentences` doc to remove the `packSlug` field (set to
+  `undefined`) — a standard Convex data migration over each table.
+
+- [ ] **Step 2: Run the migration** and confirm zero docs still carry `packSlug`.
+
+- [ ] **Step 3: Remove the fields from `convex/schema.ts`** — the `packSlug` optionals and
+  the `resourcePacks` table definition (+ any pack-lifecycle table). Keep
+  `publishedModuleSlug` / `publishedModuleClass` / `librarySourceId` (module system).
+
+- [ ] **Step 4: Verify**
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20.17.0 >/dev/null 2>&1 && npx tsc -p convex/tsconfig.json --noEmit   # expect: no output
+grep -rn "packSlug\|resourcePacks" convex app 2>/dev/null | grep -v "_generated"   # expect: no output
+```
+
+- [ ] **Step 5: Commit + update the Phase 14.5 tracker** (mark the pack-teardown follow-up
+  done).
+
+```bash
+git add -A
+git commit -m "Pack teardown: drop resourcePacks table + packSlug fields (Stage 2)"
+```
+
+> **Deferred past this worktree:** the categories-page pack **filter dropdown** still reads
+> `adminPacks`. Rework it (or drop it) with the taxonomy/reseed work (WS-C), not here.
 
 ---
 

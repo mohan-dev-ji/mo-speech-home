@@ -37,18 +37,18 @@ keep a simple "publish default" button (we only seed refined SLP selections of t
 sign-up). Every **other** module carries marketing value in the resource library and needs
 a full publish control.
 
-- ☐ **2.1 Strip per-item publishing** — remove "Republish" and "Save to pack" from
-  individual list items and individual sentences, across all module pages.
-- ☐ **2.2 Remove the stray inactive "Republish to JSON" button** in sentence modules.
-- ☐ **2.3 Add module-level "Publish" control** to list & sentence modules — choose
-  default / free / pro / max, mirroring the pattern category details already has. Core
-  words & phrases keep their simple "publish default" button.
-- ☐ **2.4 Add "Reload defaults" button** to list & sentence modules for instructors
-  (exists in category details today, missing in lists/sentences).
+◐ **Brainstormed + planned → executing on a dedicated worktree.** Full plan:
+[phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
+Design decisions that revised the original notes below:
 
-> Note: the "reload defaults exists in category details but not lists/sentences" gap and
-> WS4.2 both suggest lists/sentences drifted from a shared pattern. Confirm whether a
-> shared component can unify these rather than patching twice.
+- **Publish moves to each module's own page** (category detail; list/sentence folder
+  banner) — it currently fires from the grid tile on *all* trees, not just lists/sentences.
+- **Reload-defaults is dropped entirely** (not added to lists/sentences, and the existing
+  category one is removed). Reset = **delete the module + reinstall from the library** —
+  reuses existing install/uninstall flows; `librarySourceId` tracks the source.
+- **Old per-item pack controls** ("Save to pack", "Republish to JSON") are removed (UI-only;
+  backend deferred to the teardown — now Stage 2 of the same worktree plan).
+- Core words & phrases keep their simple "publish default" button (unchanged).
 
 ## Workstream 3 — Admin label consistency
 _Same admin surface as WS2 — best done alongside/after it._
@@ -60,9 +60,9 @@ Current state is inconsistent:
   "Default" in the list-items banner.
 - **Sentences**: both labels on the sentence; nothing on the group tile.
 
-- ☐ **3.1 Normalize** — labels appear **only on group tiles**, **only in admin view**.
-  No labels on banners or on content. Apply consistently across categories, lists,
-  sentences.
+- ◐ **3.1 Normalize** — a single admin-only **publish-class badge** (Default/Free/Pro/Max,
+  or "Draft") on group tiles only; no labels on banners or content. Replaces the scattered
+  "Default" / "From pack" labels. Planned with WS2 → see the worktree plan.
 
 ## Workstream 4 — Edit-mode UI consistency
 
@@ -106,22 +106,20 @@ pipeline before acting._
 
 ---
 
-## Suggested order
+## Execution split (decided 2026-07-06)
 
-1. **WS1** — quick wins, build momentum.
-2. **WS2 + WS3** together — one coherent admin-publishing pass. Biggest item; write a
-   feature spec and consider a branch before coding.
-3. **WS4**, **WS5**, **WS6** — independent polish batches, any order.
-4. **C.3** — do the pipeline write-up whenever; unblocks the content strategy.
+- **Worktree/branch:** WS2 + WS3 **+ full pack teardown** — the big, admin-architecture,
+  data/schema-touching work. Two stages in one plan:
+  [phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
+- **`main` (here):** WS4, WS5, WS6 — self-contained polish, any order.
+- **Whenever:** C.3 pipeline write-up (non-destructive), then the C.1/C.2 content strategy.
 
 ## Follow-ups (spawned from this pass)
 
-- ☐ **Full packs-system teardown** (deferred from WS1.1). Once content is settled and a
-  `convex export` backup is taken, rip out the dormant packs ecosystem: `/library` +
-  `/library/[slug]` routes, `LibraryGrid` / `PackDetailContent` / `LibraryPackCard` /
-  `LoadPackButton`, the `resourcePacks` public queries, `/admin/library` + `pack-publish`
-  route, the in-app home `LibraryPacksSection`, and `convex/data/library_packs/`. Crosses
-  backend + admin → its own plan (+ possibly an ADR superseding ADR-010).
+- ◐ **Full packs-system teardown** (deferred from WS1.1) — **now folded into the worktree
+  plan as Stage 2** (Tasks 7–9): backup + recon manifest → delete pack UI/routes/backend/
+  data → drop `resourcePacks` table + `packSlug` schema fields. Runs after WS2/WS3 Stage 1
+  on the same branch. May warrant an ADR superseding ADR-010.
 
 ## Completed
 
