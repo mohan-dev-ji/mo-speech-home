@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 const PUBLIC_PATHS: ReadonlyArray<{ path: string; priority: number }> = [
   { path: "", priority: 1 },
   { path: "pricing", priority: 0.8 },
-  { path: "library", priority: 0.8 },
+  { path: "library/modules", priority: 0.8 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

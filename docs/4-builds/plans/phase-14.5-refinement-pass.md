@@ -15,12 +15,17 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
 ## Workstream 1 — Marketing / library-site cleanup
 _Small, independent, mostly copy + routing. Warm-up batch._
 
-- ☐ **1.1 Retire `/library`, promote `/library/modules`** as the canonical URL. Remove
-  library-packs remnants. Cleanup opportunity — `library packs` no longer exists.
-- ☐ **1.2 Remove the Themes tab** from `/library/modules`. Themes get marketed
-  separately; not content, so it doesn't belong here.
-- ☐ **1.3 Fix card copy** — a category card currently reads "1 categories"; should read
-  "# symbols" (1 category = 1 module now).
+- ◐ **1.1 Retire `/library`, promote `/library/modules`** as the canonical URL.
+  **Minimal redirect done:** `/library` + `/library/[slug]` now 308-redirect to
+  `/library/modules`; Navbar + sitemap repointed. Dormant packs code/backend/admin
+  (LibraryGrid, PackDetailContent, resourcePacks queries, `/admin/library`,
+  `library_packs/` data, in-app home `LibraryPacksSection`) left in place for a
+  **later dedicated teardown** — see follow-up below.
+- ☑ **1.2 Remove the Themes tab** from `/library/modules`. Themes get marketed
+  separately; not content, so it doesn't belong here. _(9b76ceb)_
+- ☑ **1.3 Fix card copy** — a category card read "1 categories"; now shows "# symbols"
+  (symbol total across the module's grids) on card + detail page, ICU-pluralised.
+  _(cca39fa)_
 
 ## Workstream 2 — Publishing model: move to module-level
 _The architectural anchor. Deserves its own feature spec + likely a branch before coding.
@@ -109,6 +114,17 @@ pipeline before acting._
 3. **WS4**, **WS5**, **WS6** — independent polish batches, any order.
 4. **C.3** — do the pipeline write-up whenever; unblocks the content strategy.
 
+## Follow-ups (spawned from this pass)
+
+- ☐ **Full packs-system teardown** (deferred from WS1.1). Once content is settled and a
+  `convex export` backup is taken, rip out the dormant packs ecosystem: `/library` +
+  `/library/[slug]` routes, `LibraryGrid` / `PackDetailContent` / `LibraryPackCard` /
+  `LoadPackButton`, the `resourcePacks` public queries, `/admin/library` + `pack-publish`
+  route, the in-app home `LibraryPacksSection`, and `convex/data/library_packs/`. Crosses
+  backend + admin → its own plan (+ possibly an ADR superseding ADR-010).
+
 ## Completed
 
-_(none yet)_
+- WS1.2 — Themes tab removed from `/library/modules` _(9b76ceb)_
+- WS1.3 — category cards + detail show symbol count, ICU plurals _(cca39fa)_
+- WS1.1 (partial) — `/library` minimal redirect + Navbar/sitemap repoint

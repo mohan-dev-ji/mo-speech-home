@@ -25,7 +25,7 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/library" className="text-small text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/library/modules" className="text-small text-muted-foreground hover:text-foreground transition-colors">
             {t("library")}
           </Link>
           <Link href="/pricing" className="text-small text-muted-foreground hover:text-foreground transition-colors">
