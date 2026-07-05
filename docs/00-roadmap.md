@@ -50,9 +50,9 @@ Execute in this order:
 | ✅ | **Phase 9 — Themes as pluggable packs** | shipped | Same plugin pattern. JSON theme definitions + `themeLifecycle` overlay. User uploads as natural next step. Adds a "Themes" section to the admin dashboard. |
 | 🔨 | **Phase 10 — UI design polish pass** | design-led — finishing, minor non-essential gaps | Figma + Claude Design exploration. Polish AFTER architecture is right and AFTER real content (Devanagari, themes, multi-language) is rendering. PostHog data informs which surfaces deserve most attention. |
 | ➡️ | **Phase 11 — Home/School connection review** | review — folded into Phase 16 testing | The original Phase 9 (convex-identity + convex-school separation) may have been **accidentally solved** by the existing student-profile + accountMembers invite architecture. Review + rescope, not a build. See "Home/School Hypothesis" inside Phase 11 below. |
-| ✅ | **ADR-014 — Content modules & three-tree organisation** | written (Proposed) | Splits the bundled pack into category/list/sentence modules + three organisation trees. The contract for Phases 13–18. Supersedes ADR-010 bundling. |
-| ➡️ | **Phase 13 — Content module + three-tree refactor** | the foundation | Implement ADR-014: 4-tab library, three trees, self-contained sentences (structure frozen, text live), delete/reinstall. Do first — 14–18 build on it. |
-| ➡️ | **Phase 14 — Sentence builder + Talker renovation** | talker-heavy | The GLP construction loop in the talker: compose from phrases + words, save-with-decomposition, visual bracketing by category colour, full dropdown renovation (core words + phrase banks). |
+| ✅ | **ADR-014 — Content modules & three-tree organisation** | Accepted | Splits the bundled pack into category/list/sentence modules + three organisation trees. The contract for Phases 13–18. Supersedes ADR-010 bundling. |
+| ✅ | **Phase 13 — Content module + three-tree refactor** | shipped | Implemented ADR-014: 4-tab library, three trees, self-contained sentences (structure frozen, text live), delete/reinstall. The foundation 14–18 build on. |
+| ✅ | **Phase 14 — Sentence builder + Talker renovation** | shipped | The GLP construction loop in the talker: compose from phrases + words, save-with-decomposition, visual bracketing by category colour, full dropdown renovation (core words + phrase banks). Implements ADR-015. |
 | ➡️ | **Phase 15 — Bilingual symbols + Tone TTS** | talker functions | Per-symbol language override (Hindi board, some English labels) + multi-intonation TTS via the existing on-demand pipeline (easy win). |
 | ➡️ | **Phase 16 — Phase 10 gap-closure + hardening** | pre-launch | Close Phase 10 gaps, fold in Phase 11 home/school invite-link testing, full regression + Hindi launch checklist. |
 | 🚀 | **LAUNCH** | milestone | Phases 13–16 are the dossier's "Phase 1 — launch prep". |
@@ -807,7 +807,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ## Phase 13 — Content Module + Three-Tree Refactor
 
-> **Status:** Next up. Implements [ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md). The foundation — Phases 14–18 build on it, so it goes first.
+> **Status:** Shipped. Implemented [ADR-014](4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md). The foundation Phases 14–18 build on.
 
 **Goal:** Replace the bundled pack with first-class content modules and three organisation trees, so content can be constructed and organised the way each type is actually used.
 
@@ -824,7 +824,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ## Phase 14 — Sentence Builder + Talker Renovation
 
-> **Status:** Planned. Talker-heavy. The GLP construction loop made real.
+> **Status:** Shipped. Talker-heavy. The GLP construction loop made real. Implements [ADR-015](4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md).
 
 **Goal:** Let users build sentences from phrases and words *in the talker*, see how they decompose, and learn to break down / build up — GLP mitigation as a UI.
 

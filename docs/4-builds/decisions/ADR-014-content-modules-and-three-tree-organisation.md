@@ -1,7 +1,7 @@
 # ADR-014 — Content Modules & Three-Tree Organisation
 
 Date: 2026-06-24
-Status: Proposed
+Status: Accepted
 
 ---
 

@@ -1,7 +1,7 @@
 # ADR-015 — Composition Primitive, Phrase Tree & Talker Renovation
 
 **Date:** 2026-06-29
-**Status:** Proposed
+**Status:** Accepted
 
 ---
 
