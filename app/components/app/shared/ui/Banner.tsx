@@ -1,10 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { Pointer, ImageIcon, ChevronLeft } from 'lucide-react';
+import { Pointer, ImageIcon, ChevronLeft, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
 
@@ -15,12 +14,12 @@ type BannerProps = {
   onEdit?: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
-  // Pack provenance. The "From pack" badge only renders in admin view
-  // (showAdminContext) — for normal instructors / students the badge is
-  // visual noise, and the Reload Defaults affordance is discoverable on its
-  // own from the edit toolbar.
-  librarySourceId?: string;
-  showAdminContext?: boolean;
+  /** Admin-only: open the tier picker to publish this category as a module.
+   *  Rendered inline with the Edit/Model buttons. Parent passes it only in
+   *  admin view. */
+  onPublishModule?: () => void;
+  /** Label for the publish button — "Publish as module" or "Update module". */
+  publishModuleLabel?: string;
   /** Optional slot rendered above the title inside the left column.
    *  Sits tight to the title (small mb) so the right-column image stays
    *  vertically centered against the [slot + title + buttons] group as
@@ -39,8 +38,8 @@ export function Banner({
   onEdit,
   onModel,
   modelDisabledReason,
-  librarySourceId,
-  showAdminContext = false,
+  onPublishModule,
+  publishModuleLabel,
   topSlot,
   backHref,
   backLabel,
@@ -75,7 +74,6 @@ export function Banner({
           >
             {categoryName}
           </h1>
-          {showAdminContext && librarySourceId && <LibrarySourceBadge />}
         </div>
 
         <div className="flex items-center gap-2 mt-3">
@@ -100,6 +98,19 @@ export function Banner({
           >
             {t('modelButton')}
           </Button>
+
+          {/* Publish as module — admin-only, inline with the primary actions
+              (matches the list/sentence module pages). */}
+          {onPublishModule && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onPublishModule}
+              icon={<Upload className="w-3.5 h-3.5" />}
+            >
+              {publishModuleLabel}
+            </Button>
+          )}
         </div>
       </div>
 

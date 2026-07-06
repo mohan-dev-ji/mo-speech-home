@@ -26,8 +26,8 @@ import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { CreateGroupModal } from '@/app/components/app/shared/modals/CreateGroupModal';
 import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
+import { ModuleClassBadge } from '@/app/components/app/shared/ui/ModuleClassBadge';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
-import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -63,12 +63,6 @@ type PendingDelete = {
   librarySourceId?: string;
 } | null;
 type ImageTarget = { id: Id<'profileFolders'>; name: string; imagePath?: string } | null;
-type PublishTarget = {
-  id: Id<'profileFolders'>;
-  name: string;
-  publishedSlug?: string;
-  publishedClass?: 'default' | 'free' | 'pro' | 'max';
-} | null;
 
 /**
  * Shared groups grid (ADR-014) for the Lists and Sentences trees — the single
@@ -115,7 +109,6 @@ export function GroupsView({
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageTarget, setImageTarget] = useState<ImageTarget>(null);
-  const [publishTarget, setPublishTarget] = useState<PublishTarget>(null);
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -258,13 +251,16 @@ export function GroupsView({
                       imagePath={folder.imagePath}
                       isEditing={isEditing}
                       gridSize={stateFlags.grid_size ?? 'large'}
+                      badgeSlot={
+                        showPublish ? (
+                          <ModuleClassBadge publishedClass={folder.publishedModuleClass} />
+                        ) : undefined
+                      }
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRecolour={(key) => handleRecolour(folder._id, key)}
                       onEditImage={() => setImageTarget({ id: folder._id, name, imagePath: folder.imagePath })}
                       onDeleteRequest={() => setPendingDelete({ id: folder._id, name, count: countByFolder.get(folder._id) ?? 0, source: folder.source, librarySourceId: folder.librarySourceId })}
-                      published={!!folder.publishedModuleSlug}
-                      onPublishRequest={showPublish ? () => setPublishTarget({ id: folder._id, name, publishedSlug: folder.publishedModuleSlug, publishedClass: folder.publishedModuleClass }) : undefined}
                     />
                   );
                 })}
@@ -342,17 +338,6 @@ export function GroupsView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {publishTarget && (
-        <PublishModuleModal
-          kind={tree}
-          targetId={publishTarget.id}
-          defaultName={publishTarget.name}
-          publishedSlug={publishTarget.publishedSlug}
-          publishedClass={publishTarget.publishedClass}
-          onClose={() => setPublishTarget(null)}
-        />
-      )}
 
       <UpgradeNudge open={upgradeNudgeOpen} onOpenChange={setUpgradeNudgeOpen} locale={locale} />
     </div>

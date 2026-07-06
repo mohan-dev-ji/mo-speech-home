@@ -9,7 +9,7 @@ import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ArrowLeft, ListOrdered, CheckSquare, Bookmark, Library } from 'lucide-react';
+import { ArrowLeft, ListOrdered, CheckSquare } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { api } from '@/convex/_generated/api';
@@ -18,19 +18,10 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
-import { useToast } from '@/app/components/app/shared/ui/Toast';
-import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
-import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
-import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
-import {
-  LibraryPackPickerModal,
-  type PackPickerTarget,
-} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
@@ -44,7 +35,6 @@ type Props = { listId: Id<'profileLists'> };
 
 export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
-  const tPicker = useTranslations('packPicker');
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -54,7 +44,6 @@ export function ListDetailContent({ listId }: Props) {
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
   const isAdmin = useIsAdmin();
-  const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
@@ -79,10 +68,6 @@ export function ListDetailContent({ listId }: Props) {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
-  const [packPickerOpen, setPackPickerOpen] = useState(false);
-  // Local visibility gate for the destructive RepublishButton — closed
-  // on every mount; admin opens it explicitly via the Republish toggle.
-  const [republishGateOpen, setRepublishGateOpen] = useState(false);
   // Draft for the editable banner title. Synced from the server name on
   // load + on every server change so a remote rename (or an Escape revert)
   // restores the canonical value.
@@ -98,13 +83,10 @@ export function ListDetailContent({ listId }: Props) {
   const updateItems = useMutation(api.profileLists.updateProfileListItems);
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
-  // setListDefaultV2 — replaced by the Republish gate (handleToggleRepublishGate).
-  // Kept in the Convex API for back-compat / future removal.
-  const setListInLibrary = useMutation(api.resourcePacks.setListInLibraryV2);
-  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
-  // Pack status — drives Default/Library toggle pressed states + tier picker.
-  // Reads librarySourceId as the single publish-target field (post-simplification).
+  // Pack-origin status still drives the AdminPackEditingBanner disclaimer.
+  // Backend query is dormant/kept; the pack *controls* moved to the folder
+  // publish flow (GroupsView → PublishModuleModal).
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
   const linkedSlug = list?.librarySourceId;
   const isDefault = linkedSlug === '_starter';
@@ -112,14 +94,6 @@ export function ListDetailContent({ listId }: Props) {
     ? packsStatus.libraryPacksBySlug[linkedSlug]
     : undefined;
   const isInLibrary = !!linkedLibraryPack;
-  const libraryTier = linkedLibraryPack?.tier ?? 'free';
-
-  // Republish target = librarySourceId. Single field — same as linkedSlug.
-  const publishSlug = list?.librarySourceId;
-  const hasPackEdits = useQuery(
-    api.resourcePacks.hasPackEdits,
-    showAdminButtons && publishSlug ? { slug: publishSlug } : 'skip',
-  );
 
   useEffect(() => {
     if (!list) return;
@@ -257,42 +231,6 @@ export function ListDetailContent({ listId }: Props) {
     persistItems(next);
   }
 
-  // Local ephemeral visibility gate for the destructive RepublishButton.
-  // See CategoryDetailContent for the rationale — this toggle replaces
-  // the legacy "set packSlug = '_starter'" behaviour, which is now
-  // redundant given the librarySourceId fallback.
-  function handleToggleRepublishGate() {
-    setRepublishGateOpen((prev) => !prev);
-  }
-
-  async function handleToggleLibrary() {
-    // Post-simplification: Save to pack is stateless — always opens the
-    // picker modal. Duplicate-or-assign per librarySourceId state.
-    setPackPickerOpen(true);
-  }
-
-  async function handlePackPickerConfirm(target: PackPickerTarget) {
-    try {
-      await setListInLibrary({ profileListId: listId, on: true, target });
-      showToast({ tone: 'info', title: t('toastLibraryOn') });
-    } catch (e) {
-      console.error('[ListDetailContent] save to library failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-      throw e;
-    }
-  }
-
-  async function handleSetTier(tier: 'free' | 'pro' | 'max') {
-    if (!linkedSlug || linkedSlug === '_starter') return;
-    try {
-      await setLibraryPackTier({ slug: linkedSlug, tier });
-      showToast({ tone: 'info', title: t('toastTierUpdated') });
-    } catch (e) {
-      console.error('[ListDetailContent] set tier failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
-  }
-
   function toggleChecked(localId: string) {
     setCheckedIds((prev) => {
       const next = new Set(prev);
@@ -421,16 +359,6 @@ export function ListDetailContent({ listId }: Props) {
           detail page, so it shows regardless of talker/banner mode. */}
       {stateFlags.talker_visible && (
         <div className="shrink-0 relative">
-          {/* Admin status label — top-right of the banner */}
-          {showAdminButtons && packsStatus && (
-            <div className="absolute top-2 right-2 z-30 pointer-events-none">
-              <PackStatusLabel
-                packSlug={list.librarySourceId}
-                packs={packsStatus}
-                language={language}
-              />
-            </div>
-          )}
           <PageBanner
             title={listName}
             backHref={`/${locale}/lists/folder/${list.folderId ?? 'ungrouped'}`}
@@ -495,49 +423,6 @@ export function ListDetailContent({ listId }: Props) {
               )}
             </div>
           </PageBanner>
-
-          {/* Admin row — separate bounding box below the PageBanner so the
-              instructor toolbar stays visually distinct. Only rendered for
-              admins in admin viewMode. See ADR-008. */}
-          {showAdminButtons && (
-            <div
-              className="mt-2 flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-theme"
-              style={{
-                background: 'rgba(255,200,0,0.06)',
-                border: '1px solid rgba(255,200,0,0.2)',
-              }}
-            >
-              {/* "Republish" toggle: ephemeral visibility gate for the
-                  destructive RepublishButton. No backend write, no
-                  mutual-exclusion with Library. */}
-              <ToggleButton
-                pressed={republishGateOpen}
-                onClick={handleToggleRepublishGate}
-                icon={<Bookmark className="w-3.5 h-3.5" />}
-              >
-                {t('toggleRepublish')}
-              </ToggleButton>
-              {/* "Save to pack" — stateless button opening the picker
-                  modal. Mutation is duplicate-or-assign. Tier is chosen
-                  inside the modal's "Create new pack" tab; no in-bar
-                  tier picker post-simplification. */}
-              <ToggleButton
-                pressed={false}
-                onClick={handleToggleLibrary}
-                icon={<Library className="w-3.5 h-3.5" />}
-              >
-                {tPicker('saveToPackButton')}
-              </ToggleButton>
-              {publishSlug && republishGateOpen && (
-                <RepublishButton
-                  packSlug={publishSlug}
-                  packName={listName}
-                  disabled={hasPackEdits === false}
-                  disabledTooltip={tPicker('republishNoEditsTooltip')}
-                />
-              )}
-            </div>
-          )}
         </div>
       )}
       {!stateFlags.talker_visible && (
@@ -618,21 +503,6 @@ export function ListDetailContent({ listId }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Make Default + Library are now toggle buttons in the admin row above
-          the PageBanner — no confirmation dialog needed. */}
-
-      {/* Library save dialogue — admin-only. Opens when toggling Library ON;
-          lets admin create a new pack or append to one they already own. */}
-      {showAdminButtons && list && (
-        <LibraryPackPickerModal
-          isOpen={packPickerOpen}
-          onClose={() => setPackPickerOpen(false)}
-          itemKind="list"
-          defaultName={displayString(list.name, language, DEFAULT_LOCALE)}
-          onConfirm={handlePackPickerConfirm}
-        />
-      )}
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle when the
           user is on the free tier. */}

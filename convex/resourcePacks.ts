@@ -58,7 +58,6 @@ type CategorySnapshotSymbols = NonNullable<
  * Materialise a category snapshot's symbols into an existing profileCategory.
  * Shared by:
  *   - materialisePackIntoAccount (initial pack load)
- *   - reloadCategoryFromLibrary (per-category reset)
  *
  * Symbol skipping: if a snapshot references a global symbols row that has
  * since been deleted, that single symbol is skipped (no fail). Partial loads
@@ -163,7 +162,7 @@ export async function materialisePackIntoAccount(
       order: nextCategoryOrder++,
       librarySourceId: pack._id,
       // Capture the snapshot's original name as a stable join key for
-      // reloadCategoryFromLibrary — survives instructor renames. The default
+      // pack-origin tooling — survives instructor renames. The default
       // locale's name is the canonical key (see `lib/languages/registry.ts`).
       librarySourceCategoryKey: cat.name.en,
       updatedAt: now,

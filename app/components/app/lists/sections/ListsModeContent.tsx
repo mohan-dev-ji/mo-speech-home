@@ -19,9 +19,11 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash2, Move, Check, X, FolderInput } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X, FolderInput, Upload } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
@@ -37,9 +39,6 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
-import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
-import { resolvePackName } from '@/lib/packs/resolvePackName';
 import { CreateListModal } from '@/app/components/app/lists/modals/CreateListModal';
 import {
   Dialog,
@@ -65,13 +64,6 @@ type ListRow = {
   folderId?: Id<'profileFolders'>;
 };
 
-type AdminPacksStatus = {
-  starterSlug: string;
-  libraryPacksBySlug: Record<
-    string,
-    { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
-  >;
-};
 
 type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
 
@@ -134,7 +126,6 @@ type SortableListRowProps = {
   onDeleteRequest: (id: Id<'profileLists'>, name: string) => void;
   onMoveRequest: (id: Id<'profileLists'>, name: string) => void;
   onOpen: (id: Id<'profileLists'>) => void;
-  adminPacks?: AdminPacksStatus;
 };
 
 function SortableListRow({
@@ -142,7 +133,6 @@ function SortableListRow({
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
   onDeleteRequest, onMoveRequest, onOpen,
-  adminPacks,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -214,24 +204,9 @@ function SortableListRow({
             )}
           </div>
 
-          {/* Right cluster — origin badge + admin status + edit-panel. `ml-auto`
-              right-aligns it; it wraps below the title as a unit when narrow. */}
+          {/* Right cluster — edit-panel. `ml-auto` right-aligns it; it wraps
+              below the title as a unit when narrow. */}
           <div className="flex items-center gap-3 shrink-0 ml-auto">
-            {/* Origin badge — everyone sees which pack this list is from. */}
-            {list.librarySourceId && (
-              <LibrarySourceBadge
-                packName={resolvePackName(list.librarySourceId, language)}
-              />
-            )}
-
-            {adminPacks && (
-              <PackStatusLabel
-                packSlug={list.librarySourceId}
-                packs={adminPacks}
-                language={language}
-              />
-            )}
-
             {isEditing && (
               <EditPanel className="flex-wrap">
                 <IconButton
@@ -327,6 +302,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
@@ -583,6 +559,18 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                 ariaLabel={t('filterPackLabel')}
               />
             )}
+            {/* Publish as module — admin-only, from the folder's own page.
+                Only inside a real folder (not the groups root or Ungrouped). */}
+            {showAdminBadges && realFolderId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPublishOpen(true)}
+                icon={<Upload className="w-3.5 h-3.5" />}
+              >
+                {folderDoc?.publishedModuleSlug ? t('updateModule') : t('publishModule')}
+              </Button>
+            )}
           </PageBanner>
         </div>
       )}
@@ -634,7 +622,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                     onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
                     onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                     onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
-                    adminPacks={showAdminBadges && adminPacks ? adminPacks : undefined}
                   />
                 ))}
               </div>
@@ -651,6 +638,17 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle and
           handleCreateOpen when subscription.tier === 'free'. */}
+      {publishOpen && realFolderId && (
+        <PublishModuleModal
+          kind="lists"
+          targetId={realFolderId}
+          defaultName={folderName}
+          publishedSlug={folderDoc?.publishedModuleSlug}
+          publishedClass={folderDoc?.publishedModuleClass}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
+
       <UpgradeNudge
         open={upgradeNudgeOpen}
         onOpenChange={setUpgradeNudgeOpen}

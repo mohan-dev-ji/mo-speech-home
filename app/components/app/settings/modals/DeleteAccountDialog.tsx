@@ -29,7 +29,7 @@ export function DeleteAccountDialog({
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   // Compare against the LOCALISED confirm word the user actually sees
-  // (en "DELETE", es "ELIMINAR", hi Devanagari) — mirrors ReloadDefaultsDialog.
+  // (en "DELETE", es "ELIMINAR", hi Devanagari) — the type-to-confirm pattern.
   // Previously hard-coded "DELETE", which broke account deletion in any
   // non-English locale (the placeholder said ELIMINAR but only DELETE worked).
   const ready = typed.trim() === t("confirmPlaceholder").trim() && !busy;

@@ -32,8 +32,7 @@ import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
-import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { ModuleClassBadge } from '@/app/components/app/shared/ui/ModuleClassBadge';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
@@ -104,15 +103,6 @@ export function CategoriesContent() {
   >(null);
   // Admin "publish as module" target (the category being published). Carries the
   // existing module slug/class when already published → Update mode.
-  const [publishTarget, setPublishTarget] = useState<
-    {
-      id: Id<'profileCategories'>;
-      name: string;
-      publishedSlug?: string;
-      publishedClass?: 'default' | 'free' | 'pro' | 'max';
-    } | null
-  >(null);
-
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
   // Loaded-from packs — instructor/student-view filter options. Admin
@@ -369,12 +359,8 @@ export function CategoriesContent() {
                       isEditing={isEditing}
                       gridSize={stateFlags.grid_size ?? 'large'}
                       badgeSlot={
-                        showAdminBadges && adminPacks ? (
-                          <PackStatusLabel
-                            packSlug={cat.librarySourceId}
-                            packs={adminPacks}
-                            language={language}
-                          />
+                        showAdminBadges ? (
+                          <ModuleClassBadge publishedClass={cat.publishedModuleClass} />
                         ) : undefined
                       }
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
@@ -382,8 +368,6 @@ export function CategoriesContent() {
                       onRecolour={(key) => handleRecolour(cat._id, key)}
                       onEditImage={() => setImageTarget({ id: cat._id, name, imagePath: cat.imagePath })}
                       onDeleteRequest={() => handleDeleteRequest(cat._id, name)}
-                      published={!!cat.publishedModuleSlug}
-                      onPublishRequest={showAdminBadges ? () => setPublishTarget({ id: cat._id, name, publishedSlug: cat.publishedModuleSlug, publishedClass: cat.publishedModuleClass }) : undefined}
                     />
                   );
                 })}
@@ -442,18 +426,6 @@ export function CategoriesContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Admin "publish as module" — turn this category into its own module. */}
-      {publishTarget && (
-        <PublishModuleModal
-          kind="category"
-          targetId={publishTarget.id}
-          defaultName={publishTarget.name}
-          publishedSlug={publishTarget.publishedSlug}
-          publishedClass={publishTarget.publishedClass}
-          onClose={() => setPublishTarget(null)}
-        />
-      )}
 
       {/* Folder image picker — Symbol Editor restricted to image picking. */}
       {imageTarget && accountId && (

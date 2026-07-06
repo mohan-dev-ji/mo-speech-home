@@ -38,6 +38,10 @@ item UI (`RepublishButton`, "Save to pack", `LibrarySourceBadge`, `PackStatusLab
 
 ## Scope note
 
+> **Status (2026-07-06): Stage 1 (Tasks 1–6) COMPLETE** on `claude/wizardly-noyce-054294`.
+> Commits _f516ac0_ · _17699d5_ · _dcd6bb9_ · _9b077d6_ · _97ffd99_. App + Convex `tsc`
+> clean. **Stage 2 (Tasks 7–9, pack teardown) NOT started** — begins with a full backup.
+
 Executed on a **dedicated worktree/branch** in two stages:
 
 - **Stage 1 — WS2 + WS3 (Tasks 1–6):** relocate publishing + consolidate labels. Leaves
