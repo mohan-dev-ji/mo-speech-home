@@ -436,9 +436,12 @@ export function CategoryDetailContent({ categoryId }: Props) {
               onDragEnd={handleDragEnd}
             >
               <SortableContext items={localOrder} strategy={rectSortingStrategy}>
-                <CategoryBoardGrid>
-                  {orderedSymbols.map((sym) => (
-                    <SortableSymbolCard
+                {/* px/pt gives each card's corner ✕ badge room so the top row
+                    and right column aren't clipped by the scroll container. */}
+                <div className="px-2 pt-2">
+                  <CategoryBoardGrid>
+                    {orderedSymbols.map((sym) => (
+                      <SortableSymbolCard
                       key={sym._id}
                       sym={sym}
                       language={language}
@@ -447,7 +450,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                       onDeleteRequest={handleDeleteRequest}
                     />
                   ))}
-                </CategoryBoardGrid>
+                  </CategoryBoardGrid>
+                </div>
               </SortableContext>
             </DndContext>
           ) : (

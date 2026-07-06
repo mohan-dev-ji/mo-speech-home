@@ -43,7 +43,7 @@ export function CategoryPageHeader({
 
   return (
     <div
-      className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
+      className="relative rounded-theme p-3 flex flex-col justify-center"
       style={{ background: bg }}
     >
       {/* topSlot threads down to Banner so it sits tight above the title
