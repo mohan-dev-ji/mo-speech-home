@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
+import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { playKey, playTts } from '@/lib/audio/playTts';
 import type { ListItem } from '../types';
 
@@ -99,11 +100,7 @@ export function ListItemPlayModal({
   const checked = checkedIds.has(item.localId);
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-6"
-      style={{ background: 'var(--theme-overlay)' }}
-      onClick={onClose}
-    >
+    <PlayModalBackdrop onClose={onClose} className="items-center justify-center p-6">
       <button
         type="button"
         onClick={onClose}
@@ -150,7 +147,7 @@ export function ListItemPlayModal({
           <CheckboxBtn checked={checked} onToggle={() => onToggle(item.localId)} />
         )}
       </div>
-    </div>
+    </PlayModalBackdrop>
   );
 }
 

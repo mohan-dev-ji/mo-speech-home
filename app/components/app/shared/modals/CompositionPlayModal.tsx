@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
+import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
@@ -80,14 +81,13 @@ export function CompositionPlayModal({
 
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-8 p-8"
-         style={{ background: 'var(--theme-overlay)' }} onClick={close}>
+    <PlayModalBackdrop onClose={close} className="flex-col items-center justify-center gap-8 p-8">
       <div className="flex flex-wrap gap-4 justify-center max-w-5xl" onClick={(e) => e.stopPropagation()}>
         {blocks.map((b, i) => (
           <CompositionBlock key={i} block={b} active={activeIndex === i} onTap={() => playSingle(i)} />
         ))}
       </div>
       <ReplayButton onClick={runSequence} />
-    </div>
+    </PlayModalBackdrop>
   );
 }

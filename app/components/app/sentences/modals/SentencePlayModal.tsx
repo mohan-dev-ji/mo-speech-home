@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
+import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 
@@ -83,11 +84,7 @@ export function SentencePlayModal({
   const groupBg = `color-mix(in srgb, ${getCategoryColour(moduleColour ?? 'zinc').c500} 50%, transparent)`;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-8"
-      style={{ background: 'var(--theme-overlay)' }}
-      onClick={close}
-    >
+    <PlayModalBackdrop onClose={close} className="items-center justify-center p-8">
       <div
         className="flex flex-col items-center gap-theme-gap"
         onClick={(e) => e.stopPropagation()}
@@ -123,6 +120,6 @@ export function SentencePlayModal({
           <ReplayButton onClick={playClip} />
         </div>
       </div>
-    </div>
+    </PlayModalBackdrop>
   );
 }
