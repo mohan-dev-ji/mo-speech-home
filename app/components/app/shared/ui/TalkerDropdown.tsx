@@ -275,6 +275,21 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const phraseMap = new Map(phraseList.map((p) => [p._id as string, p]));
   const orderedPhrases = phraseOrder.map((id) => phraseMap.get(id)).filter(Boolean) as typeof phraseList;
 
+  // Phrase audio-ready mirrors the sentence InlinePhraseEditor: a phrase reads as
+  // "audio ready" when it has a human recording OR a TTS clip for its current
+  // name+voice is already cached. Phrase TTS lives in the global cache, not on the
+  // row, so a stored-path check alone leaves the indicator stuck on "add audio".
+  // One batched cache lookup covers every phrase name in the bank.
+  const phraseNameKeys = orderedPhrases.map((p) =>
+    displayString(p.name, language, DEFAULT_LOCALE).toLowerCase().trim(),
+  );
+  const phraseAudioAvail = useQuery(
+    api.ttsCache.checkMany,
+    isOpen && phraseNameKeys.length > 0
+      ? { texts: phraseNameKeys, voiceId }
+      : 'skip',
+  );
+
   function findPhrase(id: Id<'profilePhrases'>) {
     return phraseList.find((p) => p._id === id);
   }
@@ -448,7 +463,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                   imagePath: w.imagePath,
                   label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
                 }));
-                const hasAudio = !!(p.recordedAudioPath ?? p.audioPath);
+                const hasAudio =
+                  !!p.recordedAudioPath ||
+                  phraseAudioAvail?.[name.toLowerCase().trim()]?.available === true;
                 const incomplete = p.words.length < 2;
                 return (
                   <PhraseEditCard

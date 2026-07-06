@@ -69,9 +69,12 @@ Current state is inconsistent:
 - ☐ **4.1 Category-details symbol edit state → match the core-words dropdown.** Replace
   the edit-toolbar layout (which forces symbols small and awkward) with: dashed border,
   per-symbol ✕ delete, drag-to-reposition. Nice touch: `move` cursor on symbol hover.
-- ☐ **4.2 Fix phrases-dropdown audio indicator** stuck on "Tap to add audio" in edit mode
-  even when audio is ready. Should read "Audio ready" like the sentence-module phrase
-  builder — expected to share a component, so track down the divergence.
+- ☑ **4.2 Fix phrases-dropdown audio indicator** stuck on "Tap to add audio" in edit mode.
+  Root cause: both surfaces share `PhraseBuilderBody`, but `TalkerDropdown` computed
+  `hasAudio` from stored paths only (`recordedAudioPath ?? audioPath`), while
+  `InlinePhraseEditor` checks the live `ttsCache.checkMany`. Phrase TTS lives in the cache,
+  not on the row, so the dropdown was always false. Fixed by mirroring the cache check
+  (one batched lookup for all phrase names). _(main; TalkerDropdown.tsx)_
 
 ## Workstream 5 — Sentence playback & display
 
