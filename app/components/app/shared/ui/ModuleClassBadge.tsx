@@ -23,7 +23,7 @@ export function ModuleClassBadge({
       className={[
         "inline-flex items-center max-w-full rounded-full font-semibold",
         "px-2 py-0.5 text-[10px] uppercase tracking-wide text-white",
-        isDraft ? "bg-theme-secondary-alt-text/60" : "bg-theme-secondary-text",
+        isDraft ? "bg-zinc-700" : "bg-zinc-900",
       ].join(" ")}
     >
       {t(publishedClass ?? "draft")}
