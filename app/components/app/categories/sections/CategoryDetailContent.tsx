@@ -455,8 +455,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
               </SortableContext>
             </DndContext>
           ) : (
-            <CategoryBoardGrid>
-              {symbols.map((sym) => {
+            <div className="px-2 pt-2">
+              <CategoryBoardGrid>
+                {symbols.map((sym) => {
                 const label = displayString(sym.label, language, DEFAULT_LOCALE);
                 const audioPath = displayValue(sym.audio, language, DEFAULT_LOCALE);
                 const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
@@ -492,7 +493,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   </ModellingOverlayWrapper>
                 );
               })}
-            </CategoryBoardGrid>
+              </CategoryBoardGrid>
+            </div>
           )
         )}
       </div>
