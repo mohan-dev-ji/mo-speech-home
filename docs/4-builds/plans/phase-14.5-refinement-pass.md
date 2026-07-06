@@ -25,7 +25,8 @@ completes** (Stage 2 teardown + any follow-up run from it or from `main`).
 | WS3.1 (single publish-class badge) | ☑ shipped with WS2 Stage 1 |
 | WS4.2 (phrase audio indicator) | ☑ done _(main)_ |
 | WS5.1 (single-symbol play modal) | ☑ done _(main)_ |
-| WS4.1 · WS5.2 · WS6.1 | ☐ todo — on `main` |
+| WS4.1 + 4.1b (category edit mode) · WS5.2 | ☑ done _(main)_ |
+| WS6.1 (small-screen responsive) | ☐ todo — on `main` |
 | **Stage 2 — full pack teardown** (Tasks 7–9) | ☐ todo — on `main`, backup first |
 | C.1 / C.2 / C.3 (content strategy) | ☐ blocked on decisions |
 
@@ -95,10 +96,15 @@ Current state is inconsistent:
 
 ## Workstream 4 — Edit-mode UI consistency
 
-- ☐ **4.1 Category-details symbol edit state → match the core-words dropdown.** Replace
-  the edit-toolbar layout (which forces symbols small and awkward) with: dashed border,
-  per-symbol ✕ delete, drag-to-reposition. Nice touch: `move` cursor on symbol hover.
-  4.1b - Fix category-details edit mode. Title is shouldn't be editable, the image changes size and buttons get put into a container. Follow lists and sentences modules for edit mode banner pop.
+- ☑ **4.1 Category-details symbol edit state → match the core-words dropdown.**
+  `SymbolCardEditable` rewritten to the dropdown `SlotCell` pattern: dashed border,
+  whole-card drag (grab cursor), **tap-to-edit**, corner ✕ delete; symbol keeps its full
+  square (no more below-symbol panel). No `CategoryDetailContent` change — the `useSortable`
+  listeners already pass down. _(main)_
+- ☑ **4.1b Category banner edit mode** → `BannerEdit` now matches the view `Banner`:
+  **static title** (rename lives on the grid tile), **steady image size** (matched to
+  `Banner`), **loose button row** (dropped the bordered container). _(main)_
+  Plan: [phase-14.5-ws4.1-category-edit-mode.md](phase-14.5-ws4.1-category-edit-mode.md).
 - ☑ **4.2 Fix phrases-dropdown audio indicator** stuck on "Tap to add audio" in edit mode.
   Root cause: both surfaces share `PhraseBuilderBody`, but `TalkerDropdown` computed
   `hasAudio` from stored paths only (`recordedAudioPath ?? audioPath`), while
