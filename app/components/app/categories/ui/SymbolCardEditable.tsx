@@ -1,12 +1,10 @@
 "use client";
 
-import { Trash2, Pencil, Move } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { SymbolCard, type SymbolDisplay } from '@/app/components/app/shared/ui/SymbolCard';
-import { IconButton } from '@/app/components/app/shared/ui/IconButton';
-import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 
 type Props = {
   imagePath?: string;
@@ -19,6 +17,11 @@ type Props = {
   dragHandleAttributes?: DraggableAttributes;
 };
 
+// Editable symbol card — mirrors the talker dropdown's core-word SlotCell
+// (TalkerDropdown.tsx). The symbol keeps its full square footprint: a dashed
+// edit-mode border, the WHOLE card is the drag handle (grab cursor), TAP opens
+// the symbol editor (8px drag-activation on the parent sensor lets a clean tap
+// through), and a corner ✕ badge deletes. No below-symbol edit panel.
 export function SymbolCardEditable({
   imagePath,
   label,
@@ -31,56 +34,38 @@ export function SymbolCardEditable({
 }: Props) {
   const t = useTranslations('categoryDetail');
 
-  // Figma Symbol-edit variant (`3026:3911`): a translucent `card` panel with a
-  // subtle stroke-2 dashed border, the symbol card above and the Edit-panel
-  // (Delete / Edit / Move icon-buttons) below. The panel grows taller than the
-  // symbol's square footprint; width stays fixed (grid honoured), and the
-  // edit-panel `flex-wrap`s so its buttons stack in dense grids rather than
-  // widening the card. `@container` anchors any cqi sizing inside SymbolCard.
   return (
-    <div className="relative w-full @container">
-      <div className="w-full flex flex-col items-center gap-theme-gap p-theme-general rounded-theme-card border-2 border-dashed border-theme-enter-mode bg-theme-card">
-        {/* Symbol — full square footprint */}
-        <div className="w-full aspect-square">
-          <SymbolCard
-            symbolId="edit-mode"
-            imagePath={imagePath}
-            label={label}
-            language="en"
-            display={display}
-            categoryColour={categoryColour}
-            onTap={() => {}}
-          />
-        </div>
-
-        {/* Edit-panel — Delete (red) / Edit (pencil) / Move (drag handle). */}
-        <EditPanel orientation="horizontal" className="flex-wrap">
-          <IconButton
-            size="sm"
-            variant="neutral"
-            className="text-theme-warning"
-            icon={<Trash2 />}
-            label={t('symbolDelete')}
-            onClick={onDelete}
-          />
-          <IconButton
-            size="sm"
-            variant="neutral"
-            icon={<Pencil />}
-            label={t('symbolEdit')}
-            onClick={onEdit}
-          />
-          <IconButton
-            size="sm"
-            variant="neutral"
-            className="cursor-grab active:cursor-grabbing touch-none"
-            icon={<Move />}
-            label={t('symbolMove')}
-            {...dragHandleListeners}
-            {...dragHandleAttributes}
-          />
-        </EditPanel>
+    <div
+      className="relative w-full aspect-square @container rounded-theme-card"
+      style={{ border: '2px dashed var(--theme-enter-mode)' }}
+    >
+      <div
+        className="w-full h-full cursor-grab active:cursor-grabbing touch-none"
+        {...dragHandleListeners}
+        {...dragHandleAttributes}
+      >
+        <SymbolCard
+          symbolId="edit-mode"
+          imagePath={imagePath}
+          label={label}
+          language="en"
+          display={display}
+          categoryColour={categoryColour}
+          onTap={onEdit}
+        />
       </div>
+
+      {/* Corner ✕ delete — stops propagation so it never starts a drag. */}
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        aria-label={t('symbolDelete')}
+        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center shadow z-10"
+        style={{ background: 'var(--theme-warning)', color: '#fff' }}
+      >
+        <X className="w-3 h-3" />
+      </button>
     </div>
   );
 }
