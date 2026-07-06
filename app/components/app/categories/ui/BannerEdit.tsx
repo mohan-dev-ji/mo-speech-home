@@ -63,13 +63,14 @@ export type BannerEditProps = {
   draftColour: string;
   onExit: () => void;
   onAddSymbol: () => void;
-  // Admin-only affordances. Parent decides visibility via `showAdminButtons`
-  // (gated on viewMode === 'admin' && useIsAdmin()). When false, the entire
-  // admin row is hidden. See ADR-008.
-  showAdminButtons?: boolean;
   /** Admin-only: open the tier picker to publish this category as a module.
-   *  Rendered in the admin row. Parent gates on showAdminButtons. */
+   *  Rendered inline in the banner button row (matches the list/sentence
+   *  module pages). Parent passes it only in admin view, so no separate gate
+   *  is needed here. See ADR-008. */
   onPublishModule?: () => void;
+  /** Label for the publish button — "Publish as module" or "Update module"
+   *  depending on whether this category is already published. */
+  publishModuleLabel?: string;
 };
 
 export function BannerEdit({
@@ -79,8 +80,8 @@ export function BannerEdit({
   draftColour,
   onExit,
   onAddSymbol,
-  showAdminButtons = false,
   onPublishModule,
+  publishModuleLabel,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
@@ -168,33 +169,21 @@ export function BannerEdit({
               onClick={onAddSymbol}
               label={t('bannerAddSymbol')}
             />
-          </div>
 
-          {/* Row 2: Admin controls — only visible to admins in admin viewMode.
-              Tinted amber to distinguish from the instructor row visually. */}
-          {showAdminButtons && (
-            <div
-              className="flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-theme"
-              style={{
-                background: 'rgba(255,200,0,0.06)',
-                border: '1px solid rgba(255,200,0,0.2)',
-              }}
-            >
-              {/* Publish as module — opens the tier picker (default/free/pro/max)
-                  to publish this category to the library. Fires from the module's
-                  own page now, not the grid tile. */}
-              {onPublishModule && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={onPublishModule}
-                  icon={<Upload className="w-3.5 h-3.5" />}
-                >
-                  {t('bannerPublishModule')}
-                </Button>
-              )}
-            </div>
-          )}
+            {/* Publish as module — admin-only, opens the tier picker
+                (default/free/pro/max). Inline with the other banner actions to
+                match the list/sentence module pages. */}
+            {onPublishModule && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onPublishModule}
+                icon={<Upload className="w-3.5 h-3.5" />}
+              >
+                {publishModuleLabel ?? t('bannerPublishModule')}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

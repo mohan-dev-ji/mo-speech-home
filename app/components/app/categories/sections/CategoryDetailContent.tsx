@@ -220,6 +220,12 @@ export function CategoryDetailContent({ categoryId }: Props) {
     : undefined;
   const isInLibrary = !!linkedLibraryPack;
 
+  // Publish button label — "Update module" once this category has been
+  // published, else "Publish as module". Matches the list/sentence pages.
+  const publishModuleLabel = category?.publishedModuleSlug
+    ? t('bannerUpdateModule')
+    : t('bannerPublishModule');
+
   // ── dnd-kit sensors ─────────────────────────────────────────────────────────
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -396,8 +402,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                 draftColour={draftColour}
                 onExit={handleEditExit}
                 onAddSymbol={handleAddSymbol}
-                showAdminButtons={showAdminButtons}
                 onPublishModule={showAdminButtons ? () => setPublishOpen(true) : undefined}
+                publishModuleLabel={publishModuleLabel}
               />
             </div>
           ) : (
@@ -408,6 +414,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
               onEdit={handleEditStart}
               onModel={handleModelClick}
               modelDisabledReason={modelDisabledReason}
+              onPublishModule={showAdminButtons ? () => setPublishOpen(true) : undefined}
+              publishModuleLabel={publishModuleLabel}
             />
           )}
         </div>

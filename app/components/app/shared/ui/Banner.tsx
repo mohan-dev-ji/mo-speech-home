@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Pointer, ImageIcon, ChevronLeft } from 'lucide-react';
+import { Pointer, ImageIcon, ChevronLeft, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
@@ -14,6 +14,12 @@ type BannerProps = {
   onEdit?: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
+  /** Admin-only: open the tier picker to publish this category as a module.
+   *  Rendered inline with the Edit/Model buttons. Parent passes it only in
+   *  admin view. */
+  onPublishModule?: () => void;
+  /** Label for the publish button — "Publish as module" or "Update module". */
+  publishModuleLabel?: string;
   /** Optional slot rendered above the title inside the left column.
    *  Sits tight to the title (small mb) so the right-column image stays
    *  vertically centered against the [slot + title + buttons] group as
@@ -32,6 +38,8 @@ export function Banner({
   onEdit,
   onModel,
   modelDisabledReason,
+  onPublishModule,
+  publishModuleLabel,
   topSlot,
   backHref,
   backLabel,
@@ -90,6 +98,19 @@ export function Banner({
           >
             {t('modelButton')}
           </Button>
+
+          {/* Publish as module — admin-only, inline with the primary actions
+              (matches the list/sentence module pages). */}
+          {onPublishModule && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onPublishModule}
+              icon={<Upload className="w-3.5 h-3.5" />}
+            >
+              {publishModuleLabel}
+            </Button>
+          )}
         </div>
       </div>
 
