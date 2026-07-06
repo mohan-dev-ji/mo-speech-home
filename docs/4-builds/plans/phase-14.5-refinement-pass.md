@@ -98,6 +98,7 @@ Current state is inconsistent:
 - ☐ **4.1 Category-details symbol edit state → match the core-words dropdown.** Replace
   the edit-toolbar layout (which forces symbols small and awkward) with: dashed border,
   per-symbol ✕ delete, drag-to-reposition. Nice touch: `move` cursor on symbol hover.
+  4.1b - Fix category-details edit mode. Title is shouldn't be editable, the image changes size and buttons get put into a container. Follow lists and sentences modules for edit mode banner pop.
 - ☑ **4.2 Fix phrases-dropdown audio indicator** stuck on "Tap to add audio" in edit mode.
   Root cause: both surfaces share `PhraseBuilderBody`, but `TalkerDropdown` computed
   `hasAudio` from stored paths only (`recordedAudioPath ?? audioPath`), while
