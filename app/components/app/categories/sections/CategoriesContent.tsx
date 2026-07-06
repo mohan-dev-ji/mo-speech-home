@@ -33,7 +33,7 @@ import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
+import { ModuleClassBadge } from '@/app/components/app/shared/ui/ModuleClassBadge';
 import { CreateCategoryModal } from '@/app/components/app/categories/modals/CreateCategoryModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
@@ -369,12 +369,8 @@ export function CategoriesContent() {
                       isEditing={isEditing}
                       gridSize={stateFlags.grid_size ?? 'large'}
                       badgeSlot={
-                        showAdminBadges && adminPacks ? (
-                          <PackStatusLabel
-                            packSlug={cat.librarySourceId}
-                            packs={adminPacks}
-                            language={language}
-                          />
+                        showAdminBadges ? (
+                          <ModuleClassBadge publishedClass={cat.publishedModuleClass} />
                         ) : undefined
                       }
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}

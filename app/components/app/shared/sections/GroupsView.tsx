@@ -26,6 +26,7 @@ import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { CreateGroupModal } from '@/app/components/app/shared/modals/CreateGroupModal';
 import { GroupTile } from '@/app/components/app/shared/ui/GroupTile';
+import { ModuleClassBadge } from '@/app/components/app/shared/ui/ModuleClassBadge';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -258,6 +259,11 @@ export function GroupsView({
                       imagePath={folder.imagePath}
                       isEditing={isEditing}
                       gridSize={stateFlags.grid_size ?? 'large'}
+                      badgeSlot={
+                        showPublish ? (
+                          <ModuleClassBadge publishedClass={folder.publishedModuleClass} />
+                        ) : undefined
+                      }
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRecolour={(key) => handleRecolour(folder._id, key)}

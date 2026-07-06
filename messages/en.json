@@ -355,6 +355,13 @@
       "flag": "Modelling is disabled for this student. Re-enable in profile permissions."
     }
   },
+  "moduleClass": {
+    "default": "Default",
+    "free": "Free",
+    "pro": "Pro",
+    "max": "Max",
+    "draft": "Draft"
+  },
   "modelling": {
     "picker": {
       "title": "Choose a symbol to model",
