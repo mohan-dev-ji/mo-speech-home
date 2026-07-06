@@ -185,6 +185,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
+  // Last-seen server id-set, so the localOrder sync below can run during render
+  // (not in an effect) only when the set actually changes.
+  const [seenOrderKey, setSeenOrderKey] = useState<string | null>(null);
 
   // ── Convex ──────────────────────────────────────────────────────────────────
   const profileCategoryId = categoryId as Id<'profileCategories'>;
@@ -231,15 +234,22 @@ export function CategoryDetailContent({ categoryId }: Props) {
   );
 
   // ── Sync localOrder from server ─────────────────────────────────────────────
-  useEffect(() => {
-    if (!symbols) return;
-    setLocalOrder((prev) => {
-      const serverIds = symbols.map((s) => s._id as string);
-      const kept = prev.filter((id) => serverIds.includes(id));
-      const added = serverIds.filter((id) => !prev.includes(id));
-      return [...added, ...kept];
-    });
-  }, [symbols]);
+  // Adjust during render (not in an effect) when the server id-set changes:
+  // keep still-present ids in their local order, prepend newcomers. Guarded by
+  // `seenOrderKey` so it runs only on an actual change (React's "adjust state
+  // when inputs change" pattern) — avoids a setState-in-effect cascade.
+  if (symbols) {
+    const serverIds = symbols.map((s) => s._id as string);
+    const orderKey = serverIds.join(',');
+    if (orderKey !== seenOrderKey) {
+      setSeenOrderKey(orderKey);
+      setLocalOrder((prev) => {
+        const kept = prev.filter((id) => serverIds.includes(id));
+        const added = serverIds.filter((id) => !prev.includes(id));
+        return [...added, ...kept];
+      });
+    }
+  }
 
   // ── Drag handlers ────────────────────────────────────────────────────────────
 
