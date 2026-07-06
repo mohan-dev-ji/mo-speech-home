@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { ImageIcon, Bookmark, Library, RotateCcw } from 'lucide-react';
+import { ImageIcon, Bookmark, Library, RotateCcw, Upload } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
@@ -87,6 +87,9 @@ export type BannerEditProps = {
   // its own republishGateOpen + publishSlug state. Slot pattern keeps
   // BannerEdit ignorant of RepublishButton's API.
   republishSlot?: React.ReactNode;
+  /** Admin-only: open the tier picker to publish this category as a module.
+   *  Rendered in the admin row. Parent gates on showAdminButtons. */
+  onPublishModule?: () => void;
 };
 
 export function BannerEdit({
@@ -106,6 +109,7 @@ export function BannerEdit({
   librarySourceId,
   onReloadDefaults,
   republishSlot,
+  onPublishModule,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
 
@@ -221,6 +225,19 @@ export function BannerEdit({
                 border: '1px solid rgba(255,200,0,0.2)',
               }}
             >
+              {/* Publish as module — opens the tier picker (default/free/pro/max)
+                  to publish this category to the library. Fires from the module's
+                  own page now, not the grid tile. */}
+              {onPublishModule && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={onPublishModule}
+                  icon={<Upload className="w-3.5 h-3.5" />}
+                >
+                  {t('bannerPublishModule')}
+                </Button>
+              )}
               {/* "Republish" toggle: ephemeral visibility gate for the
                   destructive RepublishButton. Pressed state = caller's
                   republishGateOpen. No backend write, no mutual exclusion

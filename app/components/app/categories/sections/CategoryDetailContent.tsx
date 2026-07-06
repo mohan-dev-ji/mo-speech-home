@@ -40,6 +40,7 @@ import { SymbolCardEditable } from '@/app/components/app/categories/ui/SymbolCar
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { CategoryPageHeader } from '@/app/components/app/categories/ui/CategoryPageHeader';
 import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { ModellingPickerModal } from '@/app/components/app/categories/modals/ModellingPickerModal';
 import {
@@ -195,6 +196,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [packPickerOpen, setPackPickerOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
@@ -502,6 +504,7 @@ export function CategoryDetailContent({ categoryId }: Props) {
                   onExit={handleEditExit}
                   onAddSymbol={handleAddSymbol}
                   showAdminButtons={showAdminButtons}
+                  onPublishModule={showAdminButtons ? () => setPublishOpen(true) : undefined}
                   isDefault={republishGateOpen}
                   isInLibrary={isInLibrary}
                   libraryTier={libraryTier}
@@ -681,6 +684,19 @@ export function CategoryDetailContent({ categoryId }: Props) {
       {/* Make Default + Library are now toggle buttons in the admin row of
           BannerEdit — no confirmation dialog needed. The toggle action is
           reversible via the same toggle. */}
+
+      {/* Publish as module — turn this category into its own library module.
+          Fires from the module's own page (this banner), not the grid tile. */}
+      {publishOpen && category && (
+        <PublishModuleModal
+          kind="category"
+          targetId={category._id}
+          defaultName={displayString(category.name, language, DEFAULT_LOCALE)}
+          publishedSlug={category.publishedModuleSlug}
+          publishedClass={category.publishedModuleClass}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
 
       {/* Reload Defaults — destructive confirmation modal. Only mountable
           when the category was loaded from a library pack (button hidden
