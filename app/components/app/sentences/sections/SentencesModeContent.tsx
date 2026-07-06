@@ -724,6 +724,9 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const isFree = subscription.tier === 'free';
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
+  // Last-seen server id-set, so we can re-sync `localOrder` during render (not in
+  // an effect) when the server set changes — see the sync block below.
+  const [seenOrderKey, setSeenOrderKey] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
@@ -821,15 +824,22 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  useEffect(() => {
-    if (!scopedSentences) return;
-    setLocalOrder((prev) => {
-      const serverIds = scopedSentences.map((s) => s._id as string);
-      const kept = prev.filter((id) => serverIds.includes(id));
-      const added = serverIds.filter((id) => !prev.includes(id));
-      return [...kept, ...added];
-    });
-  }, [scopedSentences]);
+  // Re-sync the local drag order with the server set DURING render (React's
+  // "adjust state when inputs change" pattern) rather than a setState-in-effect:
+  // keep still-present ids in their local order and append newcomers. Guarded by
+  // `seenOrderKey` so it runs only when the id-set actually changes.
+  if (scopedSentences) {
+    const serverIds = scopedSentences.map((s) => s._id as string);
+    const orderKey = serverIds.join(',');
+    if (orderKey !== seenOrderKey) {
+      setSeenOrderKey(orderKey);
+      setLocalOrder((prev) => {
+        const kept = prev.filter((id) => serverIds.includes(id));
+        const added = serverIds.filter((id) => !prev.includes(id));
+        return [...kept, ...added];
+      });
+    }
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -998,8 +1008,13 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setUnitEditTarget(null);
   }
 
-  const sentenceMap = Object.fromEntries((scopedSentences ?? []).map((s) => [s._id, s]));
-  const orderedSentences = localOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
+  // Memoised so its identity is stable while the server set is unchanged — the
+  // `filteredOrder` memo below depends on it, and a fresh object every render
+  // would defeat that memo (and trips the compiler's "could not be preserved").
+  const sentenceMap = useMemo(
+    () => Object.fromEntries((scopedSentences ?? []).map((s) => [s._id, s])),
+    [scopedSentences],
+  );
 
   // ── Filter visibility + options ──────────────────────────────────────────
   const filterVisible = showAdminButtons
@@ -1035,22 +1050,26 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   }, [filterVisible, showAdminButtons, packsStatus, loadedPacks, language, t]);
 
   // ── Apply filter ─────────────────────────────────────────────────────────
-  const filteredOrder = useMemo(() => {
-    if (packFilter === 'all') return localOrder;
-    return localOrder.filter((id) => {
-      const row = sentenceMap[id];
-      if (!row) return false;
-      if (showAdminButtons) {
-        // Post-simplification: filters use librarySourceId (single field).
-        if (packFilter === 'default') return row.librarySourceId === packsStatus?.starterSlug;
-        if (packFilter === 'unpublished') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      } else {
-        if (packFilter === 'mine') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      }
-    });
-  }, [packFilter, localOrder, sentenceMap, showAdminButtons, packsStatus?.starterSlug]);
+  // Computed inline (no manual useMemo): the 'all' branch returns `localOrder`
+  // directly while the filtered branch returns a fresh array, which the compiler
+  // can't preserve as a manual memo — and it's a cheap O(n) filter over id
+  // strings, so memoising it buys nothing.
+  const filteredOrder =
+    packFilter === 'all'
+      ? localOrder
+      : localOrder.filter((id) => {
+          const row = sentenceMap[id];
+          if (!row) return false;
+          if (showAdminButtons) {
+            // Post-simplification: filters use librarySourceId (single field).
+            if (packFilter === 'default') return row.librarySourceId === packsStatus?.starterSlug;
+            if (packFilter === 'unpublished') return !row.librarySourceId;
+            return row.librarySourceId === packFilter;
+          } else {
+            if (packFilter === 'mine') return !row.librarySourceId;
+            return row.librarySourceId === packFilter;
+          }
+        });
 
   const filteredSentences = filteredOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
