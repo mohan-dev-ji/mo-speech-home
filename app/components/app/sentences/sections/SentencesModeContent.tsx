@@ -21,9 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  Bookmark,
   FolderInput,
-  Library,
   Move,
   Plus,
   Trash2,
@@ -43,15 +41,8 @@ import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
-import { useToast } from '@/app/components/app/shared/ui/Toast';
-import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
-import { PlanTierPicker } from '@/app/components/app/shared/ui/PlanTierPicker';
-import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
-import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
-import { resolvePackName } from '@/lib/packs/resolvePackName';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
@@ -69,10 +60,6 @@ import { UnitCardShell } from '@/app/components/app/shared/ui/composition/UnitCa
 import { blocksFromUnits, type CompositionUnitClient, type PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
 import type { SentenceSlotSaveResult, ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
-import {
-  LibraryPackPickerModal,
-  type PackPickerTarget,
-} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
 import {
   Dialog,
   DialogContent,
@@ -126,14 +113,6 @@ type SentenceRow = {
 function isSequenceRow(s: Pick<SentenceRow, 'playback' | 'units'>): boolean {
   return s.playback === 'sequence' && (s.units?.length ?? 0) > 0;
 }
-
-type AdminPacksStatus = {
-  starterSlug: string;
-  libraryPacksBySlug: Record<
-    string,
-    { tier: 'free' | 'pro' | 'max'; name: Record<string, string> }
-  >;
-};
 
 type PendingDelete = { id: Id<'profileSentences'>; name: string } | null;
 
@@ -514,19 +493,6 @@ type SortableSentenceRowProps = {
   onPhraseChange: (sentenceId: Id<'profileSentences'>, unitIndex: number, updated: CompositionUnitClient) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
-  // Admin-only per-row affordances. Parent gates on viewMode === 'admin' && useIsAdmin().
-  // Pack-membership status is parameterised so the row toggle UI can reflect
-  // current state and the toggle handler knows which way to flip.
-  showAdminButtons?: boolean;
-  isDefault?: boolean;
-  isInLibrary?: boolean;
-  libraryTier?: 'free' | 'pro' | 'max';
-  onToggleDefault?: (sentence: SentenceRow) => void;
-  onToggleLibrary?: (sentence: SentenceRow) => void;
-  onSetTier?: (sentence: SentenceRow, tier: 'free' | 'pro' | 'max') => void;
-  // Pack-status data — only passed in admin viewMode. Drives the
-  // PackStatusLabel pill on the right edge of the sentence text row.
-  adminPacks?: AdminPacksStatus;
 };
 
 function SortableSentenceRow({
@@ -535,17 +501,8 @@ function SortableSentenceRow({
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditWord, onRemoveUnit, onAddWord, onAddPhrase, onReorderUnits, onPhraseChange,
   onEditSentence, onPlay,
-  showAdminButtons = false,
-  isDefault = false,
-  isInLibrary = false,
-  libraryTier = 'free',
-  onToggleDefault,
-  onToggleLibrary,
-  onSetTier,
-  adminPacks,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
-  const tPicker = useTranslations('packPicker');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: sentence._id });
 
@@ -684,46 +641,11 @@ function SortableSentenceRow({
             )
           )}
 
-          {/* Right cluster — origin badge + admin status + admin save + edit-panel.
-              `ml-auto` right-aligns it; wraps below the text as a unit when narrow. */}
+          {/* Right cluster — edit-panel. `ml-auto` right-aligns it; wraps
+              below the text as a unit when narrow. */}
           <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
-            {/* Origin badge — everyone sees which pack this sentence is from. */}
-            {sentence.librarySourceId && (
-              <LibrarySourceBadge
-                packName={resolvePackName(sentence.librarySourceId, language)}
-              />
-            )}
-
-            {adminPacks && (
-              <PackStatusLabel
-                packSlug={sentence.librarySourceId}
-                packs={adminPacks}
-                language={language}
-              />
-            )}
-
             {isEditing && (
               <>
-                {showAdminButtons && (
-                  <div
-                    className="flex items-center gap-1 px-1.5 py-1 rounded-theme-sm"
-                    style={{
-                      background: 'rgba(255,200,0,0.06)',
-                      border: '1px solid rgba(255,200,0,0.2)',
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Per-row "Save to pack" — stateless button opening the
-                        picker for this single sentence. */}
-                    <ToggleButton
-                      pressed={false}
-                      onClick={() => onToggleLibrary?.(sentence)}
-                      icon={<Library className="w-3.5 h-3.5" />}
-                    >
-                      {tPicker('saveToPackButton')}
-                    </ToggleButton>
-                  </div>
-                )}
                 <EditPanel className="flex-wrap">
                   <IconButton
                     size="sm"
@@ -764,7 +686,6 @@ function SortableSentenceRow({
 
 export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('sentences');
-  const tPicker = useTranslations('packPicker');
   const params = useParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -773,7 +694,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const isAdmin = useIsAdmin();
-  const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
 
   // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
@@ -813,7 +733,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     useState<{ sentenceId: Id<'profileSentences'>; unitIndex: number } | null>(null);
   const [sentenceEditTarget, setSentenceEditTarget] = useState<SentenceEditTarget>(null);
   const [playTarget, setPlayTarget] = useState<SentenceRow | null>(null);
-  const [packPickerSentence, setPackPickerSentence] = useState<SentenceRow | null>(null);
 
   const sentences = useQuery(api.profileSentences.getProfileSentences, {});
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
@@ -821,9 +740,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
-  const setSentenceDefault   = useMutation(api.resourcePacks.setSentenceDefaultV2);
-  const setSentenceInLibrary = useMutation(api.resourcePacks.setSentenceInLibraryV2);
-  const setLibraryPackTier   = useMutation(api.resourcePacks.setLibraryPackTierV2);
   const moveSentenceToGroup  = useMutation(api.profileFolders.moveSentenceToGroup);
 
   // ── Folder scoping (ADR-014 §2) ──────────────────────────────────────────
@@ -889,44 +805,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     showAdminButtons ? 'skip' : {},
   );
 
-  // ── Republish-to-JSON slug for the pack-level Save button on the banner.
-  // Sentences span many packs on one page, so the publish slug is scoped
-  // to the active pack filter rather than per-row. Multi-pack tokens
-  // ('all', 'unpublished', 'mine') leave publishSlug undefined → button
-  // renders disabled with "Filter by pack to enable" tooltip. Single-pack
-  // selections resolve to the corresponding slug (with 'default' mapping
-  // to starterSlug).
-  const publishSlug = (() => {
-    if (!showAdminButtons) return undefined;
-    if (packFilter === 'all' || packFilter === 'unpublished' || packFilter === 'mine') return undefined;
-    if (packFilter === 'default') return packsStatus?.starterSlug;
-    return packFilter;
-  })();
-  const hasPackEdits = useQuery(
-    api.resourcePacks.hasPackEdits,
-    publishSlug ? { slug: publishSlug } : 'skip',
-  );
-  const publishPackName = publishSlug
-    ? (publishSlug === packsStatus?.starterSlug
-      ? tPicker('republishStarterPack')
-      : (() => {
-          const meta = packsStatus?.libraryPacksBySlug[publishSlug];
-          return meta ? displayString(meta.name, language, DEFAULT_LOCALE) : publishSlug;
-        })())
-    : '';
-  function statusFor(sentence: SentenceRow) {
-    const slug = sentence.librarySourceId;
-    const isDefault = slug === '_starter';
-    const libraryPack = slug && slug !== '_starter' && packsStatus
-      ? packsStatus.libraryPacksBySlug[slug]
-      : undefined;
-    return {
-      isDefault,
-      isInLibrary: !!libraryPack,
-      libraryTier: libraryPack?.tier ?? ('free' as const),
-    };
-  }
-
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   useEffect(() => {
@@ -969,53 +847,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     // audio affordances are visible immediately — same pattern as list
     // creation, just no navigation since sentences live inline on this page.
     setIsEditing(true);
-  }
-
-  async function handleToggleDefault(sentence: SentenceRow) {
-    const { isDefault } = statusFor(sentence);
-    try {
-      await setSentenceDefault({ profileSentenceId: sentence._id, on: !isDefault });
-      showToast({
-        tone: 'info',
-        title: !isDefault ? t('toastDefaultOn') : t('toastDefaultOff'),
-      });
-    } catch (e) {
-      console.error('[SentencesModeContent] toggle default failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
-  }
-
-  async function handleToggleLibrary(sentence: SentenceRow) {
-    // Post-simplification: Save to pack is stateless — always opens the
-    // picker modal. Duplicate-or-assign per librarySourceId state.
-    setPackPickerSentence(sentence);
-  }
-
-  async function handlePackPickerConfirm(target: PackPickerTarget) {
-    if (!packPickerSentence) return;
-    try {
-      await setSentenceInLibrary({
-        profileSentenceId: packPickerSentence._id,
-        on: true,
-        target,
-      });
-      showToast({ tone: 'info', title: t('toastLibraryOn') });
-    } catch (e) {
-      console.error('[SentencesModeContent] save to library failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-      throw e;
-    }
-  }
-
-  async function handleSetTier(sentence: SentenceRow, tier: 'free' | 'pro' | 'max') {
-    if (!sentence.librarySourceId || sentence.librarySourceId === '_starter') return;
-    try {
-      await setLibraryPackTier({ slug: sentence.librarySourceId, tier });
-      showToast({ tone: 'info', title: t('toastTierUpdated') });
-    } catch (e) {
-      console.error('[SentencesModeContent] set tier failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
   }
 
   async function handleDeleteConfirm() {
@@ -1303,18 +1134,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                 ariaLabel={t('filterPackLabel')}
               />
             )}
-            {showAdminButtons && (
-              <RepublishButton
-                packSlug={publishSlug ?? ''}
-                packName={publishPackName}
-                disabled={!publishSlug || hasPackEdits === false}
-                disabledTooltip={
-                  !publishSlug
-                    ? tPicker('republishFilterTooltip')
-                    : tPicker('republishNoEditsTooltip')
-                }
-              />
-            )}
             {/* Publish as module — admin-only, from the folder's own page.
                 Only inside a real folder (not the groups root or Ungrouped). */}
             {showAdminButtons && realFolderId && (
@@ -1364,7 +1183,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
             <SortableContext items={filteredOrder} strategy={verticalListSortingStrategy}>
               <div className="flex flex-col gap-3">
                 {filteredSentences.map((sentence) => {
-                  const status = statusFor(sentence);
                   const audioReady =
                     !!sentence.recordedAudioPath ||
                     audioAvail?.[rowText(sentence)]?.available === true;
@@ -1401,14 +1219,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                         audioPath: s.audioPath,
                       })}
                       onPlay={(s) => setPlayTarget(s)}
-                      showAdminButtons={showAdminButtons}
-                      isDefault={status.isDefault}
-                      isInLibrary={status.isInLibrary}
-                      libraryTier={status.libraryTier}
-                      onToggleDefault={handleToggleDefault}
-                      onToggleLibrary={handleToggleLibrary}
-                      onSetTier={handleSetTier}
-                      adminPacks={showAdminButtons && packsStatus ? packsStatus : undefined}
                     />
                   );
                 })}
@@ -1611,24 +1421,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
         />
       )}
 
-      {/* Make Default + Library are now toggle buttons in each row's edit
-          action group — no confirmation dialog needed. */}
-
-      {/* Library save dialogue — admin-only. Opens when toggling a sentence's
-          Library button ON; pick or create the target pack. */}
-      {showAdminButtons && (
-        <LibraryPackPickerModal
-          isOpen={packPickerSentence !== null}
-          onClose={() => setPackPickerSentence(null)}
-          itemKind="sentence"
-          defaultName={
-            packPickerSentence
-              ? displayString(packPickerSentence.name, language, DEFAULT_LOCALE)
-              : ''
-          }
-          onConfirm={handlePackPickerConfirm}
-        />
-      )}
     </div>
   );
 }

@@ -31,8 +31,6 @@ import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
-import { PackStatusLabel } from '@/app/components/app/shared/ui/packStatusBadge';
-import { RepublishButton } from '@/app/components/app/shared/ui/RepublishButton';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
@@ -47,10 +45,6 @@ import {
   ReloadDefaultsDialog,
   type ReloadDefaultsResult,
 } from '@/app/components/app/categories/modals/ReloadDefaultsDialog';
-import {
-  LibraryPackPickerModal,
-  type PackPickerTarget,
-} from '@/app/components/app/shared/modals/LibraryPackPickerModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
   Dialog,
@@ -156,7 +150,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const { isActive: modellingActive } = useModellingSession();
   const { subscription } = useAppState();
   const tBanner = useTranslations('banner');
-  const tPicker = useTranslations('packPicker');
 
   // Modelling trigger gate. Two paths:
   //  - Instructor / admin view: Pro+ tier is the only requirement. The
@@ -197,7 +190,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
-  const [packPickerOpen, setPackPickerOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   // ── Convex ──────────────────────────────────────────────────────────────────
@@ -218,20 +210,15 @@ export function CategoryDetailContent({ categoryId }: Props) {
   // the server can also clean up R2 personal media on delete. See
   // handleDeleteConfirm below.
   const reorderProfileSymbols = useMutation(api.profileSymbols.reorderProfileSymbols);
-  // setCategoryDefaultV2 historically toggled packSlug = '_starter'; the
-  // Republish gate (handleToggleRepublishGate) replaces it. Mutation kept
-  // in the Convex API for back-compat / future removal.
-  const setCategoryInLibrary = useMutation(api.resourcePacks.setCategoryInLibraryV2);
-  const setLibraryPackTier = useMutation(api.resourcePacks.setLibraryPackTierV2);
 
   // ── Admin gating + pack status ──────────────────────────────────────────────
   const isAdmin = useIsAdmin();
   const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
 
-  // Subscribe once at the page level — used by the toolbar to show pressed state
-  // on the Default/Library toggles + correct tier in the picker.
-  // Reads librarySourceId as the single publish-target field (post-simplification).
+  // Pack-origin status still drives the AdminPackEditingBanner disclaimer
+  // (edits to a pack-origin module reach every new sign-up). Backend query is
+  // dormant/kept; the pack *controls* have moved to the module publish flow.
   const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
   const linkedSlug = category?.librarySourceId;
   const isDefault = linkedSlug === '_starter';
@@ -239,20 +226,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
     ? packsStatus.libraryPacksBySlug[linkedSlug]
     : undefined;
   const isInLibrary = !!linkedLibraryPack;
-  const libraryTier = linkedLibraryPack?.tier ?? 'free';
-
-  // Republish target = librarySourceId. Same as linkedSlug.
-  const publishSlug = category?.librarySourceId;
-  // Local visibility gate for the destructive RepublishButton (see
-  // handleToggleRepublishGate). Closed on every mount.
-  const [republishGateOpen, setRepublishGateOpen] = useState(false);
-  // Dirty-state gate for the Republish button. Subscribed only when there's
-  // a slug to query against AND admin mode is on; otherwise 'skip' avoids
-  // pointless reactive queries for non-admin viewers.
-  const hasPackEdits = useQuery(
-    api.resourcePacks.hasPackEdits,
-    showAdminButtons && publishSlug ? { slug: publishSlug } : 'skip',
-  );
 
   // ── dnd-kit sensors ─────────────────────────────────────────────────────────
   const sensors = useSensors(
@@ -370,51 +343,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
     setSymbolEditorState({ isOpen: true });
   }
 
-  // The "Default" toggle was historically a publish gate that set
-  // packSlug = '_starter' on the row (back when default packs lived in
-  // Convex, not JSON). After Phase 8.3 the librarySourceId fallback
-  // means RepublishButton surfaces automatically for any pack-origin
-  // content — so the toggle is repurposed as a *visibility gate* for
-  // the destructive Republish button. Local ephemeral state: gate
-  // starts closed on every mount; admin opens it explicitly to make
-  // the Republish action available.
-  function handleToggleRepublishGate() {
-    setRepublishGateOpen((prev) => !prev);
-  }
-
-  async function handleToggleLibrary() {
-    // Post-simplification: Save to pack is stateless — always opens the
-    // picker modal. The underlying mutation is duplicate-or-assign based
-    // on whether librarySourceId is already set. No more OFF arm.
-    setPackPickerOpen(true);
-  }
-
-  async function handlePackPickerConfirm(target: PackPickerTarget) {
-    try {
-      await setCategoryInLibrary({
-        profileCategoryId,
-        on: true,
-        target,
-      });
-      showToast({ tone: 'info', title: t('toastLibraryOn') });
-    } catch (e) {
-      console.error('[CategoryDetailContent] save to library failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-      throw e; // let the modal stay open on failure
-    }
-  }
-
-  async function handleSetTier(tier: 'free' | 'pro' | 'max') {
-    if (!linkedSlug || linkedSlug === '_starter') return;
-    try {
-      await setLibraryPackTier({ slug: linkedSlug, tier });
-      showToast({ tone: 'info', title: t('toastTierUpdated') });
-    } catch (e) {
-      console.error('[CategoryDetailContent] set tier failed', e);
-      showToast({ tone: 'warning', title: t('toastAdminError') });
-    }
-  }
-
   // ── Breadcrumb ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -463,73 +391,32 @@ export function CategoryDetailContent({ categoryId }: Props) {
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}
       {stateFlags.talker_visible && talkerMode === 'banner' && (
         <div className="shrink-0">
-          {/* Admin pack-status label rendered above the title inside the
-              banner card — visible only in admin view, both edit and
-              view modes. */}
-          {(() => {
-            const packLabel = showAdminButtons && packsStatus ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <PackStatusLabel
-                  packSlug={category?.librarySourceId}
-                  packs={packsStatus}
-                  language={language}
-                />
-              </div>
-            ) : null;
-            // RepublishButton slot for the admin edit bar — passed
-            // through to BannerEdit so the button renders next to the
-            // Republish toggle that gates it. Hidden by the gate, the
-            // origin check, and admin viewMode.
-            const republishSlot = showAdminButtons && publishSlug && republishGateOpen ? (
-              <RepublishButton
-                packSlug={publishSlug}
-                packName={categoryName}
-                disabled={hasPackEdits === false}
-                disabledTooltip={tPicker('republishNoEditsTooltip')}
-              />
-            ) : null;
-            return isEditing ? (
-              <div
-                className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
-                style={{ background: `color-mix(in srgb, ${getCategoryColour(draftColour).c500} 30%, transparent)` }}
-              >
-                {packLabel && (
-                  <div className="mb-2 self-start">{packLabel}</div>
-                )}
-                <BannerEdit
-                  categoryName={categoryName}
-                  onCategoryNameChange={handleCategoryNameChange}
-                  imagePath={draftImagePath}
-                  draftColour={draftColour}
-                  onExit={handleEditExit}
-                  onAddSymbol={handleAddSymbol}
-                  showAdminButtons={showAdminButtons}
-                  onPublishModule={showAdminButtons ? () => setPublishOpen(true) : undefined}
-                  isDefault={republishGateOpen}
-                  isInLibrary={isInLibrary}
-                  libraryTier={libraryTier}
-                  onToggleDefault={handleToggleRepublishGate}
-                  onToggleLibrary={handleToggleLibrary}
-                  onSetTier={handleSetTier}
-                  librarySourceId={category?.librarySourceId}
-                  onReloadDefaults={() => setReloadDialogOpen(true)}
-                  republishSlot={republishSlot}
-                />
-              </div>
-            ) : (
-              <CategoryPageHeader
+          {isEditing ? (
+            <div
+              className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
+              style={{ background: `color-mix(in srgb, ${getCategoryColour(draftColour).c500} 30%, transparent)` }}
+            >
+              <BannerEdit
                 categoryName={categoryName}
-                imagePath={category?.imagePath}
-                colour={category?.colour}
-                onEdit={handleEditStart}
-                onModel={handleModelClick}
-                modelDisabledReason={modelDisabledReason}
-                librarySourceId={category?.librarySourceId}
-                showAdminContext={showAdminButtons}
-                topSlot={packLabel}
+                onCategoryNameChange={handleCategoryNameChange}
+                imagePath={draftImagePath}
+                draftColour={draftColour}
+                onExit={handleEditExit}
+                onAddSymbol={handleAddSymbol}
+                showAdminButtons={showAdminButtons}
+                onPublishModule={showAdminButtons ? () => setPublishOpen(true) : undefined}
               />
-            );
-          })()}
+            </div>
+          ) : (
+            <CategoryPageHeader
+              categoryName={categoryName}
+              imagePath={category?.imagePath}
+              colour={category?.colour}
+              onEdit={handleEditStart}
+              onModel={handleModelClick}
+              modelDisabledReason={modelDisabledReason}
+            />
+          )}
         </div>
       )}
 
@@ -723,18 +610,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
               });
             }
           }}
-        />
-      )}
-
-      {/* Library save dialogue — admin-only. Opens when toggling Library ON;
-          lets admin create a new pack or append to one they already own. */}
-      {showAdminButtons && (
-        <LibraryPackPickerModal
-          isOpen={packPickerOpen}
-          onClose={() => setPackPickerOpen(false)}
-          itemKind="category"
-          defaultName={categoryName}
-          onConfirm={handlePackPickerConfirm}
         />
       )}
 

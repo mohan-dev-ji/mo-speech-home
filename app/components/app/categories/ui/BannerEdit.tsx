@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { ImageIcon, Bookmark, Library, RotateCcw, Upload } from 'lucide-react';
+import { ImageIcon, Upload } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
 import { useTranslations } from 'next-intl';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { ToggleButton } from '@/app/components/app/shared/ui/ToggleButton';
-import { PlanTierPicker, type PlanTier } from '@/app/components/app/shared/ui/PlanTierPicker';
-import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySourceBadge';
 
 // ─── Folder image (static) ───────────────────────────────────────────────────
 //
@@ -70,23 +67,6 @@ export type BannerEditProps = {
   // (gated on viewMode === 'admin' && useIsAdmin()). When false, the entire
   // admin row is hidden. See ADR-008.
   showAdminButtons?: boolean;
-  isDefault?: boolean;       // Currently in the starter pack
-  isInLibrary?: boolean;     // Currently in a non-starter library pack
-  libraryTier?: PlanTier;    // Tier of the library pack (only meaningful when isInLibrary)
-  onToggleDefault?: () => void;
-  onToggleLibrary?: () => void;
-  onSetTier?: (tier: PlanTier) => void;
-  // Reload Defaults — instructor-facing reset for pack-loaded categories.
-  // Visible only when both are set (the parent sets librarySourceId from
-  // category.librarySourceId and onReloadDefaults from its dialog opener).
-  librarySourceId?: string;
-  onReloadDefaults?: () => void;
-  // Slot for the Republish-to-JSON button rendered inside the admin
-  // toggles bar (after the Library tier picker). Parent owns the
-  // visibility gate — passes `null` or a real <RepublishButton/> based on
-  // its own republishGateOpen + publishSlug state. Slot pattern keeps
-  // BannerEdit ignorant of RepublishButton's API.
-  republishSlot?: React.ReactNode;
   /** Admin-only: open the tier picker to publish this category as a module.
    *  Rendered in the admin row. Parent gates on showAdminButtons. */
   onPublishModule?: () => void;
@@ -100,15 +80,6 @@ export function BannerEdit({
   onExit,
   onAddSymbol,
   showAdminButtons = false,
-  isDefault = false,
-  isInLibrary = false,
-  libraryTier = 'free',
-  onToggleDefault,
-  onToggleLibrary,
-  onSetTier,
-  librarySourceId,
-  onReloadDefaults,
-  republishSlot,
   onPublishModule,
 }: BannerEditProps) {
   const t = useTranslations('categoryDetail');
@@ -169,7 +140,6 @@ export function BannerEdit({
               {categoryName}
             </h1>
           )}
-          {showAdminButtons && librarySourceId && <LibrarySourceBadge />}
         </div>
 
         <div className="flex flex-col gap-2 mt-3">
@@ -198,21 +168,6 @@ export function BannerEdit({
               onClick={onAddSymbol}
               label={t('bannerAddSymbol')}
             />
-
-            {/* Reload Defaults — visible only when this category was loaded
-                from a library pack and the parent supplied a handler. Destructive
-                styling matches the Delete pattern in other modals. */}
-            {librarySourceId && onReloadDefaults && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onReloadDefaults}
-                title={t('bannerReloadDefaultsHint')}
-                icon={<RotateCcw className="w-3.5 h-3.5" />}
-              >
-                {t('bannerReloadDefaults')}
-              </Button>
-            )}
           </div>
 
           {/* Row 2: Admin controls — only visible to admins in admin viewMode.
@@ -238,33 +193,6 @@ export function BannerEdit({
                   {t('bannerPublishModule')}
                 </Button>
               )}
-              {/* "Republish" toggle: ephemeral visibility gate for the
-                  destructive RepublishButton. Pressed state = caller's
-                  republishGateOpen. No backend write, no mutual exclusion
-                  with Library — they're orthogonal concerns now. */}
-              <ToggleButton
-                pressed={isDefault}
-                onClick={() => onToggleDefault?.()}
-                icon={<Bookmark className="w-3.5 h-3.5" />}
-                title={t('bannerToggleRepublishHint')}
-              >
-                {t('bannerToggleRepublish')}
-              </ToggleButton>
-              {/* "Save to pack" is a stateless button — opens the picker
-                  modal (categories' parent handles via onToggleLibrary).
-                  Post-simplification: no pressed-state, no mutex with
-                  the Republish gate, no "off" semantic. Underlying
-                  mutation (setCategoryInLibraryV2) is duplicate-or-assign
-                  based on whether the row already has librarySourceId. */}
-              <ToggleButton
-                pressed={false}
-                onClick={() => onToggleLibrary?.()}
-                icon={<Library className="w-3.5 h-3.5" />}
-                title={t('bannerSaveToPackHint')}
-              >
-                {t('bannerSaveToPack')}
-              </ToggleButton>
-              {republishSlot}
             </div>
           )}
         </div>

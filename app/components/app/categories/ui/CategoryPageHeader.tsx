@@ -13,11 +13,7 @@ type Props = {
   onEdit: () => void;
   onModel?: () => void;
   modelDisabledReason?: string;
-  librarySourceId?: string;
-  /** Admin-view flag — gates the "From pack" badge to admin context only. */
-  showAdminContext?: boolean;
-  /** Optional slot rendered at the top of the banner card, above the
-   *  title. Used to surface the admin pack-status label in admin view. */
+  /** Optional slot rendered at the top of the banner card, above the title. */
   topSlot?: React.ReactNode;
 };
 
@@ -28,8 +24,6 @@ export function CategoryPageHeader({
   onEdit,
   onModel,
   modelDisabledReason,
-  librarySourceId,
-  showAdminContext = false,
   topSlot,
 }: Props) {
   // Banner bg = the category's tailwind-500 colour at 30% opacity (a soft tint
@@ -56,8 +50,6 @@ export function CategoryPageHeader({
         onEdit={onEdit}
         onModel={onModel}
         modelDisabledReason={modelDisabledReason}
-        librarySourceId={librarySourceId}
-        showAdminContext={showAdminContext}
         topSlot={topSlot}
       />
     </div>
