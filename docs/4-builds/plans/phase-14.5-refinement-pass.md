@@ -12,6 +12,28 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
 
 ---
 
+## 📌 Status (updated 2026-07-06)
+
+**Dedicated worktree:** `claude/wizardly-noyce-054294` — **kept live until Phase 14.5
+completes** (Stage 2 teardown + any follow-up run from it or from `main`).
+
+| Workstream | State |
+|---|---|
+| WS1.2 / WS1.3 | ☑ done _(9b76ceb, cca39fa)_ |
+| WS1.1 | ◐ redirect done; full pack teardown folded into WS2/WS3 **Stage 2** |
+| WS2 (publishing → module-level) | ☑ **Stage 1 shipped & merged to `main`** (merge `ba355a0`) |
+| WS3.1 (single publish-class badge) | ☑ shipped with WS2 Stage 1 |
+| WS4.2 (phrase audio indicator) | ☑ done _(main)_ |
+| WS5.1 (single-symbol play modal) | ☑ done _(main)_ |
+| WS4.1 · WS5.2 · WS6.1 | ☐ todo — on `main` |
+| **Stage 2 — full pack teardown** (Tasks 7–9) | ☐ todo — on `main`, backup first |
+| C.1 / C.2 / C.3 (content strategy) | ☐ blocked on decisions |
+
+WS2/WS3 Stage 1 was built on the worktree then **merged into `main`** — main now carries
+everything. Remaining work (WS4.1, WS5.2, WS6.1, **and Stage 2**) proceeds on `main`.
+
+---
+
 ## Workstream 1 — Marketing / library-site cleanup
 _Small, independent, mostly copy + routing. Warm-up batch._
 
@@ -37,12 +59,14 @@ keep a simple "publish default" button (we only seed refined SLP selections of t
 sign-up). Every **other** module carries marketing value in the resource library and needs
 a full publish control.
 
-☑ **Stage 1 shipped** on worktree `claude/wizardly-noyce-054294`. Publishing now fires
-from each module's own page; the scattered per-item pack controls + reload-defaults are
-removed. Commits: _f516ac0_ (tile badge) · _17699d5_ (categories publish) · _dcd6bb9_
-(lists/sentences publish) · _9b077d6_ (strip pack item UI) · _97ffd99_ (remove
-reload-defaults). Stage 2 (full pack teardown, Tasks 7–9) still pending on the same branch.
-Full plan: [phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
+☑ **Stage 1 shipped** (built on worktree `claude/wizardly-noyce-054294`, **merged to
+`main`** as `ba355a0`). Publishing now fires from each module's own page; the scattered
+per-item pack controls + reload-defaults are removed. Commits: _f516ac0_ (tile badge) ·
+_17699d5_ (categories publish) · _dcd6bb9_ (lists/sentences publish) · _9b077d6_ (strip
+pack item UI) · _97ffd99_ (remove reload-defaults) · plus refinements _66f335d_ (zinc-900
+badge) · _bfcd814_ (inline publish button). **Stage 2 (full pack teardown, Tasks 7–9)
+still pending — now on `main`.** Full plan:
+[phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
 Design decisions that revised the original notes below:
 
 - **Publish moves to each module's own page** (category detail; list/sentence folder
@@ -120,20 +144,23 @@ pipeline before acting._
 
 ---
 
-## Execution split (decided 2026-07-06)
+## Execution split (decided 2026-07-06; updated post-merge)
 
-- **Worktree/branch:** WS2 + WS3 **+ full pack teardown** — the big, admin-architecture,
-  data/schema-touching work. Two stages in one plan:
-  [phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
-- **`main` (here):** WS4, WS5, WS6 — self-contained polish, any order.
+- **Original split:** WS2 + WS3 + pack teardown on the worktree
+  `claude/wizardly-noyce-054294`; WS4/WS5/WS6 on `main`.
+- **Now:** WS2/WS3 **Stage 1 is merged into `main`** (`ba355a0`), so `main` is the single
+  source of truth. All remaining work — WS4.1, WS5.2, WS6.1, **and Stage 2 (pack
+  teardown)** — proceeds on `main`. The worktree stays live until Phase 14.5 completes as a
+  reference/scratch space (e.g. for the Stage 2 recon), but landings go to `main`.
 - **Whenever:** C.3 pipeline write-up (non-destructive), then the C.1/C.2 content strategy.
 
 ## Follow-ups (spawned from this pass)
 
-- ◐ **Full packs-system teardown** (deferred from WS1.1) — **now folded into the worktree
-  plan as Stage 2** (Tasks 7–9): backup + recon manifest → delete pack UI/routes/backend/
-  data → drop `resourcePacks` table + `packSlug` schema fields. Runs after WS2/WS3 Stage 1
-  on the same branch. May warrant an ADR superseding ADR-010.
+- ◐ **Full packs-system teardown** (deferred from WS1.1) — **folded into the WS2/WS3 plan
+  as Stage 2** (Tasks 7–9): backup + recon manifest → delete pack UI/routes/backend/
+  data → drop `resourcePacks` table + `packSlug` schema fields. Stage 1 has landed on
+  `main`, so Stage 2 now **runs on `main`** (take a `npx convex export` backup first).
+  May warrant an ADR superseding ADR-010.
 
 ## Completed
 

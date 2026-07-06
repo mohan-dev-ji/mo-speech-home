@@ -1,5 +1,13 @@
 # Module Publishing & Label Consistency — Implementation Plan
 
+> ## 📌 STATUS — Stage 1 ✅ shipped & merged · Stage 2 ⏳ pending
+> **Worktree:** `claude/wizardly-noyce-054294` — kept live until Phase 14.5 completes.
+> **Stage 1 (Tasks 1–6):** ✅ COMPLETE — built on the worktree, **merged to `main`** as
+> `ba355a0`. Publishing relocated to each module's own page; single publish-class tile
+> badge; legacy per-item pack UI + reload-defaults removed. App + Convex `tsc` clean.
+> **Stage 2 (Tasks 7–9 — full pack teardown):** ⏳ NOT started — now runs on `main`,
+> begins with a `npx convex export` backup.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move module publishing to each module's own page, replace the scattered
@@ -38,11 +46,15 @@ item UI (`RepublishButton`, "Save to pack", `LibrarySourceBadge`, `PackStatusLab
 
 ## Scope note
 
-> **Status (2026-07-06): Stage 1 (Tasks 1–6) COMPLETE** on `claude/wizardly-noyce-054294`.
-> Commits _f516ac0_ · _17699d5_ · _dcd6bb9_ · _9b077d6_ · _97ffd99_. App + Convex `tsc`
-> clean. **Stage 2 (Tasks 7–9, pack teardown) NOT started** — begins with a full backup.
+> **Status (updated 2026-07-06): Stage 1 (Tasks 1–6) COMPLETE & MERGED TO `main`**
+> (`ba355a0`). Built on worktree `claude/wizardly-noyce-054294`. Commits _f516ac0_ ·
+> _17699d5_ · _dcd6bb9_ · _9b077d6_ · _97ffd99_, plus refinements _66f335d_ (zinc-900
+> badge) · _bfcd814_ (inline publish button). App + Convex `tsc` clean; merge conflict-free.
+> **Stage 2 (Tasks 7–9, pack teardown) NOT started** — now runs on `main`, begins with a
+> full `npx convex export` backup. The worktree stays live until Phase 14.5 completes.
 
-Executed on a **dedicated worktree/branch** in two stages:
+Executed in two stages (Stage 1 built on a **dedicated worktree**, then merged to `main`;
+Stage 2 runs on `main`):
 
 - **Stage 1 — WS2 + WS3 (Tasks 1–6):** relocate publishing + consolidate labels. Leaves
   the old resource-pack *backend* dormant. Each task ends `tsc`-clean and committable.
@@ -89,7 +101,7 @@ and are NOT part of this worktree.
 
 ---
 
-## Task 1: Shared `ModuleClassBadge` + adopt on group tiles
+## Task 1 ✅ — Shared `ModuleClassBadge` + adopt on group tiles
 
 **Files:**
 - Create: `app/components/app/shared/ui/ModuleClassBadge.tsx`
@@ -201,7 +213,7 @@ git commit -m "Module badge: single publish-class pill on group tiles (WS3)"
 
 ---
 
-## Task 2: Move category publish → category detail page
+## Task 2 ✅ — Move category publish → category detail page
 
 **Files:**
 - Modify: `app/components/app/categories/sections/CategoriesContent.tsx` (remove trigger + modal)
@@ -287,7 +299,7 @@ git commit -m "Categories: publish from the category detail page, not the grid (
 
 ---
 
-## Task 3: Move list/sentence publish → folder page banner
+## Task 3 ✅ — Move list/sentence publish → folder page banner
 
 **Files:**
 - Modify: `app/components/app/shared/sections/GroupsView.tsx` (remove trigger + modal)
@@ -368,7 +380,7 @@ git commit -m "Lists/Sentences: publish from the folder page, not the tile (WS2)
 
 ---
 
-## Task 4: Remove legacy resource-pack item UI + stray labels
+## Task 4 ✅ — Remove legacy resource-pack item UI + stray labels
 
 **Files:**
 - Modify: `app/components/app/categories/ui/BannerEdit.tsx`
@@ -431,7 +443,7 @@ git commit -m "Strip legacy pack item UI: Save-to-pack, Republish, From-pack lab
 
 ---
 
-## Task 5: Delete the reload-defaults feature
+## Task 5 ✅ — Delete the reload-defaults feature
 
 **Files:**
 - Delete: `app/components/app/categories/modals/ReloadDefaultsDialog.tsx`
@@ -483,7 +495,7 @@ git commit -m "Remove reload-defaults: reset = delete + reinstall from library (
 
 ---
 
-## Task 6: Final sweep + plan bookkeeping
+## Task 6 ✅ — Final sweep + plan bookkeeping
 
 - [ ] **Step 1: Full typecheck (app + convex)**
 
@@ -531,7 +543,7 @@ git commit -m "docs: mark Phase 14.5 WS2+WS3 shipped"
 > produces the exact deletion manifest — the code below is the *known* surface, not the
 > full list.
 
-## Task 7: Backup + full pack-surface recon → deletion manifest
+## Task 7 ⏳ — Backup + full pack-surface recon → deletion manifest
 
 **Files:** none changed — this task produces a written manifest appended to this plan.
 
@@ -573,7 +585,7 @@ git add docs/4-builds/plans/phase-14.5-ws2-ws3-publishing-and-labels.md
 git commit -m "docs: pack-teardown deletion manifest (Stage 2 recon)"
 ```
 
-## Task 8: Delete pack UI, routes, and backend (code + data)
+## Task 8 ⏳ — Delete pack UI, routes, and backend (code + data)
 
 **Files:** everything in the manifest EXCEPT schema fields (Task 9). Order matters — delete
 consumers before the code they import, so `tsc` stays green between deletions.
@@ -613,7 +625,7 @@ git add -A
 git commit -m "Pack teardown: remove pack UI, admin, routes, backend, data (Stage 2)"
 ```
 
-## Task 9: Schema teardown — drop `resourcePacks` table + `packSlug` fields
+## Task 9 ⏳ — Schema teardown — drop `resourcePacks` table + `packSlug` fields
 
 **Files:** `convex/schema.ts` + a one-off cleanup migration. **Riskiest — backup from Task 7
 must exist.** Convex requires a field to be absent from all docs before the validator can
