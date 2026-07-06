@@ -523,6 +523,15 @@ function SortableSentenceRow({
       ? sentence.text
       : displayString(sentence.text, language, DEFAULT_LOCALE);
   const sentenceText = resolvedText || name;
+  // Talker-saved (sequence) sentences keep no maintained whole-sentence title
+  // (unit edits only patch `units`/`slots`), so derive the full sentence from the
+  // blocks — exactly what plays — for the read-only text shown to the right.
+  const seqBlocks = isSequenceRow(sentence)
+    ? blocksFromUnits(sentence.units!, language)
+    : [];
+  const seqFullText = seqBlocks
+    .map((b) => (b.kind === 'word' ? b.label : b.name))
+    .join(' ');
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -586,7 +595,7 @@ function SortableSentenceRow({
               // Talker-saved: render the composition as blocks (phrase = zinc box,
               // words = tiles). Read-only in view mode — no onTap.
               <div className="flex flex-wrap gap-2">
-                {blocksFromUnits(sentence.units!, language).map((b, i) => (
+                {seqBlocks.map((b, i) => (
                   <CompositionBlock key={i} block={b} />
                 ))}
               </div>
@@ -599,46 +608,51 @@ function SortableSentenceRow({
               title. Sequence sentences play per-unit and each phrase carries its
               own name/audio, so the whole-sentence title/audio is dropped for
               them; the block editor is the content and the edit tools sit right. */}
-          {!isSequenceRow(sentence) && (
-            isEditing ? (
-              <button
-                type="button"
-                onClick={() => onEditSentence(sentence)}
-                className="flex-1 min-w-[10rem] px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
-                style={{
-                  border: '1.5px dashed var(--theme-brand-primary)',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                }}
-              >
-                <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-                  {sentenceText}
-                </p>
-                {/* Audio-status nudge — visible inside the click area so it
-                    doubles as a call to action: "click here to add audio". */}
-                {audioReady ? (
-                  <span
-                    className="mt-1 inline-flex items-center gap-1 text-theme-xs"
-                    style={{ color: 'var(--theme-secondary-text)' }}
-                  >
-                    <Volume2 className="w-3 h-3" />
-                    {t('audioGenerated')}
-                  </span>
-                ) : (
-                  <span
-                    className="mt-1 inline-flex items-center gap-1 text-theme-xs font-semibold"
-                    style={{ color: 'var(--theme-warning)' }}
-                  >
-                    <VolumeX className="w-3 h-3" />
-                    {t('audioNeedsGeneration')}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
+          {isSequenceRow(sentence) ? (
+            // Talker-saved: read-only full sentence (derived from the blocks),
+            // shown to the right in both view and edit — no audio nudge, since
+            // sequence audio plays per unit.
+            <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
+              {seqFullText}
+            </p>
+          ) : isEditing ? (
+            <button
+              type="button"
+              onClick={() => onEditSentence(sentence)}
+              className="flex-1 min-w-[10rem] px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
+              style={{
+                border: '1.5px dashed var(--theme-brand-primary)',
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
                 {sentenceText}
               </p>
-            )
+              {/* Audio-status nudge — visible inside the click area so it
+                  doubles as a call to action: "click here to add audio". */}
+              {audioReady ? (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs"
+                  style={{ color: 'var(--theme-secondary-text)' }}
+                >
+                  <Volume2 className="w-3 h-3" />
+                  {t('audioGenerated')}
+                </span>
+              ) : (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs font-semibold"
+                  style={{ color: 'var(--theme-warning)' }}
+                >
+                  <VolumeX className="w-3 h-3" />
+                  {t('audioNeedsGeneration')}
+                </span>
+              )}
+            </button>
+          ) : (
+            <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
+              {sentenceText}
+            </p>
           )}
 
           {/* Right cluster — edit-panel. `ml-auto` right-aligns it; wraps

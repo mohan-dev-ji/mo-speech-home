@@ -117,8 +117,11 @@ Current state is inconsistent:
   **Backdrop** matches the existing modals, not the mockup: `--theme-overlay`
   (`rgba(0,0,0,0.82)`), **no blur**. Figma design node: `3257-5627` (to be updated:
   backdrop = overlay/no-blur, glow = `#FACC15`). _(main; SentencePlayModal.tsx et al.)_
-- ☐ **5.2 Block sentences saved from the talker** — show the full sentence text to the
-  right of the symbols, like other sentences.
+- ☑ **5.2 Block sentences saved from the talker** — full sentence text now shows to the
+  right of the blocks (view + edit, read-only). Talker sentences keep no maintained
+  whole-sentence title, so the text is **derived from the blocks** (`word→label`,
+  `phrase→name`, joined) — exactly what plays; no audio nudge (sequence audio is per-unit).
+  _(main; SentencesModeContent.tsx)_
 
 ## Workstream 6 — Responsive polish
 
