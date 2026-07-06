@@ -37,8 +37,12 @@ keep a simple "publish default" button (we only seed refined SLP selections of t
 sign-up). Every **other** module carries marketing value in the resource library and needs
 a full publish control.
 
-◐ **Brainstormed + planned → executing on a dedicated worktree.** Full plan:
-[phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
+☑ **Stage 1 shipped** on worktree `claude/wizardly-noyce-054294`. Publishing now fires
+from each module's own page; the scattered per-item pack controls + reload-defaults are
+removed. Commits: _f516ac0_ (tile badge) · _17699d5_ (categories publish) · _dcd6bb9_
+(lists/sentences publish) · _9b077d6_ (strip pack item UI) · _97ffd99_ (remove
+reload-defaults). Stage 2 (full pack teardown, Tasks 7–9) still pending on the same branch.
+Full plan: [phase-14.5-ws2-ws3-publishing-and-labels.md](phase-14.5-ws2-ws3-publishing-and-labels.md).
 Design decisions that revised the original notes below:
 
 - **Publish moves to each module's own page** (category detail; list/sentence folder
@@ -60,9 +64,10 @@ Current state is inconsistent:
   "Default" in the list-items banner.
 - **Sentences**: both labels on the sentence; nothing on the group tile.
 
-- ◐ **3.1 Normalize** — a single admin-only **publish-class badge** (Default/Free/Pro/Max,
+- ☑ **3.1 Normalize** — a single admin-only **publish-class badge** (Default/Free/Pro/Max,
   or "Draft") on group tiles only; no labels on banners or content. Replaces the scattered
-  "Default" / "From pack" labels. Planned with WS2 → see the worktree plan.
+  "Default" / "From pack" labels. Shipped with WS2 Stage 1 — see commit _f516ac0_ +
+  _9b077d6_ (label strip).
 
 ## Workstream 4 — Edit-mode UI consistency
 
