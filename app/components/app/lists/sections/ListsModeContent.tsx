@@ -269,6 +269,9 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const isFree = subscription.tier === 'free';
   const [isEditing, setIsEditing] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
+  // Last-seen server id-set, so the localOrder sync below can run during render
+  // (not in an effect) only when the set actually changes.
+  const [seenOrderKey, setSeenOrderKey] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
@@ -359,15 +362,22 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  useEffect(() => {
-    if (!scopedLists) return;
-    setLocalOrder((prev) => {
-      const serverIds = scopedLists.map((l) => l._id as string);
-      const kept = prev.filter((id) => serverIds.includes(id));
-      const added = serverIds.filter((id) => !prev.includes(id));
-      return [...kept, ...added];
-    });
-  }, [scopedLists]);
+  // Re-sync the local drag order with the server set DURING render (React's
+  // "adjust state when inputs change" pattern) rather than a setState-in-effect:
+  // keep still-present ids in their local order and append newcomers. Guarded by
+  // `seenOrderKey` so it runs only on an actual change.
+  if (scopedLists) {
+    const serverIds = scopedLists.map((l) => l._id as string);
+    const orderKey = serverIds.join(',');
+    if (orderKey !== seenOrderKey) {
+      setSeenOrderKey(orderKey);
+      setLocalOrder((prev) => {
+        const kept = prev.filter((id) => serverIds.includes(id));
+        const added = serverIds.filter((id) => !prev.includes(id));
+        return [...kept, ...added];
+      });
+    }
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -439,8 +449,13 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     setEditingNameId(null);
   }
 
-  const listMap = Object.fromEntries((scopedLists ?? []).map((l) => [l._id, l]));
-  const orderedLists = localOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
+  // Memoised so its identity is stable while the server set is unchanged — the
+  // filter below reads it, and a fresh object every render trips the compiler's
+  // "could not be preserved".
+  const listMap = useMemo(
+    () => Object.fromEntries((scopedLists ?? []).map((l) => [l._id, l])),
+    [scopedLists],
+  );
 
   // ── Filter visibility + options ──────────────────────────────────────────
   const filterVisible = showAdminBadges
@@ -476,22 +491,26 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   }, [filterVisible, showAdminBadges, adminPacks, loadedPacks, language, t]);
 
   // ── Apply filter ─────────────────────────────────────────────────────────
-  const filteredOrder = useMemo(() => {
-    if (packFilter === 'all') return localOrder;
-    return localOrder.filter((id) => {
-      const row = listMap[id];
-      if (!row) return false;
-      if (showAdminBadges) {
-        // Post-simplification: filters use librarySourceId (single field).
-        if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
-        if (packFilter === 'unpublished') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      } else {
-        if (packFilter === 'mine') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      }
-    });
-  }, [packFilter, localOrder, listMap, showAdminBadges, adminPacks?.starterSlug]);
+  // Computed inline (no manual useMemo): the 'all' branch returns `localOrder`
+  // directly while the filtered branch returns a fresh array, which the compiler
+  // can't preserve as a manual memo — and it's a cheap O(n) filter over id
+  // strings, so memoising it buys nothing.
+  const filteredOrder =
+    packFilter === 'all'
+      ? localOrder
+      : localOrder.filter((id) => {
+          const row = listMap[id];
+          if (!row) return false;
+          if (showAdminBadges) {
+            // Post-simplification: filters use librarySourceId (single field).
+            if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
+            if (packFilter === 'unpublished') return !row.librarySourceId;
+            return row.librarySourceId === packFilter;
+          } else {
+            if (packFilter === 'mine') return !row.librarySourceId;
+            return row.librarySourceId === packFilter;
+          }
+        });
 
   const filteredLists = filteredOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
