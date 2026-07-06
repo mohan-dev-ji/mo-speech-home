@@ -27,6 +27,7 @@ import {
   Move,
   Plus,
   Trash2,
+  Upload,
   Volume2,
   VolumeX,
   X,
@@ -53,6 +54,8 @@ import { LibrarySourceBadge } from '@/app/components/app/categories/ui/LibrarySo
 import { resolvePackName } from '@/lib/packs/resolvePackName';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
@@ -803,6 +806,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
   // Unit-level edit target (sequence sentences). unitIndex -1 = append a word.
   const [unitEditTarget, setUnitEditTarget] =
@@ -1311,6 +1315,18 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                 }
               />
             )}
+            {/* Publish as module — admin-only, from the folder's own page.
+                Only inside a real folder (not the groups root or Ungrouped). */}
+            {showAdminButtons && realFolderId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPublishOpen(true)}
+                icon={<Upload className="w-3.5 h-3.5" />}
+              >
+                {folderDoc?.publishedModuleSlug ? t('updateModule') : t('publishModule')}
+              </Button>
+            )}
           </PageBanner>
         </div>
       )}
@@ -1411,6 +1427,17 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle and
           handleCreateOpen when subscription.tier === 'free'. */}
+      {publishOpen && realFolderId && (
+        <PublishModuleModal
+          kind="sentences"
+          targetId={realFolderId}
+          defaultName={folderName}
+          publishedSlug={folderDoc?.publishedModuleSlug}
+          publishedClass={folderDoc?.publishedModuleClass}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
+
       <UpgradeNudge
         open={upgradeNudgeOpen}
         onOpenChange={setUpgradeNudgeOpen}

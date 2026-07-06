@@ -19,9 +19,11 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash2, Move, Check, X, FolderInput } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X, FolderInput, Upload } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
+import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
@@ -327,6 +329,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
@@ -583,6 +586,18 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                 ariaLabel={t('filterPackLabel')}
               />
             )}
+            {/* Publish as module — admin-only, from the folder's own page.
+                Only inside a real folder (not the groups root or Ungrouped). */}
+            {showAdminBadges && realFolderId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPublishOpen(true)}
+                icon={<Upload className="w-3.5 h-3.5" />}
+              >
+                {folderDoc?.publishedModuleSlug ? t('updateModule') : t('publishModule')}
+              </Button>
+            )}
           </PageBanner>
         </div>
       )}
@@ -651,6 +666,17 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle and
           handleCreateOpen when subscription.tier === 'free'. */}
+      {publishOpen && realFolderId && (
+        <PublishModuleModal
+          kind="lists"
+          targetId={realFolderId}
+          defaultName={folderName}
+          publishedSlug={folderDoc?.publishedModuleSlug}
+          publishedClass={folderDoc?.publishedModuleClass}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
+
       <UpgradeNudge
         open={upgradeNudgeOpen}
         onOpenChange={setUpgradeNudgeOpen}
