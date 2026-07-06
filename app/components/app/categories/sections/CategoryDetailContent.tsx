@@ -199,7 +199,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
     { profileCategoryId, voiceId }
   );
 
-  const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
   // deleteProfileSymbol now routed through /api/delete-profile-symbol so
   // the server can also clean up R2 personal media on delete. See
   // handleDeleteConfirm below.
@@ -283,24 +282,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   function handleEditExit() {
     setIsEditing(false);
-  }
-
-  function handleCategoryNameChange(nextName: string) {
-    if (!category) return;
-    // Preserve every other locale's label when editing the active locale.
-    // Per ADR-009 §2 the name field is an open ISO-keyed record — the new
-    // value overwrites only the current locale slot.
-    const next: Record<string, string> = {
-      ...category.name,
-      [language]: nextName,
-    };
-    updateCategoryMeta({
-      profileCategoryId,
-      name: next,
-      propagateToPack: showAdminButtons,
-    }).catch((e) =>
-      console.error('[CategoryDetailContent] name update failed', e)
-    );
   }
 
   function handleDeleteRequest(id: Id<'profileSymbols'>, name: string) {
@@ -392,12 +373,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
         <div className="shrink-0">
           {isEditing ? (
             <div
-              className="relative rounded-theme p-3 min-h-[200px] flex flex-col justify-center"
+              className="relative rounded-theme p-3 flex flex-col justify-center"
               style={{ background: `color-mix(in srgb, ${getCategoryColour(draftColour).c500} 30%, transparent)` }}
             >
               <BannerEdit
                 categoryName={categoryName}
-                onCategoryNameChange={handleCategoryNameChange}
                 imagePath={draftImagePath}
                 draftColour={draftColour}
                 onExit={handleEditExit}
