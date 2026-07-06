@@ -26,7 +26,7 @@ completes** (Stage 2 teardown + any follow-up run from it or from `main`).
 | WS4.2 (phrase audio indicator) | ☑ done _(main)_ |
 | WS5.1 (single-symbol play modal) | ☑ done _(main)_ |
 | WS4.1 + 4.1b (category edit mode) · WS5.2 | ☑ done _(main)_ |
-| WS6.1 (small-screen responsive) | ☐ todo — on `main` |
+| WS6.1 (stacked wrapping rows) | ☑ done _(main)_ |
 | **Stage 2 — full pack teardown** (Tasks 7–9) | ☐ todo — on `main`, backup first |
 | C.1 / C.2 / C.3 (content strategy) | ☐ blocked on decisions |
 
@@ -132,8 +132,12 @@ Current state is inconsistent:
 
 ## Workstream 6 — Responsive polish
 
-- ☐ **6.1 Small-screen sentence & list content** — shrink to fit the container better;
-  consider stacking the title below the symbols.
+- ☑ **6.1 Sentence & list content — stacked, wrapping rows.** Both sentence and list rows
+  now stack the symbols/thumbnails on top of the content text (edit panel top-right), with
+  the full text below wrapping (`break-words`), at **all** screen sizes — not just small.
+  Also dropped the **4-thumbnail cap** on lists (`getProfileLists` returns all; strip wraps,
+  no "…" overflow). _(main)_ Plan:
+  [phase-14.5-ws6-stacked-rows.md](phase-14.5-ws6-stacked-rows.md).
 
 ---
 
