@@ -78,10 +78,16 @@ Current state is inconsistent:
 
 ## Workstream 5 — Sentence playback & display
 
-- ☐ **5.1 Revamp the single-symbol sentence play modal** (sentences built from single
-  symbols on the sentence page): smaller sentence text; symbols grouped on the
-  module-color background; yellow glow animating while audio plays; add the replay button
-  from the other sentence play modal. **Extract as a shared component.**
+- ☑ **5.1 Revamp the single-symbol sentence play modal** — shipped as a variant of the
+  block `CompositionPlayModal`. Symbols group on the **module (folder) colour at 50%**
+  (`getCategoryColour(colour).c500` @ 50%) so the glow reads; the shared **`--theme-play-glow`**
+  (`PLAY_GLOW`) sits on the **whole group** while the single clip plays (glow driven off the
+  audio `play`/`ended` events); **24px** (`text-theme-h4`) sentence pill; footer has
+  `pt-theme-general` so the glow never touches the buttons. Extracted shared **`ReplayButton`**
+  (brand-primary "Replay") + **`PLAY_GLOW`** constant, now used by both modals.
+  **Backdrop** matches the existing modals, not the mockup: `--theme-overlay`
+  (`rgba(0,0,0,0.82)`), **no blur**. Figma design node: `3257-5627` (to be updated:
+  backdrop = overlay/no-blur, glow = `#FACC15`). _(main; SentencePlayModal.tsx et al.)_
 - ☐ **5.2 Block sentences saved from the talker** — show the full sentence text to the
   right of the symbols, like other sentences.
 

@@ -1580,6 +1580,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           slots={playTarget?.slots ?? []}
           recordedAudioPath={playTarget?.recordedAudioPath}
           voiceId={voiceId}
+          moduleColour={folderDoc?.colour}
           onClose={() => setPlayTarget(null)}
         />
       )}

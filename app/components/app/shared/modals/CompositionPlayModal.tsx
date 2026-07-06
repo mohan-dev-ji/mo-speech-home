@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { RotateCcw } from 'lucide-react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
+import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 
@@ -14,7 +13,6 @@ import { resolveTtsKey } from '@/lib/audio/playTts';
 export function CompositionPlayModal({
   isOpen, blocks, voiceId, onClose,
 }: { isOpen: boolean; blocks: PlayBlock[]; voiceId: string; onClose: () => void }) {
-  const t = useTranslations('talker');
   // Monotonic run token: every new sequence/tap/close bumps it, so any older
   // in-flight run bails at its next check. Guards against React StrictMode's
   // double-invoked mount effect launching two concurrent runs — which is what
@@ -89,11 +87,7 @@ export function CompositionPlayModal({
           <CompositionBlock key={i} block={b} active={activeIndex === i} onTap={() => playSingle(i)} />
         ))}
       </div>
-      <button type="button" onClick={(e) => { e.stopPropagation(); runSequence(); }}
-        className="flex items-center gap-2 rounded-theme-sm px-5 py-3 text-body font-semibold"
-        style={{ background: 'var(--theme-brand-primary)', color: '#fff' }}>
-        <RotateCcw className="w-5 h-5" /> {t('replay')}
-      </button>
+      <ReplayButton onClick={runSequence} />
     </div>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
 import type { PlayBlock } from './blocks';
 
 const ZINC = getCategoryColour('zinc');
-const GLOW = '0 0 0 3px var(--theme-play-glow), 0 0 20px 6px var(--theme-play-glow)';
 
 // Shared block renderer (ADR-015). A word is an image-over-label card; a phrase
 // is the zinc box from TalkerBar's PhraseBox (thumbnail row + name pill). `active`
 // wraps the block in the stepped-play glow. `onTap` makes it a play/edit target.
 export function CompositionBlock({ block, active, onTap }: { block: PlayBlock; active?: boolean; onTap?: () => void }) {
-  const glow = active ? { boxShadow: GLOW } : undefined;
+  const glow = active ? { boxShadow: PLAY_GLOW } : undefined;
   if (block.kind === 'word') {
     return (
       <button type="button" onClick={onTap} aria-label={block.label}
