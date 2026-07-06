@@ -1,17 +1,15 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import {
-  materialiseSymbolsFromJson,
   removeCategoryFromPack,
   syncCategoryToPackIfPublished,
 } from "./resourcePacks";
 import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
-import { getLibraryPackBySlug } from "./lib/libraryPacks";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
@@ -417,98 +415,12 @@ export const deleteCategory = mutation({
   },
 });
 
-// ─── Reload Defaults ──────────────────────────────────────────────────────────
-
-/**
- * Resets a category that was loaded from a library pack back to the pack's
- * current snapshot. Destructive: replaces all profileSymbols (instructor
- * customisations + extras both gone), patches category-level fields back to
- * the snapshot. Atomic — single transactional mutation.
- *
- * R2 file deletion happens OUTSIDE this mutation, in the orchestrating
- * Next.js API route (Convex mutations can't call AWS SDK). The route reads
- * the orphan keys via getCategoryReloadOrphanKeys BEFORE this mutation runs,
- * then deletes them after.
- *
- * Errors:
- *   NOT_FOUND          — caller doesn't own the category, or category gone
- *   NOT_FROM_LIBRARY   — category has no librarySourceId
- *   PACK_NOT_FOUND     — librarySourceId points to a deleted pack
- *   SNAPSHOT_MISSING   — pack exists but no matching category snapshot inside
- */
-export const reloadCategoryFromLibrary = mutation({
-  args: { profileCategoryId: v.id("profileCategories") },
-  handler: async (ctx, { profileCategoryId }) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
-    const category = await ctx.db.get(profileCategoryId);
-    if (!category || category.accountId !== accountId) {
-      throw new ConvexError({ code: "NOT_FOUND" });
-    }
-    if (!category.librarySourceId) {
-      throw new ConvexError({ code: "NOT_FROM_LIBRARY" });
-    }
-    // Post-ADR-010: `librarySourceId` is a JSON pack slug, not a Convex Id.
-    // Resolve via the bundled catalogue.
-    const pack = getLibraryPackBySlug(category.librarySourceId);
-    if (!pack) {
-      throw new ConvexError({ code: "PACK_NOT_FOUND" });
-    }
-
-    // Join: prefer librarySourceCategoryKey (rename-resilient); fall back to
-    // the default locale's name for rows loaded before that field existed.
-    const joinKey = category.librarySourceCategoryKey ?? category.name.en;
-    const snapshot = (pack.categories ?? []).find(
-      (c) => c.name.en === joinKey
-    );
-    if (!snapshot) {
-      throw new ConvexError({ code: "SNAPSHOT_MISSING" });
-    }
-
-    // Delete profileSymbols for this category. R2 file deletion happens in
-    // the orchestrating API route — see file-level docstring.
-    const oldSymbols = await ctx.db
-      .query("profileSymbols")
-      .withIndex("by_profile_category_id", (q) =>
-        q.eq("profileCategoryId", profileCategoryId)
-      )
-      .collect();
-    for (const s of oldSymbols) {
-      await ctx.db.delete(s._id);
-    }
-
-    const now = Date.now();
-    await ctx.db.patch(profileCategoryId, {
-      name: snapshot.name,
-      icon: snapshot.icon,
-      colour: snapshot.colour,
-      // Sets to undefined when snapshot lacks one — clears any instructor override.
-      imagePath: snapshot.imagePath,
-      // Backfill the key on rows that didn't have it (subsequent reloads use it).
-      librarySourceCategoryKey:
-        category.librarySourceCategoryKey ?? snapshot.name.en,
-      updatedAt: now,
-    });
-
-    // materialiseSymbolsFromJson handles both SymbolStix and custom-image
-    // snapshot shapes — reload-from-library now reproduces image-search /
-    // AI / upload symbols too, not just SymbolStix.
-    const { symbolsAdded, symbolsSkipped } = await materialiseSymbolsFromJson(
-      ctx,
-      accountId,
-      profileCategoryId,
-      snapshot.symbols,
-      now
-    );
-
-    return { symbolsAdded, symbolsSkipped };
-  },
-});
+// ─── Category R2 orphan keys ──────────────────────────────────────────────────
 
 /**
  * Returns the personal R2 keys (uploads, recordings, image-search picks) on
- * a category's symbols. Used by the API route BEFORE calling
- * reloadCategoryFromLibrary so it can delete them after the mutation runs.
+ * a category's symbols, so an orchestrating API route can delete them after a
+ * destructive category operation.
  *
  * Excludes shared caches: ai-cache/ (aiGenerated images) and audio/<voice>/tts/
  * (TTS cache) are reusable across users and never deleted on reload.

@@ -26,9 +26,9 @@ const TREE_FNS = {
 } as const;
 
 /**
- * Uninstall an installed content module (ADR-014 §5). Generalises
- * `reload-category-defaults`: collect the module's personal R2 keys, run the
- * per-type delete mutation, then delete the R2 objects (best-effort).
+ * Uninstall an installed content module (ADR-014 §5): collect the module's
+ * personal R2 keys, run the per-type delete mutation, then delete the R2
+ * objects (best-effort).
  *
  * Body: { tree: "categories" | "lists" | "sentences", slug: string }
  * Returns: { ...mutationCounts, filesDeleted, filesFailed }

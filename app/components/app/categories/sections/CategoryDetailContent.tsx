@@ -30,7 +30,6 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
-import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { CategoryBoardGrid } from '@/app/components/app/shared/ui/CategoryBoardGrid';
 import { SymbolCard } from '@/app/components/app/shared/ui/SymbolCard';
 import { ModellingOverlayWrapper } from '@/app/components/app/shared/ui/ModellingOverlayWrapper';
@@ -41,10 +40,6 @@ import { BannerEdit } from '@/app/components/app/categories/ui/BannerEdit';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { ModellingPickerModal } from '@/app/components/app/categories/modals/ModellingPickerModal';
-import {
-  ReloadDefaultsDialog,
-  type ReloadDefaultsResult,
-} from '@/app/components/app/categories/modals/ReloadDefaultsDialog';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import {
   Dialog,
@@ -188,7 +183,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const [symbolEditorState, setSymbolEditorState] = useState<SymbolEditorState>({ isOpen: false });
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [reloadDialogOpen, setReloadDialogOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
@@ -213,7 +207,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
 
   // ── Admin gating + pack status ──────────────────────────────────────────────
   const isAdmin = useIsAdmin();
-  const { showToast } = useToast();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
 
   // Pack-origin status still drives the AdminPackEditingBanner disclaimer
@@ -585,33 +578,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
         />
       )}
 
-      {/* Reload Defaults — destructive confirmation modal. Only mountable
-          when the category was loaded from a library pack (button hidden
-          otherwise via BannerEdit's librarySourceId guard). */}
-      {category?.librarySourceId && profileCategoryId && (
-        <ReloadDefaultsDialog
-          open={reloadDialogOpen}
-          onOpenChange={setReloadDialogOpen}
-          profileCategoryId={profileCategoryId}
-          categoryName={categoryName}
-          onSuccess={(result: ReloadDefaultsResult) => {
-            const successMsg =
-              result.symbolsSkipped > 0
-                ? t('reloadDefaultsSuccessWithSkipped', {
-                    count: result.symbolsAdded,
-                    skipped: result.symbolsSkipped,
-                  })
-                : t('reloadDefaultsSuccess', { count: result.symbolsAdded });
-            showToast({ tone: 'info', title: successMsg });
-            if (result.filesFailed > 0) {
-              showToast({
-                tone: 'warning',
-                title: t('reloadDefaultsMediaCleanupWarning'),
-              });
-            }
-          }}
-        />
-      )}
 
       {/* Free-tier upgrade nudge — fires from handleEditStart when the user
           is on the free tier. */}
