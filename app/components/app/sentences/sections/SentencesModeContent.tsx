@@ -549,117 +549,64 @@ function SortableSentenceRow({
         role={isEditing ? undefined : 'button'}
         aria-label={isEditing ? undefined : t('rowPlay')}
       >
-        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+        <div className="flex flex-col gap-3">
 
-          {/* Symbol preview area. Sequence sentences take the available width
-              (flex-1 + min-w-0) so the block cards wrap onto new rows within the
-              container instead of overflowing — while leaving the edit tools
-              right-aligned on the same row. `min-w-0` is what lets it shrink
-              below its content so wrapping actually kicks in. */}
-          <div
-            className={isSequenceRow(sentence) ? 'flex-1 min-w-0' : 'shrink-0'}
-            // View mode: a sequence row's blocks are its only content and the
-            // title is gone, so let clicks bubble to the row's onPlay. Non-sequence
-            // rows keep stopPropagation so tapping a thumbnail doesn't play.
-            onClick={isEditing || isSequenceRow(sentence) ? undefined : (e) => e.stopPropagation()}
-          >
-            {isEditing ? (
-              isSequenceRow(sentence) ? (
-                <UnitStrip
-                  sentenceId={sentence._id}
-                  units={sentence.units!}
-                  language={language}
-                  onEditWord={onEditWord}
-                  onRemoveUnit={onRemoveUnit}
-                  onAddWord={onAddWord}
-                  onAddPhrase={onAddPhrase}
-                  onReorderUnits={onReorderUnits}
-                  onPhraseChange={onPhraseChange}
-                  rowRemoveLabel={t('rowRemoveSlot')}
-                  rowAddLabel={t('rowAddWord')}
-                />
-              ) : (
-                <SlotStrip
-                  sentenceId={sentence._id}
-                  slots={sentence.slots}
-                  onEditSlot={onEditSlot}
-                  onRemoveSlot={onRemoveSlot}
-                  onAddSlot={onAddSlot}
-                  onReorderSlots={onReorderSlots}
-                  rowEditLabel={t('rowEditSlot')}
-                  rowRemoveLabel={t('rowRemoveSlot')}
-                  rowAddLabel={t('rowAddSlot')}
-                />
-              )
-            ) : isSequenceRow(sentence) ? (
-              // Talker-saved: render the composition as blocks (phrase = zinc box,
-              // words = tiles). Read-only in view mode — no onTap.
-              <div className="flex flex-wrap gap-2">
-                {seqBlocks.map((b, i) => (
-                  <CompositionBlock key={i} block={b} />
-                ))}
-              </div>
-            ) : (
-              <ThumbnailStrip slots={sentence.slots} />
-            )}
-          </div>
-
-          {/* Sentence text + whole-sentence audio nudge — the legacy (fluent)
-              title. Sequence sentences play per-unit and each phrase carries its
-              own name/audio, so the whole-sentence title/audio is dropped for
-              them; the block editor is the content and the edit tools sit right. */}
-          {isSequenceRow(sentence) ? (
-            // Talker-saved: read-only full sentence (derived from the blocks),
-            // shown to the right in both view and edit — no audio nudge, since
-            // sequence audio plays per unit.
-            <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-              {seqFullText}
-            </p>
-          ) : isEditing ? (
-            <button
-              type="button"
-              onClick={() => onEditSentence(sentence)}
-              className="flex-1 min-w-[10rem] px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
-              style={{
-                border: '1.5px dashed var(--theme-brand-primary)',
-                background: 'transparent',
-                cursor: 'pointer',
-              }}
+          {/* Top row: the symbol area (fills the width + wraps) and the edit panel
+              (top-right, aligned with the first symbol row). The full sentence text
+              sits below on its own line so wide sentences don't push it off right. */}
+          <div className="flex items-start gap-3">
+            <div
+              className="flex-1 min-w-0"
+              // View mode: a sequence row's blocks are its only content and the
+              // title is below now, so let clicks bubble to the row's onPlay.
+              // Non-sequence rows keep stopPropagation so tapping a thumbnail
+              // doesn't play.
+              onClick={isEditing || isSequenceRow(sentence) ? undefined : (e) => e.stopPropagation()}
             >
-              <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-                {sentenceText}
-              </p>
-              {/* Audio-status nudge — visible inside the click area so it
-                  doubles as a call to action: "click here to add audio". */}
-              {audioReady ? (
-                <span
-                  className="mt-1 inline-flex items-center gap-1 text-theme-xs"
-                  style={{ color: 'var(--theme-secondary-text)' }}
-                >
-                  <Volume2 className="w-3 h-3" />
-                  {t('audioGenerated')}
-                </span>
+              {isEditing ? (
+                isSequenceRow(sentence) ? (
+                  <UnitStrip
+                    sentenceId={sentence._id}
+                    units={sentence.units!}
+                    language={language}
+                    onEditWord={onEditWord}
+                    onRemoveUnit={onRemoveUnit}
+                    onAddWord={onAddWord}
+                    onAddPhrase={onAddPhrase}
+                    onReorderUnits={onReorderUnits}
+                    onPhraseChange={onPhraseChange}
+                    rowRemoveLabel={t('rowRemoveSlot')}
+                    rowAddLabel={t('rowAddWord')}
+                  />
+                ) : (
+                  <SlotStrip
+                    sentenceId={sentence._id}
+                    slots={sentence.slots}
+                    onEditSlot={onEditSlot}
+                    onRemoveSlot={onRemoveSlot}
+                    onAddSlot={onAddSlot}
+                    onReorderSlots={onReorderSlots}
+                    rowEditLabel={t('rowEditSlot')}
+                    rowRemoveLabel={t('rowRemoveSlot')}
+                    rowAddLabel={t('rowAddSlot')}
+                  />
+                )
+              ) : isSequenceRow(sentence) ? (
+                // Talker-saved: render the composition as blocks (phrase = zinc box,
+                // words = tiles). Read-only in view mode — no onTap.
+                <div className="flex flex-wrap gap-2">
+                  {seqBlocks.map((b, i) => (
+                    <CompositionBlock key={i} block={b} />
+                  ))}
+                </div>
               ) : (
-                <span
-                  className="mt-1 inline-flex items-center gap-1 text-theme-xs font-semibold"
-                  style={{ color: 'var(--theme-warning)' }}
-                >
-                  <VolumeX className="w-3 h-3" />
-                  {t('audioNeedsGeneration')}
-                </span>
+                <ThumbnailStrip slots={sentence.slots} />
               )}
-            </button>
-          ) : (
-            <p className="flex-1 min-w-[10rem] text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-              {sentenceText}
-            </p>
-          )}
+            </div>
 
-          {/* Right cluster — edit-panel. `ml-auto` right-aligns it; wraps
-              below the text as a unit when narrow. */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
-            {isEditing && (
-              <>
+            {/* Edit panel — top-right, aligned with the first symbol row. */}
+            <div className="shrink-0">
+              {isEditing && (
                 <EditPanel className="flex-wrap">
                   <IconButton
                     size="sm"
@@ -687,9 +634,56 @@ function SortableSentenceRow({
                     {...attributes}
                   />
                 </EditPanel>
-              </>
-            )}
+              )}
+            </div>
           </div>
+
+          {/* Below: full sentence text — wraps to as many lines as needed.
+              Sequence rows show the derived read-only text; fluent rows show the
+              editable title + audio nudge (edit) or plain text (view). */}
+          {isSequenceRow(sentence) ? (
+            <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
+              {seqFullText}
+            </p>
+          ) : isEditing ? (
+            <button
+              type="button"
+              onClick={() => onEditSentence(sentence)}
+              className="w-full px-3 py-2 rounded-theme-sm text-left transition-opacity hover:opacity-80"
+              style={{
+                border: '1.5px dashed var(--theme-brand-primary)',
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
+                {sentenceText}
+              </p>
+              {/* Audio-status nudge — visible inside the click area so it
+                  doubles as a call to action: "click here to add audio". */}
+              {audioReady ? (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs"
+                  style={{ color: 'var(--theme-secondary-text)' }}
+                >
+                  <Volume2 className="w-3 h-3" />
+                  {t('audioGenerated')}
+                </span>
+              ) : (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 text-theme-xs font-semibold"
+                  style={{ color: 'var(--theme-warning)' }}
+                >
+                  <VolumeX className="w-3 h-3" />
+                  {t('audioNeedsGeneration')}
+                </span>
+              )}
+            </button>
+          ) : (
+            <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
+              {sentenceText}
+            </p>
+          )}
         </div>
       </div>
     </div>
