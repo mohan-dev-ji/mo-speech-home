@@ -71,18 +71,13 @@ type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
 
 function ThumbnailStrip({
   thumbnails,
-  itemCount,
 }: {
   thumbnails: { imagePath?: string }[];
-  itemCount: number;
 }) {
   const filled = thumbnails.filter((t) => t.imagePath);
-  // Overflow indicator: query caps thumbnails at 4 — anything beyond that
-  // shows a subtle "…" sitting flush with the bottom of the last symbol
-  // card, no chrome or background of its own.
-  const hasOverflow = itemCount > thumbnails.length;
+  // All item thumbnails, wrapping onto new lines (no cap / overflow "…").
   return (
-    <div className="flex items-end gap-2 shrink-0">
+    <div className="flex flex-wrap items-end gap-2">
       {filled.map((t, i) => (
         <div
           key={i}
@@ -98,15 +93,6 @@ function ThumbnailStrip({
           />
         </div>
       ))}
-      {hasOverflow && (
-        <span
-          className="text-theme-p font-bold leading-none pb-1 shrink-0"
-          style={{ color: 'var(--theme-secondary-text)' }}
-          aria-label={`${itemCount - thumbnails.length} more`}
-        >
-          …
-        </span>
-      )}
     </div>
   );
 }
@@ -157,56 +143,19 @@ function SortableListRow({
           line (grows on Y) instead of overflowing horizontally. */}
       <div
         className={[
-          'relative flex flex-wrap items-center gap-3 md:gap-4 rounded-theme-card px-theme-general py-theme-item transition-colors',
+          'relative flex flex-col gap-3 rounded-theme-card px-theme-general py-theme-item transition-colors',
           'border-2 border-dashed',
           isEditing ? 'border-theme-enter-mode' : 'border-transparent cursor-pointer',
         ].join(' ')}
         style={{ background: 'var(--group-card, var(--theme-card))' }}
         onClick={!isEditing ? () => onOpen(list._id) : undefined}
       >
-        <ThumbnailStrip thumbnails={list.thumbnails} itemCount={list.itemCount} />
-
-        {/* Meta row — title (grows), then the right cluster (badge + edit-panel).
-            No `min-w-0` here: the meta keeps its min-content width so it wraps
-            below the thumbnails (grows Y) instead of overflowing horizontally. */}
-        <div className="flex flex-wrap items-center gap-3 flex-1">
-          <div className="flex-1 min-w-[8rem]">
-            {isEditingThisName ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={editingNameValue}
-                  onChange={(e) => onEditNameChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') onEditNameSave();
-                    if (e.key === 'Escape') onEditNameCancel();
-                  }}
-                  autoFocus
-                  className="flex-1 px-2 py-1 rounded-theme-sm text-theme-s outline-none"
-                  style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'var(--theme-text-primary)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <button type="button" onClick={onEditNameSave} className="p-1 rounded" style={{ color: 'var(--theme-success, #22c55e)' }}>
-                  <Check className="w-4 h-4" />
-                </button>
-                <button type="button" onClick={onEditNameCancel} className="p-1 rounded" style={{ color: 'var(--theme-text-secondary)' }}>
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <p className="text-theme-p font-semibold truncate" style={{ color: 'var(--theme-text-primary)' }}>
-                {name}
-              </p>
-            )}
+        {/* Top row: all thumbnails (fill + wrap) + the edit panel (top-right). */}
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <ThumbnailStrip thumbnails={list.thumbnails} />
           </div>
-
-          {/* Right cluster — edit-panel. `ml-auto` right-aligns it; it wraps
-              below the title as a unit when narrow. */}
-          <div className="flex items-center gap-3 shrink-0 ml-auto">
+          <div className="shrink-0">
             {isEditing && (
               <EditPanel className="flex-wrap">
                 <IconButton
@@ -243,6 +192,41 @@ function SortableListRow({
               </EditPanel>
             )}
           </div>
+        </div>
+
+        {/* Below: list name (or inline rename input), full width. */}
+        <div className="min-w-0">
+          {isEditingThisName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={editingNameValue}
+                onChange={(e) => onEditNameChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onEditNameSave();
+                  if (e.key === 'Escape') onEditNameCancel();
+                }}
+                autoFocus
+                className="flex-1 px-2 py-1 rounded-theme-sm text-theme-s outline-none"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  color: 'var(--theme-text-primary)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button type="button" onClick={onEditNameSave} className="p-1 rounded" style={{ color: 'var(--theme-success, #22c55e)' }}>
+                <Check className="w-4 h-4" />
+              </button>
+              <button type="button" onClick={onEditNameCancel} className="p-1 rounded" style={{ color: 'var(--theme-text-secondary)' }}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
+              {name}
+            </p>
+          )}
         </div>
       </div>
     </div>

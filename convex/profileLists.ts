@@ -10,9 +10,8 @@ import {
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
- * Returns all lists for the caller's account in display order.
- * Includes the first 4 item image paths as thumbnails — the row UI shows
- * them and renders an overflow "…" tile when `itemCount > 4`.
+ * Returns all lists for the caller's account in display order, each with all of
+ * its item image paths as thumbnails (the row UI wraps them onto new lines).
  */
 export const getProfileLists = query({
   args: {},
@@ -29,9 +28,7 @@ export const getProfileLists = query({
       .collect();
 
     return lists.map((list) => {
-      const firstFour = [...list.items]
-        .sort((a, b) => a.order - b.order)
-        .slice(0, 4);
+      const orderedItems = [...list.items].sort((a, b) => a.order - b.order);
 
       return {
         _id: list._id,
@@ -42,7 +39,7 @@ export const getProfileLists = query({
         showChecklist: list.showChecklist ?? false,
         showFirstThen: list.showFirstThen ?? false,
         itemCount: list.items.length,
-        thumbnails: firstFour.map((item) => ({ imagePath: item.imagePath })),
+        thumbnails: orderedItems.map((item) => ({ imagePath: item.imagePath })),
         publishedToPackId: list.publishedToPackId,
         packSlug: list.packSlug,
         librarySourceId: list.librarySourceId,
