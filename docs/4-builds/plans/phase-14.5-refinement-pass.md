@@ -27,7 +27,7 @@ completes** (Stage 2 teardown + any follow-up run from it or from `main`).
 | WS5.1 (single-symbol play modal) | ☑ done _(main)_ |
 | WS4.1 + 4.1b (category edit mode) · WS5.2 | ☑ done _(main)_ |
 | WS6.1 (stacked wrapping rows) | ☑ done _(main)_ |
-| **Stage 2 — full pack teardown** (Tasks 7–9) | ☐ todo — on `main`, backup first |
+| **Stage 2 — full pack teardown** (Tasks 7–9) | ☑ done _(main, 2026-07-07)_ — backup + manifest, all pack UI/backend/data/schema removed; `propagateToPack` arg + `packLifecycle` table deferred |
 | C.1 / C.2 / C.3 (content strategy) | ☐ blocked on decisions |
 
 WS2/WS3 Stage 1 was built on the worktree then **merged into `main`** — main now carries

@@ -1,12 +1,21 @@
 # Module Publishing & Label Consistency — Implementation Plan
 
-> ## 📌 STATUS — Stage 1 ✅ shipped & merged · Stage 2 ⏳ pending
-> **Worktree:** `claude/wizardly-noyce-054294` — kept live until Phase 14.5 completes.
+> ## 📌 STATUS — Stage 1 ✅ shipped & merged · Stage 2 ✅ shipped on `main`
+> **Worktree:** `claude/wizardly-noyce-054294` — Stage 1 origin; Stage 2 ran on `main`.
 > **Stage 1 (Tasks 1–6):** ✅ COMPLETE — built on the worktree, **merged to `main`** as
 > `ba355a0`. Publishing relocated to each module's own page; single publish-class tile
 > badge; legacy per-item pack UI + reload-defaults removed. App + Convex `tsc` clean.
-> **Stage 2 (Tasks 7–9 — full pack teardown):** ⏳ NOT started — now runs on `main`,
-> begins with a `npx convex export` backup.
+> **Stage 2 (Tasks 7–9 — full pack teardown):** ✅ COMPLETE (2026-07-07) on `main`. Backup
+> `backups/2026-07-07-pre-pack-teardown.zip` taken first; deletion manifest below (Task 7).
+> Removed all pack UI/admin/routes/API, the pack-origin filter dropdown (per user decision),
+> `resourcePacks.ts` + `lib/libraryPacks.ts` + the `library_packs/` JSON catalogue, 10 pack
+> migrations, dead pack i18n, and the `resourcePacks` table + `packSlug`/`publishedToPackId`
+> fields/indexes. Relocated `materialiseSymbolsFromJson` → `lib/materialiseSymbols.ts` and the
+> `LibraryPack*` JSON types → `data/_shared/types.ts` (both still used by content modules).
+> No null-out migration needed (backup showed 0/108 profile docs carried the fields, table
+> empty). App + Convex `tsc` clean. **Deferred:** the vestigial `propagateToPack` mutation arg
+> (inert, kept to avoid churning ~25 UI callers) and `packLifecycle` table (now likely orphaned)
+> — separate cleanups. Commits: `b2c94f9` (manifest) → schema-drop commit.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -543,7 +552,7 @@ git commit -m "docs: mark Phase 14.5 WS2+WS3 shipped"
 > produces the exact deletion manifest — the code below is the *known* surface, not the
 > full list.
 
-## Task 7 ⏳ — Backup + full pack-surface recon → deletion manifest
+## Task 7 ✅ — Backup + full pack-surface recon → deletion manifest
 
 **Files:** none changed — this task produces a written manifest appended to this plan.
 
@@ -585,7 +594,7 @@ git add docs/4-builds/plans/phase-14.5-ws2-ws3-publishing-and-labels.md
 git commit -m "docs: pack-teardown deletion manifest (Stage 2 recon)"
 ```
 
-## Task 8 ⏳ — Delete pack UI, routes, and backend (code + data)
+## Task 8 ✅ — Delete pack UI, routes, and backend (code + data)
 
 **Files:** everything in the manifest EXCEPT schema fields (Task 9). Order matters — delete
 consumers before the code they import, so `tsc` stays green between deletions.
@@ -625,7 +634,7 @@ git add -A
 git commit -m "Pack teardown: remove pack UI, admin, routes, backend, data (Stage 2)"
 ```
 
-## Task 9 ⏳ — Schema teardown — drop `resourcePacks` table + `packSlug` fields
+## Task 9 ✅ — Schema teardown — drop `resourcePacks` table + `packSlug` fields
 
 **Files:** `convex/schema.ts` + a one-off cleanup migration. **Riskiest — backup from Task 7
 must exist.** Convex requires a field to be absent from all docs before the validator can
