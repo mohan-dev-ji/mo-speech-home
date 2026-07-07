@@ -103,10 +103,6 @@ export const updateProfileListName = mutation({
   args: {
     profileListId: v.id("profileLists"),
     name: v.record(v.string(), v.string()),
-    // See ADR-008 + ADR-009 follow-up: pack snapshot only updates when the
-    // caller is admin AND in admin viewMode. Non-admin views (and normal
-    // users) never propagate to the pack.
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -144,7 +140,6 @@ export const updateProfileListItems = mutation({
         )),
       })
     ),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -161,7 +156,6 @@ export const addItemFromSymbol = mutation({
     profileListId: v.id("profileLists"),
     profileSymbolId: v.id("profileSymbols"),
     insertAtIndex: v.optional(v.number()),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -204,7 +198,6 @@ export const updateProfileListDisplay = mutation({
     showNumbers: v.boolean(),
     showChecklist: v.boolean(),
     showFirstThen: v.boolean(),
-    propagateToPack: v.optional(v.boolean()),
   },
   // Note: NOT Pro+ gated. Display format toggles (rows/columns/grid/numbers
   // /checklist) are accessibility-relevant and stay available to free users.
@@ -227,7 +220,6 @@ export const updateProfileListDisplay = mutation({
 export const deleteProfileList = mutation({
   args: {
     profileListId: v.id("profileLists"),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -242,7 +234,6 @@ export const deleteProfileList = mutation({
 export const reorderProfileLists = mutation({
   args: {
     orderedIds: v.array(v.id("profileLists")),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);

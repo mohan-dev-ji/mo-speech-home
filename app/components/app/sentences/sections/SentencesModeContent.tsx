@@ -159,8 +159,7 @@ type SlotStripProps = {
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onAddSlot: (sentenceId: Id<'profileSentences'>) => void;
   // Persist a new slot order. Parent re-numbers `order` to match the
-  // new array index and forwards to `updateProfileSentenceSlots` with
-  // `propagateToPack` set per current viewMode.
+  // new array index and forwards to `updateProfileSentenceSlots`.
   onReorderSlots: (sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) => void;
   rowEditLabel: string;
   rowRemoveLabel: string;
@@ -825,7 +824,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       let v = 0;
       const next = prev.map((id) => visibleSet.has(id) ? reorderedVisible[v++] : id);
 
-      reorderSentences({ orderedIds: next as Id<'profileSentences'>[], propagateToPack: showAdminButtons });
+      reorderSentences({ orderedIds: next as Id<'profileSentences'>[] });
       return next;
     });
   }
@@ -845,7 +844,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteSentence({ profileSentenceId: pendingDelete.id, propagateToPack: showAdminButtons });
+      await deleteSentence({ profileSentenceId: pendingDelete.id });
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -866,7 +865,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const updated = sentence.slots
       .filter((_, i) => i !== slotIndex)
       .map((slot, i) => ({ ...slot, order: i }));
-    updateSlots({ profileSentenceId: sentenceId, slots: updated, propagateToPack: showAdminButtons });
+    updateSlots({ profileSentenceId: sentenceId, slots: updated });
   }
 
   function handleReorderSlots(sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) {
@@ -881,7 +880,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     updateSlots({
       profileSentenceId: sentenceId,
       slots: slotsArg,
-      propagateToPack: showAdminButtons,
     });
   }
 
@@ -901,7 +899,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));
-    updateSlots({ profileSentenceId: slotEditTarget.sentenceId, slots: reindexed, propagateToPack: showAdminButtons });
+    updateSlots({ profileSentenceId: slotEditTarget.sentenceId, slots: reindexed });
     setSlotEditTarget(null);
   }
 
@@ -915,7 +913,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
   function persistUnits(sentenceId: Id<'profileSentences'>, units: CompositionUnitClient[]) {
     const reindexed = units.map((u, i) => ({ ...u, order: i }));
-    updateUnits({ profileSentenceId: sentenceId, units: reindexed, propagateToPack: showAdminButtons });
+    updateUnits({ profileSentenceId: sentenceId, units: reindexed });
   }
 
   function handleRemoveUnit(sentenceId: Id<'profileSentences'>, unitIndex: number) {

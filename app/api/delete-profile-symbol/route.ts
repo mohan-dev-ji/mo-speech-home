@@ -16,8 +16,7 @@ export const dynamic = "force-dynamic";
  *      recorded audio) via getProfileSymbolDeleteOrphanKeys. Skips
  *      shared caches (ai-cache/ and audio/<voice>/tts/) — those are
  *      reusable across users.
- *   3. Run the DB mutation (deleteProfileSymbol). The mutation also
- *      handles pack-snapshot syncing when `propagateToPack` is true.
+ *   3. Run the DB mutation (deleteProfileSymbol).
  *   4. Delete the R2 objects in parallel via Promise.allSettled.
  *      Failures are logged but don't fail the response — the DB state is
  *      already correct and orphan accumulation is recoverable later.
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing Convex token" }, { status: 401 });
   }
 
-  let body: { profileSymbolId?: string; propagateToPack?: boolean };
+  let body: { profileSymbolId?: string };
   try {
     body = await request.json();
   } catch {
@@ -81,7 +80,6 @@ export async function POST(request: Request) {
   try {
     await convex.mutation(api.profileSymbols.deleteProfileSymbol, {
       profileSymbolId,
-      propagateToPack: body.propagateToPack ?? false,
     });
   } catch (e) {
     console.error("[delete-profile-symbol] mutation failed", e);

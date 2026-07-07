@@ -258,7 +258,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
       reorderProfileSymbols({
         profileCategoryId,
         orderedIds: newOrder as Id<'profileSymbols'>[],
-        propagateToPack: showAdminButtons,
       });
 
       return newOrder;
@@ -304,7 +303,6 @@ export function CategoryDetailContent({ categoryId }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           profileSymbolId: pendingDelete.id,
-          propagateToPack: showAdminButtons,
         }),
       });
       if (!res.ok) {

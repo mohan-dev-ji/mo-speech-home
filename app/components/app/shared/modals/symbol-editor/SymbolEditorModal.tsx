@@ -16,8 +16,6 @@ import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { useProfile } from '@/app/contexts/ProfileContext';
-import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -134,14 +132,6 @@ export function SymbolEditorModal({
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
-
-  // Admin in admin viewMode is the only flow that propagates edits back to
-  // the resource pack snapshot. Everything else (admin in instructor /
-  // student view, all non-admin users) edits the user's profileSymbols
-  // only — see ADR-008 + ADR-009 follow-up.
-  const { viewMode } = useProfile();
-  const isAdmin = useIsAdmin();
-  const propagateToPack = viewMode === 'admin' && isAdmin;
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -803,7 +793,6 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
-          propagateToPack,
         })) as Id<'profileSymbols'>;
       } else {
         savedId = await createProfileSymbol({
@@ -812,7 +801,6 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
-          propagateToPack,
           ...(createSlot !== undefined ? { slot: createSlot } : {}),
         });
       }

@@ -14,13 +14,12 @@ type Props = {
 };
 
 /**
- * Disclaimer shown above the edit toolbar when an admin is editing content
- * that's published to a resource pack.
+ * Disclaimer shown above the edit toolbar when an admin is editing
+ * default/starter-origin content (`librarySourceId === "_starter"`).
  *
- * Acts as a constant reminder that admin-view edits propagate to the pack
- * — i.e. they'll be seen by every new sign-up that loads this pack.
- * Hidden in instructor / student view modes since those don't propagate
- * (see ADR-008 + ADR-009 follow-up; per-mutation `propagateToPack` flag).
+ * Acts as a constant reminder that admin-view edits to this default content
+ * will be seen by every new sign-up that installs it. Only rendered in admin
+ * view; instructor / student views never see it.
  *
  * Yellow/amber tint matches the existing admin-chrome styling on toggle
  * rows. Text is i18n-keyed under `adminPackEditing.*`.

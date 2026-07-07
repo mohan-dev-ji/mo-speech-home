@@ -156,15 +156,10 @@ export const createProfileSentence = mutation({
   },
 });
 
-// `propagateToPack` opt-in flag: pack snapshot only updates when caller is
-// admin AND in admin viewMode. Default false — admin in instructor / student
-// view leaves the pack untouched. See ADR-008 + ADR-009 follow-up.
-
 export const updateProfileSentenceName = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
     name: v.record(v.string(), v.string()),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -185,7 +180,6 @@ export const updateProfileSentenceSlots = mutation({
         displayProps: displayPropsSchema,
       })
     ),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -206,7 +200,6 @@ export const updateProfileSentenceUnits = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
     units: v.array(compositionUnitSchema),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -232,7 +225,6 @@ export const updateProfileSentenceAudio = mutation({
     // existing recording intact.
     recordedAudioPath: v.optional(v.union(v.string(), v.null())),
     audioPath: v.optional(v.union(v.string(), v.null())),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -250,7 +242,6 @@ export const updateProfileSentenceAudio = mutation({
 export const deleteProfileSentence = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -265,7 +256,6 @@ export const deleteProfileSentence = mutation({
 export const reorderProfileSentences = mutation({
   args: {
     orderedIds: v.array(v.id("profileSentences")),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);

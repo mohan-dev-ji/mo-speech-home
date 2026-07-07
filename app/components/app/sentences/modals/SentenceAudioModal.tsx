@@ -7,7 +7,6 @@ import { Loader2, Mic, Play, RefreshCw, Square as StopIcon, Trash2, Volume2 } fr
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { playKey } from '@/lib/audio/playTts';
 import {
   Dialog,
@@ -62,9 +61,7 @@ export function SentenceAudioModal({
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const renameSentence = useMutation(api.profileSentences.updateProfileSentenceName);
-  const { viewMode, voiceId } = useProfile();
-  const isAdmin = useIsAdmin();
-  const propagateToPack = viewMode === 'admin' && isAdmin;
+  const { voiceId } = useProfile();
 
   const [value, setValue] = useState(initialValue);
   // TTS is no longer stored on the sentence (Phase 8.5) — it's resolved per
@@ -192,13 +189,12 @@ export function SentenceAudioModal({
         await saveOverride({ text: trimmedValue, recordedAudioPath });
       } else if (sentenceId) {
         if (trimmedValue) {
-          await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue }, propagateToPack });
+          await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue } });
         }
         await updateAudio({
           profileSentenceId: sentenceId,
           text: trimmedValue || undefined,
           ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
-          propagateToPack,
         });
       }
       onClose();

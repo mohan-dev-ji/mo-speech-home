@@ -136,7 +136,6 @@ export function ListDetailContent({ listId }: Props) {
   async function persistItems(items: ListItem[]) {
     await updateItems({
       profileListId: listId,
-      propagateToPack: showAdminButtons,
       items: items.map((item, i) => ({
         imagePath: item.imagePath,
         order: i,
@@ -238,22 +237,22 @@ export function ListDetailContent({ listId }: Props) {
   function toggleNumbers() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: !list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
   }
   function toggleChecklist() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: !list.showChecklist, showFirstThen });
   }
   function toggleFirstThen() {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen: !showFirstThen, propagateToPack: showAdminButtons });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: list.displayFormat, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen: !showFirstThen });
   }
   function handleFormatChange(fmt: 'rows' | 'columns' | 'grid') {
     if (!list) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen, propagateToPack: showAdminButtons });
+    (updateDisplay as any)({ profileListId: listId, displayFormat: fmt, showNumbers: list.showNumbers, showChecklist: list.showChecklist, showFirstThen });
   }
 
   // Small screens force a 'rows' layout regardless of saved displayFormat —
@@ -293,7 +292,6 @@ export function ListDetailContent({ listId }: Props) {
       await renameList({
         profileListId: listId,
         name: nextName,
-        propagateToPack: showAdminButtons,
       });
     } catch (e) {
       console.error('[ListDetailContent] rename failed', e);

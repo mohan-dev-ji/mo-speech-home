@@ -112,19 +112,18 @@ export function CategoriesContent() {
     updateCategoryMeta({
       profileCategoryId: id,
       name: { ...cat.name, [language]: value },
-      propagateToPack: showAdminBadges,
     });
   }
 
   // Colour swatch — drives the category's colour variants (tile + board banner).
   function handleRecolour(id: Id<'profileCategories'>, key: string) {
-    updateCategoryMeta({ profileCategoryId: id, colour: key, propagateToPack: showAdminBadges });
+    updateCategoryMeta({ profileCategoryId: id, colour: key });
   }
 
   // Folder image — Symbol Editor (image only) writes back via updateCategoryMeta.
   function handleFolderImageSave(imagePath: string) {
     if (!imageTarget) return;
-    updateCategoryMeta({ profileCategoryId: imageTarget.id, imagePath, propagateToPack: showAdminBadges });
+    updateCategoryMeta({ profileCategoryId: imageTarget.id, imagePath });
     setImageTarget(null);
   }
 
@@ -170,7 +169,6 @@ export function CategoriesContent() {
 
       reorderCategoriesMutation({
         orderedIds: newOrder as Id<'profileCategories'>[],
-        propagateToPack: showAdminBadges,
       });
 
       return newOrder;

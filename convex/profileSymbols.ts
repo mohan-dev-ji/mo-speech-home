@@ -88,11 +88,6 @@ export const getProfileSymbol = query({
 
 /**
  * Create a new profileSymbol in a category on the caller's account.
- *
- * `propagateToPack` opt-in: when true, edits to a published category re-sync
- * the resource pack snapshot. Default false so admin editing in instructor /
- * student view leaves the pack untouched. Normal users never have
- * `publishedToPackId` on their rows, so sync is a no-op for them regardless.
  */
 export const createProfileSymbol = mutation({
   args: {
@@ -101,7 +96,6 @@ export const createProfileSymbol = mutation({
     label: v.record(v.string(), v.string()),
     audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
-    propagateToPack: v.optional(v.boolean()),
     // Stable-slot placement (talker dropbar core board): insert at this exact
     // slot index (= `order`) without bumping other symbols, so gaps are
     // preserved. Omit for the default "prepend at 0 + bump" behaviour.
@@ -191,7 +185,6 @@ export const reorderProfileSymbols = mutation({
   args: {
     profileCategoryId: v.id("profileCategories"),
     orderedIds: v.array(v.id("profileSymbols")),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -264,7 +257,6 @@ export const getProfileSymbolDeleteOrphanKeys = query({
 export const deleteProfileSymbol = mutation({
   args: {
     profileSymbolId: v.id("profileSymbols"),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -288,7 +280,6 @@ export const updateProfileSymbol = mutation({
     label: v.record(v.string(), v.string()),
     audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);

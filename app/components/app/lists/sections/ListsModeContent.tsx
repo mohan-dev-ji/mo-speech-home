@@ -372,7 +372,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
       reorderLists({
         orderedIds: next as Id<'profileLists'>[],
-        propagateToPack: showAdminBadges,
       });
       return next;
     });
@@ -388,7 +387,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
       await updateListItems({
         profileListId: id,
         items: nonEmpty.map((description, i) => ({ order: i, description })),
-        propagateToPack: showAdminBadges,
       });
     }
     // ?edit=1 lands the detail page in edit mode so the new symbol slots
@@ -403,7 +401,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     try {
       await deleteList({
         profileListId: pendingDelete.id,
-        propagateToPack: showAdminBadges,
       });
     } finally {
       setIsDeleting(false);
@@ -419,7 +416,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     await renameList({
       profileListId: editingNameId,
       name: { en: editingNameValue.trim() },
-      propagateToPack: showAdminBadges,
     });
     setEditingNameId(null);
   }

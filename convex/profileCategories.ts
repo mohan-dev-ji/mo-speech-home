@@ -322,12 +322,6 @@ export const createProfileCategory = mutation({
 export const reorderCategories = mutation({
   args: {
     orderedIds: v.array(v.id("profileCategories")),
-    // When true (admin in admin viewMode), edits to published rows propagate
-    // back to the resource pack snapshot. Default false: admin editing in
-    // instructor / student view treats edits as personal, leaving the pack
-    // untouched. Normal users never have publishedToPackId set anyway, so
-    // sync is a no-op for them regardless of the flag.
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -351,7 +345,6 @@ export const updateCategoryMeta = mutation({
     ),
     colour: v.optional(v.string()),
     imagePath: v.optional(v.string()),
-    propagateToPack: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
