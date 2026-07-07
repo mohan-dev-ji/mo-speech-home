@@ -13,9 +13,9 @@
 > fields/indexes. Relocated `materialiseSymbolsFromJson` → `lib/materialiseSymbols.ts` and the
 > `LibraryPack*` JSON types → `data/_shared/types.ts` (both still used by content modules).
 > No null-out migration needed (backup showed 0/108 profile docs carried the fields, table
-> empty). App + Convex `tsc` clean. **Deferred:** the vestigial `propagateToPack` mutation arg
-> (inert, kept to avoid churning ~25 UI callers) and `packLifecycle` table (now likely orphaned)
-> — separate cleanups. Commits: `b2c94f9` (manifest) → schema-drop commit.
+> empty). App + Convex `tsc` clean. The vestigial `propagateToPack` mutation arg + all callers
+> were then removed too. **Deferred:** the `packLifecycle` table (now likely orphaned) — a
+> separate cleanup. Commits: `b2c94f9` (manifest) → schema-drop → `propagateToPack` removal.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
