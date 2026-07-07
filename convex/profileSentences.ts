@@ -102,8 +102,6 @@ export const getProfileSentences = query({
       units:     s.units,
       kind:      s.kind,
       playback:  s.playback,
-      publishedToPackId: s.publishedToPackId,
-      packSlug: s.packSlug,
       librarySourceId: s.librarySourceId,
       folderId: s.folderId, // ADR-014 — group membership (Sentences tree)
     }));

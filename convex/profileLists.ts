@@ -36,8 +36,6 @@ export const getProfileLists = query({
         showFirstThen: list.showFirstThen ?? false,
         itemCount: list.items.length,
         thumbnails: orderedItems.map((item) => ({ imagePath: item.imagePath })),
-        publishedToPackId: list.publishedToPackId,
-        packSlug: list.packSlug,
         librarySourceId: list.librarySourceId,
         folderId: list.folderId, // ADR-014 — group membership (Lists tree)
       };
@@ -60,11 +58,6 @@ export const getProfileListWithItems = query({
       showNumbers: list.showNumbers ?? false,
       showChecklist: list.showChecklist ?? false,
       showFirstThen: list.showFirstThen ?? false,
-      publishedToPackId: list.publishedToPackId,
-      packSlug: list.packSlug,
-      // Origin pack slug set by materialisePackFromJson at load time.
-      // Exposed so the Republish button can fall back to it when
-      // packSlug isn't explicitly set (library-origin lists).
       librarySourceId: list.librarySourceId,
       folderId: list.folderId, // ADR-014 — group membership (for breadcrumb/back)
       items,

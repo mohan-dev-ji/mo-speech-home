@@ -245,41 +245,6 @@ export const stripCategoryMatchingSymbolColours = mutation({
 });
 
 /**
- * Truncate the V1 `resourcePacks` table — deletes every row but leaves
- * the schema definition in place. After running:
- *
- *   - V2 reads keep working (they're JSON-backed; this doesn't touch the
- *     bundled `library_packs` catalogue or `packLifecycle` rows).
- *   - Any V1 code path that still reads `resourcePacks` returns `null` /
- *     empty / NOT_FOUND, making accidental V1 calls fail loudly during
- *     fresh-account testing.
- *   - Data is preserved in the repo (`convex/data/library_packs/*.json`)
- *     and in the `packLifecycle` overlay table; nothing is irreversibly
- *     lost.
- *
- * Useful when you want to test a fresh non-admin account end-to-end and
- * be confident the load / signup / catalogue paths aren't quietly falling
- * back to the old table.
- *
- * The full schema drop is the deferred Phase X of ADR-010 — defer until
- * V2 has soaked for a meaningful period. This migration is a softer
- * mid-step.
- */
-export const disableV1ResourcePacks = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const rows = await ctx.db.query("resourcePacks").collect();
-    let deleted = 0;
-    for (const row of rows) {
-      await ctx.db.delete(row._id);
-      deleted++;
-    }
-    console.log(`[disableV1ResourcePacks] deleted ${deleted} rows`);
-    return { deleted };
-  },
-});
-
-/**
  * One-time: wipe imageSearchCache rows after reshaping the result schema for
  * multi-provider support. Old rows (with `pageId: number`) fail the new
  * validator. Cache rebuilds organically on next search; 24h TTL means we'd
