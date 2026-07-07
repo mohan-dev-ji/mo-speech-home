@@ -15,7 +15,7 @@
 import { ConvexError } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { materialiseSymbolsFromJson } from "../resourcePacks";
+import { materialiseSymbolsFromJson } from "./materialiseSymbols";
 import type { ContentModule, PackTier } from "../data/_shared/types";
 
 /** The lifecycle fields the install gate needs (shared shape across the three

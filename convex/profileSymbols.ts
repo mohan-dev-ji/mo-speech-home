@@ -2,7 +2,6 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import { syncCategoryToPackIfPublished } from "./resourcePacks";
 
 const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
@@ -148,10 +147,6 @@ export const createProfileSymbol = mutation({
       updatedAt: now,
     });
 
-    if (args.propagateToPack) {
-      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
-    }
-
     return newId;
   },
 });
@@ -212,10 +207,6 @@ export const reorderProfileSymbols = mutation({
       if (!sym || sym.profileCategoryId !== args.profileCategoryId)
         throw new Error("Symbol not found or not in this category");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
-    }
-
-    if (args.propagateToPack) {
-      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
     }
   },
 });
@@ -283,12 +274,7 @@ export const deleteProfileSymbol = mutation({
     if (!ps) throw new Error("Symbol not found");
     if (ps.accountId !== accountId) throw new Error("Not authorised");
 
-    const parentCategoryId = ps.profileCategoryId;
     await ctx.db.delete(args.profileSymbolId);
-
-    if (args.propagateToPack) {
-      await syncCategoryToPackIfPublished(ctx, parentCategoryId);
-    }
 
     return args.profileSymbolId;
   },
@@ -316,8 +302,6 @@ export const updateProfileSymbol = mutation({
     if (!targetCategory || targetCategory.accountId !== accountId)
       throw new Error("Target category not found or not authorised");
 
-    const previousCategoryId = ps.profileCategoryId;
-
     await ctx.db.patch(args.profileSymbolId, {
       profileCategoryId: args.profileCategoryId,
       imageSource: args.imageSource,
@@ -326,13 +310,6 @@ export const updateProfileSymbol = mutation({
       display: args.display,
       updatedAt: Date.now(),
     });
-
-    if (args.propagateToPack) {
-      if (previousCategoryId !== args.profileCategoryId) {
-        await syncCategoryToPackIfPublished(ctx, previousCategoryId);
-      }
-      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
-    }
 
     return args.profileSymbolId;
   },

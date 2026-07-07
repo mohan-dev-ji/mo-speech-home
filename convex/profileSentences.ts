@@ -2,11 +2,6 @@ import { mutation, query } from "./_generated/server";
 import { v, type Infer } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import {
-  removeSentenceFromPack,
-  syncSentenceToPackIfPublished,
-} from "./resourcePacks";
-
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -179,9 +174,6 @@ export const updateProfileSentenceName = mutation({
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
-    if (args.propagateToPack) {
-      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
-    }
   },
 });
 
@@ -206,9 +198,6 @@ export const updateProfileSentenceSlots = mutation({
       slots:     args.slots,
       updatedAt: Date.now(),
     });
-    if (args.propagateToPack) {
-      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
-    }
   },
 });
 
@@ -231,9 +220,6 @@ export const updateProfileSentenceUnits = mutation({
       slots:     flattenUnitsToSlots(args.units),
       updatedAt: Date.now(),
     });
-    if (args.propagateToPack) {
-      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
-    }
   },
 });
 
@@ -260,9 +246,6 @@ export const updateProfileSentenceAudio = mutation({
     if (args.recordedAudioPath !== undefined) patch.recordedAudioPath = args.recordedAudioPath ?? undefined;
     if (args.audioPath !== undefined) patch.audioPath = args.audioPath ?? undefined;
     await ctx.db.patch(args.profileSentenceId, patch);
-    if (args.propagateToPack) {
-      await syncSentenceToPackIfPublished(ctx, args.profileSentenceId);
-    }
   },
 });
 
@@ -277,13 +260,6 @@ export const deleteProfileSentence = mutation({
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
 
-    // Only remove from pack snapshot when admin opted in. Without the
-    // flag, the profile row is deleted but the pack snapshot retains its
-    // entry (with a now-orphan sourceProfileSentenceId) until the admin
-    // returns to admin view to clean up.
-    if (args.propagateToPack) {
-      await removeSentenceFromPack(ctx, args.profileSentenceId);
-    }
     await ctx.db.delete(args.profileSentenceId);
   },
 });
@@ -302,12 +278,6 @@ export const reorderProfileSentences = mutation({
       if (!sentence || sentence.accountId !== accountId)
         throw new Error("Sentence not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
-    }
-
-    if (args.propagateToPack) {
-      for (const id of args.orderedIds) {
-        await syncSentenceToPackIfPublished(ctx, id);
-      }
     }
   },
 });

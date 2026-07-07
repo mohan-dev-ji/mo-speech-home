@@ -2,10 +2,6 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import {
-  removeListFromPack,
-  syncListToPackIfPublished,
-} from "./resourcePacks";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -126,9 +122,6 @@ export const updateProfileListName = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { name: args.name, updatedAt: Date.now() });
-    if (args.propagateToPack) {
-      await syncListToPackIfPublished(ctx, args.profileListId);
-    }
   },
 });
 
@@ -167,9 +160,6 @@ export const updateProfileListItems = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.patch(args.profileListId, { items: args.items, updatedAt: Date.now() });
-    if (args.propagateToPack) {
-      await syncListToPackIfPublished(ctx, args.profileListId);
-    }
   },
 });
 
@@ -211,9 +201,6 @@ export const addItemFromSymbol = mutation({
 
     const reindexed = items.map((item, i) => ({ ...item, order: i }));
     await ctx.db.patch(args.profileListId, { items: reindexed, updatedAt: Date.now() });
-    if (args.propagateToPack) {
-      await syncListToPackIfPublished(ctx, args.profileListId);
-    }
   },
 });
 
@@ -241,9 +228,6 @@ export const updateProfileListDisplay = mutation({
       showFirstThen: args.showFirstThen,
       updatedAt: Date.now(),
     });
-    if (args.propagateToPack) {
-      await syncListToPackIfPublished(ctx, args.profileListId);
-    }
   },
 });
 
@@ -258,13 +242,6 @@ export const deleteProfileList = mutation({
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
-    // Only remove from the pack snapshot when admin opted in. Without the
-    // flag, the profile row is deleted but the pack snapshot retains its
-    // entry (with a now-orphan sourceProfileListId). Deliberate: an admin
-    // in instructor / student view should not silently mutate the pack.
-    if (args.propagateToPack) {
-      await removeListFromPack(ctx, args.profileListId);
-    }
     await ctx.db.delete(args.profileListId);
   },
 });
@@ -283,12 +260,6 @@ export const reorderProfileLists = mutation({
       if (!list || list.accountId !== accountId)
         throw new Error("List not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
-    }
-
-    if (args.propagateToPack) {
-      for (const id of args.orderedIds) {
-        await syncListToPackIfPublished(ctx, id);
-      }
     }
   },
 });

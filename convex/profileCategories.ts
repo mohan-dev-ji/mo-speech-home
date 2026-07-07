@@ -4,10 +4,6 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import {
-  removeCategoryFromPack,
-  syncCategoryToPackIfPublished,
-} from "./resourcePacks";
 import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
@@ -345,12 +341,6 @@ export const reorderCategories = mutation({
         throw new Error("Category not found or not authorised");
       await ctx.db.patch(args.orderedIds[i], { order: i, updatedAt: now });
     }
-
-    if (args.propagateToPack) {
-      for (const id of args.orderedIds) {
-        await syncCategoryToPackIfPublished(ctx, id);
-      }
-    }
   },
 });
 
@@ -379,10 +369,6 @@ export const updateCategoryMeta = mutation({
       updatedAt: Date.now(),
     });
 
-    if (args.propagateToPack) {
-      await syncCategoryToPackIfPublished(ctx, args.profileCategoryId);
-    }
-
     return args.profileCategoryId;
   },
 });
@@ -396,11 +382,6 @@ export const deleteCategory = mutation({
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");
     if (cat.accountId !== accountId) throw new Error("Not authorised");
-
-    // Auto-sync: if this category is published, remove the entry from the pack
-    // (and delete the pack if it becomes empty + non-starter). Done before the
-    // actual delete so the helper can still read the row.
-    await removeCategoryFromPack(ctx, args.profileCategoryId);
 
     const symbols = await ctx.db
       .query("profileSymbols")
