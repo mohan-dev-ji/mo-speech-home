@@ -7,31 +7,142 @@
  * `convex/data/<tree>/<slug>.json`; the per-tree `_index.ts` barrel exposes a
  * typed map, and `convex/lib/contentModules.ts` holds the readers.
  *
- * The per-item shapes (a category grid, a list, a sentence) are identical to the
- * bundled-pack item shapes — re-used from `library_packs/types.ts` during the
- * cutover so there is a single source of truth. When ADR-010's `library_packs`
- * directory is finally dropped (its deferred-cleanup phase), move those item
- * types here and delete the re-export.
+ * The per-item shapes (a category grid, a list, a sentence) are the canonical
+ * single-type folder item shapes. They originally lived in
+ * `library_packs/types.ts` (ADR-010) and were re-exported here during the
+ * cutover; with the legacy `library_packs` directory now removed (Phase 14.5
+ * Stage 2 teardown) the definitions live here directly. The `LibraryPack*`
+ * names are retained to avoid churning every content-module consumer.
  *
  * **Localisation:** all user-visible strings are ISO-keyed open records
  * (`LocalisedString`) per ADR-009 §2; display reads via
  * `lib/languages/displayValue.ts`.
  */
 
-import type {
-  LocalisedString,
-  PackTier,
-  LibraryPackCategory,
-  LibraryPackList,
-  LibraryPackSentence,
-} from "../library_packs/types";
+export type PackTier = "free" | "pro" | "max";
 
-export type { LocalisedString, PackTier };
-export type {
-  LibraryPackCategory,
-  LibraryPackList,
-  LibraryPackSentence,
-} from "../library_packs/types";
+/**
+ * ISO-keyed open record for localised strings. e.g. { en: "Hello", hi: "नमस्ते" }.
+ * Adding a language is adding a key, not a type change.
+ */
+export type LocalisedString = Record<string, string>;
+
+export type SymbolDisplay = {
+  bgColour?: string;
+  textColour?: string;
+  textSize?: "sm" | "md" | "lg" | "xl";
+  borderColour?: string;
+  borderWidth?: number;
+  showLabel?: boolean;
+  showImage?: boolean;
+  shape?: "square" | "rounded" | "circle";
+};
+
+/**
+ * A symbol inside a single-type category folder. Two shapes coexist:
+ *
+ *  1. SymbolStix-backed — has `symbolId` resolving to the global symbols
+ *     table; image + default audio are re-resolved on load.
+ *  2. Custom — image stored in R2 (uploaded, image-searched, or AI-generated).
+ *     Optional recorded voice override. Attribution kept for image-search.
+ *
+ * The discriminator is `imageSourceType`. Absent or `"symbolstix"` → kind 1.
+ * Anything else → kind 2. Existing JSONs predate the field; absence means
+ * SymbolStix, preserving back-compat.
+ */
+export type LibraryPackCategorySymbol = {
+  order: number;
+  display?: SymbolDisplay;
+
+  /** SymbolStix kind. */
+  symbolId?: string;
+  labelOverride?: LocalisedString;
+
+  /** Custom-image kind. */
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imagePath?: string;
+  label?: LocalisedString;
+  /** Image-search attribution. */
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+  /** AI generation prompt — kept for regen. */
+  aiPrompt?: string;
+  /** Custom voice recording (only). TTS audio is durable in the global TTS
+   * cache and is not persisted into the module JSON — receivers regenerate
+   * from the label or use the SymbolStix default. */
+  recordedAudioPath?: string;
+};
+
+export type LibraryPackCategory = {
+  name: LocalisedString;
+  icon: string;
+  colour: string;
+  /** R2 path for folder cover. */
+  imagePath?: string;
+  symbols: LibraryPackCategorySymbol[];
+};
+
+export type LibraryPackListItemAudioSource = "default" | "generate" | "record";
+
+export type LibraryPackListItem = {
+  order: number;
+  /** Loose ref to a symbolstix id; present for symbolstix-sourced items so
+   * re-materialise can pick up updated images. */
+  symbolId?: string;
+  imagePath?: string;
+  /**
+   * Localised — see schema profileLists.items[].description.
+   * The union still admits the legacy plain string during the Phase 8.0
+   * migration window; tighten to `LocalisedString` only after the item
+   * JSON migration ships.
+   */
+  description?: LocalisedString | string;
+  audioPath?: string;
+  activeAudioSource?: LibraryPackListItemAudioSource;
+  defaultAudioPath?: string;
+  generatedAudioPath?: string;
+  recordedAudioPath?: string;
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+};
+
+export type LibraryPackList = {
+  name: LocalisedString;
+  order: number;
+  items: LibraryPackListItem[];
+  displayFormat?: "rows" | "columns" | "grid";
+  showNumbers?: boolean;
+  showChecklist?: boolean;
+  showFirstThen?: boolean;
+};
+
+export type LibraryPackSentenceSlotDisplay = {
+  bgColour?: string;
+  textColour?: string;
+  textSize?: "sm" | "md" | "lg" | "xl";
+  showLabel?: boolean;
+  showImage?: boolean;
+  cardShape?: "square" | "rounded" | "circle";
+};
+
+export type LibraryPackSentenceSlot = {
+  order: number;
+  symbolId?: string;
+  imagePath?: string;
+  displayProps?: LibraryPackSentenceSlotDisplay;
+};
+
+export type LibraryPackSentence = {
+  name: LocalisedString;
+  order: number;
+  /**
+   * Localised — see schema profileSentences.text.
+   * Migration window union — same caveat as LibraryPackListItem.description.
+   */
+  text?: LocalisedString | string;
+  slots: LibraryPackSentenceSlot[];
+  audioPath?: string;
+};
 
 /** Which tree a module installs into. The shared folder primitive's axis. */
 export type ModuleTree = "categories" | "lists" | "sentences" | "phrases";
