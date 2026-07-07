@@ -683,3 +683,120 @@ identically in Tasks 1/2/3; `PublishModuleModal` props (`kind`, `targetId`, `def
 numbers drift as edits land — always re-grep before deleting; the `RepublishButton` /
 `Save to pack` render blocks in `SentencesModeContent.tsx` were not line-pinned in recon, so
 locate them by the i18n keys `packPicker.republishLabel` / `packPicker.saveToPackButton`.
+
+---
+
+# Task 7 — DELETION MANIFEST (recon complete, 2026-07-07)
+
+> Produced by a full read-only audit (backend / schema+migrations / UI). **The plan's
+> original Task 8/9 "known surface" was incomplete AND partly wrong** — this manifest
+> supersedes it. Backup taken: `backups/2026-07-07-pre-pack-teardown.zip` (9.3M, gitignored).
+>
+> **Headline corrections to the original plan:**
+> 1. `resourcePacks.ts` **cannot** be deleted wholesale — 7 functions are imported by KEEP
+>    code (the content-module system + core profile mutations). Sever first.
+> 2. `convex/data/library_packs/` **cannot** be deleted wholesale — `types.ts` is the
+>    canonical JSON-shape type source re-exported by `_shared/types.ts` for content modules.
+>    Relocate the type bodies, then delete the dir.
+> 3. `packLifecycle` table is **KEEP** (V2 JSON-library overlay), not a pack table.
+> 4. Schema teardown drops **more** than `packSlug`: also `publishedToPackId` +
+>    `by_published_to_pack_id` and `by_pack_slug` indexes, on all 3 profile tables.
+> 5. **9 migrations** in `migrations.ts` reference the `resourcePacks` table / `LIBRARY_PACKS`
+>    and must be deleted (else `tsc` breaks after the table drops).
+> 6. The admin **pack filter dropdown** (`getPacksForAdminStatusV2`) — which the original
+>    plan deferred to WS-C — is **forced into scope** by deleting `resourcePacks.ts`. See
+>    DECISION below.
+
+## DECISION REQUIRED (pack filter dropdown)
+
+CategoriesContent / ListsModeContent / SentencesModeContent render an admin-only dropdown
+that filters rows **by pack origin**, backed by `api.resourcePacks.getPacksForAdminStatusV2`
++ `getLoadedPacksForCurrentAccount`. Deleting `resourcePacks.ts` removes those queries.
+Options: **(A) remove the dropdown now** (recommended — it filters on data that no longer
+exists) · (B) keep the dropdown shell wired to a stub returning empty (pointless) · (C) keep
+a minimal `resourcePacks.ts` alive just for these queries (contradicts "full teardown").
+
+## A. UI / routes / API
+
+**Delete wholesale (pure-pack)** + remove their mounts:
+- `app/components/app/home/sections/LibraryPacksSection.tsx` + `app/components/app/home/ui/PackCard.tsx` — mount: `HomeContent.tsx:98` `<LibraryPacksSection />`.
+- `app/components/marketing/sections/LibraryGrid.tsx`, `app/components/marketing/sections/PackDetailContent.tsx`, `app/components/marketing/ui/LibraryPackCard.tsx`, `app/components/marketing/ui/LoadPackButton.tsx`.
+- `app/components/admin/sections/LibraryAdminTable.tsx`, `app/components/admin/modals/EditPackLifecycleModal.tsx`, `app/components/admin/modals/ConfirmDeletePackLifecycleModal.tsx`.
+- `app/(admin)/admin/library/page.tsx` (+ remove the `/admin/library` nav entry) · `app/[locale]/(public)/library/page.tsx` + `app/[locale]/(public)/library/[slug]/page.tsx` (redirect stubs → delete) · `app/api/admin/pack-publish/route.ts`.
+
+**Delete dead code (never imported):**
+- `app/components/app/shared/ui/RepublishButton.tsx`, `app/components/app/shared/modals/LibraryPackPickerModal.tsx`, `app/components/app/shared/modals/SavePackChangesConfirmModal.tsx`.
+- In `app/components/app/shared/ui/packStatusBadge.tsx`: unused `AdminPackBadge` + `PackStatusLabel`. `PackStatusBadge` is only used by `LibraryAdminTable` → whole file goes once that's deleted.
+
+**Surgical edits (KEEP files):**
+- `app/post-signup/page.tsx` — remove pack-resume branch (`library:resume` / `loadResourcePackV2`, ~lines 15,40,56–112); leave the redirect-to-home dispatch.
+- `CategoriesContent.tsx` / `ListsModeContent.tsx` / `SentencesModeContent.tsx` — per DECISION: remove the two pack queries + the pack filter dropdown build/apply logic + the `packSlug?` row-type field.
+- `CategoryDetailContent.tsx` / `ListDetailContent.tsx` — remove `getPacksForAdminStatusV2` query + `linkedLibraryPack` name lookup; simplify the admin editing banner to no pack-name suffix (keep the banner — modules use it).
+
+## B. Convex backend (sever, then delete)
+
+**Relocate (genuinely reused by KEEP code)** → new `convex/lib/materialiseSymbols.ts`:
+- `materialiseSymbolsFromJson` (resourcePacks.ts:338) — imported by `lib/contentModuleInstall.ts:18` (the module installer). Rename off "pack", update that import.
+
+**Delete functions + their call sites** (they sync into the doomed `resourcePacks` table, so
+they die with it — remove the imports + calls from the profile mutations, don't relocate):
+- `syncCategoryToPackIfPublished` — called in `profileSymbols.ts` (5×) + `profileCategories.ts`.
+- `syncListToPackIfPublished` / `removeListFromPack` — `profileLists.ts`.
+- `syncSentenceToPackIfPublished` / `removeSentenceFromPack` — `profileSentences.ts`.
+- `removeCategoryFromPack` — `profileCategories.ts`.
+
+**Delete whole files** (orphaned once the above are severed):
+- `convex/resourcePacks.ts` (everything except the relocated `materialiseSymbolsFromJson`).
+- `convex/lib/libraryPacks.ts` (only `resourcePacks.ts` consumed it).
+- `convex/data/library_packs/` dir — **after** relocating its `types.ts` bodies (see C).
+
+## C. Type relocation (do BEFORE deleting library_packs/)
+
+- Move the `LibraryPack*` type bodies from `convex/data/library_packs/types.ts` into
+  `convex/data/_shared/types.ts` (which currently re-exports them at line 27). Keep the same
+  exported names (`LibraryPackCategory` / `LibraryPackList` / `LibraryPackSentence` etc.) so
+  content-module consumers are untouched. Then `_shared/types.ts` self-contains and the
+  `library_packs/` import chain is cut.
+- `convex/data/library_packs/_index.ts` (`LIBRARY_PACKS` catalogue) + the 8 pack `*.json`
+  files: orphaned once `libraryPacks.ts` + the migration import go → delete with the dir.
+- Note: `convex/data/categories/*.json` and `library_packs/*.json` contain R2 key **strings**
+  like `library_packs/space/images/...` — those are R2 object keys, not code imports; leaving
+  or deleting the JSON has no effect on R2. Category seed JSON stays.
+
+## D. migrations.ts — delete these 9 exports + the `LIBRARY_PACKS` import (line 8)
+
+`materialiseStarterPack` · `restoreStarterPackFromBackup` · `stripDefaultMatchingSymbolDisplay`
+(patches `resourcePacks.categories[]`) · `backfillResourcePackSlugs` ·
+`seedLifecycleFromResourcePacks` · `backfillLifecycleMetadata` · `backfillProfilePackSlugs` ·
+`backfillLibrarySourceIdFromPackSlug` · `migrateResourcePacks`. Also delete
+`seedLifecycleFromJSON` (imports `LIBRARY_PACKS`). All are one-shot migrations already run;
+none are wired to crons. Keep `packLifecycle`-only migrations (`migratePackLifecycle`,
+`seedLanguageLifecycle`, etc.).
+
+## E. Schema (Task 9) — `convex/schema.ts`
+
+- Delete the `resourcePacks: defineTable({...})` block (~lines 904–1049, incl. its 4 indexes).
+- On **profileCategories, profileLists, profileSentences** each: delete `publishedToPackId`,
+  `packSlug`, and the `.index("by_published_to_pack_id", …)` + `.index("by_pack_slug", …)`.
+- **KEEP** `packLifecycle` table, and `publishedModuleSlug` / `publishedModuleClass` /
+  `librarySourceId` on all tables (content-module provenance).
+- Convex requires a field absent from all docs before the validator drops it → the Task 9
+  migration nulls `packSlug` + `publishedToPackId` on every profile doc first, then remove
+  from schema.
+
+## F. i18n
+
+Remove now-unused `packPicker.*`, `packStatus.*`, and pack-only `categoryDetail` keys from
+`messages/en.json` (leave keys that the module system still uses).
+
+## Execution order (keeps `tsc` green between commits)
+
+1. **Type relocation** (C) — `_shared/types.ts` self-contains. Verify app + convex `tsc`.
+2. **Backend sever** (B) — relocate `materialiseSymbolsFromJson`; strip sync/remove calls
+   from profile mutations; delete `resourcePacks.ts` + `lib/libraryPacks.ts`. Verify.
+3. **UI/routes/API** (A) — delete pure-pack + dead files, remove mounts, surgical KEEP edits
+   (incl. the DECISION on the filter dropdown). Verify.
+4. **Data + migrations** (C `_index`/json + D) — delete `library_packs/` dir, strip the 10
+   migrations. Verify convex `tsc`.
+5. **i18n** (F).
+6. **Schema** (E, = Task 9) — migration to null fields, run it, then drop from schema. Verify.
