@@ -643,32 +643,6 @@ export const migrateSymbolsBatch = mutation({
   },
 });
 
-/** Migrates packLifecycle (small table). */
-export const migratePackLifecycle = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const rows = await ctx.db.query("packLifecycle").collect();
-    let migrated = 0;
-
-    for (const row of rows) {
-      const newName = row.name
-        ? renameLegacyKeys(row.name as Record<string, unknown>)
-        : undefined;
-      const newDescription = row.description
-        ? renameLegacyKeys(row.description as Record<string, unknown>)
-        : undefined;
-
-      await ctx.db.patch(row._id, {
-        name: newName as never,
-        description: newDescription as never,
-      });
-      migrated++;
-    }
-
-    return { migrated };
-  },
-});
-
 /** Migrates themes table. */
 export const migrateThemes = mutation({
   args: {},

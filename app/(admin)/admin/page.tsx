@@ -9,7 +9,6 @@ import {
   Building2,
   Activity,
   UserPlus,
-  Library,
 } from "lucide-react";
 
 /**
@@ -38,7 +37,6 @@ export default async function AdminPage() {
   const activityCards = [
     { label: "Active (7d)", value: stats.active7d, icon: Activity },
     { label: "New signups (7d)", value: stats.new7d, icon: UserPlus },
-    { label: "Live packs", value: stats.livePacks, icon: Library },
   ];
 
   return (

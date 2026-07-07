@@ -11,16 +11,14 @@ import { tierFromPlan } from "../users";
  *   - free / pro / max counts (derived from subscription.plan)
  *   - active in last 7 days (by lastActiveAt)
  *   - new signups in last 7 days (by _creationTime)
- *   - live packs (packLifecycle rows with publishedAt <= now && expiresAt
- *     unset or future)
  *
  * Deferred (no data layer yet): MRR breakdown, scheduled/expiring soon
  * counts, translation gaps, custom-access activity. No "Active Trials"
  * card — this build has no free trial (see plan Context callout).
  *
- * The query intentionally `.collect()`s all users and packLifecycle rows.
- * Both are bounded surfaces at current scale; swap to denormalised
- * counters if either grows past a few thousand rows.
+ * The query intentionally `.collect()`s all users — a bounded surface at
+ * current scale; swap to a denormalised counter if it grows past a few
+ * thousand rows.
  */
 export const getOverviewStats = query({
   args: {},
@@ -31,7 +29,6 @@ export const getOverviewStats = query({
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
     const users = await ctx.db.query("users").collect();
-    const lifecycleRows = await ctx.db.query("packLifecycle").collect();
 
     let free = 0;
     let pro = 0;
@@ -49,13 +46,6 @@ export const getOverviewStats = query({
       if (user._creationTime >= sevenDaysAgo) new7d++;
     }
 
-    let livePacks = 0;
-    for (const row of lifecycleRows) {
-      if (row.publishedAt == null || row.publishedAt > now) continue;
-      if (row.expiresAt != null && row.expiresAt <= now) continue;
-      livePacks++;
-    }
-
     return {
       totalUsers: users.length,
       free,
@@ -63,7 +53,6 @@ export const getOverviewStats = query({
       max,
       active7d,
       new7d,
-      livePacks,
     };
   },
 });

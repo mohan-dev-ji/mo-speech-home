@@ -870,66 +870,6 @@ export default defineSchema({
     .index("by_profile_id_and_status", ["profileId", "status"]),
 
   /**
-   * Pack lifecycle overlay — per ADR-010. Holds runtime catalogue metadata
-   * (publish window, featured flag, tier override, season override) for packs
-   * whose content lives in `convex/data/library_packs/<slug>.json`. The
-   * `/library` query merges this table with the bundled JSON to compute the
-   * visible catalogue. Admin dashboard (Phase 7) edits these rows to change
-   * lifecycle without a code deploy.
-   *
-   * A pack is visible iff a row here exists AND `publishedAt <= now` AND
-   * (`expiresAt` unset OR `expiresAt > now`). Tier comes from `tierOverride
-   * ?? pack.defaultTier`. Featured comes from `featured`.
-   */
-  packLifecycle: defineTable({
-    slug: v.string(),
-    // Pack metadata stored here so the picker can show the pack name before
-    // the first publish (the JSON file doesn't exist yet for brand-new
-    // packs). The `/api/admin/pack-publish` route copies these into the
-    // JSON; the JSON is the canonical store after first publish.
-    name: v.optional(localisedString),
-    description: v.optional(
-      localisedString
-    ),
-    coverImagePath: v.optional(v.string()),
-    publishedAt: v.optional(v.number()),
-    expiresAt: v.optional(v.number()),
-    /**
-     * Last time the pack's JSON was overwritten via `/api/admin/pack-publish`.
-     * Distinct from `publishedAt` (which is the catalogue visibility window —
-     * see `getPublicLibraryCatalogueV2`). Used by `hasPackEdits` to disable
-     * the Republish button when no profile-side edits have happened since
-     * the last save. Stamped by `markPackPublished` after a successful
-     * writeFile in the publish route.
-     */
-    lastPublishedAt: v.optional(v.number()),
-    featured: v.boolean(),
-    tierOverride: v.optional(
-      v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
-    ),
-    /**
-     * @deprecated Use `tags` instead. Kept for read-fallback during the
-     * tag-system migration — when an admin edits a pack that still has
-     * `seasonOverride` set but no `tags`, the picker pre-fills with the
-     * legacy value as a single tag; saving migrates it. To be removed in
-     * a follow-up cleanup once all packs are tagged.
-     */
-    seasonOverride: v.optional(v.string()),
-    /**
-     * Free-form tags driving the admin Library catalogue filters and (in
-     * a future iteration) instructor-facing browse. Server normalises to
-     * lowercase + trim + dedupe. New tags are created the moment an admin
-     * types them — the catalogue's vocabulary self-organises from use.
-     */
-    tags: v.optional(v.array(v.string())),
-    notes: v.optional(v.string()),
-    createdBy: v.string(), // Clerk userId of the admin who first published the slug
-    updatedAt: v.number(),
-  })
-    .index("by_slug", ["slug"])
-    .index("by_createdBy", ["createdBy"]),
-
-  /**
    * Theme lifecycle overlay (ADR-011 §2.4). The deploy-free half of the theme
    * plugin: token *values* live in `convex/data/themes/*.json` (content → code
    * deploy), but publish window / tier / featured / scheduling live here and an
@@ -937,8 +877,9 @@ export default defineSchema({
    *
    * A theme is visible in pickers iff the JSON module is `builtin` OR a row here
    * exists with `publishedAt <= now` and `expiresAt` unset/future
-   * (`getPublicThemeCatalogue`). Mirrors `packLifecycle` minus pack-only fields;
-   * season rides on `notes` until seasonal themes prove themselves.
+   * (`getPublicThemeCatalogue`). Follows the shared lifecycle-overlay pattern
+   * minus pack-only fields; season rides on `notes` until seasonal themes prove
+   * themselves.
    *
    * NOTE: distinct from the legacy `themes` table below, which is dead (wrong
    * token shape, unread at runtime) and slated for deferred cleanup (ADR-011
@@ -960,8 +901,8 @@ export default defineSchema({
     .index("by_createdBy", ["createdBy"]),
 
   /**
-   * Language lifecycle overlay — per ADR-009 + ADR-011. Mirrors `packLifecycle`
-   * shape for the language plugin. Holds runtime catalogue metadata for
+   * Language lifecycle overlay — per ADR-009 + ADR-011. Follows the shared
+   * lifecycle-overlay shape for the language plugin. Holds runtime metadata for
    * languages whose content (UI strings + voice metadata + status) lives in
    * `convex/data/languages/<code>.json`. A language is visible iff a row here
    * exists AND `publishedAt <= now` AND (`expiresAt` unset OR `expiresAt > now`)
@@ -981,7 +922,7 @@ export default defineSchema({
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     // Tier override — usually unset (languages default to free). Reserved for
-    // future paid-language scenarios; mechanism mirrors `packLifecycle.tierOverride`.
+    // future paid-language scenarios; mechanism mirrors the other lifecycle overlays' `tierOverride`.
     tierOverride: v.optional(
       v.union(v.literal("free"), v.literal("pro"), v.literal("max"))
     ),
@@ -993,12 +934,12 @@ export default defineSchema({
     .index("by_status", ["status"]),
 
   /**
-   * Content-module lifecycle overlays (ADR-014 §1) — the per-type equivalent of
-   * `packLifecycle`, one table per module tree. Token values / content live in
+   * Content-module lifecycle overlays (ADR-014 §1) — the per-type lifecycle
+   * overlays, one table per module tree. Token values / content live in
    * `convex/data/{categories,lists,sentences}/<slug>.json`; the deploy-free
    * runtime metadata (publish window, featured, tier override, tags) lives here.
    *
-   * Visibility rule is identical to `packLifecycle`: a module is visible iff a
+   * Visibility rule follows the shared lifecycle-overlay pattern: a module is visible iff a
    * row exists AND `publishedAt <= now` AND (`expiresAt` unset OR `expiresAt >
    * now`); tier = `tierOverride ?? module.defaultTier`. The three universal admin
    * functions (`listAll<Type>ForAdmin`, `update<Type>Lifecycle`,
