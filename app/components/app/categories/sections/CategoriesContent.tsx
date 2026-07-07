@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
-import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import {
   DndContext,
   closestCenter,
@@ -66,14 +65,8 @@ export function CategoriesContent() {
   const { talkerMode } = useTalker();
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
-  const adminPacks = useQuery(
-    api.resourcePacks.getPacksForAdminStatusV2,
-    showAdminBadges ? {} : 'skip',
-  );
   const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const locale = params.locale as string;
 
   const { subscription } = useAppState();
@@ -105,14 +98,6 @@ export function CategoriesContent() {
   // existing module slug/class when already published → Update mode.
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
-  // Loaded-from packs — instructor/student-view filter options. Admin
-  // view uses adminPacks for the dropdown options instead, so skip the
-  // query when in admin view to save round-trips.
-  const loadedPacks = useQuery(
-    api.resourcePacks.getLoadedPacksForCurrentAccount,
-    showAdminBadges ? 'skip' : {},
-  );
-
   const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
@@ -143,16 +128,6 @@ export function CategoriesContent() {
     setImageTarget(null);
   }
 
-  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
-  const packFilter = searchParams.get('pack') ?? 'all';
-  function setPackFilter(value: string) {
-    const next = new URLSearchParams(searchParams.toString());
-    if (value === 'all') next.delete('pack');
-    else next.set('pack', value);
-    const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }
-
   // Sync localOrder from server: keep existing order, remove deleted, append new
   useEffect(() => {
     if (!categories) return;
@@ -166,61 +141,9 @@ export function CategoriesContent() {
 
   // Build a lookup map and derive display order from localOrder
   const categoryMap = Object.fromEntries((categories ?? []).map((c) => [c._id, c]));
-  const orderedCategories = localOrder
-    .map((id) => categoryMap[id])
-    .filter(Boolean) as Doc<'profileCategories'>[];
-
-  // ── Filter visibility + options ──────────────────────────────────────────
-  const filterVisible = showAdminBadges
-    ? !!adminPacks && (
-        !!adminPacks.starterSlug ||
-        Object.keys(adminPacks.libraryPacksBySlug).length > 0
-      )
-    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
-      && !!loadedPacks && loadedPacks.length > 0;
-
-  const filterOptions: PackFilterOption[] = useMemo(() => {
-    if (!filterVisible) return [];
-    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
-    if (showAdminBadges && adminPacks) {
-      if (adminPacks.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
-        opts.push({
-          value: slug,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
-    } else if (loadedPacks) {
-      for (const pack of loadedPacks) {
-        opts.push({
-          value: pack._id,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'mine', label: t('filterMine') });
-    }
-    return opts;
-  }, [filterVisible, showAdminBadges, adminPacks, loadedPacks, language, t]);
-
-  // ── Apply filter ─────────────────────────────────────────────────────────
-  const filteredOrder = useMemo(() => {
-    if (packFilter === 'all') return localOrder;
-    return localOrder.filter((id) => {
-      const row = categoryMap[id];
-      if (!row) return false;
-      if (showAdminBadges) {
-        // Post-simplification: filters use librarySourceId (single field).
-        if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
-        if (packFilter === 'unpublished') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      } else {
-        if (packFilter === 'mine') return !row.librarySourceId;
-        return row.librarySourceId === packFilter;
-      }
-    });
-  }, [packFilter, localOrder, categoryMap, showAdminBadges, adminPacks?.starterSlug]);
-
+  // Display order = local order (drag-reorder mirror). The pack-origin filter
+  // dropdown was removed with the resource-pack teardown (Phase 14.5 Stage 2).
+  const filteredOrder = localOrder;
   const filteredCategories = filteredOrder
     .map((id) => categoryMap[id])
     .filter(Boolean) as Doc<'profileCategories'>[];
@@ -235,13 +158,7 @@ export function CategoriesContent() {
     if (!over || active.id === over.id) return;
 
     setLocalOrder((prev) => {
-      // Visible-subset reorder: drag operates inside the filtered list;
-      // hidden rows keep their slot positions in the full order. When the
-      // filter is "all", visibleSet covers every row and this collapses to
-      // a straight arrayMove on prev.
-      const visible = packFilter === 'all'
-        ? prev
-        : prev.filter((id) => filteredOrder.includes(id));
+      const visible = prev;
       const oldVisIdx = visible.indexOf(active.id as string);
       const newVisIdx = visible.indexOf(over.id as string);
       if (oldVisIdx < 0 || newVisIdx < 0) return prev;
@@ -317,14 +234,6 @@ export function CategoriesContent() {
                 />
               </>
             )}
-            {filterVisible && (
-              <PackFilterDropdown
-                value={packFilter}
-                options={filterOptions}
-                onChange={setPackFilter}
-                ariaLabel={t('filterPackLabel')}
-              />
-            )}
           </PageBanner>
         </div>
       )}
@@ -333,10 +242,6 @@ export function CategoriesContent() {
       <div className="flex-1 overflow-auto" data-modelling-content>
         {categories === undefined && (
           <p className="text-theme-s text-theme-secondary-alt-text">{t('loading')}</p>
-        )}
-
-        {categories && categories.length > 0 && filteredCategories.length === 0 && packFilter !== 'all' && (
-          <p className="text-theme-s text-theme-secondary-alt-text">{t('filterEmpty')}</p>
         )}
 
         {filteredCategories.length > 0 && (

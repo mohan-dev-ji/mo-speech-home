@@ -211,16 +211,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
   const isAdmin = useIsAdmin();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
 
-  // Pack-origin status still drives the AdminPackEditingBanner disclaimer
-  // (edits to a pack-origin module reach every new sign-up). Backend query is
-  // dormant/kept; the pack *controls* have moved to the module publish flow.
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
-  const linkedSlug = category?.librarySourceId;
-  const isDefault = linkedSlug === '_starter';
-  const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
-    ? packsStatus.libraryPacksBySlug[linkedSlug]
-    : undefined;
-  const isInLibrary = !!linkedLibraryPack;
+  // A starter/default-origin module still drives the AdminPackEditingBanner
+  // disclaimer: edits reach every new sign-up that installs this default.
+  const isDefault = category?.librarySourceId === '_starter';
 
   // Publish button label — "Update module" once this category has been
   // published, else "Publish as module". Matches the list/sentence pages.
@@ -370,12 +363,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
           editing content that's published to a pack. Reminds the admin
           that their edits will reach every new sign-up loading this pack. */}
       <AdminPackEditingBanner
-        visible={showAdminButtons && (isDefault || isInLibrary)}
-        packLabel={
-          isDefault
-            ? 'Default'
-            : (linkedLibraryPack ? displayString(linkedLibraryPack.name, language, DEFAULT_LOCALE) : undefined)
-        }
+        visible={showAdminButtons && isDefault}
+        packLabel={isDefault ? 'Default' : undefined}
       />
 
       {/* Page header — only in banner mode; talker mode shows PersistentTalker in layout */}

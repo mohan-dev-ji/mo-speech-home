@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -28,7 +28,6 @@ import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
-import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -58,8 +57,6 @@ type ListRow = {
   order: number;
   itemCount: number;
   thumbnails: { imagePath?: string }[];
-  publishedToPackId?: Id<'resourcePacks'>;
-  packSlug?: string;
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
 };
@@ -239,31 +236,11 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('lists');
   const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, stateFlags, viewMode } = useProfile();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const isAdmin = useIsAdmin();
   const showAdminBadges = viewMode === 'admin' && isAdmin;
-  const adminPacks = useQuery(
-    api.resourcePacks.getPacksForAdminStatusV2,
-    showAdminBadges ? {} : 'skip',
-  );
-  const loadedPacks = useQuery(
-    api.resourcePacks.getLoadedPacksForCurrentAccount,
-    showAdminBadges ? 'skip' : {},
-  );
-
-  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
-  const packFilter = searchParams.get('pack') ?? 'all';
-  function setPackFilter(value: string) {
-    const next = new URLSearchParams(searchParams.toString());
-    if (value === 'all') next.delete('pack');
-    else next.set('pack', value);
-    const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }
 
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
@@ -383,9 +360,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
-      const visible = packFilter === 'all'
-        ? prev
-        : prev.filter((id) => filteredOrder.includes(id));
+      const visible = prev;
       const oldVisIdx = visible.indexOf(active.id as string);
       const newVisIdx = visible.indexOf(over.id as string);
       if (oldVisIdx < 0 || newVisIdx < 0) return prev;
@@ -457,61 +432,9 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     [scopedLists],
   );
 
-  // ── Filter visibility + options ──────────────────────────────────────────
-  const filterVisible = showAdminBadges
-    ? !!adminPacks && (
-        !!adminPacks.starterSlug ||
-        Object.keys(adminPacks.libraryPacksBySlug).length > 0
-      )
-    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
-      && !!loadedPacks && loadedPacks.length > 0;
-
-  const filterOptions: PackFilterOption[] = useMemo(() => {
-    if (!filterVisible) return [];
-    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
-    if (showAdminBadges && adminPacks) {
-      if (adminPacks.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [slug, pack] of Object.entries(adminPacks.libraryPacksBySlug)) {
-        opts.push({
-          value: slug,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
-    } else if (loadedPacks) {
-      for (const pack of loadedPacks) {
-        opts.push({
-          value: pack._id,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'mine', label: t('filterMine') });
-    }
-    return opts;
-  }, [filterVisible, showAdminBadges, adminPacks, loadedPacks, language, t]);
-
-  // ── Apply filter ─────────────────────────────────────────────────────────
-  // Computed inline (no manual useMemo): the 'all' branch returns `localOrder`
-  // directly while the filtered branch returns a fresh array, which the compiler
-  // can't preserve as a manual memo — and it's a cheap O(n) filter over id
-  // strings, so memoising it buys nothing.
-  const filteredOrder =
-    packFilter === 'all'
-      ? localOrder
-      : localOrder.filter((id) => {
-          const row = listMap[id];
-          if (!row) return false;
-          if (showAdminBadges) {
-            // Post-simplification: filters use librarySourceId (single field).
-            if (packFilter === 'default') return row.librarySourceId === adminPacks?.starterSlug;
-            if (packFilter === 'unpublished') return !row.librarySourceId;
-            return row.librarySourceId === packFilter;
-          } else {
-            if (packFilter === 'mine') return !row.librarySourceId;
-            return row.librarySourceId === packFilter;
-          }
-        });
-
+  // Display order = local order (drag-reorder mirror). The pack-origin filter
+  // dropdown was removed with the resource-pack teardown (Phase 14.5 Stage 2).
+  const filteredOrder = localOrder;
   const filteredLists = filteredOrder.map((id) => listMap[id]).filter(Boolean) as ListRow[];
 
   // Admin-view reminder: any list on screen that's published means
@@ -554,14 +477,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                 />
               </>
             )}
-            {filterVisible && (
-              <PackFilterDropdown
-                value={packFilter}
-                options={filterOptions}
-                onChange={setPackFilter}
-                ariaLabel={t('filterPackLabel')}
-              />
-            )}
             {/* Publish as module — admin-only, from the folder's own page.
                 Only inside a real folder (not the groups root or Ungrouped). */}
             {showAdminBadges && realFolderId && (
@@ -594,14 +509,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
               {folderId ? t('groupEmpty') : t('empty')}
-            </p>
-          </div>
-        )}
-
-        {scopedLists && scopedLists.length > 0 && filteredLists.length === 0 && packFilter !== 'all' && (
-          <div className="flex items-center justify-center py-16">
-            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('filterEmpty')}
             </p>
           </div>
         )}

@@ -1,136 +1,41 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 // /post-signup is OUTSIDE the [locale] segment, so no NextIntlClientProvider
 // wraps it. Use plain next/navigation router and prefix the locale manually.
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { ConvexError } from "convex/values";
 import { Loader2 } from "lucide-react";
-import { api } from "@/convex/_generated/api";
-import { ToastProvider, useToast } from "@/app/components/app/shared/ui/Toast";
-import { track } from "@/lib/analytics";
-
-const RESUME_KEY = "library:resume";
 
 /**
  * Invisible Clerk redirect target for sign-up completion.
  *
- * Reads `library:resume` from localStorage (written by LoadPackButton when a
- * logged-out visitor clicks "Sign up to load") and the NEXT_LOCALE cookie,
- * then dispatches:
- *   - Resume queued → loadResourcePackV2 → /<locale>/categories
- *   - Otherwise → /<locale>/home
+ * Reads the NEXT_LOCALE cookie and sends the new user to their locale home.
+ * The legacy `library:resume` / `loadResourcePackV2` branch was removed with
+ * the resource-pack teardown (Phase 14.5 Stage 2) — there is no longer a
+ * logged-out "load pack" flow to resume, so every new sign-up goes to /home.
  *
  * User sees a centered spinner for ~200ms before the redirect fires.
- *
- * Per ADR-010 (Phase 5): the resume payload carries `packSlug` (string),
- * not the legacy `packId`. Old entries written before the cutover are
- * gracefully ignored (treated as "no resume queued").
- *
- * Wrapped in ToastProvider because the load-success toast must show through to
- * the destination page (the AAC shell's own ToastProvider takes over once the
- * router replaces). For the brief window between mount and redirect, this
- * provider catches any error toast.
  */
-function PostSignupDispatch() {
+export default function PostSignupPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
-  const loadPack = useMutation(api.resourcePacks.loadResourcePackV2);
-  const { showToast } = useToast();
   const dispatchedRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (dispatchedRef.current) return;
     if (!isLoaded || !isSignedIn) return;
     dispatchedRef.current = true;
 
-    let cancelled = false;
-    (async () => {
-      // Read NEXT_LOCALE cookie (client-side parse — no headers API here).
-      const localeMatch = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]+)/);
-      const locale = localeMatch?.[1] === "hi" ? "hi" : "en";
-
-      // Read library:resume from localStorage.
-      let resumePackSlug: string | null = null;
-      try {
-        const raw = localStorage.getItem(RESUME_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as { packSlug?: string };
-          if (parsed.packSlug) resumePackSlug = parsed.packSlug;
-        }
-      } catch {
-        // Malformed entry — ignore and fall through to /home.
-      }
-
-      // No resume queued → straight to home (locale-prefixed).
-      if (!resumePackSlug) {
-        if (!cancelled) router.replace(`/${locale}/home`);
-        return;
-      }
-
-      // Resume queued → load + redirect to categories (locale-prefixed).
-      try {
-        await loadPack({ packSlug: resumePackSlug });
-        // tier_at_load: "free" — post-signup users are always on free at the
-        // moment they trigger the resume; if it were a paid pack they'd have
-        // hit a TIER_REQUIRED upsell earlier in the flow.
-        track("pack_loaded", {
-          slug: resumePackSlug,
-          tier_at_load: "free",
-          source: "post_signup",
-        });
-        try {
-          localStorage.removeItem(RESUME_KEY);
-        } catch {
-          // Non-fatal — cookie/storage may be partially blocked.
-        }
-        if (!cancelled) {
-          showToast({ tone: "info", title: "Pack loaded into your profile." });
-          router.replace(`/${locale}/categories`);
-        }
-      } catch (e: unknown) {
-        // Don't strand the user on /post-signup. Log and route to /home with a toast.
-        try { localStorage.removeItem(RESUME_KEY); } catch { /* ignore */ }
-        if (cancelled) return;
-        if (
-          e instanceof ConvexError &&
-          typeof e.data === "object" &&
-          e.data !== null &&
-          "code" in e.data &&
-          (e.data as { code: string }).code === "ALREADY_LOADED"
-        ) {
-          showToast({ tone: "info", title: "This pack is already in your profile." });
-          router.replace(`/${locale}/categories`);
-        } else {
-          setError("We couldn't load the pack — taking you home.");
-          showToast({ tone: "warning", title: "Couldn't load this pack. Try again from the library." });
-          setTimeout(() => router.replace(`/${locale}/home`), 800);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, isSignedIn, loadPack, router, showToast]);
+    // Read NEXT_LOCALE cookie (client-side parse — no headers API here).
+    const localeMatch = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]+)/);
+    const locale = localeMatch?.[1] === "hi" ? "hi" : "en";
+    router.replace(`/${locale}/home`);
+  }, [isLoaded, isSignedIn, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
       <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
-      {error && (
-        <p className="text-small text-muted-foreground">{error}</p>
-      )}
     </div>
-  );
-}
-
-export default function PostSignupPage() {
-  return (
-    <ToastProvider>
-      <PostSignupDispatch />
-    </ToastProvider>
   );
 }

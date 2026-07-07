@@ -84,16 +84,9 @@ export function ListDetailContent({ listId }: Props) {
   const updateDisplay = useMutation(api.profileLists.updateProfileListDisplay);
   const renameList = useMutation(api.profileLists.updateProfileListName);
 
-  // Pack-origin status still drives the AdminPackEditingBanner disclaimer.
-  // Backend query is dormant/kept; the pack *controls* moved to the folder
-  // publish flow (GroupsView → PublishModuleModal).
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
-  const linkedSlug = list?.librarySourceId;
-  const isDefault = linkedSlug === '_starter';
-  const linkedLibraryPack = linkedSlug && linkedSlug !== '_starter' && packsStatus
-    ? packsStatus.libraryPacksBySlug[linkedSlug]
-    : undefined;
-  const isInLibrary = !!linkedLibraryPack;
+  // A starter/default-origin folder still drives the AdminPackEditingBanner
+  // disclaimer: edits reach every new sign-up that installs this default.
+  const isDefault = list?.librarySourceId === '_starter';
 
   useEffect(() => {
     if (!list) return;
@@ -347,12 +340,8 @@ export function ListDetailContent({ listId }: Props) {
       {/* Admin disclaimer — visible only when admin in admin viewMode is
           editing a list that's published to a pack. */}
       <AdminPackEditingBanner
-        visible={showAdminButtons && (isDefault || isInLibrary)}
-        packLabel={
-          isDefault
-            ? 'Default'
-            : (linkedLibraryPack ? displayString(linkedLibraryPack.name, language, DEFAULT_LOCALE) : undefined)
-        }
+        visible={showAdminButtons && isDefault}
+        packLabel={isDefault ? 'Default' : undefined}
       />
 
       {/* Header — permanent banner: the talker never replaces it on a list

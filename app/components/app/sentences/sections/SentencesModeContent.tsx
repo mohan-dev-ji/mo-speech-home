@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
@@ -48,7 +48,6 @@ import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
-import { PackFilterDropdown, type PackFilterOption } from '@/app/components/app/shared/ui/PackFilterDropdown';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
@@ -103,8 +102,6 @@ type SentenceRow = {
   units?: CompositionUnitClient[];
   kind?: 'sentence';
   playback?: 'sequence' | 'fluent';
-  publishedToPackId?: Id<'resourcePacks'>;
-  packSlug?: string;
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
 };
@@ -695,24 +692,11 @@ function SortableSentenceRow({
 export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('sentences');
   const params = useParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language, viewMode, accountId, stateFlags, voiceId } = useProfile();
   const { setBreadcrumbExtra } = useBreadcrumb();
   const isAdmin = useIsAdmin();
   const showAdminButtons = viewMode === 'admin' && isAdmin;
-
-  // ── Pack filter — URL state via ?pack=<value> ────────────────────────────
-  const packFilter = searchParams.get('pack') ?? 'all';
-  function setPackFilter(value: string) {
-    const next = new URLSearchParams(searchParams.toString());
-    if (value === 'all') next.delete('pack');
-    else next.set('pack', value);
-    const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }
 
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
@@ -808,14 +792,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     }
   }
 
-  // Pack status — drives the per-row Default/Library toggle pressed states + tier.
-  const packsStatus = useQuery(api.resourcePacks.getPacksForAdminStatusV2, showAdminButtons ? {} : 'skip');
-  // Loaded-from packs — instructor / student-view filter options.
-  const loadedPacks = useQuery(
-    api.resourcePacks.getLoadedPacksForCurrentAccount,
-    showAdminButtons ? 'skip' : {},
-  );
-
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   // Re-sync the local drag order with the server set DURING render (React's
@@ -839,9 +815,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setLocalOrder((prev) => {
-      const visible = packFilter === 'all'
-        ? prev
-        : prev.filter((id) => filteredOrder.includes(id));
+      const visible = prev;
       const oldVisIdx = visible.indexOf(active.id as string);
       const newVisIdx = visible.indexOf(over.id as string);
       if (oldVisIdx < 0 || newVisIdx < 0) return prev;
@@ -1010,61 +984,9 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     [scopedSentences],
   );
 
-  // ── Filter visibility + options ──────────────────────────────────────────
-  const filterVisible = showAdminButtons
-    ? !!packsStatus && (
-        !!packsStatus.starterSlug ||
-        Object.keys(packsStatus.libraryPacksBySlug).length > 0
-      )
-    : (viewMode === 'student-view' ? stateFlags.student_can_filter : true)
-      && !!loadedPacks && loadedPacks.length > 0;
-
-  const filterOptions: PackFilterOption[] = useMemo(() => {
-    if (!filterVisible) return [];
-    const opts: PackFilterOption[] = [{ value: 'all', label: t('filterAll') }];
-    if (showAdminButtons && packsStatus) {
-      if (packsStatus.starterSlug) opts.push({ value: 'default', label: t('filterDefault') });
-      for (const [slug, pack] of Object.entries(packsStatus.libraryPacksBySlug)) {
-        opts.push({
-          value: slug,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'unpublished', label: t('filterUnpublished') });
-    } else if (loadedPacks) {
-      for (const pack of loadedPacks) {
-        opts.push({
-          value: pack._id,
-          label: displayString(pack.name, language, DEFAULT_LOCALE),
-        });
-      }
-      opts.push({ value: 'mine', label: t('filterMine') });
-    }
-    return opts;
-  }, [filterVisible, showAdminButtons, packsStatus, loadedPacks, language, t]);
-
-  // ── Apply filter ─────────────────────────────────────────────────────────
-  // Computed inline (no manual useMemo): the 'all' branch returns `localOrder`
-  // directly while the filtered branch returns a fresh array, which the compiler
-  // can't preserve as a manual memo — and it's a cheap O(n) filter over id
-  // strings, so memoising it buys nothing.
-  const filteredOrder =
-    packFilter === 'all'
-      ? localOrder
-      : localOrder.filter((id) => {
-          const row = sentenceMap[id];
-          if (!row) return false;
-          if (showAdminButtons) {
-            // Post-simplification: filters use librarySourceId (single field).
-            if (packFilter === 'default') return row.librarySourceId === packsStatus?.starterSlug;
-            if (packFilter === 'unpublished') return !row.librarySourceId;
-            return row.librarySourceId === packFilter;
-          } else {
-            if (packFilter === 'mine') return !row.librarySourceId;
-            return row.librarySourceId === packFilter;
-          }
-        });
-
+  // Display order = local order (drag-reorder mirror). The pack-origin filter
+  // dropdown was removed with the resource-pack teardown (Phase 14.5 Stage 2).
+  const filteredOrder = localOrder;
   const filteredSentences = filteredOrder.map((id) => sentenceMap[id]).filter(Boolean) as SentenceRow[];
 
   // Phase 8.5 — reactive "is audio available for the current voice" per sentence,
@@ -1153,14 +1075,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                 />
               </>
             )}
-            {filterVisible && (
-              <PackFilterDropdown
-                value={packFilter}
-                options={filterOptions}
-                onChange={setPackFilter}
-                ariaLabel={t('filterPackLabel')}
-              />
-            )}
             {/* Publish as module — admin-only, from the folder's own page.
                 Only inside a real folder (not the groups root or Ungrouped). */}
             {showAdminButtons && realFolderId && (
@@ -1193,14 +1107,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           <div className="flex items-center justify-center py-16">
             <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
               {folderId ? t('groupEmpty') : t('empty')}
-            </p>
-          </div>
-        )}
-
-        {scopedSentences && scopedSentences.length > 0 && filteredSentences.length === 0 && packFilter !== 'all' && (
-          <div className="flex items-center justify-center py-16">
-            <p className="text-theme-p opacity-50" style={{ color: 'var(--theme-text)' }}>
-              {t('filterEmpty')}
             </p>
           </div>
         )}
