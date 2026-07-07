@@ -1,7 +1,6 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { installContentModule } from "./lib/contentModuleInstall";
