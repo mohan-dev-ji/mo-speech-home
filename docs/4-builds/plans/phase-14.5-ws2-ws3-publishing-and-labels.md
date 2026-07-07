@@ -14,8 +14,9 @@
 > `LibraryPack*` JSON types → `data/_shared/types.ts` (both still used by content modules).
 > No null-out migration needed (backup showed 0/108 profile docs carried the fields, table
 > empty). App + Convex `tsc` clean. The vestigial `propagateToPack` mutation arg + all callers
-> were then removed too. **Deferred:** the `packLifecycle` table (now likely orphaned) — a
-> separate cleanup. Commits: `b2c94f9` (manifest) → schema-drop → `propagateToPack` removal.
+> were then removed too, and the orphaned `packLifecycle` table dropped (its only live reader
+> was the admin "Live packs" stat — removed with it). **Pack system fully gone; nothing deferred.**
+> Commits: `b2c94f9` (manifest) → schema-drop → `propagateToPack` removal → `packLifecycle` drop.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
