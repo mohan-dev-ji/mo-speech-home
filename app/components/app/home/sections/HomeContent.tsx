@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
+import { ResourceLibraryBanner } from "@/app/components/app/home/sections/ResourceLibraryBanner";
 import { HomeNavCards } from "@/app/components/app/home/sections/HomeNavCards";
 import { HomeCreateCards } from "@/app/components/app/home/sections/HomeCreateCards";
 import { CreateCategoryModal } from "@/app/components/app/categories/modals/CreateCategoryModal";
@@ -16,8 +17,9 @@ import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
 
 /**
  * In-app Home (Figma `1391:20546`) — a links-and-library landing page:
- *   1. Nav cards → Categories / Lists / Sentences / Search
- *   2. Create cards → the matching create modals
+ *   1. Resource-library banner → quick link to /library/modules (future carousel)
+ *   2. Nav cards → Categories / Lists / Sentences / Search
+ *   3. Create cards → the matching create modals
  *
  * Owns the create-modal state + mutations; the create handlers mirror the
  * Categories / Lists / Sentences listings so a Home-created item lands in the
@@ -93,6 +95,8 @@ export function HomeContent() {
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap overflow-auto">
+      <ResourceLibraryBanner />
+
       <HomeNavCards />
 
       <HomeCreateCards

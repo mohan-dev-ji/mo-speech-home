@@ -245,6 +245,9 @@
   },
   "home": {
     "title": "Home",
+    "resourceLibraryTitle": "Resource library",
+    "resourceLibrarySubtitle": "Browse and install ready-made modules",
+    "resourceLibraryAria": "Open the resource library",
     "navCategories": "Categories",
     "navLists": "Lists",
     "navSentences": "Sentences",
