@@ -837,16 +837,35 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ---
 
-## Phase 15 — Bilingual Symbols + Tone TTS
+## Phase 15 — Bilingual Symbols + Tone TTS + Language Foundation
 
-> **Status:** Planned. Two talker-level language wins; Tone TTS is an easy win on the existing pipeline.
+> **Status:** Designed 2026-07-08. Full spec: [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md).
 
-**Goal:** Support code-switching boards and intonation — both clinically requested, both talker functions.
+**Goal:** Support code-switching boards and intonation, and fix a language-switching regression — all talker functions.
 
-- **Bilingual symbols** — per-symbol language override (label + audio). Common case: a Hindi board with *some* symbols shown in English. Smallest lift; delights the advising SLP. (dossier doc 4 #1)
-- **Tone TTS** — multiple intonations of the same utterance (excited / asking / calm). Prototype via the **existing on-demand TTS pipeline** already used for lists/sentences — likely an easy win. Fall back to pre-recorded variants only where prosody truly needs a human voice. (dossier doc 4 #4)
+**Governing principle:** *order-free content translates live; structure-bound content is re-authored per language.* Single symbols/words have no internal grammar and translate freely. A composed utterance (phrase, block sentence) encodes language-specific word order + morphology and **cannot** be translated in place — Hindi is SOV with postpositions and gender/case agreement, English is SVO. Whole-text *fluent* sentences (one translated string, one clip) are the exception that still translates.
 
-**Reference:** dossier doc [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 (the TTS pipeline).
+- **Thread 3 — Language foundation (build first).** A **regression** confirmed by test: block sentences built in the Phase 14 talker flatten every unit to one language at save and file it under the *profile's* language key, so a switch leaves English text spoken by the target-language voice (English words, Hindi accent). Pre-Phase-14 sentences still translate correctly — the working reference to restore. Fix: key text by its real language; tag each composed item with `authoredLanguage`; **render composed items in their authored language always** (no in-place translation); show a **"Made in EN" badge**; voice-follows-text; gender-persona voice resolution. A non-rebuilt English item stays a fully-working bilingual asset by default.
+- **Bilingual symbols** — per-symbol `pinnedLanguage` override (label + audio) in the Symbol Editor. A Hindi board with *some* English tiles. The one deliberate exception to live translation. Smallest lift; delights the advising SLP. (dossier doc 4 #1)
+- **Tone TTS** — intonation (V1: Neutral + Excited) as a live emoji-chip modifier on the **fluent whole-utterance** play path. Block sentences keep their stepped "blocky" replay; the chips play a fluent single clip in the item's authored language, so tone never touches the cross-language problem. Needs an **experimentation spike**: verify SSML prosody on the current Wavenet voices; if inadequate, evaluate other Google TTS models (quality upgrade accepted for this SLP request). Cache key grows to `(text, voiceId, tone)`. (dossier doc 4 #4)
+
+**Reference:** [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md); dossier doc [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 / ADR-014.
+
+---
+
+## Phase 15.5 — Composed-content language variants
+
+> **Status:** Deferred from Phase 15 (foundation ships first). Full context in the Phase 15 design spec's "Deferred" section.
+
+**Goal:** Turn the Phase 15 "Made in EN" badge into a real per-language re-authoring flow, so a bilingual profile can hold natively-authored versions of the same utterance in each language.
+
+- **Linked per-language variants** — one logical "sentence slot" holds a separately-authored composition per language (`en` comp + `hi` comp), linked via the `authoredLanguage` hook from Phase 15.
+- **"Edit to build the \<language\> version"** — the badge/disclaimer becomes clickable. Viewing a slot in a language it lacks keeps showing the working English symbols + text (so the instructor sees what to build), and on tap **enters edit mode reusing existing composition components** (preferred over a bespoke modal) to author the target-language version natively. Language-switch detection follows the **search-page reactive pattern**.
+- **Default-to-bilingual** — not rebuilding is a permanent, valid state: the English asset keeps working. Rebuild is opt-in.
+- **MT as authoring assist** — inside the localise flow, offer a machine-translated fluent text as a *starting suggestion* (Pro+ gated); the instructor arranges symbols/phrases in correct target-language order. MT never ships unreviewed.
+- **Monolingual families** keep the ADR-009 "one profile per language" pattern; variants are the bilingual-profile enhancement, not a requirement.
+
+**Reference:** [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md) (Deferred section); ADR-009 §6, ADR-012 §7, ADR-013 (translator workbench, for the MT-assist review model).
 
 ---
 

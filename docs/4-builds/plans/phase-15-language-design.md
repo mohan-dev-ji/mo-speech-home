@@ -30,28 +30,35 @@ The original design assumed composed sentences could resolve their text live in 
 
 ## Thread 3 — Language foundation *(build first — de-risks the others)*
 
-### The confirmed bug (still real, still fixed)
+### The confirmed regression (git-traced)
 
-Talker sentences flatten every unit to a single current-language string at save and file it under the *profile's* language key:
+Instructor test (2026-07-08): a sentence built on an English profile plays "exact EN audio + EN text" after switching to Hindi, while **old sentences show Hindi text + Hindi audio**. Git trace confirms the mechanism:
 
-- **Flatten on tap** — `app/components/app/shared/ui/TalkerDropdown.tsx:508-524` collapses a phrase/word's full localised record to `displayString(..., language, DEFAULT_LOCALE)`; other languages are discarded before the item is in the bar.
-- **Re-wrap under the wrong key** — `app/components/app/shared/sections/PersistentTalker.tsx:122-164` stores `{ [language]: string }`, so a Hindi profile files English text under `hi`.
-- **Silent symptom** — `blocksFromUnits` (`app/components/app/shared/ui/composition/blocks.ts:59-79`) resolves to that one string regardless of board language, while the resolved *voice* is the board voice → **English words in a Hindi/Spanish accent.**
+- **Old working sentences are library-installed *fluent* rows** — a single pre-translated `text` record (`{en, hi, es}`), materialised from the admin module-translation pipeline via `convex/lib/contentModuleInstall.ts:267-279`. They have no `units`; they take the fluent path (`SentencePlayModal`), where `displayString(text, language)` + `resolveTtsKey(text, voiceId)` resolve **live** → Hindi text + Hindi voice on a Hindi board. **This is the whole-text-translates exception** (§ principle 2): one string, translated as a unit, order handled by the translation.
+- **There is no old block-sentence path to restore.** Pre-Phase-14 `createProfileSentence` accepted only `{ name }` (`git show 6b90d93`). The Phase 14 talker save (`9a38724` "re-point talker Save") and tap-time flatten (`e8c3fd9`) are a **brand-new path that never carried language** — it flattens each unit to a single string (`PersistentTalker.tsx:122-164` writes `{ [language]: string }`; `TalkerDropdown.tsx:509-514` discards the source record on tap) and renders via `blocksFromUnits(units, language)` (`blocks.ts:59-79`).
 
-`createProfileSentence` (`convex/profileSentences.ts:113-157`) is a pass-through; the bug is client-side. The "translate audio on demand" feature the instructor remembers is *on-demand TTS synthesis* (`resolveTtsKey`, keyed `(text, voiceId)`) — it works; it was fed poisoned text.
+So this is a *new feature that shipped without language-awareness*, not a broken old behaviour.
+
+### What "correct" looks like (given structure isn't translatable)
+
+A block sentence authored in English **should stay a coherent English utterance** on any board — correct English word order, English words, English voice — because auto-translating its structure would produce Hindi words in English order (grammatically wrong). So the instructor's test result (EN text + EN audio after the switch) is **almost correct** — it is missing only (1) a **"Made in EN" badge** so it reads as a deliberate English asset rather than a bug, (2) a **guaranteed correct voice** in every authoring path (so the Hindi-accent case below can never occur), and (3) the **rebuild path** (Phase 15.5).
+
+The genuine bug is narrower: **voice can follow the board language instead of the text's language.** When content is composed on a *non-English* board (e.g. an English-only phrase tapped onto a Hindi board, or a mislabelled key), `CompositionPlayModal.tsx:38-43` synthesises the English fallback label in the *Hindi* `voiceId` → **English words in a Hindi accent.** Voice-follows-text (3e) kills this in every path.
+
+`createProfileSentence` (`convex/profileSentences.ts:113-157`) is a pass-through; the fix is client-side + a resolution change.
 
 ### The foundation fix (Phase 15 scope)
 
 | # | Fix | Detail |
 |---|-----|--------|
-| **3a** | **Key text by its real language** | Carry each unit's full localised record from its source, keyed by the language the text is actually in. Fresh instructor-typed text is keyed by the authoring language. Fix both lossy points (`TalkerDropdown` tap; `PersistentTalker` save). This requires threading records — not pre-flattened strings — through `TalkerSymbolItem`. |
-| **3b** | **`authoredLanguage` on composed items** | Every composed item — `profilePhrases`, `profileSentences` (block/sequence *and* fluent) — carries an explicit `authoredLanguage`. Legacy rows default to `en`. |
-| **3c** | **Render composed items in their authored language, always** | Composed items resolve text and voice against their own `authoredLanguage`, **not** the board language, and never attempt translation. An English sentence on a Hindi board displays and speaks correct English. |
+| **3a** | **Carry the source record; stop flattening to the board key** | Thread each unit's full localised record (ideally plus a `symbolId`/`librarySourceId`) through the talker instead of a flattened string. Deepest-leverage change (per the git-trace): the `TalkerSymbolItem` shape in `app/contexts/TalkerContext.tsx` must hold `Record<string,string>`, and the two flatten sites stop calling `displayString` (`TalkerDropdown.tsx:509-514` tap; `PersistentTalker.tsx:122-164` save). For the dominant case (authored on an English board) the text is already correctly keyed `en`; carrying the source record additionally fixes the *mixed* case (an English-only symbol tapped onto a Hindi board stays English-voiced, not mislabelled `hi`) and future-proofs Phase 15.5 variants. |
+| **3b** | **`authoredLanguage` on structure-bound items only** | `profilePhrases` and **block/sequence** `profileSentences` (`playback === 'sequence'`) carry an explicit `authoredLanguage`, stamped at save (= the board language at authoring time — the grammar the user composed in). Legacy rows default to `en`. **Fluent sentences are NOT touched** — they hold a translated `text` record and keep resolving live per board language (the working path; see the regression note). |
+| **3c** | **Resolve block units against `authoredLanguage`, never the board language** | Change `blocksFromUnits(units, language)` (`blocks.ts:59-79`) to resolve each unit's text against the sentence's `authoredLanguage`, not the current board `language`. An English block sentence then renders coherent English on any board. ⚠️ **Do NOT resolve block units live against the board language** (the git-trace's raw suggestion) — units built from library symbols carry `{en, hi}`, and board-language resolution would show Hindi words *in English order* = the grammatically-wrong literal translation. The **frozen authored-language audio snapshot is correct** for this model — do not re-resolve block audio per board language either. |
 | **3d** | **"Made in \<lang\>" badge** | When the board language ≠ an item's `authoredLanguage`, show a small language badge on the item so the instructor understands why it didn't switch. This badge is the seed of the follow-on phase's "edit to localise" affordance. |
 | **3e** | **Voice follows resolved text language** | The shared rule. Used for composed items (authored language) *and* for order-free content (board language). Neutralises the wrong-accent symptom structurally. |
-| **3f** | **Voice persona across languages (gender fix)** | Store voice preference as a persona (`gender` + `age band`), not a raw language-specific `voiceId`. On a language switch of order-free content, `resolveVoiceId` picks the target-language voice whose persona matches, instead of falling to `voices[0]` (a fixed gender). Registry voices gain `{ gender, age }` metadata (data-only). |
+| **3f** | **Voice persona across languages (gender fix)** | Store voice preference as a persona (`gender` + `age band`), not a raw language-specific `voiceId`. On a language switch of order-free content, `resolveVoiceId` picks the target-language voice whose persona matches, instead of falling to `voices[0]` (a fixed gender). Registry voices gain `{ gender, age }` metadata (data-only). **Today the Wavenet set ships `gender` only (male/female, all adult)** to keep costs down — so the resolver keys on `gender` now, and `age` is modelled but not yet varied. Keeping `age` in the shape means a later voice upgrade (child voices, a richer TTS API) is data-only, no resolver rewrite. |
 
-**Explicitly NOT in Phase 15:** any in-place translation of composed content. Deferred to the variants phase (below).
+**Explicitly NOT in Phase 15:** any in-place translation of composed (block/phrase) content — deferred to Phase 15.5. **Fluent library sentences are untouched** (they already translate). **Existing single-language block rows**: stamp `authoredLanguage = 'en'` by default (light migration or lazy default on read); they then render as correct English assets with a badge — no data loss.
 
 *Confirmation test for the instructor (control vs broken, run before/after 3a):*
 1. English profile → build *I want more* in the talker from known-translated core words → save.
@@ -117,6 +124,16 @@ Meaning lives in melody (dossier doc 4 #4 — the most clinically load-bearing G
 - **Phrases are deferred from tone in V1** — their append/prepend join is awkward; revisit after the sentence path proves out.
 - **V1 tone set: `Neutral` (default) + `Excited`.** Minimal, to prove the pipeline. `Excited` (pitch + rate) synthesises cleanly; the preset map makes `Asking`/`Calm`/`Sad` each a `{ pitch, rate, volume }` entry + a chip later. `Asking` (a natural question rise) is the hardest to fake with SSML and is the first candidate for a recorded-human fallback if added.
 
+### Experimentation spike — do this FIRST, before committing tone UI
+
+Tone quality is not guaranteed on the current voices, so the first task is a throwaway spike, not production code:
+
+1. Test SSML `<prosody>` (pitch/rate/volume) on the **current Wavenet voices** via `/api/tts`. Judge whether `Excited` is audibly and acceptably distinct from `Neutral`.
+2. If Wavenet prosody is too flat, evaluate **other Google TTS models/voices** (e.g. Neural2, Studio, or Chirp 3 HD — check EU availability per the London-based deployment) for prosody or style support. **A voice-quality upgrade is accepted** for this SLP-requested feature (the owner is happy to step up cost/quality here specifically).
+3. Only after the spike proves an approach do we build the chip UI + cache-key change. If no synthesised approach is good enough, fall back to recorded-human variants for the few phrases that need them (dossier doc 4 #4).
+
+This spike also informs voice strategy generally (it may surface better base voices worth adopting beyond tone).
+
 ### API / cache
 
 - `/api/tts` accepts an optional `tone`. A `TONE_PRESETS` map wraps the text in SSML `<prosody>`. `Neutral`/absent = today's exact behaviour.
@@ -139,12 +156,14 @@ Meaning lives in melody (dossier doc 4 #4 — the most clinically load-bearing G
 
 ## Deferred — follow-on phase: Composed-content language variants
 
-Not built in Phase 15. Captured here so the foundation stays forward-compatible.
+Not built in Phase 15. Captured here so the foundation stays forward-compatible. Roadmapped as **Phase 15.5**.
 
-- **Linked per-language variants**: one logical "sentence slot" holds a separate, natively-authored composition per language (`en` comp + `hi` comp). The `authoredLanguage` tag from 3b is the hook; variants link items that share a slot.
-- **"Made in EN — edit to build the Hindi version"**: the badge from 3d becomes an action. Viewing a slot in a language it lacks shows the prompt; tapping opens the composition builder in that language's authoring mode.
-- **MT as authoring assist**: inside the localise flow, offer a machine-translated fluent text as a *starting suggestion* (Pro+); the instructor arranges symbols/phrases in correct target-language order. MT never ships unreviewed.
-- **View behaviour**: a slot shows its current-language variant, or the "build it" prompt — replacing Phase 15's always-show-in-authored-language + badge.
+- **Default-to-bilingual is a first-class, permanent state.** An English-authored item that is *not* rebuilt stays a fully-working English asset — English symbols, English text, English audio, played correctly. This is not a broken/degraded state; it is a valid bilingual board. The instructor has a genuine **choice: rebuild in the target language, or leave it as a working English asset.**
+- **Keep the working English symbols + text visible** when viewing an un-localised item on a target-language board, *plus* the "Made in EN" disclaimer — so the instructor can see exactly what the item is and what they'd be rebuilding.
+- **Click the disclaimer/badge → enter EDIT MODE**, reusing the existing composition-builder components (preferred over a bespoke remake modal, for component reuse). The English original stays visible as a reference while the instructor authors the target-language version natively (correct order, correct phrases).
+- **Reactive language-switch recognition** — the view must respond to a language switch the way the **search page already does** (re-query/re-resolve on `language` change). Use that as the reference pattern; the search page is the proof it works.
+- **Linked per-language variants**: one logical "sentence slot" holds a separately-authored composition per language (`en` comp + `hi` comp). The `authoredLanguage` tag from 3b is the hook; variants link items that share a slot. Once a target-language variant exists, viewing that language shows the native variant instead of the English asset + badge.
+- **MT as authoring assist**: inside the rebuild flow, offer a machine-translated fluent text as a *starting suggestion* (Pro+ gated); the instructor arranges symbols/phrases in correct target-language order. MT never ships unreviewed.
 - **Monolingual families** keep the ADR-009 "one profile per language" pattern; the variant model is the bilingual-profile enhancement, not a requirement.
 
 ---
@@ -170,9 +189,14 @@ Not built in Phase 15. Captured here so the foundation stays forward-compatible.
 2. **Thread 1** — small; sits on 3e.
 3. **Thread 2** — Figma the chip row, then `/api/tts` tone param + cache-key + play-modal fluent-clip generation.
 
-### Open items to confirm at review
-- Persona axes — `{ gender: 'male'|'female', age: 'adult'|'child' }` proposed; confirm against the seeded voice set (ADR-009 §8.4 targets 4 voices/language, but the current registry appears to ship adult M/F only for en/es/hi — the persona resolver must degrade gracefully until child voices are seeded).
-- Roadmap update: the Phase 15 entry still says "click to translate is broken"; it should be reworded to the foundation model, and a new follow-on phase (composed-content variants) added.
+### Resolved decisions (from brainstorm)
+- **Persona axes** — `{ gender, age }` shape, but only `gender` (male/female, all adult, Wavenet) drives resolution now; `age` is modelled for a future voice upgrade (data-only, no resolver rewrite). Confirmed 2026-07-08.
+- **Tone quality** — an experimentation spike gates the tone build; a voice-model/quality upgrade is accepted for this SLP request if Wavenet prosody is too flat. Confirmed 2026-07-08.
+- **Rebuild UX** — default-to-bilingual (keep the working English asset) is a permanent valid state; rebuild is opt-in via the badge → edit mode (reusing composition components), search-page reactive switch pattern. Confirmed 2026-07-08 → Phase 15.5.
+- **Roadmap** — Phase 15 entry reworded to the foundation model; Phase 15.5 (composed-content variants) added. Done 2026-07-08.
+
+### Still open
+- Exact `authoredLanguage` migration for existing single-language block rows (light backfill vs lazy default-on-read) — decide during implementation planning.
 
 ### Testing
 - Thread 3 confirmation test (control vs broken) — before/after 3a.
