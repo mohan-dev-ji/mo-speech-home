@@ -552,7 +552,8 @@ function SortableSentenceRow({
         role={isEditing ? undefined : 'button'}
         aria-label={isEditing ? undefined : t('rowPlay')}
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 flex-1 min-w-0">
 
           {/* Top row: the symbol area (fills the width + wraps) and the edit panel
               (top-right, aligned with the first symbol row). The full sentence text
@@ -686,6 +687,21 @@ function SortableSentenceRow({
             <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
               {sentenceText}
             </p>
+          )}
+          </div>
+
+          {/* Phase 15 (3d): "Made in <lang>" badge — a block sentence renders in the
+              language it was authored in (structure isn't translated). Show it when
+              the authored language differs from the board language so the instructor
+              knows why it didn't switch. View mode only (edit panel owns the right in
+              edit mode). */}
+          {!isEditing && isSequenceRow(sentence) && authoredLang !== language && (
+            <span
+              className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap"
+              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
+            >
+              {t('madeInBadge', { lang: authoredLang.toUpperCase() })}
+            </span>
           )}
         </div>
       </div>

@@ -123,6 +123,7 @@
     "updateModule": "Update module",
     "audioGenerated": "Audio ready",
     "audioNeedsGeneration": "No audio — tap to generate",
+    "madeInBadge": "Made in {lang}",
     "rowDelete": "Delete sentence",
     "rowEdit": "Rename",
     "rowMove": "Move",
