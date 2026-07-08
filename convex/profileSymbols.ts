@@ -96,6 +96,8 @@ export const createProfileSymbol = mutation({
     label: v.record(v.string(), v.string()),
     audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
+    // Phase 15 (Thread 1): per-symbol language pin (bilingual boards). Omit = Auto.
+    pinnedLanguage: v.optional(v.string()),
     // Stable-slot placement (talker dropbar core board): insert at this exact
     // slot index (= `order`) without bumping other symbols, so gaps are
     // preserved. Omit for the default "prepend at 0 + bump" behaviour.
@@ -138,6 +140,7 @@ export const createProfileSymbol = mutation({
       label: args.label,
       audio: args.audio,
       display: args.display,
+      ...(args.pinnedLanguage ? { pinnedLanguage: args.pinnedLanguage } : {}),
       updatedAt: now,
     });
 
@@ -280,6 +283,8 @@ export const updateProfileSymbol = mutation({
     label: v.record(v.string(), v.string()),
     audio: v.optional(v.record(v.string(), audioSourceValidator)),
     display: v.optional(displayValidator),
+    // Phase 15 (Thread 1): per-symbol language pin. undefined = Auto (clears the pin).
+    pinnedLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -299,6 +304,8 @@ export const updateProfileSymbol = mutation({
       label: args.label,
       audio: args.audio,
       display: args.display,
+      // undefined clears the pin (Auto). Patch unsets the field on undefined.
+      pinnedLanguage: args.pinnedLanguage,
       updatedAt: Date.now(),
     });
 
