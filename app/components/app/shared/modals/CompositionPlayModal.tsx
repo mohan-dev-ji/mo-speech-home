@@ -5,6 +5,7 @@ import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackd
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
+import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
 
 // Block play modal (ADR-015). Shows the whole composition at once and steps a
 // yellow glow through each block in time with its audio. Replay re-runs the
@@ -38,7 +39,12 @@ export function CompositionPlayModal({
   async function playOne(b: PlayBlock, runId: number): Promise<void> {
     let key = b.audioKey;
     if (!key) {
-      key = await resolveTtsKey(ttsText(b), voiceId);
+      // Voice follows the block's resolved text language (Phase 15, 3e): an
+      // English block on a Hindi board is synthesised with an English voice
+      // (persona preserved), not the board's Hindi voice. Live talker blocks have
+      // no `locale` and use the board voiceId as-is.
+      const blockVoice = b.locale ? voiceForLanguage(b.locale, personaOf(voiceId)) : voiceId;
+      key = await resolveTtsKey(ttsText(b), blockVoice);
       if (runIdRef.current !== runId) return;   // superseded during synth — don't play
     }
     if (!key) { await new Promise<void>((res) => setTimeout(res, 300)); return; } // nothing to play

@@ -6,6 +6,7 @@ import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import { resolveTtsKey } from '@/lib/audio/playTts';
+import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
 
 type Slot = {
   order: number;
@@ -20,6 +21,13 @@ type SentencePlayModalProps = {
   recordedAudioPath?: string;
   /** Active voice — TTS is resolved per (sentenceText, voiceId) at play time. */
   voiceId: string;
+  /**
+   * The locale `sentenceText` actually resolved to (Phase 15, 3e). When it differs
+   * from the board voice's language (e.g. an English fallback shown on a Spanish
+   * board), the voice is remapped to this locale's language — persona preserved —
+   * so the words aren't spoken in the wrong accent. Omit to use `voiceId` as-is.
+   */
+  textLocale?: string;
   /** The sentence's module (folder) colour key; drives the 50% symbol-group fill. */
   moduleColour?: string;
   onClose: () => void;
@@ -31,7 +39,7 @@ type SentencePlayModalProps = {
 // audio sounds (not stepped per symbol). The symbols group on the module colour at
 // 50% so the glow reads; a smaller sentence pill + the shared Replay button below.
 export function SentencePlayModal({
-  isOpen, sentenceText, slots, recordedAudioPath, voiceId, moduleColour, onClose,
+  isOpen, sentenceText, slots, recordedAudioPath, voiceId, textLocale, moduleColour, onClose,
 }: SentencePlayModalProps) {
   // Monotonic run token guards against StrictMode's double-mount + replay taps
   // launching overlapping clips (mirrors CompositionPlayModal).
@@ -54,7 +62,9 @@ export function SentencePlayModal({
     stopActive();
     let key = recordedAudioPath;
     if (!key && sentenceText) {
-      key = await resolveTtsKey(sentenceText, voiceId);
+      // Voice follows the resolved text's language (Phase 15, 3e).
+      const effVoice = textLocale ? voiceForLanguage(textLocale, personaOf(voiceId)) : voiceId;
+      key = await resolveTtsKey(sentenceText, effVoice);
       if (runIdRef.current !== myRun) return;   // superseded during synth
     }
     if (!key) return;

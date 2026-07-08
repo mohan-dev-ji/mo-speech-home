@@ -45,6 +45,28 @@ export function displayValue<T>(
 }
 
 /**
+ * Which locale key `displayValue` actually resolves to for the same inputs —
+ * tier 1 (currentLang), tier 2 (defaultLang), or tier 3 (first key), or
+ * undefined when the record is empty/absent.
+ *
+ * Phase 15 (3e): "voice follows the resolved TEXT's language". A caller resolves
+ * a label with `displayString(...)` for display, and uses `resolvedLocale(...)`
+ * with the SAME args to pick a TTS voice for the language actually shown — so an
+ * English string shown on a Hindi board is spoken by an English voice, not a
+ * Hindi one. Keep the two calls in lockstep (same value/currentLang/defaultLang).
+ */
+export function resolvedLocale(
+  value: Record<string, unknown> | undefined,
+  currentLang: string,
+  defaultLang?: string,
+): string | undefined {
+  if (!value) return undefined;
+  if (currentLang in value) return currentLang;
+  if (defaultLang && defaultLang in value) return defaultLang;
+  return Object.keys(value)[0];
+}
+
+/**
  * Convenience wrapper for the common "render a string label" case.
  * Returns the empty string when no translation is available, so JSX
  * doesn't render `undefined`. Use the bare `displayValue` if you need

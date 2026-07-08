@@ -10,8 +10,11 @@ import type { TalkerSymbolItem } from '@/app/contexts/TalkerContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 
-export type PlayWord   = { kind: 'word';   label: string; imageUrl?: string; audioKey?: string };
-export type PlayPhrase = { kind: 'phrase'; name: string;  imageUrl?: string; audioKey?: string;
+// `locale` (Phase 15, 3e) = the language the block's text actually resolved to,
+// so the play modal can synthesise it in a voice for THAT language (voice follows
+// text). Absent for live talker blocks (they're in the board language already).
+export type PlayWord   = { kind: 'word';   label: string; imageUrl?: string; audioKey?: string; locale?: string };
+export type PlayPhrase = { kind: 'phrase'; name: string;  imageUrl?: string; audioKey?: string; locale?: string;
                            words: { label: string; imageUrl?: string }[] };
 export type PlayBlock  = PlayWord | PlayPhrase;
 
