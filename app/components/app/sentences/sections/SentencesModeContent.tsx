@@ -1004,11 +1004,17 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const sentenceAudioTexts = isEditing
     ? filteredSentences.map(rowText).filter(Boolean)
     : [];
-  const audioAvail = useQuery(
+  const audioAvailList = useQuery(
     api.ttsCache.checkMany,
     isEditing && sentenceAudioTexts.length > 0
       ? { texts: sentenceAudioTexts, voiceId }
       : 'skip'
+  );
+  // checkMany returns an array (text as a value — Convex forbids non-ASCII object
+  // keys, e.g. Hindi text). Rebuild the by-text lookup client-side.
+  const audioAvail = useMemo(
+    () => Object.fromEntries((audioAvailList ?? []).map((e) => [e.text, e])),
+    [audioAvailList],
   );
 
   const slotEditorSentence = slotEditTarget

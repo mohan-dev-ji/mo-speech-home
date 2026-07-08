@@ -61,7 +61,10 @@ export function InlinePhraseEditor({
     api.ttsCache.checkMany,
     nameKey ? { texts: [nameKey], voiceId } : 'skip'
   );
-  const hasAudio = !!unit.recordedAudioPath || audioAvail?.[nameKey]?.available === true;
+  // checkMany returns an array (Convex forbids non-ASCII object keys like Hindi text).
+  const hasAudio =
+    !!unit.recordedAudioPath ||
+    audioAvail?.some((e) => e.text === nameKey && e.available) === true;
   const incomplete = unit.words.length < 2;
 
   function emit(updated: PhraseUnit) { onChange(sentenceId, unitIndex, updated); }

@@ -99,14 +99,20 @@ export const checkMany = query({
     texts: v.array(v.string()),
     voiceId: v.string(),
   },
+  // Returns an ARRAY of { text, available, r2Key? } — NOT an object keyed by text.
+  // Convex object field names must be non-control ASCII, so a Hindi/Punjabi text
+  // (e.g. "मुझे प्यास लगी है") as a key crashes serialization of the query result.
+  // Callers rebuild a client-side lookup (JS objects allow non-ASCII keys).
   handler: async (ctx, { texts, voiceId }) => {
-    const out: Record<string, { available: boolean; r2Key?: string }> = {};
+    const out: Array<{ text: string; available: boolean; r2Key?: string }> = [];
+    const seen = new Set<string>();
     for (const raw of texts) {
       const text = raw.toLowerCase().trim();
-      if (!text || text in out) continue;
+      if (!text || seen.has(text)) continue;
+      seen.add(text);
       const res = await resolveCachedAudio(ctx, text, voiceId);
       if (res.source === "ttsCache") {
-        out[text] = { available: true, r2Key: res.r2Key };
+        out.push({ text, available: true, r2Key: res.r2Key });
       } else if (res.source === "symbolstix") {
         // Convention-resolve the seeded path so a cached tap can play it
         // synchronously. `true` = seeded (flag already confirmed above).
@@ -116,9 +122,9 @@ export const checkMany = query({
           true,
           res.audioBasename
         );
-        out[text] = { available: true, r2Key: key ?? undefined };
+        out.push({ text, available: true, r2Key: key ?? undefined });
       } else {
-        out[text] = { available: false };
+        out.push({ text, available: false });
       }
     }
     return out;

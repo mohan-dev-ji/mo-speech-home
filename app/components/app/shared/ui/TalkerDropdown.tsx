@@ -11,7 +11,7 @@
 // containers are canonical per-account rows addressed by librarySourceId
 // sentinels (convex/dropbar.ts).
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -283,11 +283,17 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const phraseNameKeys = orderedPhrases.map((p) =>
     displayString(p.name, language, DEFAULT_LOCALE).toLowerCase().trim(),
   );
-  const phraseAudioAvail = useQuery(
+  const phraseAudioAvailList = useQuery(
     api.ttsCache.checkMany,
     isOpen && phraseNameKeys.length > 0
       ? { texts: phraseNameKeys, voiceId }
       : 'skip',
+  );
+  // checkMany returns an array (Convex forbids non-ASCII object keys like Hindi
+  // text). Rebuild the by-text lookup client-side.
+  const phraseAudioAvail = useMemo(
+    () => Object.fromEntries((phraseAudioAvailList ?? []).map((e) => [e.text, e])),
+    [phraseAudioAvailList],
   );
 
   function findPhrase(id: Id<'profilePhrases'>) {
