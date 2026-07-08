@@ -30,6 +30,14 @@ export type VoiceEntry = {
   ttsVoiceId: string;
   /** Speaker gender — surfaced in the settings voice picker. */
   gender: "male" | "female";
+  /**
+   * Speaker age band. Phase 15: modelled so voice *persona* (gender + age) can be
+   * preserved across a language switch, but not yet varied — every seeded Wavenet
+   * voice is adult, so this is optional and treated as "adult" when absent. Adding
+   * child voices later is a data-only change (no resolver rewrite). See
+   * docs/4-builds/plans/phase-15-language-design.md Thread 3 (3f).
+   */
+  age?: "adult" | "child";
   /** Human-readable accent/region, e.g. "British English",
    *  "Latin American Spanish" — surfaced in the settings voice picker. */
   region: string;

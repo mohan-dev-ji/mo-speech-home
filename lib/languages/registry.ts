@@ -23,7 +23,7 @@
  */
 
 import { LANGUAGE_MODULES } from "../../convex/data/languages/_index";
-import type { LangModule } from "../../convex/data/languages/types";
+import type { LangModule, VoiceEntry } from "../../convex/data/languages/types";
 
 export type { LangModule, LangStatus, VoiceEntry } from "../../convex/data/languages/types";
 
@@ -43,6 +43,28 @@ export const DEFAULT_LOCALE = "en";
 /** Lookup a language module by ISO code. Returns undefined for unknown codes. */
 export function getLanguage(code: string): LangModule | undefined {
   return LANGUAGES.find((l) => l.code === code);
+}
+
+/**
+ * Reverse-lookup a voice entry by its upstream `ttsVoiceId`, across all languages.
+ * Voice-id string parsing is forbidden (ADR-009 §4) — this walks the registry.
+ * Phase 15: used to read a voice's persona (gender/age) so it can be preserved
+ * across a language switch.
+ */
+export function getVoiceEntry(ttsVoiceId: string): VoiceEntry | undefined {
+  for (const l of LANGUAGES) {
+    const v = l.voices.find((v) => v.ttsVoiceId === ttsVoiceId);
+    if (v) return v;
+  }
+  return undefined;
+}
+
+/** The ISO language code a given `ttsVoiceId` belongs to, or undefined. */
+export function getVoiceLang(ttsVoiceId: string): string | undefined {
+  for (const l of LANGUAGES) {
+    if (l.voices.some((v) => v.ttsVoiceId === ttsVoiceId)) return l.code;
+  }
+  return undefined;
 }
 
 /**
