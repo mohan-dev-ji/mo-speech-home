@@ -617,6 +617,13 @@ export default defineSchema({
 
     label: localisedString,
 
+    // Phase 15 (Thread 1) — per-symbol language pin for bilingual boards. When set,
+    // the symbol renders its label + speaks its audio in THIS language regardless of
+    // the board language (e.g. an English tile on a Hindi board). Unset = "Auto"
+    // (follow the board). The one deliberate exception to live translation of
+    // order-free content. See docs/4-builds/plans/phase-15-language-design.md.
+    pinnedLanguage: v.optional(v.string()),
+
     // Per-language audio override — falls back to convention-resolved path
     // via lib/audio/resolveAudioPath.ts when no override present.
     // Migration union accepts legacy { eng, hin } shape until Phase 8.0 completes.
@@ -721,6 +728,12 @@ export default defineSchema({
     // Sentence text — feeds TTS and display. Localised: migrated from single-string
     // to localised record in Phase 8.0; union accepts both during migration.
     text: v.optional(localisedStringMigration),
+    // Phase 15 (Thread 3) — the language this sentence was authored in. Block/sequence
+    // sentences resolve their unit text AND voice against THIS, never the board
+    // language: composed structure is language-specific (word order/morphology), so it
+    // is re-authored per language, not translated in place. Optional; legacy rows
+    // default to 'en' on read. See docs/4-builds/plans/phase-15-language-design.md.
+    authoredLanguage: v.optional(v.string()),
     // ADR-015 — `slots[]` is the Phase-13 shape and stays the rendered source of
     // truth until later slices migrate readers to `units[]`. New writes keep it
     // populated (a flattened view) for back-compat; it is dropped in a later cleanup.
@@ -767,6 +780,9 @@ export default defineSchema({
     kind: v.optional(v.literal("phrase")),
     name: localisedString,
     order: v.number(),
+    // Phase 15 (Thread 3) — see profileSentences.authoredLanguage. A phrase is
+    // structure-bound and re-authored per language, not translated in place.
+    authoredLanguage: v.optional(v.string()),
     librarySourceId: v.optional(v.string()),
     folderId: v.optional(v.id("profileFolders")), // tree: "phrases"
     words: v.array(compositionWord),

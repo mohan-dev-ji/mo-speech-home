@@ -8,7 +8,7 @@
 
 ---
 
-## Frame 1 — "Made in EN" badge on a sentence row  → *(paste Figma URL here)*
+## Frame 1 — "Made in EN" badge on a sentence row  → *(https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=1439-23546&t=zyO52WYdvBQBy0cU-4)* and here on a screen *(https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=1440-22491&t=zyO52WYdvBQBy0cU-4)*
 
 **Backs:** Implementation Task 5. **Where:** the Sentences list row (`SentencesModeContent` sentence row), block/sequence sentences only.
 
@@ -29,7 +29,7 @@
 
 ---
 
-## Frame 2 — Symbol Editor "Language" pin control  → *(paste Figma URL here)*
+## Frame 2 — Symbol Editor "Language" pin control  → *(Make this in accordance to the symbol editor and design system style)*
 
 **Backs:** Implementation Task 9. **Where:** the Symbol Editor display/properties panel, alongside the existing display controls (colour, text size, shape toggles).
 
@@ -49,7 +49,7 @@
 
 ---
 
-## Frame 3 — Tone-chip row on the play modal  → *(paste Figma URL here)*
+## Frame 3 — Tone-chip row on the play modal  → *(https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=3264-5993&t=zyO52WYdvBQBy0cU-4)*
 
 **Backs:** Implementation Task 13. **Where:** `CompositionPlayModal` (block sentences) and `SentencePlayModal` (fluent sentences).
 
