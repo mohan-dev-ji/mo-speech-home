@@ -858,6 +858,8 @@
     "shapeSquare": "Square",
     "shapeRounded": "Rounded",
     "shapeCircle": "Circle",
+    "sectionLanguage": "Language",
+    "languageAuto": "Auto (follow board)",
     "sectionCategory": "Category",
     "categoryLabel": "Save to category",
     "categoryPlaceholder": "Select a category",

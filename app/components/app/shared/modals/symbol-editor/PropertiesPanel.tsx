@@ -9,7 +9,7 @@ import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { AccordionSection } from './AccordionSection';
 import type { Draft, AudioMode, TextSize, CardShape } from './types';
 import { displayString } from '@/lib/languages/displayValue';
-import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { DEFAULT_LOCALE, LANGUAGES } from '@/lib/languages/registry';
 
 type Props = {
   draft: Draft;
@@ -666,6 +666,31 @@ export function PropertiesPanel({
               );
             })}
           </div>
+        </AccordionSection>
+      )}
+
+      {/* ── Language pin (categoryBoard only) — Phase 15 Thread 1 ─────────── */}
+      {editorMode === 'categoryBoard' && (
+        <AccordionSection
+          label={t('sectionLanguage')}
+          isOpen={openSections.has('language')}
+          onToggle={() => toggleSection('language')}
+        >
+          <select
+            value={draft.pinnedLanguage ?? ''}
+            onChange={(e) => patch({ pinnedLanguage: e.target.value || undefined })}
+            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
+            style={{
+              background: 'var(--theme-symbol-bg)',
+              color: 'var(--theme-text)',
+              border: '1px solid var(--theme-button-highlight)',
+            }}
+          >
+            <option value="">{t('languageAuto')}</option>
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>{l.nativeLabel}</option>
+            ))}
+          </select>
         </AccordionSection>
       )}
 

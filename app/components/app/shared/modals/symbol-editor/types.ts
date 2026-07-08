@@ -43,6 +43,8 @@ export type Draft = {
   showImage: boolean;
   textSize: TextSize;
   shape: CardShape;
+  // Phase 15 (Thread 1): per-symbol language pin. undefined = Auto (follow board).
+  pinnedLanguage?: string;
   // Target category
   profileCategoryId: Id<'profileCategories'> | '';
 };

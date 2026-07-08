@@ -445,8 +445,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
             <div className="px-2 pt-2">
               <CategoryBoardGrid>
                 {symbols.map((sym) => {
-                const label = displayString(sym.label, language, DEFAULT_LOCALE);
-                const audioPath = displayValue(sym.audio, language, DEFAULT_LOCALE);
+                // Phase 15 (Thread 1): a pinned symbol renders + speaks in its
+                // pinned language regardless of the board language.
+                const resolveLang = sym.pinnedLanguage ?? language;
+                const label = displayString(sym.label, resolveLang, DEFAULT_LOCALE);
+                const audioPath = displayValue(sym.audio, resolveLang, DEFAULT_LOCALE);
                 const imageUrl = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
 
                 return (
@@ -473,8 +476,10 @@ export function CategoryDetailContent({ categoryId }: Props) {
                             imagePath: `/api/assets?key=${sym.imagePath}`,
                             audioPath,
                             label,
-                            // Phase 15 (Task 6): carry the full localised record.
-                            labelRecord: sym.label,
+                            // Phase 15: carry the full localised record (Task 6); a
+                            // pinned symbol carries only its pinned language so the
+                            // pin survives into a saved sentence (Thread 1).
+                            labelRecord: sym.pinnedLanguage ? { [sym.pinnedLanguage]: label } : sym.label,
                           });
                         }
                       }}

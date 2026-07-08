@@ -6,6 +6,7 @@ import { requireProTier } from "./lib/access";
 import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
+import { getLanguage, getVoiceEntry } from "../lib/languages/registry";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
 // Phase 8.4: callers pass the active profile's resolved `voiceId`; this is the
@@ -222,6 +223,30 @@ export const getProfileSymbolsWithImages = query({
               );
               if (defaultPath) audio.en = defaultPath;
             }
+            // Phase 15 (Thread 1): a pinned symbol also seeds its pinned-language
+            // clip, resolved with a voice for THAT language matching the board
+            // voice's gender (persona preserved) — so a tile pinned to English on a
+            // Hindi board speaks English, not Hindi. The client resolves audio
+            // against the pin (see CategoryDetailContent).
+            const pin = ps.pinnedLanguage;
+            if (pin && !audio[pin]) {
+              const boardGender = getVoiceEntry(voiceId)?.gender;
+              const pinVoices = getLanguage(pin)?.voices ?? [];
+              const pinnedVoice =
+                (boardGender && pinVoices.find((v) => v.gender === boardGender)?.ttsVoiceId) ||
+                pinVoices[0]?.ttsVoiceId;
+              if (pinnedVoice) {
+                const audioMap = sym.audio as Record<string, boolean>;
+                const seeded = audioMap?.[pinnedVoice] === true;
+                const p = resolveSymbolAudioPath(
+                  pinnedVoice,
+                  sym.words.en ?? "",
+                  seeded,
+                  sym.audioBasename,
+                );
+                if (p) audio[pin] = p;
+              }
+            }
           }
         } else if (ps.imageSource.type === "placeholder") {
           // No image yet — left undefined so SymbolCard renders its empty
@@ -239,6 +264,7 @@ export const getProfileSymbolsWithImages = query({
           order: ps.order,
           label: ps.label,
           display: ps.display,
+          pinnedLanguage: ps.pinnedLanguage, // Phase 15 (Thread 1)
           imagePath,
           audio,
         };

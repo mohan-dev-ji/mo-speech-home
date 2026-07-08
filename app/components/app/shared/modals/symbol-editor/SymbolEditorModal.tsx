@@ -364,6 +364,7 @@ export function SymbolEditorModal({
       showImage: ps.display?.showImage ?? true,
       textSize: ps.display?.textSize ?? 'sm',
       shape: ps.display?.shape ?? 'rounded',
+      pinnedLanguage: ps.pinnedLanguage, // Phase 15 (Thread 1)
       profileCategoryId: ps.profileCategoryId,
     });
   }, [existingSymbol]);
@@ -793,6 +794,8 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
+          // Phase 15 (Thread 1): undefined = Auto (clears the pin).
+          pinnedLanguage: draft.pinnedLanguage,
         })) as Id<'profileSymbols'>;
       } else {
         savedId = await createProfileSymbol({
@@ -801,6 +804,7 @@ export function SymbolEditorModal({
           label,
           audio,
           display,
+          ...(draft.pinnedLanguage ? { pinnedLanguage: draft.pinnedLanguage } : {}),
           ...(createSlot !== undefined ? { slot: createSlot } : {}),
         });
       }
