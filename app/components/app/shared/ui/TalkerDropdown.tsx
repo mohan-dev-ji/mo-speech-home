@@ -206,7 +206,8 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     const label = displayString(sym.label, language, DEFAULT_LOCALE);
     const imagePath = sym.imagePath ? `/api/assets?key=${sym.imagePath}` : undefined;
     const audioPath = sym.audio[language] ?? sym.audio[DEFAULT_LOCALE] ?? sym.audio.en;
-    onSymbolTap({ symbolId: sym._id, label, imagePath, audioPath });
+    // Phase 15 (Task 6): carry the full localised record, not just the resolved string.
+    onSymbolTap({ symbolId: sym._id, label, labelRecord: sym.label, imagePath, audioPath });
   }
 
   function handleSymbolDragEnd(event: DragEndEvent) {
@@ -514,10 +515,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         {ready.map((p) => {
           const name = displayString(p.name, language, DEFAULT_LOCALE);
           const audioPath = p.recordedAudioPath ?? p.audioPath ?? undefined;
+          // Phase 15 (Task 6): keep each word's full localised record alongside the
+          // resolved string, so the saved sentence keys text by its true language.
           const words = p.words.map((w) => ({
             imagePath: w.imagePath,
             audioPath: w.audioPath,
             label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
+            ...(w.label ? { labelRecord: w.label } : {}),
           }));
           return (
             <PhraseDropdownCard
@@ -525,7 +529,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
               name={name}
               words={words}
               onTap={() =>
-                onSymbolTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, audioPath, words })
+                onSymbolTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, phraseNameRecord: p.name, audioPath, words })
               }
             />
           );

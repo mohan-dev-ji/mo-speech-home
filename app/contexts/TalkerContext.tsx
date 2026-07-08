@@ -15,6 +15,10 @@ export type TalkerPhraseWord = {
   imagePath?: string;
   audioPath?: string;
   label: string;
+  // Phase 15 (Task 6): full localised record from the source, so a saved sentence
+  // keys each word's text by its TRUE language (not the board language). Optional —
+  // when absent, save falls back to { [boardLanguage]: label }.
+  labelRecord?: Record<string, string>;
 };
 
 export type TalkerSymbolItem = {
@@ -23,9 +27,12 @@ export type TalkerSymbolItem = {
   imagePath?: string;
   audioPath?: string;
   label: string;
+  // Phase 15 (Task 6): full localised record carried from the tap source.
+  labelRecord?: Record<string, string>;
   // Phrase fields (present only when kind === 'phrase').
   kind?: 'word' | 'phrase';
   phraseName?: string;
+  phraseNameRecord?: Record<string, string>;
   words?: TalkerPhraseWord[];
 };
 

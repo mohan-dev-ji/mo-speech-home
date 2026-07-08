@@ -33,6 +33,7 @@ export type TalkerPhraseWord = {
   imagePath?: string;
   audioPath?: string;
   label: string;
+  labelRecord?: Record<string, string>; // Phase 15 (Task 6) — full localised record
 };
 
 export type TalkerSymbolItem = {
@@ -41,9 +42,11 @@ export type TalkerSymbolItem = {
   imagePath?: string;
   audioPath?: string;   // R2 key — served via /api/assets proxy
   label: string;
+  labelRecord?: Record<string, string>; // Phase 15 (Task 6)
   // Phrase fields (present only when kind === 'phrase').
   kind?: "word" | "phrase";
   phraseName?: string;
+  phraseNameRecord?: Record<string, string>; // Phase 15 (Task 6)
   words?: TalkerPhraseWord[];
 };
 
@@ -52,10 +55,12 @@ export type TalkerSymbolItem = {
 export type QuickSymbolItem = {
   symbolId: string;
   label: string;
+  labelRecord?: Record<string, string>; // Phase 15 (Task 6)
   imagePath?: string;
   audioPath?: string;
   kind?: "word" | "phrase";
   phraseName?: string;
+  phraseNameRecord?: Record<string, string>; // Phase 15 (Task 6)
   words?: TalkerPhraseWord[];
 };
 

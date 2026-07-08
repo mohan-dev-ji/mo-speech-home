@@ -120,17 +120,20 @@ export function PersistentTalker() {
     try {
       // units[] — retains phrase decomposition + per-unit clips (ADR-015).
       const units = talkerSymbols.map((s, i) => {
+        // Phase 15 (Task 6): prefer the source's full localised record so text is
+        // keyed by its true language; fall back to the board language for freshly
+        // typed text that has no record.
         if (s.kind === 'phrase') {
           return {
             kind: 'phrase' as const,
             order: i,
-            name: { [language]: s.phraseName ?? s.label },
+            name: s.phraseNameRecord ?? { [language]: s.phraseName ?? s.label },
             ...(rawKey(s.audioPath) ? { audioPath: rawKey(s.audioPath)! } : {}),
             words: (s.words ?? []).map((w, wi) => ({
               order: wi,
               ...(rawKey(w.imagePath) ? { imagePath: rawKey(w.imagePath)! } : {}),
               ...(rawKey(w.audioPath) ? { audioPath: rawKey(w.audioPath)! } : {}),
-              ...(w.label ? { label: { [language]: w.label } } : {}),
+              ...(w.labelRecord ? { label: w.labelRecord } : w.label ? { label: { [language]: w.label } } : {}),
             })),
           };
         }
@@ -139,7 +142,7 @@ export function PersistentTalker() {
           order: i,
           ...(rawKey(s.imagePath) ? { imagePath: rawKey(s.imagePath)! } : {}),
           ...(rawKey(s.audioPath) ? { audioPath: rawKey(s.audioPath)! } : {}),
-          ...(s.label ? { label: { [language]: s.label } } : {}),
+          ...(s.labelRecord ? { label: s.labelRecord } : s.label ? { label: { [language]: s.label } } : {}),
         };
       });
 
@@ -186,10 +189,14 @@ export function PersistentTalker() {
       label: item.label,
       imagePath: item.imagePath,
       audioPath: item.audioPath,
+      // Phase 15 (Task 6): carry full localised records so the saved sentence keys
+      // text by its true language.
+      ...(item.labelRecord ? { labelRecord: item.labelRecord } : {}),
       // Phrase units carry their kind + name + decomposition through to the bar
       // (ADR-015). Word units leave these undefined and behave as before.
       ...(item.kind ? { kind: item.kind } : {}),
       ...(item.phraseName ? { phraseName: item.phraseName } : {}),
+      ...(item.phraseNameRecord ? { phraseNameRecord: item.phraseNameRecord } : {}),
       ...(item.words ? { words: item.words } : {}),
     });
   }

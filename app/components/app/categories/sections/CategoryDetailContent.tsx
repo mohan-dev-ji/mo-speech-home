@@ -473,6 +473,8 @@ export function CategoryDetailContent({ categoryId }: Props) {
                             imagePath: `/api/assets?key=${sym.imagePath}`,
                             audioPath,
                             label,
+                            // Phase 15 (Task 6): carry the full localised record.
+                            labelRecord: sym.label,
                           });
                         }
                       }}
