@@ -561,11 +561,11 @@ function SortableSentenceRow({
           <div className="flex items-start gap-3">
             <div
               className="flex-1 min-w-0"
-              // View mode: a sequence row's blocks are its only content and the
-              // title is below now, so let clicks bubble to the row's onPlay.
-              // Non-sequence rows keep stopPropagation so tapping a thumbnail
-              // doesn't play.
-              onClick={isEditing || isSequenceRow(sentence) ? undefined : (e) => e.stopPropagation()}
+              // View mode: let clicks anywhere on the row — symbols OR text — bubble
+              // to the row's onPlay, for BOTH sequence and fluent sentences. The old
+              // stopPropagation on fluent rows meant tapping a library sentence's
+              // symbols (the obvious target) did nothing. In edit mode the card has
+              // no onPlay, so bubbling is harmless.
             >
               {isEditing ? (
                 isSequenceRow(sentence) ? (
