@@ -853,8 +853,12 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   }
 
   async function handleCreate(name: string) {
+    // Phase 15: key the name by the CURRENT board language (you're authoring in it),
+    // and stamp authoredLanguage — consistent with the talker save. The old hardcoded
+    // `en` mislabelled every created sentence as English regardless of board.
     await createSentence({
-      name: { en: name },
+      name: { [language]: name },
+      authoredLanguage: language,
       ...(realFolderId ? { folderId: realFolderId } : {}),
     });
     // Drop straight into edit mode so the new sentence's empty slots and
