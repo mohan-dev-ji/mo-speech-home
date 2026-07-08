@@ -7,7 +7,7 @@
 
 import type { Doc } from '@/convex/_generated/dataModel';
 import type { TalkerSymbolItem } from '@/app/contexts/TalkerContext';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 
 // `locale` (Phase 15, 3e) = the language the block's text actually resolved to,
@@ -59,22 +59,30 @@ export function blocksFromTalker(items: TalkerSymbolItem[]): PlayBlock[] {
 // Saved-sentence composition units → blocks. Unit imagePaths/audioPaths are raw
 // keys; labels/names are localised records resolved via displayString. A phrase
 // prefers its human recording over the TTS clip.
-export function blocksFromUnits(units: CompositionUnitClient[], language: string): PlayBlock[] {
+//
+// ⚠️ Phase 15 (3c): `resolveLang` MUST be the sentence's `authoredLanguage`, NOT
+// the board language. Composed structure is language-specific (word order /
+// morphology) and is re-authored per language, never translated in place. Each
+// block also carries the locale its text actually resolved to, so the play modal
+// can voice it in that language (voice follows text, 3e).
+export function blocksFromUnits(units: CompositionUnitClient[], resolveLang: string): PlayBlock[] {
   return units.map((u): PlayBlock => {
     if (u.kind === 'phrase') {
       return {
         kind: 'phrase',
-        name: displayString(u.name, language, DEFAULT_LOCALE),
+        name: displayString(u.name, resolveLang, DEFAULT_LOCALE),
+        locale: resolvedLocale(u.name, resolveLang, DEFAULT_LOCALE),
         audioKey: toAudioKey(u.recordedAudioPath ?? u.audioPath),
         words: u.words.map((w) => ({
-          label: displayString(w.label, language, DEFAULT_LOCALE),
+          label: displayString(w.label, resolveLang, DEFAULT_LOCALE),
           imageUrl: toAssetUrl(w.imagePath),
         })),
       };
     }
     return {
       kind: 'word',
-      label: displayString(u.label, language, DEFAULT_LOCALE),
+      label: displayString(u.label, resolveLang, DEFAULT_LOCALE),
+      locale: resolvedLocale(u.label, resolveLang, DEFAULT_LOCALE),
       imageUrl: toAssetUrl(u.imagePath),
       audioKey: toAudioKey(u.audioPath),
     };

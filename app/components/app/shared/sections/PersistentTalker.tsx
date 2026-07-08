@@ -164,6 +164,10 @@ export function PersistentTalker() {
         name: { [language]: nameText },
         kind: 'sentence',
         playback: 'sequence',
+        // Phase 15 (3b): stamp the language this sentence is authored in (the board
+        // language at save time). Block sentences resolve their text + voice against
+        // this forever, never a later board language — structure isn't translatable.
+        authoredLanguage: language,
         units,
         slots,
         ...(folderId ? { folderId } : {}),

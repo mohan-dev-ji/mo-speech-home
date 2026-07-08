@@ -36,7 +36,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
@@ -102,6 +102,10 @@ type SentenceRow = {
   units?: CompositionUnitClient[];
   kind?: 'sentence';
   playback?: 'sequence' | 'fluent';
+  // Phase 15 (3b/3c) — language the sentence was authored in; block sentences
+  // resolve text + voice against this, and the "Made in <lang>" badge shows when
+  // it differs from the board language. Legacy rows are undefined → treated as 'en'.
+  authoredLanguage?: string;
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
 };
@@ -519,11 +523,14 @@ function SortableSentenceRow({
       ? sentence.text
       : displayString(sentence.text, language, DEFAULT_LOCALE);
   const sentenceText = resolvedText || name;
+  // Phase 15 (3c): a block/sequence sentence renders + speaks in the language it
+  // was AUTHORED in, never the board language (structure is language-specific).
+  const authoredLang = sentence.authoredLanguage ?? DEFAULT_LOCALE;
   // Talker-saved (sequence) sentences keep no maintained whole-sentence title
   // (unit edits only patch `units`/`slots`), so derive the full sentence from the
   // blocks — exactly what plays — for the read-only text shown to the right.
   const seqBlocks = isSequenceRow(sentence)
-    ? blocksFromUnits(sentence.units!, language)
+    ? blocksFromUnits(sentence.units!, authoredLang)
     : [];
   const seqFullText = seqBlocks
     .map((b) => (b.kind === 'word' ? b.label : b.name))
@@ -564,7 +571,7 @@ function SortableSentenceRow({
                   <UnitStrip
                     sentenceId={sentence._id}
                     units={sentence.units!}
-                    language={language}
+                    language={authoredLang}
                     onEditWord={onEditWord}
                     onRemoveUnit={onRemoveUnit}
                     onAddWord={onAddWord}
@@ -1330,7 +1337,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       {playTarget && isSequenceRow(playTarget) ? (
         <CompositionPlayModal
           isOpen
-          blocks={blocksFromUnits(playTarget.units!, language)}
+          blocks={blocksFromUnits(playTarget.units!, playTarget.authoredLanguage ?? DEFAULT_LOCALE)}
           voiceId={voiceId}
           onClose={() => setPlayTarget(null)}
         />
@@ -1348,6 +1355,16 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           slots={playTarget?.slots ?? []}
           recordedAudioPath={playTarget?.recordedAudioPath}
           voiceId={voiceId}
+          // Fluent sentences resolve text against the board language; pass the
+          // locale it actually landed on so the voice follows it (3e) when a
+          // sentence falls back to English on a non-English board.
+          textLocale={
+            playTarget
+              ? (typeof playTarget.text === 'string'
+                  ? DEFAULT_LOCALE
+                  : resolvedLocale(playTarget.text ?? playTarget.name, language, DEFAULT_LOCALE))
+              : undefined
+          }
           moduleColour={folderDoc?.colour}
           onClose={() => setPlayTarget(null)}
         />

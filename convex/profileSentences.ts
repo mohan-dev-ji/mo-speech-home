@@ -102,6 +102,7 @@ export const getProfileSentences = query({
       units:     s.units,
       kind:      s.kind,
       playback:  s.playback,
+      authoredLanguage: s.authoredLanguage, // Phase 15 (3c) — drives block resolution + badge
       librarySourceId: s.librarySourceId,
       folderId: s.folderId, // ADR-014 — group membership (Sentences tree)
     }));
@@ -121,6 +122,9 @@ export const createProfileSentence = mutation({
     // `playback:"sequence"` plays each unit's clip in turn (no whole-sentence TTS).
     kind:     v.optional(v.literal("sentence")),
     playback: v.optional(v.union(v.literal("sequence"), v.literal("fluent"))),
+    // Phase 15 (3b) — the language this sentence is authored in. Block sentences
+    // resolve their text + voice against this, never a later board language.
+    authoredLanguage: v.optional(v.string()),
     units:    v.optional(v.array(compositionUnitSchema)),
     slots:    v.optional(
       v.array(
@@ -150,6 +154,7 @@ export const createProfileSentence = mutation({
       ...(args.kind ? { kind: args.kind } : {}),
       ...(args.units ? { units: args.units } : {}),
       ...(args.playback ? { playback: args.playback } : {}),
+      ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       ...(args.folderId ? { folderId: args.folderId } : {}),
       updatedAt:  Date.now(),
     });
