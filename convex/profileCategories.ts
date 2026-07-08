@@ -201,9 +201,17 @@ export const getProfileSymbolsWithImages = query({
 
         // 1) Per-language overrides (recordings / tts captured by the instructor).
         const overrides =
-          (ps.audio as Record<string, { path: string } | undefined>) ?? {};
+          (ps.audio as Record<string, { path: string; type?: string } | undefined>) ?? {};
+        const overriddenLangs = new Set<string>();
         for (const [lang, src] of Object.entries(overrides)) {
-          if (src?.path) audio[lang] = src.path;
+          if (src?.path) {
+            audio[lang] = src.path;
+            // Only a GENUINE recording / TTS counts as an override that a language
+            // pin must respect. The editor also persists the SymbolStix default as
+            // a `type:'r2'` entry (resolved with the board voice) — that must yield
+            // to a pin's language-appropriate voice, so don't treat it as locking.
+            if (src.type === "recorded" || src.type === "tts") overriddenLangs.add(lang);
+          }
         }
 
         if (ps.imageSource.type === "symbolstix") {
@@ -228,8 +236,11 @@ export const getProfileSymbolsWithImages = query({
             // voice's gender (persona preserved) — so a tile pinned to English on a
             // Hindi board speaks English, not Hindi. The client resolves audio
             // against the pin (see CategoryDetailContent).
+            // Override the default-locale seed (audio.en uses the BOARD voice) with
+            // a voice for the PIN language — unless the instructor set an explicit
+            // per-language recording/override for the pin, which always wins.
             const pin = ps.pinnedLanguage;
-            if (pin && !audio[pin]) {
+            if (pin && !overriddenLangs.has(pin)) {
               const boardGender = getVoiceEntry(voiceId)?.gender;
               const pinVoices = getLanguage(pin)?.voices ?? [];
               const pinnedVoice =
