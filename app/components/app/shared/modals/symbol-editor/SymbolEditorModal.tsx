@@ -177,7 +177,7 @@ export function SymbolEditorModal({
           imageSourceTab: 'symbolstix' as const,
           symbolstixId: initialSymbolstixId,
           symbolstixImagePath: initialSymbolstixImagePath,
-          ...(initialLabelHin ? { labelHin: initialLabelHin } : {}),
+          ...(initialLabelHin ? { labelLoc: { hi: initialLabelHin } } : {}),
           ...(initialDefaultAudioPath
             ? {
                 defaultAudioPath: initialDefaultAudioPath,
@@ -350,7 +350,8 @@ export function SymbolEditorModal({
           ? (ps.imageSource as { license?: string }).license
           : undefined,
       labelEng: ps.label.en ?? '',
-      labelHin: ps.label.hi ?? '',
+      // All non-English localised labels, keyed by ISO code (Phase 15).
+      labelLoc: { ...ps.label },
       audioMode: activeSource ?? 'default',
       activeAudioSource: activeSource,
       defaultAudioPath: defaultPath,
@@ -777,10 +778,13 @@ export function SymbolEditorModal({
         ...(existingSymbol?.label ?? {}),
         en: draft.labelEng.trim(),
       };
-      if (draft.labelHin.trim()) {
-        label.hi = draft.labelHin.trim();
-      } else {
-        delete label.hi;
+      // Merge the localised labels edited via the dynamic field; trim + drop
+      // empties. English is authoritative from `labelEng` above (never overridden).
+      for (const [k, v] of Object.entries(draft.labelLoc)) {
+        if (k === 'en') continue;
+        const trimmed = (v ?? '').trim();
+        if (trimmed) label[k] = trimmed;
+        else delete label[k];
       }
 
       const catId = draft.profileCategoryId as Id<'profileCategories'>;
@@ -839,8 +843,10 @@ export function SymbolEditorModal({
       : pendingImagePreviewUrl
       ?? (draft.resolvedImagePath ? `/api/assets?key=${draft.resolvedImagePath}` : undefined);
 
+  // Preview reflects the effective language (pin if set, else board), English fallback.
+  const previewLang = draft.pinnedLanguage ?? language;
   const previewLabel =
-    language === 'hi' && draft.labelHin ? draft.labelHin : draft.labelEng;
+    previewLang === 'en' ? draft.labelEng : (draft.labelLoc[previewLang] || draft.labelEng);
 
   const defaultTitle =
     editorMode === 'sentenceSlot' ? t('titleSentenceSlot') :

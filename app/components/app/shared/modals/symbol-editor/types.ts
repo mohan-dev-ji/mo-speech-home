@@ -25,9 +25,12 @@ export type Draft = {
   imageAttribution?: string;
   imageLicense?: string;
   imageProvider?: string;
-  // Labels
+  // Labels. `labelEng` is the English master (also drives SymbolStix/AI/image
+  // search + validation). `labelLoc` holds every NON-English localised label
+  // (hi, es, pa, …), keyed by ISO code — edited via the dynamic per-language
+  // field. Phase 15: replaces the old single `labelHin` field.
   labelEng: string;
-  labelHin: string;
+  labelLoc: Record<string, string>;
   // Audio — `audioMode` is purely tab navigation; `activeAudioSource` is what plays.
   audioMode: AudioMode;
   activeAudioSource: ActiveAudioSource | null;
@@ -52,7 +55,7 @@ export type Draft = {
 export const INITIAL_DRAFT: Draft = {
   imageSourceTab: 'symbolstix',
   labelEng: '',
-  labelHin: '',
+  labelLoc: {},
   audioMode: 'default',
   activeAudioSource: null,
   bgColour: '#ffffff',

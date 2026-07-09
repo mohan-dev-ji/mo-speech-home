@@ -74,7 +74,17 @@ export function SymbolStixTab({
       // swapping the symbol mid-edit must not clobber a generated/recorded clip.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
       ...(draft.labelEng.trim() === '' && sym.words.en ? { labelEng: sym.words.en } : {}),
-      ...(draft.labelHin.trim() === '' && sym.words.hi ? { labelHin: sym.words.hi } : {}),
+      // Phase 15: seed every non-English localised label from the picked symbol's
+      // words (where not already filled), so the dynamic label field is populated
+      // for whatever language the instructor is on.
+      ...(() => {
+        const words = sym.words as Record<string, string | undefined>;
+        const seed: Record<string, string> = {};
+        for (const [k, v] of Object.entries(words)) {
+          if (k !== 'en' && v && !(draft.labelLoc[k] ?? '').trim()) seed[k] = v;
+        }
+        return Object.keys(seed).length ? { labelLoc: { ...draft.labelLoc, ...seed } } : {};
+      })(),
     });
   }
 

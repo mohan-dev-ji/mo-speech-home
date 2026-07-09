@@ -9,7 +9,7 @@ import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { AccordionSection } from './AccordionSection';
 import type { Draft, AudioMode, TextSize, CardShape } from './types';
 import { displayString } from '@/lib/languages/displayValue';
-import { DEFAULT_LOCALE, LANGUAGES } from '@/lib/languages/registry';
+import { DEFAULT_LOCALE, LANGUAGES, getLanguage } from '@/lib/languages/registry';
 
 type Props = {
   draft: Draft;
@@ -237,7 +237,18 @@ export function PropertiesPanel({
   };
 
   const labelSectionTitle = editorMode === 'listItem' ? t('sectionDescription') : t('sectionLabel');
-  const labelFieldTitle = editorMode === 'listItem' ? t('sectionDescription') : t('labelEng');
+  // Phase 15: the label field edits the EFFECTIVE language — the editor's Language
+  // pin if set, else the board language (categoryBoard only). listItem edits the
+  // English master ('en'). English stays the master + fallback everywhere.
+  const labelFieldLang = editorMode === 'categoryBoard' ? (draft.pinnedLanguage ?? language) : 'en';
+  const labelFieldValue = labelFieldLang === 'en' ? draft.labelEng : (draft.labelLoc[labelFieldLang] ?? '');
+  const setLabelField = (v: string) =>
+    labelFieldLang === 'en'
+      ? patch({ labelEng: v })
+      : patch({ labelLoc: { ...draft.labelLoc, [labelFieldLang]: v } });
+  const labelFieldTitle = editorMode === 'listItem'
+    ? t('sectionDescription')
+    : (getLanguage(labelFieldLang)?.nativeLabel ?? t('labelEng'));
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-button-highlight)' }}>
@@ -254,8 +265,8 @@ export function PropertiesPanel({
           </span>
           <input
             type="text"
-            value={draft.labelEng}
-            onChange={(e) => patch({ labelEng: e.target.value })}
+            value={labelFieldValue}
+            onChange={(e) => setLabelField(e.target.value)}
             placeholder={editorMode === 'listItem' ? t('descriptionPlaceholder') : t('labelPlaceholder')}
             className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
             style={{
@@ -265,25 +276,6 @@ export function PropertiesPanel({
             }}
           />
         </label>
-        {editorMode === 'categoryBoard' && language === 'hi' && (
-          <label className="flex flex-col gap-1">
-            <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
-              {t('labelHin')}
-            </span>
-            <input
-              type="text"
-              value={draft.labelHin}
-              onChange={(e) => patch({ labelHin: e.target.value })}
-              placeholder={t('labelPlaceholder')}
-              className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
-              style={{
-                background: 'var(--theme-symbol-bg)',
-                color: 'var(--theme-text)',
-                border: '1px solid var(--theme-button-highlight)',
-              }}
-            />
-          </label>
-        )}
       </AccordionSection>}
 
       {/* ── Language pin (categoryBoard only) — Phase 15 Thread 1. Placed high +
