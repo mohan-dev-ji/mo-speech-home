@@ -152,6 +152,44 @@ This spike also informs voice strategy generally (it may surface better base voi
 - **Provider SSML support**: guard the SSML build so an unsupported attribute degrades to Neutral rather than a failed synth.
 - **Empty/single-block sentence**: fluent clip = that block's text; still valid.
 
+### Spike findings — Thread 2 (2026-07-09)
+
+**Outcome: SSML prosody is rejected. Tone will use a prompt-driven expressive model (Gemini 2.5 native TTS), not `<prosody>`.** This changes the Task 12/13 mechanism from the original SSML plan — see "Revised approach" below.
+
+**What was tested** (throwaway; direct Google TTS calls, no cache/R2 writes — clips A/B'd by the owner):
+
+1. **SSML `<prosody pitch="+3st" rate="1.15">` on current Wavenet voices** (`en-GB-News-M`, `es-US-Wavenet-C`, `hi-IN-Wavenet-F`). Verdict: **too mechanical** — you can hear it's a flat read that's been pitch-shifted, not an emotional performance.
+2. **Upgrade voices + an Angry preset** (`pitch −2st rate 1.1 vol +6dB`), across **Neural2 / Studio / Chirp3-HD**:
+   - **Neural2** — accepts full prosody (pitch+rate+vol) in all three languages, EU-available. Still mechanical (same root cause: pitch-shifting a neutral read).
+   - **Studio** — **rejects `pitch` in `<prosody>`** (`400`: *"…do not currently support `pitch` attributes for Studio voices"*); Excited/Angry silently degrade to Neutral. Also **no Hindi** voice. → unusable for pitch-based tone.
+   - **Chirp3-HD** — accepts the SSML without error but is generative and effectively ignores the prosody; not audibly distinct. Best raw naturalness of the standard voices, but no usable prosody control.
+   - Verdict: **all SSML-prosody options rejected.**
+3. **Gemini 2.5 native TTS** (`gemini-2.5-flash-preview-tts`, via Vertex AI) — emotion supplied as a **natural-language instruction** (`"Say this in a bright, excited voice: …"`), not post-processing. Verdict: **accepted — "a massive step from Wavenet."** Neutral/Excited/Angry all convincing in EN/ES/HI.
+   - **English accent**: defaults to US; steered to UK **purely by prompt** (`"Speak in a natural British English accent…"`), which composes with the emotion instruction for free (no separate voice model). Regional accent for any language is a prompt concern, not a voice-id concern.
+   - **Chosen voice: `Puck`** (British-steered). Male, matches the seeded `en-GB-News-M` persona.
+
+**Chosen tone presets (natural-language instructions, localise per language):**
+- **Excited** — "in a bright, excited, happy voice"
+- **Angry** — "in an angry, frustrated voice"
+(Neutral = bare phrase, no instruction. Presets are prompt strings now, not `{pitch,rate,volume}` — the `TONE_PRESETS` shape in the plan becomes an instruction map.)
+
+**Product & cost model (owner decision):** two-tier voice strategy.
+- **Seeded Wavenet** stays the **cheap, GA, EU-resident** voice for the **whole library** — learning individual words + phrases. Unchanged.
+- **Gemini expressive voices** power **fluency + tone only**, invoked **exclusively from the play modals** (`CompositionPlayModal` / `SentencePlayModal`) on the whole-utterance path.
+- **Tone is a `max`-tier feature.** The pricey model therefore fires on a narrow path only; every clip is cached once in R2 (`(text, voiceId, tone)`) and served free thereafter — which also neutralises Gemini's per-call latency and run-to-run non-determinism.
+
+**Technical notes for Task 12:**
+- Reachability: preview model answered on **`us-central1`** only; `global` returned `500`; standard Wavenet/Neural2/Studio/Chirp3-HD are all fine on the EU endpoint but the **Gemini preview TTS was not confirmed on EU**.
+- Output is **24 kHz mono PCM (L16) / WAV**, not MP3 — the route must wrap PCM → WAV (or transcode to MP3) before R2 upload; R2 path/cache logic is otherwise unchanged.
+- **Caching is mandatory** (not just an optimisation) because output is non-deterministic — the first synthesis defines the canonical clip.
+- Gemini voice ids (e.g. `Puck`) are a different namespace from the standard `TTS_VOICES`; Task 12 adds them alongside, tagged with persona/accent so voice-follows-text (Thread 3) still applies.
+
+**Open decisions for the owner (not blockers):**
+1. **EU data residency** — accept US-region (`us-central1`) *generation* of tone clips (low-sensitivity text; result stored in our EU R2), or wait for an EU-region / GA Gemini TTS? Current recommendation: accept US generation for the tone path given the sensitivity and one-time nature.
+2. Confirm `max`-gating copy/upsell on the play modal when a free/pro user taps a tone chip (Task 13).
+
+**Gate: PASSED** — a synthesised approach is acceptable, so Task 12 proceeds (with the Gemini mechanism above, superseding the SSML-prosody plan in Tasks 12–13). No throwaway code shipped: the spike used a standalone script against Google TTS directly, so `app/api/tts/route.ts` was never modified and needs no revert.
+
 ---
 
 ## Deferred — follow-on phase: Composed-content language variants
