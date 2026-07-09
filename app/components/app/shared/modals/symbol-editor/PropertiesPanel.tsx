@@ -48,7 +48,7 @@ export function PropertiesPanel({
   // Audio is open by default so non-SymbolStix flows (uploads, AI gen, image
   // search) make it visually obvious there's no audio yet.
   const [openSections, setOpenSections] = useState<Set<string>>(
-    new Set(['label', 'audio', 'category'])
+    new Set(['label', 'language', 'audio', 'category'])
   );
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -285,6 +285,32 @@ export function PropertiesPanel({
           </label>
         )}
       </AccordionSection>}
+
+      {/* ── Language pin (categoryBoard only) — Phase 15 Thread 1. Placed high +
+             open by default so the current language is always visible. ───────── */}
+      {editorMode === 'categoryBoard' && (
+        <AccordionSection
+          label={t('sectionLanguage')}
+          isOpen={openSections.has('language')}
+          onToggle={() => toggleSection('language')}
+        >
+          <select
+            value={draft.pinnedLanguage ?? ''}
+            onChange={(e) => patch({ pinnedLanguage: e.target.value || undefined })}
+            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
+            style={{
+              background: 'var(--theme-symbol-bg)',
+              color: 'var(--theme-text)',
+              border: '1px solid var(--theme-button-highlight)',
+            }}
+          >
+            <option value="">{t('languageAuto')}</option>
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>{l.nativeLabel}</option>
+            ))}
+          </select>
+        </AccordionSection>
+      )}
 
       {/* ── Audio — hidden for sentenceSlot ───────────────────────────────── */}
       {editorMode !== 'sentenceSlot' && <AccordionSection
@@ -666,31 +692,6 @@ export function PropertiesPanel({
               );
             })}
           </div>
-        </AccordionSection>
-      )}
-
-      {/* ── Language pin (categoryBoard only) — Phase 15 Thread 1 ─────────── */}
-      {editorMode === 'categoryBoard' && (
-        <AccordionSection
-          label={t('sectionLanguage')}
-          isOpen={openSections.has('language')}
-          onToggle={() => toggleSection('language')}
-        >
-          <select
-            value={draft.pinnedLanguage ?? ''}
-            onChange={(e) => patch({ pinnedLanguage: e.target.value || undefined })}
-            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
-            style={{
-              background: 'var(--theme-symbol-bg)',
-              color: 'var(--theme-text)',
-              border: '1px solid var(--theme-button-highlight)',
-            }}
-          >
-            <option value="">{t('languageAuto')}</option>
-            {LANGUAGES.map((l) => (
-              <option key={l.code} value={l.code}>{l.nativeLabel}</option>
-            ))}
-          </select>
         </AccordionSection>
       )}
 

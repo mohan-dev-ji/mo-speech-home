@@ -64,6 +64,7 @@ type SymbolRow = {
   profileCategoryId: Id<'profileCategories'>;
   order: number;
   label: Record<string, string>;
+  pinnedLanguage?: string; // Phase 15 (Thread 1)
   display?: {
     bgColour?: string;
     textColour?: string;
@@ -431,7 +432,9 @@ export function CategoryDetailContent({ categoryId }: Props) {
                       <SortableSymbolCard
                       key={sym._id}
                       sym={sym}
-                      language={language}
+                      // Phase 15 (Thread 1): show the pinned language in edit mode too,
+                      // so it matches view mode (was always the board language).
+                      language={sym.pinnedLanguage ?? language}
                       categoryColour={category?.colour}
                       onEdit={handleEditSymbol}
                       onDeleteRequest={handleDeleteRequest}
