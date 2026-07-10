@@ -30,13 +30,18 @@ export function playKey(r2Key: string): HTMLAudioElement {
 }
 
 /**
- * Resolve `(text, voiceId)` through /api/tts (cache hit, or synthesise on a cold
- * first tap) to an r2Key WITHOUT playing it. Use when the caller wants to drive
- * playback itself — e.g. to await the clip's `ended` event for stepped playback.
+ * Resolve `(text, voiceId[, tone])` through /api/tts (cache hit, or synthesise
+ * on a cold first tap) to an r2Key WITHOUT playing it. Use when the caller wants
+ * to drive playback itself — e.g. to await the clip's `ended` event for stepped
+ * playback.
+ *
+ * `tone` (Phase 15, Thread 2) selects the expressive Gemini path for the fluent
+ * whole-utterance clip. Omitted/"neutral" = the existing cheap voice, unchanged.
  */
 export async function resolveTtsKey(
   text: string,
-  voiceId: string
+  voiceId: string,
+  tone?: string
 ): Promise<string | undefined> {
   const trimmed = text.trim();
   if (!trimmed) return undefined;
@@ -44,7 +49,11 @@ export async function resolveTtsKey(
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: trimmed, voiceId }),
+      body: JSON.stringify({
+        text: trimmed,
+        voiceId,
+        ...(tone && tone !== "neutral" ? { tone } : {}),
+      }),
     });
     if (!res.ok) return undefined;
     const { r2Key } = (await res.json()) as { r2Key?: string };
@@ -55,15 +64,17 @@ export async function resolveTtsKey(
 }
 
 /**
- * Resolve `(text, voiceId)` through /api/tts (cache hit, or synthesise on a cold
- * first tap) and play the result. Returns the resolved r2Key (or undefined on
- * failure). Use `playKey` instead when a pre-resolved key is already in hand.
+ * Resolve `(text, voiceId[, tone])` through /api/tts (cache hit, or synthesise
+ * on a cold first tap) and play the result. Returns the resolved r2Key (or
+ * undefined on failure). Use `playKey` instead when a pre-resolved key is
+ * already in hand.
  */
 export async function playTts(
   text: string,
-  voiceId: string
+  voiceId: string,
+  tone?: string
 ): Promise<string | undefined> {
-  const r2Key = await resolveTtsKey(text, voiceId);
+  const r2Key = await resolveTtsKey(text, voiceId, tone);
   if (!r2Key) return undefined;
   playKey(r2Key);
   return r2Key;

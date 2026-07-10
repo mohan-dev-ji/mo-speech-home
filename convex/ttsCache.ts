@@ -22,43 +22,54 @@ type ResolveResult =
 async function resolveCachedAudio(
   ctx: QueryCtx,
   text: string,
-  voiceId: string
+  voiceId: string,
+  tone?: string
 ): Promise<ResolveResult> {
-  // Match against SymbolStix case-insensitively. The exact-match index
-  // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
-  // so we hit the tokenised search index and confirm a result's label
-  // matches when lowercased. Confirmation guards against false positives
-  // ("apple" → "Apple Pie") that the search index would otherwise rank.
-  //
-  // Take a small batch instead of just `.first()`: the relevance ranker can
-  // surface a longer/multi-word symbol above the exact single-word match
-  // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
-  // at the top result would cause us to miss a perfectly valid SymbolStix
-  // recording and fall through to fresh TTS synthesis.
-  const candidates = await ctx.db
-    .query("symbols")
-    .withSearchIndex("search_text_en", (q) => q.search("searchText.en", text))
-    .take(10);
+  // Expressive tones (non-neutral) never have SymbolStix seeded audio and use a
+  // distinct cache key. `toneKey` normalises neutral/absent to `undefined` so
+  // the index prefix matches legacy (untoned) rows exactly.
+  const expressive = !!tone && tone !== "neutral";
+  const toneKey = expressive ? tone : undefined;
 
-  const exact = candidates.find(
-    (c) => (c.words.en ?? "").toLowerCase().trim() === text
-  );
-  if (exact) {
-    const audioMap = exact.audio as Record<string, boolean>;
-    if (audioMap?.[voiceId] === true) {
-      return {
-        source: "symbolstix",
-        englishWord: exact.words.en,
-        audioBasename: exact.audioBasename,
-      };
+  // SymbolStix seeded audio is neutral only — skip it entirely for tones.
+  if (!expressive) {
+    // Match against SymbolStix case-insensitively. The exact-match index
+    // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
+    // so we hit the tokenised search index and confirm a result's label
+    // matches when lowercased. Confirmation guards against false positives
+    // ("apple" → "Apple Pie") that the search index would otherwise rank.
+    //
+    // Take a small batch instead of just `.first()`: the relevance ranker can
+    // surface a longer/multi-word symbol above the exact single-word match
+    // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
+    // at the top result would cause us to miss a perfectly valid SymbolStix
+    // recording and fall through to fresh TTS synthesis.
+    const candidates = await ctx.db
+      .query("symbols")
+      .withSearchIndex("search_text_en", (q) => q.search("searchText.en", text))
+      .take(10);
+
+    const exact = candidates.find(
+      (c) => (c.words.en ?? "").toLowerCase().trim() === text
+    );
+    if (exact) {
+      const audioMap = exact.audio as Record<string, boolean>;
+      if (audioMap?.[voiceId] === true) {
+        return {
+          source: "symbolstix",
+          englishWord: exact.words.en,
+          audioBasename: exact.audioBasename,
+        };
+      }
     }
   }
 
-  // Check global TTS cache
+  // Check global TTS cache — keyed by (text, voiceId, tone). Neutral pins
+  // tone === undefined, matching legacy rows.
   const cached = await ctx.db
     .query("ttsCache")
-    .withIndex("by_text_voice", (q) =>
-      q.eq("text", text).eq("voiceId", voiceId)
+    .withIndex("by_text_voice_tone", (q) =>
+      q.eq("text", text).eq("voiceId", voiceId).eq("tone", toneKey)
     )
     .first();
 
@@ -79,8 +90,10 @@ export const lookup = query({
   args: {
     text: v.string(),    // normalised (lowercase, trimmed)
     voiceId: v.string(),
+    tone: v.optional(v.string()), // 'neutral'/absent = cheap voice; else expressive (Gemini)
   },
-  handler: async (ctx, { text, voiceId }) => resolveCachedAudio(ctx, text, voiceId),
+  handler: async (ctx, { text, voiceId, tone }) =>
+    resolveCachedAudio(ctx, text, voiceId, tone),
 });
 
 /**
@@ -140,6 +153,7 @@ export const write = mutation({
   args: {
     text: v.string(),
     voiceId: v.string(),
+    tone: v.optional(v.string()), // omitted for neutral (legacy-compatible rows)
     r2Key: v.string(),
     charCount: v.number(),
   },
@@ -147,11 +161,14 @@ export const write = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthorized");
 
+    // Neutral pins tone === undefined so it matches legacy rows exactly.
+    const toneKey = args.tone && args.tone !== "neutral" ? args.tone : undefined;
+
     // Race condition guard — another request may have written first
     const existing = await ctx.db
       .query("ttsCache")
-      .withIndex("by_text_voice", (q) =>
-        q.eq("text", args.text).eq("voiceId", args.voiceId)
+      .withIndex("by_text_voice_tone", (q) =>
+        q.eq("text", args.text).eq("voiceId", args.voiceId).eq("tone", toneKey)
       )
       .first();
 
@@ -160,6 +177,7 @@ export const write = mutation({
     return await ctx.db.insert("ttsCache", {
       text: args.text,
       voiceId: args.voiceId,
+      ...(toneKey ? { tone: toneKey } : {}),
       r2Key: args.r2Key,
       charCount: args.charCount,
     });

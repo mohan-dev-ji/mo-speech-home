@@ -31,6 +31,12 @@ export const R2_PATHS = {
   ttsAudio: (voiceId: string, uuid: string) =>
     `audio/${voiceId}/tts/${uuid}.mp3`,
 
+  // Expressive tone clips (Phase 15, Thread 2). Gemini 2.5 native TTS returns
+  // 24 kHz PCM, stored as WAV — hence the distinct extension. Segmented by tone
+  // so neutral (the existing `ttsAudio` path) is untouched.
+  ttsToneAudio: (voiceId: string, tone: string, uuid: string) =>
+    `audio/${voiceId}/tts/${tone}/${uuid}.wav`,
+
   profileImage: (profileId: string, uuid: string) =>
     `profiles/${profileId}/images/${uuid}.webp`,
 
