@@ -174,6 +174,27 @@ export async function POST(request: Request) {
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   if (token) convex.setAuth(token);
 
+  // ── Tier gate — server-side authoritative (expressive tones only) ─────────
+  // Neutral is free for everyone (it's the whole library's voice). Expressive
+  // tone drives the paid Gemini model, so it's Max-only — gated here as well as
+  // in the UI (UpgradeNudge), so a direct POST can't bypass the paywall and burn
+  // cost. Mirrors the other Max-only routes (ai-generate/imagen, image-search).
+  if (expressive) {
+    const access = await convex.query(api.users.getMyAccess, {});
+    if (!access) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const isMax =
+      (access.tier === "max" && access.hasFullAccess) ||
+      (access.customAccess?.isActive ?? false);
+    if (!isMax) {
+      return NextResponse.json(
+        { error: "max_tier_required", message: "Expressive tone is a Max-tier feature" },
+        { status: 403 }
+      );
+    }
+  }
+
   // ── Step 1: SymbolStix folder for this voice ──────────────────────────────
   // Per ADR-009 §4 the lookup returns just the English word — the route
   // resolves the R2 key via convention (with the legacy
