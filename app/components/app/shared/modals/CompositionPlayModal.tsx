@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
+import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
+import type { Tone } from '@/lib/audio/tonePresets';
 
 // Block play modal (ADR-015). Shows the whole composition at once and steps a
 // yellow glow through each block in time with its audio. Replay re-runs the
@@ -22,6 +24,11 @@ export function CompositionPlayModal({
   const runIdRef = useRef(0);
   const activeAudioRef = useRef<{ audio: HTMLAudioElement; done: () => void } | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  // Tone (Phase 15, Thread 2): the emoji row plays the whole utterance as ONE
+  // fluent Gemini clip (glow on all blocks), distinct from the stepped ▶ replay.
+  const [fluentPlaying, setFluentPlaying] = useState(false);
+  const [activeTone, setActiveTone] = useState<Tone | null>(null);
+  const [busy, setBusy] = useState(false);
 
   function ttsText(b: PlayBlock) { return b.kind === 'word' ? b.label : b.name; }
 
@@ -73,11 +80,45 @@ export function CompositionPlayModal({
   function playSingle(i: number) {
     const myRun = ++runIdRef.current;   // cancel any running sequence
     stopActive();
+    setFluentPlaying(false);
+    setActiveTone(null);
     setActiveIndex(i);
     playOne(blocks[i], myRun).then(() => { if (runIdRef.current === myRun) setActiveIndex(null); });
   }
 
-  function close() { runIdRef.current++; stopActive(); onClose(); }
+  // Fluent tone playback (Phase 15, Thread 2): join the blocks in authored-language
+  // order into one utterance and synthesise it with the chosen tone via Gemini —
+  // ONE whole-utterance clip, glow held on all blocks. Distinct from the stepped
+  // ▶ replay above, which stays the free per-block Wavenet voice.
+  async function playFluent(tone: Tone) {
+    const myRun = ++runIdRef.current;
+    stopActive();
+    setActiveIndex(null);
+    const text = blocks.map(ttsText).filter(Boolean).join(' ').trim();
+    if (!text) return;
+    // Whole utterance is one authored language; take the first block's resolved
+    // locale (all share it) so the voice follows the text, not the board.
+    const locale = blocks.find((b) => b.locale)?.locale;
+    const voice = locale ? voiceForLanguage(locale, personaOf(voiceId)) : voiceId;
+    setActiveTone(tone);
+    setBusy(true);
+    const key = await resolveTtsKey(text, voice, tone);
+    setBusy(false);
+    if (runIdRef.current !== myRun) return;   // superseded during synth
+    if (!key) { setActiveTone(null); return; }
+    setFluentPlaying(true);
+    await new Promise<void>((res) => {
+      const audio = new Audio(`/api/assets?key=${key}`);
+      const done = () => { if (activeAudioRef.current?.audio === audio) activeAudioRef.current = null; res(); };
+      const stop = () => { if (runIdRef.current === myRun) { setFluentPlaying(false); setActiveTone(null); } done(); };
+      activeAudioRef.current = { audio, done };
+      audio.addEventListener('ended', stop);
+      audio.addEventListener('error', stop);
+      audio.play().catch(stop);
+    });
+  }
+
+  function close() { runIdRef.current++; stopActive(); setFluentPlaying(false); setActiveTone(null); setBusy(false); onClose(); }
 
   useEffect(() => {
     if (isOpen) runSequence();
@@ -90,10 +131,13 @@ export function CompositionPlayModal({
     <PlayModalBackdrop onClose={close} className="flex-col items-center justify-center gap-8 p-8">
       <div className="flex flex-wrap gap-4 justify-center max-w-5xl" onClick={(e) => e.stopPropagation()}>
         {blocks.map((b, i) => (
-          <CompositionBlock key={i} block={b} active={activeIndex === i} onTap={() => playSingle(i)} />
+          <CompositionBlock key={i} block={b} active={activeIndex === i || fluentPlaying} onTap={() => playSingle(i)} />
         ))}
       </div>
-      <ReplayButton onClick={runSequence} />
+      <div className="flex flex-col items-center gap-theme-gap" onClick={(e) => e.stopPropagation()}>
+        <ReplayButton onClick={() => { setFluentPlaying(false); setActiveTone(null); runSequence(); }} />
+        <ToneChipRow activeTone={activeTone} busy={busy} onSelect={playFluent} />
+      </div>
     </PlayModalBackdrop>
   );
 }

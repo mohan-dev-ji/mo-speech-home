@@ -5,8 +5,10 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
+import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
+import type { Tone } from '@/lib/audio/tonePresets';
 
 type Slot = {
   order: number;
@@ -46,41 +48,65 @@ export function SentencePlayModal({
   const runIdRef = useRef(0);
   const activeAudioRef = useRef<{ audio: HTMLAudioElement; done: () => void } | null>(null);
   const [playing, setPlaying] = useState(false);
+  // Tone (Phase 15, Thread 2): the emoji row plays a Gemini clip with feeling.
+  // `activeTone` drives the selected chip; `busy` disables the row mid-synth.
+  const [activeTone, setActiveTone] = useState<Tone | null>(null);
+  const [busy, setBusy] = useState(false);
 
   function stopActive() {
     const cur = activeAudioRef.current;
     if (cur) { activeAudioRef.current = null; cur.audio.pause(); cur.done(); }
   }
 
-  // Play the sentence as a single clip and hold the glow on until it ENDS.
-  // Recording wins (any voice); otherwise resolve TTS for the current voice
-  // (cache hit, or synthesise on a cold first tap). `playing` is driven off the
-  // audio element's own play/ended events so the glow tracks real playback (and
-  // setState never fires synchronously inside the mount effect).
-  async function playClip() {
-    const myRun = ++runIdRef.current;
-    stopActive();
-    let key = recordedAudioPath;
-    if (!key && sentenceText) {
-      // Voice follows the resolved text's language (Phase 15, 3e).
-      const effVoice = textLocale ? voiceForLanguage(textLocale, personaOf(voiceId)) : voiceId;
-      key = await resolveTtsKey(sentenceText, effVoice);
-      if (runIdRef.current !== myRun) return;   // superseded during synth
-    }
-    if (!key) return;
-    await new Promise<void>((res) => {
+  // Voice follows the resolved text's language (Phase 15, 3e).
+  const effVoice = textLocale ? voiceForLanguage(textLocale, personaOf(voiceId)) : voiceId;
+
+  // Play a resolved clip and hold the glow on until it ENDS. State is driven off
+  // the audio element's own play/ended events, so nothing fires synchronously in
+  // the mount effect. `tone` is the chip to keep highlighted while it sounds.
+  function playResolvedKey(key: string, myRun: number, tone: Tone | null): Promise<void> {
+    return new Promise<void>((res) => {
       const audio = new Audio(`/api/assets?key=${key}`);
       const done = () => { if (activeAudioRef.current?.audio === audio) activeAudioRef.current = null; res(); };
-      const stop = () => { if (runIdRef.current === myRun) setPlaying(false); done(); };
+      const stop = () => { if (runIdRef.current === myRun) { setPlaying(false); setActiveTone(null); } done(); };
       activeAudioRef.current = { audio, done };
-      audio.addEventListener('play', () => { if (runIdRef.current === myRun) setPlaying(true); });
+      audio.addEventListener('play', () => { if (runIdRef.current === myRun) { setPlaying(true); setActiveTone(tone); } });
       audio.addEventListener('ended', stop);
       audio.addEventListener('error', stop);
       audio.play().catch(stop);
     });
   }
 
-  function close() { runIdRef.current++; stopActive(); setPlaying(false); onClose(); }
+  // ▶ replay / auto-play on open: the human recording wins, else the free Wavenet
+  // voice. No tone, no synchronous setState — safe to call from the mount effect.
+  async function playClip() {
+    const myRun = ++runIdRef.current;
+    stopActive();
+    let key = recordedAudioPath;
+    if (!key && sentenceText) {
+      key = await resolveTtsKey(sentenceText, effVoice);
+      if (runIdRef.current !== myRun) return;   // superseded during synth
+    }
+    if (!key) return;
+    await playResolvedKey(key, myRun, null);
+  }
+
+  // Emoji chip: a fresh Gemini synth carrying the tone (a recording is neutral,
+  // so it can't). Click-only — never called from an effect.
+  async function playToned(tone: Tone) {
+    if (!sentenceText) return;
+    const myRun = ++runIdRef.current;
+    stopActive();
+    setActiveTone(tone);
+    setBusy(true);
+    const key = await resolveTtsKey(sentenceText, effVoice, tone);
+    setBusy(false);
+    if (runIdRef.current !== myRun) return;   // superseded during synth
+    if (!key) { setActiveTone(null); return; }
+    await playResolvedKey(key, myRun, tone);
+  }
+
+  function close() { runIdRef.current++; stopActive(); setPlaying(false); setActiveTone(null); setBusy(false); onClose(); }
 
   useEffect(() => {
     if (isOpen) playClip();
@@ -127,7 +153,8 @@ export function SentencePlayModal({
           <div className="w-full min-h-[44px] flex items-center justify-center px-4 py-2 rounded-theme-chip border border-theme-line bg-theme-button-primary text-theme-button-secondary text-theme-h4 font-semibold text-center">
             {sentenceText}
           </div>
-          <ReplayButton onClick={playClip} />
+          <ReplayButton onClick={() => playClip()} />
+          <ToneChipRow activeTone={activeTone} busy={busy} onSelect={playToned} />
         </div>
       </div>
     </PlayModalBackdrop>

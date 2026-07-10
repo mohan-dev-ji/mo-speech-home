@@ -7,11 +7,9 @@ import { R2_PATHS, TTS_VOICES, DEFAULT_VOICE_ID, type VoiceId } from "@/lib/r2-p
 import { resolveSymbolAudioPath } from "@/lib/audio/resolveAudioPath";
 import {
   isTone,
-  isExpressiveTone,
   tonePrompt,
   GEMINI_TONE_VOICE,
   type Tone,
-  type ExpressiveTone,
 } from "@/lib/audio/tonePresets";
 import { GoogleAuth } from "google-auth-library";
 import { randomUUID } from "crypto";
@@ -98,7 +96,7 @@ function pcmToWav(pcm: Buffer, sampleRate: number): Buffer {
 async function synthesiseGemini(
   text: string,
   languageCode: string,
-  tone: ExpressiveTone,
+  tone: Tone,
 ): Promise<Buffer> {
   const token = await googleAccessToken();
   const projectId = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!).project_id;
@@ -161,11 +159,12 @@ export async function POST(request: Request) {
       ? (body.voiceId as VoiceId)
       : DEFAULT_VOICE_ID;
 
-  // Tone (Phase 15, Thread 2). Unknown values degrade to neutral. Neutral keeps
-  // the exact legacy behaviour (SymbolStix → Wavenet, tone omitted from the
-  // cache key); expressive tones route through Gemini.
-  const tone: Tone = isTone(body.tone) ? body.tone : "neutral";
-  const expressive = isExpressiveTone(tone);
+  // Tone (Phase 15, Thread 2). The tone-less path (▶ replay, whole library) is
+  // the free Wavenet voice, unchanged. ANY requested tone — including the emoji
+  // row's "neutral" — is a fluent Gemini clip: paid, Max-gated, distinct cache
+  // key. Unknown values fall back to the free path (safe default).
+  const requestedTone: Tone | undefined = isTone(body.tone) ? body.tone : undefined;
+  const useGemini = requestedTone !== undefined;
 
   const normalised = rawText.toLowerCase().trim();
 
@@ -174,12 +173,13 @@ export async function POST(request: Request) {
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   if (token) convex.setAuth(token);
 
-  // ── Tier gate — server-side authoritative (expressive tones only) ─────────
-  // Neutral is free for everyone (it's the whole library's voice). Expressive
-  // tone drives the paid Gemini model, so it's Max-only — gated here as well as
-  // in the UI (UpgradeNudge), so a direct POST can't bypass the paywall and burn
-  // cost. Mirrors the other Max-only routes (ai-generate/imagen, image-search).
-  if (expressive) {
+  // ── Tier gate — server-side authoritative (any requested tone) ────────────
+  // The tone-less path (replay/library) is free Wavenet. Every requested tone —
+  // including the emoji row's "neutral" — drives the paid Gemini model, so it's
+  // Max-only: gated here as well as in the UI (UpgradeNudge), so a direct POST
+  // can't bypass the paywall and burn cost. Mirrors the other Max-only routes
+  // (ai-generate/imagen, image-search).
+  if (useGemini) {
     const access = await convex.query(api.users.getMyAccess, {});
     if (!access) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -201,8 +201,9 @@ export async function POST(request: Request) {
   // `audio/eng/default/` fallback baked into `resolveSymbolAudioPath` for
   // the en-GB-News-M voice until Phase 8.4 re-seeds it).
   //
-  // Expressive tones never have SymbolStix recordings (seeded audio is neutral),
-  // so the lookup skips it and only consults the tone-keyed ttsCache.
+  // Requested tones never have SymbolStix recordings (seeded audio is the
+  // neutral cheap voice), so the lookup skips it and only consults the
+  // tone-keyed ttsCache.
   type LookupResult =
     | { source: "symbolstix"; englishWord: string; audioBasename?: string }
     | { source: "ttsCache"; r2Key: string }
@@ -211,9 +212,9 @@ export async function POST(request: Request) {
   const lookup = await convex.query(api.ttsCache.lookup, {
     text: normalised,
     voiceId,
-    tone,
+    tone: requestedTone,
   }) as LookupResult;
-  console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" tone="${tone}" lookup=`, JSON.stringify(lookup));
+  console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" tone="${requestedTone ?? "-"}" lookup=`, JSON.stringify(lookup));
 
   if (lookup.source === "symbolstix") {
     const key = resolveSymbolAudioPath(
@@ -240,15 +241,15 @@ export async function POST(request: Request) {
   // ── Step 3: Generate, upload, cache ──────────────────────────────────────
   try {
     let r2Key: string;
-    if (expressive) {
-      // Expressive tone → Gemini native TTS, in the resolved voice's language.
-      // Output is WAV (24 kHz PCM), stored on the tone-segmented path.
+    if (requestedTone) {
+      // Any requested tone → Gemini native TTS, in the resolved voice's
+      // language. Output is WAV (24 kHz PCM), stored on the tone-segmented path.
       const audioBuffer = await synthesiseGemini(
         rawText,
         TTS_VOICES[voiceId].languageCode,
-        tone,
+        requestedTone,
       );
-      r2Key = R2_PATHS.ttsToneAudio(voiceId, tone, randomUUID());
+      r2Key = R2_PATHS.ttsToneAudio(voiceId, requestedTone, randomUUID());
       await uploadBuffer(r2Key, audioBuffer, "audio/wav");
     } else {
       const audioBuffer = await synthesise(rawText, voiceId);
@@ -259,9 +260,9 @@ export async function POST(request: Request) {
     await convex.mutation(api.ttsCache.write, {
       text: normalised,
       voiceId,
-      // Omit the tone field for neutral so the row is identical to legacy
-      // entries and the neutral cache key stays byte-compatible.
-      ...(expressive ? { tone } : {}),
+      // Tone-less (free Wavenet) rows omit the field, identical to legacy
+      // entries; every Gemini clip (including "neutral") stores its tone.
+      ...(useGemini ? { tone: requestedTone } : {}),
       r2Key,
       charCount: rawText.length,
     });

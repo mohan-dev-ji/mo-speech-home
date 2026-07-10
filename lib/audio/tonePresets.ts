@@ -15,17 +15,22 @@
 
 export type Tone = "neutral" | "excited" | "angry";
 
-/** Tones that route through the expressive Gemini path (everything but neutral). */
-export type ExpressiveTone = Exclude<Tone, "neutral">;
+/**
+ * V1 tone chips, in row order (see Figma Frame 3). Emoji-only, no labels.
+ * `neutral` is included because — unlike the free Wavenet ▶ replay — the emoji
+ * row's neutral is ALSO a Gemini fluent clip (hence Max-gated too). Adding
+ * `asking`/`calm`/`sad` later = one entry here + a directive below.
+ */
+export const TONE_CHIPS: readonly { tone: Tone; emoji: string }[] = [
+  { tone: "angry", emoji: "😠" },
+  { tone: "neutral", emoji: "🙂" },
+  { tone: "excited", emoji: "😄" },
+] as const;
 
-export const TONES: readonly Tone[] = ["neutral", "excited", "angry"] as const;
+export const TONES: readonly Tone[] = TONE_CHIPS.map((c) => c.tone);
 
 export function isTone(x: unknown): x is Tone {
   return typeof x === "string" && (TONES as readonly string[]).includes(x);
-}
-
-export function isExpressiveTone(x: unknown): x is ExpressiveTone {
-  return isTone(x) && x !== "neutral";
 }
 
 /** V1 expressive voice — the single Gemini prebuilt voice chosen in the spike. */
@@ -38,19 +43,23 @@ export const GEMINI_TONE_VOICE = "Puck";
  * appended after a colon: `"<directive>: <phrase>"`), so it steers delivery
  * rather than being read aloud. Directives are authored in each language so
  * pronunciation stays native — English also pins a British accent (Gemini
- * otherwise defaults to US). These strings are the exact recipes approved in
- * the spike; tune here, no other code changes.
+ * otherwise defaults to US). Even `neutral` carries a directive so the emoji
+ * row's neutral gets the accent (and never the US default). These strings are
+ * the recipes approved in the spike; tune here, no other code changes.
  */
-const TONE_DIRECTIVES: Record<string, Record<ExpressiveTone, string>> = {
+const TONE_DIRECTIVES: Record<string, Record<Tone, string>> = {
   en: {
+    neutral: "Speak clearly and naturally in a British English accent",
     excited: "Speak in a natural British English accent, in a bright, excited, happy voice",
     angry: "Speak in a natural British English accent, in an angry, frustrated voice",
   },
   es: {
+    neutral: "Di esto de forma clara y natural",
     excited: "Di esto con una voz alegre y muy emocionada",
     angry: "Di esto con una voz enojada y frustrada",
   },
   hi: {
+    neutral: "इसे स्पष्ट और स्वाभाविक ढंग से कहो",
     excited: "इसे खुश और उत्साहित आवाज़ में कहो",
     angry: "इसे गुस्से भरी आवाज़ में कहो",
   },
@@ -61,12 +70,12 @@ const TONE_DIRECTIVES: Record<string, Record<ExpressiveTone, string>> = {
  * BCP-47 code from the registry/voice (e.g. `en-GB`, `hi-IN`); we bucket on the
  * primary subtag. Falls back to English if a language has no authored set yet.
  */
-export function toneDirective(languageCode: string, tone: ExpressiveTone): string {
+export function toneDirective(languageCode: string, tone: Tone): string {
   const bucket = (languageCode.split("-")[0] || "en").toLowerCase();
   return (TONE_DIRECTIVES[bucket] ?? TONE_DIRECTIVES.en)[tone];
 }
 
 /** Build the full Gemini prompt: `"<directive>: <phrase>"`. */
-export function tonePrompt(languageCode: string, tone: ExpressiveTone, text: string): string {
+export function tonePrompt(languageCode: string, tone: Tone, text: string): string {
   return `${toneDirective(languageCode, tone)}: ${text}`;
 }

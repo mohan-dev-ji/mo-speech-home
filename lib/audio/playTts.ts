@@ -36,7 +36,8 @@ export function playKey(r2Key: string): HTMLAudioElement {
  * playback.
  *
  * `tone` (Phase 15, Thread 2) selects the expressive Gemini path for the fluent
- * whole-utterance clip. Omitted/"neutral" = the existing cheap voice, unchanged.
+ * whole-utterance clip. OMIT it for the free Wavenet voice (▶ replay, library);
+ * pass ANY tone — including "neutral" — to get a Max-gated Gemini clip.
  */
 export async function resolveTtsKey(
   text: string,
@@ -52,7 +53,7 @@ export async function resolveTtsKey(
       body: JSON.stringify({
         text: trimmed,
         voiceId,
-        ...(tone && tone !== "neutral" ? { tone } : {}),
+        ...(tone ? { tone } : {}),
       }),
     });
     if (!res.ok) return undefined;

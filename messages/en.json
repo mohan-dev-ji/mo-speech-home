@@ -932,7 +932,14 @@
     "ctaSeePlans": "See plans",
     "ctaMaybeLater": "Maybe later",
     "maxFeatureTitle": "Max feature",
-    "premiumThemesBody": "Premium themes — tiled and animated backgrounds — are part of Max. Upgrade to unlock the full theme library."
+    "premiumThemesBody": "Premium themes — tiled and animated backgrounds — are part of Max. Upgrade to unlock the full theme library.",
+    "expressiveToneBody": "Expressive tones — playing a sentence with real feeling, like excited or calm — are part of Max. The everyday replay voice stays free."
+  },
+  "tone": {
+    "rowLabel": "Play with tone",
+    "neutral": "Neutral",
+    "excited": "Excited",
+    "angry": "Angry"
   },
   "marketingHero": {
     "betaBadge": "Now in beta",

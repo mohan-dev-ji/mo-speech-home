@@ -25,14 +25,16 @@ async function resolveCachedAudio(
   voiceId: string,
   tone?: string
 ): Promise<ResolveResult> {
-  // Expressive tones (non-neutral) never have SymbolStix seeded audio and use a
-  // distinct cache key. `toneKey` normalises neutral/absent to `undefined` so
+  // ANY requested tone — including the emoji row's "neutral" — is a fluent
+  // Gemini clip with its own cache key. Only the tone-LESS path (▶ replay,
+  // library playback) is the free Wavenet voice; that pins tone=undefined so
   // the index prefix matches legacy (untoned) rows exactly.
-  const expressive = !!tone && tone !== "neutral";
-  const toneKey = expressive ? tone : undefined;
+  const viaGemini = !!tone;
+  const toneKey = viaGemini ? tone : undefined;
 
-  // SymbolStix seeded audio is neutral only — skip it entirely for tones.
-  if (!expressive) {
+  // SymbolStix seeded audio is the neutral cheap voice only — skip it for any
+  // requested tone (a Gemini clip is never seeded).
+  if (!viaGemini) {
     // Match against SymbolStix case-insensitively. The exact-match index
     // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
     // so we hit the tokenised search index and confirm a result's label
@@ -64,8 +66,8 @@ async function resolveCachedAudio(
     }
   }
 
-  // Check global TTS cache — keyed by (text, voiceId, tone). Neutral pins
-  // tone === undefined, matching legacy rows.
+  // Check global TTS cache — keyed by (text, voiceId, tone). The tone-less
+  // path pins tone === undefined, matching legacy rows.
   const cached = await ctx.db
     .query("ttsCache")
     .withIndex("by_text_voice_tone", (q) =>
@@ -161,8 +163,9 @@ export const write = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthorized");
 
-    // Neutral pins tone === undefined so it matches legacy rows exactly.
-    const toneKey = args.tone && args.tone !== "neutral" ? args.tone : undefined;
+    // Tone-less (free Wavenet) rows pin tone === undefined to match legacy
+    // rows; every Gemini clip stores its tone, including "neutral".
+    const toneKey = args.tone || undefined;
 
     // Race condition guard — another request may have written first
     const existing = await ctx.db

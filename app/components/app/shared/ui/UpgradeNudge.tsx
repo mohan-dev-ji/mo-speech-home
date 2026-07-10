@@ -29,7 +29,7 @@ type UpgradeNudgeProps = {
   onOpenChange: (open: boolean) => void;
   /** Translation key under `upgrade.*` for the body copy. Each feature maps to
    *  an `<feature>Body` key in the `upgrade` namespace. */
-  feature?: "editAuthoring" | "multiLanguage" | "premiumThemes";
+  feature?: "editAuthoring" | "multiLanguage" | "premiumThemes" | "expressiveTone";
   locale: string;
 };
 
@@ -46,9 +46,10 @@ export function UpgradeNudge({
   const bodyKey = `${feature}Body` as
     | "editAuthoringBody"
     | "multiLanguageBody"
-    | "premiumThemesBody";
-  // Premium themes are a Max-tier surface; the other gates are Pro.
-  const isMaxGate = feature === "premiumThemes";
+    | "premiumThemesBody"
+    | "expressiveToneBody";
+  // Premium themes and expressive tone are Max-tier surfaces; the others are Pro.
+  const isMaxGate = feature === "premiumThemes" || feature === "expressiveTone";
   const titleKey = isMaxGate ? "maxFeatureTitle" : "proFeatureTitle";
 
   const handleSeePlans = () => {
