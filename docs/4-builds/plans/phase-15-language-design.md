@@ -184,9 +184,9 @@ This spike also informs voice strategy generally (it may surface better base voi
 - **Caching is mandatory** (not just an optimisation) because output is non-deterministic — the first synthesis defines the canonical clip.
 - Gemini voice ids (e.g. `Puck`) are a different namespace from the standard `TTS_VOICES`; Task 12 adds them alongside, tagged with persona/accent so voice-follows-text (Thread 3) still applies.
 
-**Open decisions for the owner (not blockers):**
-1. **EU data residency** — accept US-region (`us-central1`) *generation* of tone clips (low-sensitivity text; result stored in our EU R2), or wait for an EU-region / GA Gemini TTS? Current recommendation: accept US generation for the tone path given the sensitivity and one-time nature.
-2. Confirm `max`-gating copy/upsell on the play modal when a free/pro user taps a tone chip (Task 13).
+**Decisions (owner, 2026-07-09):**
+1. **EU data residency — RESOLVED: accept US-region (`us-central1`) generation for now.** Tone text is low-sensitivity and the clip lands in our EU R2 after one US synthesis call. Revisit if/when Gemini TTS reaches an EU region or GA.
+2. **`max`-gating UX — RESOLVED: reuse the existing `UpgradeNudge`** (`app/components/app/shared/ui/UpgradeNudge.tsx`), not a bespoke gate. It already has a Max-tier branch (`feature === "premiumThemes"` → `maxFeatureTitle`). Task 13: add a new feature value (e.g. `"expressiveTone"`) routed through the Max branch, add one `upgrade.expressiveToneBody` key to `en.json`, and mount the nudge beside the tone-chip row so a free/pro tap flips `open` instead of synthesising. No new component.
 
 **Gate: PASSED** — a synthesised approach is acceptable, so Task 12 proceeds (with the Gemini mechanism above, superseding the SSML-prosody plan in Tasks 12–13). No throwaway code shipped: the spike used a standalone script against Google TTS directly, so `app/api/tts/route.ts` was never modified and needs no revert.
 
