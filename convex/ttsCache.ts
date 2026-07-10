@@ -92,7 +92,7 @@ export const lookup = query({
   args: {
     text: v.string(),    // normalised (lowercase, trimmed)
     voiceId: v.string(),
-    tone: v.optional(v.string()), // 'neutral'/absent = cheap voice; else expressive (Gemini)
+    tone: v.optional(v.string()), // absent = free Wavenet/seeded; present (incl. 'neutral') = Gemini clip
   },
   handler: async (ctx, { text, voiceId, tone }) =>
     resolveCachedAudio(ctx, text, voiceId, tone),

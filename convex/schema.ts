@@ -661,9 +661,10 @@ export default defineSchema({
   ttsCache: defineTable({
     text: v.string(),       // normalised (lowercase, trimmed)
     voiceId: v.string(),    // e.g. 'en-GB-News-M'
-    // Expressive tone (Phase 15, Thread 2). Absent = neutral — legacy rows and
-    // all cheap-voice clips have no tone, so the neutral cache key is unchanged.
-    // Present (e.g. 'excited'/'angry') = a Gemini-synthesised expressive clip.
+    // Tone (Phase 15, Thread 2). ABSENT = the free Wavenet/seeded voice (▶
+    // replay + whole library); legacy rows have no tone, so that key is
+    // unchanged. PRESENT (incl. 'neutral', 'excited', 'angry') = a Gemini
+    // fluent clip from the emoji row — a distinct, Max-gated cache entry.
     tone: v.optional(v.string()),
     r2Key: v.string(),      // neutral: audio/{voiceId}/tts/{uuid}.mp3 · tone: audio/{voiceId}/tts/{tone}/{uuid}.wav
     charCount: v.number(),  // for cost tracking

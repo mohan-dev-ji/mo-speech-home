@@ -20,13 +20,19 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // One shared auth client — the SA (cloud-platform scope) reaches both the
-// standard Text-to-Speech API and Vertex AI (Gemini).
+// standard Text-to-Speech API and Vertex AI (Gemini). Credentials are parsed
+// once and memoised (project_id is reused for the Vertex endpoint).
 let sharedAuth: GoogleAuth | null = null;
-async function googleAccessToken(): Promise<string> {
+let sharedCreds: { project_id: string } | null = null;
+function googleCreds(): { project_id: string } {
   const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!credJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not set");
+  sharedCreds ??= JSON.parse(credJson);
+  return sharedCreds!;
+}
+async function googleAccessToken(): Promise<string> {
   sharedAuth ??= new GoogleAuth({
-    credentials: JSON.parse(credJson),
+    credentials: googleCreds(),
     scopes: ["https://www.googleapis.com/auth/cloud-platform"],
   });
   const client = await sharedAuth.getClient();
@@ -99,7 +105,7 @@ async function synthesiseGemini(
   tone: Tone,
 ): Promise<Buffer> {
   const token = await googleAccessToken();
-  const projectId = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!).project_id;
+  const projectId = googleCreds().project_id;
   const url =
     `https://${GEMINI_LOCATION}-aiplatform.googleapis.com/v1/projects/${projectId}` +
     `/locations/${GEMINI_LOCATION}/publishers/google/models/${GEMINI_MODEL}:generateContent`;
