@@ -42,8 +42,8 @@ export const GEMINI_TONE_VOICE = "Puck";
  * are no child prebuilt voices yet, so `age: "child"` currently resolves to the
  * adult voice of that gender (extend here when child voices/data land).
  *
- * `male: "Puck"` is spike-validated. `female: "Kore"` is a first pick PENDING AN
- * AUDITION — audition female voices before relying on it (one-line swap).
+ * Both owner-validated by ear (2026-07-10): `male: "Puck"`, `female: "Kore"`,
+ * confirmed across English + Spanish. Swap here to change a persona's voice.
  */
 const GEMINI_PERSONA_VOICES: Record<"male" | "female", string> = {
   male: "Puck",
