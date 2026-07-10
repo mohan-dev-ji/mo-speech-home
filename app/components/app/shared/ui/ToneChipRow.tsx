@@ -13,6 +13,12 @@ import { useAppState } from "@/app/contexts/AppStateProvider";
 import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
 import { TONE_CHIPS, type Tone } from "@/lib/audio/tonePresets";
 
+// The "now playing" yellow bloom, shape-following (drop-shadow, not a box) so it
+// hugs the emoji rather than drawing the rounded card we removed. Same
+// --theme-play-glow colour the block/sentence glow uses.
+const PLAY_GLOW_FILTER =
+  "drop-shadow(0 0 6px var(--theme-play-glow)) drop-shadow(0 0 16px var(--theme-play-glow))";
+
 export function ToneChipRow({
   activeTone,
   busy = false,
@@ -41,10 +47,12 @@ export function ToneChipRow({
 
   return (
     <>
+      {/* No overflow-x here: a scaled/glowing child inside an overflow-auto row
+          spawns scrollbars while a clip plays. Three 72px emoji fit every width. */}
       <div
         role="group"
         aria-label={t("rowLabel")}
-        className="flex items-center justify-center gap-theme-gap max-w-full overflow-x-auto"
+        className="flex flex-wrap items-center justify-center gap-theme-gap"
       >
         {TONE_CHIPS.map(({ tone, emoji }) => {
           const selected = activeTone === tone;
@@ -57,14 +65,14 @@ export function ToneChipRow({
               aria-label={t(tone)}
               aria-pressed={selected}
               className={[
-                "shrink-0 w-14 h-14 flex items-center justify-center rounded-theme text-3xl leading-none",
-                "transition-[background,transform] duration-150",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-line",
-                "disabled:opacity-40 disabled:cursor-default",
-                selected
-                  ? "bg-theme-button-primary scale-105"
-                  : "bg-transparent hover:bg-theme-symbol-bg active:scale-95",
+                "shrink-0 p-1 bg-transparent leading-none text-[72px] rounded-theme",
+                "transition-transform duration-150 will-change-transform",
+                "hover:scale-105 active:scale-95",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--theme-play-glow)]",
+                "disabled:cursor-default",
+                selected ? "scale-110" : "",
               ].join(" ")}
+              style={selected ? { filter: PLAY_GLOW_FILTER } : undefined}
             >
               <span aria-hidden="true">{emoji}</span>
             </button>
