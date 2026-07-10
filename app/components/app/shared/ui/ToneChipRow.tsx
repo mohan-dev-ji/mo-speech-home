@@ -71,7 +71,9 @@ export function ToneChipRow({
               aria-pressed={selected}
               aria-busy={loading}
               className={[
-                "shrink-0 bg-transparent leading-none rounded-theme",
+                // 72px emoji: a fixed control size, like the modal's other
+                // arbitrary-px dimensions (w-[100px], min-h-[44px]).
+                "shrink-0 bg-transparent leading-none rounded-theme text-[72px]",
                 "transition-transform duration-150 will-change-transform",
                 "hover:scale-105 active:scale-95",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--theme-play-glow)]",
@@ -79,10 +81,7 @@ export function ToneChipRow({
                 selected ? "scale-110" : "",
                 loading ? "motion-safe:animate-pulse" : "",
               ].join(" ")}
-              style={{
-                fontSize: "var(--tone-emoji-size)",
-                filter: selected ? PLAY_GLOW_FILTER : undefined,
-              }}
+              style={selected ? { filter: PLAY_GLOW_FILTER } : undefined}
             >
               <span aria-hidden="true">{emoji}</span>
             </button>
