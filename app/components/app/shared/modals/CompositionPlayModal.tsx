@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
+import { useTranslations } from 'next-intl';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
@@ -29,6 +31,8 @@ export function CompositionPlayModal({
   const [fluentPlaying, setFluentPlaying] = useState(false);
   const [activeTone, setActiveTone] = useState<Tone | null>(null);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations('tone');
+  const { showToast } = useToast();
 
   function ttsText(b: PlayBlock) { return b.kind === 'word' ? b.label : b.name; }
 
@@ -105,7 +109,12 @@ export function CompositionPlayModal({
     const key = await resolveTtsKey(text, voice, tone);
     setBusy(false);
     if (runIdRef.current !== myRun) return;   // superseded during synth
-    if (!key) { setActiveTone(null); return; }
+    if (!key) {
+      // Synthesis failed — surface it instead of a silent no-op.
+      setActiveTone(null);
+      showToast({ tone: 'warning', title: t('playbackError'), dedupeKey: 'tone-playback-error' });
+      return;
+    }
     setFluentPlaying(true);
     await new Promise<void>((res) => {
       const audio = new Audio(`/api/assets?key=${key}`);

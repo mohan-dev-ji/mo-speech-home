@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
+import { useTranslations } from 'next-intl';
 import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { resolveTtsKey } from '@/lib/audio/playTts';
 import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
 import type { Tone } from '@/lib/audio/tonePresets';
@@ -52,6 +54,8 @@ export function SentencePlayModal({
   // `activeTone` drives the selected chip; `busy` disables the row mid-synth.
   const [activeTone, setActiveTone] = useState<Tone | null>(null);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations('tone');
+  const { showToast } = useToast();
 
   function stopActive() {
     const cur = activeAudioRef.current;
@@ -102,7 +106,13 @@ export function SentencePlayModal({
     const key = await resolveTtsKey(sentenceText, effVoice, tone);
     setBusy(false);
     if (runIdRef.current !== myRun) return;   // superseded during synth
-    if (!key) { setActiveTone(null); return; }
+    if (!key) {
+      // Synthesis failed (e.g. the tone model errored) — tell the user rather
+      // than leaving the chip glowing in silence.
+      setActiveTone(null);
+      showToast({ tone: 'warning', title: t('playbackError'), dedupeKey: 'tone-playback-error' });
+      return;
+    }
     await playResolvedKey(key, myRun, tone);
   }
 

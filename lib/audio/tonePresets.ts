@@ -33,8 +33,30 @@ export function isTone(x: unknown): x is Tone {
   return typeof x === "string" && (TONES as readonly string[]).includes(x);
 }
 
-/** V1 expressive voice — the single Gemini prebuilt voice chosen in the spike. */
+/** Fallback expressive voice when persona is unknown (spike-validated male). */
 export const GEMINI_TONE_VOICE = "Puck";
+
+/**
+ * Gemini prebuilt voice per speaker persona, so the expressive voice matches the
+ * profile's gender (and, in future, age). Gender drives the pick today; there
+ * are no child prebuilt voices yet, so `age: "child"` currently resolves to the
+ * adult voice of that gender (extend here when child voices/data land).
+ *
+ * `male: "Puck"` is spike-validated. `female: "Kore"` is a first pick PENDING AN
+ * AUDITION — audition female voices before relying on it (one-line swap).
+ */
+const GEMINI_PERSONA_VOICES: Record<"male" | "female", string> = {
+  male: "Puck",
+  female: "Kore",
+};
+
+export function geminiVoiceForPersona(persona?: {
+  gender?: "male" | "female";
+  age?: "adult" | "child";
+}): string {
+  if (persona?.gender) return GEMINI_PERSONA_VOICES[persona.gender];
+  return GEMINI_TONE_VOICE;
+}
 
 /**
  * Language-bucket → tone → natural-language directive.

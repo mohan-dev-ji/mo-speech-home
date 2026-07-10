@@ -11,6 +11,12 @@
 ─────────────────────────────────────────────────────────────────── */
 
 :root {
+  /* Tone-chip emoji glyph size (Phase 15). A FIXED control dimension — like the
+     symbol-tile px sizes and icon sizes — deliberately NOT a per-profile themed
+     text token, so it never scales with a profile's reading-text setting and
+     blow up the play-modal row. Centralised here to avoid a magic number. */
+  --tone-emoji-size: 72px;
+
   /* Brand — change these two to rebrand the template */
   --primary: 79 70 229;               /* indigo-600  */
   --primary-foreground: 255 255 255;

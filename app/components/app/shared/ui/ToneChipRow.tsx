@@ -56,6 +56,11 @@ export function ToneChipRow({
       >
         {TONE_CHIPS.map(({ tone, emoji }) => {
           const selected = activeTone === tone;
+          // Loading = the tapped chip while its clip synthesises (a cold first
+          // play takes a few seconds). It pulses; a playing clip (selected &&
+          // !busy) is a steady glow — so a silent wait can't masquerade as
+          // playback.
+          const loading = selected && busy;
           return (
             <button
               key={tone}
@@ -64,15 +69,20 @@ export function ToneChipRow({
               disabled={busy}
               aria-label={t(tone)}
               aria-pressed={selected}
+              aria-busy={loading}
               className={[
-                "shrink-0 p-1 bg-transparent leading-none text-[72px] rounded-theme",
+                "shrink-0 bg-transparent leading-none rounded-theme",
                 "transition-transform duration-150 will-change-transform",
                 "hover:scale-105 active:scale-95",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--theme-play-glow)]",
                 "disabled:cursor-default",
                 selected ? "scale-110" : "",
+                loading ? "motion-safe:animate-pulse" : "",
               ].join(" ")}
-              style={selected ? { filter: PLAY_GLOW_FILTER } : undefined}
+              style={{
+                fontSize: "var(--tone-emoji-size)",
+                filter: selected ? PLAY_GLOW_FILTER : undefined,
+              }}
             >
               <span aria-hidden="true">{emoji}</span>
             </button>

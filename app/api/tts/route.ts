@@ -8,9 +8,10 @@ import { resolveSymbolAudioPath } from "@/lib/audio/resolveAudioPath";
 import {
   isTone,
   tonePrompt,
-  GEMINI_TONE_VOICE,
+  geminiVoiceForPersona,
   type Tone,
 } from "@/lib/audio/tonePresets";
+import { personaOf } from "@/lib/audio/resolveVoiceId";
 import { GoogleAuth } from "google-auth-library";
 import { randomUUID } from "crypto";
 
@@ -103,6 +104,7 @@ async function synthesiseGemini(
   text: string,
   languageCode: string,
   tone: Tone,
+  voiceName: string,
 ): Promise<Buffer> {
   const token = await googleAccessToken();
   const projectId = googleCreds().project_id;
@@ -117,7 +119,7 @@ async function synthesiseGemini(
       contents: [{ role: "user", parts: [{ text: tonePrompt(languageCode, tone, text) }] }],
       generationConfig: {
         responseModalities: ["AUDIO"],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_TONE_VOICE } } },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
       },
     }),
   });
@@ -248,12 +250,16 @@ export async function POST(request: Request) {
   try {
     let r2Key: string;
     if (requestedTone) {
-      // Any requested tone → Gemini native TTS, in the resolved voice's
-      // language. Output is WAV (24 kHz PCM), stored on the tone-segmented path.
+      // Any requested tone → Gemini native TTS, in the resolved voice's language
+      // and matching the profile's persona (gender/age from the voiceId — the
+      // voice already encodes the student's persona). Output is WAV (24 kHz
+      // PCM), stored on the tone-segmented path.
+      const geminiVoice = geminiVoiceForPersona(personaOf(voiceId));
       const audioBuffer = await synthesiseGemini(
         rawText,
         TTS_VOICES[voiceId].languageCode,
         requestedTone,
+        geminiVoice,
       );
       r2Key = R2_PATHS.ttsToneAudio(voiceId, requestedTone, randomUUID());
       await uploadBuffer(r2Key, audioBuffer, "audio/wav");
