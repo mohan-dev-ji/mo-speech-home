@@ -53,7 +53,7 @@ Execute in this order:
 | ✅ | **ADR-014 — Content modules & three-tree organisation** | Accepted | Splits the bundled pack into category/list/sentence modules + three organisation trees. The contract for Phases 13–18. Supersedes ADR-010 bundling. |
 | ✅ | **Phase 13 — Content module + three-tree refactor** | shipped | Implemented ADR-014: 4-tab library, three trees, self-contained sentences (structure frozen, text live), delete/reinstall. The foundation 14–18 build on. |
 | ✅ | **Phase 14 — Sentence builder + Talker renovation** | shipped | The GLP construction loop in the talker: compose from phrases + words, save-with-decomposition, visual bracketing by category colour, full dropdown renovation (core words + phrase banks). Implements ADR-015. |
-| ➡️ | **Phase 15 — Bilingual symbols + Tone TTS** | talker functions | Per-symbol language override (Hindi board, some English labels) + multi-intonation TTS via the existing on-demand pipeline (easy win). |
+| ✅ | **Phase 15 — Bilingual symbols + Tone TTS + Language foundation** | shipped | Per-symbol language pin, language-switch foundation (authoredLanguage, voice-follows-text, persona), and Tone TTS — the spike replaced SSML prosody with Gemini 2.5 native TTS (Max-gated, persona-matched Puck/Kore). |
 | ➡️ | **Phase 16 — Phase 10 gap-closure + hardening** | pre-launch | Close Phase 10 gaps, fold in Phase 11 home/school invite-link testing, full regression + Hindi launch checklist. |
 | 🚀 | **LAUNCH** | milestone | Phases 13–16 are the dossier's "Phase 1 — launch prep". |
 | ➡️ | **Phase 17 — Language humanisation & GLP datasets** | post-launch, SLP-gated | Two levels: (1) machine-translate to *get languages done*; (2) freelancers + SLPs humanise (ADR-013) and build the GLP dataset (new content type, future ADR). The Tier 0/1/2 completeness model. |
@@ -839,7 +839,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ## Phase 15 — Bilingual Symbols + Tone TTS + Language Foundation
 
-> **Status:** Designed 2026-07-08. Full spec: [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md).
+> **Status:** ✅ Shipped 2026-07-11. Plans archived: [`_done/phase-15-language-design.md`](4-builds/plans/_done/phase-15-language-design.md) (design + spike findings), [`_done/phase-15-implementation.md`](4-builds/plans/_done/phase-15-implementation.md), [`_done/phase-15-figma-companion.md`](4-builds/plans/_done/phase-15-figma-companion.md). **Tone note:** the spike replaced SSML prosody with **Gemini 2.5 native TTS** (Max-gated, persona-matched Puck/Kore); see the design spec's Thread 2 findings.
 
 **Goal:** Support code-switching boards and intonation, and fix a language-switching regression — all talker functions.
 
@@ -849,13 +849,13 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **Bilingual symbols** — per-symbol `pinnedLanguage` override (label + audio) in the Symbol Editor. A Hindi board with *some* English tiles. The one deliberate exception to live translation. Smallest lift; delights the advising SLP. (dossier doc 4 #1)
 - **Tone TTS** — intonation (V1: Neutral + Excited) as a live emoji-chip modifier on the **fluent whole-utterance** play path. Block sentences keep their stepped "blocky" replay; the chips play a fluent single clip in the item's authored language, so tone never touches the cross-language problem. Needs an **experimentation spike**: verify SSML prosody on the current Wavenet voices; if inadequate, evaluate other Google TTS models (quality upgrade accepted for this SLP request). Cache key grows to `(text, voiceId, tone)`. (dossier doc 4 #4)
 
-**Reference:** [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md); dossier doc [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 / ADR-014.
+**Reference:** [`_done/phase-15-language-design.md`](4-builds/plans/_done/phase-15-language-design.md); dossier doc [4](2-research/gestalt-language-processing/04-glp-in-mo-speech.md) (#1, #4); ADR-009 / ADR-012 / ADR-014.
 
 ---
 
 ## Phase 15.5 — Composed-content language variants
 
-> **Status:** Deferred from Phase 15 (foundation ships first). Full context in the Phase 15 design spec's "Deferred" section.
+> **Status:** ➡️ Next. Plan scaffolded 2026-07-11: [`phase-15.5-content-variants.md`](4-builds/plans/phase-15.5-content-variants.md) — a plan-first test-and-fix session (variant model brainstorm + versioning bug fixes + native rebuild of MT'd default sentences). Also carries the "Deferred" context from the Phase 15 design spec.
 
 **Goal:** Turn the Phase 15 "Made in EN" badge into a real per-language re-authoring flow, so a bilingual profile can hold natively-authored versions of the same utterance in each language.
 
@@ -865,7 +865,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **MT as authoring assist** — inside the localise flow, offer a machine-translated fluent text as a *starting suggestion* (Pro+ gated); the instructor arranges symbols/phrases in correct target-language order. MT never ships unreviewed.
 - **Monolingual families** keep the ADR-009 "one profile per language" pattern; variants are the bilingual-profile enhancement, not a requirement.
 
-**Reference:** [`docs/4-builds/plans/phase-15-language-design.md`](4-builds/plans/phase-15-language-design.md) (Deferred section); ADR-009 §6, ADR-012 §7, ADR-013 (translator workbench, for the MT-assist review model).
+**Reference:** [`phase-15.5-content-variants.md`](4-builds/plans/phase-15.5-content-variants.md); [`_done/phase-15-language-design.md`](4-builds/plans/_done/phase-15-language-design.md) (Deferred section); ADR-009 §6, ADR-012 §7, ADR-013 (translator workbench, for the MT-assist review model).
 
 ---
 
