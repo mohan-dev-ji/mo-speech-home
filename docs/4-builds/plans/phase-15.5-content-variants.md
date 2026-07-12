@@ -15,16 +15,18 @@ This is a **test-and-fix session**: build fixtures → switch languages → obse
 
 Order-free content (symbols/words) translates live. **Structure-bound content (phrases, block/sequence sentences) is re-authored per language, never machine-translated in place** — word order + morphology are language-specific. Fluent whole-text sentences hold one translated string and keep resolving live.
 
-## Open design question — BRAINSTORM FIRST (blocks schema work)
+## Open design question — RESOLVED by [ADR-016](../decisions/ADR-016-composed-content-language-variants.md) (2026-07-12)
 
-The deferred design (from the Phase 15 spec) sketches **linked per-language variants**: one logical "sentence/phrase slot" holds a separately-authored composition per language (`en` comp + `es` comp + `hi` comp), linked by a shared slot id; `authoredLanguage` is the per-variant tag. Viewing a language shows its native variant if one exists, else the working source asset + a "Made in <lang>" badge (a valid, permanent bilingual state — not an error).
+The brainstorm is done. See **[ADR-016 — Composed-Content Language Variants](../decisions/ADR-016-composed-content-language-variants.md)** for the full contract. Summary of the decisions:
 
-**Decisions to make in the brainstorm before touching `convex/schema.ts`:**
-1. **Data model** — a `variantGroupId` on `profileSentences`/`profilePhrases` linking sibling variants? Or a parent "slot" table with child comps per language? Trade-offs: query cost, migration of existing rows, how "no variant yet" is represented.
-2. **Resolution** — on language switch, how the view picks `variant[lang]` else falls back to the source asset + badge. Reference the **search page's** reactive re-query-on-`language`-change pattern (the proof it works).
-3. **Authoring entry** — badge/disclaimer → **edit mode**, reusing the composition-builder components, English original visible as reference while authoring the target-language order. (Preferred over a bespoke remake modal.)
-4. **MT as assist (optional, Pro+)** — offer a machine-translated fluent text as a *starting suggestion* inside the rebuild flow; instructor arranges symbols in correct order. MT never ships unreviewed. Likely out of V15.5 scope — confirm.
-5. **ADR** — capture the chosen variant model as an ADR in `docs/4-builds/decisions/` before building.
+1. **Data model** — **Option A: `variantGroupId` sibling rows.** A variant is another `profileSentences`/`profilePhrases` row of the identical shape, tagged with its own `authoredLanguage`, linked by a shared `variantGroupId`. The group id **is the source row's `_id`**. Lazy grouping (a group materialises only when a 2nd language is authored) → **zero migration**; legacy rows are singletons. Siblings copy the source's `folderId`/`order` and stay in sync on reorder.
+2. **Resolution** — **client-side group collapse** (board `language` is client context; same reactive mechanism as live text translation / the search page). Show the sibling whose `authoredLanguage === boardLanguage`, else the source. Switching language re-collapses instantly, **no Convex re-query**.
+3. **Badge** — **uniform across all composed types:** show "Made in <lang>" iff the shown row's `authoredLanguage !== boardLanguage`. This **supersedes** the Phase 15 `isSequenceRow`-only condition — fluent sentences + phrases now show the badge too.
+4. **Scope** — variants apply to **phrases + all sentence types** (per-language re-arranged symbols). Fluent sentences also get a symbol-arrangement variant; their audio stays one whole-utterance translated string (unchanged, keyed off `playback`). Lists translate live (no variants).
+5. **Authoring entry** — badge → **edit mode**, reusing the composition builder, source shown as reference. Full audio pipeline retained (write text in board language → **generate TTS or record**). On save: create sibling with shared `variantGroupId`, copied `folderId`/`order`.
+6. **MT-as-assist** — **out of scope** for 15.5 (deferred to a future ADR). Excludes only the auto-translate *suggestion*; the generate/record audio pipeline stays in scope.
+
+> **Bug #1 seam (see ADR §Consequences):** fix "stamp `authoredLanguage` on every create path" in the standalone bug pass; the "fluent should also show the badge" half lands with the §2 resolution work — don't touch badge scope in the bug pass.
 
 ## Known bugs to fix (triaged 2026-07-11 — hypotheses, verify before fixing)
 
