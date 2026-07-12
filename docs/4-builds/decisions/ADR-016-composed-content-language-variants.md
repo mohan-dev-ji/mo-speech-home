@@ -135,7 +135,8 @@ A module / folder / group has **no structure to re-order** — it is only a **na
 | Composed content **inside** (phrase, sentence) | per-language **variant** (§1) | badge → modal → MT text+audio, **human re-orders symbols** |
 
 - **Default modules** ship pre-translated (their names must carry all languages — the gap fixed in the Phase 15.5 bug pass; see [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md) bug #3).
-- **User-created folder/group names** get a **one-tap "Translate name"** action that auto-fills the missing language key(s) via MT. No badge/modal needed — a label needs no human re-ordering.
+- **User-created folder/group names are NEVER auto-translated on create** (owner decision 2026-07-12: at N languages, auto-filling every key on every create is O(N) waste for a label most instructors never switch board-language on). Instead the name stays single-key until the instructor asks. In **folder/group edit mode**, when the **current board language's key is empty**, a **translate icon** appears next to the rename field; tapping it MT-fills *that one key* and drops the value into the still-editable rename input so the instructor can **correct it on their OS-language keyboard**. Lazy, per-language, on demand — never a bulk fan-out.
+  - This is why an instructor's own EN folder (`{en:"Going Places"}`) correctly stays English on an es/hi board until they translate it — distinct from a *default module* folder, which ships pre-translated.
 - **Modules never gain the variant machinery.** Only the structure-bound composed content *inside* them does.
 
 ### E. Scope note

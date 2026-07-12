@@ -42,6 +42,18 @@ Use `superpowers:systematic-debugging` on each — reproduce, find root cause, t
 3. **List group/folder names stuck in English** — list *items* flip languages correctly; the **folder/group name** does not (e.g. "Going to school" in the Going Places module stays EN while siblings flip).
    - *Hypothesis:* the list/folder **name** isn't a localised record (or that folder was seeded EN-only) while items carry localised records. Check `profileLists.name` / `profileFolders` name typing + how defaults are seeded. Likely small.
 
+## Follow-up findings (2026-07-12 owner test on HI board) — triage
+
+Surfaced while eyeballing the bug-pass fixes. C/E are standalone; C/D feed the variant/dropdown work.
+
+- **A — bug #3 resolved as designed.** Only `source:"module"` folders flip (all now carry es/hi, verified on `wandering-marmot-955`); the owner's `source:"user"` "Going Places"/"Life skills" folders stay EN — correct, they're user content and covered by the edit-mode **Translate name** action (ADR-016 Addendum D, refined 2026-07-12: no auto-translate on create; translate icon in edit mode when the current-language key is empty, value stays keyboard-editable).
+
+- **C — talker dropdown phrases: no label + wrong voice.** Phrase cards in the dropdown render with no visible label, and playing an EN phrase on a HI board speaks the EN text in the **Hindi voice** (voice-follows-text from Phase 15 3e not applied on the *live talker/dropdown* path). Look at `blocksFromTalker` (drops `locale`, so `playOne` uses the board `voiceId`) + the dropdown phrase-card label render. Feeds the variant work (same resolution family).
+
+- **D — core-word symbol labels: es gap.** Top row of core words (first 7, excl "go") show EN on an **es** board but HI on an **hi** board → those symbols carry `hi` but not `es` translations. Likely a symbol-translation data gap (or staleness from edit-mode moves during testing). *Verify* whether real vs stale before acting; not a code bug if the `es` key is simply absent.
+
+- **E — dropdown overlay traps the talker (blocking).** When the Core-words dropdown has multiple rows, its absolutely-positioned content overlays the talker bar while open, so the talker (incl. the close affordance) can't be reached → **can't close the dropdown**. Standalone layout/z-index/positioning bug in `TalkerDropdown`. Blocking UX — fix early.
+
 ## Data cleanup — nuke + rebuild default sentences (DESTRUCTIVE)
 
 The old default sentences were machine-translated on the previous architecture **without rearranging symbol order per language** — wrong by our governing principle. Plan:
