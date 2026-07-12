@@ -156,6 +156,10 @@ export const createProfilePhrase = mutation({
     // File the new phrase into a bank (Phrases-tree folder). Omit to leave it
     // Ungrouped.
     folderId: v.optional(v.id("profileFolders")),
+    // Phase 15 (Thread 3) — the language this phrase is authored in. Structure-
+    // bound content is re-authored per language, so stamp the board language at
+    // create time (ADR-016 — drives variant resolution + the "Made in" badge).
+    authoredLanguage: v.optional(v.string()),
     words: v.optional(phraseWordsSchema),
   },
   handler: async (ctx, args) => {
@@ -175,6 +179,7 @@ export const createProfilePhrase = mutation({
       order: last ? last.order + 1 : 0,
       words: args.words ?? [],
       ...(args.folderId ? { folderId: args.folderId } : {}),
+      ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       updatedAt: Date.now(),
     });
   },

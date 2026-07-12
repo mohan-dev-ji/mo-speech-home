@@ -79,7 +79,10 @@ export function HomeContent() {
   }
 
   async function handleCreateSentence(name: string) {
-    await createSentence({ name: { en: name } });
+    // Key the name by the CURRENT board language (you're authoring in it) and
+    // stamp authoredLanguage — consistent with the Sentences-page + talker saves
+    // (ADR-016). Hardcoding `en` mislabelled every quick-created sentence.
+    await createSentence({ name: { [language]: name }, authoredLanguage: language });
     router.push(`/${locale}/sentences`);
   }
 

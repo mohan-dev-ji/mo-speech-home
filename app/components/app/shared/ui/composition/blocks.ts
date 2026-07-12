@@ -32,6 +32,19 @@ export function toAudioKey(p?: string): string | undefined {
   return p.startsWith(prefix) ? p.slice(prefix.length) : p;
 }
 
+// A stored clip is only safe to play verbatim across a persona switch when it is
+// a persona-INDEPENDENT human recording (kept under accounts/<id>/audio/... —
+// same convention as getProfileSentences' recording backfill). Default/TTS clips
+// are voice-specific and were frozen at authoring time (often English male), so
+// they must NOT be trusted: the play modal re-resolves them to the CURRENT
+// persona's voice instead (bug: stepped units played the stale authoring voice
+// while the fluent/whole path re-resolved — the two disagreed). Returns the raw
+// key only for recordings; otherwise undefined so playback re-synthesises.
+export function recordingKey(p?: string): string | undefined {
+  const key = toAudioKey(p);
+  return key?.startsWith('accounts/') ? key : undefined;
+}
+
 // Talker bar items → blocks. Word imagePaths are full URLs; phrase word
 // imagePaths/audioPaths are raw keys — the helpers normalise both.
 export function blocksFromTalker(items: TalkerSymbolItem[]): PlayBlock[] {
@@ -72,7 +85,9 @@ export function blocksFromUnits(units: CompositionUnitClient[], resolveLang: str
         kind: 'phrase',
         name: displayString(u.name, resolveLang, DEFAULT_LOCALE),
         locale: resolvedLocale(u.name, resolveLang, DEFAULT_LOCALE),
-        audioKey: toAudioKey(u.recordedAudioPath ?? u.audioPath),
+        // Recording (persona-independent) wins; a frozen TTS clip is dropped so
+        // the play modal re-resolves it to the current persona (see recordingKey).
+        audioKey: recordingKey(u.recordedAudioPath ?? u.audioPath),
         words: u.words.map((w) => ({
           label: displayString(w.label, resolveLang, DEFAULT_LOCALE),
           imageUrl: toAssetUrl(w.imagePath),
@@ -84,7 +99,9 @@ export function blocksFromUnits(units: CompositionUnitClient[], resolveLang: str
       label: displayString(u.label, resolveLang, DEFAULT_LOCALE),
       locale: resolvedLocale(u.label, resolveLang, DEFAULT_LOCALE),
       imageUrl: toAssetUrl(u.imagePath),
-      audioKey: toAudioKey(u.audioPath),
+      // Only a human recording plays verbatim; a default/TTS clip re-resolves to
+      // the current persona in the play modal (see recordingKey).
+      audioKey: recordingKey(u.audioPath),
     };
   });
 }

@@ -381,7 +381,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   async function handleCreatePhrase(name: string) {
     const folderId = board?.phrasesFolderId;
     if (!folderId) return;
-    await createProfilePhrase({ name: { [language]: name }, folderId });
+    await createProfilePhrase({ name: { [language]: name }, authoredLanguage: language, folderId });
   }
 
   function selectTab(id: TabId) {
