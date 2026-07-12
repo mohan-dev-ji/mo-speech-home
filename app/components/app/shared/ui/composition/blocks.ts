@@ -47,12 +47,18 @@ export function recordingKey(p?: string): string | undefined {
 
 // Talker bar items → blocks. Word imagePaths are full URLs; phrase word
 // imagePaths/audioPaths are raw keys — the helpers normalise both.
-export function blocksFromTalker(items: TalkerSymbolItem[]): PlayBlock[] {
+//
+// `resolveLang` is the board language the bar was built in. Each block carries
+// the locale its label actually RESOLVED to (voice follows text, Phase 15 3e): an
+// EN-only phrase/word shown on a Hindi board resolved to English, so its clip-less
+// TTS must be synthesised with an English voice — not spoken in the Hindi voice.
+export function blocksFromTalker(items: TalkerSymbolItem[], resolveLang: string): PlayBlock[] {
   return items.map((item): PlayBlock => {
     if (item.kind === 'phrase') {
       return {
         kind: 'phrase',
         name: item.phraseName ?? item.label,
+        locale: item.phraseNameRecord ? resolvedLocale(item.phraseNameRecord, resolveLang, DEFAULT_LOCALE) : undefined,
         audioKey: toAudioKey(item.audioPath),
         words: (item.words ?? []).map((w) => ({
           label: w.label,
@@ -63,6 +69,7 @@ export function blocksFromTalker(items: TalkerSymbolItem[]): PlayBlock[] {
     return {
       kind: 'word',
       label: item.label,
+      locale: item.labelRecord ? resolvedLocale(item.labelRecord, resolveLang, DEFAULT_LOCALE) : undefined,
       imageUrl: toAssetUrl(item.imagePath),
       audioKey: toAudioKey(item.audioPath),
     };

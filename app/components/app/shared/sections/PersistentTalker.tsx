@@ -279,7 +279,7 @@ export function PersistentTalker() {
       {playing && (
         <CompositionPlayModal
           isOpen
-          blocks={blocksFromTalker(talkerSymbols)}
+          blocks={blocksFromTalker(talkerSymbols, language)}
           voiceId={voiceId}
           onClose={() => setPlaying(false)}
         />
