@@ -15,36 +15,28 @@ import { getLanguage } from '@/lib/languages/registry';
 /**
  * Badge → authoring modal (ADR-016 Addendum B). Opened from the "Made in <lang>"
  * badge to author a native variant in the board language. Two paths:
- *   • Translate to <lang> — MT-fills the target text (voice resolves live from
- *     the text), then the instructor re-orders the symbols. The accessibility
- *     path: an author who can't type the target script still authors by ordering.
- *   • Edit manually — type the target text yourself.
- * Both create a sibling variant (seeded from the source); the parent then drops
- * into edit mode so the symbols can be re-ordered to the target-language order.
+ *   • Translate to <lang> — MT-fills the target text: a fluent sentence's one
+ *     string, or a block sentence's per-unit labels (gaps only). The instructor
+ *     then re-orders the symbols. The accessibility path — author by ordering,
+ *     not by typing the target script.
+ *   • Edit manually — arrange + type it yourself.
+ * The parent performs the async work (translation + create) per sentence type;
+ * this modal is a mode picker that reflects busy/error while it runs.
  */
 export function VariantAuthorModal({
   isOpen,
   onClose,
   targetLang,
   authoredLang,
-  sourceText,
-  canTranslate,
   onAuthor,
 }: {
   isOpen: boolean;
   onClose: () => void;
   targetLang: string;
   authoredLang: string;
-  /** Source composition text (fed to MT for the Translate path). */
-  sourceText: string;
-  /** Whether the MT "Translate" path applies. True for fluent sentences (the one
-   *  whole-utterance string needs MT); false for sequence sentences, whose unit
-   *  labels are localised and resolve to the board language on their own — the
-   *  instructor only re-orders. */
-  canTranslate: boolean;
-  /** Create the variant with optional pre-filled translated text; parent then
-   *  enters edit mode. Rejects on failure so the modal can show an error. */
-  onAuthor: (text?: string) => Promise<void>;
+  /** Run the chosen path (parent handles translate + create, then edit mode).
+   *  Rejects on failure so the modal can surface an error. */
+  onAuthor: (mode: 'manual' | 'translate') => Promise<void>;
 }) {
   const t = useTranslations('sentences');
   const [busy, setBusy] = useState<null | 'manual' | 'translate'>(null);
@@ -57,19 +49,7 @@ export function VariantAuthorModal({
     setBusy(mode);
     setError(false);
     try {
-      let text: string | undefined;
-      if (mode === 'translate') {
-        const res = await fetch('/api/translate-text', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: sourceText, targetLang }),
-        });
-        if (!res.ok) throw new Error('translate failed');
-        const data = (await res.json()) as { translated?: unknown };
-        text = typeof data.translated === 'string' ? data.translated : undefined;
-        if (!text) throw new Error('no translation');
-      }
-      await onAuthor(text);
+      await onAuthor(mode);
       // Parent closes the modal + enters edit mode on success.
     } catch {
       setError(true);
@@ -91,25 +71,22 @@ export function VariantAuthorModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-3">
-          {/* Translate (MT-assist) — listed first: the accessibility path. Only
-              for fluent sentences; sequence unit labels already localise. */}
-          {canTranslate && (
-            <button
-              type="button"
-              onClick={() => run('translate')}
-              disabled={!!busy}
-              className={optionClass}
-              style={{ background: 'var(--theme-primary)', color: 'var(--theme-alt-text)' }}
-            >
-              <Languages className="w-5 h-5 shrink-0 mt-0.5" />
-              <span className="flex flex-col gap-0.5">
-                <span className="text-theme-s font-semibold">
-                  {busy === 'translate' ? t('variantTranslating') : t('variantTranslate', { lang: langLabel })}
-                </span>
-                <span className="text-theme-xs opacity-90">{t('variantTranslateHint', { lang: langLabel })}</span>
+          {/* Translate (MT-assist) — listed first: the accessibility path. */}
+          <button
+            type="button"
+            onClick={() => run('translate')}
+            disabled={!!busy}
+            className={optionClass}
+            style={{ background: 'var(--theme-primary)', color: 'var(--theme-alt-text)' }}
+          >
+            <Languages className="w-5 h-5 shrink-0 mt-0.5" />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-theme-s font-semibold">
+                {busy === 'translate' ? t('variantTranslating') : t('variantTranslate', { lang: langLabel })}
               </span>
-            </button>
-          )}
+              <span className="text-theme-xs opacity-90">{t('variantTranslateHint', { lang: langLabel })}</span>
+            </span>
+          </button>
 
           {/* Manual authoring. */}
           <button

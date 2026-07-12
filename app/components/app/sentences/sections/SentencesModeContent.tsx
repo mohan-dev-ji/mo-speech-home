@@ -40,6 +40,7 @@ import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { collapseVariants, variantGroupKey } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
+import { translateTexts } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -905,19 +906,68 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setIsEditing(true);
   }
 
-  // ADR-016 — create a board-language variant of the badge-tapped source (with
-  // optional MT-filled text), then drop into edit mode so the instructor can
-  // re-order the symbols. The new variant collapses into view for this board
-  // language (its authoredLanguage now matches), replacing the source + badge.
-  async function handleAuthorVariant(text?: string) {
+  // ADR-016 — create a board-language variant of the badge-tapped source, then
+  // drop into edit mode so the instructor can re-order the symbols. The new
+  // variant collapses into view for this board language (its authoredLanguage now
+  // matches), replacing the source + badge. Translate is MT-assist:
+  //  • fluent  → translate the one whole-utterance string into `text`.
+  //  • block   → MT-fill each unit label that lacks the target language (keeps a
+  //              symbol's existing target label; fills gaps + typed words).
+  // Translation runs BEFORE any write, so a failed MT leaves nothing behind.
+  async function handleAuthorVariant(mode: 'manual' | 'translate') {
     if (!variantTarget) return;
-    await createVariant({
-      sourceSentenceId: variantTarget._id,
-      authoredLanguage: language,
-      ...(text ? { text } : {}),
-    });
+    const source = variantTarget;
+    const srcLang = source.authoredLanguage ?? DEFAULT_LOCALE;
+
+    if (mode === 'translate' && isSequenceRow(source)) {
+      const units = await buildTranslatedUnits(source.units ?? [], srcLang, language);
+      const variantId = await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
+      await updateUnits({ profileSentenceId: variantId, units });
+    } else if (mode === 'translate') {
+      const src =
+        (typeof source.text === 'string' ? source.text : displayString(source.text, srcLang, DEFAULT_LOCALE)) ||
+        displayString(source.name, srcLang, DEFAULT_LOCALE);
+      const [translated] = await translateTexts([src], language);
+      await createVariant({ sourceSentenceId: source._id, authoredLanguage: language, text: translated });
+    } else {
+      await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
+    }
     setVariantTarget(null);
     setIsEditing(true);
+  }
+
+  // Block-variant MT-assist: return the source units with each label that lacks
+  // `targetLang` filled from a batch translation of its source-language value.
+  // Existing target-language labels (from a translated symbol) are left as-is.
+  async function buildTranslatedUnits(
+    units: CompositionUnitClient[],
+    srcLang: string,
+    targetLang: string,
+  ): Promise<CompositionUnitClient[]> {
+    const srcOf = (label?: Record<string, string>): string | undefined =>
+      !label || label[targetLang] ? undefined : displayString(label, srcLang, DEFAULT_LOCALE) || undefined;
+
+    const missing: string[] = [];
+    for (const u of units) {
+      if (u.kind === 'word') { const s = srcOf(u.label); if (s) missing.push(s); }
+      else { const n = srcOf(u.name); if (n) missing.push(n); for (const w of u.words) { const s = srcOf(w.label); if (s) missing.push(s); } }
+    }
+    const uniq = [...new Set(missing)];
+    const translated = uniq.length ? await translateTexts(uniq, targetLang) : [];
+    const map = new Map(uniq.map((s, i) => [s, translated[i]]));
+
+    const fill = <T extends Record<string, string> | undefined>(label: T): T => {
+      if (!label || label[targetLang]) return label;
+      const src = displayString(label, srcLang, DEFAULT_LOCALE);
+      const t = src ? map.get(src) : undefined;
+      return (t ? { ...label, [targetLang]: t } : label) as T;
+    };
+
+    return units.map((u): CompositionUnitClient =>
+      u.kind === 'word'
+        ? { ...u, label: fill(u.label) }
+        : { ...u, name: fill(u.name), words: u.words.map((w) => ({ ...w, label: fill(w.label) })) },
+    );
   }
 
   async function handleDeleteConfirm() {
@@ -1254,28 +1304,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       />
 
       {/* ADR-016 — variant authoring (badge → manual | translate-assist). */}
-      {variantTarget && (() => {
-        const vLang = variantTarget.authoredLanguage ?? DEFAULT_LOCALE;
-        const vText = isSequenceRow(variantTarget)
-          ? blocksFromUnits(variantTarget.units!, vLang)
-              .map((b) => (b.kind === 'word' ? b.label : b.name))
-              .join(' ')
-          : (typeof variantTarget.text === 'string'
-              ? variantTarget.text
-              : displayString(variantTarget.text, vLang, DEFAULT_LOCALE)) ||
-            displayString(variantTarget.name, vLang, DEFAULT_LOCALE);
-        return (
-          <VariantAuthorModal
-            isOpen
-            onClose={() => setVariantTarget(null)}
-            targetLang={language}
-            authoredLang={vLang}
-            sourceText={vText}
-            canTranslate={!isSequenceRow(variantTarget)}
-            onAuthor={handleAuthorVariant}
-          />
-        );
-      })()}
+      {variantTarget && (
+        <VariantAuthorModal
+          isOpen
+          onClose={() => setVariantTarget(null)}
+          targetLang={language}
+          authoredLang={variantTarget.authoredLanguage ?? DEFAULT_LOCALE}
+          onAuthor={handleAuthorVariant}
+        />
+      )}
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle and
           handleCreateOpen when subscription.tier === 'free'. */}

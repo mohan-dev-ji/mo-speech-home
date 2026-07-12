@@ -9,7 +9,9 @@
  * provider as the batch translate pipelines, but a lightweight single-string
  * call. Auth: any signed-in user (Clerk), NOT admin — instructors invoke it.
  *
- * POST `{ text: string, targetLang: string }` → `{ translated: string }`.
+ * POST `{ texts: string[], targetLang: string }` → `{ translations: string[] }`
+ * (aligned by index). Batched so a block sentence's unit labels translate in one
+ * call. A single string is just `texts: [one]`.
  */
 
 import { auth } from "@clerk/nextjs/server";
@@ -29,18 +31,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  let body: { text?: unknown; targetLang?: unknown };
+  let body: { texts?: unknown; targetLang?: unknown };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const text = typeof body.text === "string" ? body.text.trim() : "";
+  const texts = Array.isArray(body.texts)
+    ? body.texts.map((s) => (typeof s === "string" ? s : "")).map((s) => s.trim())
+    : [];
   const targetLang = typeof body.targetLang === "string" ? body.targetLang : "";
-  if (!text || !targetLang) {
+  if (texts.length === 0 || texts.some((s) => !s) || !targetLang) {
     return NextResponse.json(
-      { error: "Both `text` and `targetLang` are required." },
+      { error: "`texts` (non-empty strings) and `targetLang` are required." },
       { status: 400 },
     );
   }
@@ -53,6 +57,11 @@ export async function POST(request: Request) {
     );
   }
 
+  // Key each string by its index so the model returns a keyed map we can realign.
+  const entries: Record<string, string> = {};
+  texts.forEach((s, i) => { entries[String(i)] = s; });
+  const keys = Object.keys(entries);
+
   try {
     const vertex = await buildVertexClient();
     const { result } = await callJsonResponse(
@@ -64,7 +73,7 @@ export async function POST(request: Request) {
             role: "user",
             parts: [
               {
-                text: `Target language: ${lang.label} (${lang.nativeLabel}, ISO: ${lang.code}).\n\nTranslate the value in this JSON object. Return a JSON object with the SAME key mapping to the translation.\n\n${JSON.stringify({ text }, null, 2)}`,
+                text: `Target language: ${lang.label} (${lang.nativeLabel}, ISO: ${lang.code}).\n\nTranslate every value in this JSON object. Return a JSON object with the SAME keys mapping to the translations.\n\n${JSON.stringify(entries, null, 2)}`,
               },
             ],
           },
@@ -72,19 +81,22 @@ export async function POST(request: Request) {
         generationConfig: {
           temperature: 0.2,
           responseMimeType: "application/json",
-          responseSchema: buildStringMapSchema(["text"]),
-          maxOutputTokens: 1024,
+          responseSchema: buildStringMapSchema(keys),
+          maxOutputTokens: 4096,
         },
       },
       (parsed) => {
-        const v = (parsed as Record<string, unknown> | null)?.text;
-        if (typeof v !== "string" || !v.trim()) {
-          throw new Error("Gemini returned no translation");
-        }
-        return v.trim();
+        const obj = parsed as Record<string, unknown> | null;
+        return keys.map((k) => {
+          const v = obj?.[k];
+          if (typeof v !== "string" || !v.trim()) {
+            throw new Error(`Gemini omitted key "${k}"`);
+          }
+          return v.trim();
+        });
       },
     );
-    return NextResponse.json({ translated: result });
+    return NextResponse.json({ translations: result });
   } catch (err) {
     console.error("[translate-text] failed", err);
     return NextResponse.json(
