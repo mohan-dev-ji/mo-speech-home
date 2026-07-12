@@ -23,8 +23,9 @@ The brainstorm is done. See **[ADR-016 — Composed-Content Language Variants](.
 2. **Resolution** — **client-side group collapse** (board `language` is client context; same reactive mechanism as live text translation / the search page). Show the sibling whose `authoredLanguage === boardLanguage`, else the source. Switching language re-collapses instantly, **no Convex re-query**.
 3. **Badge** — **uniform across all composed types:** show "Made in <lang>" iff the shown row's `authoredLanguage !== boardLanguage`. This **supersedes** the Phase 15 `isSequenceRow`-only condition — fluent sentences + phrases now show the badge too.
 4. **Scope** — variants apply to **phrases + all sentence types** (per-language re-arranged symbols). Fluent sentences also get a symbol-arrangement variant; their audio stays one whole-utterance translated string (unchanged, keyed off `playback`). Lists translate live (no variants).
-5. **Authoring entry** — badge → **edit mode**, reusing the composition builder, source shown as reference. Full audio pipeline retained (write text in board language → **generate TTS or record**). On save: create sibling with shared `variantGroupId`, copied `folderId`/`order`.
-6. **MT-as-assist** — **out of scope** for 15.5 (deferred to a future ADR). Excludes only the auto-translate *suggestion*; the generate/record audio pipeline stays in scope.
+5. **Authoring entry** — badge → **modal** (see ADR-016 Addendum B), reusing the composition builder, source shown as reference. Two paths: **(1) Edit manually** (type target text — full audio pipeline: generate TTS / record), **(2) Translate to <lang>** (MT text + target-voice audio, then human re-orders symbols). On save: create sibling with shared `variantGroupId`, copied `folderId`/`order`.
+6. **MT-as-assist** — **IN scope for 15.5** (ADR-016 Addendum C reverses the original deferral). It is the *accessibility path*: an instructor who can't type the target script authors by re-ordering symbols while MT supplies text+audio. Human always re-orders/reviews — MT never ships unreviewed.
+7. **Labels vs structures** (ADR-016 Addendum D) — folder/group/module **names** are order-free labels: one multi-key record, translate live. Default module names ship pre-translated (bug #3). User-created folder names get a **one-tap "Translate name"** auto-fill. **Modules do NOT get variants** — only the composed content inside them does.
 
 > **Bug #1 seam (see ADR §Consequences):** fix "stamp `authoredLanguage` on every create path" in the standalone bug pass; the "fluent should also show the badge" half lands with the §2 resolution work — don't touch badge scope in the bug pass.
 
@@ -87,12 +88,16 @@ Fill the fixture column with the specific item you create, then walk each board-
 
 ## Build sequence (draft — refine after brainstorm)
 
-1. **Brainstorm** the variant data model → write the ADR.
-2. Fix the three standalone bugs (independent of the variant model) — badge, audio persona, list group name. Each: systematic-debug → fix → verify.
-3. Schema + resolution for linked variants (per ADR).
-4. Badge → edit-mode authoring flow (reuse composition builder); reactive switch (search-page pattern).
-5. Backup → nuke old MT sentences → rebuild native defaults (doubles as fixtures 1–12).
-6. Walk the test matrix in all directions; fix as bugs surface; sign off each cell.
+1. ✅ **Brainstorm** the variant data model → **ADR-016** (+ Addendum: MT-assist, labels vs structures).
+2. Fix the three standalone bugs. Each: systematic-debug → fix → verify.
+   - ✅ **Bug #2** (audio persona split) — fixed in `blocks.ts` (`recordingKey`: stepped units re-resolve to current persona; only recordings play verbatim).
+   - ✅ **Bug #1 (stamping half)** — unstamped create paths fixed (`HomeContent` sentence, `TalkerDropdown` phrase + `createProfilePhrase` arg). Badge-visibility half → step 4 (coupled to variant resolution, ADR-016 §Consequences).
+   - 🟡 **Bug #3** (module names EN-only) — root cause confirmed (17 EN-only `libraryModules` names). Fix = backup → migrate `libraryModules` + backfill installed `profileFolders`/`profileCategories` → re-export JSON. Translations owner-approved 2026-07-12.
+3. Schema + resolution for linked variants (per ADR §1/§2). Backup before schema change.
+4. Badge → **modal** authoring (ADR-016 Addendum B): manual path + **MT-assist** (translate text + target-voice audio → human re-orders). Broaden badge to all composed types (fluent included — bug #1 visibility half). Reactive switch (search-page pattern).
+5. **Labels**: one-tap "Translate name" auto-fill for user folder/group names (ADR-016 Addendum D).
+6. Backup → nuke old MT sentences → rebuild native defaults (doubles as fixtures 1–12).
+7. Walk the test matrix in all directions; fix as bugs surface; sign off each cell.
 
 ## Verify / working constraints (same as Phase 15)
 

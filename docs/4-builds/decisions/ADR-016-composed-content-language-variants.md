@@ -99,6 +99,51 @@ Out of scope for 15.5. A future ADR may add an optional (Pro+) machine-translate
 
 ---
 
+## Addendum (2026-07-12) — Cross-script authoring: MT-assist + the label/structure split
+
+An owner review surfaced a hole in the original §3/§6: **manual authoring assumes the instructor can type the target script.** An instructor whose OS/keyboard is Latin-only cannot hand-type Devanagari (or any script they lack an IME for), so "badge → edit mode → type the target-language text" is unusable for the very cross-language case variants exist to serve — including the owner, who cannot type/read Hindi and therefore could not author the Hindi fixtures to test this phase at all. This addendum amends the decision.
+
+### A. The division of labour (the governing insight)
+
+Authoring a variant splits into two jobs:
+
+- **The human owns the symbol ORDER** — visual, drag-and-drop, **script-independent**. Anyone can do it in any language.
+- **Machine translation owns the TEXT + AUDIO** — the part that requires knowing/typing the script.
+
+MT here is a **starting point that the human re-authors structurally**, so it does *not* violate the governing principle ("never machine-translated in place"). That rule forbade shipping an auto-translation with wrong word order, unreviewed. Here the human always re-orders the symbols; MT only removes the script-typing requirement. Display was never the blocker — browsers render every script from system fonts; only *input* was.
+
+### B. §3 amended — badge opens a MODAL, not straight into edit mode
+
+Tapping the **"Made in <lang>"** badge opens a modal with two paths:
+
+1. **Edit manually** — the existing composition-builder edit flow (for instructors who can type the target script). Unchanged from original §3.
+2. **Translate to <lang>** — MT translates the fluent text and generates TTS **audio in the target-language voice**, pre-fills a new variant, then drops the instructor into the builder to **re-order the symbols to match the target-language structure** (an explicit warning states this is required). On save: the §1 sibling row is created exactly as before.
+
+Both paths produce an ordinary sibling variant row (§1); only the seeding differs.
+
+### C. §6 reversed — MT-assist is IN scope for 15.5
+
+MT-assist is no longer deferred. It is the **accessibility path**, load-bearing (without it the target-script fixtures cannot be authored or tested). It reuses existing translation + TTS infrastructure. What §6 still forbids stands: MT output is never shipped unreviewed — the human always confirms/re-orders the structure.
+
+### D. Labels translate; structures get variants (answers "do modules have variants?")
+
+A module / folder / group has **no structure to re-order** — it is only a **name**, an order-free label. Labels are **not** variants. A label is **one localised record carrying every language** (`{en, es, hi}`) and translates live (ADR-009). Therefore:
+
+| Thing | Model | How it gets the target language |
+|---|---|---|
+| Folder / group / module **name** | one multi-key label record | live translation; MT may **auto-fill a missing language key on demand** (safe — no re-ordering) |
+| Composed content **inside** (phrase, sentence) | per-language **variant** (§1) | badge → modal → MT text+audio, **human re-orders symbols** |
+
+- **Default modules** ship pre-translated (their names must carry all languages — the gap fixed in the Phase 15.5 bug pass; see [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md) bug #3).
+- **User-created folder/group names** get a **one-tap "Translate name"** action that auto-fills the missing language key(s) via MT. No badge/modal needed — a label needs no human re-ordering.
+- **Modules never gain the variant machinery.** Only the structure-bound composed content *inside* them does.
+
+### E. Scope note
+
+This enlarges the 15.5 build surface (translate-API + target-voice TTS wiring, the badge modal, the "Translate name" action). It is justified: the manual-only flow cannot be exercised by the owner and does not serve the product's cross-script users.
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
