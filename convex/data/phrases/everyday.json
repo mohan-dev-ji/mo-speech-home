@@ -1,7 +1,7 @@
 {
   "slug": "everyday",
   "tree": "phrases",
-  "name": { "en": "Everyday" },
+  "name": { "en": "Everyday", "es": "Cotidiano", "hi": "रोज़मर्रा" },
   "description": { "en": "Reusable everyday phrases — tap to drop a whole chunk into the talker." },
   "icon": "MessageSquare",
   "colour": "zinc",

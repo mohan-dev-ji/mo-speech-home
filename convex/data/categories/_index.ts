@@ -14,6 +14,13 @@ import animals from "./animals.json";
 import chat from "./chat.json";
 import christmas from "./christmas.json";
 import community from "./community.json";
+import coreGeneral from "./core-general.json";
+import coreJoiningWords from "./core-joining-words.json";
+import coreLetters from "./core-letters.json";
+import coreNumbers from "./core-numbers.json";
+import corePositionWords from "./core-position-words.json";
+import corePronouns from "./core-pronouns.json";
+import coreTime from "./core-time.json";
 import descriptions from "./descriptions.json";
 import dinosaurs from "./dinosaurs.json";
 import diwali from "./diwali.json";
@@ -40,6 +47,13 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "chat": chat as CategoryModule,
   "christmas": christmas as CategoryModule,
   "community": community as CategoryModule,
+  "core-general": coreGeneral as CategoryModule,
+  "core-joining-words": coreJoiningWords as CategoryModule,
+  "core-letters": coreLetters as CategoryModule,
+  "core-numbers": coreNumbers as CategoryModule,
+  "core-position-words": corePositionWords as CategoryModule,
+  "core-pronouns": corePronouns as CategoryModule,
+  "core-time": coreTime as CategoryModule,
   "descriptions": descriptions as CategoryModule,
   "dinosaurs": dinosaurs as CategoryModule,
   "diwali": diwali as CategoryModule,

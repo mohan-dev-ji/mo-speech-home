@@ -17,11 +17,19 @@
       "symbols": [
         {
           "labelOverride": {
+            "en": "house",
+            "hi": "घर"
+          },
+          "order": 0,
+          "symbolId": "kn76b9m87dx1gmj3a0z12v3mph84nbca"
+        },
+        {
+          "labelOverride": {
             "en": "bedroom",
             "es": "dormitorio",
             "hi": "सोने का कमरा"
           },
-          "order": 0,
+          "order": 1,
           "symbolId": "kn7076g2te0akzdqhhkc1829rs84mdfz"
         },
         {
@@ -30,7 +38,7 @@
             "es": "baño",
             "hi": "बाथरूम"
           },
-          "order": 1,
+          "order": 2,
           "symbolId": "kn7fr001d0k0fw9ch1fmtnp7rn84mjg3"
         },
         {
@@ -39,7 +47,7 @@
             "es": "cocina",
             "hi": "रसोई"
           },
-          "order": 2,
+          "order": 3,
           "symbolId": "kn74bej9crfw01p3w877bvejpd84ncm1"
         },
         {
@@ -48,7 +56,7 @@
             "es": "sala de estar",
             "hi": "बैठक"
           },
-          "order": 3,
+          "order": 4,
           "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
         },
         {
@@ -57,7 +65,7 @@
             "es": "inodoro",
             "hi": "पॉटी"
           },
-          "order": 4,
+          "order": 5,
           "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
         },
         {
@@ -66,7 +74,7 @@
             "es": "cama",
             "hi": "बिस्तर"
           },
-          "order": 5,
+          "order": 6,
           "symbolId": "kn7ba1q9hajzjywasr7xa2sy6h84n1a5"
         },
         {
@@ -75,7 +83,7 @@
             "es": "silla",
             "hi": "कुर्सी"
           },
-          "order": 6,
+          "order": 7,
           "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
         },
         {
@@ -84,7 +92,7 @@
             "es": "Mesa",
             "hi": "मेज"
           },
-          "order": 7,
+          "order": 8,
           "symbolId": "kn72txh01jwmgczyh87033y0x984mp19"
         },
         {
@@ -93,7 +101,7 @@
             "es": "escritorio",
             "hi": "मेज़"
           },
-          "order": 8,
+          "order": 9,
           "symbolId": "kn74nz1pzpmmgnfvfs7bdjj3h584mnvb"
         },
         {
@@ -102,7 +110,7 @@
             "es": "armario",
             "hi": "अलमारी"
           },
-          "order": 9,
+          "order": 10,
           "symbolId": "kn7a3b97fmjk8ym16gc93c1wb584nv9e"
         },
         {
@@ -111,7 +119,7 @@
             "es": "almohada",
             "hi": "तकिया"
           },
-          "order": 10,
+          "order": 11,
           "symbolId": "kn733sskr8gxbxp8761hb2mk7n84mwa6"
         },
         {
@@ -120,7 +128,7 @@
             "es": "manta",
             "hi": "कंबल"
           },
-          "order": 11,
+          "order": 12,
           "symbolId": "kn76dky0a78agsytm6pw53bfxs84mzky"
         },
         {
@@ -129,7 +137,7 @@
             "es": "taza",
             "hi": "कप"
           },
-          "order": 12,
+          "order": 13,
           "symbolId": "kn71x134zanvpxak5rth4bpcdx84n494"
         },
         {
@@ -138,7 +146,7 @@
             "es": "plato",
             "hi": "प्लेट"
           },
-          "order": 13,
+          "order": 14,
           "symbolId": "kn73trhe8apbrdwfkpyrb4bjm184mh4d"
         },
         {
@@ -147,7 +155,7 @@
             "es": "cuenco",
             "hi": "कटोरी"
           },
-          "order": 14,
+          "order": 15,
           "symbolId": "kn774nh6d13j3azek9qrney09s84me0s"
         },
         {
@@ -156,7 +164,7 @@
             "es": "cuchara",
             "hi": "चम्मच"
           },
-          "order": 15,
+          "order": 16,
           "symbolId": "kn75kh9b4k56tfw0aacqbt3fqh84mpvx"
         },
         {
@@ -165,7 +173,7 @@
             "es": "tenedor",
             "hi": "काँटा"
           },
-          "order": 16,
+          "order": 17,
           "symbolId": "kn700kmzf95q2xfvkv6tnjpjys84nfzz"
         },
         {
@@ -174,7 +182,7 @@
             "es": "cuchillo",
             "hi": "चाकू"
           },
-          "order": 17,
+          "order": 18,
           "symbolId": "kn7f5smwszaferq79bczsnd04n84n5c6"
         },
         {
@@ -183,7 +191,7 @@
             "es": "horno",
             "hi": "ओवन"
           },
-          "order": 18,
+          "order": 19,
           "symbolId": "kn78c7t7hw8w42437v641fmg0184nxkz"
         },
         {
@@ -192,7 +200,7 @@
             "es": "microondas",
             "hi": "माइक्रोवेव"
           },
-          "order": 19,
+          "order": 20,
           "symbolId": "kn79xs5gtpwrtyfxhpq05h2xph84mpp3"
         },
         {
@@ -201,7 +209,7 @@
             "es": "Tetera",
             "hi": "केतली"
           },
-          "order": 20,
+          "order": 21,
           "symbolId": "kn789467c8wd5p5z5xyhn5eaq184mg1k"
         },
         {
@@ -210,7 +218,7 @@
             "es": "tostadora",
             "hi": "टोस्टर"
           },
-          "order": 21,
+          "order": 22,
           "symbolId": "kn7f8970e575ybhcz01rbvzy2984mx2w"
         },
         {
@@ -219,7 +227,7 @@
             "es": "lavabo",
             "hi": "धोना"
           },
-          "order": 22,
+          "order": 23,
           "symbolId": "kn7a4n6kbcfc1ztv0j3e5v105184n0ej"
         },
         {
@@ -228,7 +236,7 @@
             "es": "lavavajillas",
             "hi": "डिशवॉशर"
           },
-          "order": 23,
+          "order": 24,
           "symbolId": "kn78e80ap5kw8v7xwzz6ng6zy584mpgd"
         },
         {
@@ -236,7 +244,7 @@
             "en": "shower",
             "hi": "नहाना"
           },
-          "order": 24,
+          "order": 25,
           "symbolId": "kn79bw0rhjfp9y17dkw3w5yf3x84mxv5"
         },
         {
@@ -245,7 +253,7 @@
             "es": "cepillo de dientes",
             "hi": "टूथब्रश"
           },
-          "order": 25,
+          "order": 26,
           "symbolId": "kn7bmdqffmkyb11y0zybvbgd3984mh6a"
         },
         {
@@ -254,7 +262,7 @@
             "es": "pasta de dientes",
             "hi": "टूथपेस्ट"
           },
-          "order": 26,
+          "order": 27,
           "symbolId": "kn7088a2qjdggh9c2ar9tzhn3d84ntfw"
         },
         {
@@ -263,7 +271,7 @@
             "es": "jabón",
             "hi": "साबुन"
           },
-          "order": 27,
+          "order": 28,
           "symbolId": "kn768rhe1c6r8ksb0hfq4j1cd984mgpf"
         },
         {
@@ -272,7 +280,7 @@
             "es": "toalla",
             "hi": "तौलिया"
           },
-          "order": 28,
+          "order": 29,
           "symbolId": "kn78f0hmeqmshq12snjt3w7mhn84nyjf"
         },
         {
@@ -281,7 +289,7 @@
             "es": "papel higiénico",
             "hi": "टॉयलेट पेपर"
           },
-          "order": 29,
+          "order": 30,
           "symbolId": "kn723xjv9a1cjypb8qq9zyzz8d84nr0a"
         },
         {
@@ -290,7 +298,7 @@
             "es": "computadora",
             "hi": "कंप्यूटर"
           },
-          "order": 30,
+          "order": 31,
           "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
         },
         {
@@ -299,7 +307,7 @@
             "es": "Mando a distancia",
             "hi": "रिमोट कंट्रोल"
           },
-          "order": 31,
+          "order": 32,
           "symbolId": "kn729djqe2p96j5aez12v5t0d584nzfb"
         },
         {
@@ -308,7 +316,7 @@
             "es": "lavadora",
             "hi": "कपड़े धोने की मशीन"
           },
-          "order": 32,
+          "order": 33,
           "symbolId": "kn7ckxry7as466e08rjhe8p9jh84mv7v"
         },
         {
@@ -317,7 +325,7 @@
             "es": "aspiradora",
             "hi": "वैक्यूम क्लीनर"
           },
-          "order": 33,
+          "order": 34,
           "symbolId": "kn7db072x376sw6z83zjqjmj6184n8ty"
         },
         {
@@ -326,7 +334,7 @@
             "es": "hierro",
             "hi": "लोहा"
           },
-          "order": 34,
+          "order": 35,
           "symbolId": "kn7c2m89hkj2d4skam8hzj23bd84nst4"
         },
         {
@@ -335,7 +343,7 @@
             "es": "puerta",
             "hi": "दरवाज़ा"
           },
-          "order": 35,
+          "order": 36,
           "symbolId": "kn76akrq78heh531s9dqhdhpf984n33s"
         },
         {
@@ -344,7 +352,7 @@
             "es": "ventana",
             "hi": "खिड़की"
           },
-          "order": 36,
+          "order": 37,
           "symbolId": "kn73ttsrdx2t2rw0xyjy4za63984nw4d"
         },
         {
@@ -353,7 +361,7 @@
             "es": "escaleras",
             "hi": "सीढ़ियाँ"
           },
-          "order": 37,
+          "order": 38,
           "symbolId": "kn7ef6046nt75mbyksnwzdpxrn84n8js"
         },
         {
@@ -362,7 +370,7 @@
             "es": "suelo",
             "hi": "फ़र्श"
           },
-          "order": 38,
+          "order": 39,
           "symbolId": "kn79a5ct8nr44rd38n8f849kdh84nzda"
         },
         {
@@ -371,7 +379,7 @@
             "es": "pared",
             "hi": "दीवार"
           },
-          "order": 39,
+          "order": 40,
           "symbolId": "kn75w83jjq82yt975vh0v4q0q984nrk1"
         },
         {
@@ -380,7 +388,7 @@
             "es": "lámpara",
             "hi": "लैंप"
           },
-          "order": 40,
+          "order": 41,
           "symbolId": "kn70fjt5w1ctrmgnxrpq5j28rn84mjpc"
         },
         {
@@ -389,7 +397,7 @@
             "es": "despertador",
             "hi": "अलार्म घड़ी"
           },
-          "order": 41,
+          "order": 42,
           "symbolId": "kn7349r3g5veq5fkt915ekhppd84nv8z"
         },
         {
@@ -398,7 +406,7 @@
             "es": "Llave",
             "hi": "चाबी"
           },
-          "order": 42,
+          "order": 43,
           "symbolId": "kn73vn24gqyj4w2d672nbd9nx584mp9z"
         },
         {
@@ -407,7 +415,7 @@
             "es": "cubo",
             "hi": "डिब्बा"
           },
-          "order": 43,
+          "order": 44,
           "symbolId": "kn72nx6spn8f3fwnsvm9n24crn84nvvp"
         },
         {
@@ -416,7 +424,7 @@
             "es": "Jardín",
             "hi": "बगीचा"
           },
-          "order": 44,
+          "order": 45,
           "symbolId": "kn7fzcyzhrnfxt297rqcpws1yn84nf8g"
         },
         {
@@ -425,7 +433,7 @@
             "es": "coche",
             "hi": "कार"
           },
-          "order": 45,
+          "order": 46,
           "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
         },
         {
@@ -434,7 +442,7 @@
             "es": "libro",
             "hi": "किताब"
           },
-          "order": 46,
+          "order": 47,
           "symbolId": "kn79e3vx3r0atqtmnk0sq4vjy584m95b"
         }
       ]

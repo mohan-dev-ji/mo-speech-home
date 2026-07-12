@@ -1,0 +1,128 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Letters"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn73txzs06xjeyypxsyedh4bnd84nc4m"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn728smjrb9993wxgsg0sax2es84napt"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn7bcvmzx2kb8revhqahk0nwfs84nz9m"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn79ps21nev1ywy7yxpkz4esr984mkqh"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn770xd595d67f8hqpnqmgcspd84mmjz"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn7f5h2a9r5y02rmbecwsstfvd84nbh5"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn7fenyp9zjjjsycsy53v89e1n84nay3"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn702912dxcxmsn7rkybh1t0h984mh67"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn7484dmbegm9pt5wh76kgw9kn84mwpd"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn7fpfdwgqbrmnmcq0131kkpf984ntfj"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn77cgn8xb5dzerfmw6wcz5zeh84mttf"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn7d1qpgw8en2abdhbcz4gr5xx84mxaz"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn75pw05exsat71k75wqkqs0gh84nt5h"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn74tfgxc7db6rqd3jmx6np3w584nz7q"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn7a4eq36zxekn313485szf7r584nfbs"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn70t7mcanmm3m0ds7decc23xn84m0ay"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn7djqbc970cf0zyb0wsyk27sd84m1jx"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn7drmqekt8fvvmytvz2ev3v4184mph7"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn7d0t1sz4jbcz6qgcn701sa2584myy2"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn7ahkmsx06gkjxja749bf3d1984nw05"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn79jnt4dqq9j4qngzayyhsfzs84mwyp"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn79yz19nzjyg0z6fsrs279vws84nv7v"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn78bdmpexxtg827yc6jmr89hh84mxxj"
+        },
+        {
+          "order": 23,
+          "symbolId": "kn76qjmdaw7vqh8hxqrsa97qs184n51p"
+        },
+        {
+          "order": 24,
+          "symbolId": "kn7a833cgjhy6gcy89r6frxpg584nfc3"
+        },
+        {
+          "order": 25,
+          "symbolId": "kn7fth0y3kdf2hqadqz0sevf8184nq2c"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Letters",
+    "es": "Letras",
+    "hi": "अक्षर"
+  },
+  "slug": "core-letters",
+  "tree": "categories"
+}

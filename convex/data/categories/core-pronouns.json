@@ -1,0 +1,120 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Pronouns"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn7fby2312vvqfrb0q68j958ms84nhdt"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn7a6w1bg6ddxedtdxt8cfsb9184mjpp"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn77tb4mzqbndc57zxwmzrwj8184nfwm"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn77zbpymwqea2cpmhe65dcp1d84n8bm"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn7c3rz97sdefvrn84sp5mn0m584mzph"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn75d8mxg5njcqfxw3y84qx9mx84n4xm"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn75wz7p324jzfycy3nayq0nfx84mad2"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn76zreqv3kkdwdeqz33rx2t1584np1t"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn739gefz2q4ahccbb8grawhxd84nrr3"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn7fsv9sj59hkkt2rpkak3avyd84n92d"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn76r80azxrqy87mpjnw3q688d84m9ey"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn7fa6mz4vrcpjxs3r8ekbh7kh84n85c"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn7e2t594w4nvad078wrst51s984n7ss"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn7772a3k2cpkpe3nsnsft0bm184mf9t"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn7fxs095wnh5259pr35y4ceqd84n0gw"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn7ewmeenw7bh2myctcpck279584mw50"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn7ftsbkn60mzjanhag2vf39js84m0ym"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn7df5pd4gf1y4hg4treardbjd84nf1f"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn78myr38bp02fg3ytmmbq2nhd84n7ab"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn72gme0rq97a0r4hswfs9ysys84mj9c"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn747nk35z6863hemmc5tmbpd584m1da"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn7e1sjpcy8yaytqgafqj15gq184mnj6"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn7bmh16drwhxg9b42hbpa90kx84nfv5"
+        },
+        {
+          "order": 23,
+          "symbolId": "kn7e0m0hberfka2kewrd2z7zss84n1md"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Pronouns",
+    "es": "Pronombres",
+    "hi": "सर्वनाम"
+  },
+  "slug": "core-pronouns",
+  "tree": "categories"
+}

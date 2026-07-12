@@ -166,7 +166,9 @@
     }
   ],
   "name": {
-    "en": "Talking about food"
+    "en": "Talking about food",
+    "es": "Hablar de comida",
+    "hi": "खाने की बातें"
   },
   "slug": "talking-about-food",
   "tree": "sentences"

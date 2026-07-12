@@ -1,0 +1,120 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Time"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn7fcvvwthszkgm2qt3bcv5dq184ndd2"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn78d5kdrxqvbhvns0pk1zrjm984m3fz"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn79qqnrf66epydj4njfxm85x984m63d"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn7885k2f32wzhw3mc2fwccqzn84mg8j"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn7a1h4vjfda0qxd84g7sjksc184m79r"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn707k87g1kn854bpt6jwstnhn84nw7f"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn77qfbz0y4cwqkqqtxf8191r184ng72"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn7eprn7mkxr4h2b2rfy5ax1rd84mkx4"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn7ek7trn00cc14m6qq06nynrx84n16h"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn77agttsq8wr00zadmj7wv2d584nf96"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn79na8cqbpdnbr3v742cpw7k984mjfq"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn7cmzx1e85csnm951a5szfshs84mwk7"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn71gvqmn4encgnc4mp0m72x4s84m0xs"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn74bebhmgk5xfkkmk33rtqb0984mjpa"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn70eh888402etkx8af9tg2ar184nvt8"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn7e7wp3tane86njf74sm8p6eh84n0ez"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn77m9qnn12cmn56w4rr6jms9184n2g5"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn70pjzstbyhhbtc6b994bmpex84n1t2"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn7efc5c49x85qafnyjp3gbwzh84m055"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn70q6qjeqbjsj707x4n3jkems84nws6"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn7a9ak43jzzbmvw4v72kxt0g184makc"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn7eq40vatxhbsdazk7884bg7h84nprm"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn7df5yag1jzayqfx5270r4a4x84nbn6"
+        },
+        {
+          "order": 23,
+          "symbolId": "kn73cyp6ntrwmyxwr5aptnf0ed84n1h1"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Time",
+    "es": "Tiempo",
+    "hi": "समय"
+  },
+  "slug": "core-time",
+  "tree": "categories"
+}

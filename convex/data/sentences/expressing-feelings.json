@@ -126,7 +126,9 @@
     }
   ],
   "name": {
-    "en": "Expressing Feelings"
+    "en": "Expressing Feelings",
+    "es": "Expresar emociones",
+    "hi": "भावनाएँ व्यक्त करना"
   },
   "slug": "expressing-feelings",
   "tree": "sentences"

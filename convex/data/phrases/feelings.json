@@ -1,7 +1,7 @@
 {
   "slug": "feelings",
   "tree": "phrases",
-  "name": { "en": "Feelings" },
+  "name": { "en": "Feelings", "es": "Emociones", "hi": "भावनाएँ" },
   "description": { "en": "An empty bank ready for feelings phrases — add your own." },
   "icon": "Heart",
   "colour": "zinc",

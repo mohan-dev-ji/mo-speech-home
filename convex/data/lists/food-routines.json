@@ -177,7 +177,9 @@
     }
   ],
   "name": {
-    "en": "Food Routines"
+    "en": "Food Routines",
+    "es": "Rutinas de comida",
+    "hi": "खाने की दिनचर्या"
   },
   "slug": "food-routines",
   "tree": "lists"

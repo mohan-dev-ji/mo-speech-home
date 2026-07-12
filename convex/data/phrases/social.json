@@ -1,7 +1,7 @@
 {
   "slug": "social",
   "tree": "phrases",
-  "name": { "en": "Social" },
+  "name": { "en": "Social", "es": "Social", "hi": "सामाजिक" },
   "description": { "en": "An empty bank ready for social / greetings phrases — add your own." },
   "icon": "Users",
   "colour": "zinc",

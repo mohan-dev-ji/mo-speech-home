@@ -711,7 +711,9 @@
     }
   ],
   "name": {
-    "en": "Life skills"
+    "en": "Life skills",
+    "es": "Habilidades para la vida",
+    "hi": "जीवन कौशल"
   },
   "slug": "life-skills",
   "tree": "lists"

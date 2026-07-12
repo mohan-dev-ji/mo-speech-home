@@ -1,0 +1,72 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Numbers"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn7ak0nr9e20mktrm3v7750ar984mmds"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn7c2bfym2mvrgy97twz2s473h84mwch"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn7d5vqxngbb6h5mk3hg7assa584mrng"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn73jtrhafnxmnkwnaxc388hc184mpxb"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn725q4p8pww3w9td0k5chzmdx84n48m"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn72b1cf4ymhf9yh1m7j38gnxd84nz58"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn7a29yzyhkqh5agkdrjq29z5184m2y1"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn71ayyrnespw9ny153jqchgps84nc05"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn74jx75nvpp8kxjje71xw1dxx84mwqs"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn7b62b3jjw6q23k3eze5bw2nh84nvh8"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn755b4kvqgqxwb2tkqbszqxax84mxf4"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn76vvwnhkx6bdvndh6eeh5tss84ny0b"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Numbers",
+    "es": "Números",
+    "hi": "गिनती"
+  },
+  "slug": "core-numbers",
+  "tree": "categories"
+}

@@ -1,0 +1,216 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "General"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn7edcf1f58e661q54eych76pn84m0sp"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn7b1x0z1n881hgz6zk3zd7bxn84nwjf"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn77vqh14r04s8rk8r7ng0y46n84nmk4"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn72f9q2wb5h5qw9c2abb75gwn84mddr"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn7627040bv3gxerf984we3bf584ndt5"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn770fvp1mzrxej3xkd0xeyqtn84nf69"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn7784v062saq80pg1jtv17cn584mpqp"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn75wz7p324jzfycy3nayq0nfx84mad2"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn7d05mwzbc1vhwp3ez8wha7p984ny7t"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn77tb4mzqbndc57zxwmzrwj8184nfwm"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn77zbpymwqea2cpmhe65dcp1d84n8bm"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn7c3rz97sdefvrn84sp5mn0m584mzph"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn75d8mxg5njcqfxw3y84qx9mx84n4xm"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn779q2n2sp809fn230nkbwkd184m6kn"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn7f3pr79yqdmgd9gg24wxebvh84m2w6"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn7cc0vq1h6jbwnywwwehgp5e184nwc0"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn78t28gqxmp0tyz1q4m5ytfgx84nsj8"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn7depk4k6jpdsyj5yhwzgt1g184n75n"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn7a5f987035w41mz2dvg2n0wh84nhee"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn71vahzd66bcfn4sssxqk6eas84m91e"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn7eydv73kg752591z0v4emyhx84n6hj"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn78yhe6tq6hf5hst54tyqm5h984nqb1"
+        },
+        {
+          "order": 23,
+          "symbolId": "kn72bcy0wyq9q4fz0k24zqp29x84nrsx"
+        },
+        {
+          "order": 24,
+          "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1"
+        },
+        {
+          "order": 25,
+          "symbolId": "kn7bqp8w7tn53a6dysev66hhp984nshr"
+        },
+        {
+          "order": 26,
+          "symbolId": "kn76c4bbv7sk92vceyb1pegr1984nrje"
+        },
+        {
+          "order": 27,
+          "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a"
+        },
+        {
+          "order": 28,
+          "symbolId": "kn73fcp7jsscfb73q74kdwpcvd84ns0y"
+        },
+        {
+          "order": 29,
+          "symbolId": "kn76k6jpevb6hgghcn7qn31pw984mdvy"
+        },
+        {
+          "order": 30,
+          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
+        },
+        {
+          "order": 31,
+          "symbolId": "kn77bjf6mgbnns10bxkar5tbj184m99m"
+        },
+        {
+          "order": 32,
+          "symbolId": "kn73aarny8zyn9sn5mb6qyvd1x84m5gr"
+        },
+        {
+          "order": 33,
+          "symbolId": "kn775gxambh6021z89tvpvq7ad84naem"
+        },
+        {
+          "order": 34,
+          "symbolId": "kn732b5pj5s83pgx1zfxrj5rhx84mv1h"
+        },
+        {
+          "order": 35,
+          "symbolId": "kn73bwrrf4y9ys8fwyypmydgbs84m8jr"
+        },
+        {
+          "order": 36,
+          "symbolId": "kn735p07bj4aabn0vg8msvd3yd84na80"
+        },
+        {
+          "order": 37,
+          "symbolId": "kn7fgb31ekn67yrvrw8zhza6s984nfj8"
+        },
+        {
+          "order": 38,
+          "symbolId": "kn73n1tp1b29tj1jvgk4msfdvx84nzjj"
+        },
+        {
+          "order": 39,
+          "symbolId": "kn7a69epwyhzcnr1m3srb30f0184nbjc"
+        },
+        {
+          "order": 40,
+          "symbolId": "kn78dn60mpj7w3rc3da944zjn184mbwt"
+        },
+        {
+          "order": 41,
+          "symbolId": "kn74w1km22htz4ztwck3ea6df184nt85"
+        },
+        {
+          "order": 42,
+          "symbolId": "kn73g9e9svgf4vr7b07xj07n2n84m2re"
+        },
+        {
+          "order": 43,
+          "symbolId": "kn724xb0brpy0azqrhgafpnw0x84mw9d"
+        },
+        {
+          "order": 44,
+          "symbolId": "kn77atksnsxg8pzahb2gqhe6cn84n6f9"
+        },
+        {
+          "order": 45,
+          "symbolId": "kn7bh0h2fxbn3vbbawth9mrwqs84nbcf"
+        },
+        {
+          "order": 46,
+          "symbolId": "kn71c7wh6kwx5f9menkzwzg4tx84mvj5"
+        },
+        {
+          "order": 47,
+          "symbolId": "kn7fcvvwthszkgm2qt3bcv5dq184ndd2"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "General",
+    "es": "General",
+    "hi": "सामान्य"
+  },
+  "slug": "core-general",
+  "tree": "categories"
+}

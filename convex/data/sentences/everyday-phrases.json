@@ -253,7 +253,9 @@
     }
   ],
   "name": {
-    "en": "Everyday phrases"
+    "en": "Everyday phrases",
+    "es": "Frases cotidianas",
+    "hi": "रोज़मर्रा के वाक्य"
   },
   "slug": "everyday-phrases",
   "tree": "sentences"

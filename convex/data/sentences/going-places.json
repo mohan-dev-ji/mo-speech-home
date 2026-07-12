@@ -1,0 +1,131 @@
+{
+  "colour": "sky",
+  "coverImagePath": "symbols/places_i_go.png",
+  "defaultTier": "free",
+  "isDefault": true,
+  "items": [
+    {
+      "name": {
+        "en": "I want to go outside"
+      },
+      "order": 0,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": {
+        "en": "I want to go outside"
+      }
+    },
+    {
+      "name": {
+        "en": "I want to go to the playground"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/park_1.png",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/and.png",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/play.png",
+          "order": 7
+        },
+        {
+          "imagePath": "symbols/on.png",
+          "order": 8
+        },
+        {
+          "imagePath": "symbols/swing.png",
+          "order": 9
+        }
+      ],
+      "text": "I want to go to the playground"
+    },
+    {
+      "name": {
+        "en": "I want to go to the countryside"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "order": 5
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Going places",
+    "es": "Salidas",
+    "hi": "बाहर जाना"
+  },
+  "slug": "going-places",
+  "tree": "sentences"
+}

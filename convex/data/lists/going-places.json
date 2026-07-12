@@ -165,7 +165,9 @@
     }
   ],
   "name": {
-    "en": "Going Places"
+    "en": "Going Places",
+    "es": "Salidas",
+    "hi": "बाहर जाना"
   },
   "slug": "going-places",
   "tree": "lists"

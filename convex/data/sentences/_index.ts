@@ -14,6 +14,7 @@ import diwali from "./diwali.json";
 import everydayPhrases from "./everyday-phrases.json";
 import expressingFeelings from "./expressing-feelings.json";
 import fun from "./fun.json";
+import goingPlaces from "./going-places.json";
 import religion from "./religion.json";
 import talkingAboutFood from "./talking-about-food.json";
 
@@ -25,6 +26,7 @@ export const SENTENCE_MODULES: Record<string, SentenceModule> = {
   "everyday-phrases": everydayPhrases as SentenceModule,
   "expressing-feelings": expressingFeelings as SentenceModule,
   "fun": fun as SentenceModule,
+  "going-places": goingPlaces as SentenceModule,
   "religion": religion as SentenceModule,
   "talking-about-food": talkingAboutFood as SentenceModule,
 };

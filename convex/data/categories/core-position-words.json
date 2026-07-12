@@ -1,0 +1,120 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Position Words"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn706mb4nxb530b4nbc5wy6yks84mk4k"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn7d5b20wva0ysh8hzr3g3r8s184mc4r"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn7chb930k8e6atzxwd60472hx84mj2w"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn73xah036znyg69gk9pn9x6kx84myng"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn73txzs06xjeyypxsyedh4bnd84nc4m"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn7f5xwp413tkvazvyj2s5hvds84mkjz"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn7e7wsc5mnrm8ebane98b3rjx84nne4"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn726ja44kbkza4942w9gxrc3x84ncp7"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn7dnm05g2kcagan5drwyp18hn84mbe6"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn7agrksc7qjgqcn9c2pmqeddx84nhfz"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn7b91es0q0psdmpv204gpvd0984mzyf"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn73s9c90zt9jd1gt5y0a5wa9s84ma5g"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn7cvp2ey52d6q12qtjypbvndx84mqs7"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn78bn0wc214f3yb6r8rnj0gz984m84x"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn70bf9z0j2vpak2wx5g2ktyyd84madd"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn7dbvk6x0agtt55yxfcgrztks84nqek"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn75w0brqsqerza9rzg8vtadb984nzkv"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn70hgcsg3b984mhn6nhxxr3g584mr8b"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn73nf4ckncetvrj2egdkvyb5d84nprm"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn7b32srdvnqx2r8dbmafq1dvh84mga7"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn78t4an6dcka11k3tpb1j54xs84mh4t"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn73hp8mh2d4zhjwdsqh46j8v184msqx"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn7e7wp3tane86njf74sm8p6eh84n0ez"
+        },
+        {
+          "order": 23,
+          "symbolId": "kn7dxmwmsk5t4ppw9pgev9y5dn84nv41"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Position Words",
+    "es": "Palabras de posición",
+    "hi": "स्थिति शब्द"
+  },
+  "slug": "core-position-words",
+  "tree": "categories"
+}

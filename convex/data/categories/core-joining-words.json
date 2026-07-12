@@ -1,0 +1,116 @@
+{
+  "colour": "zinc",
+  "defaultTier": "free",
+  "icon": "MessageSquare",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "zinc",
+      "icon": "MessageSquare",
+      "name": {
+        "en": "Joining words"
+      },
+      "symbols": [
+        {
+          "order": 0,
+          "symbolId": "kn78yhe6tq6hf5hst54tyqm5h984nqb1"
+        },
+        {
+          "order": 1,
+          "symbolId": "kn72bcy0wyq9q4fz0k24zqp29x84nrsx"
+        },
+        {
+          "order": 2,
+          "symbolId": "kn7f0bfxg57xd5jpdzbqag06fn84nbyp"
+        },
+        {
+          "order": 3,
+          "symbolId": "kn7att5cxs1gpgzs5k1r9akxzd84mmw8"
+        },
+        {
+          "order": 4,
+          "symbolId": "kn78etpbstsyr8zsmcc1npzy1h84n15y"
+        },
+        {
+          "order": 5,
+          "symbolId": "kn79t93m8z6vknpce0qpd9adg184n81j"
+        },
+        {
+          "order": 6,
+          "symbolId": "kn77vxetbkx366gxv0v0w9v1zn84mcn3"
+        },
+        {
+          "order": 7,
+          "symbolId": "kn7eydv73kg752591z0v4emyhx84n6hj"
+        },
+        {
+          "order": 8,
+          "symbolId": "kn70kz6jxew9tccw2xam2pkgs984nagq"
+        },
+        {
+          "order": 9,
+          "symbolId": "kn78y4tz7z2ts1wjmnyjh6tm5n84ndfx"
+        },
+        {
+          "order": 10,
+          "symbolId": "kn75tbqgnbfnjga1z14qcbcvy184nms0"
+        },
+        {
+          "order": 11,
+          "symbolId": "kn72wfzwmkjd7eg267jqwbxp9x84nkan"
+        },
+        {
+          "order": 12,
+          "symbolId": "kn74096vxg71g3ba4axvfgrzhn84mm49"
+        },
+        {
+          "order": 13,
+          "symbolId": "kn7a8j0n0x873dh4886h3jfr8184n2bm"
+        },
+        {
+          "order": 14,
+          "symbolId": "kn78v9jw4w2czjmffnfzbdpsdh84mcs4"
+        },
+        {
+          "order": 15,
+          "symbolId": "kn70apdtk60r7xv6frzv5cqyps84mv7c"
+        },
+        {
+          "order": 16,
+          "symbolId": "kn740sdqmvh80kyrrftkjf9h8184nbrs"
+        },
+        {
+          "order": 17,
+          "symbolId": "kn725kcrjqgnaz8xy2k7ag101584nsf3"
+        },
+        {
+          "order": 18,
+          "symbolId": "kn7fqnxwpnrmthv5acqxzh2tcd84m52j"
+        },
+        {
+          "order": 19,
+          "symbolId": "kn77na2pztyyqmjcq3p88gw4sx84mzs1"
+        },
+        {
+          "order": 20,
+          "symbolId": "kn7dw3rsr439cqqms1c6hxxc4d84n20c"
+        },
+        {
+          "order": 21,
+          "symbolId": "kn70q6qjeqbjsj707x4n3jkems84nws6"
+        },
+        {
+          "order": 22,
+          "symbolId": "kn72c1wphf1j7kse06ngx538cs84nmj6"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Joining words",
+    "es": "Palabras de enlace",
+    "hi": "जोड़ने वाले शब्द"
+  },
+  "slug": "core-joining-words",
+  "tree": "categories"
+}
