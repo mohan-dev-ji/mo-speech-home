@@ -53,7 +53,9 @@ export function Header({
   const hasSymbols = symbols.length > 0;
 
   return (
-    <div className="flex flex-col items-stretch overflow-clip rounded-theme-card w-full">
+    // data-talker-shell: TalkerDropdown re-syncs its fixed panel anchor to this
+    // element's size, so a multi-row talker doesn't slide under the open panel.
+    <div data-talker-shell className="flex flex-col items-stretch overflow-clip rounded-theme-card w-full">
       {/* Topline — thin primary-50 frame around the stage */}
       <div
         className="flex items-center justify-center p-theme-general w-full glass-bar"

@@ -148,11 +148,42 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
   const createProfilePhrase      = useMutation(api.profilePhrases.createProfilePhrase);
 
-  function openPanel() {
+  // The fixed panel is anchored just under the toggle bar. Snapshotting the bar
+  // rect once at open goes stale the moment the talker chip area reflows to more
+  // rows (inserting from the open panel pushes the bar DOWN), so the panel ends
+  // up covering the bar — and you can't reach the close control. Keep it synced.
+  function syncPanelPos() {
     const r = barRef.current?.getBoundingClientRect();
-    if (r) setPanelPos({ top: r.bottom, left: r.left, width: r.width });
+    if (!r) return;
+    setPanelPos((prev) =>
+      prev.top === r.bottom && prev.left === r.left && prev.width === r.width
+        ? prev // no change — avoid re-render churn (scroll/resize fire often)
+        : { top: r.bottom, left: r.left, width: r.width }
+    );
+  }
+
+  function openPanel() {
+    syncPanelPos();
     setIsOpen(true);
   }
+
+  // While open, re-sync the panel anchor whenever the talker shell resizes (chip
+  // area grows/shrinks as symbols wrap) or the viewport changes. Without this the
+  // multi-row talker slides under the stale panel and traps it open.
+  useEffect(() => {
+    if (!isOpen) return;
+    const shell = barRef.current?.closest('[data-talker-shell]') ?? null;
+    const ro = new ResizeObserver(() => syncPanelPos());
+    if (shell) ro.observe(shell);
+    window.addEventListener('resize', syncPanelPos);
+    window.addEventListener('scroll', syncPanelPos, true);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', syncPanelPos);
+      window.removeEventListener('scroll', syncPanelPos, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) { setMounted(true); return; }
