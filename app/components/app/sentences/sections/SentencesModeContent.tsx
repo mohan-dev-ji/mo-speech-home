@@ -39,6 +39,7 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { collapseVariants } from '@/lib/languages/variants';
+import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -494,6 +495,8 @@ type SortableSentenceRowProps = {
   onPhraseChange: (sentenceId: Id<'profileSentences'>, unitIndex: number, updated: CompositionUnitClient) => void;
   onEditSentence: (sentence: SentenceRow) => void;
   onPlay: (sentence: SentenceRow) => void;
+  // ADR-016 — tap the "Made in <lang>" badge to author a board-language variant.
+  onAuthorVariant: (sentence: SentenceRow) => void;
 };
 
 function SortableSentenceRow({
@@ -501,7 +504,7 @@ function SortableSentenceRow({
   onDeleteRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditWord, onRemoveUnit, onAddWord, onAddPhrase, onReorderUnits, onPhraseChange,
-  onEditSentence, onPlay,
+  onEditSentence, onPlay, onAuthorVariant,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -697,12 +700,15 @@ function SortableSentenceRow({
               types now (fluent included — supersedes the Phase 15 sequence-only
               gate; bug #1 visibility half). View mode only. */}
           {!isEditing && authoredLang !== language && (
-            <span
-              className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap"
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onAuthorVariant(sentence); }}
+              aria-label={t('variantTitle', { lang: language.toUpperCase() })}
+              className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap transition-opacity hover:opacity-80 cursor-pointer"
               style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
             >
               {t('madeInBadge', { lang: authoredLang.toUpperCase() })}
-            </span>
+            </button>
           )}
         </div>
       </div>
@@ -746,6 +752,9 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
+  // ADR-016 — the source sentence whose badge was tapped, driving the variant
+  // authoring modal (author a native version in the current board language).
+  const [variantTarget, setVariantTarget] = useState<SentenceRow | null>(null);
   // Unit-level edit target (sequence sentences). unitIndex -1 = append a word.
   const [unitEditTarget, setUnitEditTarget] =
     useState<{ sentenceId: Id<'profileSentences'>; unitIndex: number } | null>(null);
@@ -764,6 +773,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
+  const createVariant    = useMutation(api.profileSentences.createSentenceVariant);
   const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
   const moveSentenceToGroup  = useMutation(api.profileFolders.moveSentenceToGroup);
@@ -873,6 +883,21 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     // Drop straight into edit mode so the new sentence's empty slots and
     // audio affordances are visible immediately — same pattern as list
     // creation, just no navigation since sentences live inline on this page.
+    setIsEditing(true);
+  }
+
+  // ADR-016 — create a board-language variant of the badge-tapped source (with
+  // optional MT-filled text), then drop into edit mode so the instructor can
+  // re-order the symbols. The new variant collapses into view for this board
+  // language (its authoredLanguage now matches), replacing the source + badge.
+  async function handleAuthorVariant(text?: string) {
+    if (!variantTarget) return;
+    await createVariant({
+      sourceSentenceId: variantTarget._id,
+      authoredLanguage: language,
+      ...(text ? { text } : {}),
+    });
+    setVariantTarget(null);
     setIsEditing(true);
   }
 
@@ -1192,6 +1217,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                         audioPath: s.audioPath,
                       })}
                       onPlay={(s) => setPlayTarget(s)}
+                      onAuthorVariant={(s) => setVariantTarget(s)}
                     />
                   );
                 })}
@@ -1207,6 +1233,30 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
       />
+
+      {/* ADR-016 — variant authoring (badge → manual | translate-assist). */}
+      {variantTarget && (() => {
+        const vLang = variantTarget.authoredLanguage ?? DEFAULT_LOCALE;
+        const vText = isSequenceRow(variantTarget)
+          ? blocksFromUnits(variantTarget.units!, vLang)
+              .map((b) => (b.kind === 'word' ? b.label : b.name))
+              .join(' ')
+          : (typeof variantTarget.text === 'string'
+              ? variantTarget.text
+              : displayString(variantTarget.text, vLang, DEFAULT_LOCALE)) ||
+            displayString(variantTarget.name, vLang, DEFAULT_LOCALE);
+        return (
+          <VariantAuthorModal
+            isOpen
+            onClose={() => setVariantTarget(null)}
+            targetLang={language}
+            authoredLang={vLang}
+            sourceText={vText}
+            canTranslate={!isSequenceRow(variantTarget)}
+            onAuthor={handleAuthorVariant}
+          />
+        );
+      })()}
 
       {/* Free-tier upgrade nudge — fires from handleEditToggle and
           handleCreateOpen when subscription.tier === 'free'. */}

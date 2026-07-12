@@ -162,6 +162,63 @@ export const createProfileSentence = mutation({
   },
 });
 
+// ADR-016 §1/§3 — author a per-language variant of an existing sentence. Creates
+// a sibling row seeded from the source's composition (the instructor then
+// re-orders the symbols to match the target language) and links it into the
+// source's variant group (lazily materialising the group on the source). For the
+// fluent MT-assist path, `text` carries the translated string (keyed by the new
+// language); audio then resolves live via voice-follows-text at play time.
+// Idempotent per (group, language): returns the existing variant if one exists.
+export const createSentenceVariant = mutation({
+  args: {
+    sourceSentenceId: v.id("profileSentences"),
+    authoredLanguage: v.string(),
+    text: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const source = await ctx.db.get(args.sourceSentenceId);
+    if (!source || source.accountId !== accountId) throw new Error("Not authorised");
+
+    // The group id IS the source row's _id. Materialise the group lazily.
+    const groupId = source.variantGroupId ?? source._id;
+    if (!source.variantGroupId) {
+      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
+    }
+
+    // One variant per language per group — return the existing one if present.
+    const siblings = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const existing = siblings.find(
+      (s) =>
+        (s.variantGroupId ?? s._id) === groupId &&
+        (s.authoredLanguage ?? "en") === args.authoredLanguage,
+    );
+    if (existing) return existing._id;
+
+    // Seed the new sibling from the source arrangement + folder/order; the
+    // instructor re-orders. Fluent variants carry the translated text (keyed by
+    // the new language) so playback resolves the right voice + words.
+    return await ctx.db.insert("profileSentences", {
+      accountId,
+      name: source.name,
+      order: source.order,
+      ...(source.folderId ? { folderId: source.folderId } : {}),
+      slots: source.slots,
+      ...(source.kind ? { kind: source.kind } : {}),
+      ...(source.units ? { units: source.units } : {}),
+      ...(source.playback ? { playback: source.playback } : {}),
+      authoredLanguage: args.authoredLanguage,
+      variantGroupId: groupId,
+      ...(args.text ? { text: { [args.authoredLanguage]: args.text } } : {}),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 export const updateProfileSentenceName = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
