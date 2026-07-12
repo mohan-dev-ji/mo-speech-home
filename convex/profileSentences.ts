@@ -103,6 +103,7 @@ export const getProfileSentences = query({
       kind:      s.kind,
       playback:  s.playback,
       authoredLanguage: s.authoredLanguage, // Phase 15 (3c) — drives block resolution + badge
+      variantGroupId: s.variantGroupId, // ADR-016 — sibling-variant link (client collapses by board lang)
       librarySourceId: s.librarySourceId,
       folderId: s.folderId, // ADR-014 — group membership (Sentences tree)
     }));

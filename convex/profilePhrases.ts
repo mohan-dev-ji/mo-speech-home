@@ -66,6 +66,8 @@ export const getProfilePhrases = query({
       recordedAudioPath:
         p.recordedAudioPath ??
         (p.audioPath?.startsWith("accounts/") ? p.audioPath : undefined),
+      authoredLanguage: p.authoredLanguage, // Phase 15 (3c)
+      variantGroupId: p.variantGroupId, // ADR-016 — sibling-variant link
       librarySourceId: p.librarySourceId,
       folderId: p.folderId, // ADR-015 — bank membership (Phrases tree)
     }));

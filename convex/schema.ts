@@ -739,6 +739,12 @@ export default defineSchema({
     // is re-authored per language, not translated in place. Optional; legacy rows
     // default to 'en' on read. See docs/4-builds/plans/phase-15-language-design.md.
     authoredLanguage: v.optional(v.string()),
+    // ADR-016 — per-language variant link. Sibling variants of one logical
+    // sentence share a `variantGroupId` = the SOURCE row's `_id`. Unset (or
+    // === _id) means this row IS the source / a singleton group. Lazy: a group
+    // materialises only when a 2nd language is authored. Client collapses a
+    // group to the board-language variant, else the source (+ "Made in" badge).
+    variantGroupId: v.optional(v.string()),
     // ADR-015 — `slots[]` is the Phase-13 shape and stays the rendered source of
     // truth until later slices migrate readers to `units[]`. New writes keep it
     // populated (a flattened view) for back-compat; it is dropped in a later cleanup.
@@ -788,6 +794,9 @@ export default defineSchema({
     // Phase 15 (Thread 3) — see profileSentences.authoredLanguage. A phrase is
     // structure-bound and re-authored per language, not translated in place.
     authoredLanguage: v.optional(v.string()),
+    // ADR-016 — per-language variant link. See profileSentences.variantGroupId:
+    // sibling phrase variants share this = the source phrase row's `_id`.
+    variantGroupId: v.optional(v.string()),
     librarySourceId: v.optional(v.string()),
     folderId: v.optional(v.id("profileFolders")), // tree: "phrases"
     words: v.array(compositionWord),

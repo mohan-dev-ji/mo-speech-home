@@ -38,6 +38,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { collapseVariants } from '@/lib/languages/variants';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -690,12 +691,12 @@ function SortableSentenceRow({
           )}
           </div>
 
-          {/* Phase 15 (3d): "Made in <lang>" badge — a block sentence renders in the
-              language it was authored in (structure isn't translated). Show it when
-              the authored language differs from the board language so the instructor
-              knows why it didn't switch. View mode only (edit panel owns the right in
-              edit mode). */}
-          {!isEditing && isSequenceRow(sentence) && authoredLang !== language && (
+          {/* ADR-016 §2: "Made in <lang>" badge — shown whenever the collapsed row
+              fell back to the source because no variant exists for the board
+              language (its authored language differs). Uniform across ALL composed
+              types now (fluent included — supersedes the Phase 15 sequence-only
+              gate; bug #1 visibility half). View mode only. */}
+          {!isEditing && authoredLang !== language && (
             <span
               className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap"
               style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
@@ -751,7 +752,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const [sentenceEditTarget, setSentenceEditTarget] = useState<SentenceEditTarget>(null);
   const [playTarget, setPlayTarget] = useState<SentenceRow | null>(null);
 
-  const sentences = useQuery(api.profileSentences.getProfileSentences, {});
+  const allSentences = useQuery(api.profileSentences.getProfileSentences, {});
+  // ADR-016 — collapse sibling per-language variants to one visible row per group
+  // (board-language variant, else the source) before any scoping/rendering, so a
+  // logical sentence appears once and switches with the board language. Reactive:
+  // re-collapses on `language` change with no re-query (same as live translation).
+  const sentences = useMemo(
+    () => (allSentences ? collapseVariants(allSentences, language) : allSentences),
+    [allSentences, language],
+  );
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
