@@ -38,7 +38,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants } from '@/lib/languages/variants';
+import { collapseVariants, variantGroupKey } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
@@ -844,10 +844,29 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const orderKey = serverIds.join(',');
     if (orderKey !== seenOrderKey) {
       setSeenOrderKey(orderKey);
+      // Track the stable variant GROUP, not the raw row id. Authoring a variant
+      // swaps a group's representative row (source → new variant), so appending
+      // by id would drop the group to the bottom. Map each prior id to its
+      // group's CURRENT representative to hold the group's list position; append
+      // only genuinely new groups. `allSentences` (not the collapsed set)
+      // resolves a now-collapsed source id back to its group.
+      const groupOfId = new Map<string, string>();
+      for (const s of allSentences ?? []) groupOfId.set(s._id as string, variantGroupKey(s));
+      const repByGroup = new Map<string, string>();
+      for (const s of scopedSentences) repByGroup.set(variantGroupKey(s), s._id as string);
       setLocalOrder((prev) => {
-        const kept = prev.filter((id) => serverIds.includes(id));
-        const added = serverIds.filter((id) => !prev.includes(id));
-        return [...kept, ...added];
+        const next: string[] = [];
+        const placed = new Set<string>();
+        for (const id of prev) {
+          const g = groupOfId.get(id) ?? id;
+          const rep = repByGroup.get(g);
+          if (rep && !placed.has(g)) { next.push(rep); placed.add(g); }
+        }
+        for (const s of scopedSentences) {
+          const g = variantGroupKey(s);
+          if (!placed.has(g)) { next.push(s._id as string); placed.add(g); }
+        }
+        return next;
       });
     }
   }
