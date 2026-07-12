@@ -310,6 +310,9 @@ export const seedCoreWordModules = mutation({
     let symbolsMissing = 0;
 
     for (const group of groups) {
+      // Localised name (ADR-016 Addendum D / bug #3) so a re-seed can't
+      // reintroduce the EN-only core-category names. Falls back to en-only.
+      const locName = MODULE_NAME_I18N[`categories:${group.slug}`] ?? { en: group.name };
       const symbols: { order: number; symbolId: string }[] = [];
       for (const word of group.words) {
         const sym = await ctx.db
@@ -324,7 +327,7 @@ export const seedCoreWordModules = mutation({
         }
       }
       const item = {
-        name: { en: group.name },
+        name: locName,
         icon: "MessageSquare",
         colour: "zinc",
         symbols,
@@ -340,7 +343,7 @@ export const seedCoreWordModules = mutation({
           surface: "core",
           colour: "zinc",
           isDefault: true,
-          name: { en: group.name },
+          name: locName,
           items: [item],
           lastPublishedAt: now,
           updatedAt: now,
@@ -351,7 +354,7 @@ export const seedCoreWordModules = mutation({
           tree: "categories",
           surface: "core",
           slug: group.slug,
-          name: { en: group.name },
+          name: locName,
           icon: "MessageSquare",
           colour: "zinc",
           defaultTier: "free",
@@ -368,6 +371,109 @@ export const seedCoreWordModules = mutation({
 
     const summary = { seeded, updated, symbolsResolved, symbolsMissing };
     console.log(`[seedCoreWordModules] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
+// ─── Phase 15.5 (bug #3) — localise EN-only module names ─────────────────────
+//
+// 17 module names shipped with an EN-only `name` record (`{ en: "…" }`), so on a
+// Spanish/Hindi board they fell back to English while the modules' contents flip
+// (installContentModule copies `name` verbatim → EN-only folder/category). This
+// map is the owner-approved (2026-07-12) ES/HI for each, keyed `${tree}:${slug}`.
+// Re-used by `seedCoreWordModules` so a category re-seed can't reintroduce the
+// EN-only names. Names are order-free labels → direct translation is correct
+// (ADR-016 Addendum D: labels translate, they are never variants).
+export const MODULE_NAME_I18N: Record<string, { en: string; es: string; hi: string }> = {
+  "categories:core-general":        { en: "General",        es: "General",                  hi: "सामान्य" },
+  "categories:core-joining-words":  { en: "Joining words",  es: "Palabras de enlace",       hi: "जोड़ने वाले शब्द" },
+  "categories:core-letters":        { en: "Letters",        es: "Letras",                   hi: "अक्षर" },
+  "categories:core-numbers":        { en: "Numbers",        es: "Números",                  hi: "गिनती" },
+  "categories:core-position-words": { en: "Position Words", es: "Palabras de posición",     hi: "स्थिति शब्द" },
+  "categories:core-pronouns":       { en: "Pronouns",       es: "Pronombres",               hi: "सर्वनाम" },
+  "categories:core-time":           { en: "Time",           es: "Tiempo",                   hi: "समय" },
+  "lists:food-routines":            { en: "Food Routines",  es: "Rutinas de comida",        hi: "खाने की दिनचर्या" },
+  "lists:going-places":             { en: "Going Places",   es: "Salidas",                  hi: "बाहर जाना" },
+  "lists:life-skills":              { en: "Life skills",    es: "Habilidades para la vida", hi: "जीवन कौशल" },
+  "phrases:everyday":               { en: "Everyday",       es: "Cotidiano",                hi: "रोज़मर्रा" },
+  "phrases:feelings":               { en: "Feelings",       es: "Emociones",                hi: "भावनाएँ" },
+  "phrases:social":                 { en: "Social",         es: "Social",                   hi: "सामाजिक" },
+  "sentences:everyday-phrases":     { en: "Everyday phrases",     es: "Frases cotidianas",     hi: "रोज़मर्रा के वाक्य" },
+  "sentences:expressing-feelings":  { en: "Expressing Feelings",  es: "Expresar emociones",    hi: "भावनाएँ व्यक्त करना" },
+  "sentences:going-places":         { en: "Going places",         es: "Salidas",               hi: "बाहर जाना" },
+  "sentences:talking-about-food":   { en: "Talking about food",   es: "Hablar de comida",      hi: "खाने की बातें" },
+};
+
+/**
+ * Phase 15.5 (bug #3). Backfill the ES/HI keys onto the 17 EN-only module names,
+ * across three surfaces:
+ *   1. `libraryModules` — the install source of truth (fixes future installs).
+ *   2. installed `profileFolders` (tree lists/sentences/phrases, source "module").
+ *   3. installed `profileCategories` (core-word categories install flat).
+ *
+ * Installed rows are only rewritten when still at their default single-`en` name
+ * matching the module's default (so a user-renamed folder/category is left
+ * untouched). Idempotent — a row already carrying es/hi is skipped. Names are
+ * order-free labels → safe to translate directly (ADR-016 Addendum D).
+ *
+ * Dashboard/CLI-runnable (no auth), matching the other one-shot ops here.
+ * Run:  npx convex run migrations:localiseModuleNames
+ */
+export const localiseModuleNames = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let libraryPatched = 0, libraryMissing = 0, librarySkipped = 0;
+    let foldersPatched = 0, categoriesPatched = 0, installedSkipped = 0;
+
+    // 1. libraryModules — source of truth. Merge es/hi (preserve en).
+    for (const [key, tr] of Object.entries(MODULE_NAME_I18N)) {
+      const [tree, slug] = key.split(":") as ["categories" | "lists" | "sentences" | "phrases", string];
+      const row = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) => q.eq("tree", tree).eq("slug", slug))
+        .first();
+      if (!row) { libraryMissing++; continue; }
+      const name = row.name as Record<string, string>;
+      if (name.es && name.hi) { librarySkipped++; continue; }
+      await ctx.db.patch(row._id, {
+        name: { ...name, es: tr.es, hi: tr.hi },
+        updatedAt: Date.now(),
+      });
+      libraryPatched++;
+    }
+
+    // 2. installed profileFolders (module-sourced) — replace default single-en name.
+    const folders = await ctx.db.query("profileFolders").collect();
+    for (const f of folders) {
+      if (f.source !== "module" || !f.librarySourceId) continue;
+      const tr = MODULE_NAME_I18N[`${f.tree}:${f.librarySourceId}`];
+      if (!tr) continue;
+      const name = f.name as Record<string, string>;
+      // Only touch rows still at the default en-only name (don't clobber renames).
+      if (name.es || name.hi) { installedSkipped++; continue; }
+      if (Object.keys(name).length !== 1 || name.en !== tr.en) { installedSkipped++; continue; }
+      await ctx.db.patch(f._id, { name: { en: tr.en, es: tr.es, hi: tr.hi }, updatedAt: Date.now() });
+      foldersPatched++;
+    }
+
+    // 3. installed profileCategories (core-word modules install flat).
+    const cats = await ctx.db.query("profileCategories").collect();
+    for (const c of cats) {
+      if (!c.librarySourceId) continue;
+      const tr = MODULE_NAME_I18N[`categories:${c.librarySourceId}`];
+      if (!tr) continue;
+      const name = c.name as Record<string, string>;
+      if (name.es || name.hi) { installedSkipped++; continue; }
+      if (Object.keys(name).length !== 1 || name.en !== tr.en) { installedSkipped++; continue; }
+      await ctx.db.patch(c._id, { name: { en: tr.en, es: tr.es, hi: tr.hi }, updatedAt: Date.now() });
+      categoriesPatched++;
+    }
+
+    const summary = {
+      libraryPatched, libraryMissing, librarySkipped,
+      foldersPatched, categoriesPatched, installedSkipped,
+    };
+    console.log(`[localiseModuleNames] ${JSON.stringify(summary)}`);
     return summary;
   },
 });
