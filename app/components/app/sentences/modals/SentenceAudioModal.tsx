@@ -61,7 +61,7 @@ export function SentenceAudioModal({
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const renameSentence = useMutation(api.profileSentences.updateProfileSentenceName);
-  const { voiceId } = useProfile();
+  const { voiceId, language } = useProfile();
 
   const [value, setValue] = useState(initialValue);
   // TTS is no longer stored on the sentence (Phase 8.5) — it's resolved per
@@ -189,7 +189,10 @@ export function SentenceAudioModal({
         await saveOverride({ text: trimmedValue, recordedAudioPath });
       } else if (sentenceId) {
         if (trimmedValue) {
-          await renameSentence({ profileSentenceId: sentenceId, name: { en: trimmedValue } });
+          // Key the name by the board language you're authoring in — not a
+          // hardcoded `en`, which mislabelled e.g. a Hindi rename as English
+          // (and, via the audio path, spoke it in an English voice).
+          await renameSentence({ profileSentenceId: sentenceId, name: { [language]: trimmedValue } });
         }
         await updateAudio({
           profileSentenceId: sentenceId,

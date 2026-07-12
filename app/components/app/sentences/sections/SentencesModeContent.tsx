@@ -1446,7 +1446,11 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           textLocale={
             playTarget
               ? (typeof playTarget.text === 'string'
-                  ? DEFAULT_LOCALE
+                  // A bare-string `text` (legacy shape, or written by
+                  // updateProfileSentenceAudio on edit) is authored in the
+                  // sentence's authoredLanguage — NOT necessarily English.
+                  // Defaulting to en here spoke e.g. Hindi words in a US voice.
+                  ? (playTarget.authoredLanguage ?? DEFAULT_LOCALE)
                   : resolvedLocale(playTarget.text ?? playTarget.name, language, DEFAULT_LOCALE))
               : undefined
           }
