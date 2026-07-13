@@ -134,10 +134,10 @@ type SentenceEditTarget = {
 // ─── Thumbnail strip (view mode) ─────────────────────────────────────────────
 
 function ThumbnailStrip({ slots }: { slots: Slot[] }) {
-  const filled = slots.filter((s) => s.imagePath).slice(0, 4);
+  const filled = slots.filter((s) => s.imagePath);
   if (filled.length === 0) return null;
   return (
-    <div className="flex gap-2 shrink-0">
+    <div className="flex flex-wrap gap-2">
       {filled.map((s, i) => (
         <div
           key={i}
