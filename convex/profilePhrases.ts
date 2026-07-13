@@ -10,6 +10,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
+import { findVariantInGroup } from "./lib/variantAuthoring";
 import {
   installContentModule,
   isModuleInstalled,
@@ -203,21 +204,17 @@ export const createPhraseVariant = mutation({
     const source = await ctx.db.get(args.sourcePhraseId);
     if (!source || source.accountId !== accountId) throw new Error("Not authorised");
 
-    const groupId = source.variantGroupId ?? source._id;
-    if (!source.variantGroupId) {
-      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
-    }
-
+    // Materialise the group lazily + find any existing same-language sibling
+    // (shared logic; see convex/lib/variantAuthoring.ts).
     const siblings = await ctx.db
       .query("profilePhrases")
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
-    const existing = siblings.find(
-      (p) =>
-        (p.variantGroupId ?? p._id) === groupId &&
-        (p.authoredLanguage ?? "en") === args.authoredLanguage,
-    );
+    const { groupId, existing } = findVariantInGroup(source, siblings, args.authoredLanguage);
     if (existing) return existing._id;
+    if (!source.variantGroupId) {
+      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
+    }
 
     return await ctx.db.insert("profilePhrases", {
       accountId,

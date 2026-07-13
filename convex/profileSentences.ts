@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v, type Infer } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
+import { findVariantInGroup } from "./lib/variantAuthoring";
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -181,23 +182,17 @@ export const createSentenceVariant = mutation({
     const source = await ctx.db.get(args.sourceSentenceId);
     if (!source || source.accountId !== accountId) throw new Error("Not authorised");
 
-    // The group id IS the source row's _id. Materialise the group lazily.
-    const groupId = source.variantGroupId ?? source._id;
-    if (!source.variantGroupId) {
-      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
-    }
-
-    // One variant per language per group — return the existing one if present.
+    // Materialise the group lazily + find any existing same-language sibling
+    // (shared logic; see convex/lib/variantAuthoring.ts).
     const siblings = await ctx.db
       .query("profileSentences")
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
-    const existing = siblings.find(
-      (s) =>
-        (s.variantGroupId ?? s._id) === groupId &&
-        (s.authoredLanguage ?? "en") === args.authoredLanguage,
-    );
+    const { groupId, existing } = findVariantInGroup(source, siblings, args.authoredLanguage);
     if (existing) return existing._id;
+    if (!source.variantGroupId) {
+      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
+    }
 
     // Seed the new sibling from the source arrangement + folder/order; the
     // instructor re-orders. Text is seeded from the source record (the
