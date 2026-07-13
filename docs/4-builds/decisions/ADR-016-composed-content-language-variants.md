@@ -145,6 +145,45 @@ This enlarges the 15.5 build surface (translate-API + target-voice TTS wiring, t
 
 ---
 
+## Addendum (2026-07-13) — Model reaffirmed; badge = translation state; dedupe
+
+Owner testing of the shipped authoring flow prompted a review of whether fluent
+sentences and phrases really need the sibling-row model (their symbol order is
+*visual only* — they play as one whole-utterance clip; only sequence sentences
+play stepped). **Decision: keep the sibling-row model for all three types.** A
+different per-language symbol *arrangement* is a genuine requirement (English vs
+Hindi word order/combination differ), and "Edit manually → straight into edit
+mode" is the desired UX for authoring it. Live-translation-on-one-row was
+rejected because it cannot hold a per-language arrangement.
+
+Cleanups made under this decision:
+
+- **Badge reflects translation STATE, not the `authoredLanguage` tag.** The old
+  condition (`authoredLanguage !== board`) suppressed the "Made in <lang>" badge
+  for a *manually*-created but untranslated variant (a row tagged with the board
+  language but still holding source-language content), stranding the instructor
+  in the source language with no way back to the translate modal. New shared
+  helper `needsTranslation(primary, boardLang)` (`lib/languages/variants.ts`)
+  drives the badge off whether the primary localised field (fluent → `text`,
+  phrase → `name`) actually has a board-language entry — so a junk/partial
+  variant still shows the badge, and re-translating reuses the row (idempotency)
+  and fills its keys. Sequence sentences remain tag-based.
+- **Translate applies without forcing edit mode.** Only *manual* authoring drops
+  into edit mode; *translate* produces complete content and leaves the item in
+  place (refine later if wanted).
+- **Variant records merge source + target keys** (e.g. name `{en, hi}`) — the
+  source-language keys are an intentional fallback so a partial variant shows
+  source text + the badge rather than blank. The fluent `text` path was made
+  consistent with the phrase `name` path (previously wrote target-only).
+- **De-duplicated the near-identical machinery:** shared `findVariantInGroup`
+  (`convex/lib/variantAuthoring.ts`) for group materialisation + idempotency;
+  shared `makeRecordFiller` (`lib/languages/translateClient.ts`) for the batched
+  MT gap-fill used by both unit and phrase translation; shared
+  `reconcileVariantOrder` (`lib/languages/variants.ts`) for the collapse
+  order-sync. Behaviour preserved (block-sentence translate output unchanged).
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.

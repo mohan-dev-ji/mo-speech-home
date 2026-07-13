@@ -53,6 +53,39 @@ export function needsTranslation(
  * A legacy row with no `authoredLanguage` counts as DEFAULT_LOCALE.
  * Output order = first-seen order of each group in the input.
  */
+/**
+ * Reconcile a local drag-order (list of row ids) with the current collapsed set,
+ * tracking the stable variant GROUP rather than the raw id. Authoring a variant
+ * swaps a group's visible representative (source → new variant id), so a plain
+ * "keep known ids, append new ids" would jump the item to the bottom. Instead:
+ * map each prior id to its group's CURRENT representative (holding position), then
+ * append only genuinely new groups. `allRows` (uncollapsed) resolves a now-hidden
+ * source id back to its group; `collapsedRows` gives each group's current rep.
+ */
+export function reconcileVariantOrder(
+  prev: readonly string[],
+  allRows: readonly VariantRow[],
+  collapsedRows: readonly VariantRow[],
+): string[] {
+  const groupOfId = new Map<string, string>();
+  for (const r of allRows) groupOfId.set(r._id, variantGroupKey(r));
+  const repByGroup = new Map<string, string>();
+  for (const r of collapsedRows) repByGroup.set(variantGroupKey(r), r._id);
+
+  const next: string[] = [];
+  const placed = new Set<string>();
+  for (const id of prev) {
+    const g = groupOfId.get(id) ?? id;
+    const rep = repByGroup.get(g);
+    if (rep && !placed.has(g)) { next.push(rep); placed.add(g); }
+  }
+  for (const r of collapsedRows) {
+    const g = variantGroupKey(r);
+    if (!placed.has(g)) { next.push(r._id); placed.add(g); }
+  }
+  return next;
+}
+
 export function collapseVariants<T extends VariantRow>(
   rows: readonly T[],
   language: string,

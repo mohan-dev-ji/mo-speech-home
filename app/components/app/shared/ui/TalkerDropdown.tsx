@@ -58,7 +58,7 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, variantGroupKey, needsTranslation } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, needsTranslation } from '@/lib/languages/variants';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -309,28 +309,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   useEffect(() => {
     if (phrases === undefined) return;
-    // Track the stable variant GROUP, not the raw id: authoring a variant swaps a
-    // group's representative (source → new variant), so a plain append would jump
-    // the card to the end. Map each prior id to its group's current rep to hold
-    // position; append only genuinely new groups.
-    const groupOfId = new Map<string, string>();
-    for (const p of phrases) groupOfId.set(p._id as string, variantGroupKey(p));
-    const repByGroup = new Map<string, string>();
-    for (const p of phraseList) repByGroup.set(variantGroupKey(p), p._id as string);
-    setPhraseOrder((prev) => {
-      const next: string[] = [];
-      const placed = new Set<string>();
-      for (const id of prev) {
-        const g = groupOfId.get(id) ?? id;
-        const rep = repByGroup.get(g);
-        if (rep && !placed.has(g)) { next.push(rep); placed.add(g); }
-      }
-      for (const p of phraseList) {
-        const g = variantGroupKey(p);
-        if (!placed.has(g)) { next.push(p._id as string); placed.add(g); }
-      }
-      return next;
-    });
+    // Hold each group's card position when its representative swaps on variant
+    // authoring; append only new groups (shared; see variants.ts).
+    setPhraseOrder((prev) => reconcileVariantOrder(prev, phrases, phraseList));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phrases]);
 
