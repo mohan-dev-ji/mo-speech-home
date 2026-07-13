@@ -24,9 +24,10 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/app/components/app/shared/ui/Dialog';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { playTts } from '@/lib/audio/playTts';
+import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -79,9 +80,18 @@ export function PersistentTalker() {
   // Play a talker item's clip. A clip-less phrase (no recorded/generated audio)
   // speaks its name via TTS so adding or tapping a phrase is never silent —
   // mirrors the block modal's fallback and matches how word symbols always sound.
-  function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; label: string }) {
+  function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; phraseNameRecord?: Record<string, string>; label: string }) {
     if (item.audioPath) { playAudio(item.audioPath); return; }
-    if (item.kind === 'phrase') void playTts(item.phraseName ?? item.label, voiceId);
+    if (item.kind === 'phrase') {
+      // Voice follows the resolved text's language (Phase 15 3e): an EN-only
+      // phrase on a Hindi/Spanish board speaks English in an ENGLISH voice — not
+      // the board voice (which read English words in a Hindi accent).
+      const loc = item.phraseNameRecord
+        ? resolvedLocale(item.phraseNameRecord, language, DEFAULT_LOCALE)
+        : undefined;
+      const voice = loc ? voiceForLanguage(loc, personaOf(voiceId)) : voiceId;
+      void playTts(item.phraseName ?? item.label, voice);
+    }
   }
 
   // Single chip tap plays that chip's own clip (whole-composition playback is the
