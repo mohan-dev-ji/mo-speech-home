@@ -334,6 +334,7 @@
     "closeDropdown": "Close quick symbols",
     "tabCoreWords": "Core words",
     "tabPhrases": "Phrases",
+    "madeInBadge": "Made in {lang}",
     "publishDefault": "Publish default",
     "addRow": "Add row",
     "phraseNeedsTwo": "Add at least 2 symbols",

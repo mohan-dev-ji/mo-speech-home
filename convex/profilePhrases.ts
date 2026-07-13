@@ -187,6 +187,52 @@ export const createProfilePhrase = mutation({
   },
 });
 
+// ADR-016 §1/§3 — author a per-language variant of an existing phrase. Creates a
+// sibling seeded from the source's words + name (the instructor then re-orders /
+// re-words for the target language) and links it into the source's variant group
+// (lazily materialising the group on the source). Idempotent per (group,
+// language): returns the existing variant if one exists.
+export const createPhraseVariant = mutation({
+  args: {
+    sourcePhraseId: v.id("profilePhrases"),
+    authoredLanguage: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const source = await ctx.db.get(args.sourcePhraseId);
+    if (!source || source.accountId !== accountId) throw new Error("Not authorised");
+
+    const groupId = source.variantGroupId ?? source._id;
+    if (!source.variantGroupId) {
+      await ctx.db.patch(source._id, { variantGroupId: groupId, updatedAt: Date.now() });
+    }
+
+    const siblings = await ctx.db
+      .query("profilePhrases")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const existing = siblings.find(
+      (p) =>
+        (p.variantGroupId ?? p._id) === groupId &&
+        (p.authoredLanguage ?? "en") === args.authoredLanguage,
+    );
+    if (existing) return existing._id;
+
+    return await ctx.db.insert("profilePhrases", {
+      accountId,
+      kind: "phrase" as const,
+      name: source.name,
+      order: source.order,
+      ...(source.folderId ? { folderId: source.folderId } : {}),
+      words: source.words,
+      authoredLanguage: args.authoredLanguage,
+      variantGroupId: groupId,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 export const updateProfilePhraseName = mutation({
   args: {
     profilePhraseId: v.id("profilePhrases"),

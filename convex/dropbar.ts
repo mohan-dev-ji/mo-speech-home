@@ -131,6 +131,10 @@ export const getDropbarPhrases = query({
         recordedAudioPath:
           p.recordedAudioPath ??
           (p.audioPath?.startsWith("accounts/") ? p.audioPath : undefined),
+        // ADR-016 — client collapses sibling variants by board language + shows
+        // the "Made in <lang>" badge / author entry.
+        authoredLanguage: p.authoredLanguage,
+        variantGroupId: p.variantGroupId,
       }));
   },
 });

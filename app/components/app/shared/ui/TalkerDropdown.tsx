@@ -58,6 +58,9 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { collapseVariants } from '@/lib/languages/variants';
+import { translateTexts } from '@/lib/languages/translateClient';
+import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 
@@ -121,6 +124,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [pendingPhraseDelete, setPendingPhraseDelete] = useState<
     { id: Id<'profilePhrases'>; name: string } | null
   >(null);
+  // ADR-016 — the source phrase whose "Made in <lang>" badge was tapped, driving
+  // the variant author modal (author a native version in the board language).
+  const [phraseVariantTarget, setPhraseVariantTarget] = useState<
+    { id: Id<'profilePhrases'>; authoredLang: string } | null
+  >(null);
 
   // Admin: publish the current tab's container as the shipped default. Slug is
   // forced to the sentinel so re-seeding converges on the same containers.
@@ -147,6 +155,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const deleteProfilePhrase      = useMutation(api.profilePhrases.deleteProfilePhrase);
   const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
   const createProfilePhrase      = useMutation(api.profilePhrases.createProfilePhrase);
+  const createPhraseVariant      = useMutation(api.profilePhrases.createPhraseVariant);
 
   // The fixed panel is anchored just under the toggle bar. Snapshotting the bar
   // rect once at open goes stale the moment the talker chip area reflows to more
@@ -291,7 +300,12 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   }
 
   // ── Tab 2 (Phrases) ─────────────────────────────────────────────────────────
-  const phraseList = phrases ?? [];
+  // ADR-016 — collapse sibling variants to one card per group: the board-language
+  // variant if authored, else the source (which then shows a "Made in <lang>"
+  // badge). A phrase resolves its name + words against ITS authoredLanguage
+  // (structure-bound), not the board language.
+  const phraseList = phrases ? collapseVariants(phrases, language) : [];
+  const phraseLangOf = (p: { authoredLanguage?: string }) => p.authoredLanguage ?? DEFAULT_LOCALE;
 
   useEffect(() => {
     if (phrases === undefined) return;
@@ -313,7 +327,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // row, so a stored-path check alone leaves the indicator stuck on "add audio".
   // One batched cache lookup covers every phrase name in the bank.
   const phraseNameKeys = orderedPhrases.map((p) =>
-    displayString(p.name, language, DEFAULT_LOCALE).toLowerCase().trim(),
+    displayString(p.name, phraseLangOf(p), DEFAULT_LOCALE).toLowerCase().trim(),
   );
   const phraseAudioAvailList = useQuery(
     api.ttsCache.checkMany,
@@ -415,6 +429,56 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     await createProfilePhrase({ name: { [language]: name }, authoredLanguage: language, folderId });
   }
 
+  // ADR-016 — author a board-language variant of the badge-tapped phrase, then
+  // enter phrase edit mode to re-order / re-word. Translate MT-fills the name +
+  // each word label lacking the target language (fill-the-gaps); manual copies.
+  // Translation runs before any write, so a failed MT leaves no orphan variant.
+  async function handlePhraseAuthorVariant(mode: 'manual' | 'translate') {
+    const target = phraseVariantTarget;
+    if (!target) return;
+    const source = phraseList.find((p) => p._id === target.id);
+    if (!source) return;
+
+    if (mode === 'translate') {
+      const built = await buildTranslatedPhrase(source, target.authoredLang, language);
+      const variantId = await createPhraseVariant({ sourcePhraseId: source._id, authoredLanguage: language });
+      await updateProfilePhraseName({ profilePhraseId: variantId, name: built.name });
+      await updateProfilePhraseWords({ profilePhraseId: variantId, words: built.words });
+    } else {
+      await createPhraseVariant({ sourcePhraseId: source._id, authoredLanguage: language });
+    }
+    setPhraseVariantTarget(null);
+    setEditing(true);
+  }
+
+  // Fill the phrase name + each word label that lacks `targetLang` from one
+  // batched translation of their source-language values (existing target labels
+  // from a translated symbol are kept).
+  async function buildTranslatedPhrase(
+    source: typeof phraseList[number],
+    srcLang: string,
+    targetLang: string,
+  ) {
+    const need: string[] = [];
+    const nameSrc = source.name[targetLang] ? undefined : displayString(source.name, srcLang, DEFAULT_LOCALE) || undefined;
+    if (nameSrc) need.push(nameSrc);
+    for (const w of source.words) {
+      if (w.label && !w.label[targetLang]) { const s = displayString(w.label, srcLang, DEFAULT_LOCALE); if (s) need.push(s); }
+    }
+    const uniq = [...new Set(need)];
+    const translated = uniq.length ? await translateTexts(uniq, targetLang) : [];
+    const map = new Map(uniq.map((s, i) => [s, translated[i]]));
+
+    const name = nameSrc && map.get(nameSrc) ? { ...source.name, [targetLang]: map.get(nameSrc)! } : source.name;
+    const words = source.words.map((w) => {
+      if (!w.label || w.label[targetLang]) return w;
+      const s = displayString(w.label, srcLang, DEFAULT_LOCALE);
+      const tr = s ? map.get(s) : undefined;
+      return tr ? { ...w, label: { ...w.label, [targetLang]: tr } } : w;
+    });
+    return { name, words };
+  }
+
   function selectTab(id: TabId) {
     setActiveTab(id);
     setAddedRows(0);
@@ -496,10 +560,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           <SortableContext items={phraseOrder} strategy={rectSortingStrategy}>
             <div className="flex flex-wrap gap-4 py-2">
               {orderedPhrases.map((p) => {
-                const name = displayString(p.name, language, DEFAULT_LOCALE);
+                const name = displayString(p.name, phraseLangOf(p), DEFAULT_LOCALE);
                 const words = p.words.map((w) => ({
                   imagePath: w.imagePath,
-                  label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
+                  label: displayString(w.label ?? {}, phraseLangOf(p), DEFAULT_LOCALE),
                 }));
                 const hasAudio =
                   !!p.recordedAudioPath ||
@@ -544,14 +608,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     return (
       <div className="flex flex-wrap gap-3 py-2">
         {ready.map((p) => {
-          const name = displayString(p.name, language, DEFAULT_LOCALE);
+          const pLang = phraseLangOf(p);
+          const name = displayString(p.name, pLang, DEFAULT_LOCALE);
           const audioPath = p.recordedAudioPath ?? p.audioPath ?? undefined;
           // Phase 15 (Task 6): keep each word's full localised record alongside the
           // resolved string, so the saved sentence keys text by its true language.
           const words = p.words.map((w) => ({
             imagePath: w.imagePath,
             audioPath: w.audioPath,
-            label: displayString(w.label ?? {}, language, DEFAULT_LOCALE),
+            label: displayString(w.label ?? {}, pLang, DEFAULT_LOCALE),
             ...(w.label ? { labelRecord: w.label } : {}),
           }));
           return (
@@ -559,6 +624,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
               key={p._id}
               name={name}
               words={words}
+              // ADR-016 — board ≠ authored & no variant → show badge → author flow.
+              madeInLabel={pLang !== language ? t('madeInBadge', { lang: pLang.toUpperCase() }) : undefined}
+              onAuthorVariant={() => setPhraseVariantTarget({ id: p._id, authoredLang: pLang })}
               onTap={() =>
                 onSymbolTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, phraseNameRecord: p.name, audioPath, words })
               }
@@ -817,6 +885,17 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ADR-016 — phrase variant authoring (badge → manual | translate-assist). */}
+      {phraseVariantTarget && (
+        <VariantAuthorModal
+          isOpen
+          onClose={() => setPhraseVariantTarget(null)}
+          targetLang={language}
+          authoredLang={phraseVariantTarget.authoredLang}
+          onAuthor={handlePhraseAuthorVariant}
+        />
+      )}
     </>
   );
 }
@@ -1021,10 +1100,16 @@ function PhraseEditCard({
 function PhraseDropdownCard({
   name,
   words,
+  madeInLabel,
+  onAuthorVariant,
   onTap,
 }: {
   name: string;
   words: { imagePath?: string; label: string }[];
+  /** When set (board ≠ authored language, no variant yet), show the badge that
+   *  opens the variant author flow. */
+  madeInLabel?: string;
+  onAuthorVariant?: () => void;
   onTap: () => void;
 }) {
   return (
@@ -1032,9 +1117,22 @@ function PhraseDropdownCard({
       type="button"
       onClick={onTap}
       aria-label={name}
-      className="flex flex-col items-center gap-2 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
+      className="relative flex flex-col items-center gap-2 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
       style={{ background: ZINC.c500 }}
     >
+      {madeInLabel && (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); onAuthorVariant?.(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onAuthorVariant?.(); } }}
+          aria-label={madeInLabel}
+          className="absolute top-1.5 right-1.5 z-10 rounded-full text-theme-xs font-semibold px-2 py-0.5 whitespace-nowrap transition-opacity hover:opacity-80 cursor-pointer"
+          style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
+        >
+          {madeInLabel}
+        </span>
+      )}
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
           <div className="w-20 h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
