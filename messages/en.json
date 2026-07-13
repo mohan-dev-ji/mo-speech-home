@@ -5,6 +5,7 @@
     "reorder": "Reorder",
     "colour": "Choose colour",
     "editImage": "Edit folder image",
+    "translateName": "Translate name to this language",
     "open": "Open {name}",
     "publish": "Publish as module",
     "updateModule": "Update module",

@@ -192,7 +192,9 @@ export function CategoriesContent() {
 
   async function handleCreate(name: string, symbolLabels: string[]) {
     const id = await createCategoryMutation({
-      name: { en: name },
+      // Key by the board language you're authoring in (ADR-016 Addendum D — names
+      // never auto-translate; the translate icon fills other languages on demand).
+      name: { [language]: name },
       symbolLabels,
     });
     // ?edit=1 lands the detail page in edit mode so the newly-seeded
@@ -266,6 +268,8 @@ export function CategoriesContent() {
                           <ModuleClassBadge publishedClass={cat.publishedModuleClass} />
                         ) : undefined
                       }
+                      nameRecord={cat.name}
+                      language={language}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
                       onRecolour={(key) => handleRecolour(cat._id, key)}

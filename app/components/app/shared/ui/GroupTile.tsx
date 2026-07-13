@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ImageIcon, Trash2, Move, Upload, RefreshCw } from 'lucide-react';
+import { ImageIcon, Trash2, Move, Upload, RefreshCw, Languages } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -9,6 +9,9 @@ import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { ColourSwatchPicker } from '@/app/components/app/shared/ui/ColourSwatchPicker';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { displayString } from '@/lib/languages/displayValue';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { translateTexts } from '@/lib/languages/translateClient';
 
 const TITLE_FONT_SIZE = {
   large: 'clamp(0.875rem, 6cqi, 1.25rem)',
@@ -38,6 +41,14 @@ type Props = {
   allowOpenInEditMode?: boolean;
   /** Inline rename committed from the dashed title box (blur / Enter). */
   onRename?: (value: string) => void;
+  /**
+   * ADR-016 Addendum D — the full localised name record + board language. When
+   * both are set and the board-language key is empty, edit mode shows a translate
+   * icon that MT-fills the name into the still-editable rename input. Omit to hide
+   * the affordance (names never auto-translate).
+   */
+  nameRecord?: Record<string, string>;
+  language?: string;
   /** New colour key from the swatch picker. */
   onRecolour?: (key: string) => void;
   /** Open the Symbol Editor (image only) to pick the folder image. */
@@ -72,6 +83,8 @@ export function GroupTile({
   onDeleteRequest,
   onPublishRequest,
   published,
+  nameRecord,
+  language,
 }: Props) {
   const t = useTranslations('group');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -98,6 +111,27 @@ export function GroupTile({
     else setDraft(name);
   }
 
+  // ADR-016 Addendum D — MT-fill the name into the still-editable input when the
+  // board-language key is empty. Names never auto-translate; this is an explicit,
+  // per-language, on-demand action the instructor can then correct on their
+  // keyboard (commit on blur/Enter saves it under the board language).
+  const [translating, setTranslating] = useState(false);
+  const showTranslate = !!(language && nameRecord && !nameRecord[language]?.trim());
+  async function handleTranslateName() {
+    if (!language || !nameRecord) return;
+    const src = displayString(nameRecord, language, DEFAULT_LOCALE);
+    if (!src) return;
+    setTranslating(true);
+    try {
+      const [translated] = await translateTexts([src], language);
+      if (translated) setDraft(translated);
+    } catch {
+      /* leave the input as-is; the instructor can type it manually */
+    } finally {
+      setTranslating(false);
+    }
+  }
+
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
 
   return (
@@ -119,19 +153,36 @@ export function GroupTile({
       >
         {/* Title */}
         {isEditing ? (
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitName}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur();
-              else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={t('rename')}
-            className="w-full text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
-            style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
-          />
+          <div className="w-full flex items-center gap-1">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur();
+                else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={t('rename')}
+              className="flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
+              style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
+            />
+            {/* ADR-016 Addendum D — translate the name into the board language when
+                its key is empty; fills the still-editable input. */}
+            {showTranslate && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleTranslateName(); }}
+                disabled={translating}
+                aria-label={t('translateName')}
+                title={t('translateName')}
+                className="shrink-0 p-1.5 rounded-theme-sm transition-opacity hover:opacity-80 disabled:opacity-50"
+                style={{ color: 'var(--theme-alt-text)', border: '1px solid var(--theme-enter-mode)' }}
+              >
+                <Languages className={`w-4 h-4 ${translating ? 'animate-pulse' : ''}`} />
+              </button>
+            )}
+          </div>
         ) : (
           <p
             className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"

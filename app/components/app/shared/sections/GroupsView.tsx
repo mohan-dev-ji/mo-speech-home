@@ -146,7 +146,9 @@ export function GroupsView({
   };
 
   async function handleCreate(name: string) {
-    await createFolder({ tree, name: { en: name } });
+    // Key by the board language you're authoring in (ADR-016 Addendum D — names
+    // never auto-translate; the translate icon fills other languages on demand).
+    await createFolder({ tree, name: { [language]: name } });
   }
 
   function handleRename(id: Id<'profileFolders'>, value: string) {
@@ -256,6 +258,8 @@ export function GroupsView({
                           <ModuleClassBadge publishedClass={folder.publishedModuleClass} />
                         ) : undefined
                       }
+                      nameRecord={folder.name}
+                      language={language}
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRecolour={(key) => handleRecolour(folder._id, key)}
