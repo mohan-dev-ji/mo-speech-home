@@ -59,7 +59,7 @@ import type { QuickSymbolItem } from './TalkerBar';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { collapseVariants, variantGroupKey, needsTranslation } from '@/lib/languages/variants';
-import { translateTexts } from '@/lib/languages/translateClient';
+import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
@@ -477,23 +477,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     srcLang: string,
     targetLang: string,
   ) {
-    const need: string[] = [];
-    const nameSrc = source.name[targetLang] ? undefined : displayString(source.name, srcLang, DEFAULT_LOCALE) || undefined;
-    if (nameSrc) need.push(nameSrc);
-    for (const w of source.words) {
-      if (w.label && !w.label[targetLang]) { const s = displayString(w.label, srcLang, DEFAULT_LOCALE); if (s) need.push(s); }
-    }
-    const uniq = [...new Set(need)];
-    const translated = uniq.length ? await translateTexts(uniq, targetLang) : [];
-    const map = new Map(uniq.map((s, i) => [s, translated[i]]));
-
-    const name = nameSrc && map.get(nameSrc) ? { ...source.name, [targetLang]: map.get(nameSrc)! } : source.name;
-    const words = source.words.map((w) => {
-      if (!w.label || w.label[targetLang]) return w;
-      const s = displayString(w.label, srcLang, DEFAULT_LOCALE);
-      const tr = s ? map.get(s) : undefined;
-      return tr ? { ...w, label: { ...w.label, [targetLang]: tr } } : w;
-    });
+    // Batch-translate the name + word labels lacking the target language (shared
+    // gap-fill; see makeRecordFiller), then apply per field.
+    const fill = await makeRecordFiller(
+      [source.name, ...source.words.map((w) => w.label)],
+      srcLang,
+      targetLang,
+    );
+    const name = fill(source.name) ?? source.name;
+    const words = source.words.map((w) => ({ ...w, label: fill(w.label) }));
     return { name, words };
   }
 

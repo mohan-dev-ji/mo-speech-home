@@ -40,7 +40,7 @@ import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { collapseVariants, variantGroupKey, needsTranslation } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
-import { translateTexts } from '@/lib/languages/translateClient';
+import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -962,24 +962,12 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     srcLang: string,
     targetLang: string,
   ): Promise<CompositionUnitClient[]> {
-    const srcOf = (label?: Record<string, string>): string | undefined =>
-      !label || label[targetLang] ? undefined : displayString(label, srcLang, DEFAULT_LOCALE) || undefined;
-
-    const missing: string[] = [];
-    for (const u of units) {
-      if (u.kind === 'word') { const s = srcOf(u.label); if (s) missing.push(s); }
-      else { const n = srcOf(u.name); if (n) missing.push(n); for (const w of u.words) { const s = srcOf(w.label); if (s) missing.push(s); } }
-    }
-    const uniq = [...new Set(missing)];
-    const translated = uniq.length ? await translateTexts(uniq, targetLang) : [];
-    const map = new Map(uniq.map((s, i) => [s, translated[i]]));
-
-    const fill = <T extends Record<string, string> | undefined>(label: T): T => {
-      if (!label || label[targetLang]) return label;
-      const src = displayString(label, srcLang, DEFAULT_LOCALE);
-      const t = src ? map.get(src) : undefined;
-      return (t ? { ...label, [targetLang]: t } : label) as T;
-    };
+    // Batch-translate every label/name that lacks the target language (shared
+    // gap-fill; see makeRecordFiller). The reconstruction below is unchanged.
+    const records = units.flatMap((u) =>
+      u.kind === 'word' ? [u.label] : [u.name, ...u.words.map((w) => w.label)],
+    );
+    const fill = await makeRecordFiller(records, srcLang, targetLang);
 
     return units.map((u): CompositionUnitClient =>
       u.kind === 'word'
