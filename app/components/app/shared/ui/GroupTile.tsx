@@ -124,7 +124,13 @@ export function GroupTile({
     setTranslating(true);
     try {
       const [translated] = await translateTexts([src], language);
-      if (translated) setDraft(translated);
+      if (translated) {
+        // Persist immediately (clicking the icon blurs the input, so there'd be
+        // no later blur to commit on) — the input stays editable for refinement,
+        // and a further edit commits on blur/Enter as usual.
+        setDraft(translated);
+        onRename?.(translated);
+      }
     } catch {
       /* leave the input as-is; the instructor can type it manually */
     } finally {
