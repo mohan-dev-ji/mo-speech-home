@@ -58,7 +58,7 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants } from '@/lib/languages/variants';
+import { collapseVariants, variantGroupKey } from '@/lib/languages/variants';
 import { translateTexts } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -309,11 +309,27 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   useEffect(() => {
     if (phrases === undefined) return;
-    const ids = phraseList.map((p) => p._id as string);
+    // Track the stable variant GROUP, not the raw id: authoring a variant swaps a
+    // group's representative (source → new variant), so a plain append would jump
+    // the card to the end. Map each prior id to its group's current rep to hold
+    // position; append only genuinely new groups.
+    const groupOfId = new Map<string, string>();
+    for (const p of phrases) groupOfId.set(p._id as string, variantGroupKey(p));
+    const repByGroup = new Map<string, string>();
+    for (const p of phraseList) repByGroup.set(variantGroupKey(p), p._id as string);
     setPhraseOrder((prev) => {
-      const kept = prev.filter((id) => ids.includes(id));
-      const added = ids.filter((id) => !prev.includes(id));
-      return [...kept, ...added];
+      const next: string[] = [];
+      const placed = new Set<string>();
+      for (const id of prev) {
+        const g = groupOfId.get(id) ?? id;
+        const rep = repByGroup.get(g);
+        if (rep && !placed.has(g)) { next.push(rep); placed.add(g); }
+      }
+      for (const p of phraseList) {
+        const g = variantGroupKey(p);
+        if (!placed.has(g)) { next.push(p._id as string); placed.add(g); }
+      }
+      return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phrases]);
