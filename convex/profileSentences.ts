@@ -200,8 +200,17 @@ export const createSentenceVariant = mutation({
     if (existing) return existing._id;
 
     // Seed the new sibling from the source arrangement + folder/order; the
-    // instructor re-orders. Fluent variants carry the translated text (keyed by
-    // the new language) so playback resolves the right voice + words.
+    // instructor re-orders. Text is seeded from the source record (the
+    // source-language keys are an intentional fallback so a partial/untranslated
+    // variant shows something + the badge, not blank) and the translated string
+    // is merged under the new language — consistent with how phrase `name` merges.
+    const sourceTextRec: Record<string, string> | undefined =
+      typeof source.text === "string"
+        ? (source.text ? { [source.authoredLanguage ?? "en"]: source.text } : undefined)
+        : source.text;
+    const text = args.text
+      ? { ...(sourceTextRec ?? {}), [args.authoredLanguage]: args.text }
+      : sourceTextRec;
     return await ctx.db.insert("profileSentences", {
       accountId,
       name: source.name,
@@ -213,7 +222,7 @@ export const createSentenceVariant = mutation({
       ...(source.playback ? { playback: source.playback } : {}),
       authoredLanguage: args.authoredLanguage,
       variantGroupId: groupId,
-      ...(args.text ? { text: { [args.authoredLanguage]: args.text } } : {}),
+      ...(text ? { text } : {}),
       updatedAt: Date.now(),
     });
   },

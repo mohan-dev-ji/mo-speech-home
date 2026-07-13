@@ -56,9 +56,9 @@ import {
   DialogClose,
 } from '@/app/components/app/shared/ui/Dialog';
 import type { QuickSymbolItem } from './TalkerBar';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, variantGroupKey } from '@/lib/languages/variants';
+import { collapseVariants, variantGroupKey, needsTranslation } from '@/lib/languages/variants';
 import { translateTexts } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -464,7 +464,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       await createPhraseVariant({ sourcePhraseId: source._id, authoredLanguage: language });
     }
     setPhraseVariantTarget(null);
-    setEditing(true);
+    // Manual → straight into edit mode to arrange + type. Translate produced
+    // complete content, so it just applies (refine later via edit if wanted).
+    if (mode === 'manual') setEditing(true);
   }
 
   // Fill the phrase name + each word label that lacks `targetLang` from one
@@ -640,8 +642,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
               key={p._id}
               name={name}
               words={words}
-              // ADR-016 — board ≠ authored & no variant → show badge → author flow.
-              madeInLabel={pLang !== language ? t('madeInBadge', { lang: pLang.toUpperCase() }) : undefined}
+              // ADR-016 — CONTENT-aware badge: show while the phrase name has no
+              // board-language entry (a manual/untranslated variant still invites a
+              // translate). Label = the language the name actually resolved to.
+              madeInLabel={
+                needsTranslation(p.name, language)
+                  ? t('madeInBadge', { lang: resolvedLocale(p.name, language, DEFAULT_LOCALE)?.toUpperCase() ?? pLang.toUpperCase() })
+                  : undefined
+              }
               onAuthorVariant={() => setPhraseVariantTarget({ id: p._id, authoredLang: pLang })}
               onTap={() =>
                 onSymbolTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, phraseNameRecord: p.name, audioPath, words })

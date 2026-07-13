@@ -38,7 +38,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, variantGroupKey } from '@/lib/languages/variants';
+import { collapseVariants, variantGroupKey, needsTranslation } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { translateTexts } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -531,6 +531,21 @@ function SortableSentenceRow({
   // Phase 15 (3c): a block/sequence sentence renders + speaks in the language it
   // was AUTHORED in, never the board language (structure is language-specific).
   const authoredLang = sentence.authoredLanguage ?? DEFAULT_LOCALE;
+  // "Made in <lang>" badge — CONTENT-aware for fluent sentences (shows until the
+  // board language actually has text, so a manual/untranslated variant still
+  // invites a translate and doesn't strand you in English); tag-based for
+  // sequence (its per-unit translation lives in `units`, keyed off authoredLang).
+  // `badgeLang` = the language the shown content is actually in, or undefined
+  // when it's already in the board language (no badge).
+  const fluentPrimary: Record<string, string> | undefined =
+    typeof sentence.text === 'string'
+      ? (sentence.text ? { [authoredLang]: sentence.text } : sentence.name)
+      : (sentence.text && Object.keys(sentence.text).length ? sentence.text : sentence.name);
+  const badgeLang = isSequenceRow(sentence)
+    ? (authoredLang !== language ? authoredLang : undefined)
+    : (needsTranslation(fluentPrimary, language)
+        ? resolvedLocale(fluentPrimary, language, DEFAULT_LOCALE)
+        : undefined);
   // Talker-saved (sequence) sentences keep no maintained whole-sentence title
   // (unit edits only patch `units`/`slots`), so derive the full sentence from the
   // blocks — exactly what plays — for the read-only text shown to the right.
@@ -700,7 +715,7 @@ function SortableSentenceRow({
               language (its authored language differs). Uniform across ALL composed
               types now (fluent included — supersedes the Phase 15 sequence-only
               gate; bug #1 visibility half). View mode only. */}
-          {!isEditing && authoredLang !== language && (
+          {!isEditing && badgeLang && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onAuthorVariant(sentence); }}
@@ -708,7 +723,7 @@ function SortableSentenceRow({
               className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap transition-opacity hover:opacity-80 cursor-pointer"
               style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
             >
-              {t('madeInBadge', { lang: authoredLang.toUpperCase() })}
+              {t('madeInBadge', { lang: badgeLang.toUpperCase() })}
             </button>
           )}
         </div>
@@ -933,7 +948,10 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
     }
     setVariantTarget(null);
-    setIsEditing(true);
+    // Manual authoring drops straight into edit mode to arrange symbols + type
+    // text. Translate already produced complete content, so it just applies and
+    // leaves the row in place — the instructor can enter edit mode to refine.
+    if (mode === 'manual') setIsEditing(true);
   }
 
   // Block-variant MT-assist: return the source units with each label that lacks

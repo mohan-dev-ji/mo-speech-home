@@ -15,6 +15,7 @@
  */
 
 import { DEFAULT_LOCALE } from "./registry";
+import { resolvedLocale } from "./displayValue";
 
 export type VariantRow = {
   _id: string;
@@ -25,6 +26,25 @@ export type VariantRow = {
 /** The group key all siblings share: the source row's `_id`. */
 export function variantGroupKey(row: VariantRow): string {
   return row.variantGroupId ?? row._id;
+}
+
+/**
+ * Whether a variant still needs translating for `boardLang` — i.e. its PRIMARY
+ * localised field (fluent → `text`, phrase → `name`, else `name`) has no
+ * board-language entry, so it would fall back to another language.
+ *
+ * This drives the "Made in <lang>" badge off actual translation STATE, not the
+ * `authoredLanguage` tag: a manually-created but untranslated variant
+ * (authoredLanguage = board, content still the source language) still reports
+ * `true`, so the badge — and the way back to the translate modal — persists.
+ * `undefined`/empty primary counts as needing translation.
+ */
+export function needsTranslation(
+  primary: Record<string, string> | undefined,
+  boardLang: string,
+): boolean {
+  if (!primary || Object.keys(primary).length === 0) return true;
+  return resolvedLocale(primary, boardLang, DEFAULT_LOCALE) !== boardLang;
 }
 
 /**
