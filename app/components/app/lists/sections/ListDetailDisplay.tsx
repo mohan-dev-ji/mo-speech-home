@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
+import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
 import { playKey, playTts } from '@/lib/audio/playTts';
 import type { ListItem } from '../types';
 
@@ -19,6 +20,10 @@ type DisplayItemProps = {
   checked: boolean;
   onToggle: () => void;
   onPlay: () => void;
+  /** Board language — drives the per-item "Made in <lang>" badge (Phase 15.5). */
+  language: string;
+  /** Open the item translate modal for this item. */
+  onTranslate: () => void;
 };
 
 export type DisplayContainerProps = {
@@ -29,6 +34,10 @@ export type DisplayContainerProps = {
   checkedIds: Set<string>;
   onToggle: (localId: string) => void;
   onItemClick: (index: number) => void;
+  /** Board language for the per-item translate badge (Phase 15.5). */
+  language: string;
+  /** Open the item translate modal for the item at `index`. */
+  onTranslate: (index: number) => void;
 };
 
 export type PlayModalState = {
@@ -153,7 +162,7 @@ export function ListItemPlayModal({
 
 // ─── Row item ─────────────────────────────────────────────────────────────────
 
-function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay }: DisplayItemProps) {
+function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay, language, onTranslate }: DisplayItemProps) {
   return (
     <div
       className="flex items-center gap-4 rounded-theme p-4 transition-colors cursor-pointer"
@@ -170,6 +179,7 @@ function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen
       {item.description && (
         <p className="flex-1 text-theme-p" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>
       )}
+      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />
@@ -181,7 +191,7 @@ function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen
 
 // ─── Column item ──────────────────────────────────────────────────────────────
 
-function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay }: DisplayItemProps) {
+function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay, language, onTranslate }: DisplayItemProps) {
   return (
     <div
       className="flex flex-1 min-w-0 min-h-0 flex-col items-center justify-center gap-3 rounded-theme p-4 transition-colors h-full cursor-pointer"
@@ -218,6 +228,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
           {item.description}
         </p>
       )}
+      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />
@@ -229,7 +240,7 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
 
 // ─── Grid item ────────────────────────────────────────────────────────────────
 
-function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay }: DisplayItemProps) {
+function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThen, checked, onToggle, onPlay, language, onTranslate }: DisplayItemProps) {
   return (
     <div
       className="flex items-center gap-4 rounded-theme p-4 transition-colors cursor-pointer"
@@ -246,6 +257,7 @@ function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThe
       {item.description && (
         <p className="flex-1 text-theme-s" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>
       )}
+      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />
@@ -257,7 +269,7 @@ function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThe
 
 // ─── Display containers ───────────────────────────────────────────────────────
 
-export function DisplayRows({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick }: DisplayContainerProps) {
+export function DisplayRows({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick, language, onTranslate }: DisplayContainerProps) {
   return (
     <div className="flex flex-col gap-3">
       {items.map((item, idx) => (
@@ -271,13 +283,15 @@ export function DisplayRows({ items, showNumbers, showChecklist, showFirstThen, 
           checked={checkedIds.has(item.localId)}
           onToggle={() => onToggle(item.localId)}
           onPlay={() => onItemClick(idx)}
+          language={language}
+          onTranslate={() => onTranslate(idx)}
         />
       ))}
     </div>
   );
 }
 
-export function DisplayColumns({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick }: DisplayContainerProps) {
+export function DisplayColumns({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick, language, onTranslate }: DisplayContainerProps) {
   return (
     <div className="flex flex-1 min-h-0 gap-3">
       {items.map((item, idx) => (
@@ -291,13 +305,15 @@ export function DisplayColumns({ items, showNumbers, showChecklist, showFirstThe
           checked={checkedIds.has(item.localId)}
           onToggle={() => onToggle(item.localId)}
           onPlay={() => onItemClick(idx)}
+          language={language}
+          onTranslate={() => onTranslate(idx)}
         />
       ))}
     </div>
   );
 }
 
-export function DisplayGrid({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick }: DisplayContainerProps) {
+export function DisplayGrid({ items, showNumbers, showChecklist, showFirstThen, checkedIds, onToggle, onItemClick, language, onTranslate }: DisplayContainerProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {items.map((item, idx) => (
@@ -311,6 +327,8 @@ export function DisplayGrid({ items, showNumbers, showChecklist, showFirstThen, 
           checked={checkedIds.has(item.localId)}
           onToggle={() => onToggle(item.localId)}
           onPlay={() => onItemClick(idx)}
+          language={language}
+          onTranslate={() => onTranslate(idx)}
         />
       ))}
     </div>

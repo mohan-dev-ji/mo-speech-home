@@ -15,8 +15,10 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { makeRecordFiller } from '@/lib/languages/translateClient';
+import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -35,6 +37,7 @@ type Props = { listId: Id<'profileLists'> };
 
 export function ListDetailContent({ listId }: Props) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -68,6 +71,8 @@ export function ListDetailContent({ listId }: Props) {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
+  // Phase 15.5 — which item's translate modal is open (index into localItems).
+  const [itemTranslate, setItemTranslate] = useState<number | null>(null);
   // Draft for the editable banner title. Synced from the server name on
   // load + on every server change so a remote rename (or an Escape revert)
   // restores the canonical value.
@@ -326,6 +331,57 @@ export function ListDetailContent({ listId }: Props) {
     }
   }
 
+  // Phase 15.5 — item translate modal. `one` fills a single item; `whole` fills
+  // the title + every item; `manual` opens edit mode to type it. Fills the
+  // missing board-language key(s) via the shared MT helper, then persists.
+  const recordOf = (item: ListItem, srcLang: string): Record<string, string> =>
+    item.descriptionRecord ?? (item.description ? { [srcLang]: item.description } : {});
+
+  async function handleItemTranslateChoice(mode: string) {
+    if (itemTranslate === null || !list) return;
+    const i = itemTranslate;
+
+    if (mode === 'manual') {
+      // Type it myself — enter edit mode to write the description directly.
+      setIsEditing(true);
+      setItemTranslate(null);
+      return;
+    }
+
+    if (mode === 'one') {
+      const base = localItems[i];
+      const srcLang = resolvedLocale(base.descriptionRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+      const rec = recordOf(base, srcLang);
+      const fill = await makeRecordFiller([rec], srcLang, language);
+      const filled = fill(rec);
+      const next = localItems.map((it, idx) =>
+        idx === i
+          ? { ...it, descriptionRecord: filled, description: displayString(filled, language, DEFAULT_LOCALE) }
+          : it,
+      );
+      setLocalItems(next);
+      await persistItems(next);
+      setItemTranslate(null);
+      return;
+    }
+
+    // 'whole' — list title + every item, in one batch.
+    const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+    const fill = await makeRecordFiller(
+      [list.name, ...localItems.map((it) => recordOf(it, srcLang))],
+      srcLang,
+      language,
+    );
+    await renameList({ profileListId: listId, name: fill(list.name) });
+    const next = localItems.map((it) => {
+      const filled = fill(recordOf(it, srcLang));
+      return { ...it, descriptionRecord: filled, description: displayString(filled, language, DEFAULT_LOCALE) };
+    });
+    setLocalItems(next);
+    await persistItems(next);
+    setItemTranslate(null);
+  }
+
   const editProps = {
     items: localItems,
     showNumbers: list.showNumbers,
@@ -347,6 +403,8 @@ export function ListDetailContent({ listId }: Props) {
     checkedIds,
     onToggle: toggleChecked,
     onItemClick: (index: number) => setPlayModal({ item: localItems[index], index }),
+    language,
+    onTranslate: (index: number) => setItemTranslate(index),
   };
 
   // Group colour tint (ADR-014) — colour-codes this list's banner + item cards
@@ -477,6 +535,25 @@ export function ListDetailContent({ listId }: Props) {
         onClose={() => setPlayModal(null)}
         voiceId={voiceId}
       />
+
+      {/* Phase 15.5 — item translate: whole list / just this item / manual. */}
+      {itemTranslate !== null && (
+        <TranslateChoiceModal
+          isOpen={true}
+          onClose={() => setItemTranslate(null)}
+          title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
+          description={tTranslate('chooseDescription', {
+            authoredLang: (resolvedLocale(localItems[itemTranslate]?.descriptionRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE).toUpperCase(),
+            lang: language.toUpperCase(),
+          })}
+          options={[
+            { mode: 'whole', label: tTranslate('wholeList'), hint: tTranslate('wholeListHint'), icon: 'list', primary: true },
+            { mode: 'one', label: tTranslate('thisItem'), icon: 'translate' },
+            { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
+          ]}
+          onChoose={handleItemTranslateChoice}
+        />
+      )}
 
       {symbolPickerForIndex !== null && accountId && (
         <SymbolEditorModal
