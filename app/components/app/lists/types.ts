@@ -9,6 +9,10 @@ export type ListItem = {
   // unwraps via `displayString()` when hydrating `localItems` and rewraps
   // under the current locale key on persist.
   description?: string;
+  // Phase 15.5 — the FULL localised description record, carried alongside the
+  // resolved `description` string so a save preserves every language (not just
+  // the board one) and on-demand translation can fill the missing board key.
+  descriptionRecord?: Record<string, string>;
   audioPath?: string;
   activeAudioSource?: 'default' | 'generate' | 'record';
   defaultAudioPath?: string;

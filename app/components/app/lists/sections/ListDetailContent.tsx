@@ -98,6 +98,14 @@ export function ListDetailContent({ listId }: Props) {
         typeof item.description === 'string'
           ? item.description
           : displayString(item.description, language, DEFAULT_LOCALE),
+      // Carry the full localised record so a later save preserves every
+      // language (not just the board one) and the translate badge can fill
+      // the missing board-language key. A legacy plain string becomes a
+      // single-key record under the board language.
+      descriptionRecord:
+        typeof item.description === 'string'
+          ? { [language]: item.description }
+          : (item.description ?? {}),
       localId: `item-${i}-${item.imagePath ?? 'empty'}`,
     }));
     setLocalItems(mapped);
@@ -139,7 +147,14 @@ export function ListDetailContent({ listId }: Props) {
       items: items.map((item, i) => ({
         imagePath: item.imagePath,
         order: i,
-        description: item.description,
+        // Persist the FULL localised record so every language survives a save
+        // (editing on a HI board no longer flattens the EN description). Fall
+        // back to a single-key record for items that predate the record field.
+        description:
+          item.descriptionRecord ??
+          (typeof item.description === 'string' && item.description
+            ? { [language]: item.description }
+            : undefined),
         audioPath: item.audioPath,
         activeAudioSource: item.activeAudioSource,
         defaultAudioPath: item.defaultAudioPath,
@@ -165,7 +180,13 @@ export function ListDetailContent({ listId }: Props) {
   function handleDescriptionChange(index: number, value: string) {
     setLocalItems((prev) => {
       const next = [...prev];
-      next[index] = { ...next[index], description: value };
+      next[index] = {
+        ...next[index],
+        description: value,
+        // Keep the localised record in step — the board-language key holds
+        // the just-typed value; other languages are preserved.
+        descriptionRecord: { ...next[index].descriptionRecord, [language]: value },
+      };
       return next;
     });
   }
@@ -182,6 +203,12 @@ export function ListDetailContent({ listId }: Props) {
       ...item,
       imagePath:          result.imagePath,
       description:        result.description ?? item.description,
+      // Keep the localised record in step when the editor set a description —
+      // the board-language key holds the new value; other languages persist.
+      descriptionRecord:
+        result.description !== undefined
+          ? { ...item.descriptionRecord, [language]: result.description }
+          : item.descriptionRecord,
       audioPath:          result.audioPath,
       activeAudioSource:  result.activeAudioSource,
       defaultAudioPath:   result.defaultAudioPath,

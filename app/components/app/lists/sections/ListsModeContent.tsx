@@ -413,9 +413,13 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
       setEditingNameId(null);
       return;
     }
+    // Merge under the board language — preserve every other locale's label so
+    // renaming on a HI board doesn't flatten the EN name (mirrors the detail
+    // view's commitName).
+    const existing = listMap[editingNameId]?.name ?? {};
     await renameList({
       profileListId: editingNameId,
-      name: { en: editingNameValue.trim() },
+      name: { ...existing, [language]: editingNameValue.trim() },
     });
     setEditingNameId(null);
   }
