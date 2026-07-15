@@ -114,6 +114,21 @@
     "toastTierUpdated": "Plan tier updated",
     "toastAdminError": "Could not complete admin action"
   },
+  "translate": {
+    "madeInBadge": "Made in {lang}",
+    "chooseTitle": "Translate to {lang}",
+    "chooseDescription": "This is in {authoredLang}. Add a {lang} version.",
+    "wholeList": "Translate whole list",
+    "wholeListHint": "Title and every item, in one go.",
+    "thisTitle": "Translate the title",
+    "thisItem": "Translate this item",
+    "thisName": "Translate this name",
+    "one": "Translate just this one",
+    "manual": "Type it myself",
+    "manualHint": "Open editing to write it in {lang}.",
+    "translating": "Translating…",
+    "error": "Couldn't translate. Try again or type it."
+  },
   "sentences": {
     "title": "Sentences",
     "empty": "No sentences yet",
