@@ -184,6 +184,45 @@ Cleanups made under this decision:
 
 ---
 
+## Addendum E — Phase 15.5: unified live-translation badge for order-free labels
+
+The variant machinery above (sibling rows, per-language *arrangements*) is for
+**composed** content — sentences and phrases. **Order-free labels** — folder /
+group names, list titles, list item descriptions — have no arrangement to hold
+per language; they are plain localised records (`{en, hi, …}`) that just need
+the board-language key filled. Phase 15.5 gives them the same *discoverable*
+translation UX as variants, without the sibling-row model:
+
+- **One `TranslateBadge`** (`app/components/app/shared/ui/TranslateBadge.tsx`) —
+  the view-mode "Made in <lang>" pill, rendered iff `needsTranslation(record,
+  boardLang)`. Reused for folder names, list titles and list item descriptions.
+- **One generic `TranslateChoiceModal`**
+  (`app/components/app/shared/modals/TranslateChoiceModal.tsx`) — a data-driven
+  mode-picker; the parent runs the work and persists. Folder modal = translate
+  name / manual. List title + item modals = whole list / just this one / manual.
+  `VariantAuthorModal` is deliberately **left as-is** for sentences/phrases (no
+  refactor of working code); a minor two-modal overlap is accepted.
+- **Translate applies silently** (fills the missing key via the shared
+  `makeRecordFiller` / `translateTexts`, then persists — no forced edit mode),
+  mirroring Addendum D. **Manual** opens the field's existing edit affordance.
+- **Folder edit-icon (slice 3) superseded.** The earlier edit-mode translate
+  icon on `GroupTile` (Addendum D) is replaced by the view-mode badge + modal,
+  unifying folders with lists/sentences. `GroupTile` is shared by categories,
+  list groups and sentence groups, so all three get the badge uniformly.
+- **Lists made multi-language-safe (prerequisite).** List items now carry the
+  full `descriptionRecord` (not just a board-resolved string) through hydration,
+  edit and persist, and both list renames merge under the board language —
+  otherwise editing a multilingual list on one board flattened every other
+  language's text, clobbering translations.
+- **Audio: no work.** List playback is voice-follows-text
+  (`ListItemPlayModal` re-resolves TTS from the board-language description), so a
+  translated item simply plays in the board language; human recordings keep
+  theirs (expected).
+
+Implemented by [`phase-15.5-list-translation.md`](../plans/phase-15.5-list-translation.md).
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
