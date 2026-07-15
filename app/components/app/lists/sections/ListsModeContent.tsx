@@ -32,8 +32,11 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
+import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
+import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
@@ -109,13 +112,15 @@ type SortableListRowProps = {
   onDeleteRequest: (id: Id<'profileLists'>, name: string) => void;
   onMoveRequest: (id: Id<'profileLists'>, name: string) => void;
   onOpen: (id: Id<'profileLists'>) => void;
+  /** Phase 15.5 — open the translate modal for this list (badge tap). */
+  onTranslateList: (id: Id<'profileLists'>) => void;
 };
 
 function SortableListRow({
   list, language, isEditing,
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
-  onDeleteRequest, onMoveRequest, onOpen,
+  onDeleteRequest, onMoveRequest, onOpen, onTranslateList,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -220,9 +225,17 @@ function SortableListRow({
               </button>
             </div>
           ) : (
-            <p className="text-theme-p font-semibold break-words" style={{ color: 'var(--theme-text-primary)' }}>
-              {name}
-            </p>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="text-theme-p font-semibold break-words min-w-0" style={{ color: 'var(--theme-text-primary)' }}>
+                {name}
+              </p>
+              {/* Phase 15.5 — order-free list title translate badge. */}
+              <TranslateBadge
+                record={list.name}
+                language={language}
+                onClick={() => onTranslateList(list._id)}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -234,6 +247,7 @@ function SortableListRow({
 
 export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
@@ -277,6 +291,14 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const renameList = useMutation(api.profileLists.updateProfileListName);
   const reorderLists = useMutation(api.profileLists.reorderProfileLists);
   const moveListToGroup = useMutation(api.profileFolders.moveListToGroup);
+
+  // Phase 15.5 — list-title translate. The tile carries only thumbnails, so the
+  // whole-list path needs the items; fetch the target list on demand.
+  const [translateTarget, setTranslateTarget] = useState<Id<'profileLists'> | null>(null);
+  const translateFullList = useQuery(
+    api.profileLists.getProfileListWithItems,
+    translateTarget ? { profileListId: translateTarget } : 'skip',
+  );
 
   // ── Folder scoping (ADR-014 §2) ──────────────────────────────────────────
   // Rendered under /lists/folder/[folderId]; show only that group's lists.
@@ -441,6 +463,59 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   // reorder / rename / delete here propagates to the live pack.
   const hasPublishedList = !!scopedLists?.some((l) => !!l.librarySourceId);
 
+  // Phase 15.5 — list-title translate modal. Fills the missing board-language
+  // key(s) via the shared MT helpers, then persists silently (no edit mode).
+  const translateName = translateTarget ? listMap[translateTarget]?.name : undefined;
+  const translateSrcLang = translateName
+    ? (resolvedLocale(translateName, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE)
+    : DEFAULT_LOCALE;
+  async function handleTranslateChoice(mode: string) {
+    if (!translateTarget) return;
+    const name = listMap[translateTarget]?.name ?? translateFullList?.name ?? {};
+    const srcLang = resolvedLocale(name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+
+    if (mode === 'manual') {
+      // Type it myself — reveal the inline rename input for this list.
+      setEditingNameId(translateTarget);
+      setEditingNameValue(displayString(name, language, DEFAULT_LOCALE));
+      setTranslateTarget(null);
+      return;
+    }
+
+    if (mode === 'title') {
+      const src = displayString(name, srcLang, DEFAULT_LOCALE);
+      if (src) {
+        const [tr] = await translateTexts([src], language);
+        if (tr) await renameList({ profileListId: translateTarget, name: { ...name, [language]: tr } });
+      }
+      setTranslateTarget(null);
+      return;
+    }
+
+    // 'whole' — title + every item, in one batch.
+    if (!translateFullList) throw new Error('list not loaded');
+    const recordOf = (d: string | Record<string, string> | undefined): Record<string, string> =>
+      typeof d === 'string' ? { [srcLang]: d } : (d ?? {});
+    const itemRecords = translateFullList.items.map((it) => recordOf(it.description));
+    const fill = await makeRecordFiller([translateFullList.name, ...itemRecords], srcLang, language);
+    await renameList({ profileListId: translateTarget, name: fill(translateFullList.name) });
+    await updateListItems({
+      profileListId: translateTarget,
+      items: translateFullList.items.map((it, i) => ({
+        imagePath: it.imagePath,
+        order: i,
+        description: it.description === undefined ? undefined : fill(recordOf(it.description)),
+        audioPath: it.audioPath,
+        activeAudioSource: it.activeAudioSource,
+        defaultAudioPath: it.defaultAudioPath,
+        generatedAudioPath: it.generatedAudioPath,
+        recordedAudioPath: it.recordedAudioPath,
+        imageSourceType: it.imageSourceType,
+      })),
+    });
+    setTranslateTarget(null);
+  }
+
   return (
     <div
       className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap"
@@ -532,6 +607,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                     onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
                     onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                     onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
+                    onTranslateList={(id) => setTranslateTarget(id)}
                   />
                 ))}
               </div>
@@ -564,6 +640,22 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
         onOpenChange={setUpgradeNudgeOpen}
         locale={locale}
       />
+
+      {/* Phase 15.5 — list-title translate: whole list / just the title / manual. */}
+      {translateTarget && (
+        <TranslateChoiceModal
+          isOpen={true}
+          onClose={() => setTranslateTarget(null)}
+          title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
+          description={tTranslate('chooseDescription', { authoredLang: translateSrcLang.toUpperCase(), lang: language.toUpperCase() })}
+          options={[
+            { mode: 'whole', label: tTranslate('wholeList'), hint: tTranslate('wholeListHint'), icon: 'list', primary: true },
+            { mode: 'title', label: tTranslate('thisTitle'), icon: 'translate' },
+            { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
+          ]}
+          onChoose={handleTranslateChoice}
+        />
+      )}
 
       <Dialog
         open={pendingDelete !== null}
