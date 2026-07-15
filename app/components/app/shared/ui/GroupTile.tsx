@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ImageIcon, Trash2, Move, Upload, RefreshCw, Languages } from 'lucide-react';
+import { ImageIcon, Trash2, Move, Upload, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -9,9 +9,11 @@ import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { ColourSwatchPicker } from '@/app/components/app/shared/ui/ColourSwatchPicker';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { displayString } from '@/lib/languages/displayValue';
+import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { translateTexts } from '@/lib/languages/translateClient';
+import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
+import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 
 const TITLE_FONT_SIZE = {
   large: 'clamp(0.875rem, 6cqi, 1.25rem)',
@@ -43,12 +45,19 @@ type Props = {
   onRename?: (value: string) => void;
   /**
    * ADR-016 Addendum D — the full localised name record + board language. When
-   * both are set and the board-language key is empty, edit mode shows a translate
-   * icon that MT-fills the name into the still-editable rename input. Omit to hide
-   * the affordance (names never auto-translate).
+   * both are set and the board-language key is missing, VIEW mode shows a
+   * "Made in <lang>" badge (Phase 15.5) that opens the translate modal to
+   * MT-fill or hand-type the name in the board language. Omit to hide the
+   * affordance (names never auto-translate).
    */
   nameRecord?: Record<string, string>;
   language?: string;
+  /**
+   * Phase 15.5 — the translate modal's "type it myself" path. Called so the
+   * parent can put the tile into rename mode (its global edit toggle). Omit and
+   * the manual option still closes the modal, just without opening an editor.
+   */
+  onManualRename?: () => void;
   /** New colour key from the swatch picker. */
   onRecolour?: (key: string) => void;
   /** Open the Symbol Editor (image only) to pick the folder image. */
@@ -85,8 +94,10 @@ export function GroupTile({
   published,
   nameRecord,
   language,
+  onManualRename,
 }: Props) {
   const t = useTranslations('group');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
 
@@ -111,31 +122,23 @@ export function GroupTile({
     else setDraft(name);
   }
 
-  // ADR-016 Addendum D — MT-fill the name into the still-editable input when the
-  // board-language key is empty. Names never auto-translate; this is an explicit,
-  // per-language, on-demand action the instructor can then correct on their
-  // keyboard (commit on blur/Enter saves it under the board language).
-  const [translating, setTranslating] = useState(false);
-  const showTranslate = !!(language && nameRecord && !nameRecord[language]?.trim());
-  async function handleTranslateName() {
+  // Phase 15.5 — view-mode "Made in <lang>" badge → translate modal. Names never
+  // auto-translate; the instructor picks translate (MT-fill, persisted silently
+  // under the board language) or "type it myself" (opens the tile's rename).
+  const [translateOpen, setTranslateOpen] = useState(false);
+  async function handleTranslateChoice(mode: string) {
+    if (mode === 'manual') {
+      onManualRename?.();
+      setTranslateOpen(false);
+      return;
+    }
+    // 'translate' — MT-fill the name into the board language and persist.
     if (!language || !nameRecord) return;
     const src = displayString(nameRecord, language, DEFAULT_LOCALE);
-    if (!src) return;
-    setTranslating(true);
-    try {
-      const [translated] = await translateTexts([src], language);
-      if (translated) {
-        // Persist immediately (clicking the icon blurs the input, so there'd be
-        // no later blur to commit on) — the input stays editable for refinement,
-        // and a further edit commits on blur/Enter as usual.
-        setDraft(translated);
-        onRename?.(translated);
-      }
-    } catch {
-      /* leave the input as-is; the instructor can type it manually */
-    } finally {
-      setTranslating(false);
-    }
+    if (!src) { setTranslateOpen(false); return; }
+    const [translated] = await translateTexts([src], language);
+    if (translated) onRename?.(translated); // parent merges under the board language
+    setTranslateOpen(false);
   }
 
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
@@ -159,36 +162,19 @@ export function GroupTile({
       >
         {/* Title */}
         {isEditing ? (
-          <div className="w-full flex items-center gap-1">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitName}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.currentTarget.blur();
-                else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
-              }}
-              onClick={(e) => e.stopPropagation()}
-              aria-label={t('rename')}
-              className="flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
-              style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
-            />
-            {/* ADR-016 Addendum D — translate the name into the board language when
-                its key is empty; fills the still-editable input. */}
-            {showTranslate && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); handleTranslateName(); }}
-                disabled={translating}
-                aria-label={t('translateName')}
-                title={t('translateName')}
-                className="shrink-0 p-1.5 rounded-theme-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-                style={{ color: 'var(--theme-alt-text)', border: '1px solid var(--theme-enter-mode)' }}
-              >
-                <Languages className={`w-4 h-4 ${translating ? 'animate-pulse' : ''}`} />
-              </button>
-            )}
-          </div>
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={t('rename')}
+            className="w-full min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
+            style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
+          />
         ) : (
           <p
             className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"
@@ -263,6 +249,34 @@ export function GroupTile({
           </EditPanel>
         )}
       </Tag>
+
+      {/* Phase 15.5 — view-mode "Made in <lang>" badge (order-free folder name).
+          Rendered OUTSIDE the tile <button> to avoid nested interactive elements;
+          the outer wrapper is position:relative so this anchors to the tile. */}
+      {!isEditing && language && nameRecord && (
+        <TranslateBadge
+          record={nameRecord}
+          language={language}
+          onClick={() => setTranslateOpen(true)}
+          className="absolute top-2 right-2 z-10"
+        />
+      )}
+      {language && nameRecord && (
+        <TranslateChoiceModal
+          isOpen={translateOpen}
+          onClose={() => setTranslateOpen(false)}
+          title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
+          description={tTranslate('chooseDescription', {
+            authoredLang: (resolvedLocale(nameRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE).toUpperCase(),
+            lang: language.toUpperCase(),
+          })}
+          options={[
+            { mode: 'translate', label: tTranslate('thisName'), icon: 'translate', primary: true },
+            { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
+          ]}
+          onChoose={handleTranslateChoice}
+        />
+      )}
     </div>
   );
 }

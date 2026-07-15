@@ -272,6 +272,7 @@ export function CategoriesContent() {
                       language={language}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
+                      onManualRename={() => setIsEditing(true)}
                       onRecolour={(key) => handleRecolour(cat._id, key)}
                       onEditImage={() => setImageTarget({ id: cat._id, name, imagePath: cat.imagePath })}
                       onDeleteRequest={() => handleDeleteRequest(cat._id, name)}
