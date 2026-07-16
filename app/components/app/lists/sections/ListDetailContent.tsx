@@ -105,11 +105,14 @@ export function ListDetailContent({ listId }: Props) {
           : displayString(item.description, language, DEFAULT_LOCALE),
       // Carry the full localised record so a later save preserves every
       // language (not just the board one) and the translate badge can fill
-      // the missing board-language key. A legacy plain string becomes a
-      // single-key record under the board language.
+      // the missing board-language key. A legacy plain string predates i18n
+      // and is origin-language content — key it under DEFAULT_LOCALE, NOT the
+      // board language, so on a non-English board `needsTranslation` correctly
+      // reports it as untranslated (badge shows) instead of mislabelling the
+      // English text as the board language.
       descriptionRecord:
         typeof item.description === 'string'
-          ? { [language]: item.description }
+          ? { [DEFAULT_LOCALE]: item.description }
           : (item.description ?? {}),
       localId: `item-${i}-${item.imagePath ?? 'empty'}`,
     }));
@@ -154,11 +157,12 @@ export function ListDetailContent({ listId }: Props) {
         order: i,
         // Persist the FULL localised record so every language survives a save
         // (editing on a HI board no longer flattens the EN description). Fall
-        // back to a single-key record for items that predate the record field.
+        // back to an origin-keyed record for items that predate the record
+        // field (defensive — hydration already sets descriptionRecord).
         description:
           item.descriptionRecord ??
           (typeof item.description === 'string' && item.description
-            ? { [language]: item.description }
+            ? { [DEFAULT_LOCALE]: item.description }
             : undefined),
         audioPath: item.audioPath,
         activeAudioSource: item.activeAudioSource,
