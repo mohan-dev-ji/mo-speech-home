@@ -30,6 +30,9 @@ export const dumpAllModules = query({
       ...(m.colour ? { colour: m.colour } : {}),
       ...(m.coverImagePath ? { coverImagePath: m.coverImagePath } : {}),
       defaultTier: m.defaultTier,
+      // ADR-015 §6/§7 — content-defining, not lifecycle: without it a restored
+      // `core-*` module stops being a core-word module.
+      ...(m.surface ? { surface: m.surface } : {}),
       ...(m.isDefault ? { isDefault: true } : {}),
       ...(m.isStarter ? { isStarter: true } : {}),
       ...(m.provenance ? { provenance: m.provenance } : {}),

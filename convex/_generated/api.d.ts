@@ -42,6 +42,7 @@ import type * as lib_contentModuleInstall from "../lib/contentModuleInstall.js";
 import type * as lib_contentModules from "../lib/contentModules.js";
 import type * as lib_materialiseSymbols from "../lib/materialiseSymbols.js";
 import type * as lib_themes from "../lib/themes.js";
+import type * as lib_variantAuthoring from "../lib/variantAuthoring.js";
 import type * as migrations from "../migrations.js";
 import type * as modellingSessions from "../modellingSessions.js";
 import type * as profileCategories from "../profileCategories.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "lib/contentModules": typeof lib_contentModules;
   "lib/materialiseSymbols": typeof lib_materialiseSymbols;
   "lib/themes": typeof lib_themes;
+  "lib/variantAuthoring": typeof lib_variantAuthoring;
   migrations: typeof migrations;
   modellingSessions: typeof modellingSessions;
   profileCategories: typeof profileCategories;

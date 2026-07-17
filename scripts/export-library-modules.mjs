@@ -1,7 +1,7 @@
 /**
  * Export the live `libraryModules` table to committed per-slug JSON in
- * `convex/data/{categories,lists,sentences}/<slug>.json`, then regenerate each
- * tree's `_index.ts` barrel (ADR-014 Task F, addendum 2026-06-27).
+ * `convex/data/{categories,lists,sentences,phrases}/<slug>.json`, then regenerate
+ * each tree's `_index.ts` barrel (ADR-014 Task F, addendum 2026-06-27).
  *
  * This is the git audit-trail / rollback artifact for curated module content —
  * NOT the live source (the table is). Run it at milestones (after a curation
@@ -9,7 +9,7 @@
  *
  * Run:
  *   node scripts/export-library-modules.mjs
- *   git add convex/data/{categories,lists,sentences}
+ *   git add convex/data/{categories,lists,sentences,phrases}
  *   git commit -m "export: library modules <label>"
  *
  * What it does:
@@ -19,7 +19,7 @@
  *   3. Prunes any `*.json` in those dirs that is NOT in the dump (so the
  *      artifact matches the table) — aborts if the dump is empty, to avoid a
  *      catastrophic prune.
- *   4. Regenerates the three `_index.ts` barrels by directory scan (these feed
+ *   4. Regenerates each tree's `_index.ts` barrel by directory scan (these feed
  *      `migrations.seedLibraryModulesFromJSON`, the restore path).
  *
  * Requires the query to be deployed (it is, after `npx convex codegen`).
@@ -44,16 +44,19 @@ const OUT = {
   categories: "convex/data/categories",
   lists: "convex/data/lists",
   sentences: "convex/data/sentences",
+  phrases: "convex/data/phrases",
 };
 const MODULE_TYPE = {
   categories: "CategoryModule",
   lists: "ListModule",
   sentences: "SentenceModule",
+  phrases: "PhraseModule",
 };
 const MAP_NAME = {
   categories: "CATEGORY_MODULES",
   lists: "LIST_MODULES",
   sentences: "SENTENCE_MODULES",
+  phrases: "PHRASE_MODULES",
 };
 
 // ── Fetch the dump ──────────────────────────────────────────────────────────
@@ -89,7 +92,9 @@ if (!Array.isArray(modules) || modules.length === 0) {
 }
 
 // ── Write per-slug JSON ─────────────────────────────────────────────────────
-const seen = { categories: new Set(), lists: new Set(), sentences: new Set() };
+// Derived from OUT — a tree added there must never be missed here (the omission
+// that silently dropped `phrases` from the artifact until 2026-07-17).
+const seen = Object.fromEntries(Object.keys(OUT).map((t) => [t, new Set()]));
 let written = 0;
 for (const m of modules) {
   if (!OUT[m.tree]) {
@@ -168,5 +173,5 @@ console.log(
   `\n✅ Exported ${written} modules${pruned ? `, pruned ${pruned} stale` : ""}.`
 );
 console.log(
-  "📝 Next: git add convex/data/{categories,lists,sentences} && git commit"
+  "📝 Next: git add convex/data/{categories,lists,sentences,phrases} && git commit"
 );
