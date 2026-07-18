@@ -85,13 +85,20 @@ export function blocksFromTalker(items: TalkerSymbolItem[], resolveLang: string)
 // morphology) and is re-authored per language, never translated in place. Each
 // block also carries the locale its text actually resolved to, so the play modal
 // can voice it in that language (voice follows text, 3e).
+// Voice (Variant Lifecycle Stage 1): every block carries the composition's ONE
+// `authoredLanguage` as its `locale` — a saved variant is a single language, so
+// the whole utterance is voiced in that language's voice (board-accent), never a
+// per-block mix. (Live talker blocks keep per-item locale; they mix languages.)
 export function blocksFromUnits(units: CompositionUnitClient[], resolveLang: string): PlayBlock[] {
   return units.map((u): PlayBlock => {
     if (u.kind === 'phrase') {
       return {
         kind: 'phrase',
         name: displayString(u.name, resolveLang, DEFAULT_LOCALE),
-        locale: resolvedLocale(u.name, resolveLang, DEFAULT_LOCALE),
+        // Board-accent (Variant Lifecycle Stage 1): every block in a saved
+        // composition shares the row's one authoredLanguage, so the whole
+        // utterance speaks in one voice — no per-block word/phrase split.
+        locale: resolveLang,
         // Recording (persona-independent) wins; a frozen TTS clip is dropped so
         // the play modal re-resolves it to the current persona (see recordingKey).
         audioKey: recordingKey(u.recordedAudioPath ?? u.audioPath),
@@ -104,7 +111,7 @@ export function blocksFromUnits(units: CompositionUnitClient[], resolveLang: str
     return {
       kind: 'word',
       label: displayString(u.label, resolveLang, DEFAULT_LOCALE),
-      locale: resolvedLocale(u.label, resolveLang, DEFAULT_LOCALE),
+      locale: resolveLang,
       imageUrl: toAssetUrl(u.imagePath),
       // Only a human recording plays verbatim; a default/TTS clip re-resolves to
       // the current persona in the play modal (see recordingKey).
