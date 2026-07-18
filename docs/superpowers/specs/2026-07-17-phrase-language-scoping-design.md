@@ -1,8 +1,34 @@
 # Phrase language scoping — design
 
 **Date:** 2026-07-17
-**Status:** Design approved. The phrase teardown is **not started**; the backup/data fixes under *Completed ahead of this spec* have **already landed**.
-**Feeds:** ADR-016 **Addendum G** (F is reserved by [`phase-15.6-revert-translation.md`](../../4-builds/plans/phase-15.6-revert-translation.md)) + a phase plan under `docs/4-builds/plans/`.
+**Status:** ❌ **REJECTED (2026-07-18).** The proposed teardown was **not implemented**. Kept as a decision record — the research and taxonomy below stand; the conclusion was reversed after hands-on testing. See *Outcome* immediately below.
+**Feeds:** nothing. No ADR addendum written; no phase plan created.
+
+---
+
+## Outcome — teardown rejected (2026-07-18)
+
+After reading this spec, the owner tested the **existing** variant system by hand in the app: took a translated (seed) phrase on a Hindi board and edited it. Finding — a valid Hindi variant is reachable with tiny edits (delete the subject symbol, drop `to`/`the`, add a symbol for `hai`); and where a phrase collapses to a single word, it's simply deleted and a core word used instead. Two realisations followed:
+
+1. **`variantGroupId` is optional and additive, not a forced bijection.** The system already supports both an English-parent → target-seed sibling *and* a standalone per-language phrase (`createProfilePhrase` with `authoredLanguage`, no group). It never *required* the English skeleton this spec argued against. The "no bijection" case attacked a requirement that doesn't exist.
+
+2. **The research condemned auto-translating-and-shipping phrases — which the system doesn't do.** The variant flow *seeds a prompt the human edits*, which is exactly ADR-016 Addendum A (*"MT is a starting point that the human re-authors structurally"*). So the evidence below supports *good defaults + human edit* — and the current system **is** that. The seeded sibling acts as a useful scaffold on a new board ("we did this in EN; start here in HI"), after which Mo Speech's global edit mode / full customisation takes over. That edit-everything model is the product's core value, and it absorbs the imperfect mapping at one click.
+
+**Weighed against that, the teardown was a lot of destructive work** (schema migration, deleting shipped-and-working code, removing the scaffold) to enforce a purity whose benefit the flexible editor already delivers. It also made phrases a *third* content category, breaking the phrases≈sentences symmetry — a cost this spec introduced rather than removed.
+
+**Accepted, eyes open:** on a structurally-English phrase, the badge's "Translate to ⟨lang⟩" path can seed a poor variant before the human fixes it. Bounded by (a) cutting glue from *defaults*, (b) edit mode, (c) owner awareness → straight to manual edit on the "Made in…" click. Revisit only if user feedback shows the badge misleading on phrases.
+
+### What actually shipped from this investigation
+
+The parts **independent** of the rejected schema change were kept and are done:
+
+- **Backup/data fixes** — exporter now covers the `phrases` tree; `surface` round-trips both ends; three legacy phrase modules (`everyday`/`feelings`/`social`) deleted. Committed `bb1474e`. (See *Completed ahead of this spec*.)
+- **Dead-code sweep** — `getPhraseBanks`, `installDefaultBanksAndCore` (`profilePhrases.ts`), and `retireOldDropdownDefaults` (`dropbar.ts`) removed. These were dead (zero callers) **regardless** of the variant decision; the last was also a footgun (its `surface === "core"` retire logic would have un-defaulted the 7 kept core category modules).
+- **Content, ongoing (owner):** author good trilingual default phrases and **cut the glue** (`to the` / `in the`). Still worth doing — glue teaches no structure, isn't a gestalt, and seeds the worst variants. This is content work in the owner's Google Sheet, not a code change.
+
+**Not carried out:** removing `variantGroupId` from `profilePhrases`; deleting `createPhraseVariant` / the phrase badge / `collapseVariants`; the `authoredLanguage === boardLanguage` hide-filter; ADR-016 Addendum G. The variant system stays as-is for phrases.
+
+> Everything below this line is the **original rejected proposal**, preserved unchanged as the record of what was considered and why it was set aside.
 
 ---
 
