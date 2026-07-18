@@ -102,6 +102,33 @@ Fork uses the **existing** variant machinery — no new structure:
 existing default/translated variant** — the same code paths render, play, revert, and delete
 both.
 
+#### 2a. Word-unit save-path defects (folded into Stage 2, found in testing)
+
+Editing a **single-symbol (word) unit** of a talker-saved/sequence sentence exposed two
+defects in the word-unit save path (`SentencesModeContent.handleUnitSave` → `SymbolEditorModal`
+save; `PropertiesPanel.tsx:243`). Both are properly owned by the fork-on-edit work because they
+live in the exact save path Stage 2 reworks:
+
+1. **Correct-language keying.** The word editor hardcodes its text field as English
+   (`labelFieldLang = 'en'` for `editorMode === 'listItem'`), but the save writes the raw input
+   under the **board** language key (`label: { [language]: value }`). Typing "dinner" on a Hindi
+   board stores it under `hi` — mislabeling English as Hindi content (the general mis-keying this
+   model fixes). Stage 2 must key a word-unit edit under the fork's real `authoredLanguage`, and
+   the editor field must reflect that language, not a hardcoded `en`.
+2. **Audio invalidation on text change.** A word unit stores `label` and `audioPath` as
+   independent fields; the save carries the **old clip forward verbatim**, and playback plays a
+   trusted (`accounts/…`) clip verbatim (`recordingKey` → `CompositionPlayModal.playOne`),
+   skipping TTS — so display shows the new text while audio plays the stale clip (e.g. shows
+   "dinner", speaks "raat ko khana"). Phrases already invalidate on rename
+   (`InlinePhraseEditor.tsx:96`); words have no equivalent. **Decision:** when a word-unit's text
+   changes and no new audio was deliberately set, **drop the stale clip regardless of source
+   (recording included)**. **Fallback:** playback then re-synthesizes the current text in the
+   block's board-accent voice (`resolveTtsKey(label, voiceForLanguage(authoredLanguage))`) —
+   graceful; only the mismatched waveform is lost. To keep a recording, re-record after editing.
+
+Both are **independent of Stage 1** (which only changed block `locale`); they reproduce
+pre-Stage-1 and are audio/keying defects, not voice-selection.
+
 ### 3. Voice — board-accent + the block fix
 
 - Forked board variant → **board voice** (its `authoredLanguage`). Origin fallback → **origin
@@ -188,12 +215,18 @@ sentence / phrase:
    variants.
 6. **Create:** a new ungrouped item is authored in the creating board's language (its origin).
 7. Fork ↔ Revert round-trips and survives a board switch.
+8. **Word-unit save (Stage 2, §2a):** edit a single-symbol/word block's text on a forked
+   variant → the text is keyed under the fork's `authoredLanguage` (not blindly the board key
+   via a hardcoded-`en` field), AND the audio re-synthesizes the new text in the board voice
+   (the stale clip is dropped) — no more "shows dinner, speaks raat ko khana".
 
 ## Implementation staging (for the plan)
 
 1. **Block-voice consistency** — voice = variant's `authoredLanguage`. Small, standalone, safe,
    high value; ship first.
-2. **fork-on-edit** for composed content (the cross-board footgun fix).
+2. **fork-on-edit** for composed content (the cross-board footgun fix) — **plus the two
+   word-unit save-path defects (§2a): correct-language keying and audio-invalidation-on-text-
+   change.** They live in the same save path this stage reworks.
 3. **Revert** edit-toolbar icon across all surfaces (absorbs the 15.6 revert plan).
 4. **Delete → whole-item** redefinition + `deleteGroup` mutations + confirm copy.
 
