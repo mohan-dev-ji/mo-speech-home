@@ -1,5 +1,8 @@
 # Revert Translation — Implementation Plan
 
+> ⚠️ **SUPERSEDED (2026-07-18).** This standalone revert plan is absorbed into the
+> **Language Variant Lifecycle** model — see [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md). Revert becomes **Stage 3** there, and its affordance changed from a badge-triggered scope modal to an **edit-toolbar icon** (owner decision). Do NOT execute this plan as-is; the helpers/i18n groundwork below are still reused. Kept for history.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task. Steps use `- [ ]` checkboxes.
 > **Self-contained plan for a fresh session** (Phase 15.6). Full context below.
 > **Design spec:** [`docs/superpowers/specs/2026-07-16-revert-translation-design.md`](../../superpowers/specs/2026-07-16-revert-translation-design.md).
