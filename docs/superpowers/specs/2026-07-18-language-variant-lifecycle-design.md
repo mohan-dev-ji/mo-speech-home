@@ -109,13 +109,18 @@ defects in the word-unit save path (`SentencesModeContent.handleUnitSave` → `S
 save; `PropertiesPanel.tsx:243`). Both are properly owned by the fork-on-edit work because they
 live in the exact save path Stage 2 reworks:
 
-1. **Correct-language keying.** The word editor hardcodes its text field as English
-   (`labelFieldLang = 'en'` for `editorMode === 'listItem'`), but the save writes the raw input
-   under the **board** language key (`label: { [language]: value }`). Typing "dinner" on a Hindi
-   board stores it under `hi` — mislabeling English as Hindi content (the general mis-keying this
-   model fixes). Stage 2 must key a word-unit edit under the fork's real `authoredLanguage`, and
-   the editor field must reflect that language, not a hardcoded `en`.
-2. **Audio invalidation on text change.** A word unit stores `label` and `audioPath` as
+1. **Word-unit keying — NOT a defect under board-accent (de-scoped, corrected 2026-07-18).**
+   The word editor's field is internally `labelFieldLang = 'en'`, but the save always writes under
+   the **board** key (`label: { [language]: value }`), and at fork time `[language]` IS the fork's
+   `authoredLanguage`. So the stored key is always correct; the `'en'` is an internal field name
+   with no effect on the stored language. Under board-accent, "type English on a Hindi board →
+   stored as the Hindi variant's content, spoken in the Hindi accent" is the *intended* state, not
+   a mis-key. **No change needed here.** (The genuine shape issue is on the FLUENT path, below.)
+2. **Fluent text shape.** `updateProfileSentenceAudio` writes `text` as a **plain string**
+   (`convex/profileSentences.ts:302`), inconsistent with the record shape variants use. When a
+   fluent edit forks, the fork's `text` must be written as a **record keyed by the fork's
+   `authoredLanguage`** (merge, not string-overwrite), so the variant model stays consistent.
+3. **Audio invalidation on text change.** A word unit stores `label` and `audioPath` as
    independent fields; the save carries the **old clip forward verbatim**, and playback plays a
    trusted (`accounts/…`) clip verbatim (`recordingKey` → `CompositionPlayModal.playOne`),
    skipping TTS — so display shows the new text while audio plays the stale clip (e.g. shows
