@@ -1026,9 +1026,17 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     return (sentences?.find((s) => s._id === sentenceId)?.units ?? []) as CompositionUnitClient[];
   }
 
-  function persistUnits(sentenceId: Id<'profileSentences'>, units: CompositionUnitClient[]) {
+  async function persistUnits(sentenceId: Id<'profileSentences'>, units: CompositionUnitClient[]) {
+    const row = sentences?.find((s) => s._id === sentenceId);
+    // Fork-on-edit: editing a fallback (source/other-language) row on this board
+    // creates/reuses the board-language variant (idempotent) and writes to IT, so
+    // the source is never mutated from another board.
+    const targetId =
+      row && (row.authoredLanguage ?? DEFAULT_LOCALE) !== language
+        ? await createVariant({ sourceSentenceId: row._id, authoredLanguage: language })
+        : sentenceId;
     const reindexed = units.map((u, i) => ({ ...u, order: i }));
-    updateUnits({ profileSentenceId: sentenceId, units: reindexed });
+    await updateUnits({ profileSentenceId: targetId, units: reindexed });
   }
 
   function handleRemoveUnit(sentenceId: Id<'profileSentences'>, unitIndex: number) {
@@ -1071,11 +1079,19 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   function handleUnitSave(result: ListItemSaveResult) {
     if (!unitEditTarget) return;
     const label = result.description?.trim();
+    const prev = unitsOf(unitEditTarget.sentenceId)[unitEditTarget.unitIndex];
+    const prevLabel = prev?.kind === 'word' ? displayString(prev.label, language, DEFAULT_LOCALE) : '';
+    const textChanged = !!label && label !== prevLabel;
+    // A carried-forward clip (activeAudioSource 'default') no longer matches new
+    // text → drop it so playback re-synthesizes the new text in the board voice.
+    // Deliberately recorded/generated audio this edit is kept.
+    const keepAudio = result.activeAudioSource === 'record' || result.activeAudioSource === 'generate';
+    const audioField = result.audioPath && (!textChanged || keepAudio) ? { audioPath: result.audioPath } : {};
     const wordUnit: CompositionUnitClient = {
       kind: 'word',
       order: 0,
       ...(result.imagePath ? { imagePath: result.imagePath } : {}),
-      ...(result.audioPath ? { audioPath: result.audioPath } : {}),
+      ...audioField,
       ...(label ? { label: { [language]: label } } : {}),
     };
     const units = [...unitsOf(unitEditTarget.sentenceId)];
