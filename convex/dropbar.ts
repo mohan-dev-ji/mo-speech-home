@@ -15,7 +15,6 @@ import type { Id } from "./_generated/dataModel";
 import {
   requireCallerAccountId,
   resolveCallerAccountId,
-  requireCallerIsAdmin,
 } from "./lib/account";
 
 export const CORE_SLUG = "dropbar-core";
@@ -108,7 +107,7 @@ export const getDropbarBoard = query({
   },
 });
 
-/** Phrases in the dropbar phrases container — same per-phrase shape as getPhraseBanks. */
+/** Phrases in the dropbar phrases container, resolved per board language. */
 export const getDropbarPhrases = query({
   args: {},
   handler: async (ctx) => {
@@ -227,33 +226,5 @@ export const injectCoreModulesIntoDropbar = mutation({
     }
 
     return { added, skippedDuplicate, missing, modulesFound, slugs };
-  },
-});
-
-/**
- * One-off cleanup: unset `isDefault` on the legacy dropdown defaults (the seven
- * `core-*` category modules and the old default phrase-bank modules) so new
- * accounts seed ONLY the new `dropbar-core` + `dropbar-phrases`. Leaves the
- * main-page category/list/sentence defaults untouched. Admin-only.
- */
-export const retireOldDropdownDefaults = mutation({
-  args: {},
-  handler: async (ctx) => {
-    await requireCallerIsAdmin(ctx);
-    const now = Date.now();
-    const defaults = await ctx.db
-      .query("libraryModules")
-      .withIndex("by_default", (q) => q.eq("isDefault", true))
-      .collect();
-    let retired = 0;
-    for (const m of defaults) {
-      const isLegacyCore = m.surface === "core" && m.slug !== CORE_SLUG;
-      const isLegacyPhrase = m.tree === "phrases" && m.slug !== PHRASES_SLUG;
-      if (isLegacyCore || isLegacyPhrase) {
-        await ctx.db.patch(m._id, { isDefault: false, updatedAt: now });
-        retired++;
-      }
-    }
-    return { retired };
   },
 });

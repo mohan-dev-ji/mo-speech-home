@@ -11,12 +11,6 @@ import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { findVariantInGroup } from "./lib/variantAuthoring";
-import {
-  installContentModule,
-  isModuleInstalled,
-  isCategoryModuleInstalled,
-} from "./lib/contentModuleInstall";
-import type { ContentModule } from "./data/_shared/types";
 
 const displayPropsSchema = v.optional(
   v.object({
@@ -75,83 +69,7 @@ export const getProfilePhrases = query({
   },
 });
 
-/**
- * Phrase banks for the talker dropdown (ADR-015) — each `tree:"phrases"` folder
- * with its phrases nested. One query powers the dropdown's phrase tabs.
- */
-export const getPhraseBanks = query({
-  args: {},
-  handler: async (ctx) => {
-    const resolved = await resolveCallerAccountId(ctx);
-    if (!resolved) return [];
-    const folders = await ctx.db
-      .query("profileFolders")
-      .withIndex("by_account_id_and_tree_and_order", (q) =>
-        q.eq("accountId", resolved.accountId).eq("tree", "phrases")
-      )
-      .order("asc")
-      .collect();
-    const phrases = await ctx.db
-      .query("profilePhrases")
-      .withIndex("by_account_id_and_order", (q) =>
-        q.eq("accountId", resolved.accountId)
-      )
-      .order("asc")
-      .collect();
-    return folders.map((f) => ({
-      folderId: f._id,
-      name: f.name,
-      phrases: phrases
-        .filter((p) => p.folderId === f._id)
-        .map((p) => ({
-          _id: p._id,
-          name: p.name,
-          words: [...p.words].sort((a, b) => a.order - b.order),
-          audioPath: p.audioPath,
-          recordedAudioPath:
-            p.recordedAudioPath ??
-            (p.audioPath?.startsWith("accounts/") ? p.audioPath : undefined),
-        })),
-    }));
-  },
-});
-
 // ─── Mutations ────────────────────────────────────────────────────────────────
-
-/**
- * Install the Phase-14 default content (core-word category modules + phrase
- * banks) into the caller's account if missing. `seedDefaultAccount` only runs at
- * account creation, so existing accounts call this once to backfill the new
- * defaults. Idempotent — skips anything already installed.
- */
-export const installDefaultBanksAndCore = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const { accountId } = await requireCallerAccountId(ctx);
-    const defaults = await ctx.db
-      .query("libraryModules")
-      .withIndex("by_default", (q) => q.eq("isDefault", true))
-      .collect();
-    const targets = defaults.filter(
-      (m) => m.surface === "core" || m.tree === "phrases"
-    );
-    let installed = 0;
-    let skipped = 0;
-    for (const m of targets) {
-      const already =
-        m.tree === "categories"
-          ? await isCategoryModuleInstalled(ctx, accountId, m.slug)
-          : await isModuleInstalled(ctx, accountId, m.slug);
-      if (already) {
-        skipped++;
-        continue;
-      }
-      await installContentModule(ctx, accountId, m as unknown as ContentModule);
-      installed++;
-    }
-    return { installed, skipped, total: targets.length };
-  },
-});
 
 export const createProfilePhrase = mutation({
   args: {
