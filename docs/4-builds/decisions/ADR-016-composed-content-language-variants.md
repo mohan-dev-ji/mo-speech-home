@@ -223,6 +223,22 @@ Implemented by [`phase-15.5-list-translation.md`](../plans/phase-15.5-list-trans
 
 ---
 
+## Addendum H — Stage 1 of the Variant Lifecycle: board-accent block voice
+
+Block/sequence composition playback now voices every block in the **collapsed row's
+single `authoredLanguage`** (board-accent), fixing the Phase 15-review word-vs-phrase
+voice split. Before: within one Hindi-authored variant, a translated phrase-name
+played in Hindi while a still-English word played English-in-Hindi-accent (two voices,
+one utterance). Now: all blocks in the same saved variant carry `locale: resolveLang`
+(the composition's `authoredLanguage`), so the whole utterance speaks in one
+board-accent voice. This is **Stage 1 of the Language Variant Lifecycle model**
+(see [`2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md)).
+
+Retroactive, no migration. Applies to §1 sibling variants and live talker blocks (which
+retain per-item `locale` and continue to mix languages at the talker bar level).
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
