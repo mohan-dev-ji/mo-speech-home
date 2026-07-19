@@ -131,10 +131,30 @@ live in the exact save path Stage 2 reworks:
    block's board-accent voice (`resolveTtsKey(label, voiceForLanguage(authoredLanguage))`) —
    graceful; only the mismatched waveform is lost. To keep a recording, re-record after editing.
 
-Both are **independent of Stage 1** (which only changed block `locale`); they reproduce
-pre-Stage-1 and are audio/keying defects, not voice-selection.
+4. **Composed words must speak their LITERAL text (bypass the SymbolStix default lookup) —
+   SHIPPED & verified.** The deeper root cause of "shows dinner/breakfast, speaks the Hindi
+   word": `/api/tts` does a SymbolStix lookup by the word and, for a known symbol, returns the
+   symbol's **per-language default recording** (`resolveSymbolAudioPath`) — i.e. the canonical
+   board-language word ("nashta"), not the authored text. Phrases never hit this (a multi-word
+   name matches no single symbol → literal TTS → sounds right). **Fix:** composed-block playback
+   passes `literal:true` (`resolveTtsKey` → `/api/tts`), which **skips the symbol-default branch**
+   and synthesises the exact text in the board voice — so a word says what was typed, in the
+   board accent, exactly like phrases. Route + client only (no Convex-function change), verified
+   working live. **Perf follow-up:** the shared `ttsCache.lookup` still returns `symbolstix` for
+   the word, so literal clips currently regenerate each play; add a `skipSymbolstix` arg to
+   `ttsCache.lookup` when this merges to `main` (where convex dev deploys) so they cache.
 
-### 3. Voice — board-accent + the block fix
+These are **independent of Stage 1** (which only changed block `locale`); they reproduce
+pre-Stage-1 and are audio/route defects, not voice-selection.
+
+### 3. Voice — board-accent (FINAL) + the block fix
+
+**Voice model is board-accent — confirmed after hearing it.** (The owner considered native-voice
+mid-testing, then reverted: `{ hi: "breakfast" }` should say "breakfast" **in the Hindi voice/
+accent**, never translate to "nashta" and never switch to an English voice — matching how phrases
+already sound. On a board of language L, the L voice is always used, *except* an un-translated
+item that still falls back to the origin. This yields **seamless bilingual block sentences**.)
+
 
 - Forked board variant → **board voice** (its `authoredLanguage`). Origin fallback → **origin
   voice** + badge. List items already use the board voice — **no change**.
