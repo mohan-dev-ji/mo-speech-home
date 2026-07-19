@@ -80,9 +80,10 @@ export async function resolveTtsKey(
 export async function playTts(
   text: string,
   voiceId: string,
-  tone?: string
+  tone?: string,
+  opts?: { literal?: boolean }
 ): Promise<string | undefined> {
-  const r2Key = await resolveTtsKey(text, voiceId, tone);
+  const r2Key = await resolveTtsKey(text, voiceId, tone, opts);
   if (!r2Key) return undefined;
   playKey(r2Key);
   return r2Key;

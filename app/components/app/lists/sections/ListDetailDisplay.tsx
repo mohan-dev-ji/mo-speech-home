@@ -97,8 +97,11 @@ export function ListItemPlayModal({
       if (item.activeAudioSource === 'record' && item.recordedAudioPath) {
         audioRef.current = playKey(item.recordedAudioPath);
       } else if (item.description) {
+        // Board-accent literal-TTS (Stage 2): a list description is authored text, so
+        // speak it exactly in the board voice — a 1-word description ("breakfast") must
+        // not resolve the SymbolStix default and get spoken as the translated word.
         audioRef.current = null;
-        playTts(item.description, voiceId);
+        playTts(item.description, voiceId, undefined, { literal: true });
       }
     }
     return () => { audioRef.current?.pause(); };
