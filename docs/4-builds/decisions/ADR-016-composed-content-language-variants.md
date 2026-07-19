@@ -239,6 +239,72 @@ retain per-item `locale` and continue to mix languages at the talker bar level).
 
 ---
 
+## Addendum I — Stage 2 of the Variant Lifecycle: fork-on-edit + audio integrity
+
+Stage 2 closes the remaining integrity gaps behind the board-accent model. Three
+decisions, all additive (one widened mutation arg; no schema change, no migration).
+
+### A. Fork-on-edit — a direct edit of a fallback never mutates the source
+
+The **normal** authoring path is unchanged: the "Made in <lang>" badge → the variant
+author modal, which creates a §1 sibling and writes to it. But a user *can* enter edit
+mode and directly edit a **fallback** item — a source composition showing on a
+non-origin board because no board-language variant exists yet (the badge state). Doing
+so previously wrote straight to the shared source row, **clobbering the origin board**
+(owner-confirmed on retest). This is a deviant-but-valid path, and it must be safe.
+
+**Rule (uniform across all composed types):** before any edit write, if the collapsed
+row's `authoredLanguage` (defaulting to `DEFAULT_LOCALE`) differs from the board
+`language`, **fork** — create/reuse the board-language variant via the existing
+**idempotent** `create*Variant` mutations (`createSentenceVariant` /
+`createPhraseVariant`, keyed per `(group, language)`, returning the fork id) — and write
+to the fork. Otherwise write to the row directly. This reuses the *same* mutations the
+badge flow uses, so it is **not** duplicate code — only the entry point differs (an
+in-place edit vs. the badge tap). Applied at:
+
+- **Sequence sentences** — the `persistUnits` choke-point (Stage 1 / Task 1).
+- **Standalone phrases** — `resolvePhraseTargetId` in `TalkerDropdown`, routing the four
+  name/word handlers and the phrase-audio override through the fork check.
+- **Fluent sentences** — `SentenceAudioModal.handleSave`, forking then writing the
+  board-language-keyed `text` record (see C).
+
+Lists need no fork logic: they are single-record localised labels (Addendum E), so a
+per-language edit merges under the board key without touching other languages.
+
+### B. Board-accent literal-TTS for all authored content
+
+A **composed/authored** item speaks its **exact typed text** via TTS, bypassing the
+SymbolStix per-language default-audio lookup (which swaps a known word for the board
+language's canonical word — a translation). So a localized/forked item speaks its literal
+authored text **in the board voice** (e.g. English text on a Hindi board → Hindi accent,
+NOT the translated "nashta"); an un-translated fallback (badge) speaks in the origin
+voice. Carried by the `literal` flag on `resolveTtsKey`/`playTts` → `POST /api/tts`
+(skips the symbolstix branch). Applied to **sentence blocks** (Stage 1) and now
+**list-item descriptions** (Task 5 — a 1-word description like "breakfast" no longer
+translates). Phrases already worked (their multi-word names match no single symbol).
+
+### C. Fluent `text` accepts a record
+
+`updateProfileSentenceAudio`'s `text` arg is widened to
+`v.union(v.string(), v.record(v.string(), v.string()))` so a forked fluent variant keys
+its text under the board language (the field is `localisedStringMigration`, so the patch
+is valid as-is). Back-compatible — plain strings still accepted.
+
+### D. Word-unit stale-audio invalidation
+
+Editing a word unit in a sequence composition invalidates its cached per-unit clip so the
+next play re-resolves audio for the new text (Stage 1 / Task 1).
+
+**Deferred to the `main` merge:** add `skipSymbolstix` to `ttsCache.lookup` so literal
+clips **cache** (keyed as literal) instead of regenerating on every play — needs a `main`
+Convex deploy to land, so it rides the merge rather than the worktree.
+
+This is **Stage 2 of the Language Variant Lifecycle model**
+(see [`2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md)).
+Stages 3 (revert) and 4 (delete→whole-item) remain.
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.

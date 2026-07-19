@@ -17,10 +17,10 @@ Stage 2 belongs to the 4-stage Variant Lifecycle: (1) block-voice · **(2) fork-
 | ✅ | **Task 1** — sequence fork-on-edit (`persistUnits` wrap) + word-unit stale-audio invalidation | `86a122b` (reviewed clean) |
 | ✅ | **Literal-TTS for composed words** — playback bypasses the SymbolStix default-audio lookup so a word says its authored text in the board voice ("breakfast" in a Hindi accent), not the symbol's canonical translated word ("nashta") | `994038a` (verified live) |
 | ✅ | **Board-accent = FINAL voice model** + spec resolution | `480da3a` |
-| ⏳ | **Task 2** — standalone-phrase fork-on-edit (`TalkerDropdown`) | — |
-| ⏳ | **Task 3** — fluent-sentence fork-on-edit + record-shaped `text` | — |
-| ⏳ | **Task 5 (NEW)** — extend literal-TTS to **list-item** playback (1-word descriptions still translate) | — |
-| ⏳ | **Task 4** — ADR addendum + final matrix | — |
+| ✅ | **Task 2** — standalone-phrase fork-on-edit (`TalkerDropdown`) | `c2a69eb` |
+| ✅ | **Task 3** — fluent-sentence fork-on-edit + record-shaped `text` | `9bac603` |
+| ✅ | **Task 5 (NEW)** — extend literal-TTS to **list-item** playback (1-word descriptions still translate) | `f649b9a` |
+| ✅ | **Task 4** — ADR addendum (I) + full tsc verify. Owner does the manual matrix walk. | (docs commit) |
 | ⏳ | **Perf follow-up (do on merge to `main`)** — add `skipSymbolstix` to `ttsCache.lookup` so literal clips cache instead of re-generating each play | — |
 
 **Lists fork-on-edit: already done** (Phase 15.5 per-language key merge — single-record model, origin preserved). No task.
