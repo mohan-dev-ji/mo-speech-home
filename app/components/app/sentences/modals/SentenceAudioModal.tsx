@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { playKey } from '@/lib/audio/playTts';
+import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,9 @@ type Props = {
   accountId: Id<'users'>;
   initialValue?: string;   // single sentence field — used as both display name and TTS text
   initialAudioPath?: string;
+  // Fork-on-edit (Stage 2): the source row's authored language. When it isn't the
+  // board language, a direct edit forks a board variant instead of mutating source.
+  authoredLanguage?: string;
   onClose: () => void;
   // When provided, the modal skips its built-in sentence mutations and hands
   // the trimmed text + resolved recording path to this callback instead. Lets
@@ -53,6 +57,7 @@ export function SentenceAudioModal({
   sentenceId,
   accountId,
   initialValue = '',
+  authoredLanguage,
   onClose,
   saveOverride,
   title,
@@ -61,6 +66,7 @@ export function SentenceAudioModal({
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const renameSentence = useMutation(api.profileSentences.updateProfileSentenceName);
+  const createVariant  = useMutation(api.profileSentences.createSentenceVariant);
   const { voiceId, language } = useProfile();
 
   const [value, setValue] = useState(initialValue);
@@ -188,15 +194,21 @@ export function SentenceAudioModal({
       if (saveOverride) {
         await saveOverride({ text: trimmedValue, recordedAudioPath });
       } else if (sentenceId) {
+        // Fork-on-edit: if this row isn't a board-language variant, create/reuse the
+        // board variant (idempotent) and write to it — never the source.
+        const targetId =
+          (authoredLanguage ?? DEFAULT_LOCALE) !== language
+            ? await createVariant({ sourceSentenceId: sentenceId, authoredLanguage: language })
+            : sentenceId;
         if (trimmedValue) {
           // Key the name by the board language you're authoring in — not a
           // hardcoded `en`, which mislabelled e.g. a Hindi rename as English
           // (and, via the audio path, spoke it in an English voice).
-          await renameSentence({ profileSentenceId: sentenceId, name: { [language]: trimmedValue } });
+          await renameSentence({ profileSentenceId: targetId, name: { [language]: trimmedValue } });
         }
         await updateAudio({
-          profileSentenceId: sentenceId,
-          text: trimmedValue || undefined,
+          profileSentenceId: targetId,
+          text: trimmedValue ? { [language]: trimmedValue } : undefined,
           ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
         });
       }

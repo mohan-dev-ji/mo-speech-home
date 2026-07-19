@@ -129,6 +129,9 @@ type SentenceEditTarget = {
   sentenceId: Id<'profileSentences'>;
   value: string;    // single sentence text — used as both display name and TTS
   audioPath?: string;
+  // Fork-on-edit (Stage 2): the collapsed row's authored language, so a direct
+  // edit of a fallback forks a board variant instead of clobbering the source.
+  authoredLanguage?: string;
 } | null;
 
 // ─── Thumbnail strip (view mode) ─────────────────────────────────────────────
@@ -1285,6 +1288,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                             : displayString(s.text, language, DEFAULT_LOCALE)) ||
                           displayString(s.name, language, DEFAULT_LOCALE),
                         audioPath: s.audioPath,
+                        authoredLanguage: s.authoredLanguage,
                       })}
                       onPlay={(s) => setPlayTarget(s)}
                       onAuthorVariant={(s) => setVariantTarget(s)}
@@ -1470,6 +1474,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           sentenceId={sentenceEditTarget.sentenceId}
           accountId={accountId}
           initialValue={sentenceEditTarget.value}
+          authoredLanguage={sentenceEditTarget.authoredLanguage}
           onClose={() => setSentenceEditTarget(null)}
         />
       )}
