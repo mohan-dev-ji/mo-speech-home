@@ -283,12 +283,17 @@ voice. Carried by the `literal` flag on `resolveTtsKey`/`playTts` → `POST /api
 **list-item descriptions** (Task 5 — a 1-word description like "breakfast" no longer
 translates). Phrases already worked (their multi-word names match no single symbol).
 
-### C. Fluent `text` accepts a record
+### C. Fluent fork `text` is written as a plain string (deploy-free)
 
-`updateProfileSentenceAudio`'s `text` arg is widened to
-`v.union(v.string(), v.record(v.string(), v.string()))` so a forked fluent variant keys
-its text under the board language (the field is `localisedStringMigration`, so the patch
-is valid as-is). Back-compatible — plain strings still accepted.
+A forked fluent variant carries `authoredLanguage === boardLanguage`, and the fluent
+badge normalises a plain-string `text` under that tag (`SentencesModeContent`'s
+`fluentPrimary`: `typeof text === 'string' ? { [authoredLang]: text } : …`). So writing
+`text` as a **plain string** already yields correct board-accent playback and badge
+suppression — no record needed. `updateProfileSentenceAudio`'s `text` arg is therefore
+kept as `v.optional(v.string())`. (An earlier draft widened it to a record; that was
+reverted because Convex is deployed from `main` — the worktree can't deploy a widened
+validator, so the client must match the live `v.string()` contract. `createSentenceVariant`
+still seeds the fork's `text` as a record from the source, which read paths handle.)
 
 ### D. Word-unit stale-audio invalidation
 

@@ -284,10 +284,7 @@ export const updateProfileSentenceUnits = mutation({
 export const updateProfileSentenceAudio = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
-    // Board-accent fork-on-edit (Stage 2): a fluent-sentence variant keys its text
-    // under the board language, so accept a record as well as a plain string. The
-    // field is `localisedStringMigration`, so the record patch is valid as-is.
-    text:      v.optional(v.union(v.string(), v.record(v.string(), v.string()))),
+    text:      v.optional(v.string()),
     // Phase 8.5: TTS is no longer stored here — it's resolved per (text, voice)
     // from the global ttsCache. Pass `recordedAudioPath` for a human recording
     // (null clears it). `audioPath` kept for back-compat (null clears). Only

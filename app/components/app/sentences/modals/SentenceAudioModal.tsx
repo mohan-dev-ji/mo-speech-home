@@ -195,7 +195,9 @@ export function SentenceAudioModal({
         await saveOverride({ text: trimmedValue, recordedAudioPath });
       } else if (sentenceId) {
         // Fork-on-edit: if this row isn't a board-language variant, create/reuse the
-        // board variant (idempotent) and write to it — never the source.
+        // board variant (idempotent) and write to it — never the source. The fork
+        // carries `authoredLanguage === language`, so its literal text speaks in the
+        // board voice (board-accent).
         const targetId =
           (authoredLanguage ?? DEFAULT_LOCALE) !== language
             ? await createVariant({ sourceSentenceId: sentenceId, authoredLanguage: language })
@@ -206,9 +208,14 @@ export function SentenceAudioModal({
           // (and, via the audio path, spoke it in an English voice).
           await renameSentence({ profileSentenceId: targetId, name: { [language]: trimmedValue } });
         }
+        // `text` is written as a plain string: the fork's `authoredLanguage` tags the
+        // language, and the fluent badge normalises a string under that tag (see
+        // SentencesModeContent `fluentPrimary`). Sending a record here would need a
+        // widened `updateProfileSentenceAudio` validator deployed from `main` — this
+        // stays deploy-free and matches the historical (and correct) shape.
         await updateAudio({
           profileSentenceId: targetId,
-          text: trimmedValue ? { [language]: trimmedValue } : undefined,
+          text: trimmedValue || undefined,
           ...(recordedAudioPath !== undefined ? { recordedAudioPath } : {}),
         });
       }
