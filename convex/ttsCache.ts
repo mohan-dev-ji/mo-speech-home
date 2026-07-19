@@ -113,6 +113,19 @@ export const lookup = query({
  * Index reads only — cheap for the ~10–50 rows on a Lists/Sentences page.
  * Texts are normalised here (lowercase + trim) exactly like /api/tts, and the
  * returned map is keyed by that normalised text.
+ *
+ * NOTE (2026-07-19): today all three consumers read only `.available` (a status
+ * badge) — the `r2Key` is deliberately NOT yet fed into playback. Wiring it in to
+ * skip the /api/tts round-trip is a *latency* win only (the round-trip is a cache
+ * HIT, no paid-API cost), and it is NOT a safe drop-in: this query resolves with
+ * `(text, voiceId)` — no `skipSymbolstix`, no tone — so its `r2Key` mismatches the
+ * play surfaces in three ways. (1) A literal single-word item resolves the
+ * SymbolStix *translated default* here, not the literal clip → playing it would
+ * regress board-accent literal-TTS. (2) A toned (Gemini) play needs the tone-keyed
+ * clip, not this tone-less one. (3) `PersistentTalker` resolves a phrase's voice
+ * from its own language, which can differ from this `voiceId`. Any future wiring
+ * must guard per-surface (skip on literal single-word / on tone / on voice
+ * mismatch) — see the audit in the phase-15.6 tts-cache plan.
  */
 export const checkMany = query({
   args: {

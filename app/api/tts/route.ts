@@ -278,15 +278,41 @@ export async function POST(request: Request) {
       await uploadBuffer(r2Key, audioBuffer, "audio/mpeg");
     }
 
-    await convex.mutation(api.ttsCache.write, {
-      text: normalised,
-      voiceId,
-      // Tone-less (free Wavenet) rows omit the field, identical to legacy
-      // entries; every Gemini clip (including "neutral") stores its tone.
-      ...(useGemini ? { tone: requestedTone } : {}),
-      r2Key,
-      charCount: rawText.length,
-    });
+    // Persist to the global cache so the next identical request (any user) reuses
+    // this clip instead of re-paying the API. The generation above already cost a
+    // paid call + an R2 upload, so a *transient* write failure must not be fatal:
+    // retry a few times, and if it still fails, log loudly and return the clip
+    // anyway. Returning it means (a) this play still works — the user isn't 500'd
+    // out of audio they paid for — and (b) at worst the next identical request
+    // re-generates (the rare uncached tail), rather than every play re-generating.
+    // Generation/upload failures above still fall to the outer catch → 500.
+    let cacheWritten = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await convex.mutation(api.ttsCache.write, {
+          text: normalised,
+          voiceId,
+          // Tone-less (free Wavenet) rows omit the field, identical to legacy
+          // entries; every Gemini clip (including "neutral") stores its tone.
+          ...(useGemini ? { tone: requestedTone } : {}),
+          r2Key,
+          charCount: rawText.length,
+        });
+        cacheWritten = true;
+        break;
+      } catch (writeErr) {
+        const msg = writeErr instanceof Error ? writeErr.message : String(writeErr);
+        console.error(`[TTS] ttsCache.write attempt ${attempt}/3 failed: ${msg}`);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 200 * attempt));
+      }
+    }
+    if (!cacheWritten) {
+      console.error(
+        `[TTS] ttsCache.write EXHAUSTED — clip is paid-for and in R2 but uncached; ` +
+          `next identical request will re-generate. text="${normalised}" voiceId="${voiceId}" ` +
+          `tone="${requestedTone ?? "-"}" r2Key="${r2Key}"`,
+      );
+    }
 
     return NextResponse.json({ r2Key, cached: false, source: "generated" });
   } catch (err) {
