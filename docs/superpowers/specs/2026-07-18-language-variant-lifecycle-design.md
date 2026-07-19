@@ -143,6 +143,9 @@ live in the exact save path Stage 2 reworks:
    working live. **Perf follow-up:** the shared `ttsCache.lookup` still returns `symbolstix` for
    the word, so literal clips currently regenerate each play; add a `skipSymbolstix` arg to
    `ttsCache.lookup` when this merges to `main` (where convex dev deploys) so they cache.
+   **Also applies to list items (retest, owner):** 1-word list descriptions (e.g. "breakfast")
+   still resolve the symbol default via `ListItemPlayModal → playTts`. Extend the `literal` flag
+   to `playTts` and pass `literal:true` from list playback (Stage 2 Task 5).
 
 These are **independent of Stage 1** (which only changed block `locale`); they reproduce
 pre-Stage-1 and are audio/route defects, not voice-selection.
