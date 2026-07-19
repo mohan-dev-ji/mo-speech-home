@@ -33,7 +33,7 @@ Give `resolveCachedAudio` / the `lookup` query a `skipSymbolstix` flag; when a r
 
 **File:** `convex/ttsCache.ts`.
 
-- [ ] Add the param to `resolveCachedAudio` and guard the SymbolStix block with it. Current signature (~`:22`):
+- [x] Add the param to `resolveCachedAudio` and guard the SymbolStix block with it. Current signature (~`:22`):
 ```ts
 async function resolveCachedAudio(
   ctx: QueryCtx,
@@ -52,7 +52,7 @@ Then change the SymbolStix guard from `if (!viaGemini) {` (~`:37`) to:
 ```
 (The `ttsCache` table lookup below it is unchanged — with symbolstix skipped, execution falls straight to it.)
 
-- [ ] Thread it through the `lookup` query (~`:91`):
+- [x] Thread it through the `lookup` query (~`:91`):
 ```ts
 export const lookup = query({
   args: {
@@ -65,13 +65,13 @@ export const lookup = query({
     resolveCachedAudio(ctx, text, voiceId, tone, skipSymbolstix),
 });
 ```
-- [ ] **Leave `checkMany` as-is** — it calls `resolveCachedAudio(ctx, text, voiceId)` with no skip, which is correct (the authoring signal wants to know a symbol is seeded).
-- [ ] Verify convex tsc: `source ~/.nvm/nvm.sh && nvm use 20.17.0 && npx tsc -p convex/tsconfig.json --noEmit` clean. **Confirm `convex dev` redeployed** before Step 2.
+- [x] **Leave `checkMany` as-is** — it calls `resolveCachedAudio(ctx, text, voiceId)` with no skip, which is correct (the authoring signal wants to know a symbol is seeded).
+- [x] Verify convex tsc: `source ~/.nvm/nvm.sh && nvm use 20.17.0 && npx tsc -p convex/tsconfig.json --noEmit` clean. **Confirm `convex dev` redeployed** before Step 2.
 
 ### Step 2 — Route: pass `skipSymbolstix: literal`
 
 **File:** `app/api/tts/route.ts`. The `lookup` call is ~`:226`.
-- [ ] Add the arg (only literal requests set it; everything else omits it and behaves exactly as today):
+- [x] Add the arg (only literal requests set it; everything else omits it and behaves exactly as today):
 ```ts
   const lookup = await convex.query(api.ttsCache.lookup, {
     text: normalised,
@@ -80,19 +80,19 @@ export const lookup = query({
     ...(literal ? { skipSymbolstix: true } : {}),
   }) as LookupResult;
 ```
-- [ ] Verify app tsc: `npx tsc --noEmit 2>&1 | grep -E "^(app|lib|convex)/" | grep -v "lib/stripe.ts"` clean.
+- [x] Verify app tsc: `npx tsc --noEmit 2>&1 | grep -E "^(app|lib|convex)/" | grep -v "lib/stripe.ts"` clean.
 
 ### Step 3 — Verify (owner, manual, on the running app)
 
-- [ ] On a HI board, play a **1-word list item** whose description is a known symbol word (e.g. "breakfast") **twice**. First play: `[TTS] … source":"none"` then `source: "generated"`. **Second play must be a cache hit** — the `/api/tts` response `source: "cache"` (check the server log: `lookup=` now returns `ttsCache`, and the response is `cached:true`). Before this fix the second play logged `symbolstix` and regenerated.
-- [ ] Play a **composed word block** (single-symbol block in a sequence sentence) twice — same: second play is a cache hit.
-- [ ] **Symbols/talker unchanged:** a plain symbol tap (NOT literal) still returns `source:"symbolstix"` and plays the seeded per-language default (it must NOT synthesise). This proves the skip is scoped to literal only.
-- [ ] Multi-word literal text still works (was already caching).
+- [x] On a HI board, play a **1-word list item** whose description is a known symbol word (e.g. "breakfast") **twice**. First play: `[TTS] … source":"none"` then `source: "generated"`. **Second play must be a cache hit** — the `/api/tts` response `source: "cache"` (check the server log: `lookup=` now returns `ttsCache`, and the response is `cached:true`). Before this fix the second play logged `symbolstix` and regenerated.
+- [x] Play a **composed word block** (single-symbol block in a sequence sentence) twice — same: second play is a cache hit.
+- [x] **Symbols/talker unchanged:** a plain symbol tap (NOT literal) still returns `source:"symbolstix"` and plays the seeded per-language default (it must NOT synthesise). This proves the skip is scoped to literal only.
+- [x] Multi-word literal text still works (was already caching).
 
 ### Step 4 — Docs + commit
 
-- [ ] Flip the deferred rows to ✅ in [`ADR-016 Addendum I`](../decisions/ADR-016-composed-content-language-variants.md) ("Deferred to the `main` merge") and in [`phase-15.6-variant-lifecycle-2-fork-on-edit.md`](phase-15.6-variant-lifecycle-2-fork-on-edit.md) (ledger `:24` + self-review `:153`). Move this plan to `plans/_done/` when it ships.
-- [ ] Commit: `git commit -am "perf(tts): skipSymbolstix on literal lookup so literal clips cache (not regenerate)"`.
+- [x] Flip the deferred rows to ✅ in [`ADR-016 Addendum I`](../decisions/ADR-016-composed-content-language-variants.md) ("Deferred to the `main` merge") and in [`phase-15.6-variant-lifecycle-2-fork-on-edit.md`](phase-15.6-variant-lifecycle-2-fork-on-edit.md) (ledger `:24` + self-review `:153`). Move this plan to `plans/_done/` when it ships.
+- [x] Commit: `git commit -am "perf(tts): skipSymbolstix on literal lookup so literal clips cache (not regenerate)"`.
 
 ## Notes
 - **No schema change, no migration.** One optional query arg + one optional route arg, both additive and back-compatible.

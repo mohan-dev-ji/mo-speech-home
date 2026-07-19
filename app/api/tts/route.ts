@@ -227,6 +227,9 @@ export async function POST(request: Request) {
     text: normalised,
     voiceId,
     tone: requestedTone,
+    // Literal requests (composed/authored content) bypass the SymbolStix default so a
+    // KNOWN word resolves its cached literal clip instead of regenerating every play.
+    ...(literal ? { skipSymbolstix: true } : {}),
   }) as LookupResult;
   console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" tone="${requestedTone ?? "-"}" lookup=`, JSON.stringify(lookup));
 

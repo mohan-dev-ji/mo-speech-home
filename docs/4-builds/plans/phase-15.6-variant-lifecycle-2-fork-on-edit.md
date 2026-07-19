@@ -21,7 +21,7 @@ Stage 2 belongs to the 4-stage Variant Lifecycle: (1) block-voice · **(2) fork-
 | ✅ | **Task 3** — fluent-sentence fork-on-edit + record-shaped `text` | `9bac603` |
 | ✅ | **Task 5 (NEW)** — extend literal-TTS to **list-item** playback (1-word descriptions still translate) | `f649b9a` |
 | ✅ | **Task 4** — ADR addendum (I) + full tsc verify. Owner does the manual matrix walk. | (docs commit) |
-| ⏳ | **Perf follow-up (do on merge to `main`)** — add `skipSymbolstix` to `ttsCache.lookup` so literal clips cache instead of re-generating each play | — |
+| ✅ | **Perf follow-up (shipped on `main`, 2026-07-19)** — `skipSymbolstix` on `ttsCache.lookup` so literal clips cache instead of re-generating each play. Verified via `/api/tts` payloads (literal `breakfast`: generated→cache same key; plain: symbolstix) | (this commit) |
 
 **Lists fork-on-edit: already done** (Phase 15.5 per-language key merge — single-record model, origin preserved). No task.
 
@@ -150,4 +150,4 @@ export async function playTts(
 ## Self-review notes
 - **No duplicate code:** fork-on-edit reuses `create*Variant` (same mutations the "Made in" badge uses); Task 5 reuses the existing `literal` route flag.
 - **No new schema/migration.** One widened mutation arg (fluent `text` record, back-compatible).
-- **Deferred:** `ttsCache.lookup` `skipSymbolstix` (needs a `main` convex deploy) so literal clips cache instead of regenerating each play.
+- **Shipped (2026-07-19, on `main`):** `ttsCache.lookup` `skipSymbolstix` so literal clips cache instead of regenerating each play — the last deploy-dependent Stage 2 leftover.

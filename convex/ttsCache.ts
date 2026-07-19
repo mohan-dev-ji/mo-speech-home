@@ -23,7 +23,11 @@ async function resolveCachedAudio(
   ctx: QueryCtx,
   text: string,
   voiceId: string,
-  tone?: string
+  tone?: string,
+  // `skipSymbolstix` (Variant Lifecycle Stage 2 perf): literal requests bypass the
+  // SymbolStix default lookup so a KNOWN word (e.g. "breakfast") still resolves the
+  // cached literal TTS clip instead of short-circuiting at symbolstix + regenerating.
+  skipSymbolstix?: boolean,
 ): Promise<ResolveResult> {
   // ANY requested tone — including the emoji row's "neutral" — is a fluent
   // Gemini clip with its own cache key. Only the tone-LESS path (▶ replay,
@@ -34,7 +38,7 @@ async function resolveCachedAudio(
 
   // SymbolStix seeded audio is the neutral cheap voice only — skip it for any
   // requested tone (a Gemini clip is never seeded).
-  if (!viaGemini) {
+  if (!viaGemini && !skipSymbolstix) {
     // Match against SymbolStix case-insensitively. The exact-match index
     // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
     // so we hit the tokenised search index and confirm a result's label
@@ -93,9 +97,10 @@ export const lookup = query({
     text: v.string(),    // normalised (lowercase, trimmed)
     voiceId: v.string(),
     tone: v.optional(v.string()), // absent = free Wavenet/seeded; present (incl. 'neutral') = Gemini clip
+    skipSymbolstix: v.optional(v.boolean()), // literal requests: bypass SymbolStix so cached literal clip resolves
   },
-  handler: async (ctx, { text, voiceId, tone }) =>
-    resolveCachedAudio(ctx, text, voiceId, tone),
+  handler: async (ctx, { text, voiceId, tone, skipSymbolstix }) =>
+    resolveCachedAudio(ctx, text, voiceId, tone, skipSymbolstix),
 });
 
 /**

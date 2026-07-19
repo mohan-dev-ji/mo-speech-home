@@ -300,9 +300,12 @@ still seeds the fork's `text` as a record from the source, which read paths hand
 Editing a word unit in a sequence composition invalidates its cached per-unit clip so the
 next play re-resolves audio for the new text (Stage 1 / Task 1).
 
-**Deferred to the `main` merge:** add `skipSymbolstix` to `ttsCache.lookup` so literal
-clips **cache** (keyed as literal) instead of regenerating on every play — needs a `main`
-Convex deploy to land, so it rides the merge rather than the worktree.
+**✅ Shipped on `main` (2026-07-19):** `skipSymbolstix` on `ttsCache.lookup` so literal
+clips **cache** (keyed as literal) instead of regenerating on every play. Needed a `main`
+Convex deploy, so it rode the merge rather than the worktree. Verified end-to-end via the
+`/api/tts` payloads: a literal known word (`breakfast`) returns `source:"generated"` on
+first play then `source:"cache"` (same `r2Key`) on replay, while a plain (non-literal)
+request still returns `source:"symbolstix"` — the skip is scoped to literal only.
 
 This is **Stage 2 of the Language Variant Lifecycle model**
 (see [`2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md)).
