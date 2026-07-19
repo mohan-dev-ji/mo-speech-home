@@ -343,6 +343,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     return phraseList.find((p) => p._id === id);
   }
 
+  // Fork-on-edit (Stage 2): editing a phrase whose collapsed row isn't a board-language
+  // variant creates/reuses the board variant (idempotent) and returns its id, so a direct
+  // edit of a fallback never mutates the source across boards.
+  async function resolvePhraseTargetId(phrase: { _id: Id<'profilePhrases'>; authoredLanguage?: string }) {
+    return (phrase.authoredLanguage ?? DEFAULT_LOCALE) !== language
+      ? await createPhraseVariant({ sourcePhraseId: phrase._id, authoredLanguage: language })
+      : phrase._id;
+  }
+
   function normaliseWords(words: typeof phraseList[number]['words']) {
     return words.map((w, i) => ({
       order: i,
@@ -365,35 +374,41 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     });
   }
 
-  function handleRenamePhrase(id: Id<'profilePhrases'>, current: Record<string, string>, next: string) {
-    updateProfilePhraseName({ profilePhraseId: id, name: { ...current, [language]: next } }).catch((e) =>
+  async function handleRenamePhrase(id: Id<'profilePhrases'>, current: Record<string, string>, next: string) {
+    const phrase = findPhrase(id);
+    if (!phrase) return;
+    const targetId = await resolvePhraseTargetId(phrase);
+    updateProfilePhraseName({ profilePhraseId: targetId, name: { ...current, [language]: next } }).catch((e) =>
       console.error('[TalkerDropdown] rename phrase failed', e)
     );
   }
 
-  function handleRemovePhraseWord(phraseId: Id<'profilePhrases'>, wordIndex: number) {
+  async function handleRemovePhraseWord(phraseId: Id<'profilePhrases'>, wordIndex: number) {
     const phrase = findPhrase(phraseId);
     if (!phrase) return;
+    const targetId = await resolvePhraseTargetId(phrase);
     const words = normaliseWords(phrase.words.filter((_, i) => i !== wordIndex));
-    updateProfilePhraseWords({ profilePhraseId: phraseId, words }).catch((e) =>
+    updateProfilePhraseWords({ profilePhraseId: targetId, words }).catch((e) =>
       console.error('[TalkerDropdown] remove phrase word failed', e)
     );
   }
 
-  function handleReorderPhraseWord(phraseId: Id<'profilePhrases'>, from: number, to: number) {
+  async function handleReorderPhraseWord(phraseId: Id<'profilePhrases'>, from: number, to: number) {
     const phrase = findPhrase(phraseId);
     if (!phrase) return;
+    const targetId = await resolvePhraseTargetId(phrase);
     const words = normaliseWords(arrayMove(phrase.words, from, to));
-    updateProfilePhraseWords({ profilePhraseId: phraseId, words }).catch((e) =>
+    updateProfilePhraseWords({ profilePhraseId: targetId, words }).catch((e) =>
       console.error('[TalkerDropdown] reorder phrase word failed', e)
     );
   }
 
-  function handlePhraseWordSave(result: SentenceSlotSaveResult) {
+  async function handlePhraseWordSave(result: SentenceSlotSaveResult) {
     if (!phraseWordEditor.open) return;
     const { phraseId, wordIndex } = phraseWordEditor;
     const phrase = findPhrase(phraseId);
     if (!phrase) { setPhraseWordEditor({ open: false }); return; }
+    const targetId = await resolvePhraseTargetId(phrase);
     const current = normaliseWords(phrase.words);
     if (wordIndex === -1) {
       current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
@@ -401,7 +416,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath, displayProps: result.displayProps };
     }
     const reindexed = current.map((w, i) => ({ ...w, order: i }));
-    updateProfilePhraseWords({ profilePhraseId: phraseId, words: reindexed }).catch((e) =>
+    updateProfilePhraseWords({ profilePhraseId: targetId, words: reindexed }).catch((e) =>
       console.error('[TalkerDropdown] save phrase word failed', e)
     );
     setPhraseWordEditor({ open: false });
@@ -847,11 +862,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           saveOverride={async ({ text, recordedAudioPath }) => {
             const target = phraseAudioTarget;
             if (!target) return;
+            const phrase = findPhrase(target.id);
+            if (!phrase) return;
+            // Fork-on-edit: a direct audio/name edit of a fallback forks the board variant.
+            const targetId = await resolvePhraseTargetId(phrase);
             if (text) {
-              await updateProfilePhraseName({ profilePhraseId: target.id, name: { ...target.nameRec, [language]: text } });
+              await updateProfilePhraseName({ profilePhraseId: targetId, name: { ...target.nameRec, [language]: text } });
             }
             if (recordedAudioPath !== undefined) {
-              await updateProfilePhraseAudio({ profilePhraseId: target.id, recordedAudioPath });
+              await updateProfilePhraseAudio({ profilePhraseId: targetId, recordedAudioPath });
             }
           }}
         />
