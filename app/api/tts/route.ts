@@ -150,7 +150,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { text?: string; voiceId?: string; tone?: string };
+  let body: { text?: string; voiceId?: string; tone?: string; literal?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -161,6 +161,12 @@ export async function POST(request: Request) {
   if (!rawText) {
     return NextResponse.json({ error: "Missing text" }, { status: 400 });
   }
+
+  // `literal` (Variant Lifecycle Stage 2): skip the SymbolStix default-audio
+  // lookup and synthesise the EXACT text in the requested voice. Composed content
+  // (sentence blocks) authors its own text, so a word must say what was typed in
+  // the board voice, not the symbol's canonical per-language word (the translation).
+  const literal = body.literal === true;
 
   const voiceId: VoiceId =
     body.voiceId && body.voiceId in TTS_VOICES
@@ -224,7 +230,7 @@ export async function POST(request: Request) {
   }) as LookupResult;
   console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" tone="${requestedTone ?? "-"}" lookup=`, JSON.stringify(lookup));
 
-  if (lookup.source === "symbolstix") {
+  if (!literal && lookup.source === "symbolstix") {
     const key = resolveSymbolAudioPath(
       voiceId,
       lookup.englishWord,

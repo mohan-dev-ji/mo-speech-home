@@ -55,7 +55,10 @@ export function CompositionPlayModal({
       // (persona preserved), not the board's Hindi voice. Live talker blocks have
       // no `locale` and use the board voiceId as-is.
       const blockVoice = b.locale ? voiceForLanguage(b.locale, personaOf(voiceId)) : voiceId;
-      key = await resolveTtsKey(ttsText(b), blockVoice);
+      // `literal`: speak the authored text in the board voice, skipping the
+      // SymbolStix per-language default (which would swap a word for its canonical
+      // board-language word — the translation). Matches how phrases already behave.
+      key = await resolveTtsKey(ttsText(b), blockVoice, undefined, { literal: true });
       if (runIdRef.current !== runId) return;   // superseded during synth — don't play
     }
     if (!key) { await new Promise<void>((res) => setTimeout(res, 300)); return; } // nothing to play

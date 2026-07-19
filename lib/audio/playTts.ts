@@ -42,7 +42,13 @@ export function playKey(r2Key: string): HTMLAudioElement {
 export async function resolveTtsKey(
   text: string,
   voiceId: string,
-  tone?: string
+  tone?: string,
+  // `literal` (Variant Lifecycle Stage 2): speak the EXACT text via TTS, skipping
+  // the SymbolStix per-language default-audio lookup. Composed content (sentence
+  // blocks) authors its own text, so a word must say what was typed in the board
+  // voice ("breakfast" in a Hindi accent), never the symbol's canonical Hindi word
+  // ("nashta"). Phrases already work because their multi-word names match no symbol.
+  opts?: { literal?: boolean }
 ): Promise<string | undefined> {
   const trimmed = text.trim();
   if (!trimmed) return undefined;
@@ -54,6 +60,7 @@ export async function resolveTtsKey(
         text: trimmed,
         voiceId,
         ...(tone ? { tone } : {}),
+        ...(opts?.literal ? { literal: true } : {}),
       }),
     });
     if (!res.ok) return undefined;
