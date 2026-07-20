@@ -793,7 +793,6 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
   const createVariant    = useMutation(api.profileSentences.createSentenceVariant);
-  const deleteSentence   = useMutation(api.profileSentences.deleteProfileSentence);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
   const moveSentenceToGroup  = useMutation(api.profileFolders.moveSentenceToGroup);
 
@@ -962,7 +961,12 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteSentence({ profileSentenceId: pendingDelete.id });
+      const res = await fetch('/api/delete-composed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'sentence', id: pendingDelete.id, scope: 'group' }),
+      });
+      if (!res.ok) throw new Error('delete failed');
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -1347,7 +1351,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           <DialogHeader>
             <DialogTitle>{t('deleteTitle')}</DialogTitle>
             <DialogDescription>
-              {t('deleteConfirm', { name: pendingDelete?.name ?? '' })}
+              {t('deleteConfirmAllLanguages', { name: pendingDelete?.name ?? '' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

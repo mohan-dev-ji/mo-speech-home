@@ -152,7 +152,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const updateProfilePhraseName  = useMutation(api.profilePhrases.updateProfilePhraseName);
   const updateProfilePhraseWords = useMutation(api.profilePhrases.updateProfilePhraseWords);
   const updateProfilePhraseAudio = useMutation(api.profilePhrases.updateProfilePhraseAudio);
-  const deleteProfilePhrase      = useMutation(api.profilePhrases.deleteProfilePhrase);
   const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
   const createProfilePhrase      = useMutation(api.profilePhrases.createProfilePhrase);
   const createPhraseVariant      = useMutation(api.profilePhrases.createPhraseVariant);
@@ -426,7 +425,12 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (!pendingPhraseDelete) return;
     setIsDeleting(true);
     try {
-      await deleteProfilePhrase({ profilePhraseId: pendingPhraseDelete.id });
+      const res = await fetch('/api/delete-composed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'phrase', id: pendingPhraseDelete.id, scope: 'group' }),
+      });
+      if (!res.ok) throw new Error('delete failed');
     } catch (e) {
       console.error('[TalkerDropdown] delete phrase failed', e);
     } finally {
@@ -881,7 +885,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('phraseDeleteTitle')}</DialogTitle>
-            <DialogDescription>{t('phraseDeleteConfirm', { name: pendingPhraseDelete?.name ?? '' })}</DialogDescription>
+            <DialogDescription>{t('phraseDeleteConfirmAllLanguages', { name: pendingPhraseDelete?.name ?? '' })}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
