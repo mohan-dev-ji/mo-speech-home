@@ -602,7 +602,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 const hasAudio =
                   !!p.recordedAudioPath ||
                   phraseAudioAvail?.[name.toLowerCase().trim()]?.available === true;
-                const incomplete = p.words.length < 2;
+                const incomplete = p.words.length < 1;
                 return (
                   <PhraseEditCard
                     key={p._id}
@@ -638,8 +638,8 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       );
     }
 
-    // Normal mode — only ready phrases (2+ symbols) are tappable to insert.
-    const ready = phraseList.filter((p) => p.words.length >= 2);
+    // Normal mode — only ready phrases (1+ symbols) are tappable to insert — a variant may legitimately be a single word.
+    const ready = phraseList.filter((p) => p.words.length >= 1);
     if (ready.length === 0) {
       return <span className="text-caption opacity-60 self-center" style={{ color: 'var(--theme-nav-text)' }}>{t('emptyBank')}</span>;
     }

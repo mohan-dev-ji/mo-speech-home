@@ -65,7 +65,7 @@ export function InlinePhraseEditor({
   const hasAudio =
     !!unit.recordedAudioPath ||
     audioAvail?.some((e) => e.text === nameKey && e.available) === true;
-  const incomplete = unit.words.length < 2;
+  const incomplete = unit.words.length < 1;
 
   function emit(updated: PhraseUnit) { onChange(sentenceId, unitIndex, updated); }
 
