@@ -62,6 +62,22 @@ export function collectSentenceOrphanKeys(sentence: {
   return dedupe(keys);
 }
 
+/** Personal R2 keys on a profilePhrases row (word images/recordings + a phrase recording). */
+export function collectPhraseOrphanKeys(phrase: {
+  words: ReadonlyArray<{ imagePath?: string; audioPath?: string }>;
+  audioPath?: string;
+  recordedAudioPath?: string;
+}): string[] {
+  const keys: string[] = [];
+  for (const w of phrase.words) {
+    if (isPersonalAssetKey(w.imagePath)) keys.push(w.imagePath);
+    if (isPersonalAssetKey(w.audioPath)) keys.push(w.audioPath);
+  }
+  if (isPersonalAssetKey(phrase.recordedAudioPath)) keys.push(phrase.recordedAudioPath);
+  if (isPersonalAssetKey(phrase.audioPath)) keys.push(phrase.audioPath);
+  return dedupe(keys);
+}
+
 function dedupe(keys: string[]): string[] {
   return Array.from(new Set(keys));
 }

@@ -2,7 +2,8 @@ import { mutation, query } from "./_generated/server";
 import { v, type Infer } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import { findVariantInGroup } from "./lib/variantAuthoring";
+import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
+import { collectSentenceOrphanKeys } from "./lib/contentModuleDelete";
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -310,13 +311,40 @@ export const deleteProfileSentence = mutation({
   args: {
     profileSentenceId: v.id("profileSentences"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<string[]> => {
     const { accountId, user } = await requireCallerAccountId(ctx);
     requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
-
+    const orphanKeys = collectSentenceOrphanKeys(sentence);
     await ctx.db.delete(args.profileSentenceId);
+    return orphanKeys;
+  },
+});
+
+// Stage 4 — delete the WHOLE logical item: the source + every sibling variant in
+// the group (variantGroupId ?? _id). Returns the personal-recording R2 keys the
+// caller (route) should delete; shared TTS is never included. Fixes the
+// delete-one-collapsed-row bug (siblings no longer re-surface).
+export const deleteSentenceGroup = mutation({
+  args: { profileSentenceId: v.id("profileSentences") },
+  handler: async (ctx, args): Promise<string[]> => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const row = await ctx.db.get(args.profileSentenceId);
+    if (!row || row.accountId !== accountId) throw new Error("Not authorised");
+    const groupId = variantGroupIdOf(row);
+    const rows = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const group = rows.filter((s) => (s.variantGroupId ?? s._id) === groupId);
+    const orphanKeys: string[] = [];
+    for (const s of group) {
+      orphanKeys.push(...collectSentenceOrphanKeys(s));
+      await ctx.db.delete(s._id);
+    }
+    return Array.from(new Set(orphanKeys));
   },
 });
 

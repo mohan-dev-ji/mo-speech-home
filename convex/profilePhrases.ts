@@ -10,7 +10,8 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import { findVariantInGroup } from "./lib/variantAuthoring";
+import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
+import { collectPhraseOrphanKeys } from "./lib/contentModuleDelete";
 
 const displayPropsSchema = v.optional(
   v.object({
@@ -199,12 +200,37 @@ export const updateProfilePhraseAudio = mutation({
 
 export const deleteProfilePhrase = mutation({
   args: { profilePhraseId: v.id("profilePhrases") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<string[]> => {
     const { accountId, user } = await requireCallerAccountId(ctx);
     requireProTier(user);
     const phrase = await ctx.db.get(args.profilePhraseId);
     if (!phrase || phrase.accountId !== accountId) throw new Error("Not authorised");
+    const orphanKeys = collectPhraseOrphanKeys(phrase);
     await ctx.db.delete(args.profilePhraseId);
+    return orphanKeys;
+  },
+});
+
+// Stage 4 — delete the whole phrase item (source + every sibling variant).
+export const deletePhraseGroup = mutation({
+  args: { profilePhraseId: v.id("profilePhrases") },
+  handler: async (ctx, args): Promise<string[]> => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const row = await ctx.db.get(args.profilePhraseId);
+    if (!row || row.accountId !== accountId) throw new Error("Not authorised");
+    const groupId = variantGroupIdOf(row);
+    const rows = await ctx.db
+      .query("profilePhrases")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const group = rows.filter((p) => (p.variantGroupId ?? p._id) === groupId);
+    const orphanKeys: string[] = [];
+    for (const p of group) {
+      orphanKeys.push(...collectPhraseOrphanKeys(p));
+      await ctx.db.delete(p._id);
+    }
+    return Array.from(new Set(orphanKeys));
   },
 });
 
