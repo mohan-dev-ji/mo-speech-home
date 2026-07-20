@@ -255,8 +255,8 @@ sentence / phrase:
 2. **fork-on-edit** for composed content (the cross-board footgun fix) — **plus the two
    word-unit save-path defects (§2a): correct-language keying and audio-invalidation-on-text-
    change.** They live in the same save path this stage reworks.
-3. **Revert** edit-toolbar icon across all surfaces (absorbs the 15.6 revert plan).
-4. **Delete → whole-item** redefinition + `deleteGroup` mutations + confirm copy.
+3. **✅ Shipped (`main`, 2026-07-19). Revert** edit-toolbar icon across all surfaces (absorbs the 15.6 revert plan).
+4. **✅ Shipped (`main`, 2026-07-19). Delete → whole-item** redefinition + `deleteGroup` mutations + confirm copy.
 
 Labels (lists/folders) are already largely board-true (per-language key merge from 15.5); their
 work is mainly the Revert icon (Stage 3) and Delete confirm copy (Stage 4).

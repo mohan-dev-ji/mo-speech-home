@@ -313,8 +313,78 @@ Stages 3 (revert) and 4 (delete→whole-item) remain.
 
 ---
 
+## Addendum J — Stages 3 & 4 of the Variant Lifecycle: Revert + whole-item Delete
+
+**✅ Shipped on `main` (2026-07-19).** Stages 3 and 4 close out the Language Variant
+Lifecycle model (Addenda H/I were Stages 1/2). This addendum **supersedes §5** ("Delete
+semantics — delete-one-variant + promote-source"): Delete no longer removes a single
+variant with source-promotion. Delete and Revert are now two distinct, differently-scoped
+operations.
+
+### A. Delete = whole item, across every language
+
+The trash button now deletes the **entire logical item** — the source row and every
+`variantGroupId` sibling, in one action — not just the collapsed row showing on the
+current board. New Convex mutations `deleteSentenceGroup` / `deletePhraseGroup`
+(`convex/profileSentences.ts`, `convex/profilePhrases.ts`) resolve `variantGroupId ?? _id`
+and delete every sibling, returning the personal-recording R2 keys freed by the group. A
+thin route, `POST /api/delete-composed` (`app/api/delete-composed/route.ts`), runs the
+mutation for `{ kind: 'sentence' | 'phrase', id, scope: 'group' }` then deletes those keys
+from R2 (mirrors `delete-profile-symbol`). The delete confirm copy was upgraded to a
+**heavy confirm** stating the removal spans every board language and cannot be undone —
+matching the "Delete safety" owner decision in the lifecycle spec (permanent, explicit,
+no trash/undo). Lists are unchanged: a list item/list delete was already whole-item (lists
+have no per-language sibling rows), so no list-side change was needed.
+
+### B. Revert = this board's variant only
+
+A new edit-mode **↩ (Revert)** icon removes just the current board's forked/authored
+variant and falls back to the origin — the opposite scope from Delete, and the "clean way
+back" the lifecycle spec's owner decisions called for. Shown only when the collapsed row
+on the current board is a real, revertable variant (`variantGroupId` set and
+`!== _id` for composed content; a board-language key present alongside a surviving origin
+key for lists). Gated behind a **light confirm** (no "every board" language, since only
+one board is affected).
+
+- **Composed content** (sentences via `PhraseEditCard` / `BlockEditControls`, standalone
+  phrases via `TalkerDropdown`): Revert calls the same `/api/delete-composed` route with
+  `scope: 'variant'`, deleting only that one sibling row (plus its personal-recording R2
+  keys). The group's other siblings and the source are untouched; the board falls back to
+  showing the origin with its "Made in `<lang>`" badge again.
+- **Lists**: Revert has no sibling row to delete — a list item/title is one localised
+  record (Addendum E). New mutation `revertProfileListLanguage` (`convex/profileLists.ts`)
+  strips the current board's language key from the list `name` and every item
+  `description` via a new helper `stripLocaleKey` (`lib/languages/variants.ts`), leaving
+  the origin key(s) intact.
+
+### C. R2 cleanup stays personal-recording-only
+
+Both Delete (group scope) and Revert (variant scope) route through `/api/delete-composed`,
+which only ever deletes R2 keys passing `isPersonalAssetKey` (prefix `accounts/` or
+`profiles/`) — an instructor's own uploaded images or recorded audio. **Shared assets are
+never deleted by either operation**: generated TTS clips under `audio/<voice>/tts/…`,
+`symbols/…`, and `ai-cache/…` are cross-user/cross-profile and outlive any single item's
+deletion or revert, exactly as the collectors already guaranteed for the single-row delete
+paths this addendum extends.
+
+### D. 1-word phrases now valid
+
+A standalone phrase (and, by extension, a per-language phrase variant) may legitimately be
+a single word — e.g. a Hindi variant that is one symbol where the English source is two.
+The `>= 2` / `< 2` word-count guards that treated a 1-word phrase as not-yet-ready or
+incomplete were relaxed to `>= 1` / `< 1` throughout the tappable-bank filter and the
+incomplete/warning threshold (`TalkerDropdown.tsx`, `InlinePhraseEditor.tsx`); only a
+0-word phrase is now "incomplete."
+
+This is **Stage 3 & 4 of the Language Variant Lifecycle model**
+(see [`2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md)).
+All four stages of the lifecycle model are now shipped.
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
 - Builds on **Phase 15** `authoredLanguage` ([`_done/phase-15-language-design.md`](../plans/_done/phase-15-language-design.md)); broadens the badge rule beyond block/sequence.
 - Implemented by [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md).
+- Addendum J (Stages 3 & 4) implemented by [`phase-15.6-variant-lifecycle-3-4-delete-revert.md`](../plans/_done/phase-15.6-variant-lifecycle-3-4-delete-revert.md); **supersedes §5.**
