@@ -19,7 +19,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash2, Move, Check, X, FolderInput, Upload } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X, FolderInput, Upload, RotateCcw } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
@@ -66,6 +66,7 @@ type ListRow = {
 
 
 type PendingDelete = { id: Id<'profileLists'>; name: string } | null;
+type PendingRevert = { id: Id<'profileLists'>; name: string } | null;
 
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
@@ -114,13 +115,15 @@ type SortableListRowProps = {
   onOpen: (id: Id<'profileLists'>) => void;
   /** Phase 15.5 — open the translate modal for this list (badge tap). */
   onTranslateList: (id: Id<'profileLists'>) => void;
+  /** Stage 3 — strip this board's language key from the list name + item descriptions. */
+  onRevertRequest: (id: Id<'profileLists'>, name: string) => void;
 };
 
 function SortableListRow({
   list, language, isEditing,
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
-  onDeleteRequest, onMoveRequest, onOpen, onTranslateList,
+  onDeleteRequest, onMoveRequest, onOpen, onTranslateList, onRevertRequest,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -168,6 +171,19 @@ function SortableListRow({
                   label={t('rowDelete')}
                   onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
                 />
+                {/* Stage 3 — revert: only when this board is showing a real
+                    board-language key over a surviving origin key. */}
+                {typeof list.name === 'object' &&
+                  list.name[language] != null &&
+                  Object.keys(list.name).some((k) => k !== language) && (
+                    <IconButton
+                      size="sm"
+                      variant="neutral"
+                      icon={<RotateCcw />}
+                      label={t('rowRevert')}
+                      onClick={(e) => { e.stopPropagation(); onRevertRequest(list._id, name); }}
+                    />
+                  )}
                 <IconButton
                   size="sm"
                   variant="neutral"
@@ -280,6 +296,8 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingRevert, setPendingRevert] = useState<PendingRevert>(null);
+  const [isReverting, setIsReverting] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [editingNameId, setEditingNameId] = useState<Id<'profileLists'> | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
@@ -288,6 +306,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const deleteList = useMutation(api.profileLists.deleteProfileList);
+  const revertListLanguage = useMutation(api.profileLists.revertProfileListLanguage);
   const renameList = useMutation(api.profileLists.updateProfileListName);
   const reorderLists = useMutation(api.profileLists.reorderProfileLists);
   const moveListToGroup = useMutation(api.profileFolders.moveListToGroup);
@@ -427,6 +446,20 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
+    }
+  }
+
+  async function handleRevertConfirm() {
+    if (!pendingRevert) return;
+    setIsReverting(true);
+    try {
+      await revertListLanguage({
+        profileListId: pendingRevert.id,
+        language,
+      });
+    } finally {
+      setIsReverting(false);
+      setPendingRevert(null);
     }
   }
 
@@ -608,6 +641,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                     onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                     onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
                     onTranslateList={(id) => setTranslateTarget(id)}
+                    onRevertRequest={(id, name) => setPendingRevert({ id, name })}
                   />
                 ))}
               </div>
@@ -686,6 +720,40 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
               style={{ background: 'var(--theme-warning)', color: '#fff' }}
             >
               {isDeleting ? t('deleting') : t('deleteButton')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={pendingRevert !== null}
+        onOpenChange={(open) => { if (!open) setPendingRevert(null); }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('rowRevert')}</DialogTitle>
+            <DialogDescription>
+              {t('revertConfirm', { name: pendingRevert?.name ?? '' })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+              >
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleRevertConfirm}
+              disabled={isReverting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-primary)', color: '#fff' }}
+            >
+              {isReverting ? t('deleting') : t('rowRevert')}
             </button>
           </DialogFooter>
         </DialogContent>

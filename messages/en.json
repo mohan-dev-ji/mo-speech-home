@@ -48,6 +48,8 @@
     "rowDelete": "Delete list",
     "rowEdit": "Rename",
     "rowMove": "Move",
+    "rowRevert": "Use original",
+    "revertConfirm": "Remove this board's version of \"{name}\"? The original will show here instead — you can re-author it anytime.",
     "deleteTitle": "Delete list",
     "deleteConfirm": "Delete \"{name}\"? This cannot be undone.",
     "deleteCancel": "Cancel",

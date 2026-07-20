@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
+import { stripLocaleKey } from "../lib/languages/variants";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -228,6 +229,27 @@ export const deleteProfileList = mutation({
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
     await ctx.db.delete(args.profileListId);
+  },
+});
+
+export const revertProfileListLanguage = mutation({
+  args: { profileListId: v.id("profileLists"), language: v.string() },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+    const list = await ctx.db.get(args.profileListId);
+    if (!list || list.accountId !== accountId) throw new Error("Not authorised");
+    // list.name is always a Record (never the legacy plain-string form), so
+    // stripLocaleKey's return is a Record too — narrow past its wider union
+    // return type (shared with the string|Record `description` field below).
+    const name = stripLocaleKey(list.name, args.language) as Record<string, string>;
+    const items = list.items.map((it) => ({
+      ...it,
+      ...(it.description !== undefined
+        ? { description: stripLocaleKey(it.description, args.language) }
+        : {}),
+    }));
+    await ctx.db.patch(args.profileListId, { name, items, updatedAt: Date.now() });
   },
 });
 

@@ -95,6 +95,16 @@ export function reconcileVariantOrder(
   return next;
 }
 
+/** Drop one locale's key from a localised record; strings/undefined pass through unchanged. */
+export function stripLocaleKey(
+  rec: Record<string, string> | string | undefined,
+  locale: string,
+): Record<string, string> | string | undefined {
+  if (rec == null || typeof rec === 'string') return rec;
+  const { [locale]: _drop, ...rest } = rec;
+  return rest;
+}
+
 export function collapseVariants<T extends VariantRow>(
   rows: readonly T[],
   language: string,
