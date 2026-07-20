@@ -203,6 +203,14 @@ export function CategoryDetailContent({ categoryId }: Props) {
     { profileCategoryId, voiceId }
   );
 
+  // Warn-but-allow: how many OTHER items still reference this symbol's
+  // personal image/audio keys. Non-blocking — shown as an extra line in the
+  // delete confirm below when > 0.
+  const pendingDeleteUsageCount = useQuery(
+    api.profileSymbols.getProfileSymbolUsageCount,
+    pendingDelete ? { profileSymbolId: pendingDelete.id } : 'skip'
+  );
+
   // deleteProfileSymbol now routed through /api/delete-profile-symbol so
   // the server can also clean up R2 personal media on delete. See
   // handleDeleteConfirm below.
@@ -538,6 +546,11 @@ export function CategoryDetailContent({ categoryId }: Props) {
             <DialogDescription>
               {t('symbolDeleteConfirm', { name: pendingDelete?.name ?? '' })}
             </DialogDescription>
+            {!!pendingDeleteUsageCount && pendingDeleteUsageCount > 0 && (
+              <p className="text-theme-s text-theme-secondary-text mt-1">
+                {t('symbolDeleteInUse', { count: pendingDeleteUsageCount })}
+              </p>
+            )}
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>

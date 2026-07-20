@@ -222,6 +222,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   );
   const phrases = useQuery(api.dropbar.getDropbarPhrases, isOpen ? {} : 'skip');
 
+  // Warn-but-allow: how many OTHER items still reference this symbol's
+  // personal image/audio keys. Non-blocking — shown as an extra line in the
+  // delete confirm below when > 0.
+  const pendingSymDeleteUsageCount = useQuery(
+    api.profileSymbols.getProfileSymbolUsageCount,
+    pendingSymDelete ? { profileSymbolId: pendingSymDelete.id } : 'skip'
+  );
+
   // Get-or-create the two containers the first time the board resolves without
   // them (accounts that predate the seeded defaults).
   useEffect(() => {
@@ -842,6 +850,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           <DialogHeader>
             <DialogTitle>{t('symbolDelete')}</DialogTitle>
             <DialogDescription>{t('groupDeleteConfirm', { name: pendingSymDelete?.name ?? '' })}</DialogDescription>
+            {!!pendingSymDeleteUsageCount && pendingSymDeleteUsageCount > 0 && (
+              <p className="text-theme-s text-theme-secondary-text mt-1">
+                {t('symbolDeleteInUse', { count: pendingSymDeleteUsageCount })}
+              </p>
+            )}
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>

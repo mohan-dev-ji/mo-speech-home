@@ -2,7 +2,8 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
-import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
+import { collectReferencedPersonalKeys, countRowsReferencingKeys } from "./lib/personalAssetRefs";
+import { isPersonalAssetKey } from "./lib/contentModuleDelete";
 
 const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
@@ -258,6 +259,54 @@ export const getProfileSymbolDeleteOrphanKeys = query({
       symbolIds: new Set([String(profileSymbolId)]),
     });
     return keys.filter((k) => !referenced.has(k));
+  },
+});
+
+/**
+ * Count of the account's OTHER items (sentences/phrases/lists/symbols/categories/folders)
+ * that still reference this symbol's personal image/recording keys. Drives a warn-but-allow
+ * notice on delete: removing the symbol from its category does NOT remove the image from
+ * those items (and the R2 file is preserved while they reference it).
+ *
+ * Auth-checked, same leniency as `getProfileSymbolDeleteOrphanKeys`: returns 0 rather than
+ * throwing for missing / not-owned symbols, so a stale confirm dialog never breaks the client.
+ */
+export const getProfileSymbolUsageCount = query({
+  args: { profileSymbolId: v.id("profileSymbols") },
+  handler: async (ctx, { profileSymbolId }): Promise<number> => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return 0;
+    const { accountId } = resolved;
+
+    const sym = await ctx.db.get(profileSymbolId);
+    if (!sym || sym.accountId !== accountId) return 0;
+
+    const keys: string[] = [];
+
+    // Same personal-key rules as getProfileSymbolDeleteOrphanKeys: uploads +
+    // image-search picks, and recorded audio (incl. recorded alternates).
+    if (
+      sym.imageSource.type === "userUpload" ||
+      sym.imageSource.type === "imageSearch"
+    ) {
+      keys.push(sym.imageSource.imagePath);
+    }
+
+    const audioMap =
+      (sym.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
+    for (const a of Object.values(audioMap)) {
+      if (!a) continue;
+      if (a.type === "recorded") keys.push(a.path);
+      if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
+        keys.push(a.alternates.recorded);
+      }
+    }
+
+    const personalKeys = new Set(keys.filter((k) => isPersonalAssetKey(k)));
+
+    return countRowsReferencingKeys(ctx, accountId, personalKeys, {
+      symbolIds: new Set([String(profileSymbolId)]),
+    });
   },
 });
 
