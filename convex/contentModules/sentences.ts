@@ -20,6 +20,7 @@ import {
   isModuleVisible,
 } from "../lib/contentModuleInstall";
 import { collectSentenceOrphanKeys } from "../lib/contentModuleDelete";
+import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -136,7 +137,11 @@ export const getSentenceModuleDeleteOrphanKeys = query({
       .collect();
     const keys: string[] = [];
     for (const s of sentences) keys.push(...collectSentenceOrphanKeys(s));
-    return Array.from(new Set(keys));
+
+    const referenced = await collectReferencedPersonalKeys(ctx, resolved.accountId, {
+      sentenceIds: new Set(sentences.map((s) => String(s._id))),
+    });
+    return Array.from(new Set(keys)).filter((k) => !referenced.has(k));
   },
 });
 

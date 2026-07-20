@@ -21,6 +21,7 @@ import {
   isModuleInstalled,
   isModuleVisible,
 } from "../lib/contentModuleInstall";
+import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -142,7 +143,11 @@ export const getPhraseModuleDeleteOrphanKeys = query({
         if (w.imagePath?.startsWith("accounts/")) keys.push(w.imagePath);
       }
     }
-    return Array.from(new Set(keys));
+
+    const referenced = await collectReferencedPersonalKeys(ctx, resolved.accountId, {
+      phraseIds: new Set(phrases.map((p) => String(p._id))),
+    });
+    return Array.from(new Set(keys)).filter((k) => !referenced.has(k));
   },
 });
 

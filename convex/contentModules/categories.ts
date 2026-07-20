@@ -24,6 +24,7 @@ import {
   isCategoryModuleInstalled,
   isModuleVisible,
 } from "../lib/contentModuleInstall";
+import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -166,6 +167,7 @@ export const getCategoryModuleDeleteOrphanKeys = query({
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
     const keys: string[] = [];
+    const symbolIds = new Set<string>();
     for (const cat of cats) {
       if (cat.librarySourceId !== slug) continue;
       const symbols = await ctx.db
@@ -175,6 +177,7 @@ export const getCategoryModuleDeleteOrphanKeys = query({
         )
         .collect();
       for (const s of symbols) {
+        symbolIds.add(String(s._id));
         if (
           s.imageSource.type === "userUpload" ||
           s.imageSource.type === "imageSearch"
@@ -195,7 +198,11 @@ export const getCategoryModuleDeleteOrphanKeys = query({
         }
       }
     }
-    return Array.from(new Set(keys));
+
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, {
+      symbolIds,
+    });
+    return Array.from(new Set(keys)).filter((k) => !referenced.has(k));
   },
 });
 

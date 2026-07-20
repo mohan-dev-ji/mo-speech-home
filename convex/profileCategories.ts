@@ -7,6 +7,7 @@ import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 import { getLanguage, getVoiceEntry } from "../lib/languages/registry";
+import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
 // Phase 8.4: callers pass the active profile's resolved `voiceId`; this is the
@@ -483,6 +484,10 @@ export const getCategoryReloadOrphanKeys = query({
         }
       }
     }
-    return keys;
+
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, {
+      symbolIds: new Set(symbols.map((s) => String(s._id))),
+    });
+    return keys.filter((k) => !referenced.has(k));
   },
 });

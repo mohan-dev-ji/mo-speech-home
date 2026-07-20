@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
+import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 
 const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
@@ -253,7 +254,10 @@ export const getProfileSymbolDeleteOrphanKeys = query({
       }
     }
 
-    return keys;
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, {
+      symbolIds: new Set([String(profileSymbolId)]),
+    });
+    return keys.filter((k) => !referenced.has(k));
   },
 });
 
