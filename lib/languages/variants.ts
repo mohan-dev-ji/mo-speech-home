@@ -29,6 +29,15 @@ export function variantGroupKey(row: VariantRow): string {
 }
 
 /**
+ * A collapsed row is revertable iff it is a NON-SOURCE sibling variant — i.e. the
+ * board is showing a real board-language version over a surviving origin. Hidden
+ * on the origin board and on an untranslated fallback (both show the source).
+ */
+export function isRevertableVariant(row: { _id: string; variantGroupId?: string }): boolean {
+  return row.variantGroupId != null && row.variantGroupId !== row._id;
+}
+
+/**
  * Whether a variant still needs translating for `boardLang` — i.e. its PRIMARY
  * localised field (fluent → `text`, phrase → `name`, else `name`) has no
  * board-language entry, so it would fall back to another language.

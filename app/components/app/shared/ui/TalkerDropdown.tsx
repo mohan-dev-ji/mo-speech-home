@@ -58,7 +58,7 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, needsTranslation } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { useProfile } from '@/app/contexts/ProfileContext';
@@ -122,6 +122,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     { id: Id<'profilePhrases'>; nameRec: Record<string, string> } | null
   >(null);
   const [pendingPhraseDelete, setPendingPhraseDelete] = useState<
+    { id: Id<'profilePhrases'>; name: string } | null
+  >(null);
+  // ADR-016 Stage 3 — edit-mode ↩: removes only this board's variant row.
+  const [pendingPhraseRevert, setPendingPhraseRevert] = useState<
     { id: Id<'profilePhrases'>; name: string } | null
   >(null);
   // ADR-016 — the source phrase whose "Made in <lang>" badge was tapped, driving
@@ -439,6 +443,26 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     }
   }
 
+  // ADR-016 Stage 3 — Revert: remove only this board's variant row, so the
+  // board falls back to showing the surviving origin (+ "Made in" badge).
+  async function handlePhraseRevertConfirm() {
+    if (!pendingPhraseRevert) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/delete-composed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'phrase', id: pendingPhraseRevert.id, scope: 'variant' }),
+      });
+      if (!res.ok) throw new Error('revert failed');
+    } catch (e) {
+      console.error('[TalkerDropdown] revert phrase failed', e);
+    } finally {
+      setIsDeleting(false);
+      setPendingPhraseRevert(null);
+    }
+  }
+
   async function handleCreatePhrase(name: string) {
     const folderId = board?.phrasesFolderId;
     if (!folderId) return;
@@ -593,6 +617,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     addLabel={t('phraseAddSymbol')}
                     removeLabel={t('phraseRemoveSymbol')}
                     deleteLabel={t('phraseDelete')}
+                    revertLabel={t('phraseRevert')}
                     moveLabel={t('phraseMove')}
                     onRename={(v) => handleRenamePhrase(p._id, p.name, v)}
                     onWordAdd={() => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: -1 })}
@@ -601,6 +626,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     onWordReorder={(from, to) => handleReorderPhraseWord(p._id, from, to)}
                     onAudio={() => setPhraseAudioTarget({ id: p._id, nameRec: p.name })}
                     onDelete={() => setPendingPhraseDelete({ id: p._id, name })}
+                    // ADR-016 Stage 3 — hidden on the source board + untranslated
+                    // fallback; shown only when this row is a real sibling variant.
+                    onRevert={isRevertableVariant(p) ? () => setPendingPhraseRevert({ id: p._id, name }) : undefined}
                   />
                 );
               })}
@@ -906,6 +934,33 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         </DialogContent>
       </Dialog>
 
+      {/* Phrase revert confirmation — light confirm (no warning styling):
+          reverting only removes this board's variant row, the origin stays intact. */}
+      <Dialog open={pendingPhraseRevert !== null} onOpenChange={(o) => { if (!o) setPendingPhraseRevert(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('phraseRevert')}</DialogTitle>
+            <DialogDescription>{t('phraseRevertConfirm', { name: pendingPhraseRevert?.name ?? '' })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}>
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handlePhraseRevertConfirm}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
+            >
+              {isDeleting ? t('deleting') : t('phraseRevert')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ADR-016 — phrase variant authoring (badge → manual | translate-assist). */}
       {phraseVariantTarget && (
         <VariantAuthorModal
@@ -1045,6 +1100,7 @@ function PhraseEditCard({
   addLabel,
   removeLabel,
   deleteLabel,
+  revertLabel,
   moveLabel,
   onRename,
   onWordAdd,
@@ -1053,6 +1109,7 @@ function PhraseEditCard({
   onWordReorder,
   onAudio,
   onDelete,
+  onRevert,
 }: {
   id: string;
   name: string;
@@ -1065,6 +1122,9 @@ function PhraseEditCard({
   addLabel: string;
   removeLabel: string;
   deleteLabel: string;
+  // ADR-016 Stage 3 — label for the edit-mode ↩ control; only rendered when
+  // `onRevert` is also passed (a non-source sibling variant).
+  revertLabel?: string;
   moveLabel: string;
   onRename: (value: string) => void;
   onWordAdd: () => void;
@@ -1073,6 +1133,7 @@ function PhraseEditCard({
   onWordReorder: (from: number, to: number) => void;
   onAudio: () => void;
   onDelete: () => void;
+  onRevert?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -1106,6 +1167,8 @@ function PhraseEditCard({
           <BlockEditControls
             onDelete={onDelete}
             deleteLabel={deleteLabel}
+            onRevert={onRevert}
+            revertLabel={revertLabel}
             moveLabel={moveLabel}
             dragProps={{ ...listeners, ...attributes }}
           />

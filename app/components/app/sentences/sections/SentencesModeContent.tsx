@@ -24,6 +24,7 @@ import {
   FolderInput,
   Move,
   Plus,
+  RotateCcw,
   Trash2,
   Upload,
   Volume2,
@@ -38,7 +39,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, needsTranslation } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -109,6 +110,9 @@ type SentenceRow = {
   // resolve text + voice against this, and the "Made in <lang>" badge shows when
   // it differs from the board language. Legacy rows are undefined → treated as 'en'.
   authoredLanguage?: string;
+  // ADR-016 — sibling-variant link (client collapses by board lang); drives the
+  // edit-mode Revert control (Stage 3): revertable iff set and !== _id.
+  variantGroupId?: string;
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
 };
@@ -485,6 +489,8 @@ type SortableSentenceRowProps = {
    *  seeded TTS). Drives the edit-mode "needs generation" nudge. */
   audioReady?: boolean;
   onDeleteRequest: (id: Id<'profileSentences'>, name: string) => void;
+  // ADR-016 Stage 3 — remove just this board's variant row (edit-mode ↩).
+  onRevertRequest: (id: Id<'profileSentences'>, name: string) => void;
   onMoveRequest: (id: Id<'profileSentences'>, name: string) => void;
   onEditSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
   onRemoveSlot: (sentenceId: Id<'profileSentences'>, slotIndex: number) => void;
@@ -505,7 +511,7 @@ type SortableSentenceRowProps = {
 
 function SortableSentenceRow({
   sentence, language, isEditing, audioReady = false,
-  onDeleteRequest, onMoveRequest,
+  onDeleteRequest, onRevertRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditWord, onRemoveUnit, onAddWord, onAddPhrase, onReorderUnits, onPhraseChange,
   onEditSentence, onPlay, onAuthorVariant,
@@ -635,6 +641,15 @@ function SortableSentenceRow({
             <div className="shrink-0">
               {isEditing && (
                 <EditPanel className="flex-wrap">
+                  {isRevertableVariant(sentence) && (
+                    <IconButton
+                      size="sm"
+                      variant="neutral"
+                      icon={<RotateCcw />}
+                      label={t('rowRevert')}
+                      onClick={(e) => { e.stopPropagation(); onRevertRequest(sentence._id, name); }}
+                    />
+                  )}
                   <IconButton
                     size="sm"
                     variant="neutral"
@@ -768,6 +783,8 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setCreateModalOpen(true);
   };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
+  // ADR-016 Stage 3 — edit-mode ↩: removes only this board's variant row.
+  const [pendingRevert, setPendingRevert] = useState<PendingDelete>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [slotEditTarget, setSlotEditTarget] = useState<SlotEditTarget>(null);
@@ -970,6 +987,24 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
+    }
+  }
+
+  // ADR-016 Stage 3 — Revert: remove only this board's variant row, so the
+  // board falls back to showing the surviving origin (+ "Made in" badge).
+  async function handleRevertConfirm() {
+    if (!pendingRevert) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/delete-composed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'sentence', id: pendingRevert.id, scope: 'variant' }),
+      });
+      if (!res.ok) throw new Error('revert failed');
+    } finally {
+      setIsDeleting(false);
+      setPendingRevert(null);
     }
   }
 
@@ -1269,6 +1304,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                       isEditing={isEditing}
                       audioReady={audioReady}
                       onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
+                      onRevertRequest={(id, name) => setPendingRevert({ id, name })}
                       onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}
                       onEditSlot={handleEditSlot}
                       onRemoveSlot={handleRemoveSlot}
@@ -1372,6 +1408,42 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
               style={{ background: 'var(--theme-warning)', color: '#fff' }}
             >
               {isDeleting ? t('deleting') : t('deleteButton')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revert confirm dialog — light confirm (no warning styling): reverting
+          only removes this board's variant row, the origin stays intact. */}
+      <Dialog
+        open={pendingRevert !== null}
+        onOpenChange={(open) => { if (!open) setPendingRevert(null); }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('rowRevert')}</DialogTitle>
+            <DialogDescription>
+              {t('revertConfirm', { name: pendingRevert?.name ?? '' })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+              >
+                {t('deleteCancel')}
+              </button>
+            </DialogClose>
+            <button
+              type="button"
+              onClick={handleRevertConfirm}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
+            >
+              {isDeleting ? t('deleting') : t('rowRevert')}
             </button>
           </DialogFooter>
         </DialogContent>
