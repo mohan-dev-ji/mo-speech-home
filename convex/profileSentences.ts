@@ -316,9 +316,25 @@ export const deleteProfileSentence = mutation({
     requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
-    const orphanKeys = collectSentenceOrphanKeys(sentence);
+    // Variants are seeded by COPYING the source's slots (ADR-016 §3), so a variant
+    // shares the exact slot-image R2 keys with its source/siblings. When reverting
+    // ONE variant, never free a personal key a surviving sibling still references —
+    // only keys unique to this row. (Group delete removes every sibling, so it frees
+    // everything correctly; this guard matters only for the single-row/variant path.)
+    const ownKeys = collectSentenceOrphanKeys(sentence);
+    const groupId = variantGroupIdOf(sentence);
+    const rows = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const survivingKeys = new Set<string>();
+    for (const s of rows) {
+      if (s._id === sentence._id) continue;
+      if ((s.variantGroupId ?? s._id) !== groupId) continue;
+      for (const k of collectSentenceOrphanKeys(s)) survivingKeys.add(k);
+    }
     await ctx.db.delete(args.profileSentenceId);
-    return orphanKeys;
+    return ownKeys.filter((k) => !survivingKeys.has(k));
   },
 });
 

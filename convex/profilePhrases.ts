@@ -205,9 +205,22 @@ export const deleteProfilePhrase = mutation({
     requireProTier(user);
     const phrase = await ctx.db.get(args.profilePhraseId);
     if (!phrase || phrase.accountId !== accountId) throw new Error("Not authorised");
-    const orphanKeys = collectPhraseOrphanKeys(phrase);
+    // Variants share word-image/audio R2 keys with their source/siblings (seeded by
+    // copy). On single-row revert, free only keys unique to this row.
+    const ownKeys = collectPhraseOrphanKeys(phrase);
+    const groupId = variantGroupIdOf(phrase);
+    const rows = await ctx.db
+      .query("profilePhrases")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    const survivingKeys = new Set<string>();
+    for (const p of rows) {
+      if (p._id === phrase._id) continue;
+      if ((p.variantGroupId ?? p._id) !== groupId) continue;
+      for (const k of collectPhraseOrphanKeys(p)) survivingKeys.add(k);
+    }
     await ctx.db.delete(args.profilePhraseId);
-    return orphanKeys;
+    return ownKeys.filter((k) => !survivingKeys.has(k));
   },
 });
 

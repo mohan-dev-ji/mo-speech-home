@@ -243,6 +243,9 @@ export const revertProfileListLanguage = mutation({
     // stripLocaleKey's return is a Record too — narrow past its wider union
     // return type (shared with the string|Record `description` field below).
     const name = stripLocaleKey(list.name, args.language) as Record<string, string>;
+    // Defensive: never strip the last key (would blank the label on every board).
+    // The UI only offers Revert when another key survives, but guard the mutation too.
+    if (Object.keys(name).length === 0) return;
     const items = list.items.map((it) => ({
       ...it,
       ...(it.description !== undefined

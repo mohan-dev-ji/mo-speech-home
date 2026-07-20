@@ -751,7 +751,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
               onClick={handleRevertConfirm}
               disabled={isReverting}
               className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
-              style={{ background: 'var(--theme-primary)', color: '#fff' }}
+              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
             >
               {isReverting ? t('deleting') : t('rowRevert')}
             </button>
