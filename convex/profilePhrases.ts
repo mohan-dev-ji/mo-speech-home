@@ -12,6 +12,7 @@ import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectPhraseOrphanKeys } from "./lib/contentModuleDelete";
+import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 
 const displayPropsSchema = v.optional(
   v.object({
@@ -205,22 +206,15 @@ export const deleteProfilePhrase = mutation({
     requireProTier(user);
     const phrase = await ctx.db.get(args.profilePhraseId);
     if (!phrase || phrase.accountId !== accountId) throw new Error("Not authorised");
-    // Variants share word-image/audio R2 keys with their source/siblings (seeded by
-    // copy). On single-row revert, free only keys unique to this row.
+    // A personal key can be shared across tables (e.g. a category symbol's
+    // imagePath reused by a word that copied the same key), not just sibling
+    // variants — so the reference scan must cover every content table, not just
+    // this table's siblings. See lib/personalAssetRefs.ts.
     const ownKeys = collectPhraseOrphanKeys(phrase);
-    const groupId = variantGroupIdOf(phrase);
-    const rows = await ctx.db
-      .query("profilePhrases")
-      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-      .collect();
-    const survivingKeys = new Set<string>();
-    for (const p of rows) {
-      if (p._id === phrase._id) continue;
-      if ((p.variantGroupId ?? p._id) !== groupId) continue;
-      for (const k of collectPhraseOrphanKeys(p)) survivingKeys.add(k);
-    }
+    const deleted = new Set([String(args.profilePhraseId)]);
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, { phraseIds: deleted });
     await ctx.db.delete(args.profilePhraseId);
-    return ownKeys.filter((k) => !survivingKeys.has(k));
+    return ownKeys.filter((k) => !referenced.has(k));
   },
 });
 
@@ -239,11 +233,11 @@ export const deletePhraseGroup = mutation({
       .collect();
     const group = rows.filter((p) => (p.variantGroupId ?? p._id) === groupId);
     const orphanKeys: string[] = [];
-    for (const p of group) {
-      orphanKeys.push(...collectPhraseOrphanKeys(p));
-      await ctx.db.delete(p._id);
-    }
-    return Array.from(new Set(orphanKeys));
+    for (const p of group) orphanKeys.push(...collectPhraseOrphanKeys(p));
+    const deleted = new Set(group.map((p) => String(p._id)));
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, { phraseIds: deleted });
+    for (const p of group) await ctx.db.delete(p._id);
+    return Array.from(new Set(orphanKeys)).filter((k) => !referenced.has(k));
   },
 });
 

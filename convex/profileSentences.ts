@@ -4,6 +4,7 @@ import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectSentenceOrphanKeys } from "./lib/contentModuleDelete";
+import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -316,25 +317,15 @@ export const deleteProfileSentence = mutation({
     requireProTier(user);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
-    // Variants are seeded by COPYING the source's slots (ADR-016 §3), so a variant
-    // shares the exact slot-image R2 keys with its source/siblings. When reverting
-    // ONE variant, never free a personal key a surviving sibling still references —
-    // only keys unique to this row. (Group delete removes every sibling, so it frees
-    // everything correctly; this guard matters only for the single-row/variant path.)
+    // A personal key can be shared across tables (e.g. a category symbol's
+    // imagePath reused by a composition slot that copied the same key), not just
+    // sibling variants — so the reference scan must cover every content table,
+    // not just this table's siblings. See lib/personalAssetRefs.ts.
     const ownKeys = collectSentenceOrphanKeys(sentence);
-    const groupId = variantGroupIdOf(sentence);
-    const rows = await ctx.db
-      .query("profileSentences")
-      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-      .collect();
-    const survivingKeys = new Set<string>();
-    for (const s of rows) {
-      if (s._id === sentence._id) continue;
-      if ((s.variantGroupId ?? s._id) !== groupId) continue;
-      for (const k of collectSentenceOrphanKeys(s)) survivingKeys.add(k);
-    }
+    const deleted = new Set([String(args.profileSentenceId)]);
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, { sentenceIds: deleted });
     await ctx.db.delete(args.profileSentenceId);
-    return ownKeys.filter((k) => !survivingKeys.has(k));
+    return ownKeys.filter((k) => !referenced.has(k));
   },
 });
 
@@ -356,11 +347,11 @@ export const deleteSentenceGroup = mutation({
       .collect();
     const group = rows.filter((s) => (s.variantGroupId ?? s._id) === groupId);
     const orphanKeys: string[] = [];
-    for (const s of group) {
-      orphanKeys.push(...collectSentenceOrphanKeys(s));
-      await ctx.db.delete(s._id);
-    }
-    return Array.from(new Set(orphanKeys));
+    for (const s of group) orphanKeys.push(...collectSentenceOrphanKeys(s));
+    const deleted = new Set(group.map((s) => String(s._id)));
+    const referenced = await collectReferencedPersonalKeys(ctx, accountId, { sentenceIds: deleted });
+    for (const s of group) await ctx.db.delete(s._id);
+    return Array.from(new Set(orphanKeys)).filter((k) => !referenced.has(k));
   },
 });
 
