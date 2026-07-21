@@ -3,7 +3,7 @@
 **Date:** 2026-07-21
 **Status:** Approved (design) — ready for implementation planning
 **Relates to:** [ADR-016 Composed-Content Language Variants](../../4-builds/decisions/ADR-016-composed-content-language-variants.md) (incl. Addendum J) · [Variant Delete + Revert design](2026-07-19-variant-delete-revert-design.md)
-**Figma:** GroupTile edit/view states — `Mo Speech — Finals`, node `3017-2352`
+**Figma:** `Mo Speech — Finals` — GroupTile edit/view states, node `3017-2352`; list-strip & block-sentence edit/view states (toolbar + "Made in" pill), node `3025-2324`. Exact glyphs, spacing and tokens are pulled from these nodes at implementation time (via the design-to-code flow), not guessed.
 
 ---
 
@@ -33,7 +33,7 @@ Three problems with today's translation affordances:
 | `translated` | a board-language version exists **and** an origin survives | `RotateCcw` (↺) | fires `onRevert` |
 | `none` | single-language item (nothing to translate from/to) | — | renders nothing |
 
-**`MadeInLabel`** — the "Made in ⟨LANG⟩" pill, demoted to a **non-actionable label** (a `<span>`, not a `<button>`). Purely informational: it names the origin language being fallen back to.
+**`MadeInLabel`** — the "Made in ⟨LANG⟩" pill, demoted to a **non-actionable label** (a `<span>`, not a `<button>`). Purely informational: it names the origin language being fallen back to. Per Figma `3025-2324` it sits **directly below the edit toolbar, right-aligned**.
 
 **Pairing rule:** `MadeInLabel` renders **iff** the control is in the `untranslated` state — that is exactly when a fallback origin exists to name. In the `translated` state the content is native to the board, so no label. This keeps the pair coherent and avoids redundant chrome.
 
@@ -68,18 +68,25 @@ State derivation reuses existing helpers — **no new predicates**:
 
 **Hard rule for the last row:** ADR-016's governing principle is that structure-bound content (phrases, all sentence types) is **re-authored per language, never machine-translated in place** — word order and morphology are language-specific. The shared control must never be wired to `translateTexts()` for compositions. This preserves the badge's current job (ADR-016 §3: the badge is the entry point to author a native variant) while making the badge itself non-actionable.
 
-### 4. Consolidation — the control replaces the EditPanel ↩
+### 4. Consolidation — the shipped ↩ becomes the control, in place
 
-The ↩ Revert shipped in the Variant Lifecycle work currently lives in the `EditPanel` / `BlockEditControls` for sentences, phrases and list rows. With the control handling revert, that becomes a duplicate. **It moves** out of the EditPanel and into the control beside the title/label. Net result: one control, one location, every surface.
+The ↩ Revert shipped in the Variant Lifecycle work already lives in the **edit toolbar** (`EditPanel` for sentences and list rows, `BlockEditControls` for phrases) — which is exactly where Figma `3025-2324` puts this control. So it does **not** move: that same slot simply **becomes** `TranslateRevertControl`, gaining the `untranslated` (translate) state. This is materially less churn than relocating it, and it keeps every row-level authoring action in one toolbar.
 
 No mutation changes — the revert verbs above already exist and keep their current semantics (including reference-aware R2 cleanup).
 
 ### 5. Placement
 
-- **`GroupTile`** — inline, right of the editable title input, matching the Figma. **Toggle only, no `MadeInLabel`** (no room on a tile; the label is the clunkiness being removed). The existing translate *modal* is dropped: in edit mode the title is already an input, so the modal's "manual" branch is redundant → one tap, no dialog.
-- **List row / sentence row / phrase card** — control + `MadeInLabel` beside the title/name, where the badge sits today.
-- **List detail items** — control in the **`EditRows`/`EditColumns`/`EditGrid`** renderers (edit mode). The `Display*` renderers are view-only (student-facing) and lose their badges entirely.
-- **No confirm on revert.** One field / one variant, trivially reversible (tap translate again, or retype). A dialog would defeat a mini-icon. (Whole-item **Delete** keeps its heavy confirm — unchanged.)
+Two placements, driven by available space and confirmed by the two Figma nodes:
+
+- **Strips / rows with an edit toolbar** — list rows, sentence rows, phrase cards (Figma `3025-2324`): `TranslateRevertControl` is an icon button **in the edit toolbar**, alongside rename / delete / move / drag. `MadeInLabel` sits **directly below the toolbar, right-aligned**. Both edit-mode only.
+- **`GroupTile`** (Figma `3017-2352`): a tile has no toolbar row and no room for a pill, so the control sits **inline, immediately right of the editable title input**, and there is **no `MadeInLabel`** — the pill is precisely the clunkiness being removed. The existing translate *modal* is dropped: in edit mode the title is already an input, so its "manual" branch is redundant → one tap.
+- **List detail items** — control in the **`EditRows`/`EditColumns`/`EditGrid`** renderers (edit mode), on the item's own edit controls. The `Display*` renderers are view-only (student-facing) and lose their badges entirely.
+
+### 6. Revert is confirmed by a modal
+
+Revert opens a confirm modal **titled "Use original"** on every surface, matching the confirm pattern already shipped (and reusing the existing `rowRevert` / `revertConfirm` copy keys where present). Rationale: these modals have proven useful in practice, and revert discards hand-authored text or a whole variant row — cheap to redo, but not silent.
+
+Translate is **not** confirmed (additive and harmless). Whole-item **Delete** keeps its separate heavy "removes it on every board" confirm — unchanged.
 
 ---
 
@@ -104,14 +111,14 @@ Build `TranslateRevertControl` + `MadeInLabel`; adopt in `GroupTile` (folder gro
 **Acceptance:** matches Figma `3017-2352` — view mode is title + cover only; edit mode shows the dashed title input with the mini-icon inline right. Translate one-tap fills the board-language title; ↺ strips it and the origin title returns. Never strips the last remaining key.
 
 ### Stage C — Lists
-Adopt the control on the list **row** (retiring its EditPanel ↩) and add the **per-item** control in the `Edit*` renderers. Remove the per-item badges from `Display*`.
+On the list **row**, upgrade the existing `EditPanel` ↩ **in place** into `TranslateRevertControl` (adding the translate state) and add `MadeInLabel` below the toolbar. Add the **per-item** control to the `Edit*` renderers. Remove the per-item badges from `Display*`.
 
-**Acceptance:** a single translated item can be reverted without touching the rest of the list; the row-level revert still reverts title + all items; students see no translation chrome in the list detail view.
+**Acceptance:** a single translated item can be reverted without touching the rest of the list; the row-level revert still reverts title + all items; revert opens the "Use original" confirm; students see no translation chrome in the list detail view.
 
 ### Stage D — Sentences & phrases
-Adopt the control on sentence rows and phrase cards, retiring their EditPanel/`BlockEditControls` ↩. `MadeInLabel` becomes non-actionable; the control's `untranslated` state opens the **variant-authoring flow** (the badge's former job).
+Upgrade the existing ↩ in `EditPanel` (sentences) and `BlockEditControls` (phrases) **in place** into the control, and add `MadeInLabel` below the toolbar. The label becomes non-actionable; the control's `untranslated` state opens the **variant-authoring flow** (the badge's former job).
 
-**Acceptance:** on a fallback sentence/phrase in edit mode, the label names the origin and the translate icon opens variant authoring; once a variant exists the same slot reverts it and the origin returns. Machine translation is never invoked for composed content.
+**Acceptance:** on a fallback sentence/phrase in edit mode, the label names the origin and the translate icon opens variant authoring; once a variant exists the same slot reverts it (via the "Use original" confirm) and the origin + label return. Machine translation is never invoked for composed content.
 
 ---
 
@@ -128,7 +135,7 @@ Adopt the control on sentence rows and phrase cards, retiring their EditPanel/`B
 No unit-test runner exists in this repo — verify with `tsc` + live Claude-in-Chrome checks, per stage:
 
 1. **Student-surface check (the critical one, Stage A):** on a non-origin board in view mode, assert zero translate/revert/badge elements render across all six surfaces. Structurally verifiable by querying the DOM for the control's `aria-label`s and the label text.
-2. **GroupTile (Stage B):** compare edit/view against Figma `3017-2352`; exercise translate → ↺ revert → origin title returns; confirm the last key can't be stripped.
+2. **GroupTile (Stage B):** compare edit/view against Figma `3017-2352`; exercise translate → ↺ revert (via the "Use original" confirm) → origin title returns; confirm the last key can't be stripped.
 3. **Lists (Stage C):** per-item revert affects only that item; row revert still does title + all items.
 4. **Sentences/phrases (Stage D):** translate state opens variant authoring (assert no `/api/translate-text` call fires); revert removes only the board variant and the "Made in" label returns.
 5. **Regression:** a single-language item shows no control; whole-item Delete unchanged.
