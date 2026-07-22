@@ -58,7 +58,7 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { TranslateRevertControl, type TranslateRevertState } from '@/app/components/app/shared/ui/TranslateRevertControl';
@@ -118,6 +118,9 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   // Tab 2 phrase edit state.
   const [phraseOrder, setPhraseOrder] = useState<string[]>([]);
+  // Remembers id→group across renders so a row deleted by Revert can still be
+  // mapped back to its group (see reconcileVariantOrder's fallbackGroupOf).
+  const phraseGroupMemo = useRef<Map<string, string>>(new Map());
   const [phraseWordEditor, setPhraseWordEditor] = useState<
     | { open: false }
     | { open: true; phraseId: Id<'profilePhrases'>; wordIndex: number }
@@ -324,9 +327,12 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
   useEffect(() => {
     if (phrases === undefined) return;
+    // Remember id→group from the live rows BEFORE reconciling, so a row that
+    // Revert is about to delete is still resolvable via the memo afterwards.
+    for (const p of phrases) phraseGroupMemo.current.set(p._id, variantGroupKey(p));
     // Hold each group's card position when its representative swaps on variant
     // authoring; append only new groups (shared; see variants.ts).
-    setPhraseOrder((prev) => reconcileVariantOrder(prev, phrases, phraseList));
+    setPhraseOrder((prev) => reconcileVariantOrder(prev, phrases, phraseList, (id) => phraseGroupMemo.current.get(id)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phrases]);
 

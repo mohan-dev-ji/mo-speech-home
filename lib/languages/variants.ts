@@ -89,6 +89,12 @@ export function reconcileVariantOrder(
   prev: readonly string[],
   allRows: readonly VariantRow[],
   collapsedRows: readonly VariantRow[],
+  // Fallback id→group lookup for rows that have since been DELETED (revert removes
+  // the board-language variant row). Without it, a just-reverted id cannot be mapped
+  // back to its group and the group gets re-appended at the end — the item visibly
+  // jumps to the bottom. Callers pass a ref-backed map of the previous render's
+  // id→group pairs.
+  fallbackGroupOf?: (id: string) => string | undefined,
 ): string[] {
   const groupOfId = new Map<string, string>();
   for (const r of allRows) groupOfId.set(r._id, variantGroupKey(r));
@@ -98,7 +104,7 @@ export function reconcileVariantOrder(
   const next: string[] = [];
   const placed = new Set<string>();
   for (const id of prev) {
-    const g = groupOfId.get(id) ?? id;
+    const g = groupOfId.get(id) ?? fallbackGroupOf?.(id) ?? id;
     const rep = repByGroup.get(g);
     if (rep && !placed.has(g)) { next.push(rep); placed.add(g); }
   }

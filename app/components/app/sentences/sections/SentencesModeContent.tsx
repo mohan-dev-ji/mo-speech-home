@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
@@ -38,7 +38,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -768,6 +768,9 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   // Last-seen server id-set, so we can re-sync `localOrder` during render (not in
   // an effect) when the server set changes — see the sync block below.
   const [seenOrderKey, setSeenOrderKey] = useState<string | null>(null);
+  // Remembers id→group across renders so a row deleted by Revert can still be
+  // mapped back to its group (see reconcileVariantOrder's fallbackGroupOf).
+  const groupMemo = useRef<Map<string, string>>(new Map());
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
@@ -880,9 +883,12 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const orderKey = serverIds.join(',');
     if (orderKey !== seenOrderKey) {
       setSeenOrderKey(orderKey);
+      // Remember id→group from the live rows BEFORE reconciling, so a row that
+      // Revert is about to delete is still resolvable via the memo afterwards.
+      for (const r of allSentences ?? []) groupMemo.current.set(r._id, variantGroupKey(r));
       // Hold each group's list position when its representative row swaps on
       // variant authoring; append only new groups (shared; see variants.ts).
-      setLocalOrder((prev) => reconcileVariantOrder(prev, allSentences ?? [], scopedSentences));
+      setLocalOrder((prev) => reconcileVariantOrder(prev, allSentences ?? [], scopedSentences, (id) => groupMemo.current.get(id)));
     }
   }
 
