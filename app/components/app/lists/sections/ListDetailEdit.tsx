@@ -97,7 +97,7 @@ function SortableEditRow({
         <EditPanel className="shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={labelTranslateState(item.descriptionRecord, language)}
+            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -147,7 +147,7 @@ function SortableEditColumn({
         <EditPanel className="mt-auto shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={labelTranslateState(item.descriptionRecord, language)}
+            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -197,7 +197,7 @@ function SortableEditGrid({
         <EditPanel className="shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={labelTranslateState(item.descriptionRecord, language)}
+            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}

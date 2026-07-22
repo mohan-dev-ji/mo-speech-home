@@ -263,7 +263,6 @@ export function GroupsView({
                       language={language}
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
-                      onManualRename={() => setIsEditing(true)}
                       onRevert={() => {
                         const stripped = stripLocaleKey(folder.name, language) as Record<string, string>;
                         if (Object.keys(stripped).length === 0) return; // never strip the last key

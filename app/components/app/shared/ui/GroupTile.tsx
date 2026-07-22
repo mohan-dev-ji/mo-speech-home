@@ -53,12 +53,6 @@ type Props = {
    */
   nameRecord?: Record<string, string>;
   language?: string;
-  /**
-   * Phase 15.5 — retained for callers that still want the tile forced into
-   * rename mode from elsewhere. GroupTile itself no longer calls this (the
-   * translate modal it used to open is gone — see `onRevert`).
-   */
-  onManualRename?: () => void;
   /** Strip the board-language key from the name record (parent owns the mutation). */
   onRevert?: () => void;
   /** New colour key from the swatch picker. */
@@ -97,7 +91,6 @@ export function GroupTile({
   published,
   nameRecord,
   language,
-  onManualRename,
   onRevert,
 }: Props) {
   const t = useTranslations('group');

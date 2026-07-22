@@ -440,8 +440,6 @@ export function ListDetailContent({ listId }: Props) {
     checkedIds,
     onToggle: toggleChecked,
     onItemClick: (index: number) => setPlayModal({ item: localItems[index], index }),
-    language,
-    onTranslate: (index: number) => setItemTranslate(index),
   };
 
   // Group colour tint (ADR-014) — colour-codes this list's banner + item cards

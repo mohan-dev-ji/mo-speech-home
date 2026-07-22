@@ -273,7 +273,6 @@ export function CategoriesContent() {
                       language={language}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
-                      onManualRename={() => setIsEditing(true)}
                       onRevert={() => {
                         const stripped = stripLocaleKey(cat.name, language) as Record<string, string>;
                         if (Object.keys(stripped).length === 0) return; // never strip the last key

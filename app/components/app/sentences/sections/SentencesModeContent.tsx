@@ -595,8 +595,7 @@ function SortableSentenceRow({
         role={isEditing ? undefined : 'button'}
         aria-label={isEditing ? undefined : t('rowPlay')}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col gap-3 flex-1 min-w-0">
+        <div className="flex flex-col gap-3 flex-1 min-w-0">
 
           {/* Top row: the symbol area (fills the width + wraps) and the edit panel
               (top-right, aligned with the first symbol row). The full sentence text
@@ -752,7 +751,6 @@ function SortableSentenceRow({
             </p>
           )}
           </div>
-        </div>
       </div>
     </div>
   );
