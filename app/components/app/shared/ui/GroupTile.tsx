@@ -9,11 +9,12 @@ import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { ColourSwatchPicker } from '@/app/components/app/shared/ui/ColourSwatchPicker';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
+import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { translateTexts } from '@/lib/languages/translateClient';
-import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
-import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
+import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
+import { labelTranslateState } from '@/lib/languages/variants';
 
 const TITLE_FONT_SIZE = {
   large: 'clamp(0.875rem, 6cqi, 1.25rem)',
@@ -45,19 +46,21 @@ type Props = {
   onRename?: (value: string) => void;
   /**
    * ADR-016 Addendum D — the full localised name record + board language. When
-   * both are set and the board-language key is missing, VIEW mode shows a
-   * "Made in <lang>" badge (Phase 15.5) that opens the translate modal to
-   * MT-fill or hand-type the name in the board language. Omit to hide the
-   * affordance (names never auto-translate).
+   * both are set, EDIT mode shows an inline translate/revert control right of
+   * the title input (Figma 3017-2352): untranslated → one-tap MT-fill via
+   * `onRename`; translated → revert (confirm, then `onRevert` strips the key).
+   * Omit to hide the affordance (names never auto-translate).
    */
   nameRecord?: Record<string, string>;
   language?: string;
   /**
-   * Phase 15.5 — the translate modal's "type it myself" path. Called so the
-   * parent can put the tile into rename mode (its global edit toggle). Omit and
-   * the manual option still closes the modal, just without opening an editor.
+   * Phase 15.5 — retained for callers that still want the tile forced into
+   * rename mode from elsewhere. GroupTile itself no longer calls this (the
+   * translate modal it used to open is gone — see `onRevert`).
    */
   onManualRename?: () => void;
+  /** Strip the board-language key from the name record (parent owns the mutation). */
+  onRevert?: () => void;
   /** New colour key from the swatch picker. */
   onRecolour?: (key: string) => void;
   /** Open the Symbol Editor (image only) to pick the folder image. */
@@ -95,6 +98,7 @@ export function GroupTile({
   nameRecord,
   language,
   onManualRename,
+  onRevert,
 }: Props) {
   const t = useTranslations('group');
   const tTranslate = useTranslations('translate');
@@ -122,23 +126,15 @@ export function GroupTile({
     else setDraft(name);
   }
 
-  // Phase 15.5 — view-mode "Made in <lang>" badge → translate modal. Names never
-  // auto-translate; the instructor picks translate (MT-fill, persisted silently
-  // under the board language) or "type it myself" (opens the tile's rename).
-  const [translateOpen, setTranslateOpen] = useState(false);
-  async function handleTranslateChoice(mode: string) {
-    if (mode === 'manual') {
-      onManualRename?.();
-      setTranslateOpen(false);
-      return;
-    }
-    // 'translate' — MT-fill the name into the board language and persist.
+  // Edit-mode one-tap translate: MT-fill the name into the board language and
+  // persist via the parent's rename. (No modal — the title input IS the manual path.)
+  const [revertOpen, setRevertOpen] = useState(false);
+  async function handleTranslate() {
     if (!language || !nameRecord) return;
     const src = displayString(nameRecord, language, DEFAULT_LOCALE);
-    if (!src) { setTranslateOpen(false); return; }
+    if (!src) return;
     const [translated] = await translateTexts([src], language);
-    if (translated) onRename?.(translated); // parent merges under the board language
-    setTranslateOpen(false);
+    if (translated) onRename?.(translated);
   }
 
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
@@ -160,21 +156,31 @@ export function GroupTile({
         ].join(' ')}
         style={{ backgroundColor: `color-mix(in srgb, ${colourPair.c500} 30%, transparent)` }}
       >
-        {/* Title */}
+        {/* Title (+ edit-mode translate/revert control, inline right — Figma 3017-2352) */}
         {isEditing ? (
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitName}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur();
-              else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={t('rename')}
-            className="w-full min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
-            style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
-          />
+          <div className="w-full flex items-center gap-theme-gap" onClick={(e) => e.stopPropagation()}>
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur();
+                else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
+              }}
+              aria-label={t('rename')}
+              className="flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
+              style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
+            />
+            {language && nameRecord && (
+              <TranslateRevertControl
+                state={labelTranslateState(nameRecord, language)}
+                onTranslate={() => void handleTranslate()}
+                onRevert={() => setRevertOpen(true)}
+                translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                revertLabel={tTranslate('controlRevertLabel')}
+              />
+            )}
+          </div>
         ) : (
           <p
             className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"
@@ -250,33 +256,12 @@ export function GroupTile({
         )}
       </Tag>
 
-      {/* Phase 15.5 — view-mode "Made in <lang>" badge (order-free folder name).
-          Rendered OUTSIDE the tile <button> to avoid nested interactive elements;
-          the outer wrapper is position:relative so this anchors to the tile. */}
-      {isEditing && language && nameRecord && (
-        <TranslateBadge
-          record={nameRecord}
-          language={language}
-          onClick={() => setTranslateOpen(true)}
-          className="absolute top-2 right-2 z-10"
-        />
-      )}
-      {language && nameRecord && (
-        <TranslateChoiceModal
-          isOpen={translateOpen}
-          onClose={() => setTranslateOpen(false)}
-          title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
-          description={tTranslate('chooseDescription', {
-            authoredLang: (resolvedLocale(nameRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE).toUpperCase(),
-            lang: language.toUpperCase(),
-          })}
-          options={[
-            { mode: 'translate', label: tTranslate('thisName'), icon: 'translate', primary: true },
-            { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
-          ]}
-          onChoose={handleTranslateChoice}
-        />
-      )}
+      <UseOriginalConfirmDialog
+        open={revertOpen}
+        onOpenChange={setRevertOpen}
+        name={name}
+        onConfirm={() => { setRevertOpen(false); onRevert?.(); }}
+      />
     </div>
   );
 }

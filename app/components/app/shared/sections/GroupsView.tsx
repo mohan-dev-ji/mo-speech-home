@@ -35,6 +35,7 @@ import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { track } from '@/lib/analytics';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { stripLocaleKey } from '@/lib/languages/variants';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import {
   Dialog,
@@ -263,6 +264,11 @@ export function GroupsView({
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onManualRename={() => setIsEditing(true)}
+                      onRevert={() => {
+                        const stripped = stripLocaleKey(folder.name, language) as Record<string, string>;
+                        if (Object.keys(stripped).length === 0) return; // never strip the last key
+                        void renameFolder({ folderId: folder._id, name: stripped });
+                      }}
                       onRecolour={(key) => handleRecolour(folder._id, key)}
                       onEditImage={() => setImageTarget({ id: folder._id, name, imagePath: folder.imagePath })}
                       onDeleteRequest={() => setPendingDelete({ id: folder._id, name, count: countByFolder.get(folder._id) ?? 0, source: folder.source, librarySourceId: folder.librarySourceId })}

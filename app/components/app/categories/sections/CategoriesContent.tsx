@@ -25,6 +25,7 @@ import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { stripLocaleKey } from '@/lib/languages/variants';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -273,6 +274,11 @@ export function CategoriesContent() {
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
                       onManualRename={() => setIsEditing(true)}
+                      onRevert={() => {
+                        const stripped = stripLocaleKey(cat.name, language) as Record<string, string>;
+                        if (Object.keys(stripped).length === 0) return; // never strip the last key
+                        void updateCategoryMeta({ profileCategoryId: cat._id, name: stripped });
+                      }}
                       onRecolour={(key) => handleRecolour(cat._id, key)}
                       onEditImage={() => setImageTarget({ id: cat._id, name, imagePath: cat.imagePath })}
                       onDeleteRequest={() => handleDeleteRequest(cat._id, name)}
