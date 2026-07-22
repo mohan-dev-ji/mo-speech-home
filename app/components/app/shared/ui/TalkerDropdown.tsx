@@ -61,6 +61,9 @@ import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { collapseVariants, reconcileVariantOrder, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
+import { TranslateRevertControl, type TranslateRevertState } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
+import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 
@@ -90,6 +93,7 @@ type TalkerDropdownProps = {
 
 export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
+  const tTranslate = useTranslations('translate');
   const { voiceId, accountId, stateFlags, viewMode } = useProfile();
   const cols = CORE_GRID_COLS[stateFlags.grid_size ?? 'large'];
   const isAdmin = useIsAdmin();
@@ -611,6 +615,16 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                   !!p.recordedAudioPath ||
                   phraseAudioAvail?.[name.toLowerCase().trim()]?.available === true;
                 const incomplete = p.words.length < 1;
+                // Stage D (Figma 3025-2324) — one control, two meanings. Phrases are
+                // COMPOSED content (ADR-016): "translate" opens variant AUTHORING,
+                // never machine translation. Precedence (owner decision 2026-07-21):
+                // untranslated FIRST — a variant row can exist while its name is
+                // still the source language (half-finished), and that state must
+                // keep the route back into authoring.
+                const phraseState: TranslateRevertState =
+                  needsTranslation(p.name, language) ? 'untranslated'
+                  : isRevertableVariant(p) ? 'translated'
+                  : 'none';
                 return (
                   <PhraseEditCard
                     key={p._id}
@@ -625,7 +639,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     addLabel={t('phraseAddSymbol')}
                     removeLabel={t('phraseRemoveSymbol')}
                     deleteLabel={t('phraseDelete')}
-                    revertLabel={t('phraseRevert')}
                     moveLabel={t('phraseMove')}
                     onRename={(v) => handleRenamePhrase(p._id, p.name, v)}
                     onWordAdd={() => setPhraseWordEditor({ open: true, phraseId: p._id, wordIndex: -1 })}
@@ -634,9 +647,20 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     onWordReorder={(from, to) => handleReorderPhraseWord(p._id, from, to)}
                     onAudio={() => setPhraseAudioTarget({ id: p._id, nameRec: p.name })}
                     onDelete={() => setPendingPhraseDelete({ id: p._id, name })}
-                    // ADR-016 Stage 3 — hidden on the source board + untranslated
-                    // fallback; shown only when this row is a real sibling variant.
-                    onRevert={isRevertableVariant(p) ? () => setPendingPhraseRevert({ id: p._id, name }) : undefined}
+                    translateRevert={
+                      <TranslateRevertControl
+                        state={phraseState}
+                        onTranslate={() => setPhraseVariantTarget({ id: p._id, authoredLang: phraseLangOf(p) })}
+                        onRevert={() => setPendingPhraseRevert({ id: p._id, name })}
+                        translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                        revertLabel={tTranslate('controlRevertLabel')}
+                      />
+                    }
+                    madeInLabel={
+                      phraseState === 'untranslated'
+                        ? <MadeInLabel lang={resolvedLocale(p.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
+                        : undefined
+                    }
                   />
                 );
               })}
@@ -670,15 +694,6 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
               key={p._id}
               name={name}
               words={words}
-              // ADR-016 — CONTENT-aware badge: show while the phrase name has no
-              // board-language entry (a manual/untranslated variant still invites a
-              // translate). Label = the language the name actually resolved to.
-              madeInLabel={
-                editing && needsTranslation(p.name, language)
-                  ? t('madeInBadge', { lang: resolvedLocale(p.name, language, DEFAULT_LOCALE)?.toUpperCase() ?? pLang.toUpperCase() })
-                  : undefined
-              }
-              onAuthorVariant={() => setPhraseVariantTarget({ id: p._id, authoredLang: pLang })}
               onTap={() =>
                 onSymbolTap({ symbolId: `phrase-${p._id}`, label: name, kind: 'phrase', phraseName: name, phraseNameRecord: p.name, audioPath, words })
               }
@@ -947,32 +962,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Phrase revert confirmation — light confirm (no warning styling):
+      {/* Phrase revert confirmation — shared "Use original" confirm (Stage D):
           reverting only removes this board's variant row, the origin stays intact. */}
-      <Dialog open={pendingPhraseRevert !== null} onOpenChange={(o) => { if (!o) setPendingPhraseRevert(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('phraseRevert')}</DialogTitle>
-            <DialogDescription>{t('phraseRevertConfirm', { name: pendingPhraseRevert?.name ?? '' })}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}>
-                {t('deleteCancel')}
-              </button>
-            </DialogClose>
-            <button
-              type="button"
-              onClick={handlePhraseRevertConfirm}
-              disabled={isDeleting}
-              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
-              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
-            >
-              {isDeleting ? t('deleting') : t('phraseRevert')}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UseOriginalConfirmDialog
+        open={pendingPhraseRevert !== null}
+        onOpenChange={(o) => { if (!o) setPendingPhraseRevert(null); }}
+        name={pendingPhraseRevert?.name ?? ''}
+        onConfirm={handlePhraseRevertConfirm}
+        isPending={isDeleting}
+      />
 
       {/* ADR-016 — phrase variant authoring (badge → manual | translate-assist). */}
       {phraseVariantTarget && (
@@ -1113,7 +1111,6 @@ function PhraseEditCard({
   addLabel,
   removeLabel,
   deleteLabel,
-  revertLabel,
   moveLabel,
   onRename,
   onWordAdd,
@@ -1122,7 +1119,8 @@ function PhraseEditCard({
   onWordReorder,
   onAudio,
   onDelete,
-  onRevert,
+  translateRevert,
+  madeInLabel,
 }: {
   id: string;
   name: string;
@@ -1135,9 +1133,6 @@ function PhraseEditCard({
   addLabel: string;
   removeLabel: string;
   deleteLabel: string;
-  // ADR-016 Stage 3 — label for the edit-mode ↩ control; only rendered when
-  // `onRevert` is also passed (a non-source sibling variant).
-  revertLabel?: string;
   moveLabel: string;
   onRename: (value: string) => void;
   onWordAdd: () => void;
@@ -1146,7 +1141,12 @@ function PhraseEditCard({
   onWordReorder: (from: number, to: number) => void;
   onAudio: () => void;
   onDelete: () => void;
-  onRevert?: () => void;
+  // Stage D (Figma 3025-2324) — the shared TranslateRevertControl, rendered
+  // inside BlockEditControls' slot (replaces the old bespoke ↩ button).
+  translateRevert?: React.ReactNode;
+  // "Made in <lang>" — rendered below the card, right-aligned, only while
+  // `translateRevert`'s state is `untranslated` (a fallback origin to name).
+  madeInLabel?: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -1180,13 +1180,17 @@ function PhraseEditCard({
           <BlockEditControls
             onDelete={onDelete}
             deleteLabel={deleteLabel}
-            onRevert={onRevert}
-            revertLabel={revertLabel}
+            translateRevert={translateRevert}
             moveLabel={moveLabel}
             dragProps={{ ...listeners, ...attributes }}
           />
         }
       />
+      {madeInLabel && (
+        <div className="flex justify-end mt-theme-gap">
+          {madeInLabel}
+        </div>
+      )}
     </div>
   );
 }
@@ -1196,16 +1200,10 @@ function PhraseEditCard({
 function PhraseDropdownCard({
   name,
   words,
-  madeInLabel,
-  onAuthorVariant,
   onTap,
 }: {
   name: string;
   words: { imagePath?: string; label: string }[];
-  /** When set (board ≠ authored language, no variant yet), show the badge that
-   *  opens the variant author flow. */
-  madeInLabel?: string;
-  onAuthorVariant?: () => void;
   onTap: () => void;
 }) {
   return (
@@ -1216,19 +1214,6 @@ function PhraseDropdownCard({
       className="relative flex flex-col items-center gap-2 rounded-theme p-3 transition-opacity hover:opacity-90 shrink-0"
       style={{ background: ZINC.c500 }}
     >
-      {madeInLabel && (
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={(e) => { e.stopPropagation(); onAuthorVariant?.(); }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onAuthorVariant?.(); } }}
-          aria-label={madeInLabel}
-          className="absolute top-1.5 right-1.5 z-10 rounded-full text-theme-xs font-semibold px-2 py-0.5 whitespace-nowrap transition-opacity hover:opacity-80 cursor-pointer"
-          style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
-        >
-          {madeInLabel}
-        </span>
-      )}
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
           <div className="w-20 h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
