@@ -1144,8 +1144,8 @@ function PhraseEditCard({
   // Stage D (Figma 3025-2324) — the shared TranslateRevertControl, rendered
   // inside BlockEditControls' slot (replaces the old bespoke ↩ button).
   translateRevert?: React.ReactNode;
-  // "Made in <lang>" — rendered below the card, right-aligned, only while
-  // `translateRevert`'s state is `untranslated` (a fallback origin to name).
+  // "Made in <lang>" — rendered on the toolbar row (controls slot), right-aligned,
+  // only while `translateRevert`'s state is `untranslated` (a fallback origin to name).
   madeInLabel?: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -1177,20 +1177,28 @@ function PhraseEditCard({
         onWordReorder={onWordReorder}
         onAudio={onAudio}
         controls={
-          <BlockEditControls
-            onDelete={onDelete}
-            deleteLabel={deleteLabel}
-            translateRevert={translateRevert}
-            moveLabel={moveLabel}
-            dragProps={{ ...listeners, ...attributes }}
-          />
+          madeInLabel ? (
+            <div className="w-full flex items-center justify-between gap-theme-gap">
+              <BlockEditControls
+                onDelete={onDelete}
+                deleteLabel={deleteLabel}
+                translateRevert={translateRevert}
+                moveLabel={moveLabel}
+                dragProps={{ ...listeners, ...attributes }}
+              />
+              {madeInLabel}
+            </div>
+          ) : (
+            <BlockEditControls
+              onDelete={onDelete}
+              deleteLabel={deleteLabel}
+              translateRevert={translateRevert}
+              moveLabel={moveLabel}
+              dragProps={{ ...listeners, ...attributes }}
+            />
+          )
         }
       />
-      {madeInLabel && (
-        <div className="flex justify-end mt-theme-gap">
-          {madeInLabel}
-        </div>
-      )}
     </div>
   );
 }

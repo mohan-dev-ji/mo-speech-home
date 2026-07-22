@@ -122,19 +122,26 @@ export function GroupTile({
   // Edit-mode one-tap translate: MT-fill the name into the board language and
   // persist via the parent's rename. (No modal — the title input IS the manual path.)
   const [revertOpen, setRevertOpen] = useState(false);
+  const [translating, setTranslating] = useState(false);
   async function handleTranslate() {
+    if (translating) return;
     if (!language || !nameRecord) return;
-    // Clicking the control blurs the title input first (commitName → onRename),
-    // so `nameRecord` here can still be the stale pre-commit prop. Prefer the
-    // live `draft` when it's a real, uncommitted edit so the just-typed text is
-    // what gets translated, not whatever `onRename` raced in with.
-    const typedDraft = draft.trim();
-    const src = typedDraft && typedDraft !== name
-      ? typedDraft
-      : displayString(nameRecord, language, DEFAULT_LOCALE);
-    if (!src) return;
-    const [translated] = await translateTexts([src], language);
-    if (translated) onRename?.(translated);
+    try {
+      setTranslating(true);
+      // Clicking the control blurs the title input first (commitName → onRename),
+      // so `nameRecord` here can still be the stale pre-commit prop. Prefer the
+      // live `draft` when it's a real, uncommitted edit so the just-typed text is
+      // what gets translated, not whatever `onRename` raced in with.
+      const typedDraft = draft.trim();
+      const src = typedDraft && typedDraft !== name
+        ? typedDraft
+        : displayString(nameRecord, language, DEFAULT_LOCALE);
+      if (!src) return;
+      const [translated] = await translateTexts([src], language);
+      if (translated) onRename?.(translated);
+    } finally {
+      setTranslating(false);
+    }
   }
 
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
@@ -262,6 +269,21 @@ export function GroupTile({
         name={name}
         onConfirm={() => { setRevertOpen(false); onRevert?.(); }}
       />
+
+      {translating && (
+        <div
+          className="absolute inset-0 z-20 flex items-center justify-center rounded-theme-card"
+          style={{ background: 'rgba(0,0,0,0.55)' }}
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-theme-gap">
+            <div className="size-6 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            <span className="text-theme-xs font-semibold" style={{ color: 'var(--theme-button-highlight)' }}>
+              {tTranslate('translating')}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

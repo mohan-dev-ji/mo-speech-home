@@ -164,7 +164,7 @@ function SortableListRow({
           <div className="flex-1 min-w-0">
             <ThumbnailStrip thumbnails={list.thumbnails} />
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex flex-col items-end gap-theme-gap">
             {isEditing && (
               <EditPanel className="flex-wrap">
                 <IconButton
@@ -210,17 +210,13 @@ function SortableListRow({
                 />
               </EditPanel>
             )}
+            {/* Made-in pill — tucked directly under the toolbar, right-aligned
+                (Figma 3025-2325). Only while the control above is `untranslated`. */}
+            {isEditing && labelTranslateState(list.name, language) === 'untranslated' && (
+              <MadeInLabel lang={resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
+            )}
           </div>
         </div>
-
-        {/* Made-in pill — directly below the toolbar, right-aligned; only
-            while the control above is in its `untranslated` state (a
-            fallback origin exists to name). Figma 3025-2324. */}
-        {isEditing && labelTranslateState(list.name, language) === 'untranslated' && (
-          <div className="flex justify-end mt-theme-gap">
-            <MadeInLabel lang={resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
-          </div>
-        )}
 
         {/* Below: list name (or inline rename input), full width. */}
         <div className="min-w-0">

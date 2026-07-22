@@ -651,7 +651,7 @@ function SortableSentenceRow({
             </div>
 
             {/* Edit panel — top-right, aligned with the first symbol row. */}
-            <div className="shrink-0">
+            <div className="shrink-0 flex flex-col items-end gap-theme-gap">
               {isEditing && (
                 <EditPanel className="flex-wrap">
                   {/* Stage D (Figma 3025-2324) — one control, two meanings:
@@ -692,17 +692,11 @@ function SortableSentenceRow({
                   />
                 </EditPanel>
               )}
+              {isEditing && translateState === 'untranslated' && badgeLang && (
+                <MadeInLabel lang={badgeLang} />
+              )}
             </div>
           </div>
-
-          {/* Made-in pill — directly below the toolbar, right-aligned; only
-              while the control above is in its `untranslated` state (a
-              fallback origin exists to name). Figma 3025-2324. */}
-          {isEditing && translateState === 'untranslated' && badgeLang && (
-            <div className="flex justify-end mt-theme-gap">
-              <MadeInLabel lang={badgeLang} />
-            </div>
-          )}
 
           {/* Below: full sentence text — wraps to as many lines as needed.
               Sequence rows show the derived read-only text; fluent rows show the
