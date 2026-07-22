@@ -246,11 +246,13 @@ function SortableListRow({
                 {name}
               </p>
               {/* Phase 15.5 — order-free list title translate badge. */}
-              <TranslateBadge
-                record={list.name}
-                language={language}
-                onClick={() => onTranslateList(list._id)}
-              />
+              {isEditing && (
+                <TranslateBadge
+                  record={list.name}
+                  language={language}
+                  onClick={() => onTranslateList(list._id)}
+                />
+              )}
             </div>
           )}
         </div>

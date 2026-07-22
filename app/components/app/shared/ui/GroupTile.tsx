@@ -253,7 +253,7 @@ export function GroupTile({
       {/* Phase 15.5 — view-mode "Made in <lang>" badge (order-free folder name).
           Rendered OUTSIDE the tile <button> to avoid nested interactive elements;
           the outer wrapper is position:relative so this anchors to the tile. */}
-      {!isEditing && language && nameRecord && (
+      {isEditing && language && nameRecord && (
         <TranslateBadge
           record={nameRecord}
           language={language}

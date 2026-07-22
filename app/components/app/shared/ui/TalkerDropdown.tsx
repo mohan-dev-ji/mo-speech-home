@@ -674,7 +674,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
               // board-language entry (a manual/untranslated variant still invites a
               // translate). Label = the language the name actually resolved to.
               madeInLabel={
-                needsTranslation(p.name, language)
+                editing && needsTranslation(p.name, language)
                   ? t('madeInBadge', { lang: resolvedLocale(p.name, language, DEFAULT_LOCALE)?.toUpperCase() ?? pLang.toUpperCase() })
                   : undefined
               }

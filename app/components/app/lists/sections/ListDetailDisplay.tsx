@@ -5,7 +5,6 @@ import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
-import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
 import { playKey, playTts } from '@/lib/audio/playTts';
 import type { ListItem } from '../types';
 
@@ -182,7 +181,6 @@ function DisplayItemRow({ item, index, showNumbers, showChecklist, showFirstThen
       {item.description && (
         <p className="flex-1 text-theme-p" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>
       )}
-      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />
@@ -231,7 +229,6 @@ function DisplayItemColumn({ item, index, showNumbers, showChecklist, showFirstT
           {item.description}
         </p>
       )}
-      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />
@@ -260,7 +257,6 @@ function DisplayItemGrid({ item, index, showNumbers, showChecklist, showFirstThe
       {item.description && (
         <p className="flex-1 text-theme-s" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>{item.description}</p>
       )}
-      {item.description && <TranslateBadge record={item.descriptionRecord} language={language} onClick={onTranslate} />}
       {showChecklist && (
         <div onClick={(e) => e.stopPropagation()}>
           <CheckboxBtn checked={checked} onToggle={onToggle} />

@@ -733,7 +733,7 @@ function SortableSentenceRow({
               language (its authored language differs). Uniform across ALL composed
               types now (fluent included — supersedes the Phase 15 sequence-only
               gate; bug #1 visibility half). View mode only. */}
-          {!isEditing && badgeLang && (
+          {isEditing && badgeLang && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onAuthorVariant(sentence); }}
