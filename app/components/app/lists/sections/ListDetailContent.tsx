@@ -403,6 +403,10 @@ export function ListDetailContent({ listId }: Props) {
       const strippedRecord = stripLocaleKey(it.descriptionRecord, language) as
         | Record<string, string>
         | undefined;
+      // Defensive: never strip the last key (would blank the description on
+      // every board with no way back). Mirrors GroupsView/CategoriesContent/
+      // profileLists.revertProfileListLanguage.
+      if (strippedRecord && Object.keys(strippedRecord).length === 0) return it;
       return {
         ...it,
         descriptionRecord: strippedRecord,

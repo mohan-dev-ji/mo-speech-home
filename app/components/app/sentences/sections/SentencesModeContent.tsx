@@ -816,6 +816,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
   const createVariant    = useMutation(api.profileSentences.createSentenceVariant);
+  const updateAudio      = useMutation(api.profileSentences.updateProfileSentenceAudio);
   const reorderSentences = useMutation(api.profileSentences.reorderProfileSentences);
   const moveSentenceToGroup  = useMutation(api.profileFolders.moveSentenceToGroup);
 
@@ -947,7 +948,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
         (typeof source.text === 'string' ? source.text : displayString(source.text, srcLang, DEFAULT_LOCALE)) ||
         displayString(source.name, srcLang, DEFAULT_LOCALE);
       const [translated] = await translateTexts([src], language);
-      await createVariant({ sourceSentenceId: source._id, authoredLanguage: language, text: translated });
+      // Create-then-update-by-returned-id (mirrors the SEQUENCE branch above):
+      // `createVariant` early-returns the existing id without applying `args.text`
+      // when a half-finished variant already exists, so passing `text` into it
+      // silently discards the MT output. Write via `updateProfileSentenceAudio`
+      // instead — same mutation + shape `SentenceAudioModal`'s fork-on-edit path
+      // uses for fluent text: a plain string tagged by the variant's own
+      // `authoredLanguage` (== `language` here), which `fluentPrimary` above reads.
+      const variantId = await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
+      await updateAudio({ profileSentenceId: variantId, text: translated });
     } else {
       await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
     }

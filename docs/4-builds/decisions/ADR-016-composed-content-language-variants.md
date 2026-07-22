@@ -396,8 +396,10 @@ translation-related renders outside edit mode**, full stop.
   translate glyph (opens the surface's translate verb, see table below);
   `translated` → ↺ revert glyph; `none` → renders nothing. Edit-mode only.
 - **`MadeInLabel`** — a non-actionable `<span>` rendering "Made in `<lang>`".
-  Replaces the old tappable badge everywhere, including in view mode where a
-  badge is still shown for information but is no longer a control.
+  Replaces the old tappable badge everywhere. Edit-mode only, same as
+  `TranslateRevertControl` — no adoption site renders it in view mode; that is
+  the entire point of the fix in the paragraph above, so nothing licenses
+  reintroducing view-mode chrome here.
 - **`UseOriginalConfirmDialog`** — the shared "Use original" confirm; Revert is
   **always** confirmed (light confirm, per Addendum J §B — only one board is
   affected, unlike Delete's heavy confirm).

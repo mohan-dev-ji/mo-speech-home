@@ -63,8 +63,11 @@ export function labelTranslateState(
 ): 'untranslated' | 'translated' | 'none' {
   if (needsTranslation(record, boardLang)) return 'untranslated';
   // A board-language key exists; it is only revertable if an origin survives.
+  // Ignore empty/whitespace-only values — `handleDescriptionChange` writes
+  // `record[lang] = ''` on keystroke, and a blank value is not a surviving
+  // origin worth reverting to (it would leave the field blank with no way back).
   const keys = record ? Object.keys(record) : [];
-  return keys.some((k) => k !== boardLang) ? 'translated' : 'none';
+  return keys.some((k) => k !== boardLang && (record?.[k] ?? '').trim() !== '') ? 'translated' : 'none';
 }
 
 /**

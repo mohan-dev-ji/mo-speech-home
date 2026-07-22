@@ -124,7 +124,14 @@ export function GroupTile({
   const [revertOpen, setRevertOpen] = useState(false);
   async function handleTranslate() {
     if (!language || !nameRecord) return;
-    const src = displayString(nameRecord, language, DEFAULT_LOCALE);
+    // Clicking the control blurs the title input first (commitName → onRename),
+    // so `nameRecord` here can still be the stale pre-commit prop. Prefer the
+    // live `draft` when it's a real, uncommitted edit so the just-typed text is
+    // what gets translated, not whatever `onRename` raced in with.
+    const typedDraft = draft.trim();
+    const src = typedDraft && typedDraft !== name
+      ? typedDraft
+      : displayString(nameRecord, language, DEFAULT_LOCALE);
     if (!src) return;
     const [translated] = await translateTexts([src], language);
     if (translated) onRename?.(translated);
