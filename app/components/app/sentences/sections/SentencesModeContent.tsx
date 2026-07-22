@@ -24,7 +24,6 @@ import {
   FolderInput,
   Move,
   Plus,
-  RotateCcw,
   Trash2,
   Upload,
   Volume2,
@@ -46,6 +45,9 @@ import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
+import { TranslateRevertControl, type TranslateRevertState } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
+import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
@@ -517,6 +519,7 @@ function SortableSentenceRow({
   onEditSentence, onPlay, onAuthorVariant,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: sentence._id });
 
@@ -555,6 +558,13 @@ function SortableSentenceRow({
     : (needsTranslation(fluentPrimary, language)
         ? resolvedLocale(fluentPrimary, language, DEFAULT_LOCALE)
         : undefined);
+  // Stage D (Figma 3025-2324) — one control, two meanings. Sentences are
+  // COMPOSED content (ADR-016): the "translate" verb here opens variant
+  // AUTHORING, never machine translation — see onAuthorVariant below.
+  const translateState: TranslateRevertState =
+    isRevertableVariant(sentence) ? 'translated'
+    : badgeLang ? 'untranslated'
+    : 'none';
   // Talker-saved (sequence) sentences keep no maintained whole-sentence title
   // (unit edits only patch `units`/`slots`), so derive the full sentence from the
   // blocks — exactly what plays — for the read-only text shown to the right.
@@ -641,15 +651,17 @@ function SortableSentenceRow({
             <div className="shrink-0">
               {isEditing && (
                 <EditPanel className="flex-wrap">
-                  {isRevertableVariant(sentence) && (
-                    <IconButton
-                      size="sm"
-                      variant="neutral"
-                      icon={<RotateCcw />}
-                      label={t('rowRevert')}
-                      onClick={(e) => { e.stopPropagation(); onRevertRequest(sentence._id, name); }}
-                    />
-                  )}
+                  {/* Stage D (Figma 3025-2324) — one control, two meanings:
+                      untranslated → translate glyph (opens variant authoring,
+                      ADR-016 — never machine translation for composed content);
+                      translated → ↺ (opens the shared "Use original" confirm). */}
+                  <TranslateRevertControl
+                    state={translateState}
+                    onTranslate={() => onAuthorVariant(sentence)}
+                    onRevert={() => onRevertRequest(sentence._id, name)}
+                    translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                    revertLabel={tTranslate('controlRevertLabel')}
+                  />
                   <IconButton
                     size="sm"
                     variant="neutral"
@@ -679,6 +691,15 @@ function SortableSentenceRow({
               )}
             </div>
           </div>
+
+          {/* Made-in pill — directly below the toolbar, right-aligned; only
+              while the control above is in its `untranslated` state (a
+              fallback origin exists to name). Figma 3025-2324. */}
+          {isEditing && translateState === 'untranslated' && badgeLang && (
+            <div className="flex justify-end mt-theme-gap">
+              <MadeInLabel lang={badgeLang} />
+            </div>
+          )}
 
           {/* Below: full sentence text — wraps to as many lines as needed.
               Sequence rows show the derived read-only text; fluent rows show the
@@ -727,23 +748,6 @@ function SortableSentenceRow({
             </p>
           )}
           </div>
-
-          {/* ADR-016 §2: "Made in <lang>" badge — shown whenever the collapsed row
-              fell back to the source because no variant exists for the board
-              language (its authored language differs). Uniform across ALL composed
-              types now (fluent included — supersedes the Phase 15 sequence-only
-              gate; bug #1 visibility half). View mode only. */}
-          {isEditing && badgeLang && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onAuthorVariant(sentence); }}
-              aria-label={t('variantTitle', { lang: language.toUpperCase() })}
-              className="shrink-0 self-center rounded-full text-theme-xs font-semibold px-3 py-1 whitespace-nowrap transition-opacity hover:opacity-80 cursor-pointer"
-              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
-            >
-              {t('madeInBadge', { lang: badgeLang.toUpperCase() })}
-            </button>
-          )}
         </div>
       </div>
     </div>
@@ -1415,39 +1419,13 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
       {/* Revert confirm dialog — light confirm (no warning styling): reverting
           only removes this board's variant row, the origin stays intact. */}
-      <Dialog
+      <UseOriginalConfirmDialog
         open={pendingRevert !== null}
         onOpenChange={(open) => { if (!open) setPendingRevert(null); }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('rowRevert')}</DialogTitle>
-            <DialogDescription>
-              {t('revertConfirm', { name: pendingRevert?.name ?? '' })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
-                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
-              >
-                {t('deleteCancel')}
-              </button>
-            </DialogClose>
-            <button
-              type="button"
-              onClick={handleRevertConfirm}
-              disabled={isDeleting}
-              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
-              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
-            >
-              {isDeleting ? t('deleting') : t('rowRevert')}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        name={pendingRevert?.name ?? ''}
+        onConfirm={handleRevertConfirm}
+        isPending={isDeleting}
+      />
 
       {/* Move-to-group dialog — select a destination, then Move. */}
       <Dialog open={moveTarget !== null} onOpenChange={(open) => { if (!open) { setMoveTarget(null); setMoveSelection(null); } }}>
