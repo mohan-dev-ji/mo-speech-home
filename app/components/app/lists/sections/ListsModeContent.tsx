@@ -39,7 +39,7 @@ import { TranslateRevertControl } from '@/app/components/app/shared/ui/Translate
 import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
 import { labelTranslateState } from '@/lib/languages/variants';
-import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
+import { TranslateChoiceModal, type TranslateOption } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
@@ -502,6 +502,27 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const translateSrcLang = translateName
     ? (resolvedLocale(translateName, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE)
     : DEFAULT_LOCALE;
+
+  // How many items still need `language` — drives the "whole" option's label
+  // (count-aware) and whether it's offered at all. `undefined` while
+  // `translateFullList` hasn't loaded yet (only possible right after opening
+  // the modal), so the generic fallback label is used instead of a wrong count.
+  // Guard empty descriptions: an item with no description text hydrates to
+  // `{}`/undefined, and `labelTranslateState` reports empty as 'untranslated' —
+  // skip those so blank rows don't inflate the count (mirrors the per-item
+  // guard in ListDetailEdit.tsx).
+  const remainingItemCount = useMemo(() => {
+    if (!translateFullList) return undefined;
+    const name = translateFullList.name ?? {};
+    const srcLang = resolvedLocale(name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+    const recordOf = (d: string | Record<string, string> | undefined): Record<string, string> =>
+      typeof d === 'string' ? { [srcLang]: d } : (d ?? {});
+    return translateFullList.items.filter((it) => {
+      if (!it.description) return false;
+      return labelTranslateState(recordOf(it.description), language) === 'untranslated';
+    }).length;
+  }, [translateFullList, language]);
+
   async function handleTranslateChoice(mode: string) {
     if (!translateTarget) return;
     const name = listMap[translateTarget]?.name ?? translateFullList?.name ?? {};
@@ -682,11 +703,15 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
           onClose={() => setTranslateTarget(null)}
           title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
           description={tTranslate('chooseDescription', { authoredLang: translateSrcLang.toUpperCase(), lang: language.toUpperCase() })}
-          options={[
-            { mode: 'whole', label: tTranslate('wholeList'), hint: tTranslate('wholeListHint'), icon: 'list', primary: true },
+          options={([
+            remainingItemCount === undefined
+              ? { mode: 'whole', label: tTranslate('wholeList'), hint: tTranslate('wholeListHint'), icon: 'list', primary: true }
+              : remainingItemCount > 0
+              ? { mode: 'whole', label: tTranslate('wholeListRemaining', { count: remainingItemCount }), hint: tTranslate('wholeListHint'), icon: 'list', primary: true }
+              : null,
             { mode: 'title', label: tTranslate('thisTitle'), icon: 'translate' },
             { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
-          ]}
+          ] as (TranslateOption | null)[]).filter((o): o is TranslateOption => o !== null)}
           onChoose={handleTranslateChoice}
         />
       )}

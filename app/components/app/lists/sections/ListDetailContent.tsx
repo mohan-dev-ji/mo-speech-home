@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
@@ -18,9 +18,9 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
-import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
+import { TranslateChoiceModal, type TranslateOption } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
-import { stripLocaleKey } from '@/lib/languages/variants';
+import { stripLocaleKey, labelTranslateState } from '@/lib/languages/variants';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -346,6 +346,22 @@ export function ListDetailContent({ listId }: Props) {
   const recordOf = (item: ListItem, srcLang: string): Record<string, string> =>
     item.descriptionRecord ?? (item.description ? { [srcLang]: item.description } : {});
 
+  // How many items still need `language` — drives the "whole" option's label
+  // (count-aware) and whether it's offered at all in the item translate modal.
+  // Guard empty descriptions: an item with no description text has no real
+  // content to translate, so it's excluded (mirrors the per-item guard in
+  // ListDetailEdit.tsx, which only shows translate state when `description`
+  // is non-empty) — otherwise blank rows would inflate the count.
+  const remainingItemCount = useMemo(() => {
+    if (!list) return 0;
+    const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+    return localItems.filter((it) => {
+      if (!it.description) return false;
+      return labelTranslateState(recordOf(it, srcLang), language) === 'untranslated';
+    }).length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localItems, list, language]);
+
   async function handleItemTranslateChoice(mode: string) {
     if (itemTranslate === null || !list) return;
     const i = itemTranslate;
@@ -585,11 +601,13 @@ export function ListDetailContent({ listId }: Props) {
             authoredLang: (resolvedLocale(localItems[itemTranslate]?.descriptionRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE).toUpperCase(),
             lang: language.toUpperCase(),
           })}
-          options={[
-            { mode: 'whole', label: tTranslate('wholeList'), hint: tTranslate('wholeListHint'), icon: 'list', primary: true },
+          options={([
+            remainingItemCount > 0
+              ? { mode: 'whole', label: tTranslate('wholeListRemaining', { count: remainingItemCount }), hint: tTranslate('wholeListHint'), icon: 'list', primary: true }
+              : null,
             { mode: 'one', label: tTranslate('thisItem'), icon: 'translate' },
             { mode: 'manual', label: tTranslate('manual'), hint: tTranslate('manualHint', { lang: language.toUpperCase() }), icon: 'manual' },
-          ]}
+          ] as (TranslateOption | null)[]).filter((o): o is TranslateOption => o !== null)}
           onChoose={handleItemTranslateChoice}
         />
       )}

@@ -119,6 +119,7 @@
     "chooseTitle": "Translate to {lang}",
     "chooseDescription": "This is in {authoredLang}. Add a {lang} version.",
     "wholeList": "Translate whole list",
+    "wholeListRemaining": "Translate {count, plural, one {# remaining item} other {# remaining items}}",
     "wholeListHint": "Title and every item, in one go.",
     "thisTitle": "Translate the title",
     "thisItem": "Translate this item",
