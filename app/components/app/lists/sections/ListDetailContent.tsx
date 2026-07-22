@@ -303,6 +303,29 @@ export function ListDetailContent({ listId }: Props) {
   // keep hook order stable across renders.
   const isSmallScreen = useIsSmallScreen();
 
+  const recordOf = (item: ListItem, srcLang: string): Record<string, string> =>
+    item.descriptionRecord ?? (item.description ? { [srcLang]: item.description } : {});
+
+  // How many items still need `language` — drives the "whole" option's label
+  // (count-aware) and whether it's offered at all in the item translate modal.
+  // Guard empty descriptions: an item with no description text has no real
+  // content to translate, so it's excluded (mirrors the per-item guard in
+  // ListDetailEdit.tsx, which only shows translate state when `description`
+  // is non-empty) — otherwise blank rows would inflate the count.
+  //
+  // MUST stay above the `if (!list)` early return below: a hook called after it
+  // runs on some renders and not others, which React rejects with "Rendered more
+  // hooks than during the previous render". Same reason as `useIsSmallScreen`.
+  const remainingItemCount = useMemo(() => {
+    if (!list) return 0;
+    const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
+    return localItems.filter((it) => {
+      if (!it.description) return false;
+      return labelTranslateState(recordOf(it, srcLang), language) === 'untranslated';
+    }).length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localItems, list, language]);
+
   if (!list) {
     return (
       <div className="flex justify-center py-12">
@@ -343,25 +366,6 @@ export function ListDetailContent({ listId }: Props) {
   // Phase 15.5 — item translate modal. `one` fills a single item; `whole` fills
   // the title + every item; `manual` opens edit mode to type it. Fills the
   // missing board-language key(s) via the shared MT helper, then persists.
-  const recordOf = (item: ListItem, srcLang: string): Record<string, string> =>
-    item.descriptionRecord ?? (item.description ? { [srcLang]: item.description } : {});
-
-  // How many items still need `language` — drives the "whole" option's label
-  // (count-aware) and whether it's offered at all in the item translate modal.
-  // Guard empty descriptions: an item with no description text has no real
-  // content to translate, so it's excluded (mirrors the per-item guard in
-  // ListDetailEdit.tsx, which only shows translate state when `description`
-  // is non-empty) — otherwise blank rows would inflate the count.
-  const remainingItemCount = useMemo(() => {
-    if (!list) return 0;
-    const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
-    return localItems.filter((it) => {
-      if (!it.description) return false;
-      return labelTranslateState(recordOf(it, srcLang), language) === 'untranslated';
-    }).length;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localItems, list, language]);
-
   async function handleItemTranslateChoice(mode: string) {
     if (itemTranslate === null || !list) return;
     const i = itemTranslate;
