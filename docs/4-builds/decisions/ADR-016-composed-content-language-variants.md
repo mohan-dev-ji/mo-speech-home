@@ -426,9 +426,11 @@ never actionable outside edit mode.
 
 - **`GroupTile`** (folders + categories) — control inline right of the title,
   no pill (Figma `3017-2352`).
-- **List rows, list-detail items (edit renderers only), sentence rows, phrase
-  cards** — control lives IN the edit toolbar with the `MadeInLabel` pill
-  directly below it, right-aligned (Figma `3025-2324`).
+- **List rows, list-detail items (edit renderers only), sentence rows** —
+  control lives IN the edit toolbar, with the `MadeInLabel` pill inside the
+  toolbar's own right-hand column, right-aligned (Figma `3025-2325`).
+- **Phrase cards** — control lives IN the edit toolbar, with `MadeInLabel`
+  inside the phrase card's `controls` row (Figma `3233-6978`).
 
 ### D. The verb is surface-specific (never MT for composed content)
 

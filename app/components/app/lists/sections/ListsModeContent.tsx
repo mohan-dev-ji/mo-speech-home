@@ -259,6 +259,13 @@ function SortableListRow({
   );
 }
 
+// Normalises an item's `description` (string | Record<string,string> | undefined)
+// to a language-record, treating a bare string as authored in `srcLang`.
+const recordOf = (
+  d: string | Record<string, string> | undefined,
+  srcLang: string
+): Record<string, string> => (typeof d === 'string' ? { [srcLang]: d } : (d ?? {}));
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
@@ -515,11 +522,10 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     if (!translateFullList) return undefined;
     const name = translateFullList.name ?? {};
     const srcLang = resolvedLocale(name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
-    const recordOf = (d: string | Record<string, string> | undefined): Record<string, string> =>
-      typeof d === 'string' ? { [srcLang]: d } : (d ?? {});
     return translateFullList.items.filter((it) => {
-      if (!it.description) return false;
-      return labelTranslateState(recordOf(it.description), language) === 'untranslated';
+      const rec = recordOf(it.description, srcLang);
+      if (Object.keys(rec).length === 0) return false;
+      return labelTranslateState(rec, language) === 'untranslated';
     }).length;
   }, [translateFullList, language]);
 
@@ -548,9 +554,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
     // 'whole' — title + every item, in one batch.
     if (!translateFullList) throw new Error('list not loaded');
-    const recordOf = (d: string | Record<string, string> | undefined): Record<string, string> =>
-      typeof d === 'string' ? { [srcLang]: d } : (d ?? {});
-    const itemRecords = translateFullList.items.map((it) => recordOf(it.description));
+    const itemRecords = translateFullList.items.map((it) => recordOf(it.description, srcLang));
     const fill = await makeRecordFiller([translateFullList.name, ...itemRecords], srcLang, language);
     await renameList({ profileListId: translateTarget, name: fill(translateFullList.name) });
     await updateListItems({
@@ -558,7 +562,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
       items: translateFullList.items.map((it, i) => ({
         imagePath: it.imagePath,
         order: i,
-        description: it.description === undefined ? undefined : fill(recordOf(it.description)),
+        description: it.description === undefined ? undefined : fill(recordOf(it.description, srcLang)),
         audioPath: it.audioPath,
         activeAudioSource: it.activeAudioSource,
         defaultAudioPath: it.defaultAudioPath,
