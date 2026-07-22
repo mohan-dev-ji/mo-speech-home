@@ -561,9 +561,13 @@ function SortableSentenceRow({
   // Stage D (Figma 3025-2324) — one control, two meanings. Sentences are
   // COMPOSED content (ADR-016): the "translate" verb here opens variant
   // AUTHORING, never machine translation — see onAuthorVariant below.
+  // Precedence (owner decision 2026-07-21): badgeLang FIRST. A variant row can exist
+  // while its text is still the source language (createSentenceVariant seeds it that
+  // way) — that half-finished state must keep the route back into authoring, per
+  // convex/profileSentences.ts:199-203 and lib/languages/variants.ts:44-48.
   const translateState: TranslateRevertState =
-    isRevertableVariant(sentence) ? 'translated'
-    : badgeLang ? 'untranslated'
+    badgeLang ? 'untranslated'
+    : isRevertableVariant(sentence) ? 'translated'
     : 'none';
   // Talker-saved (sequence) sentences keep no maintained whole-sentence title
   // (unit edits only patch `units`/`slots`), so derive the full sentence from the
