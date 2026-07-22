@@ -211,25 +211,46 @@ export function UseOriginalConfirmDialog({
           <DialogDescription>{t('useOriginalBody', { name })}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          {/* Buttons: copy the cancel/confirm markup + classes from the existing
-              revert dialog in SentencesModeContent so styling matches exactly.
-              Cancel → onOpenChange(false); Confirm → onConfirm(); disable while isPending. */}
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
+              style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
+            >
+              {t('deleteCancel')}
+            </button>
+          </DialogClose>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
+            style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
+          >
+            {isPending ? t('deleting') : t('useOriginalTitle')}
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 ```
-Replace the comment with the copied button markup — do not ship the comment.
+Add `DialogClose` to the import from `Dialog`. Use `t('useOriginalCancel')` for the cancel label and `t('useOriginalPending')` for the busy label (both added in Step 5) — do NOT reuse the surface-specific `deleteCancel`/`deleting`, which live in other namespaces.
+
+> **Note on the cancel button's `rgba(0,0,0,0.08)`:** this value is copied verbatim from the existing revert/delete dialogs (`SentencesModeContent.tsx:1434`; same value at `TalkerDropdown.tsx:848,920,947`), so the extracted dialog stays visually identical to every neighbouring confirm. It does sit in tension with the "theme tokens only" Global Constraint.
+>
+> **Decision (owner, 2026-07-21): the rgba governs here.** The constraint means *no NEW hard-coded colours*; this is a faithful extraction of shipped UI, kept so the dialog matches its neighbours. Converting all confirm dialogs to a token is a separate, repo-wide change. A reviewer raising it should be told this decision, not blocked by it.
 
 - [ ] **Step 5: Add copy to `messages/en.json`** under the existing `translate` namespace (en.json ONLY):
 ```jsonc
 "controlTranslateLabel": "Translate this to {lang}",
 "controlRevertLabel": "Use original",
 "useOriginalTitle": "Use original",
-"useOriginalBody": "Show the original version of \"{name}\" here instead? You can re-author it anytime."
+"useOriginalBody": "Show the original version of \"{name}\" here instead? You can re-author it anytime.",
+"useOriginalCancel": "Cancel",
+"useOriginalPending": "Reverting…"
 ```
-(`madeInBadge` already exists in this namespace — reuse it, do not duplicate.)
+(`madeInBadge` already exists in this namespace — reuse it, do not duplicate.) In the dialog markup use `t('useOriginalCancel')` and `t('useOriginalPending')` for the cancel/busy labels rather than the surface-specific `deleteCancel`/`deleting`, so the shared component owns all its copy.
 
 - [ ] **Step 6: Verify.** Run the app typecheck (expected: no output) and `node -e "JSON.parse(require('fs').readFileSync('messages/en.json','utf8'));console.log('ok')"` (expected: `ok`).
 
@@ -260,7 +281,7 @@ Per Figma `3017-2352`: view mode is title + cover only; edit mode shows the dash
 ```tsx
         {/* Title (+ edit-mode translate/revert control, inline right — Figma 3017-2352) */}
         {isEditing ? (
-          <div className="w-full flex items-center gap-theme-gap-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full flex items-center gap-theme-gap" onClick={(e) => e.stopPropagation()}>
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -292,7 +313,7 @@ Per Figma `3017-2352`: view mode is title + cover only; edit mode shows the dash
           </p>
         )}
 ```
-If `gap-theme-gap-sm` is not a real token in `app/globals.css`, use the nearest existing gap token — never a hard-coded value.
+**Verified tokens** (from `app/globals.css` `@theme inline`): the real spacing tokens are `--spacing-theme-gap`, `--spacing-theme-elements`, `--spacing-theme-item`, `--spacing-theme-general` — i.e. `gap-theme-gap`, `gap-theme-elements`, `mt-theme-gap`, `mt-theme-elements`. There is **no** `*-theme-gap-sm`. Never invent a token and never hard-code a value.
 
 - [ ] **Step 3: Replace the translate modal with a one-tap translate.** In edit mode the title is already an input, so the modal's "manual" branch is redundant. Delete `handleTranslateChoice` (`:129-142`), the `translateOpen` state, the `TranslateChoiceModal` block (`:264-279`) and the now-unused `TranslateChoiceModal` import. Add:
 ```tsx
@@ -362,7 +383,7 @@ Per Figma `3025-2324`: the control lives **in the edit toolbar**; `MadeInLabel` 
 - [ ] **Step 2: Replace the row badge with `MadeInLabel`.** Delete the `<TranslateBadge … />` at `~:249` (edit-gated in Task 1) and render, directly below the `EditPanel` and right-aligned, only when the control is in its translate state:
 ```tsx
 {isEditing && labelTranslateState(list.name as Record<string, string>, language) === 'untranslated' && (
-  <div className="flex justify-end mt-theme-gap-sm">
+  <div className="flex justify-end mt-theme-gap">
     <MadeInLabel lang={resolvedLocale(list.name as Record<string, string>, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
   </div>
 )}
@@ -478,7 +499,7 @@ git commit -m "feat(i18n-ux): per-item translate/revert control in list detail e
 - [ ] **Step 3: Replace the badge with `MadeInLabel`.** Delete the bespoke badge button (`~:731-745`, edit-gated in Task 1) and render, below the `EditPanel` and right-aligned, only in the translate state:
 ```tsx
 {isEditing && translateState === 'untranslated' && badgeLang && (
-  <div className="flex justify-end mt-theme-gap-sm">
+  <div className="flex justify-end mt-theme-gap">
     <MadeInLabel lang={badgeLang} />
   </div>
 )}
