@@ -19,7 +19,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash2, Move, Check, X, FolderInput, Upload, RotateCcw } from 'lucide-react';
+import { Pencil, Trash2, Move, Check, X, FolderInput, Upload } from 'lucide-react';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
 import { Button } from '@/app/components/app/shared/ui/Button';
@@ -35,7 +35,10 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
-import { TranslateBadge } from '@/app/components/app/shared/ui/TranslateBadge';
+import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
+import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
+import { labelTranslateState } from '@/lib/languages/variants';
 import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -126,6 +129,7 @@ function SortableListRow({
   onDeleteRequest, onMoveRequest, onOpen, onTranslateList, onRevertRequest,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: list._id });
 
@@ -171,19 +175,16 @@ function SortableListRow({
                   label={t('rowDelete')}
                   onClick={(e) => { e.stopPropagation(); onDeleteRequest(list._id, name); }}
                 />
-                {/* Stage 3 — revert: only when this board is showing a real
-                    board-language key over a surviving origin key. */}
-                {typeof list.name === 'object' &&
-                  list.name[language] != null &&
-                  Object.keys(list.name).some((k) => k !== language) && (
-                    <IconButton
-                      size="sm"
-                      variant="neutral"
-                      icon={<RotateCcw />}
-                      label={t('rowRevert')}
-                      onClick={(e) => { e.stopPropagation(); onRevertRequest(list._id, name); }}
-                    />
-                  )}
+                {/* Stage C (Figma 3025-2324) — one control, two meanings:
+                    untranslated → translate glyph (opens the choice modal);
+                    translated → ↺ (opens the shared "Use original" confirm). */}
+                <TranslateRevertControl
+                  state={labelTranslateState(list.name, language)}
+                  onTranslate={() => onTranslateList(list._id)}
+                  onRevert={() => onRevertRequest(list._id, name)}
+                  translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                  revertLabel={tTranslate('controlRevertLabel')}
+                />
                 <IconButton
                   size="sm"
                   variant="neutral"
@@ -211,6 +212,15 @@ function SortableListRow({
             )}
           </div>
         </div>
+
+        {/* Made-in pill — directly below the toolbar, right-aligned; only
+            while the control above is in its `untranslated` state (a
+            fallback origin exists to name). Figma 3025-2324. */}
+        {isEditing && labelTranslateState(list.name, language) === 'untranslated' && (
+          <div className="flex justify-end mt-theme-gap">
+            <MadeInLabel lang={resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
+          </div>
+        )}
 
         {/* Below: list name (or inline rename input), full width. */}
         <div className="min-w-0">
@@ -245,14 +255,6 @@ function SortableListRow({
               <p className="text-theme-p font-semibold break-words min-w-0" style={{ color: 'var(--theme-text-primary)' }}>
                 {name}
               </p>
-              {/* Phase 15.5 — order-free list title translate badge. */}
-              {isEditing && (
-                <TranslateBadge
-                  record={list.name}
-                  language={language}
-                  onClick={() => onTranslateList(list._id)}
-                />
-              )}
             </div>
           )}
         </div>
@@ -727,39 +729,13 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <UseOriginalConfirmDialog
         open={pendingRevert !== null}
-        onOpenChange={(open) => { if (!open) setPendingRevert(null); }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('rowRevert')}</DialogTitle>
-            <DialogDescription>
-              {t('revertConfirm', { name: pendingRevert?.name ?? '' })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-theme-sm text-theme-s font-medium"
-                style={{ background: 'rgba(0,0,0,0.08)', color: 'var(--theme-text)' }}
-              >
-                {t('deleteCancel')}
-              </button>
-            </DialogClose>
-            <button
-              type="button"
-              onClick={handleRevertConfirm}
-              disabled={isReverting}
-              className="px-4 py-2 rounded-theme-sm text-theme-s font-medium transition-opacity disabled:opacity-50"
-              style={{ background: 'var(--theme-brand-primary)', color: 'var(--theme-button-highlight)' }}
-            >
-              {isReverting ? t('deleting') : t('rowRevert')}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={(o) => { if (!o) setPendingRevert(null); }}
+        name={pendingRevert?.name ?? ''}
+        onConfirm={handleRevertConfirm}
+        isPending={isReverting}
+      />
 
       {/* Move-to-group dialog — select a destination, then Move. Current group
           is disabled. */}
