@@ -382,9 +382,101 @@ All four stages of the lifecycle model are now shipped.
 
 ---
 
+## Addendum K — Edit-mode-only translation affordances
+
+**✅ Shipped on `main` (2026-07-22).** An owner audit found the "Made in `<lang>`"
+badge was a tappable `<button>` rendering on the **student** surface at 5 of 7
+adoption sites — the variant-authoring entry point (§3) was reachable outside
+edit mode. This is a **student-permissions fix**, not cosmetics: **nothing
+translation-related renders outside edit mode**, full stop.
+
+### A. Three shared components replace the badge-as-button
+
+- **`TranslateRevertControl`** — a single state-swapping icon: `untranslated` →
+  translate glyph (opens the surface's translate verb, see table below);
+  `translated` → ↺ revert glyph; `none` → renders nothing. Edit-mode only.
+- **`MadeInLabel`** — a non-actionable `<span>` rendering "Made in `<lang>`".
+  Replaces the old tappable badge everywhere, including in view mode where a
+  badge is still shown for information but is no longer a control.
+- **`UseOriginalConfirmDialog`** — the shared "Use original" confirm; Revert is
+  **always** confirmed (light confirm, per Addendum J §B — only one board is
+  affected, unlike Delete's heavy confirm).
+
+`TranslateBadge.tsx` is deleted (zero importers remained once every adoption
+site moved to the two-component split).
+
+### B. §3's badge-as-entry-point is SUPERSEDED
+
+§3 ("Authoring entry — badge → edit mode") described the "Made in `<lang>`"
+badge itself as the tappable entry point into variant authoring. That is
+superseded: the entry point is now the **translate state of
+`TranslateRevertControl`**, available only in edit mode, and only in the edit
+toolbar or inline beside the title (placement below) — never as a tap target
+on the "Made in" text. The "Made in `<lang>`" pill is now purely informational
+(`MadeInLabel`), rendered directly below the control on toolbar surfaces, or
+inline beside it on `GroupTile`. Addendum D (2026-07-12)'s "translate icon next
+to the rename field" and Addendum E's badge/modal ("Folder edit-icon (slice 3)
+superseded") are folded into this same edit-mode-only shape; nothing about
+those decisions' verbs changed, only where the control lives and that it is
+never actionable outside edit mode.
+
+### C. Adoption + placement
+
+- **`GroupTile`** (folders + categories) — control inline right of the title,
+  no pill (Figma `3017-2352`).
+- **List rows, list-detail items (edit renderers only), sentence rows, phrase
+  cards** — control lives IN the edit toolbar with the `MadeInLabel` pill
+  directly below it, right-aligned (Figma `3025-2324`).
+
+### D. The verb is surface-specific (never MT for composed content)
+
+| Surface | Content kind | Translate verb |
+|---|---|---|
+| `GroupTile` (folder/category name) | order-free label | machine translation (fills missing board-language key) |
+| List row / list title | order-free label | machine translation |
+| List-detail item description | order-free label | machine translation |
+| Sentence row (fluent/sequence) | composed content | **opens the variant-authoring flow** (§3/Addendum B modal) — **never MT** |
+| Phrase card | composed content | **opens the variant-authoring flow** — **never MT** |
+
+This is unchanged doctrine (ADR-016 §2's governing principle, Addendum D:
+"labels translate; structures get variants") — Addendum K only relocates
+*where* the verb is reachable from, not *what* the verb does. Verified live on
+`main`: tapping translate on a sentence opens the "Make a हिन्दी version" modal
+and fires **zero** `/api/translate-text` requests.
+
+### E. State precedence: `untranslated` beats `revertable`
+
+Owner decision: when a row is *both* revertable (has a `variantGroupId` sibling
+on this board) *and* still untranslated (its primary localised field has no
+board-language entry — e.g. a variant row created manually but abandoned
+mid-edit, still holding source-language text), `TranslateRevertControl` shows
+the **`untranslated`** state, not `revertable`. A half-finished variant keeps
+its one-tap route back into authoring rather than being routed into Revert
+(which would only delete the row and fall back to the source, destroying the
+in-progress work without offering the completion path). Revert is reachable
+once the row is genuinely translated.
+
+### F. No new Convex mutations
+
+Every verb reuses an existing mutation or route: `renameFolder` / category
+rename / `updateProfileListName` / `updateProfileListItems` /
+`revertProfileListLanguage` / `/api/delete-composed` (`scope: 'variant'`) /
+the existing variant-authoring entry points (`createSentenceVariant` /
+`createPhraseVariant`) and their save paths.
+
+This is **Stage 5** of the Language Variant Lifecycle model in effect, though
+it sits outside that model's original four numbered stages (Addenda H–J) —
+it is a permissions/UX correction over the already-shipped affordances, not a
+new lifecycle capability.
+
+Implemented by [`phase-15.7-translate-revert-control.md`](../plans/_done/phase-15.7-translate-revert-control.md).
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
 - Builds on **Phase 15** `authoredLanguage` ([`_done/phase-15-language-design.md`](../plans/_done/phase-15-language-design.md)); broadens the badge rule beyond block/sequence.
 - Implemented by [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md).
 - Addendum J (Stages 3 & 4) implemented by [`phase-15.6-variant-lifecycle-3-4-delete-revert.md`](../plans/_done/phase-15.6-variant-lifecycle-3-4-delete-revert.md); **supersedes §5.**
+- Addendum K implemented by [`phase-15.7-translate-revert-control.md`](../plans/_done/phase-15.7-translate-revert-control.md); **supersedes §3's badge-as-entry-point.**
