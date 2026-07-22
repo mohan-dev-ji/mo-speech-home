@@ -19,6 +19,8 @@ import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { TranslateChoiceModal } from '@/app/components/app/shared/modals/TranslateChoiceModal';
+import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
+import { stripLocaleKey } from '@/lib/languages/variants';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -73,6 +75,9 @@ export function ListDetailContent({ listId }: Props) {
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
   // Phase 15.5 — which item's translate modal is open (index into localItems).
   const [itemTranslate, setItemTranslate] = useState<number | null>(null);
+  // Stage C — per-item revert confirm (edit mode only): index + display name
+  // of the item awaiting "Use original" confirmation.
+  const [pendingItemRevert, setPendingItemRevert] = useState<{ index: number; name: string } | null>(null);
   // Draft for the editable banner title. Synced from the server name on
   // load + on every server change so a remote rename (or an Escape revert)
   // restores the canonical value.
@@ -386,10 +391,34 @@ export function ListDetailContent({ listId }: Props) {
     setItemTranslate(null);
   }
 
+  // Stage C — per-item revert: strip ONLY the reverted item's board-language
+  // key from its descriptionRecord (other items and the list title are
+  // untouched), recompute its display string, and persist via the existing
+  // items mutation.
+  async function handleItemRevertConfirm() {
+    if (!pendingItemRevert) return;
+    const idx = pendingItemRevert.index;
+    const next = localItems.map((it, i) => {
+      if (i !== idx) return it;
+      const strippedRecord = stripLocaleKey(it.descriptionRecord, language) as
+        | Record<string, string>
+        | undefined;
+      return {
+        ...it,
+        descriptionRecord: strippedRecord,
+        description: displayString(strippedRecord, language, DEFAULT_LOCALE),
+      };
+    });
+    setPendingItemRevert(null);
+    setLocalItems(next);
+    await persistItems(next);
+  }
+
   const editProps = {
     items: localItems,
     showNumbers: list.showNumbers,
     showChecklist: list.showChecklist,
+    language,
     onDragEnd: handleDragEnd,
     onDeleteRequest: (index: number) => setPendingDeleteIndex(index),
     onDescriptionChange: handleDescriptionChange,
@@ -397,6 +426,10 @@ export function ListDetailContent({ listId }: Props) {
     onAddSymbol: (index: number) => setSymbolPickerForIndex(index),
     onRemoveSymbol: handleRemoveSymbol,
     onAddItem: () => setSymbolPickerForIndex(localItems.length),
+    // Stage C — per-item translate/revert (edit mode only).
+    onTranslateRequest: (index: number) => setItemTranslate(index),
+    onRevertRequest: (index: number) =>
+      setPendingItemRevert({ index, name: localItems[index]?.description ?? '' }),
   };
 
   const displayProps = {
@@ -558,6 +591,14 @@ export function ListDetailContent({ listId }: Props) {
           onChoose={handleItemTranslateChoice}
         />
       )}
+
+      {/* Stage C — per-item revert confirm (edit mode only). */}
+      <UseOriginalConfirmDialog
+        open={pendingItemRevert !== null}
+        onOpenChange={(open) => { if (!open) setPendingItemRevert(null); }}
+        name={pendingItemRevert?.name ?? ''}
+        onConfirm={() => void handleItemRevertConfirm()}
+      />
 
       {symbolPickerForIndex !== null && accountId && (
         <SymbolEditorModal

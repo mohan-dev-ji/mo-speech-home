@@ -21,6 +21,8 @@ import { Plus, Trash2, Move } from 'lucide-react';
 import { EditSymbolSlot } from '../ui/ListItemAtoms';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
+import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { labelTranslateState } from '@/lib/languages/variants';
 import type { ListItem } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,17 +32,21 @@ type EditItemProps = {
   index: number;
   showNumbers: boolean;
   showChecklist: boolean;
+  language: string;
   onDeleteRequest: () => void;
   onDescriptionChange: (v: string) => void;
   onDescriptionBlur: () => void;
   onAddSymbol: () => void;
   onRemoveSymbol: () => void;
+  onTranslateRequest: () => void;
+  onRevertRequest: () => void;
 };
 
 export type EditContainerProps = {
   items: ListItem[];
   showNumbers: boolean;
   showChecklist: boolean;
+  language: string;
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteRequest: (index: number) => void;
   onDescriptionChange: (index: number, value: string) => void;
@@ -48,6 +54,8 @@ export type EditContainerProps = {
   onAddSymbol: (index: number) => void;
   onRemoveSymbol: (index: number) => void;
   onAddItem: () => void;
+  onTranslateRequest: (index: number) => void;
+  onRevertRequest: (index: number) => void;
 };
 
 const SENSOR_OPTIONS = { activationConstraint: { distance: 8 } };
@@ -55,10 +63,12 @@ const SENSOR_OPTIONS = { activationConstraint: { distance: 8 } };
 // ─── Row edit item ────────────────────────────────────────────────────────────
 
 function SortableEditRow({
-  item, index, showNumbers, showChecklist,
+  item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
+  onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
 
@@ -86,6 +96,13 @@ function SortableEditRow({
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <TranslateRevertControl
+            state={labelTranslateState(item.descriptionRecord, language)}
+            onTranslate={onTranslateRequest}
+            onRevert={onRevertRequest}
+            translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+            revertLabel={tTranslate('controlRevertLabel')}
+          />
           <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
         </EditPanel>
       </div>
@@ -96,10 +113,12 @@ function SortableEditRow({
 // ─── Column edit item ─────────────────────────────────────────────────────────
 
 function SortableEditColumn({
-  item, index, showNumbers, showChecklist,
+  item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
+  onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
 
@@ -127,6 +146,13 @@ function SortableEditColumn({
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="mt-auto shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <TranslateRevertControl
+            state={labelTranslateState(item.descriptionRecord, language)}
+            onTranslate={onTranslateRequest}
+            onRevert={onRevertRequest}
+            translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+            revertLabel={tTranslate('controlRevertLabel')}
+          />
           <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
         </EditPanel>
       </div>
@@ -137,10 +163,12 @@ function SortableEditColumn({
 // ─── Grid edit item ───────────────────────────────────────────────────────────
 
 function SortableEditGrid({
-  item, index, showNumbers, showChecklist,
+  item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
+  onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
+  const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
 
@@ -168,6 +196,13 @@ function SortableEditGrid({
         {showChecklist && <div className="w-4 h-4 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="shrink-0 flex-wrap">
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
+          <TranslateRevertControl
+            state={labelTranslateState(item.descriptionRecord, language)}
+            onTranslate={onTranslateRequest}
+            onRevert={onRevertRequest}
+            translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+            revertLabel={tTranslate('controlRevertLabel')}
+          />
           <IconButton size="sm" variant="neutral" className="cursor-grab active:cursor-grabbing touch-none" icon={<Move />} label={t('itemMove')} {...listeners} {...attributes} />
         </EditPanel>
       </div>
@@ -198,7 +233,7 @@ function AddItemButton({ onClick, className = '' }: { onClick: () => void; class
 
 // ─── Edit containers ──────────────────────────────────────────────────────────
 
-export function EditRows({ items, showNumbers, showChecklist, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem }: EditContainerProps) {
+export function EditRows({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -211,11 +246,14 @@ export function EditRows({ items, showNumbers, showChecklist, onDragEnd, onDelet
               index={idx}
               showNumbers={showNumbers}
               showChecklist={showChecklist}
+              language={language}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onTranslateRequest={() => onTranslateRequest(idx)}
+              onRevertRequest={() => onRevertRequest(idx)}
             />
           ))}
           <AddItemButton onClick={onAddItem} />
@@ -225,7 +263,7 @@ export function EditRows({ items, showNumbers, showChecklist, onDragEnd, onDelet
   );
 }
 
-export function EditColumns({ items, showNumbers, showChecklist, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem }: EditContainerProps) {
+export function EditColumns({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const t = useTranslations('lists');
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
@@ -239,11 +277,14 @@ export function EditColumns({ items, showNumbers, showChecklist, onDragEnd, onDe
               index={idx}
               showNumbers={showNumbers}
               showChecklist={showChecklist}
+              language={language}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onTranslateRequest={() => onTranslateRequest(idx)}
+              onRevertRequest={() => onRevertRequest(idx)}
             />
           ))}
           <button
@@ -265,7 +306,7 @@ export function EditColumns({ items, showNumbers, showChecklist, onDragEnd, onDe
   );
 }
 
-export function EditGrid({ items, showNumbers, showChecklist, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem }: EditContainerProps) {
+export function EditGrid({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -278,11 +319,14 @@ export function EditGrid({ items, showNumbers, showChecklist, onDragEnd, onDelet
               index={idx}
               showNumbers={showNumbers}
               showChecklist={showChecklist}
+              language={language}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onTranslateRequest={() => onTranslateRequest(idx)}
+              onRevertRequest={() => onRevertRequest(idx)}
             />
           ))}
           <AddItemButton onClick={onAddItem} className="w-full h-full" />
