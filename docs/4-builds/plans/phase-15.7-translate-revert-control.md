@@ -478,9 +478,13 @@ git commit -m "feat(i18n-ux): per-item translate/revert control in list detail e
 
 - [ ] **Step 1: Compute the state, preserving the existing badge logic.** `badgeLang` (computed ~`:554-557`) already handles both composition types (sequence → `authoredLang !== language`; fluent → `needsTranslation(fluentPrimary, language)`). Reuse it rather than a generic helper:
 ```ts
+  // Precedence (owner decision 2026-07-21): badgeLang FIRST. A variant row can exist
+  // while its text is still the source language (createSentenceVariant seeds it that
+  // way) — that half-finished state must keep the route back into authoring, per
+  // convex/profileSentences.ts:199-203 and lib/languages/variants.ts:44-48.
   const translateState: TranslateRevertState =
-    isRevertableVariant(sentence) ? 'translated'
-    : badgeLang ? 'untranslated'
+    badgeLang ? 'untranslated'
+    : isRevertableVariant(sentence) ? 'translated'
     : 'none';
 ```
 
@@ -526,9 +530,11 @@ git commit -m "feat(i18n-ux): sentence rows adopt TranslateRevertControl (transl
 
 - [ ] **Step 1: Compute the state** for a collapsed phrase `p`:
 ```ts
+// Same precedence as sentences (owner decision 2026-07-21): untranslated wins, so a
+// half-finished variant keeps its route back into authoring.
 const phraseState: TranslateRevertState =
-  isRevertableVariant(p) ? 'translated'
-  : needsTranslation(p.name, language) ? 'untranslated'
+  needsTranslation(p.name, language) ? 'untranslated'
+  : isRevertableVariant(p) ? 'translated'
   : 'none';
 ```
 
