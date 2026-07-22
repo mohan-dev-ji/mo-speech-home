@@ -56,6 +56,17 @@ export function needsTranslation(
   return resolvedLocale(primary, boardLang, DEFAULT_LOCALE) !== boardLang;
 }
 
+/** Control state for LABEL content (a single record with per-language keys). */
+export function labelTranslateState(
+  record: Record<string, string> | undefined,
+  boardLang: string,
+): 'untranslated' | 'translated' | 'none' {
+  if (needsTranslation(record, boardLang)) return 'untranslated';
+  // A board-language key exists; it is only revertable if an origin survives.
+  const keys = record ? Object.keys(record) : [];
+  return keys.some((k) => k !== boardLang) ? 'translated' : 'none';
+}
+
 /**
  * Collapse sibling-variant rows to one visible row per group for `language`.
  * Pick order: the board-language variant → the source row → any sibling.

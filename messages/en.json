@@ -129,7 +129,13 @@
     "manual": "Type it myself",
     "manualHint": "Open editing to write it in {lang}.",
     "translating": "Translating…",
-    "error": "Couldn't translate. Try again or type it."
+    "error": "Couldn't translate. Try again or type it.",
+    "controlTranslateLabel": "Translate this to {lang}",
+    "controlRevertLabel": "Use original",
+    "useOriginalTitle": "Use original",
+    "useOriginalBody": "Show the original version of \"{name}\" here instead? You can re-author it anytime.",
+    "useOriginalCancel": "Cancel",
+    "useOriginalPending": "Reverting…"
   },
   "sentences": {
     "title": "Sentences",
