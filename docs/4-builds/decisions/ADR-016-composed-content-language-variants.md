@@ -415,8 +415,9 @@ superseded: the entry point is now the **translate state of
 `TranslateRevertControl`**, available only in edit mode, and only in the edit
 toolbar or inline beside the title (placement below) — never as a tap target
 on the "Made in" text. The "Made in `<lang>`" pill is now purely informational
-(`MadeInLabel`), rendered directly below the control on toolbar surfaces, or
-inline beside it on `GroupTile`. Addendum D (2026-07-12)'s "translate icon next
+(`MadeInLabel`), rendered inside the toolbar's own right-hand column on
+list/sentence rows and inside the phrase card's `controls` row (placement and
+Figma nodes in §C); `GroupTile` shows no pill at all. Addendum D (2026-07-12)'s "translate icon next
 to the rename field" and Addendum E's badge/modal ("Folder edit-icon (slice 3)
 superseded") are folded into this same edit-mode-only shape; nothing about
 those decisions' verbs changed, only where the control lives and that it is
