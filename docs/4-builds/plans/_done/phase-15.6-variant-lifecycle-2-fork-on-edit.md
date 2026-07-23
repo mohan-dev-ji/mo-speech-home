@@ -3,7 +3,7 @@
 > **Status:** ✅ SHIPPED (archived 2026-07-22). Every task in the Status Ledger below is ✅ with a commit hash.
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development or superpowers:executing-plans. Steps use `- [ ]` checkboxes.
-> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
+> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
 > **⚠️ SELF-CONTAINED FOR A NEW SESSION — fully shipped. Read the Status Ledger + Model Summary first.**
 > **Branch:** `claude/phase-15.6-variant-lifecycle` (worktree). App runs on the worktree's dev server (owner-managed; verify audio changes on the running app — do NOT start a server or `npx convex dev`).
 

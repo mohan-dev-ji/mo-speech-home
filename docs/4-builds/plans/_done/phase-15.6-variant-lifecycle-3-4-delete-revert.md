@@ -1,7 +1,7 @@
 # Variant Lifecycle Stages 3 & 4 (Revert + Whole-item Delete) + 1-word Phrases — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax.
-> **Design spec:** [`docs/superpowers/specs/2026-07-19-variant-delete-revert-design.md`](../../superpowers/specs/2026-07-19-variant-delete-revert-design.md).
+> **Design spec:** [`docs/superpowers/specs/2026-07-19-variant-delete-revert-design.md`](../../../superpowers/specs/2026-07-19-variant-delete-revert-design.md).
 > **Execute on `main`** (owner runs `npx convex dev` → Convex auto-deploys). Not a worktree.
 
 **Goal:** Make the trash button delete a variant-group's whole logical item in one action, add a Revert control that removes just the current board's variant, and allow 1-word phrases — all with personal-recording R2 cleanup that never touches shared TTS.

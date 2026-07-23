@@ -1,7 +1,7 @@
 # Phase 15.5 — Composed-content language variants + versioning bug-fix pass
 
-> **Status:** ✅ SHIPPED (archived 2026-07-22). [ADR-016](../decisions/ADR-016-composed-content-language-variants.md) marks this plan "Implemented by"; the variant model (`variantGroupId`, `createSentenceVariant`) lives in `convex/profileSentences.ts` / `profilePhrases.ts`. **Prep authored:** 2026-07-11 (end of the Phase 15 session).
-> **Predecessor:** Phase 15 shipped (bilingual symbols, Tone TTS, language-switch foundation). Its plans are archived in [`_done/phase-15-language-design.md`](_done/phase-15-language-design.md) (design + spike findings + the *Deferred* section this plan expands), [`_done/phase-15-implementation.md`](_done/phase-15-implementation.md), [`_done/phase-15-figma-companion.md`](_done/phase-15-figma-companion.md).
+> **Status:** ✅ SHIPPED (archived 2026-07-22). [ADR-016](../../decisions/ADR-016-composed-content-language-variants.md) marks this plan "Implemented by"; the variant model (`variantGroupId`, `createSentenceVariant`) lives in `convex/profileSentences.ts` / `profilePhrases.ts`. **Prep authored:** 2026-07-11 (end of the Phase 15 session).
+> **Predecessor:** Phase 15 shipped (bilingual symbols, Tone TTS, language-switch foundation). Its plans are archived in [`_done/phase-15-language-design.md`](phase-15-language-design.md) (design + spike findings + the *Deferred* section this plan expands), [`_done/phase-15-implementation.md`](phase-15-implementation.md), [`_done/phase-15-figma-companion.md`](phase-15-figma-companion.md).
 >
 > **This is a self-contained plan for a fresh session.** It is a SCAFFOLD: the variant data model is deliberately left to a brainstorm (see "Open design question") — do that FIRST, before any schema change.
 
@@ -15,9 +15,9 @@ This is a **test-and-fix session**: build fixtures → switch languages → obse
 
 Order-free content (symbols/words) translates live. **Structure-bound content (phrases, block/sequence sentences) is re-authored per language, never machine-translated in place** — word order + morphology are language-specific. Fluent whole-text sentences hold one translated string and keep resolving live.
 
-## Open design question — RESOLVED by [ADR-016](../decisions/ADR-016-composed-content-language-variants.md) (2026-07-12)
+## Open design question — RESOLVED by [ADR-016](../../decisions/ADR-016-composed-content-language-variants.md) (2026-07-12)
 
-The brainstorm is done. See **[ADR-016 — Composed-Content Language Variants](../decisions/ADR-016-composed-content-language-variants.md)** for the full contract. Summary of the decisions:
+The brainstorm is done. See **[ADR-016 — Composed-Content Language Variants](../../decisions/ADR-016-composed-content-language-variants.md)** for the full contract. Summary of the decisions:
 
 1. **Data model** — **Option A: `variantGroupId` sibling rows.** A variant is another `profileSentences`/`profilePhrases` row of the identical shape, tagged with its own `authoredLanguage`, linked by a shared `variantGroupId`. The group id **is the source row's `_id`**. Lazy grouping (a group materialises only when a 2nd language is authored) → **zero migration**; legacy rows are singletons. Siblings copy the source's `folderId`/`order` and stay in sync on reorder.
 2. **Resolution** — **client-side group collapse** (board `language` is client context; same reactive mechanism as live text translation / the search page). Show the sibling whose `authoredLanguage === boardLanguage`, else the source. Switching language re-collapses instantly, **no Convex re-query**.

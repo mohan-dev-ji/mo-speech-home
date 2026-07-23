@@ -1,8 +1,8 @@
 # TTS cache fix — `skipSymbolstix` so literal clips cache — Implementation Plan
 
 > **Self-contained. Execute on `main`** (not a worktree). The owner runs `npx convex dev` on `main`, so the Convex change here **auto-deploys**; a worktree cannot deploy it. This is the one deploy-dependent leftover from Phase 15.6 Stage 2 (Variant Lifecycle fork-on-edit), deferred to the `main` merge on purpose.
-> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md) §2 item 4 "Perf follow-up".
-> **ADR:** [`ADR-016 Addendum I`](../decisions/ADR-016-composed-content-language-variants.md) — "Deferred to the `main` merge".
+> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md) §2 item 4 "Perf follow-up".
+> **ADR:** [`ADR-016 Addendum I`](../../decisions/ADR-016-composed-content-language-variants.md) — "Deferred to the `main` merge".
 
 ---
 
@@ -91,7 +91,7 @@ export const lookup = query({
 
 ### Step 4 — Docs + commit
 
-- [x] Flip the deferred rows to ✅ in [`ADR-016 Addendum I`](../decisions/ADR-016-composed-content-language-variants.md) ("Deferred to the `main` merge") and in [`phase-15.6-variant-lifecycle-2-fork-on-edit.md`](phase-15.6-variant-lifecycle-2-fork-on-edit.md) (ledger `:24` + self-review `:153`). Move this plan to `plans/_done/` when it ships.
+- [x] Flip the deferred rows to ✅ in [`ADR-016 Addendum I`](../../decisions/ADR-016-composed-content-language-variants.md) ("Deferred to the `main` merge") and in [`phase-15.6-variant-lifecycle-2-fork-on-edit.md`](phase-15.6-variant-lifecycle-2-fork-on-edit.md) (ledger `:24` + self-review `:153`). Move this plan to `plans/_done/` when it ships.
 - [x] Commit: `git commit -am "perf(tts): skipSymbolstix on literal lookup so literal clips cache (not regenerate)"`.
 
 ## Notes

@@ -1,7 +1,7 @@
 # Translate/Revert Control — edit-mode-only translation affordances — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax.
-> **Design spec:** [`docs/superpowers/specs/2026-07-21-translate-revert-control-design.md`](../../superpowers/specs/2026-07-21-translate-revert-control-design.md).
+> **Design spec:** [`docs/superpowers/specs/2026-07-21-translate-revert-control-design.md`](../../../superpowers/specs/2026-07-21-translate-revert-control-design.md).
 > **Figma:** `Mo Speech — Finals` — GroupTile `3017-2352`; list-strip / block-sentence `3025-2324`.
 > **Execute on `main`.**
 

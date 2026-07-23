@@ -3,7 +3,7 @@
 > **Status:** ✅ SHIPPED (archived 2026-07-22). Commit `d46aebe`, ADR `0b2c640` — per the ledger in [`phase-15.6-variant-lifecycle-2-fork-on-edit.md`](phase-15.6-variant-lifecycle-2-fork-on-edit.md).
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task. Steps use `- [ ]` checkboxes.
-> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
+> **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
 > **This is Stage 1 of 4.** Roadmap: **(1) block-voice consistency ← this plan** · (2) fork-on-edit (composed content) · (3) revert (edit-toolbar icon, all surfaces) · (4) delete → whole-item + confirm. Stages 1 & 3 are the low-risk pair the spec ships/validates before the behaviour-changing Stages 2 & 4.
 
 **Goal:** Make a saved composition (block/sequence sentence) speak **entirely in its collapsed row's one authored language** (board-accent), instead of resolving each block's voice independently — which today makes word blocks speak the translation while phrase blocks speak the origin text in the board accent.
