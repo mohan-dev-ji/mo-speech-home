@@ -134,7 +134,7 @@ A module / folder / group has **no structure to re-order** — it is only a **na
 | Folder / group / module **name** | one multi-key label record | live translation; MT may **auto-fill a missing language key on demand** (safe — no re-ordering) |
 | Composed content **inside** (phrase, sentence) | per-language **variant** (§1) | badge → modal → MT text+audio, **human re-orders symbols** |
 
-- **Default modules** ship pre-translated (their names must carry all languages — the gap fixed in the Phase 15.5 bug pass; see [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md) bug #3).
+- **Default modules** ship pre-translated (their names must carry all languages — the gap fixed in the Phase 15.5 bug pass; see [`phase-15.5-content-variants.md`](../plans/_done/phase-15.5-content-variants.md) bug #3).
 - **User-created folder/group names are NEVER auto-translated on create** (owner decision 2026-07-12: at N languages, auto-filling every key on every create is O(N) waste for a label most instructors never switch board-language on). Instead the name stays single-key until the instructor asks. In **folder/group edit mode**, when the **current board language's key is empty**, a **translate icon** appears next to the rename field; tapping it MT-fills *that one key* and drops the value into the still-editable rename input so the instructor can **correct it on their OS-language keyboard**. Lazy, per-language, on demand — never a bulk fan-out.
   - This is why an instructor's own EN folder (`{en:"Going Places"}`) correctly stays English on an es/hi board until they translate it — distinct from a *default module* folder, which ships pre-translated.
 - **Modules never gain the variant machinery.** Only the structure-bound composed content *inside* them does.
@@ -219,7 +219,7 @@ translation UX as variants, without the sibling-row model:
   translated item simply plays in the board language; human recordings keep
   theirs (expected).
 
-Implemented by [`phase-15.5-list-translation.md`](../plans/phase-15.5-list-translation.md).
+Implemented by [`phase-15.5-list-translation.md`](../plans/_done/phase-15.5-list-translation.md).
 
 ---
 
@@ -482,6 +482,6 @@ Implemented by [`phase-15.7-translate-revert-control.md`](../plans/_done/phase-1
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
 - Builds on **Phase 15** `authoredLanguage` ([`_done/phase-15-language-design.md`](../plans/_done/phase-15-language-design.md)); broadens the badge rule beyond block/sequence.
-- Implemented by [`phase-15.5-content-variants.md`](../plans/phase-15.5-content-variants.md).
+- Implemented by [`phase-15.5-content-variants.md`](../plans/_done/phase-15.5-content-variants.md).
 - Addendum J (Stages 3 & 4) implemented by [`phase-15.6-variant-lifecycle-3-4-delete-revert.md`](../plans/_done/phase-15.6-variant-lifecycle-3-4-delete-revert.md); **supersedes §5.**
 - Addendum K implemented by [`phase-15.7-translate-revert-control.md`](../plans/_done/phase-15.7-translate-revert-control.md); **supersedes §3's badge-as-entry-point.**

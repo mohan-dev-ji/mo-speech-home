@@ -2,7 +2,7 @@
 
 - **Date:** 2026-07-18
 - **Status:** Approved (brainstorm) → ready for implementation plan
-- **Supersedes:** [`docs/4-builds/plans/phase-15.6-revert-translation.md`](../../4-builds/plans/phase-15.6-revert-translation.md) and [`docs/superpowers/specs/2026-07-16-revert-translation-design.md`](2026-07-16-revert-translation-design.md) — Revert becomes Stage 3 of this larger model.
+- **Supersedes:** [`docs/4-builds/plans/_done/phase-15.6-revert-translation.md`](../../4-builds/plans/_done/phase-15.6-revert-translation.md) and [`docs/superpowers/specs/2026-07-16-revert-translation-design.md`](2026-07-16-revert-translation-design.md) — Revert becomes Stage 3 of this larger model.
 - **Relates to:** ADR-016 (composed-content language variants) Addenda A–G; ADR-009 (localised records); Phase 15 (voice-follows-text); Phase 15.5 (live-translation badge).
 
 ---

@@ -1,8 +1,10 @@
 # Variant Lifecycle — Stage 2: fork-on-edit + audio integrity — Implementation Plan
 
+> **Status:** ✅ SHIPPED (archived 2026-07-22). Every task in the Status Ledger below is ✅ with a commit hash.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development or superpowers:executing-plans. Steps use `- [ ]` checkboxes.
 > **Design spec:** [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](../../superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
-> **⚠️ SELF-CONTAINED FOR A NEW SESSION — partially shipped. Read the Status Ledger + Model Summary first, then execute only the ⏳ tasks.**
+> **⚠️ SELF-CONTAINED FOR A NEW SESSION — fully shipped. Read the Status Ledger + Model Summary first.**
 > **Branch:** `claude/phase-15.6-variant-lifecycle` (worktree). App runs on the worktree's dev server (owner-managed; verify audio changes on the running app — do NOT start a server or `npx convex dev`).
 
 ---
@@ -30,7 +32,7 @@ Stage 2 belongs to the 4-stage Variant Lifecycle: (1) block-voice · **(2) fork-
 ## Model summary (board-accent, verified working)
 
 - **Board-accent voice (final):** on a board of language L, a **localized/forked** item speaks its **literal authored text in the L voice** (e.g. English text on a Hindi board → Hindi voice, Hindi accent — NOT translated). An **un-translated** item (origin fallback, "Made in" badge) speaks in the **origin** voice. (The owner considered native-voice mid-way, then reverted to board-accent after hearing it — do not re-litigate.)
-- **Literal audio:** composed/authored content (sentence blocks ✅, list items ⏳ Task 5) must speak the **exact typed text** via TTS, bypassing the SymbolStix per-language default (which swaps a known word for its canonical board-language word = a translation). Phrases already worked because their multi-word names match no single symbol.
+- **Literal audio:** composed/authored content (sentence blocks ✅, list items ✅ Task 5) must speak the **exact typed text** via TTS, bypassing the SymbolStix per-language default (which swaps a known word for its canonical board-language word = a translation). Phrases already worked because their multi-word names match no single symbol.
 - **fork-on-edit (board-true editing):** editing a composed item on a board where **no board-language variant exists yet** must **fork** a board-language variant (seeded from the source, via the existing idempotent `create*Variant` mutations) and write to the fork — never mutate the shared source. This protects other boards' integrity.
   - **These are deviant-but-valid edge cases** (owner note): the normal path is the **"Made in" badge** → author-variant, which already forks correctly. But a user CAN enter edit mode and directly edit a *fallback* (not-yet-translated) item, and today that **clobbers the origin board** (confirmed by owner retest). Task 2/3 close that gap. The badge flow and fork-on-edit share the SAME `create*Variant` mutations — this is not duplicate code.
 
@@ -53,7 +55,7 @@ Stage 2 belongs to the 4-stage Variant Lifecycle: (1) block-voice · **(2) fork-
 
 ---
 
-### ⏳ Task 2: standalone-phrase fork-on-edit (TalkerDropdown)
+### ✅ Task 2: standalone-phrase fork-on-edit (TalkerDropdown)
 
 **File:** Modify `app/components/app/shared/ui/TalkerDropdown.tsx`.
 
@@ -83,7 +85,7 @@ For `handleRemovePhraseWord` (`:374`), `handleReorderPhraseWord` (`:383`), `hand
 
 ---
 
-### ⏳ Task 3: fluent-sentence fork-on-edit + record `text`
+### ✅ Task 3: fluent-sentence fork-on-edit + record `text`
 
 **Files:** Modify `convex/profileSentences.ts`, `app/components/app/sentences/modals/SentenceAudioModal.tsx`, `app/components/app/sentences/sections/SentencesModeContent.tsx`.
 
@@ -115,7 +117,7 @@ For `handleRemovePhraseWord` (`:374`), `handleReorderPhraseWord` (`:383`), `hand
 
 ---
 
-### ⏳ Task 5 (NEW): list-item literal-TTS
+### ✅ Task 5 (NEW): list-item literal-TTS
 
 List item descriptions are authored text, and 1-word descriptions (e.g. "breakfast") currently resolve the SymbolStix default → the translated word. Make list playback literal like sentence blocks.
 
@@ -140,7 +142,7 @@ export async function playTts(
 
 ---
 
-### ⏳ Task 4: docs + final verify
+### ✅ Task 4: docs + final verify
 
 - [ ] **Step 1 — ADR Addendum I** in `docs/4-builds/decisions/ADR-016-composed-content-language-variants.md`: fork-on-edit (editing a fallback on a non-origin board forks a board variant via the idempotent `create*Variant` mutations, protecting the origin board — a guardrail for the deviant direct-edit path; the badge remains the normal path); board-accent + literal-TTS for all authored content (sentence blocks + list items); word-unit stale-audio invalidation. Note the deferred `ttsCache.lookup` `skipSymbolstix` caching optimization.
 - [ ] **Step 2 — full verify.** app tsc + convex tsc clean.

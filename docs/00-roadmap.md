@@ -855,7 +855,7 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 
 ## Phase 15.5 — Composed-content language variants
 
-> **Status:** ➡️ Next. Plan scaffolded 2026-07-11: [`phase-15.5-content-variants.md`](4-builds/plans/phase-15.5-content-variants.md) — a plan-first test-and-fix session (variant model brainstorm + versioning bug fixes + native rebuild of MT'd default sentences). Also carries the "Deferred" context from the Phase 15 design spec.
+> **Status:** ✅ Shipped. Composed-content language variants (`variantGroupId` sibling rows, client-side collapse, "Made in" badge) + the lists live-translation badge system, both per [ADR-016](4-builds/decisions/ADR-016-composed-content-language-variants.md). Plans archived: [`_done/phase-15.5-content-variants.md`](4-builds/plans/_done/phase-15.5-content-variants.md), [`_done/phase-15.5-list-translation.md`](4-builds/plans/_done/phase-15.5-list-translation.md).
 
 **Goal:** Turn the Phase 15 "Made in EN" badge into a real per-language re-authoring flow, so a bilingual profile can hold natively-authored versions of the same utterance in each language.
 
@@ -865,7 +865,27 @@ The original Phase 9 content (cross-project HTTP actions, sharing inbox, shareRe
 - **MT as authoring assist** — inside the localise flow, offer a machine-translated fluent text as a *starting suggestion* (Pro+ gated); the instructor arranges symbols/phrases in correct target-language order. MT never ships unreviewed.
 - **Monolingual families** keep the ADR-009 "one profile per language" pattern; variants are the bilingual-profile enhancement, not a requirement.
 
-**Reference:** [`phase-15.5-content-variants.md`](4-builds/plans/phase-15.5-content-variants.md); [`_done/phase-15-language-design.md`](4-builds/plans/_done/phase-15-language-design.md) (Deferred section); ADR-009 §6, ADR-012 §7, ADR-013 (translator workbench, for the MT-assist review model).
+**Reference:** [`_done/phase-15.5-content-variants.md`](4-builds/plans/_done/phase-15.5-content-variants.md); [`_done/phase-15-language-design.md`](4-builds/plans/_done/phase-15-language-design.md) (Deferred section); ADR-009 §6, ADR-012 §7, ADR-013 (translator workbench, for the MT-assist review model).
+
+---
+
+## Phase 15.6 — Language Variant Lifecycle (block-voice, fork-on-edit, revert, delete)
+
+> **Status:** ✅ Shipped. The 4-stage lifecycle model per [ADR-016](4-builds/decisions/ADR-016-composed-content-language-variants.md) Addenda H–J: (1) block-voice consistency, (2) fork-on-edit + audio integrity, (3) revert, (4) whole-item delete — plus the `skipSymbolstix` TTS-cache fix. Plans archived: [`_done/phase-15.6-variant-lifecycle-1-block-voice.md`](4-builds/plans/_done/phase-15.6-variant-lifecycle-1-block-voice.md), [`_done/phase-15.6-variant-lifecycle-2-fork-on-edit.md`](4-builds/plans/_done/phase-15.6-variant-lifecycle-2-fork-on-edit.md), [`_done/phase-15.6-variant-lifecycle-3-4-delete-revert.md`](4-builds/plans/_done/phase-15.6-variant-lifecycle-3-4-delete-revert.md), [`_done/phase-15.6-tts-cache-skip-symbolstix.md`](4-builds/plans/_done/phase-15.6-tts-cache-skip-symbolstix.md). An earlier standalone revert plan, [`_done/phase-15.6-revert-translation.md`](4-builds/plans/_done/phase-15.6-revert-translation.md), was superseded by this lifecycle model before execution (kept for history).
+
+**Goal:** Make a saved composition speak consistently in its one authored language, protect the origin board when a fallback is edited directly, and let an instructor revert or delete a language variant safely.
+
+**Reference:** [ADR-016](4-builds/decisions/ADR-016-composed-content-language-variants.md) Addenda H–J; [`docs/superpowers/specs/2026-07-18-language-variant-lifecycle-design.md`](superpowers/specs/2026-07-18-language-variant-lifecycle-design.md).
+
+---
+
+## Phase 15.7 — Edit-mode-only translation affordances
+
+> **Status:** ✅ Shipped 2026-07-22. Replaces the tappable "Made in `<lang>`" badge with `TranslateRevertControl` + a non-actionable `MadeInLabel`, plus the shared "Use original" confirm — nothing translation-related renders outside edit mode. Per [ADR-016 Addendum K](4-builds/decisions/ADR-016-composed-content-language-variants.md#addendum-k--edit-mode-only-translation-affordances). Plan archived: [`_done/phase-15.7-translate-revert-control.md`](4-builds/plans/_done/phase-15.7-translate-revert-control.md).
+
+**Goal:** Fix a student-permissions gap — translation affordances were reachable outside edit mode — and give translate/revert one consistent control across all surfaces.
+
+**Reference:** [ADR-016 Addendum K](4-builds/decisions/ADR-016-composed-content-language-variants.md#addendum-k--edit-mode-only-translation-affordances).
 
 ---
 

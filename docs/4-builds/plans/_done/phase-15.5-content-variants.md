@@ -1,6 +1,6 @@
 # Phase 15.5 — Composed-content language variants + versioning bug-fix pass
 
-> **Status:** planned, not started. **Prep authored:** 2026-07-11 (end of the Phase 15 session).
+> **Status:** ✅ SHIPPED (archived 2026-07-22). [ADR-016](../decisions/ADR-016-composed-content-language-variants.md) marks this plan "Implemented by"; the variant model (`variantGroupId`, `createSentenceVariant`) lives in `convex/profileSentences.ts` / `profilePhrases.ts`. **Prep authored:** 2026-07-11 (end of the Phase 15 session).
 > **Predecessor:** Phase 15 shipped (bilingual symbols, Tone TTS, language-switch foundation). Its plans are archived in [`_done/phase-15-language-design.md`](_done/phase-15-language-design.md) (design + spike findings + the *Deferred* section this plan expands), [`_done/phase-15-implementation.md`](_done/phase-15-implementation.md), [`_done/phase-15-figma-companion.md`](_done/phase-15-figma-companion.md).
 >
 > **This is a self-contained plan for a fresh session.** It is a SCAFFOLD: the variant data model is deliberately left to a brainstorm (see "Open design question") — do that FIRST, before any schema change.

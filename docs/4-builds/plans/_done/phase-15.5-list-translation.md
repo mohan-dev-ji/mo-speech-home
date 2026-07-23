@@ -1,5 +1,7 @@
 # Lists Live-Translation Badge System — Implementation Plan
 
+> **Status:** ✅ SHIPPED (archived 2026-07-22). [ADR-016:222](../decisions/ADR-016-composed-content-language-variants.md) marks this plan "Implemented by". **Superseded by [ADR-016 Addendum K](../decisions/ADR-016-composed-content-language-variants.md#addendum-k--edit-mode-only-translation-affordances):** the view-mode "Made in" badge built here is edit-mode-only now (`TranslateRevertControl` + `MadeInLabel`); `TranslateBadge` has been deleted.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task. Steps use `- [ ]` checkboxes.
 > **This is a self-contained plan for a fresh session** (Phase 15.5 continuation). All context is below.
 
