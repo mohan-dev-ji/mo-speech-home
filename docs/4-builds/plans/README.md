@@ -43,6 +43,40 @@ Non-phased one-offs (a page or component plan) may use a plain slug:
    Never leave the only copy in `~/.claude/plans/` — that autosave is scratch.
 3. **Ship** — when the phase is done, move the file to `plans/_done/`. It stays in git
    history as the record of *how* a phase was built; `decisions/` records *why*.
+   While you're there, refresh the plan's own status header (and any `⏳` markers left
+   in its body) so the archived copy doesn't contradict its status ledger.
+4. **Repair the links** — moving into `_done/` breaks relative links in **both**
+   directions, and it is silent. Always run the check below afterwards.
+
+### Link repair (step 4)
+
+Two breakages, every time:
+
+- **Inbound** — `docs/00-roadmap.md`, ADRs and specs point at `…/plans/<file>.md`;
+  those become `…/plans/_done/<file>.md`. Relative depth differs per linking file
+  (`4-builds/plans/_done/…` from the roadmap, `../plans/_done/…` from `decisions/`) —
+  don't blanket-replace.
+- **Outbound (the one that gets missed)** — links *inside* the moved file break because
+  it dropped a directory level: `../decisions/…` → `../../decisions/…`, and
+  `../../superpowers/…` → `../../../superpowers/…`. A sibling already in `_done/` is
+  just a bare filename.
+
+Verify with this — it resolves every relative `.md` link under `docs/` and prints only
+the broken ones:
+
+```bash
+python3 - <<'PY'
+import os,re,glob
+bad=[];n=0
+for f in glob.glob('docs/**/*.md',recursive=True):
+    d=os.path.dirname(f)
+    for m in re.finditer(r'\]\((?!https?:|#)([^)#]+\.md)(?:#[^)]*)?\)', open(f,encoding='utf-8').read()):
+        n+=1
+        if not os.path.exists(os.path.normpath(os.path.join(d,m.group(1)))):
+            bad.append(f"{f} -> {m.group(1)}")
+print(f"checked {n} links"); print("\n".join(bad) if bad else "all resolve")
+PY
+```
 
 ## Boundary with the roadmap
 
