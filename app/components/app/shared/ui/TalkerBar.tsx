@@ -6,15 +6,16 @@
 // (a zinc box wrapping the phrase's word chips + a name pill — the visual marker
 // that "this is a reusable chunk", offset from the colourful semantic
 // categories). Units can be dragged to reorder and removed via a corner X
-// (shuffle editing, ADR-015 §8) — reuses the project's dnd-kit pattern
-// (PointerSensor, 8px activation so a tap still plays). Tapping a chip calls
-// onChipTap; the parent decides play-vs-other.
+// (shuffle editing, ADR-015 §8) via dnd-kit — mouse drags on 8px, touch drags on
+// a press-and-hold (so a swipe scrolls the row instead; see sensors below). A tap
+// still plays: tapping a chip calls onChipTap; the parent decides play-vs-other.
 
 import { useState } from "react";
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -81,11 +82,16 @@ export function TalkerBar({
   onRemove,
   onReorder,
 }: TalkerBarProps) {
-  // 8px activation: a tap (no movement) fires onChipTap; a drag reorders. Same
-  // convention as the sentence editor's SlotStrip, so tap-to-play stays reliable
-  // on touch devices.
+  // Mouse: 8px activation — a tap (no movement) fires onChipTap, a drag reorders.
+  // Touch: a hold DELAY instead of a distance, so a quick horizontal swipe on a
+  // chip scrolls the (flex-nowrap overflow-x-auto) tray natively and only a
+  // press-and-hold starts a reorder. Splitting Mouse/Touch (vs one PointerSensor
+  // with distance) is what lets touch-scroll and touch-reorder coexist — the tray
+  // now scrolls at every width (MOS-7), and chips must NOT set touch-action:none
+  // (see SortableUnit) or the browser can't scroll during the pre-drag window.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -99,7 +105,7 @@ export function TalkerBar({
 
   if (symbols.length === 0) {
     return (
-      <div className="flex flex-1 min-w-0 self-stretch items-center flex-wrap content-start gap-theme-elements py-theme-elements overflow-y-auto">
+      <div className="flex flex-1 min-w-0 self-stretch items-center flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
         <span
           className="text-caption opacity-50 select-none"
           style={{ color: "var(--theme-alt-text)" }}
@@ -111,7 +117,7 @@ export function TalkerBar({
   }
 
   return (
-    <div className="flex flex-1 min-w-0 self-stretch items-start flex-wrap content-start gap-theme-elements py-theme-elements overflow-y-auto">
+    <div className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -163,7 +169,7 @@ function SortableUnit({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group shrink-0 touch-none ${isPhrase ? "" : "w-40"}`}
+      className={`relative group shrink-0 ${isPhrase ? "" : "w-28 md:w-40"}`}
       {...listeners}
       {...attributes}
     >
@@ -225,12 +231,12 @@ function PhraseBox({ item, onTap }: { item: TalkerSymbolItem; onTap: () => void 
     >
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
-          <div className="w-24 h-24 rounded-theme-sm" style={{ background: ZINC.c100 }} />
+          <div className="w-16 h-16 md:w-24 md:h-24 rounded-theme-sm" style={{ background: ZINC.c100 }} />
         ) : (
           words.map((w, i) => (
             <div
               key={i}
-              className="w-24 h-24 rounded-theme-sm overflow-hidden flex items-center justify-center"
+              className="w-16 h-16 md:w-24 md:h-24 rounded-theme-sm overflow-hidden flex items-center justify-center"
               style={{ background: ZINC.c100 }}
             >
               {w.imagePath ? (

@@ -66,14 +66,14 @@ import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { useGridColumns } from '@/app/hooks/useGridColumns';
 
 const ZINC = getCategoryColour('zinc');
 
-// Column count follows the profile's grid-size setting (matches the main
-// symbol board's lg tier). Fewer columns → larger cells + text. Changing size
-// reflows the slots across rows but each keeps its numbered position (order).
-// MIN_ROWS keeps the board a recognisable shape even when nearly empty.
-const CORE_GRID_COLS = { large: 4, medium: 8, small: 12 } as const;
+// Column count = profile grid-size × viewport tier (see useGridColumns, which
+// mirrors CategoryBoardGrid's map). Fewer columns → larger cells + text.
+// Changing size reflows the slots across rows but each keeps its numbered
+// position (order). MIN_ROWS keeps the board a recognisable shape when empty.
 const MIN_ROWS = 3;
 
 // Authoring toggle. false = "nudge" mode: symbols pack contiguously and moving
@@ -95,7 +95,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const t = useTranslations('talker');
   const tTranslate = useTranslations('translate');
   const { voiceId, accountId, stateFlags, viewMode } = useProfile();
-  const cols = CORE_GRID_COLS[stateFlags.grid_size ?? 'large'];
+  // Reactive number so the slot math (rows/totalCells) and the CSS grid stay in
+  // sync as the viewport crosses md/lg. Narrowing a `large` board steps 4 → 2
+  // columns, enlarging each symbol (FEAT-006 "too small" fix).
+  const cols = useGridColumns(stateFlags.grid_size);
   const isAdmin = useIsAdmin();
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
@@ -1230,12 +1233,12 @@ function PhraseDropdownCard({
     >
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
-          <div className="w-20 h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
+          <div className="w-14 h-14 md:w-20 md:h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
         ) : (
           words.map((w, i) => (
             <div
               key={i}
-              className="w-20 h-20 rounded-theme-sm overflow-hidden flex items-center justify-center"
+              className="w-14 h-14 md:w-20 md:h-20 rounded-theme-sm overflow-hidden flex items-center justify-center"
               style={{ background: ZINC.c100 }}
             >
               {w.imagePath ? (
