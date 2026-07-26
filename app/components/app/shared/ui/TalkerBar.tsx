@@ -99,7 +99,7 @@ export function TalkerBar({
 
   if (symbols.length === 0) {
     return (
-      <div className="flex flex-1 min-w-0 self-stretch items-center flex-wrap content-start gap-theme-elements py-theme-elements overflow-y-auto">
+      <div className="flex flex-1 min-w-0 self-stretch items-center flex-nowrap overflow-x-auto md:flex-wrap md:overflow-x-visible md:content-start gap-theme-elements py-theme-elements overflow-y-auto">
         <span
           className="text-caption opacity-50 select-none"
           style={{ color: "var(--theme-alt-text)" }}
@@ -111,7 +111,7 @@ export function TalkerBar({
   }
 
   return (
-    <div className="flex flex-1 min-w-0 self-stretch items-start flex-wrap content-start gap-theme-elements py-theme-elements overflow-y-auto">
+    <div className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto md:flex-wrap md:overflow-x-visible md:content-start gap-theme-elements py-theme-elements overflow-y-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -163,7 +163,7 @@ function SortableUnit({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group shrink-0 touch-none ${isPhrase ? "" : "w-40"}`}
+      className={`relative group shrink-0 touch-none ${isPhrase ? "" : "w-28 md:w-40"}`}
       {...listeners}
       {...attributes}
     >
