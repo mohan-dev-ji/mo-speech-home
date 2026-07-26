@@ -225,12 +225,12 @@ function PhraseBox({ item, onTap }: { item: TalkerSymbolItem; onTap: () => void 
     >
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
-          <div className="w-24 h-24 rounded-theme-sm" style={{ background: ZINC.c100 }} />
+          <div className="w-16 h-16 md:w-24 md:h-24 rounded-theme-sm" style={{ background: ZINC.c100 }} />
         ) : (
           words.map((w, i) => (
             <div
               key={i}
-              className="w-24 h-24 rounded-theme-sm overflow-hidden flex items-center justify-center"
+              className="w-16 h-16 md:w-24 md:h-24 rounded-theme-sm overflow-hidden flex items-center justify-center"
               style={{ background: ZINC.c100 }}
             >
               {w.imagePath ? (

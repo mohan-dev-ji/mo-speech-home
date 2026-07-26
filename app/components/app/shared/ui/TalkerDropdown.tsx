@@ -1233,12 +1233,12 @@ function PhraseDropdownCard({
     >
       <div className="flex items-end gap-2">
         {words.length === 0 ? (
-          <div className="w-20 h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
+          <div className="w-14 h-14 md:w-20 md:h-20 rounded-theme-sm" style={{ background: ZINC.c100 }} />
         ) : (
           words.map((w, i) => (
             <div
               key={i}
-              className="w-20 h-20 rounded-theme-sm overflow-hidden flex items-center justify-center"
+              className="w-14 h-14 md:w-20 md:h-20 rounded-theme-sm overflow-hidden flex items-center justify-center"
               style={{ background: ZINC.c100 }}
             >
               {w.imagePath ? (
