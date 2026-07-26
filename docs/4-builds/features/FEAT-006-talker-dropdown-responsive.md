@@ -1,7 +1,7 @@
 ---
 type: feat
 id: FEAT-006
-status: in-progress
+status: shipped
 created: 2026-07-25
 related:
   - "[[FEAT-004-sentence-builder-talker]]"
@@ -14,7 +14,7 @@ reconcile: "Reconciled 2026-07-26 against current architecture — kept as stand
 
 # Talker Dropdown — Responsive Pass
 
-**Status:** In progress · **Date:** 2026-07-25 · **Relates to:** [FEAT-004](./FEAT-004-sentence-builder-talker.md), [ADR-004](../decisions/ADR-004-persistent-global-talker.md) · Make the talker dropdown responsive — core-words grid columns step by viewport × grid-size (see the **Resolved design** section for the authoritative map), phrase tiles shrink below `md`, and the talker tray scrolls horizontally at all widths instead of stacking rows.
+**Status:** Shipped (2026-07-26) · **Date:** 2026-07-25 · **Relates to:** [FEAT-004](./FEAT-004-sentence-builder-talker.md), [ADR-004](../decisions/ADR-004-persistent-global-talker.md) · Make the talker dropdown responsive — core-words grid columns step by viewport × grid-size (see the **Resolved design** section for the authoritative map), phrase tiles shrink below `md`, and the talker tray scrolls horizontally at all widths instead of stacking rows.
 
 The two tabs work well, but the core words resize too small while the phrases stay the same size and look too big. They use different arrangement systems, so each needs its own responsive fit.
 
