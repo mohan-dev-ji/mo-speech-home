@@ -6,15 +6,16 @@
 // (a zinc box wrapping the phrase's word chips + a name pill — the visual marker
 // that "this is a reusable chunk", offset from the colourful semantic
 // categories). Units can be dragged to reorder and removed via a corner X
-// (shuffle editing, ADR-015 §8) — reuses the project's dnd-kit pattern
-// (PointerSensor, 8px activation so a tap still plays). Tapping a chip calls
-// onChipTap; the parent decides play-vs-other.
+// (shuffle editing, ADR-015 §8) via dnd-kit — mouse drags on 8px, touch drags on
+// a press-and-hold (so a swipe scrolls the row instead; see sensors below). A tap
+// still plays: tapping a chip calls onChipTap; the parent decides play-vs-other.
 
 import { useState } from "react";
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -81,11 +82,16 @@ export function TalkerBar({
   onRemove,
   onReorder,
 }: TalkerBarProps) {
-  // 8px activation: a tap (no movement) fires onChipTap; a drag reorders. Same
-  // convention as the sentence editor's SlotStrip, so tap-to-play stays reliable
-  // on touch devices.
+  // Mouse: 8px activation — a tap (no movement) fires onChipTap, a drag reorders.
+  // Touch: a hold DELAY instead of a distance, so a quick horizontal swipe on a
+  // chip scrolls the (flex-nowrap overflow-x-auto) tray natively and only a
+  // press-and-hold starts a reorder. Splitting Mouse/Touch (vs one PointerSensor
+  // with distance) is what lets touch-scroll and touch-reorder coexist — the tray
+  // now scrolls at every width (MOS-7), and chips must NOT set touch-action:none
+  // (see SortableUnit) or the browser can't scroll during the pre-drag window.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -163,7 +169,7 @@ function SortableUnit({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group shrink-0 touch-none ${isPhrase ? "" : "w-28 md:w-40"}`}
+      className={`relative group shrink-0 ${isPhrase ? "" : "w-28 md:w-40"}`}
       {...listeners}
       {...attributes}
     >
