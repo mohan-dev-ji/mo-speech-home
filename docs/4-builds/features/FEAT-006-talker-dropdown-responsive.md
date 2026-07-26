@@ -14,7 +14,7 @@ reconcile: "Reconciled 2026-07-26 against current architecture — kept as stand
 
 # Talker Dropdown — Responsive Pass
 
-**Status:** Spec (Proposed) · **Date:** 2026-07-25 · **Relates to:** [FEAT-004](./FEAT-004-sentence-builder-talker.md), [ADR-004](../decisions/ADR-004-persistent-global-talker.md) · Make the talker dropdown responsive — core-words grid steps 2/4/6 columns, phrase tiles shrink at the small breakpoint, and the talker tray scrolls horizontally instead of stacking rows.
+**Status:** In progress · **Date:** 2026-07-25 · **Relates to:** [FEAT-004](./FEAT-004-sentence-builder-talker.md), [ADR-004](../decisions/ADR-004-persistent-global-talker.md) · Make the talker dropdown responsive — core-words grid columns step by viewport × grid-size (see the **Resolved design** section for the authoritative map), phrase tiles shrink below `md`, and the talker tray scrolls horizontally at all widths instead of stacking rows.
 
 The two tabs work well, but the core words resize too small while the phrases stay the same size and look too big. They use different arrangement systems, so each needs its own responsive fit.
 
@@ -32,7 +32,9 @@ So there are two size problems (core words, phrases) plus a layout problem (the 
 
 ## Proposed solution
 
-**Core-words grid — responsive column steps:**
+> **Superseded by the *Resolved design* section below.** The original "2 / 4 / 6" sketch below was the vault-triage first pass; it was replaced during the build with the viewport × grid-size map (2/2/4, 3/4/8, 4/8/12) that mirrors `CategoryBoardGrid`. Kept here as origin history — do **not** implement these numbers.
+
+**Core-words grid — responsive column steps (original sketch, superseded):**
 
 | Screen | Columns |
 |---|---|
