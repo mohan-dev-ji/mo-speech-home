@@ -11,4 +11,4 @@ Made the persistent talker responsive on small screens.
 
 **Files:** `app/hooks/useGridColumns.ts` (new), `app/components/app/shared/ui/TalkerDropdown.tsx`, `app/components/app/shared/ui/TalkerBar.tsx`.
 
-**Known follow-up:** code review flagged that dnd-kit's `touch-none` on each chip may prevent touch-swipe from scrolling the tray (a swipe starting on a chip reorders instead). Needs verification on a real touch device; may warrant a `TouchSensor` activation delay. See PR #3 discussion.
+**Code review:** no Critical issues. One Important finding fixed in the PR — dnd-kit's `touch-none` + 8px pointer activation would have let a touch-swipe reorder chips instead of scrolling the tray; resolved by splitting into `MouseSensor` (8px) + `TouchSensor` (250ms hold) and dropping `touch-none`, so a swipe scrolls and a press-hold reorders. Pending final confirmation on a real touch device.
