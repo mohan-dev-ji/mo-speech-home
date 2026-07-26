@@ -186,6 +186,8 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ### Task 3: Talker tray — horizontal scroll + smaller chips (MOS-7)
 
+> **Correction (2026-07-26, post-review):** the MOS-7 issue's "on small screens" was an error. The owner wants the chip area to scroll horizontally at **all** widths. Final classes on both containers are `flex-nowrap overflow-x-auto` with **no** `md:` wrap restoration (the `md:flex-wrap md:overflow-x-visible` shown below was reverted). Chip width stays responsive (`w-28 md:w-40`).
+
 **Files:**
 - Modify: `app/components/app/shared/ui/TalkerBar.tsx` (the two chip-area container `div`s ~line 102 and ~line 114; the `SortableUnit` wrapper `w-40` ~line 166)
 

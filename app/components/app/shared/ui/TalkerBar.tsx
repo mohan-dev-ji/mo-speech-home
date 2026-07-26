@@ -99,7 +99,7 @@ export function TalkerBar({
 
   if (symbols.length === 0) {
     return (
-      <div className="flex flex-1 min-w-0 self-stretch items-center flex-nowrap overflow-x-auto md:flex-wrap md:overflow-x-visible md:content-start gap-theme-elements py-theme-elements overflow-y-auto">
+      <div className="flex flex-1 min-w-0 self-stretch items-center flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
         <span
           className="text-caption opacity-50 select-none"
           style={{ color: "var(--theme-alt-text)" }}
@@ -111,7 +111,7 @@ export function TalkerBar({
   }
 
   return (
-    <div className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto md:flex-wrap md:overflow-x-visible md:content-start gap-theme-elements py-theme-elements overflow-y-auto">
+    <div className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

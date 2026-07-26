@@ -60,7 +60,9 @@ The talker grid uses the column count as a *number* for slot math (`rows`/`total
 
 **MOS-6 — Phrase tiles shrink on small screens (CSS-only).** Normal-mode `PhraseDropdownCard` word tiles (`w-20 h-20`) and the tray `PhraseBox` words (`w-24 h-24`) are fixed. Add a mobile tier that shrinks them (`md:` restores desktop size), tuned visually against the real board.
 
-**MOS-7 — Talker tray: smaller + horizontal scroll (CSS-only).** The tray chip area is `flex-wrap … overflow-y-auto`, so chips stack to new rows and push the rest of the control off-screen. On small screens only, switch to horizontal scroll (`flex-nowrap overflow-x-auto`, `md:` restores wrap) and shrink the word chip width (`w-40` → smaller on mobile).
+**MOS-7 — Talker tray: smaller + horizontal scroll (CSS-only).** The tray chip area is `flex-wrap … overflow-y-auto`, so chips stack to new rows and push the rest of the control off-screen. Switch to horizontal scroll at **all** widths (`flex-nowrap overflow-x-auto`), so the chip row never wraps — one horizontally-scrolling row on every screen. Word chip width still shrinks on mobile (`w-28 md:w-40`).
+
+> **Correction (2026-07-26):** the MOS-7 Linear issue said "on small screens" — that was an error. The owner wants the chip area to scroll horizontally at **every** screen size, not only below `md`. The desktop wrap behaviour is intentionally replaced, not preserved.
 
 ## Links
 
