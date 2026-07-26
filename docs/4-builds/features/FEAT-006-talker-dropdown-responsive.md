@@ -9,7 +9,7 @@ related:
 linear: https://linear.app/mo-intelligence/project/talker-dropdown-c217e50dc7d5
 supersedes:
 superseded_by:
-reconcile: "Reconciled 2026-07-26 against current architecture — kept as stand-alone FEAT-006 (a coherent responsive capability). Build tracked by the Responsive pass milestone (MOS-5/6/7); implementation plan at ../plans/responsive-pass-talker.md."
+reconcile: "Reconciled 2026-07-26 against current architecture — kept as stand-alone FEAT-006 (a coherent responsive capability). Build tracked by the Responsive pass milestone (MOS-5/6/7); implementation plan at ../plans/_done/phase-15.8-talker-responsive.md."
 ---
 
 # Talker Dropdown — Responsive Pass
