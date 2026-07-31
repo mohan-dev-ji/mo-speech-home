@@ -34,19 +34,16 @@ Two buckets, decided by **what kind of content it is** (which tree/slot), not by
 
 **Composed-utterance nicety (future, optional):** when lowercase phrase tiles chain into the sentence bar, the *composed* output may capitalize its first word + add end punctuation — so tiles stay lowercase fragments while the finished utterance reads as a sentence. Not required; noted for the renderer.
 
-### Normalization: the app applies casing — the author doesn't
+### This guide is advisory — the app does not enforce casing
 
-Casing is **mechanical** (type → case, plus the "I" / proper-noun exceptions above), so **the app normalizes it; it does not preserve what the author typed.** Instructors and parents author in a hurry and will be inconsistent (the English defaults were, and users will be too). Following each author's stray casing fragments the app; applying the rule mechanically keeps it consistent regardless of who authored what — or in what mood.
+**Considered and rejected (2026-07-18): automatic casing normalization on save.** Mo Speech's core value is that the user personalizes *every* aspect of their content. Silently overriding a user's capitalization would (a) feel broken — "why won't my capitals stick?"; (b) override *legitimate* choices (a teacher emphasizing a word, a child practising capitals, ALL-CAPS for loudness); and (c) contradict the autonomy the whole app exists to give families. The ROI was also small and practically unnoticeable.
 
-**Consequence: casing is DETERMINISTIC, not an LLM instruction.** A shared `normalizeCasing(text, { type, lang })` utility applies the rule in three places:
+So **the casing rules above are guidance, not enforcement.** They exist for:
 
-1. **User-authored content, on save** — fixes spur-of-the-moment inconsistency at the source.
-2. **MT output, as post-processing** — guarantees casing regardless of what Gemini returns. LLMs follow exact casing imperfectly, so **don't ask the prompt to get it right** — strip casing from the prompt and let the normalizer own it. The prompt keeps only the *semantic* work: register, dialect, glossary.
-3. **The reviewer's checklist** — the same rule, by eye.
+- the **platform default content** — authored to a consistent house style; the maintainer follows this guide by choice, and
+- **users who want a recommendation** — this becomes a section of the user content-guide ("here's what tends to read best"), take-it-or-leave-it.
 
-One rule, three appliers. **Normalize on save (store clean), not just on display** — so backups, exports, and MT inputs are all clean, which matters now that Convex is the source of truth.
-
-**Honest caveat — proper nouns.** The normalizer handles the English "I" trivially (rule-based) but cannot reliably know *Navidad* / *Diwali* are proper nouns. Cover this with a small proper-noun allowlist (festivals, names) + a manual-override escape for the rare miss. Don't over-engineer: allowlist + "I" covers ~95%; hand-fix the tail. **Building this utility is a separate task — this is the principle, not the implementation.**
+Anyone who wants different casing just types it their way and it sticks. Fixing casing by hand across a full default set takes ~5 minutes. MT output *may* follow these rules as a **starting suggestion** so default content lands close to house style — but nothing is normalized or overridden after the fact. The user always owns the final text.
 
 ---
 
@@ -183,10 +180,11 @@ Glossary — use these exact renderings wherever the English appears:
 
 Keep the existing rules (placeholders, native script, proper nouns, same-keys) — this augments, not replaces.
 
-> **Casing caveat (see §1 Normalization):** LLMs follow casing imperfectly. The case rules in this block are belt-and-braces; the *reliable* guarantee is a deterministic `normalizeCasing()` applied to this route's output (and to user-authored content on save). Treat casing as post-processing, not a prompt responsibility — the prompt's real job is register + dialect + glossary.
+> **Casing caveat (see §1):** casing is **not enforced** — the app never overrides user casing (personalization first). The case rules may go in the prompt as a *soft suggestion* so default content lands close to house style, but treat casing as low-priority: the author/reviewer sets final casing and users own theirs. The prompt's real job is register + dialect + glossary.
 
 ---
 
 ## Changelog
 
-- **2026-07-18** — created from the ES/HI defaults QC pass. Locked: two-bucket casing, Sentence-case titles, neutral-LatAm Spanish, normalization principle (§1), glossary (feelings→sentimientos, routine→ rutina / रूटीन, going places→ de paseo). Pending: everyday consistency.
+- **2026-07-18** — created from the ES/HI defaults QC pass. Locked: two-bucket casing, Sentence-case titles, neutral-LatAm Spanish, glossary (feelings→sentimientos, routine→ rutina / रूटीन, going places→ de paseo). Pending: everyday consistency.
+- **2026-07-18 (later)** — normalization-on-save **rejected** on personalization grounds; §1 reframed as **advisory, not enforced** (the app never overrides user casing). The `phase-15.9-casing-normalization` plan was withdrawn.
