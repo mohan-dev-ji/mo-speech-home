@@ -16,7 +16,13 @@ import { ConvexError } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { materialiseSymbolsFromJson } from "./materialiseSymbols";
-import type { ContentModule, PackTier } from "../data/_shared/types";
+import type {
+  ContentModule,
+  PackTier,
+  LibraryPackSentence,
+  LibraryPackPhrase,
+} from "../data/_shared/types";
+import { planVariantGroups } from "./variantGroupPlan";
 
 /** The lifecycle fields the install gate needs (shared shape across the three
  * per-type lifecycle tables). */
@@ -246,9 +252,8 @@ export async function installContentModule(
       itemsAdded++;
     }
   } else if (module.tree === "sentences") {
-    let order = 0;
-    for (const sentence of module.items) {
-      const slots = await Promise.all(
+    const buildSlots = (sentence: LibraryPackSentence) =>
+      Promise.all(
         sentence.slots.map(async (slot) => {
           let imagePath = slot.imagePath;
           if (slot.symbolId) {
@@ -262,31 +267,50 @@ export async function installContentModule(
               ? { displayProps: slot.displayProps }
               : {}),
           };
-        })
+        }),
       );
-      await ctx.db.insert("profileSentences", {
+
+    const insertSentence = async (
+      sentence: LibraryPackSentence,
+      order: number,
+      variantGroupId: Id<"profileSentences"> | undefined,
+    ): Promise<Id<"profileSentences">> =>
+      ctx.db.insert("profileSentences", {
         accountId,
         name: sentence.name,
-        order: order++,
+        order,
         ...(sentence.text !== undefined ? { text: sentence.text } : {}),
-        slots,
+        slots: await buildSlots(sentence),
         ...(sentence.audioPath !== undefined
           ? { audioPath: sentence.audioPath }
           : {}),
+        ...(sentence.authoredLanguage
+          ? { authoredLanguage: sentence.authoredLanguage }
+          : {}),
+        ...(variantGroupId ? { variantGroupId } : {}),
         folderId,
         librarySourceId: module.slug,
         updatedAt: now,
       });
-      itemsAdded++;
+
+    const { groups } = planVariantGroups(module.items, 0);
+    for (const group of groups) {
+      const sourceId = await insertSentence(group.source, group.order, undefined);
+      for (const sibling of group.siblings) {
+        await insertSentence(sibling, group.order, sourceId);
+      }
+      if (group.siblings.length > 0) {
+        await ctx.db.patch(sourceId, { variantGroupId: sourceId });
+      }
+      itemsAdded += 1 + group.siblings.length;
     }
   } else {
     // phrases (ADR-015) — foldered like sentences; materialise into
     // profilePhrases. Each phrase holds words[] only (one level deep). Phrase
     // audio is whole-chunk (audioPath/recordedAudioPath); word-level audio
     // resolves from the symbol at render, so words store imagePath only.
-    let order = 0;
-    for (const phrase of module.items) {
-      const words = await Promise.all(
+    const buildWords = (phrase: LibraryPackPhrase) =>
+      Promise.all(
         phrase.words.map(async (word) => {
           let imagePath = word.imagePath;
           if (word.symbolId) {
@@ -301,25 +325,45 @@ export async function installContentModule(
               ? { displayProps: word.displayProps }
               : {}),
           };
-        })
+        }),
       );
-      await ctx.db.insert("profilePhrases", {
+
+    const insertPhrase = async (
+      phrase: LibraryPackPhrase,
+      order: number,
+      variantGroupId: Id<"profilePhrases"> | undefined,
+    ): Promise<Id<"profilePhrases">> =>
+      ctx.db.insert("profilePhrases", {
         accountId,
         kind: "phrase",
         name: phrase.name,
-        order: order++,
-        words,
+        order,
+        words: await buildWords(phrase),
         ...(phrase.audioPath !== undefined
           ? { audioPath: phrase.audioPath }
           : {}),
         ...(phrase.recordedAudioPath !== undefined
           ? { recordedAudioPath: phrase.recordedAudioPath }
           : {}),
+        ...(phrase.authoredLanguage
+          ? { authoredLanguage: phrase.authoredLanguage }
+          : {}),
+        ...(variantGroupId ? { variantGroupId } : {}),
         folderId,
         librarySourceId: module.slug,
         updatedAt: now,
       });
-      itemsAdded++;
+
+    const { groups } = planVariantGroups(module.items, 0);
+    for (const group of groups) {
+      const sourceId = await insertPhrase(group.source, group.order, undefined);
+      for (const sibling of group.siblings) {
+        await insertPhrase(sibling, group.order, sourceId);
+      }
+      if (group.siblings.length > 0) {
+        await ctx.db.patch(sourceId, { variantGroupId: sourceId });
+      }
+      itemsAdded += 1 + group.siblings.length;
     }
   }
 
