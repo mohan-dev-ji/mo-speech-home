@@ -478,6 +478,30 @@ Implemented by [`phase-15.7-translate-revert-control.md`](../plans/_done/phase-1
 
 ---
 
+## Addendum L — Variant metadata in the module publish/seed round-trip
+
+**Status:** implemented on branch (pending deploy to `main`).
+
+The variant model (§1) lived only on per-account rows; the module
+publish → JSON → seed pipeline silently dropped `authoredLanguage` and
+`variantGroupId`, so seeded (default) accounts got ungrouped,
+language-untagged rows — every variant showing on every board, stuck on the
+`en` voice, and duplicated. Fix: composed module-items now carry
+`authoredLanguage` + a `variantGroupKey` (the source row's original `_id`);
+`publishFolderAsModule` emits them; `installContentModule` buckets items by
+`variantGroupKey`, picks the source (`en`-first, else lowest `order`), assigns
+one shared order slot, and re-links siblings' `variantGroupId` to the new
+source `_id` (§1). Export/restore are `items` passthroughs (no change).
+
+Scope: this makes *complete* variants seed correctly. Incomplete (untranslated)
+siblings are stripped at publish (MOS-26, folded in as the same change); genuine
+duplicate authoring rows are Phase-4 hygiene. Additive optional fields — no migration.
+
+Implemented by [`variant-aware-module-seeding.md`](../plans/variant-aware-module-seeding.md);
+design spec `docs/superpowers/specs/2026-08-01-variant-aware-module-seeding-design.md`.
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
