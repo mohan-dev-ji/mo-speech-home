@@ -15,8 +15,8 @@ import selfHelp from "./self-help.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const LIST_MODULES: Record<string, ListModule> = {
-  "food-routines": foodRoutines as ListModule,
-  "going-places": goingPlaces as ListModule,
-  "life-skills": lifeSkills as ListModule,
-  "self-help": selfHelp as ListModule,
+  "food-routines": foodRoutines as unknown as ListModule,
+  "going-places": goingPlaces as unknown as ListModule,
+  "life-skills": lifeSkills as unknown as ListModule,
+  "self-help": selfHelp as unknown as ListModule,
 };

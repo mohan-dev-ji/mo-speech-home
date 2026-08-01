@@ -15,8 +15,8 @@ import talkingAboutFood from "./talking-about-food.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const SENTENCE_MODULES: Record<string, SentenceModule> = {
-  "everyday-phrases": everydayPhrases as SentenceModule,
-  "expressing-feelings": expressingFeelings as SentenceModule,
-  "going-places": goingPlaces as SentenceModule,
-  "talking-about-food": talkingAboutFood as SentenceModule,
+  "everyday-phrases": everydayPhrases as unknown as SentenceModule,
+  "expressing-feelings": expressingFeelings as unknown as SentenceModule,
+  "going-places": goingPlaces as unknown as SentenceModule,
+  "talking-about-food": talkingAboutFood as unknown as SentenceModule,
 };

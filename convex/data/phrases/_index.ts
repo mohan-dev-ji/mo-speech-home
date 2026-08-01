@@ -12,5 +12,5 @@ import dropbarPhrases from "./dropbar-phrases.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const PHRASE_MODULES: Record<string, PhraseModule> = {
-  "dropbar-phrases": dropbarPhrases as PhraseModule,
+  "dropbar-phrases": dropbarPhrases as unknown as PhraseModule,
 };
