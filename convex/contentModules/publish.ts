@@ -20,8 +20,30 @@ import { ConvexError, v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation } from "../_generated/server";
 import { requireCallerIsAdmin } from "../lib/account";
+import { needsTranslation } from "../../lib/languages/variants";
+import { DEFAULT_LOCALE } from "../../lib/languages/registry";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
+
+/**
+ * A NON-source variant sibling whose primary localised field lacks its own
+ * language is untranslated junk — skip it at publish so it never seeds (MOS-26,
+ * ADR-016 Addendum C: fluent → text, phrase → name). Source rows, and sentences
+ * with no `text` (sequence — judged by structure, not text), are always kept.
+ */
+function isUntranslatedSentence(s: Doc<"profileSentences">): boolean {
+  const isSource = !s.variantGroupId || s.variantGroupId === s._id;
+  if (isSource || s.text === undefined) return false;
+  const lang = s.authoredLanguage ?? DEFAULT_LOCALE;
+  const rec = typeof s.text === "string" ? { [lang]: s.text } : s.text;
+  return needsTranslation(rec, lang);
+}
+function isUntranslatedPhrase(p: Doc<"profilePhrases">): boolean {
+  const isSource = !p.variantGroupId || p.variantGroupId === p._id;
+  if (isSource) return false;
+  const lang = p.authoredLanguage ?? DEFAULT_LOCALE;
+  return needsTranslation(p.name, lang);
+}
 
 export const publishFolderAsModule = mutation({
   args: {
@@ -72,11 +94,13 @@ export const publishFolderAsModule = mutation({
         ...(l.showFirstThen !== undefined ? { showFirstThen: l.showFirstThen } : {}),
       }));
     } else if (tree === "sentences") {
-      const sentences = await ctx.db
-        .query("profileSentences")
-        .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
-        .order("asc")
-        .collect();
+      const sentences = (
+        await ctx.db
+          .query("profileSentences")
+          .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
+          .order("asc")
+          .collect()
+      ).filter((s) => !isUntranslatedSentence(s));
       items = sentences.map((s, i) => ({
         name: s.name,
         order: i,
@@ -93,11 +117,13 @@ export const publishFolderAsModule = mutation({
       // phrases (ADR-015) — serialise into phrase module items. Per-word audio is
       // not carried at module level (resolves from the symbol); only the
       // whole-phrase audio is preserved.
-      const phrases = await ctx.db
-        .query("profilePhrases")
-        .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
-        .order("asc")
-        .collect();
+      const phrases = (
+        await ctx.db
+          .query("profilePhrases")
+          .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folderId))
+          .order("asc")
+          .collect()
+      ).filter((p) => !isUntranslatedPhrase(p));
       items = phrases.map((p, i) => ({
         name: p.name,
         order: i,
