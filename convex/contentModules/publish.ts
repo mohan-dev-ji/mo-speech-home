@@ -86,6 +86,8 @@ export const publishFolderAsModule = mutation({
         ...(s.recordedAudioPath !== undefined
           ? { recordedAudioPath: s.recordedAudioPath }
           : {}),
+        ...(s.authoredLanguage ? { authoredLanguage: s.authoredLanguage } : {}),
+        ...(s.variantGroupId ? { variantGroupKey: s.variantGroupId } : {}),
       }));
     } else {
       // phrases (ADR-015) — serialise into phrase module items. Per-word audio is
@@ -103,6 +105,8 @@ export const publishFolderAsModule = mutation({
         ...(p.recordedAudioPath !== undefined
           ? { recordedAudioPath: p.recordedAudioPath }
           : {}),
+        ...(p.authoredLanguage ? { authoredLanguage: p.authoredLanguage } : {}),
+        ...(p.variantGroupId ? { variantGroupKey: p.variantGroupId } : {}),
         words: [...p.words]
           .sort((a, b) => a.order - b.order)
           .map((w) => ({
