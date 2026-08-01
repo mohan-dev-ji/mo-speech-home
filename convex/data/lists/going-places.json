@@ -9,11 +9,77 @@
       "items": [
         {
           "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00212450.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "description": {
+            "en": "put on your shoes",
+            "es": "ponte los zapatos",
+            "hi": "जूते पहनो"
+          },
+          "imagePath": "symbols/symbol00212450.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/park_2.mp3",
+          "defaultAudioPath": "audio/eng/default/park_2.mp3",
+          "description": {
+            "en": "go to the park",
+            "es": "vamos al parque",
+            "hi": "पार्क में चलो"
+          },
+          "imagePath": "symbols/park_2.png",
+          "imageSourceType": "symbolstix",
+          "order": 1
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/symbol00190434.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
+          "description": {
+            "en": "walk in the park",
+            "es": "pasear en el parque",
+            "hi": "पार्क में घूमो"
+          },
+          "imagePath": "symbols/symbol00190434.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/home.mp3",
+          "defaultAudioPath": "audio/eng/default/home.mp3",
+          "description": {
+            "en": "go back home",
+            "es": "volver a casa",
+            "hi": "घर वापस चलो"
+          },
+          "imagePath": "symbols/home.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        }
+      ],
+      "name": {
+        "en": "Going to the park",
+        "es": "Ir al parque",
+        "hi": "पार्क जाना"
+      },
+      "order": 0,
+      "showChecklist": false,
+      "showFirstThen": false,
+      "showNumbers": false
+    },
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "activeAudioSource": "default",
           "audioPath": "audio/eng/default/symbol00185696.mp3",
           "defaultAudioPath": "audio/eng/default/symbol00185696.mp3",
           "description": {
             "en": "put tablet into backpack",
-            "es": "Poner la tablet en la mochila",
+            "es": "poner la tablet en la mochila",
             "hi": "टैबलेट बैग में रखो"
           },
           "imagePath": "symbols/symbol00185696.png",
@@ -26,7 +92,7 @@
           "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
           "description": {
             "en": "put on shoe",
-            "es": "Ponerse el zapato",
+            "es": "ponerse el zapato",
             "hi": "जूता पहनो"
           },
           "imagePath": "symbols/symbol00212450.png",
@@ -39,7 +105,7 @@
           "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
           "description": {
             "en": "put on coat",
-            "es": "Ponerse el abrigo",
+            "es": "ponerse el abrigo",
             "hi": "कोट पहनो"
           },
           "imagePath": "symbols/symbol00167101.png",
@@ -52,7 +118,7 @@
           "defaultAudioPath": "audio/eng/default/symbol00184311.mp3",
           "description": {
             "en": "Bye!",
-            "es": "¡Adiós!",
+            "es": "¡adiós!",
             "hi": "बाय!"
           },
           "imagePath": "symbols/symbol00184311.png",
@@ -65,7 +131,7 @@
           "defaultAudioPath": "audio/eng/default/symbol00137611.mp3",
           "description": {
             "en": "get on school bus",
-            "es": "Subir al autobús escolar",
+            "es": "subir al autobús escolar",
             "hi": "स्कूल बस में बैठो"
           },
           "generatedAudioPath": "audio/en-GB-News-M/tts/8616ec1f-e178-4ddf-86e3-1ef6532852ea.mp3",
@@ -76,10 +142,10 @@
       ],
       "name": {
         "en": "Going to school",
-        "es": "Ir al colegio",
+        "es": "Ir a la escuela",
         "hi": "स्कूल जाना"
       },
-      "order": 0,
+      "order": 1,
       "showChecklist": false,
       "showFirstThen": false,
       "showNumbers": false
@@ -88,86 +154,116 @@
       "displayFormat": "rows",
       "items": [
         {
-          "activeAudioSource": "default",
-          "audioPath": "audio/eng/default/symbol00167101.mp3",
-          "defaultAudioPath": "audio/eng/default/symbol00167101.mp3",
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00204614.mp3",
           "description": {
-            "en": "put on coat",
-            "es": "Ponerse el abrigo",
-            "hi": "कोट पहनो"
+            "en": "buy ticket online",
+            "es": "comprar entrada online",
+            "hi": "ऑनलाइन टिकट खरीदना"
           },
-          "imagePath": "symbols/symbol00167101.png",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/ba26f6c7-dd8a-450a-ac55-7ccd765f2bbe.mp3",
+          "imagePath": "symbols/symbol00204614.png",
           "imageSourceType": "symbolstix",
           "order": 0
         },
         {
           "activeAudioSource": "default",
-          "audioPath": "audio/eng/default/symbol00212450.mp3",
-          "defaultAudioPath": "audio/eng/default/symbol00212450.mp3",
+          "audioPath": "audio/eng/default/symbol00196752.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00196752.mp3",
           "description": {
-            "en": "put on shoe",
-            "es": "Ponerse el zapato",
-            "hi": "जूता पहनो"
+            "en": "get on the train",
+            "es": "subir al tren",
+            "hi": "ट्रेन में बैठना"
           },
-          "imagePath": "symbols/symbol00212450.png",
+          "imagePath": "symbols/symbol00196752.png",
           "imageSourceType": "symbolstix",
           "order": 1
         },
         {
-          "activeAudioSource": "default",
-          "audioPath": "audio/eng/default/symbol00190434.mp3",
-          "defaultAudioPath": "audio/eng/default/symbol00190434.mp3",
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "defaultAudioPath": "audio/eng/default/walk.mp3",
           "description": {
-            "en": "walk",
-            "es": "Caminar",
-            "hi": "चलो"
+            "en": "walk to the museum",
+            "es": "caminar al museo",
+            "hi": "म्यूज़ियम तक चलना"
           },
-          "imagePath": "symbols/symbol00190434.png",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/b966ba28-9c8f-4fda-92b2-9ec4e91af484.mp3",
+          "imagePath": "symbols/walk.png",
           "imageSourceType": "symbolstix",
           "order": 2
         },
         {
           "activeAudioSource": "default",
-          "audioPath": "audio/eng/default/park_2.mp3",
-          "defaultAudioPath": "audio/eng/default/park_2.mp3",
+          "audioPath": "audio/eng/default/symbol00094721.mp3",
+          "defaultAudioPath": "audio/eng/default/symbol00094721.mp3",
           "description": {
-            "en": "park",
-            "es": "Parque",
-            "hi": "पार्क"
+            "en": "queue to get in",
+            "es": "hacer fila para entrar",
+            "hi": "अंदर जाने के लिए लाइन में लगना"
           },
-          "imagePath": "symbols/park_2.png",
+          "imagePath": "symbols/symbol00094721.png",
           "imageSourceType": "symbolstix",
           "order": 3
         },
         {
-          "activeAudioSource": "default",
-          "audioPath": "audio/eng/default/home.mp3",
-          "defaultAudioPath": "audio/eng/default/home.mp3",
+          "activeAudioSource": "generate",
+          "audioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "defaultAudioPath": "audio/eng/default/look.mp3",
           "description": {
-            "en": "home",
-            "es": "Casa",
-            "hi": "घर"
+            "en": "look at the exhibition",
+            "es": "ver la exposición",
+            "hi": "प्रदर्शनी देखना"
           },
-          "imagePath": "symbols/home.png",
+          "generatedAudioPath": "audio/en-GB-News-M/tts/805d9c45-5634-4210-acc6-a2e55999d4b5.mp3",
+          "imagePath": "symbols/look.png",
           "imageSourceType": "symbolstix",
           "order": 4
+        },
+        {
+          "activeAudioSource": "generate",
+          "audioPath": "audio/hi-IN-Wavenet-F/tts/cec7764f-089d-4fdc-93a3-2f4ece5025dd.mp3",
+          "defaultAudioPath": "audio/hi-IN-Wavenet-F/symbols/carryout food.mp3",
+          "description": {
+            "en": "snack",
+            "es": "merienda",
+            "hi": "नाश्ता करना"
+          },
+          "generatedAudioPath": "audio/hi-IN-Wavenet-F/tts/cec7764f-089d-4fdc-93a3-2f4ece5025dd.mp3",
+          "imagePath": "symbols/symbol00200691.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "activeAudioSource": "default",
+          "audioPath": "audio/eng/default/let_us_go_home.mp3",
+          "defaultAudioPath": "audio/eng/default/let_us_go_home.mp3",
+          "description": {
+            "en": "go home",
+            "es": "ir a casa",
+            "hi": "घर जाना"
+          },
+          "imagePath": "symbols/let_us_go_home.png",
+          "imageSourceType": "symbolstix",
+          "order": 6
         }
       ],
       "name": {
-        "en": "Going to the park",
-        "es": "Ir al parque",
-        "hi": "पार्क जाना"
+        "en": "Museum visit",
+        "es": "Visita al museo",
+        "hi": "म्यूज़ियम जाना"
       },
-      "order": 1,
+      "order": 2,
       "showChecklist": false,
       "showFirstThen": false,
       "showNumbers": false
     }
   ],
   "name": {
-    "en": "Going Places",
-    "es": "Salidas",
-    "hi": "बाहर जाना"
+    "en": "Going places",
+    "es": "De paseo",
+    "hi": "घूमने जाना"
   },
   "slug": "going-places",
   "tree": "lists"

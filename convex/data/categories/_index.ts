@@ -24,6 +24,7 @@ import coreTime from "./core-time.json";
 import descriptions from "./descriptions.json";
 import dinosaurs from "./dinosaurs.json";
 import diwali from "./diwali.json";
+import dropbarCore from "./dropbar-core.json";
 import feelings from "./feelings.json";
 import foodDrink from "./food-drink.json";
 import fun from "./fun.json";
@@ -57,6 +58,7 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "descriptions": descriptions as CategoryModule,
   "dinosaurs": dinosaurs as CategoryModule,
   "diwali": diwali as CategoryModule,
+  "dropbar-core": dropbarCore as CategoryModule,
   "feelings": feelings as CategoryModule,
   "food-drink": foodDrink as CategoryModule,
   "fun": fun as CategoryModule,

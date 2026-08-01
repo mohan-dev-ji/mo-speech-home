@@ -7,7 +7,7 @@
   "items": [
     {
       "name": {
-        "en": "I want to go outside"
+        "en": "I need help"
       },
       "order": 0,
       "slots": [
@@ -20,7 +20,7 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/i_want_to_go.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -32,20 +32,27 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/outside_1.png",
+          "imagePath": "symbols/need2.png",
           "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/help.png",
+          "order": 2
         }
       ],
-      "text": {
-        "en": "I want to go outside"
-      }
+      "text": "I need help"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/c9360455-f32e-4f83-9361-b2776aa35369.mp3",
       "name": {
-        "en": "I don't want it",
-        "es": "No lo quiero",
-        "hi": "मुझे यह नहीं चाहिए"
+        "en": "I need help"
       },
       "order": 1,
       "slots": [
@@ -70,14 +77,25 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/do_not_want.png",
+          "imagePath": "symbols/need2.png",
           "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/help.png",
+          "order": 2
         }
       ],
       "text": {
-        "en": "I don't want it",
-        "es": "No lo quiero",
-        "hi": "मुझे यह नहीं चाहिए"
+        "en": "I need help",
+        "es": "Necesito ayuda"
       }
     },
     {
@@ -95,20 +113,39 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/symbol00164331.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/help.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/need2.png",
+          "order": 2
         }
       ],
-      "text": {
-        "en": "I need help"
-      }
+      "text": "मुझे मदद चाहिए"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/6f035756-5706-4113-9b7c-1ac376fb2438.mp3",
       "name": {
-        "en": "More music please",
-        "es": "Más música por favor",
-        "hi": "और गाना चाहिए"
+        "en": "Can I have some water"
       },
       "order": 3,
       "slots": [
@@ -121,7 +158,7 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/more.png",
+          "imagePath": "symbols/can_i.png",
           "order": 0
         },
         {
@@ -133,22 +170,26 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/symbol00200772.png",
+          "imagePath": "symbols/have.png",
           "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00195039.png",
+          "order": 2
         }
-      ],
-      "text": {
-        "en": "More music please",
-        "es": "Más música, por favor",
-        "hi": "और गाना चाहिए"
-      }
+      ]
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/07af06f9-e80f-434b-83e9-527c8cbfa94b.mp3",
       "name": {
-        "en": "Can I have some water",
-        "es": "¿Me das un poco de agua?",
-        "hi": "मुझे पानी चाहिए"
+        "en": "Can I have some water"
       },
       "order": 4,
       "slots": [
@@ -161,7 +202,54 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/symbol00055288.png",
+          "imagePath": "symbols/can_i.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/have.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00195039.png",
+          "order": 2
+        }
+      ],
+      "text": {
+        "es": "¿Me das agua?"
+      }
+    },
+    {
+      "name": {
+        "en": "Can I have some water"
+      },
+      "order": 5,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/can_i.png",
           "order": 0
         },
         {
@@ -175,34 +263,6 @@
           },
           "imagePath": "symbols/symbol00195039.png",
           "order": 1
-        }
-      ],
-      "text": {
-        "en": "Can I have some water",
-        "es": "¿Puedo beber agua?",
-        "hi": "मुझे पानी चाहिए"
-      }
-    },
-    {
-      "audioPath": "audio/en-GB-News-M/tts/696e4df2-81a9-47e0-bad7-e3e272ad274e.mp3",
-      "name": {
-        "en": "Look at me",
-        "es": "Mírame",
-        "hi": "मुझे देखो"
-      },
-      "order": 5,
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/look.png",
-          "order": 0
         },
         {
           "displayProps": {
@@ -213,49 +273,161 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/me.png",
-          "order": 1
+          "imagePath": "symbols/have.png",
+          "order": 2
         }
       ],
-      "text": {
-        "en": "Look at me",
-        "es": "Mírame",
-        "hi": "मुझे देखो"
-      }
+      "text": "मुझे पानी चाहिए"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/66e9e7f2-8457-4bed-b07a-7476d422839d.mp3",
       "name": {
-        "en": "It's my turn",
-        "es": "Es mi turno",
-        "hi": "अब मेरी बारी है"
+        "en": "I need the tablet"
       },
       "order": 6,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/my_turn.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
+        },
+        {
+          "imagePath": "symbols/need2.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/remote_control.png",
+          "order": 3
         }
-      ],
-      "text": {
-        "en": "It's my turn",
-        "es": "Es mi turno",
-        "hi": "अब मेरी बारी है"
-      }
+      ]
+    },
+    {
+      "name": {
+        "en": "I need the tablet"
+      },
+      "order": 7,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/need2.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/remote_control.png",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I need the tablet"
+      },
+      "order": 8,
+      "slots": [
+        {
+          "imagePath": "symbols/me.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/remote_control.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to go to sleep"
+      },
+      "order": 9,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/sleep2.png",
+          "order": 4
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to go to sleep"
+      },
+      "order": 10,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/sleep2.png",
+          "order": 4
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to go to sleep"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "imagePath": "symbols/me.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/sleep2.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 2
+        }
+      ]
     }
   ],
   "name": {
     "en": "Everyday phrases",
-    "es": "Frases cotidianas",
-    "hi": "रोज़मर्रा के वाक्य"
+    "es": "Frases de todos los días",
+    "hi": "रोज के वाक्य"
   },
   "slug": "everyday-phrases",
   "tree": "sentences"

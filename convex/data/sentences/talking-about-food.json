@@ -5,11 +5,9 @@
   "isDefault": true,
   "items": [
     {
-      "audioPath": "audio/en-GB-News-M/tts/df19507b-d9dd-4bbd-a695-649d13747cfd.mp3",
+      "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
       "name": {
-        "en": "I want to go outside",
-        "es": "Quiero salir afuera",
-        "hi": "मुझे बाहर जाना है"
+        "en": "I am hungry"
       },
       "order": 0,
       "slots": [
@@ -22,7 +20,7 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/i_want_to_go.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -34,24 +32,95 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/outside_1.png",
+          "imagePath": "symbols/hungry_2.png",
           "order": 1
         }
       ],
-      "text": {
-        "en": "I want to go outside",
-        "es": "Quiero salir",
-        "hi": "मुझे बाहर जाना है"
-      }
+      "text": "I am hungry"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
       "name": {
-        "en": "I'm hungry",
-        "es": "Tengo hambre",
-        "hi": "मुझे भूख लगी है"
+        "hi": "मैंने खा लिया है"
       },
       "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/finished_all_done.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/have.png",
+          "order": 2
+        }
+      ],
+      "text": "मैंने खा लिया है"
+    },
+    {
+      "name": {
+        "es": "Ya comí"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/finished_all_done.png",
+          "order": 1
+        }
+      ],
+      "text": "Ya comí"
+    },
+    {
+      "name": {
+        "en": "I am hungry"
+      },
+      "order": 3,
       "slots": [
         {
           "displayProps": {
@@ -79,19 +148,15 @@
         }
       ],
       "text": {
-        "en": "I'm hungry",
-        "es": "Tengo hambre",
+        "en": "I am hungry",
         "hi": "मुझे भूख लगी है"
       }
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/1ccdf0a8-15b4-4827-8d3f-1bb7818963b3.mp3",
       "name": {
-        "en": "I'm not hungry",
-        "es": "No tengo hambre",
-        "hi": "मुझे भूख नहीं लगी है"
+        "en": "I am hungry"
       },
-      "order": 2,
+      "order": 4,
       "slots": [
         {
           "displayProps": {
@@ -114,24 +179,17 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/i_am_not_hungry.png",
+          "imagePath": "symbols/hungry_2.png",
           "order": 1
         }
       ],
-      "text": {
-        "en": "I'm not hungry",
-        "es": "No tengo hambre",
-        "hi": "मुझे भूख नहीं लगी है"
-      }
+      "text": "Tengo hambre"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/6080b5ed-151b-4f91-926d-48afe153a2aa.mp3",
       "name": {
-        "en": "I'm thirsty",
-        "es": "Tengo sed",
-        "hi": "मुझे प्यास लगी है"
+        "en": "I have already eaten"
       },
-      "order": 3,
+      "order": 5,
       "slots": [
         {
           "displayProps": {
@@ -154,21 +212,189 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/thirsty.png",
+          "imagePath": "symbols/have.png",
           "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/finished_all_done.png",
+          "order": 2
         }
       ],
-      "text": {
-        "en": "I'm thirsty",
-        "es": "Tengo sed",
-        "hi": "मुझे प्यास लगी है"
-      }
+      "text": "I have already eaten"
+    },
+    {
+      "name": {
+        "en": "What time is lunch"
+      },
+      "order": 6,
+      "slots": [
+        {
+          "imagePath": "symbols/what_2.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/time.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/lunch.png",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 7,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/a_3.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/sandwich2.png",
+          "order": 5
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 8,
+      "slots": [
+        {
+          "imagePath": "symbols/me.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/sandwich2.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 9,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/a_3.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/sandwich2.png",
+          "order": 5
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "What time is lunch"
+      },
+      "order": 10,
+      "slots": [
+        {
+          "imagePath": "symbols/dinner.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/what_2.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/time.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "What time is lunch"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "imagePath": "symbols/what_2.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/time.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/dinner.png",
+          "order": 3
+        }
+      ]
     }
   ],
   "name": {
     "en": "Talking about food",
-    "es": "Hablar de comida",
-    "hi": "खाने की बातें"
+    "es": "Hablando de comida",
+    "hi": "खाने की बात"
   },
   "slug": "talking-about-food",
   "tree": "sentences"

@@ -8,9 +8,9 @@
 import type { PhraseModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-// (none yet)
+import dropbarPhrases from "./dropbar-phrases.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const PHRASE_MODULES: Record<string, PhraseModule> = {
-
+  "dropbar-phrases": dropbarPhrases as PhraseModule,
 };

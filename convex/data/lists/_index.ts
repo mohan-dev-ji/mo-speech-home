@@ -8,23 +8,15 @@
 import type { ListModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-import christmas from "./christmas.json";
-import dinosaurs from "./dinosaurs.json";
-import diwali from "./diwali.json";
 import foodRoutines from "./food-routines.json";
-import fun from "./fun.json";
 import goingPlaces from "./going-places.json";
 import lifeSkills from "./life-skills.json";
-import religion from "./religion.json";
+import selfHelp from "./self-help.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const LIST_MODULES: Record<string, ListModule> = {
-  "christmas": christmas as ListModule,
-  "dinosaurs": dinosaurs as ListModule,
-  "diwali": diwali as ListModule,
   "food-routines": foodRoutines as ListModule,
-  "fun": fun as ListModule,
   "going-places": goingPlaces as ListModule,
   "life-skills": lifeSkills as ListModule,
-  "religion": religion as ListModule,
+  "self-help": selfHelp as ListModule,
 };

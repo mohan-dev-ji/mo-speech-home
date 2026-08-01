@@ -8,25 +8,15 @@
 import type { SentenceModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
-import christmas from "./christmas.json";
-import dinosaurs from "./dinosaurs.json";
-import diwali from "./diwali.json";
 import everydayPhrases from "./everyday-phrases.json";
 import expressingFeelings from "./expressing-feelings.json";
-import fun from "./fun.json";
 import goingPlaces from "./going-places.json";
-import religion from "./religion.json";
 import talkingAboutFood from "./talking-about-food.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const SENTENCE_MODULES: Record<string, SentenceModule> = {
-  "christmas": christmas as SentenceModule,
-  "dinosaurs": dinosaurs as SentenceModule,
-  "diwali": diwali as SentenceModule,
   "everyday-phrases": everydayPhrases as SentenceModule,
   "expressing-feelings": expressingFeelings as SentenceModule,
-  "fun": fun as SentenceModule,
   "going-places": goingPlaces as SentenceModule,
-  "religion": religion as SentenceModule,
   "talking-about-food": talkingAboutFood as SentenceModule,
 };

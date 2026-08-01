@@ -2,14 +2,11 @@
   "colour": "purple",
   "coverImagePath": "symbols/feelings.png",
   "defaultTier": "free",
-  "isDefault": true,
   "items": [
     {
       "audioPath": "audio/en-GB-News-M/tts/cf001866-3b73-46d2-bbb7-a88aeb96776f.mp3",
       "name": {
-        "en": "I feel happy",
-        "es": "Me siento feliz",
-        "hi": "मैं खुश हूँ"
+        "hi": "I am very happy"
       },
       "order": 0,
       "slots": [
@@ -38,11 +35,73 @@
           "order": 1
         }
       ],
-      "text": {
-        "en": "I feel happy",
-        "es": "Estoy feliz",
-        "hi": "मैं खुश हूँ"
-      }
+      "text": "I am very happy"
+    },
+    {
+      "name": {
+        "hi": "I am very happy"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "order": 1
+        }
+      ],
+      "text": "Estoy muy feliz"
+    },
+    {
+      "name": {
+        "hi": "I am very happy"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "order": 1
+        }
+      ],
+      "text": "मैं बहुत खुश हूँ"
     },
     {
       "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",
@@ -51,7 +110,7 @@
         "es": "Me duele la barriga",
         "hi": "मेरे पेट में दर्द है"
       },
-      "order": 1,
+      "order": 3,
       "slots": [
         {
           "displayProps": {
@@ -91,7 +150,7 @@
         "es": "Me gusta la música",
         "hi": "मुझे गाना पसंद है"
       },
-      "order": 2,
+      "order": 4,
       "slots": [
         {
           "displayProps": {
@@ -127,7 +186,7 @@
   ],
   "name": {
     "en": "Expressing Feelings",
-    "es": "Expresar emociones",
+    "es": "Expresar sentimientos",
     "hi": "भावनाएँ व्यक्त करना"
   },
   "slug": "expressing-feelings",

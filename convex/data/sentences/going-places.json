@@ -41,9 +41,184 @@
     },
     {
       "name": {
-        "en": "I want to go to the playground"
+        "hi": "मुझे बाहर जाना है"
       },
       "order": 1,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": "मुझे बाहर जाना है"
+    },
+    {
+      "name": {
+        "es": "Quiero salir"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "order": 1
+        }
+      ],
+      "text": "Quiero salir"
+    },
+    {
+      "name": {
+        "en": "I am going to school."
+      },
+      "order": 3,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197343.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/harvard_law_school.png",
+          "order": 2
+        }
+      ],
+      "text": "I am going to school."
+    },
+    {
+      "name": {
+        "en": "I want to go to the countryside"
+      },
+      "order": 4,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "order": 5
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to go to the countryside"
+      },
+      "order": 5,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "order": 5
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "I want to go to the playground"
+      },
+      "order": 6,
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -90,9 +265,9 @@
     },
     {
       "name": {
-        "en": "I want to go to the countryside"
+        "en": "I want to go to the playground"
       },
-      "order": 2,
+      "order": 7,
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -115,16 +290,197 @@
           "order": 4
         },
         {
-          "imagePath": "symbols/symbol00194581.png",
+          "imagePath": "symbols/park_1.png",
           "order": 5
+        },
+        {
+          "imagePath": "symbols/and.png",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/play.png",
+          "order": 7
+        },
+        {
+          "imagePath": "symbols/on.png",
+          "order": 8
+        },
+        {
+          "imagePath": "symbols/swing.png",
+          "order": 9
+        }
+      ],
+      "text": {
+        "en": "I want to go to the playground"
+      }
+    },
+    {
+      "name": {
+        "en": "I want to go to the playground"
+      },
+      "order": 8,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/park_1.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/and.png",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/swing.png",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/on.png",
+          "order": 7
+        },
+        {
+          "imagePath": "symbols/play.png",
+          "order": 8
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 9
         }
       ]
+    },
+    {
+      "name": {
+        "en": "I want to go to the countryside"
+      },
+      "order": 9,
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": {
+        "hi": "मैं स्कूल जा रहा हूँ"
+      },
+      "order": 10,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/harvard_law_school.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197343.png",
+          "order": 2
+        }
+      ],
+      "text": "मैं स्कूल जा रहा हूँ"
+    },
+    {
+      "name": {
+        "es": "Voy a la escuela"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197343.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/harvard_law_school.png",
+          "order": 2
+        }
+      ],
+      "text": "Voy a la escuela"
     }
   ],
   "name": {
     "en": "Going places",
-    "es": "Salidas",
-    "hi": "बाहर जाना"
+    "es": "De paseo",
+    "hi": "बाहर जा रहे हैं"
   },
   "slug": "going-places",
   "tree": "sentences"
