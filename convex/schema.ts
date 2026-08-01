@@ -207,6 +207,11 @@ const libraryModuleSentenceItems = v.array(
   v.object({
     name: localisedString,
     order: v.number(),
+    // ADR-016 seed round-trip — variant metadata so seeded rows collapse by
+    // board language + voice correctly. `variantGroupKey` = the source row's
+    // original _id (shared by all siblings); install re-links to a new _id.
+    authoredLanguage: v.optional(v.string()),
+    variantGroupKey: v.optional(v.string()),
     text: v.optional(localisedStringMigration),
     slots: v.array(
       v.object({
@@ -297,6 +302,9 @@ const libraryModulePhraseItems = v.array(
   v.object({
     name: localisedString,
     order: v.number(),
+    // ADR-016 seed round-trip — see libraryModuleSentenceItems.
+    authoredLanguage: v.optional(v.string()),
+    variantGroupKey: v.optional(v.string()),
     audioPath: v.optional(v.string()),
     recordedAudioPath: v.optional(v.string()),
     words: v.array(

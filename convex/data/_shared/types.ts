@@ -135,6 +135,9 @@ export type LibraryPackSentenceSlot = {
 export type LibraryPackSentence = {
   name: LocalisedString;
   order: number;
+  /** ADR-016 seed round-trip — variant language tag + shared group token. */
+  authoredLanguage?: string;
+  variantGroupKey?: string;
   /**
    * Localised — see schema profileSentences.text.
    * Migration window union — same caveat as LibraryPackListItem.description.
@@ -225,6 +228,9 @@ export type LibraryPackPhraseWord = {
 export type LibraryPackPhrase = {
   name: LocalisedString;
   order: number;
+  /** ADR-016 seed round-trip — variant language tag + shared group token. */
+  authoredLanguage?: string;
+  variantGroupKey?: string;
   audioPath?: string;
   recordedAudioPath?: string;
   words: LibraryPackPhraseWord[];
