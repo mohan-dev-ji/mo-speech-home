@@ -37,9 +37,11 @@
       ],
       "text": {
         "en": "I want to go outside"
-      }
+      },
+      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "hi": "मुझे बाहर जाना है"
       },
@@ -70,9 +72,11 @@
           "order": 1
         }
       ],
-      "text": "मुझे बाहर जाना है"
+      "text": "मुझे बाहर जाना है",
+      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "es": "Quiero salir"
       },
@@ -103,9 +107,11 @@
           "order": 1
         }
       ],
-      "text": "Quiero salir"
+      "text": "Quiero salir",
+      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I am going to school."
       },
@@ -148,7 +154,8 @@
           "order": 2
         }
       ],
-      "text": "I am going to school."
+      "text": "I am going to school.",
+      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
     },
     {
       "name": {
@@ -180,9 +187,11 @@
           "imagePath": "symbols/symbol00194581.png",
           "order": 5
         }
-      ]
+      ],
+      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I want to go to the countryside"
       },
@@ -212,7 +221,8 @@
           "imagePath": "symbols/symbol00194581.png",
           "order": 5
         }
-      ]
+      ],
+      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
     },
     {
       "name": {
@@ -261,9 +271,11 @@
           "order": 9
         }
       ],
-      "text": "I want to go to the playground"
+      "text": "I want to go to the playground",
+      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to go to the playground"
       },
@@ -278,95 +290,46 @@
           "order": 1
         },
         {
-          "imagePath": "symbols/go.png",
+          "imagePath": "symbols/park_1.png",
           "order": 2
         },
         {
-          "imagePath": "symbols/to2.png",
+          "imagePath": "symbols/go.png",
           "order": 3
         },
         {
-          "imagePath": "symbols/the.png",
+          "imagePath": "symbols/is.png",
           "order": 4
         },
         {
-          "imagePath": "symbols/park_1.png",
+          "imagePath": "symbols/and.png",
           "order": 5
         },
         {
-          "imagePath": "symbols/and.png",
+          "imagePath": "symbols/swing.png",
           "order": 6
         },
         {
-          "imagePath": "symbols/play.png",
+          "imagePath": "symbols/on.png",
           "order": 7
         },
         {
-          "imagePath": "symbols/on.png",
+          "imagePath": "symbols/play.png",
           "order": 8
         },
         {
-          "imagePath": "symbols/swing.png",
+          "imagePath": "symbols/is.png",
           "order": 9
         }
       ],
-      "text": {
-        "en": "I want to go to the playground"
-      }
+      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
     },
     {
-      "name": {
-        "en": "I want to go to the playground"
-      },
-      "order": 8,
-      "slots": [
-        {
-          "imagePath": "symbols/i_am.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/want.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/park_1.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/go.png",
-          "order": 3
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 4
-        },
-        {
-          "imagePath": "symbols/and.png",
-          "order": 5
-        },
-        {
-          "imagePath": "symbols/swing.png",
-          "order": 6
-        },
-        {
-          "imagePath": "symbols/on.png",
-          "order": 7
-        },
-        {
-          "imagePath": "symbols/play.png",
-          "order": 8
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 9
-        }
-      ]
-    },
-    {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to go to the countryside"
       },
-      "order": 9,
+      "order": 8,
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -384,11 +347,60 @@
           "imagePath": "symbols/is.png",
           "order": 3
         }
-      ]
+      ],
+      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "hi": "मैं स्कूल जा रहा हूँ"
+      },
+      "order": 9,
+      "slots": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/my.png",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/harvard_law_school.png",
+          "order": 1
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00197343.png",
+          "order": 2
+        }
+      ],
+      "text": "मैं स्कूल जा रहा हूँ",
+      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "es": "Voy a la escuela"
       },
       "order": 10,
       "slots": [
@@ -413,51 +425,6 @@
             "textColour": "#111827",
             "textSize": "sm"
           },
-          "imagePath": "symbols/harvard_law_school.png",
-          "order": 1
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00197343.png",
-          "order": 2
-        }
-      ],
-      "text": "मैं स्कूल जा रहा हूँ"
-    },
-    {
-      "name": {
-        "es": "Voy a la escuela"
-      },
-      "order": 11,
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/my.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/symbol00197343.png",
           "order": 1
         },
@@ -474,7 +441,8 @@
           "order": 2
         }
       ],
-      "text": "Voy a la escuela"
+      "text": "Voy a la escuela",
+      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
     }
   ],
   "name": {

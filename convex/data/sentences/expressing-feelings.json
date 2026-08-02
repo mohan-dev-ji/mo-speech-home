@@ -35,9 +35,11 @@
           "order": 1
         }
       ],
-      "text": "I am very happy"
+      "text": "I am very happy",
+      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "hi": "I am very happy"
       },
@@ -68,9 +70,11 @@
           "order": 1
         }
       ],
-      "text": "Estoy muy feliz"
+      "text": "Estoy muy feliz",
+      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "hi": "I am very happy"
       },
@@ -101,7 +105,8 @@
           "order": 1
         }
       ],
-      "text": "मैं बहुत खुश हूँ"
+      "text": "मैं बहुत खुश हूँ",
+      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
       "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",

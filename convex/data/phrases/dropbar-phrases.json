@@ -3,11 +3,13 @@
   "isDefault": true,
   "items": [
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to go",
         "hi": "जाना है"
       },
       "order": 0,
+      "variantGroupKey": "nn79ma3jcs3mbv7see9pr31h7h89xqrn",
       "words": [
         {
           "displayProps": {
@@ -40,7 +42,7 @@
         "en": "I want to go"
       },
       "order": 1,
-      "recordedAudioPath": "accounts/j5717je37k1h19ndtjn0bsgc49892p0v/audio/6649328f-0414-4a4f-a746-39567171e3a6.webm",
+      "variantGroupKey": "nn79ma3jcs3mbv7see9pr31h7h89xqrn",
       "words": [
         {
           "displayProps": {
@@ -81,11 +83,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "What time is",
         "hi": "कितने बजे है"
       },
       "order": 2,
+      "variantGroupKey": "nn75b0x935me0j6emp86affvq189yv30",
       "words": [
         {
           "displayProps": {
@@ -126,11 +130,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I want to go",
         "es": "quiero ir"
       },
       "order": 3,
+      "variantGroupKey": "nn79ma3jcs3mbv7see9pr31h7h89xqrn",
       "words": [
         {
           "displayProps": {
@@ -175,6 +181,7 @@
         "en": "what time is"
       },
       "order": 4,
+      "variantGroupKey": "nn75b0x935me0j6emp86affvq189yv30",
       "words": [
         {
           "displayProps": {
@@ -215,11 +222,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "When are we going",
         "hi": "कब जा रहे हैं"
       },
       "order": 5,
+      "variantGroupKey": "nn7b11w62zzk7w6jydqnpgx3f18aspqs",
       "words": [
         {
           "displayProps": {
@@ -260,11 +269,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "What time is",
         "es": "¿a qué hora es"
       },
       "order": 6,
+      "variantGroupKey": "nn75b0x935me0j6emp86affvq189yv30",
       "words": [
         {
           "displayProps": {
@@ -305,10 +316,12 @@
       ]
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "when are we going"
       },
       "order": 7,
+      "variantGroupKey": "nn7b11w62zzk7w6jydqnpgx3f18aspqs",
       "words": [
         {
           "displayProps": {
@@ -361,11 +374,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I like",
         "hi": "पसंद है"
       },
       "order": 8,
+      "variantGroupKey": "nn7cdm9bzfprwb9venmtty833h8asens",
       "words": [
         {
           "displayProps": {
@@ -394,11 +409,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "When are we going",
         "es": "¿cuándo vamos?"
       },
       "order": 9,
+      "variantGroupKey": "nn7b11w62zzk7w6jydqnpgx3f18aspqs",
       "words": [
         {
           "displayProps": {
@@ -439,10 +456,12 @@
       ]
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I like"
       },
       "order": 10,
+      "variantGroupKey": "nn7cdm9bzfprwb9venmtty833h8asens",
       "words": [
         {
           "displayProps": {
@@ -471,11 +490,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I don't like",
         "hi": "पसंद नहीं है"
       },
       "order": 11,
+      "variantGroupKey": "nn7bz00mmt0sybeyfbk6ybtg6s8as7wc",
       "words": [
         {
           "displayProps": {
@@ -516,11 +537,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I like",
         "es": "me gusta"
       },
       "order": 12,
+      "variantGroupKey": "nn7cdm9bzfprwb9venmtty833h8asens",
       "words": [
         {
           "displayProps": {
@@ -549,10 +572,12 @@
       ]
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I don't like"
       },
       "order": 13,
+      "variantGroupKey": "nn7bz00mmt0sybeyfbk6ybtg6s8as7wc",
       "words": [
         {
           "displayProps": {
@@ -593,11 +618,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to make",
         "hi": "बनाना है"
       },
       "order": 14,
+      "variantGroupKey": "nn71dv10fa931kxtfp0a6sbmbd8asck6",
       "words": [
         {
           "displayProps": {
@@ -626,11 +653,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I don't like",
         "es": "no me gusta"
       },
       "order": 15,
+      "variantGroupKey": "nn7bz00mmt0sybeyfbk6ybtg6s8as7wc",
       "words": [
         {
           "displayProps": {
@@ -671,10 +700,12 @@
       ]
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I want to make"
       },
       "order": 16,
+      "variantGroupKey": "nn71dv10fa931kxtfp0a6sbmbd8asck6",
       "words": [
         {
           "displayProps": {
@@ -727,11 +758,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I want to make",
         "es": "quiero hacer"
       },
       "order": 17,
+      "variantGroupKey": "nn71dv10fa931kxtfp0a6sbmbd8asck6",
       "words": [
         {
           "displayProps": {
@@ -760,10 +793,12 @@
       ]
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "this is my"
       },
       "order": 18,
+      "variantGroupKey": "nn75a7fja45akw0cs4dwvpxams8awe9x",
       "words": [
         {
           "displayProps": {
@@ -804,11 +839,13 @@
       ]
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "This is my",
         "hi": "यह मेरा"
       },
       "order": 19,
+      "variantGroupKey": "nn75a7fja45akw0cs4dwvpxams8awe9x",
       "words": [
         {
           "displayProps": {
@@ -837,11 +874,13 @@
       ]
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "This is my",
         "es": "este es mi"
       },
       "order": 20,
+      "variantGroupKey": "nn75a7fja45akw0cs4dwvpxams8awe9x",
       "words": [
         {
           "displayProps": {

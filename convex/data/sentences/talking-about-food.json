@@ -36,9 +36,11 @@
           "order": 1
         }
       ],
-      "text": "I am hungry"
+      "text": "I am hungry",
+      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "hi": "मैंने खा लिया है"
       },
@@ -81,9 +83,11 @@
           "order": 2
         }
       ],
-      "text": "मैंने खा लिया है"
+      "text": "मैंने खा लिया है",
+      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "es": "Ya comí"
       },
@@ -114,9 +118,11 @@
           "order": 1
         }
       ],
-      "text": "Ya comí"
+      "text": "Ya comí",
+      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I am hungry"
       },
@@ -150,9 +156,11 @@
       "text": {
         "en": "I am hungry",
         "hi": "मुझे भूख लगी है"
-      }
+      },
+      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I am hungry"
       },
@@ -183,9 +191,11 @@
           "order": 1
         }
       ],
-      "text": "Tengo hambre"
+      "text": "Tengo hambre",
+      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I have already eaten"
       },
@@ -228,9 +238,11 @@
           "order": 2
         }
       ],
-      "text": "I have already eaten"
+      "text": "I have already eaten",
+      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "What time is lunch"
       },
@@ -252,9 +264,11 @@
           "imagePath": "symbols/lunch.png",
           "order": 3
         }
-      ]
+      ],
+      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
     },
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I want to make a sandwich"
       },
@@ -284,9 +298,11 @@
           "imagePath": "symbols/sandwich2.png",
           "order": 5
         }
-      ]
+      ],
+      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to make a sandwich"
       },
@@ -308,9 +324,11 @@
           "imagePath": "symbols/is.png",
           "order": 3
         }
-      ]
+      ],
+      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "I want to make a sandwich"
       },
@@ -340,9 +358,11 @@
           "imagePath": "symbols/sandwich2.png",
           "order": 5
         }
-      ]
+      ],
+      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
     },
     {
+      "authoredLanguage": "hi",
       "name": {
         "en": "What time is lunch"
       },
@@ -364,9 +384,11 @@
           "imagePath": "symbols/is.png",
           "order": 3
         }
-      ]
+      ],
+      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
     },
     {
+      "authoredLanguage": "es",
       "name": {
         "en": "What time is lunch"
       },
@@ -388,7 +410,8 @@
           "imagePath": "symbols/dinner.png",
           "order": 3
         }
-      ]
+      ],
+      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
     }
   ],
   "name": {
