@@ -9,6 +9,7 @@
         "hi": "I am very happy"
       },
       "order": 0,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -36,6 +37,34 @@
         }
       ],
       "text": "I am very happy",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
@@ -44,6 +73,7 @@
         "hi": "I am very happy"
       },
       "order": 1,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -71,6 +101,34 @@
         }
       ],
       "text": "Estoy muy feliz",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
@@ -79,6 +137,7 @@
         "hi": "I am very happy"
       },
       "order": 2,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -106,6 +165,34 @@
         }
       ],
       "text": "मैं बहुत खुश हूँ",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_feel.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00002700.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
     },
     {
@@ -116,6 +203,7 @@
         "hi": "मेरे पेट में दर्द है"
       },
       "order": 3,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -146,7 +234,35 @@
         "en": "My stomach hurts",
         "es": "Me duele la barriga",
         "hi": "मेरे पेट में दर्द है"
-      }
+      },
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00055155.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/stomach_ache.png",
+          "kind": "word",
+          "order": 1
+        }
+      ]
     },
     {
       "audioPath": "audio/en-GB-News-M/tts/a5cc2c8b-bc52-4d95-a4ab-af947e48add9.mp3",
@@ -156,6 +272,7 @@
         "hi": "मुझे गाना पसंद है"
       },
       "order": 4,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -186,7 +303,35 @@
         "en": "I like music",
         "es": "Me gusta la música",
         "hi": "मुझे गाना पसंद है"
-      }
+      },
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/like_2.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/symbol00193569.png",
+          "kind": "word",
+          "order": 1
+        }
+      ]
     }
   ],
   "name": {

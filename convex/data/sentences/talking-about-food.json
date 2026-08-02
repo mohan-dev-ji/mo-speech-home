@@ -10,6 +10,7 @@
         "en": "I am hungry"
       },
       "order": 0,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -37,6 +38,34 @@
         }
       ],
       "text": "I am hungry",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/hungry_2.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
@@ -127,6 +156,7 @@
         "en": "I am hungry"
       },
       "order": 3,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -157,6 +187,34 @@
         "en": "I am hungry",
         "hi": "मुझे भूख लगी है"
       },
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/hungry_2.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
@@ -165,6 +223,7 @@
         "en": "I am hungry"
       },
       "order": 4,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -192,6 +251,34 @@
         }
       ],
       "text": "Tengo hambre",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_i_am.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/hungry_2.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
     },
     {
@@ -247,6 +334,7 @@
         "en": "What time is lunch"
       },
       "order": 6,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/what_2.png",
@@ -265,6 +353,39 @@
           "order": 3
         }
       ],
+      "text": "What time is lunch",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "What time is"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/what_2.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/time.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/lunch.mp3",
+          "imagePath": "symbols/lunch.png",
+          "kind": "word",
+          "label": {
+            "en": "lunch"
+          },
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
     },
     {
@@ -273,6 +394,7 @@
         "en": "I want to make a sandwich"
       },
       "order": 7,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_i_am.png",
@@ -299,6 +421,176 @@
           "order": 5
         }
       ],
+      "text": "I want to make a sandwich",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "make a"
+          },
+          "order": 1,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/make.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/a_3.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/sandwich2.mp3",
+          "imagePath": "symbols/sandwich2.png",
+          "kind": "word",
+          "label": {
+            "en": "sandwich"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 8,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/a_3.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/sandwich2.png",
+          "order": 5
+        }
+      ],
+      "text": "Quiero hacer un sándwich",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to",
+            "es": "Quiero"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "make a",
+            "es": "hacer un"
+          },
+          "order": 1,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/make.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/a_3.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/sandwich2.mp3",
+          "imagePath": "symbols/sandwich2.png",
+          "kind": "word",
+          "label": {
+            "en": "sandwich",
+            "es": "sándwich"
+          },
+          "order": 2
+        }
+      ],
       "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
     },
     {
@@ -306,7 +598,8 @@
       "name": {
         "en": "I want to make a sandwich"
       },
-      "order": 8,
+      "order": 9,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/me.png",
@@ -325,48 +618,129 @@
           "order": 3
         }
       ],
+      "text": "मुझे सैंडविच बनाना है",
+      "units": [
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/tts/c8bfdd26-aee2-4022-96ad-bffbf7e8b254.mp3",
+          "imagePath": "symbols/me.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/sandwich2.png",
+          "kind": "word",
+          "label": {
+            "hi": "सैंडविच"
+          },
+          "order": 1
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "make a",
+            "hi": "बनाना है"
+          },
+          "order": 2,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/make.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/is.png",
+              "order": 1
+            }
+          ]
+        }
+      ],
       "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
     },
     {
       "authoredLanguage": "es",
       "name": {
-        "en": "I want to make a sandwich"
+        "en": "What time is lunch"
       },
-      "order": 9,
+      "order": 10,
+      "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_i_am.png",
+          "imagePath": "symbols/what_2.png",
           "order": 0
         },
         {
-          "imagePath": "symbols/want.png",
+          "imagePath": "symbols/time.png",
           "order": 1
         },
         {
-          "imagePath": "symbols/to2.png",
+          "imagePath": "symbols/is.png",
           "order": 2
         },
         {
-          "imagePath": "symbols/make.png",
+          "imagePath": "symbols/dinner.png",
           "order": 3
-        },
-        {
-          "imagePath": "symbols/a_3.png",
-          "order": 4
-        },
-        {
-          "imagePath": "symbols/sandwich2.png",
-          "order": 5
         }
       ],
-      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
+      "text": "¿A qué hora es la cena?",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "What time is",
+            "es": "¿A qué hora es"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/what_2.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/time.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "imagePath": "symbols/dinner.png",
+          "kind": "word",
+          "label": {
+            "es": "la cena?"
+          },
+          "order": 1
+        }
+      ],
+      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
     },
     {
       "authoredLanguage": "hi",
       "name": {
         "en": "What time is lunch"
       },
-      "order": 10,
+      "order": 11,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/dinner.png",
@@ -385,30 +759,37 @@
           "order": 3
         }
       ],
-      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "en": "What time is lunch"
-      },
-      "order": 11,
-      "slots": [
+      "text": "खाना कितने बजे है",
+      "units": [
         {
-          "imagePath": "symbols/what_2.png",
+          "imagePath": "symbols/dinner.png",
+          "kind": "word",
+          "label": {
+            "hi": "खाना"
+          },
           "order": 0
         },
         {
-          "imagePath": "symbols/time.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/dinner.png",
-          "order": 3
+          "kind": "phrase",
+          "name": {
+            "en": "What time is",
+            "hi": "कितने बजे है"
+          },
+          "order": 1,
+          "words": [
+            {
+              "imagePath": "symbols/what_2.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/time.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 2
+            }
+          ]
         }
       ],
       "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"

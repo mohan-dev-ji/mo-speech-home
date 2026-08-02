@@ -297,6 +297,7 @@
         "en": "I need the tablet"
       },
       "order": 6,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_i_am.png",
@@ -313,6 +314,39 @@
         {
           "imagePath": "symbols/remote_control.png",
           "order": 3
+        }
+      ],
+      "text": "I need the remote control",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I need the"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/need2.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/the.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/remote_control.mp3",
+          "imagePath": "symbols/remote_control.png",
+          "kind": "word",
+          "label": {
+            "en": "remote control"
+          },
+          "order": 1
         }
       ],
       "variantGroupKey": "k575qp18xp4j4f60xzk65xy02x8akn7a"
@@ -323,6 +357,7 @@
         "en": "I need the tablet"
       },
       "order": 7,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_i_am.png",
@@ -341,6 +376,41 @@
           "order": 3
         }
       ],
+      "text": "Necesito el control remoto",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I need the",
+            "es": "Necesito el"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/need2.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/the.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/remote_control.mp3",
+          "imagePath": "symbols/remote_control.png",
+          "kind": "word",
+          "label": {
+            "en": "remote control",
+            "es": "control remoto"
+          },
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k575qp18xp4j4f60xzk65xy02x8akn7a"
     },
     {
@@ -349,6 +419,7 @@
         "en": "I need the tablet"
       },
       "order": 8,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/me.png",
@@ -360,6 +431,37 @@
         },
         {
           "imagePath": "symbols/want.png",
+          "order": 2
+        }
+      ],
+      "text": "मुझे रिमोट चाहिए",
+      "units": [
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/symbols/me.mp3",
+          "imagePath": "symbols/me.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "audioPath": "audio/eng/default/remote_control.mp3",
+          "imagePath": "symbols/remote_control.png",
+          "kind": "word",
+          "label": {
+            "en": "remote control",
+            "hi": "रिमोट"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/symbols/want.mp3",
+          "imagePath": "symbols/want.png",
+          "kind": "word",
+          "label": {
+            "hi": "चाहिए"
+          },
           "order": 2
         }
       ],
@@ -371,6 +473,7 @@
         "en": "I want to go to sleep"
       },
       "order": 9,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -391,6 +494,48 @@
         {
           "imagePath": "symbols/sleep2.png",
           "order": 4
+        }
+      ],
+      "text": "I want to go to sleep",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/to2.mp3",
+          "imagePath": "symbols/to2.png",
+          "kind": "word",
+          "label": {
+            "en": "to"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/eng/default/sleep2.mp3",
+          "imagePath": "symbols/sleep2.png",
+          "kind": "word",
+          "label": {
+            "en": "sleep"
+          },
+          "order": 2
         }
       ],
       "variantGroupKey": "k571ks2t5psq4w4gt88rt13mas8afhad"
@@ -401,6 +546,7 @@
         "en": "I want to go to sleep"
       },
       "order": 10,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -423,6 +569,51 @@
           "order": 4
         }
       ],
+      "text": "Quiero ir a dormir",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go",
+            "es": "Quiero ir"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/to2.mp3",
+          "imagePath": "symbols/to2.png",
+          "kind": "word",
+          "label": {
+            "en": "to",
+            "es": "a"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/eng/default/sleep2.mp3",
+          "imagePath": "symbols/sleep2.png",
+          "kind": "word",
+          "label": {
+            "en": "sleep",
+            "es": "dormir"
+          },
+          "order": 2
+        }
+      ],
       "variantGroupKey": "k571ks2t5psq4w4gt88rt13mas8afhad"
     },
     {
@@ -431,6 +622,7 @@
         "en": "I want to go to sleep"
       },
       "order": 11,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/me.png",
@@ -442,6 +634,36 @@
         },
         {
           "imagePath": "symbols/is.png",
+          "order": 2
+        }
+      ],
+      "text": "मुझे सोना है",
+      "units": [
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/symbols/me.mp3",
+          "imagePath": "symbols/me.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "audioPath": "audio/eng/default/sleep2.mp3",
+          "imagePath": "symbols/sleep2.png",
+          "kind": "word",
+          "label": {
+            "hi": "सोना"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/symbols/is.mp3",
+          "imagePath": "symbols/is.png",
+          "kind": "word",
+          "label": {
+            "hi": "है"
+          },
           "order": 2
         }
       ],

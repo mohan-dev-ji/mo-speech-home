@@ -9,6 +9,7 @@
         "en": "I want to go outside"
       },
       "order": 0,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -38,6 +39,34 @@
       "text": {
         "en": "I want to go outside"
       },
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
@@ -46,6 +75,7 @@
         "hi": "मुझे बाहर जाना है"
       },
       "order": 1,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -73,6 +103,34 @@
         }
       ],
       "text": "मुझे बाहर जाना है",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
@@ -81,6 +139,7 @@
         "es": "Quiero salir"
       },
       "order": 2,
+      "playback": "fluent",
       "slots": [
         {
           "displayProps": {
@@ -108,6 +167,34 @@
         }
       ],
       "text": "Quiero salir",
+      "units": [
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/i_want_to_go.png",
+          "kind": "word",
+          "order": 0
+        },
+        {
+          "displayProps": {
+            "bgColour": "#ffffff",
+            "cardShape": "rounded",
+            "showImage": true,
+            "showLabel": true,
+            "textColour": "#111827",
+            "textSize": "sm"
+          },
+          "imagePath": "symbols/outside_1.png",
+          "kind": "word",
+          "order": 1
+        }
+      ],
       "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
     },
     {
@@ -162,6 +249,7 @@
         "en": "I want to go to the countryside"
       },
       "order": 4,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -186,6 +274,56 @@
         {
           "imagePath": "symbols/symbol00194581.png",
           "order": 5
+        }
+      ],
+      "text": "I want to go to the countryside",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "to the"
+          },
+          "order": 1,
+          "words": [
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/the.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/symbol00194581.mp3",
+          "imagePath": "symbols/symbol00194581.png",
+          "kind": "word",
+          "label": {
+            "en": "countryside"
+          },
+          "order": 2
         }
       ],
       "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
@@ -196,6 +334,7 @@
         "en": "I want to go to the countryside"
       },
       "order": 5,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -220,6 +359,58 @@
         {
           "imagePath": "symbols/symbol00194581.png",
           "order": 5
+        }
+      ],
+      "text": "Quiero ir al campo",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go",
+            "es": "Quiero ir"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "to the",
+            "es": "al"
+          },
+          "order": 1,
+          "words": [
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/the.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/symbol00194581.mp3",
+          "imagePath": "symbols/symbol00194581.png",
+          "kind": "word",
+          "label": {
+            "es": "campo"
+          },
+          "order": 2
         }
       ],
       "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
@@ -229,6 +420,7 @@
         "en": "I want to go to the playground"
       },
       "order": 6,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -271,7 +463,267 @@
           "order": 9
         }
       ],
-      "text": "I want to go to the playground",
+      "text": "I want to go to the park and play on the swings",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go to the"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            },
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 3
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/the.png",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/park_1.mp3",
+          "imagePath": "symbols/park_1.png",
+          "kind": "word",
+          "label": {
+            "en": "park"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/eng/default/and.mp3",
+          "imagePath": "symbols/and.png",
+          "kind": "word",
+          "label": {
+            "en": "and"
+          },
+          "order": 2
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "play on the swings"
+          },
+          "order": 3,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/play.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/on.png",
+              "order": 1
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/swing.png",
+              "order": 2
+            }
+          ]
+        }
+      ],
+      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to go to the playground"
+      },
+      "order": 7,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/the.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/park_1.png",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/and.png",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/play.png",
+          "order": 7
+        },
+        {
+          "imagePath": "symbols/on.png",
+          "order": 8
+        },
+        {
+          "imagePath": "symbols/swing.png",
+          "order": 9
+        }
+      ],
+      "text": "Quiero ir al parque y jugar en los columpios",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go to the",
+            "es": "Quiero ir al"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "order": 2
+            },
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 3
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/the.png",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/park_1.mp3",
+          "imagePath": "symbols/park_1.png",
+          "kind": "word",
+          "label": {
+            "en": "park",
+            "es": "parque"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/eng/default/and.mp3",
+          "imagePath": "symbols/and.png",
+          "kind": "word",
+          "label": {
+            "en": "and",
+            "es": "y"
+          },
+          "order": 2
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "play on the swings",
+            "es": "jugar en los columpios"
+          },
+          "order": 3,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/play.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/on.png",
+              "order": 1
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/swing.png",
+              "order": 2
+            }
+          ]
+        }
+      ],
       "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
     },
     {
@@ -279,7 +731,8 @@
       "name": {
         "en": "I want to go to the playground"
       },
-      "order": 7,
+      "order": 8,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -322,6 +775,136 @@
           "order": 9
         }
       ],
+      "text": "मुझे पार्क जाना है और झूलों पर खेलना है",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go to the",
+            "hi": "मुझे"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/hi-IN-Wavenet-F/tts/60e49945-cbc8-45d9-bf1a-61f97e47b70e.mp3",
+          "imagePath": "symbols/park_1.png",
+          "kind": "word",
+          "label": {
+            "hi": "पार्क"
+          },
+          "order": 1
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "hi": "जाना है"
+          },
+          "order": 2,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/go.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/is.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/eng/default/and.mp3",
+          "imagePath": "symbols/and.png",
+          "kind": "word",
+          "label": {
+            "hi": "और"
+          },
+          "order": 3
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "play on the swings",
+            "hi": "झूलों पर खेलना है"
+          },
+          "order": 4,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/swing.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/on.png",
+              "order": 1
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/play.png",
+              "order": 2
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/is.png",
+              "order": 3
+            }
+          ]
+        }
+      ],
       "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
     },
     {
@@ -329,7 +912,8 @@
       "name": {
         "en": "I want to go to the countryside"
       },
-      "order": 8,
+      "order": 9,
+      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
@@ -348,6 +932,65 @@
           "order": 3
         }
       ],
+      "text": "मुझे गाँव जाना है",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go",
+            "hi": "मुझे"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_am.png",
+              "order": 0
+            }
+          ]
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "kind": "word",
+          "label": {
+            "hi": "गाँव"
+          },
+          "order": 1
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "to the",
+            "hi": "जाना है"
+          },
+          "order": 2,
+          "words": [
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/go.png",
+              "order": 0
+            },
+            {
+              "displayProps": {
+                "bgColour": "#ffffff",
+                "cardShape": "rounded",
+                "showImage": true,
+                "showLabel": true,
+                "textColour": "#111827",
+                "textSize": "sm"
+              },
+              "imagePath": "symbols/is.png",
+              "order": 1
+            }
+          ]
+        }
+      ],
       "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
     },
     {
@@ -355,7 +998,7 @@
       "name": {
         "hi": "मैं स्कूल जा रहा हूँ"
       },
-      "order": 9,
+      "order": 10,
       "slots": [
         {
           "displayProps": {
@@ -402,7 +1045,7 @@
       "name": {
         "es": "Voy a la escuela"
       },
-      "order": 10,
+      "order": 11,
       "slots": [
         {
           "displayProps": {
