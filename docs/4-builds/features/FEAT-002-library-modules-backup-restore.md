@@ -52,7 +52,9 @@ New accounts are seeded **from the table**, never from JSON.
 
 - **Manifest:** every row flagged `isDefault: true` is the new-account seed set. `seedDefaultAccount` (`convex/profileCategories.ts`) queries `by_default`, sorts categories → lists → sentences, and installs each via `installContentModule`.
 - **Materialise:** `installContentModule` (`convex/lib/contentModuleInstall.ts`) → `materialiseSymbolsFromJson` (`convex/lib/materialiseSymbols.ts`) creates the per-account `profileCategories` / `profileSymbols` / etc.
-- **Dropbar core tab:** the talker dropdown's Core-words tab is injected separately by `injectCoreModulesIntoDropbar` (`convex/dropbar.ts`) from the four default core module slugs (`DEFAULT_CORE_INJECT_SLUGS`).
+- **Core-words dropdown tab:** seeded like any other default. The `dropbar-core` module (`surface:"core"`, `isDefault`) installs one per-account "Core words" container (`librarySourceId = "dropbar-core"`) plus its symbols; the talker dropdown finds it via `getDropbarBoard` (`convex/dropbar.ts`). `injectCoreModulesIntoDropbar` is the *admin authoring* helper that fills that container from the `core-*` modules (`DEFAULT_CORE_INJECT_SLUGS` = general/pronouns/joining/position) before you publish `dropbar-core` — it is **not** part of signup.
+- **Core word-categories:** the seven `core-*` `surface:"core"` category modules are (re)built by `seedCoreWordModules` (`convex/migrations.ts`), which resolves each authored word (`LITTLE_WORDS_GROUPS` in `convex/data/defaultCategorySymbols.ts`) to a `symbols` row at seed time. On a fresh deployment they also restore from the committed JSON like any other module — `seedCoreWordModules` is only needed when you want to re-resolve symbols from the word lists rather than from captured IDs. `surface:"core"` keeps them off the main Categories board and in the dropdown.
+- **Composed sentences carry their composition:** block/sequence sentence items include `units[]` + `playback` and a derived whole-utterance `text` caption; language variants carry `variantGroupKey` + `authoredLanguage` so seeded boards collapse by board language and play stepped (block) or fluent. Untranslated variant siblings are skipped at publish (see §7). Pre-pipeline rows were backfilled once by `migrations.backfillSequenceSentenceText`.
 - **Text resolves live (ADR-015 §3 / ADR-014 §4):** seeding snapshots *which* symbols a board holds, but localised **labels resolve live from the global `symbols` table at render**, so a later translation reaching the `symbols` table shows up on existing boards. The module row references symbols; it does not freeze their translations.
 
 If nothing is flagged `isDefault`, a new account seeds empty — which is exactly what an unpublished admin selection looks like. (This is *not* a bug; it means "publish the defaults.")
@@ -81,24 +83,67 @@ git commit -m "export: library modules <label>"
 
 ---
 
-## 5. Restore — committed JSON → DB
+## 5. Restore — committed JSON → DB (the content layer)
 
-`migrations.seedLibraryModulesFromJSON` (run from the Convex dashboard with an `adminClerkUserId`).
-
-This is the **bootstrap / disaster-recovery** path — how a fresh or wiped Convex deployment gets its curated content back from git.
+`migrations.seedLibraryModulesFromJSON` (a `mutation`; run from the Convex dashboard or `npx convex run` with an `adminClerkUserId`). This rebuilds the `libraryModules` table from the git-committed barrels.
 
 Semantics that matter:
 - **Insert-only.** For each module in the barrels, it inserts a `libraryModules` row **only if that `(tree, slug)` doesn't already exist**. Existing rows are left untouched.
-- **Skips starters** (`isStarter` modules are handled elsewhere).
-- Preserves `isDefault`, `defaultTier`, `surface`, `provenance`, `items` from the JSON.
+- **Skips starters** (`isStarter` fixtures are handled elsewhere).
+- Preserves `isDefault`, `defaultTier`, `surface`, `provenance`, `coverImagePath`, `description`, `items` from the JSON. Stamps a fresh `publishedAt`/`updatedAt` and `createdBy = adminClerkUserId` (see the content-shape caveat in §7).
 
-Consequence — and the reason hand-editing JSON "does nothing" on a live deployment:
+Because it is insert-only, there are two distinct scenarios:
 
-> Restore **cannot overwrite or sync** live rows. It only fills in slugs that are missing. To change a live module, edit it in the admin view (which writes the table), then re-export. JSON → table is a one-way bootstrap, not a two-way sync.
+**(a) Bootstrap an empty / fresh deployment** — the table has no (or missing) slugs:
+```bash
+npx convex run migrations:seedLibraryModulesFromJSON '{"adminClerkUserId":"user_…"}'
+```
+Fills every missing slug from git. This is the reason hand-editing JSON "does nothing" on a *live* deployment: seeding cannot overwrite or sync existing rows.
+
+> To change a live module, edit it in the admin view (which writes the table), then re-export. JSON → table is a one-way bootstrap, not a two-way sync.
+
+**(b) Rebuild / reset a populated table** — you want the table to match git exactly (DR drill, corruption recovery, resetting after experiments). Because reseed won't overwrite, you must first empty it, then reseed:
+```bash
+# take a full snapshot first (§6) — this is destructive
+npx convex run migrations:wipeLibraryModules '{"confirm":"WIPE"}'
+npx convex run migrations:seedLibraryModulesFromJSON '{"adminClerkUserId":"user_…"}'
+```
+`wipeLibraryModules` (`internalMutation`, guarded by `confirm:"WIPE"`) deletes every `libraryModules` row. This is the **verified DR restore path** for the content layer — a wipe(40)→reseed(40) round-trips **content-identical** (checked by diffing `dumpAllModules` before/after; core categories, `surface`, tiers, and block-sentence `units`/`playback`/`text` all reproduce). No separate `seedCoreWordModules` run is needed for a same-deployment restore — the `core-*` modules carry their captured symbols in the JSON.
+
+Blast radius: (b) empties the resource-library / default source for the seconds between wipe and reseed. It does **not** touch existing user accounts (their content was already materialised at install). New signups in that window would seed empty — do it in a quiet window.
 
 ---
 
-## 6. Invariants & edge cases
+## 6. The other backup layer — full deployment snapshot
+
+The JSON export (§4/§5) is the **content** backup: version-controlled, portable across deployments, curated-library only. Convex Pro ships automated daily backups; on the Starter plan we roll our own, and there is a second, complementary layer for **whole-deployment** disaster recovery — every table, including user accounts, byte-for-byte.
+
+- **Take a snapshot** (gitignored, local — DR only):
+  ```bash
+  npx convex export --path backups/<date>-<label>.zip
+  ```
+  Run it **before any risky operation** — schema migrations, mass mutations, and specifically before a `wipeLibraryModules` (§5(b)).
+- **Restore a snapshot** (byte-exact, same deployment):
+  ```bash
+  npx convex import --replace backups/<date>-<label>.zip
+  ```
+  This reproduces everything the JSON layer can't — original timestamps, `lastPublishedAt`/`tierOverride`, and all per-account data.
+- **Symbols milestone snapshot** (committed, per-language diff): `node scripts/backup-symbols.mjs "<label>"` → `convex/data/symbols_backups/`. Captures irreplaceable AI-translation diffs in git history (see `CLAUDE.md` → Backups).
+
+**Which restore do I want?**
+
+| Situation | Use |
+|---|---|
+| Fresh/empty deployment needs the curated library | JSON reseed §5(a) — `seedLibraryModulesFromJSON` |
+| Reset the library table to match git (content only) | JSON wipe+reseed §5(b) |
+| Recover a whole deployment incl. user accounts, byte-exact | Full snapshot — `npx convex import --replace` |
+| Undo a bad `wipeLibraryModules` you took a snapshot before | Full snapshot import (or just reseed, if content-only is enough) |
+
+Rule of thumb: **content problems → JSON layer; data-loss / byte-exact / user-data problems → full snapshot.**
+
+---
+
+## 7. Invariants & edge cases
 
 - **JSON is never the live source.** Signup, the dropbar, and the library pages all read the table. The `_index.ts` header says so explicitly; keep it that way.
 - **`_index.ts` is auto-generated.** Never hand-edit the barrels — regenerate via the exporter. Hand edits are overwritten on the next export and desync the restore path.
@@ -107,10 +152,12 @@ Consequence — and the reason hand-editing JSON "does nothing" on a live deploy
 - **Slugs are identity.** `(tree, slug)` keys the row, the JSON filename, the barrel entry, and `librarySourceId` on every installed copy. Renaming a live slug is a migration, not an edit.
 - **Empty defaults ≠ broken.** No `isDefault` rows → empty new accounts. The fix is to publish defaults, not to touch code.
 - **Text-live vs snapshot.** Boards snapshot symbol *references*; labels resolve live from `symbols` (ADR-015 §3). A missing translation on a board points at the `symbols` table or a stale per-profile `label`, not at this system.
+- **Content-shape reseed drops timestamps.** `dumpAllModules` is deliberately timestamp-free (clean git diffs), so a JSON reseed (§5) resets `publishedAt`/`updatedAt` and does **not** reproduce `lastPublishedAt` or `tierOverride`. Effective tiers are unaffected when no module uses `tierOverride`. If you need a byte-exact restore (timestamps, overrides, user data), use the full snapshot (§6), not the JSON layer.
+- **Wiping is guarded and destructive.** `wipeLibraryModules` requires `confirm:"WIPE"` and deletes all rows. Always take a full snapshot (§6) first; the reseed source is only as fresh as your last `export-library-modules.mjs` run.
 
 ---
 
-## 7. Neighbouring mechanisms (don't confuse these)
+## 8. Neighbouring mechanisms (don't confuse these)
 
 - **`convex/data/starter_backups/`** + `migrations.restoreStarterPackFromBackup` — a **separate, older** snapshot of the starter *profileSymbols* (post-edit account state), not the module JSON. Different shape, different restore path.
 - **`convex/data/defaultCategorySymbols.ts`** (`DEFAULT_CATEGORIES`, `LITTLE_WORDS_GROUPS`) — the original hard-coded **recipe**, now used by factory-reset / master-category seeding migrations, not by signup. It predates the "author in Convex" move.
@@ -118,7 +165,7 @@ Consequence — and the reason hand-editing JSON "does nothing" on a live deploy
 
 ---
 
-## 8. Why this system matters
+## 9. Why this system matters
 
 The table can be wiped, corrupted, or migrated wrong. When that happens, every account's future seeding and the whole library depend on getting curated content back. Because the content is mirrored to versioned JSON and restorable into a fresh deployment with one mutation, a catastrophic data loss becomes a **restore-and-re-export**, not a re-authoring project. Keep the export discipline current — a backup you didn't take is the one you'll need.
 
@@ -129,10 +176,16 @@ The table can be wiped, corrupted, or migrated wrong. When that happens, every a
 | Concern | Where |
 |---|---|
 | Source of truth | `libraryModules` table (`convex/schema.ts`) |
+| Publish (author → table) | `publishFolderAsModule` (`convex/contentModules/publish.ts`) |
 | Signup manifest | `seedDefaultAccount` (`convex/profileCategories.ts`) |
 | Install / materialise | `convex/lib/contentModuleInstall.ts`, `convex/lib/materialiseSymbols.ts` |
-| Dropbar core inject | `injectCoreModulesIntoDropbar`, `DEFAULT_CORE_INJECT_SLUGS` (`convex/dropbar.ts`) |
-| Export (DB→JSON) | `scripts/export-library-modules.mjs` → `contentModules/exportModules:dumpAllModules` |
-| Committed backup | `convex/data/{categories,lists,sentences,phrases}/<slug>.json` + `_index.ts` |
-| Restore (JSON→DB) | `migrations.seedLibraryModulesFromJSON` |
-| Export command | `node scripts/export-library-modules.mjs` |
+| Core-words tab container | `dropbar-core` module → `getDropbarBoard`; admin fill via `injectCoreModulesIntoDropbar` / `DEFAULT_CORE_INJECT_SLUGS` (`convex/dropbar.ts`) |
+| Core word-categories seed | `migrations.seedCoreWordModules` (words in `convex/data/defaultCategorySymbols.ts`) |
+| Block-sentence text backfill | `migrations.backfillSequenceSentenceText` |
+| Export (DB→JSON) | `node scripts/export-library-modules.mjs` → `contentModules/exportModules:dumpAllModules` |
+| Committed content backup | `convex/data/{categories,lists,sentences,phrases}/<slug>.json` + `_index.ts` |
+| Restore/bootstrap (JSON→DB) | `migrations.seedLibraryModulesFromJSON '{"adminClerkUserId":"…"}'` |
+| Wipe library table (guarded) | `migrations.wipeLibraryModules '{"confirm":"WIPE"}'` |
+| Full deployment snapshot | `npx convex export --path backups/<date>-<label>.zip` (gitignored) |
+| Full deployment restore | `npx convex import --replace backups/<date>-<label>.zip` |
+| Symbols milestone snapshot | `node scripts/backup-symbols.mjs "<label>"` → `convex/data/symbols_backups/` |
