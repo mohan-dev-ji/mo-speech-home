@@ -10,6 +10,7 @@ import { CATEGORY_MODULES } from "./data/categories/_index";
 import { LIST_MODULES } from "./data/lists/_index";
 import { SENTENCE_MODULES } from "./data/sentences/_index";
 import { PHRASE_MODULES } from "./data/phrases/_index";
+import { deriveCompositionText } from "./lib/compositionText";
 
 /**
  * One-shot migration: backfill `accountId` on all account-scoped content tables.
@@ -1137,5 +1138,51 @@ export const backfillSentenceUnits = internalMutation({
       migrated++;
     }
     return { total: rows.length, migrated, skipped };
+  },
+});
+
+/**
+ * Backfill `text` on block/sequence sentences whose whole-utterance caption was
+ * never captured. The block-sentence module pipeline only writes `text` on a
+ * units *write* (create / units-edit / variant), so sentences last saved before
+ * that change carry no caption (they render/seed as NO-TEXT). This recomputes
+ * the caption for every `playback: "sequence"` row via the same
+ * `deriveCompositionText` helper the mutations use, so the stored string is
+ * identical to what a fresh save would write.
+ *
+ * Scope: only `playback === "sequence"` rows with units — fluent sentences keep
+ * their own whole-utterance `text` untouched. Recomputes rather than fill-only:
+ * a block sentence's caption is *always* derived from its units, so any stale
+ * value is normalised too. Rows already carrying the correct string are skipped.
+ * Idempotent — safe to re-run.
+ *
+ * Run:  npx convex run migrations:backfillSequenceSentenceText
+ */
+export const backfillSequenceSentenceText = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("profileSentences").collect();
+    let sequenceRows = 0;
+    let patched = 0;
+    let alreadyCorrect = 0;
+    let skippedNoUnits = 0;
+    for (const s of rows) {
+      if (s.playback !== "sequence") continue;
+      sequenceRows++;
+      if (!s.units || s.units.length === 0) {
+        skippedNoUnits++;
+        continue;
+      }
+      const text = deriveCompositionText(s.units, s.authoredLanguage ?? "en");
+      if (s.text === text) {
+        alreadyCorrect++;
+        continue;
+      }
+      await ctx.db.patch(s._id, { text, updatedAt: Date.now() });
+      patched++;
+    }
+    const summary = { total: rows.length, sequenceRows, patched, alreadyCorrect, skippedNoUnits };
+    console.log(`[backfillSequenceSentenceText] ${JSON.stringify(summary)}`);
+    return summary;
   },
 });
