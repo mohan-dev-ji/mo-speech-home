@@ -54,7 +54,7 @@ export const getModuleDetail = query({
 
     if (
       !isModuleVisible({
-        isStarter: module.isStarter ?? false,
+        isStarter: false,
         lifecycle:
           module.publishedAt === undefined
             ? null
@@ -176,7 +176,7 @@ export const getModuleDetail = query({
       coverImagePath: module.coverImagePath ?? null,
       tier,
       isDefault: module.isDefault ?? false,
-      isStarter: module.isStarter ?? false,
+      isStarter: false,
       counts: {
         categories: categories.length,
         lists: lists.length,

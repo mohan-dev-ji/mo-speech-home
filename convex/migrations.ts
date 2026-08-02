@@ -523,7 +523,6 @@ export const seedLibraryModulesFromJSON = mutation({
           defaultTier: mod.defaultTier,
           ...(mod.surface ? { surface: mod.surface } : {}),
           ...(mod.isDefault ? { isDefault: true } : {}),
-          ...(mod.provenance ? { provenance: mod.provenance } : {}),
           items: mod.items,
           publishedAt: now,
           featured: false,
@@ -1161,6 +1160,40 @@ export const wipeLibraryModules = internalMutation({
     for (const r of rows) await ctx.db.delete(r._id);
     console.log(`[wipeLibraryModules] deleted ${rows.length} rows`);
     return { deleted: rows.length };
+  },
+});
+
+/**
+ * DR / remake teardown: empty every per-account profile CONTENT table
+ * (the six that carry a dropped `profileId` in the MOS-17 schema slim).
+ * Content-only — leaves `users` + `studentProfiles` (and Clerk) intact, so a
+ * fresh signup is naturally a blank canvas. DESTRUCTIVE; requires
+ * `confirm:"WIPE"`. Take a full `npx convex export` snapshot first.
+ *
+ * Run:  npx convex run migrations:wipeAllProfileTables '{"confirm":"WIPE"}'
+ */
+export const wipeAllProfileTables = internalMutation({
+  args: { confirm: v.string() },
+  handler: async (ctx, { confirm }) => {
+    if (confirm !== "WIPE") {
+      throw new Error('Refusing: pass { confirm: "WIPE" } to wipe all profile tables.');
+    }
+    const tables = [
+      "profileCategories",
+      "profileSymbols",
+      "profileLists",
+      "profileSentences",
+      "profilePhrases",
+      "profileFolders",
+    ] as const;
+    const counts: Record<string, number> = {};
+    for (const table of tables) {
+      const rows = await ctx.db.query(table).collect();
+      for (const row of rows) await ctx.db.delete(row._id);
+      counts[table] = rows.length;
+    }
+    console.log(`[wipeAllProfileTables] ${JSON.stringify(counts)}`);
+    return counts;
   },
 });
 

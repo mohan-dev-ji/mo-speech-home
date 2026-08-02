@@ -37,7 +37,7 @@ export const installSentenceModule = mutation({
     }
     assertModuleInstallable({
       slug,
-      isStarter: module.isStarter ?? false,
+      isStarter: false,
       defaultTier: module.defaultTier,
       lifecycle:
         module.publishedAt === undefined
@@ -85,7 +85,7 @@ export const getPublicSentenceCatalogue = query({
     const modules = await getAllModules(ctx, "sentences");
     return modules
       .map((module) => {
-        const isStarter = module.isStarter ?? false;
+        const isStarter = false;
         if (
           !isModuleVisible({
             isStarter,
@@ -215,15 +215,13 @@ export const listAllSentenceModulesForAdmin = query({
         description: module.description ?? null,
         coverImagePath: module.coverImagePath ?? null,
         defaultTier: module.defaultTier,
-        isStarter: module.isStarter ?? false,
-        provenance: module.provenance ?? null,
+        isStarter: false,
         lifecycleId: module._id,
         publishedAt: module.publishedAt ?? null,
         expiresAt: module.expiresAt ?? null,
         featured: module.featured,
         tierOverride: module.tierOverride ?? null,
         tags: module.tags ?? [],
-        notes: module.notes ?? null,
         updatedAt: module.updatedAt,
         createdBy: module.createdBy,
         status: deriveStatus(module, now),
@@ -245,7 +243,6 @@ export const updateSentenceLifecycle = mutation({
     featured: v.optional(v.boolean()),
     tierOverride: v.optional(v.union(TIER, v.null())),
     tags: v.optional(v.union(v.array(v.string()), v.null())),
-    notes: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     await requireCallerIsAdmin(ctx);
@@ -278,7 +275,6 @@ export const updateSentenceLifecycle = mutation({
         .filter((t) => t.length > 0);
       patch.tags = Array.from(new Set(normalised));
     }
-    if (args.notes !== undefined) patch.notes = args.notes ?? undefined;
 
     await ctx.db.patch(row._id, patch);
     return { slug: args.slug, lifecycleId: row._id };
@@ -301,7 +297,6 @@ export const deleteSentenceLifecycle = mutation({
         expiresAt: undefined,
         tierOverride: undefined,
         tags: undefined,
-        notes: undefined,
         featured: false,
         updatedAt: Date.now(),
       });

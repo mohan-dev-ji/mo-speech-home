@@ -34,8 +34,6 @@ export const dumpAllModules = query({
       // `core-*` module stops being a core-word module.
       ...(m.surface ? { surface: m.surface } : {}),
       ...(m.isDefault ? { isDefault: true } : {}),
-      ...(m.isStarter ? { isStarter: true } : {}),
-      ...(m.provenance ? { provenance: m.provenance } : {}),
       items: m.items,
     }));
   },

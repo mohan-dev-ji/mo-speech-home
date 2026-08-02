@@ -538,7 +538,6 @@ export default defineSchema({
    */
   profileCategories: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration. New writes always set this.
-    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional so old docs validate. New writes omit.
     name: localisedString,
     icon: v.string(),
     colour: v.string(),
@@ -550,10 +549,6 @@ export default defineSchema({
     // the category. Optional for back-compat with rows loaded before this
     // field existed.
     librarySourceCategoryKey: v.optional(v.string()),
-    // ADR-014 — parent folder within the Categories tree. The folder is the
-    // shared organisation primitive; a category (symbol grid) files into one.
-    // Optional until the Phase 13 migration assigns rows; null = ungrouped/root.
-    folderId: v.optional(v.id("profileFolders")),
     // ADR-015 §6 — "core" marks a core-word category: surfaced in the talker
     // dropdown's Core-words tab, filtered out of the main Categories page +
     // library, locked to zinc-500 with no colour swatch. Absent = normal category.
@@ -574,10 +569,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
-    .index("by_account_id_and_order", ["accountId", "order"])
-    .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"])
-    .index("by_folder_id_and_order", ["folderId", "order"]),
+    .index("by_account_id_and_order", ["accountId", "order"]),
 
   /**
    * The most important table. Every symbol in a student's profile is a
@@ -587,7 +579,6 @@ export default defineSchema({
    */
   profileSymbols: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration.
-    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     profileCategoryId: v.id("profileCategories"),
     order: v.number(),
 
@@ -662,7 +653,6 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_account_id", ["accountId"])
-    .index("by_profile_id", ["profileId"])
     .index("by_profile_category_id", ["profileCategoryId"])
     .index("by_profile_category_id_and_order", ["profileCategoryId", "order"]),
 
@@ -689,7 +679,6 @@ export default defineSchema({
    */
   profileLists: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration.
-    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
@@ -726,8 +715,6 @@ export default defineSchema({
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
-    .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"])
     .index("by_folder_id_and_order", ["folderId", "order"]),
 
   /**
@@ -736,7 +723,6 @@ export default defineSchema({
    */
   profileSentences: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration.
-    profileId: v.optional(v.id("studentProfiles")), // legacy; kept optional for back-compat.
     name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
@@ -786,8 +772,6 @@ export default defineSchema({
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
-    .index("by_profile_id", ["profileId"])
-    .index("by_profile_id_and_order", ["profileId", "order"])
     .index("by_folder_id_and_order", ["folderId", "order"]),
 
   /**
@@ -799,7 +783,6 @@ export default defineSchema({
    */
   profilePhrases: defineTable({
     accountId: v.optional(v.id("users")),
-    profileId: v.optional(v.id("studentProfiles")), // legacy parity; new writes omit.
     kind: v.optional(v.literal("phrase")),
     name: localisedString,
     order: v.number(),
@@ -831,7 +814,6 @@ export default defineSchema({
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_order", ["accountId", "order"])
-    .index("by_profile_id", ["profileId"])
     .index("by_folder_id_and_order", ["folderId", "order"])
     .index("by_library_source_id", ["librarySourceId"]),
 
@@ -849,7 +831,6 @@ export default defineSchema({
    */
   profileFolders: defineTable({
     accountId: v.optional(v.id("users")), // owner account; new writes always set this.
-    profileId: v.optional(v.id("studentProfiles")), // legacy parity; new writes omit.
     tree: v.union(
       v.literal("categories"),
       v.literal("lists"),
@@ -885,7 +866,6 @@ export default defineSchema({
   })
     .index("by_account_id", ["accountId"])
     .index("by_account_id_and_tree_and_order", ["accountId", "tree", "order"])
-    .index("by_profile_id", ["profileId"])
     .index("by_library_source_id", ["librarySourceId"]),
 
   /**
@@ -1056,8 +1036,8 @@ export default defineSchema({
    * seed input / git-export artifacts, no longer read at runtime.
    *
    * `slug` is unique *per tree* (the same slug can exist as a category, a list,
-   * and a sentence module). Visibility: a module is browsable iff `isStarter` OR
-   * (`publishedAt <= now` AND `expiresAt` unset/future); effective tier =
+   * and a sentence module). Visibility: a module is browsable iff
+   * `publishedAt <= now` AND `expiresAt` unset/future; effective tier =
    * `tierOverride ?? defaultTier`. Publish/unpublish + curation are mutations
    * (no deploy) — see `contentModules/*` and `migrations.seedLibraryModulesFromJSON`.
    */
@@ -1084,13 +1064,6 @@ export default defineSchema({
       v.literal("pro"),
       v.literal("max")
     ),
-    provenance: v.optional(
-      v.object({
-        author: v.optional(v.string()),
-        version: v.optional(v.string()),
-        licence: v.optional(v.string()),
-      })
-    ),
     // Per-tree content array. Distinct enough that union member resolution is
     // unambiguous (categories require icon+colour+symbols; lists carry items[];
     // sentences carry slots[]).
@@ -1109,8 +1082,6 @@ export default defineSchema({
     ),
     featured: v.boolean(),
     tags: v.optional(v.array(v.string())),
-    notes: v.optional(v.string()),
-    isStarter: v.optional(v.boolean()),
     // Default ("core") module — auto-installed into every new account
     // (seedDefaultAccount) and always free to access. Mutually exclusive with a
     // paid tier in the UI: a Default module shows a "Default" badge instead of
