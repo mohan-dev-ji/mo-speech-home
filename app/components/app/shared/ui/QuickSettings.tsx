@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { SlidersHorizontal, LogOut } from 'lucide-react';
+import { SlidersHorizontal, LogOut, Mail } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useClerk } from '@clerk/nextjs';
+import { useClerk, useUser } from '@clerk/nextjs';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker } from '@/app/contexts/TalkerContext';
 
@@ -14,6 +14,8 @@ export function QuickSettings() {
   const { stateFlags, setTalkerVisible, setGridSize, viewMode } = useProfile();
   const { talkerMode, setTalkerMode } = useTalker();
   const { signOut } = useClerk();
+  const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress;
 
   useEffect(() => {
     if (!open) return;
@@ -174,30 +176,41 @@ export function QuickSettings() {
             </button>
           </div>
 
-          {/* Sign out — hard-navigates to `/` after Clerk clears the session.
-              We can't use signOut({ redirectUrl: '/' }) here: that does a
-              client-side router.push which keeps the AAC React tree mounted
-              while auth flips to false. The tree's Convex queries and auth-
-              dependent contexts then break mid-render before the redirect
-              fires. window.location.assign discards the tree entirely so the
-              next navigation starts cold. The splash dispatcher then reads
-              the user's NEXT_LOCALE cookie and sends them to /<locale>/. */}
-          <button
-            type="button"
-            onClick={async () => {
-              setOpen(false);
-              await signOut();
-              window.location.assign('/');
-            }}
-            className="w-full px-3 py-2.5 flex items-center gap-3 text-left transition-colors hover:bg-theme-banner"
-            style={{
-              borderTop: '1px solid var(--theme-line)',
-              color: 'var(--theme-alt-text)',
-            }}
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            <span className="text-small font-medium">{t('signOut')}</span>
-          </button>
+          {/* Account email + Sign out, grouped under one divider so the email
+              reads as "the account you're signed into" right above Sign out. */}
+          <div style={{ borderTop: '1px solid var(--theme-line)' }}>
+            {email && (
+              <div
+                className="w-full px-3 pt-2.5 pb-1 flex items-center gap-3"
+                style={{ color: 'var(--theme-alt-text)' }}
+                title={email}
+              >
+                <Mail className="w-4 h-4 shrink-0 opacity-60" />
+                <span className="text-small font-medium truncate opacity-70">{email}</span>
+              </div>
+            )}
+            {/* Sign out — hard-navigates to `/` after Clerk clears the session.
+                We can't use signOut({ redirectUrl: '/' }) here: that does a
+                client-side router.push which keeps the AAC React tree mounted
+                while auth flips to false. The tree's Convex queries and auth-
+                dependent contexts then break mid-render before the redirect
+                fires. window.location.assign discards the tree entirely so the
+                next navigation starts cold. The splash dispatcher then reads
+                the user's NEXT_LOCALE cookie and sends them to /<locale>/. */}
+            <button
+              type="button"
+              onClick={async () => {
+                setOpen(false);
+                await signOut();
+                window.location.assign('/');
+              }}
+              className="w-full px-3 py-2.5 flex items-center gap-3 text-left transition-colors hover:bg-theme-banner"
+              style={{ color: 'var(--theme-alt-text)' }}
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className="text-small font-medium">{t('signOut')}</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
