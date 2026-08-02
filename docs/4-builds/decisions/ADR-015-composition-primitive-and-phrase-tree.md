@@ -170,6 +170,41 @@ A `playback: "sequence" | "fluent"` flag on the composition picks how it speaks.
 - **The morphology/inflection engine, keyboard page** — Phase 18; consume this model but not defined here.
 - **GLP prediction/morphology datasets** — a separate content type + its own ADR (build-plan Phase 17).
 
+## Addendum — Composition carried through the module seed round-trip
+
+**Status:** implemented on branch (pending deploy to `main`).
+
+The `units[]` composition (§2) and `playback` mode (§9) lived only on per-account
+`profileSentences` rows — the module publish → JSON → install pipeline dropped
+both, so a seeded (default) account got a sentence with no decomposition and no
+playback mode, defeating the block/sequence build-up story for every instructor
+who never hand-authors a default. Fix: the sentence module-item validator
+(`libraryModuleSentenceItems` in `convex/schema.ts`, and its mirror TS type
+`LibraryPackSentence` in `convex/data/_shared/types.ts`) gains optional
+`units?: compositionUnit[]` + `playback?: "sequence" | "fluent"`, **reusing the
+existing `compositionUnit` validator** rather than defining a parallel one.
+`publishFolderAsModule` (`convex/contentModules/publish.ts`) now emits `units` /
+`playback` on published sentence items; install (`convex/lib/contentModuleInstall.ts`,
+`insertSentence`) sets them on the seeded `profileSentences` row. A new pure
+helper, `deriveCompositionText(units, lang)` (`convex/lib/compositionText.ts`),
+mirrors the client's `blocksFromUnits(...)` + space-join (phrase → `name`,
+word → `label`, resolved via the 3-tier `displayString` fallback, empties
+skipped) and is called on every units-write path in `convex/profileSentences.ts`
+(`createProfileSentence`, `updateProfileSentenceUnits`, `createSentenceVariant`)
+so the block sentence's caption (`text`) stays derived from and in sync with
+`units` at authoring save. Export/restore remain plain `items` passthroughs — no
+change there.
+
+This builds directly on **MOS-27** (Addendum L — variant metadata carried through
+the same publish/seed round-trip): together they let a seeded default sentence
+carry both its language-variant grouping *and* its block decomposition. Additive
+optional fields throughout — no migration.
+
+Implemented by [`block-sentence-module-pipeline.md`](../plans/block-sentence-module-pipeline.md);
+design spec [`2026-08-02-block-sentence-module-pipeline-design.md`](../../superpowers/specs/2026-08-02-block-sentence-module-pipeline-design.md).
+
+---
+
 ## References
 
 - [ADR-004](./ADR-004-persistent-global-talker.md) — persistent global talker (buffer model, unchanged).

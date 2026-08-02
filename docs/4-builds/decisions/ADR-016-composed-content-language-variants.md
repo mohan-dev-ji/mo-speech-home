@@ -502,6 +502,25 @@ design spec `docs/superpowers/specs/2026-08-01-variant-aware-module-seeding-desi
 
 ---
 
+## Addendum M — Block sentences now fully seed (composition carried alongside variant metadata)
+
+**Status:** implemented on branch (pending deploy to `main`).
+
+Addendum L carried variant *metadata* (`authoredLanguage` + `variantGroupKey`)
+through the module publish/seed round-trip, but a seeded sentence still arrived
+with no `units[]` decomposition or `playback` mode — the variant grouping was
+correct, but a seeded block sentence rendered as an empty/flat item. A sibling
+change (see the addendum on [ADR-015](./ADR-015-composition-primitive-and-phrase-tree.md))
+widens the same sentence module-item validator with optional `units` +
+`playback`, so publish now emits and install now sets the full composition
+alongside the variant metadata this ADR defined. Composed-content variants —
+block sentences included — now seed **completely**: correct per-language
+symbol order, correct playback mode, and correct variant grouping, all in one
+install. No change to this ADR's model (§1–§6); this closes the seed-side gap
+against it. Additive optional fields — no migration.
+
+---
+
 ## Supersedes / relates
 
 - Extends **ADR-015** (composition primitive) — variants are sibling compositions, same `units[]`/`words[]` shape.
