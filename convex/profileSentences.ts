@@ -5,6 +5,7 @@ import { requireProTier } from "./lib/access";
 import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectSentenceOrphanKeys } from "./lib/contentModuleDelete";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
+import { deriveCompositionText } from "./lib/compositionText";
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -156,7 +157,12 @@ export const createProfileSentence = mutation({
       order:      last ? last.order + 1 : 0,
       slots:      args.slots ?? [],
       ...(args.kind ? { kind: args.kind } : {}),
-      ...(args.units ? { units: args.units } : {}),
+      ...(args.units
+        ? {
+            units: args.units,
+            text: deriveCompositionText(args.units, args.authoredLanguage ?? "en"),
+          }
+        : {}),
       ...(args.playback ? { playback: args.playback } : {}),
       ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       ...(args.folderId ? { folderId: args.folderId } : {}),
@@ -215,11 +221,17 @@ export const createSentenceVariant = mutation({
       ...(source.folderId ? { folderId: source.folderId } : {}),
       slots: source.slots,
       ...(source.kind ? { kind: source.kind } : {}),
-      ...(source.units ? { units: source.units } : {}),
+      ...(source.units
+        ? {
+            units: source.units,
+            text: deriveCompositionText(source.units, args.authoredLanguage),
+          }
+        : text
+          ? { text }
+          : {}),
       ...(source.playback ? { playback: source.playback } : {}),
       authoredLanguage: args.authoredLanguage,
       variantGroupId: groupId,
-      ...(text ? { text } : {}),
       updatedAt: Date.now(),
     });
   },
@@ -278,6 +290,7 @@ export const updateProfileSentenceUnits = mutation({
     await ctx.db.patch(args.profileSentenceId, {
       units:     args.units,
       slots:     flattenUnitsToSlots(args.units),
+      text:      deriveCompositionText(args.units, sentence.authoredLanguage ?? "en"),
       updatedAt: Date.now(),
     });
   },
