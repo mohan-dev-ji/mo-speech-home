@@ -112,6 +112,8 @@ export const publishFolderAsModule = mutation({
           : {}),
         ...(s.authoredLanguage ? { authoredLanguage: s.authoredLanguage } : {}),
         ...(s.variantGroupId ? { variantGroupKey: s.variantGroupId } : {}),
+        ...(s.units ? { units: s.units } : {}),
+        ...(s.playback ? { playback: s.playback } : {}),
       }));
     } else {
       // phrases (ADR-015) — serialise into phrase module items. Per-word audio is
