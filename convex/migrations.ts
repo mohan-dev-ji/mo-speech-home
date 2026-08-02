@@ -1,4 +1,4 @@
-import { mutation, query, internalMutation, action } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery, action } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
@@ -1161,6 +1161,27 @@ export const wipeLibraryModules = internalMutation({
     for (const r of rows) await ctx.db.delete(r._id);
     console.log(`[wipeLibraryModules] deleted ${rows.length} rows`);
     return { deleted: rows.length };
+  },
+});
+
+/**
+ * Read-only helper: resolve an ordered list of `symbols` _ids to their English
+ * word (`words.en`), preserving order. Used to recover human-readable word lists
+ * for the core-word category modules (whose items store symbolIds, not words) —
+ * e.g. to rebuild the default-content spreadsheet from a module's symbol chain.
+ * Returns null in-slot for any id that no longer resolves.
+ *
+ * Run:  npx convex run migrations:resolveEnByIds '{"ids":["kn7...","kn7..."]}'
+ */
+export const resolveEnByIds = internalQuery({
+  args: { ids: v.array(v.string()) },
+  handler: async (ctx, { ids }) => {
+    const out: (string | null)[] = [];
+    for (const id of ids) {
+      const s = await ctx.db.get(id as Id<"symbols">);
+      out.push(s ? ((s.words as Record<string, string>).en ?? null) : null);
+    }
+    return out;
   },
 });
 
