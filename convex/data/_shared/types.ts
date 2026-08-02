@@ -132,6 +132,35 @@ export type LibraryPackSentenceSlot = {
   displayProps?: LibraryPackSentenceSlotDisplay;
 };
 
+/** ADR-015 composition — mirror of `compositionWord` in `schema.ts`. */
+export type CompositionWord = {
+  order: number;
+  imagePath?: string;
+  audioPath?: string;
+  label?: LocalisedString;
+  displayProps?: LibraryPackSentenceSlotDisplay;
+};
+
+/** ADR-015 composition — mirror of `compositionUnit` in `schema.ts`. */
+export type CompositionUnit =
+  | {
+      kind: "word";
+      order: number;
+      imagePath?: string;
+      audioPath?: string;
+      label?: LocalisedString;
+      displayProps?: LibraryPackSentenceSlotDisplay;
+    }
+  | {
+      kind: "phrase";
+      order: number;
+      name: LocalisedString;
+      audioPath?: string;
+      recordedAudioPath?: string;
+      librarySourceId?: string;
+      words: CompositionWord[];
+    };
+
 export type LibraryPackSentence = {
   name: LocalisedString;
   order: number;
@@ -143,6 +172,10 @@ export type LibraryPackSentence = {
    * Migration window union — same caveat as LibraryPackListItem.description.
    */
   text?: LocalisedString | string;
+  /** ADR-015 composition carried through the seed round-trip: block/sequence
+   * sentences keep their per-language content in units[], stepped by playback. */
+  units?: CompositionUnit[];
+  playback?: "sequence" | "fluent";
   slots: LibraryPackSentenceSlot[];
   audioPath?: string;
 };

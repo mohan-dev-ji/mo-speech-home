@@ -203,51 +203,6 @@ const libraryModuleListItems = v.array(
   })
 );
 
-const libraryModuleSentenceItems = v.array(
-  v.object({
-    name: localisedString,
-    order: v.number(),
-    // ADR-016 seed round-trip — variant metadata so seeded rows collapse by
-    // board language + voice correctly. `variantGroupKey` = the source row's
-    // original _id (shared by all siblings); install re-links to a new _id.
-    authoredLanguage: v.optional(v.string()),
-    variantGroupKey: v.optional(v.string()),
-    text: v.optional(localisedStringMigration),
-    slots: v.array(
-      v.object({
-        order: v.number(),
-        symbolId: v.optional(v.string()),
-        imagePath: v.optional(v.string()),
-        displayProps: v.optional(
-          v.object({
-            bgColour: v.optional(v.string()),
-            textColour: v.optional(v.string()),
-            textSize: v.optional(
-              v.union(
-                v.literal("sm"),
-                v.literal("md"),
-                v.literal("lg"),
-                v.literal("xl")
-              )
-            ),
-            showLabel: v.optional(v.boolean()),
-            showImage: v.optional(v.boolean()),
-            cardShape: v.optional(
-              v.union(
-                v.literal("square"),
-                v.literal("rounded"),
-                v.literal("circle")
-              )
-            ),
-          })
-        ),
-      })
-    ),
-    audioPath: v.optional(v.string()),
-    recordedAudioPath: v.optional(v.string()),
-  })
-);
-
 // ─── Phase 14 (ADR-015) — composition units ──────────────────────────────────
 // A composition (sentence) or a phrase is an ordered list of units that keeps
 // its parts. A unit is a single word/symbol or a phrase (a snapshot of its
@@ -294,6 +249,55 @@ const compositionUnit = v.union(
     recordedAudioPath: v.optional(v.string()),
     librarySourceId: v.optional(v.string()), // phrase-bank slug snapshotted from
     words: v.array(compositionWord),
+  })
+);
+
+const libraryModuleSentenceItems = v.array(
+  v.object({
+    name: localisedString,
+    order: v.number(),
+    // ADR-016 seed round-trip — variant metadata so seeded rows collapse by
+    // board language + voice correctly. `variantGroupKey` = the source row's
+    // original _id (shared by all siblings); install re-links to a new _id.
+    authoredLanguage: v.optional(v.string()),
+    variantGroupKey: v.optional(v.string()),
+    text: v.optional(localisedStringMigration),
+    // ADR-015 composition carried through the seed round-trip: block/sequence
+    // sentences keep their per-language content in units[], stepped by playback.
+    units: v.optional(v.array(compositionUnit)),
+    playback: v.optional(v.union(v.literal("sequence"), v.literal("fluent"))),
+    slots: v.array(
+      v.object({
+        order: v.number(),
+        symbolId: v.optional(v.string()),
+        imagePath: v.optional(v.string()),
+        displayProps: v.optional(
+          v.object({
+            bgColour: v.optional(v.string()),
+            textColour: v.optional(v.string()),
+            textSize: v.optional(
+              v.union(
+                v.literal("sm"),
+                v.literal("md"),
+                v.literal("lg"),
+                v.literal("xl")
+              )
+            ),
+            showLabel: v.optional(v.boolean()),
+            showImage: v.optional(v.boolean()),
+            cardShape: v.optional(
+              v.union(
+                v.literal("square"),
+                v.literal("rounded"),
+                v.literal("circle")
+              )
+            ),
+          })
+        ),
+      })
+    ),
+    audioPath: v.optional(v.string()),
+    recordedAudioPath: v.optional(v.string()),
   })
 );
 
