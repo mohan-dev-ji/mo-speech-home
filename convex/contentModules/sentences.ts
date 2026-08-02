@@ -1,6 +1,6 @@
 /**
  * Sentence content-module plugin (ADR-014 §1). Sibling of `categories.ts`;
- * content in `convex/data/sentences/<slug>.json`, metadata in `sentenceLifecycle`.
+ * content in `convex/data/sentences/<slug>.json`, lifecycle metadata merged onto the `libraryModules` row.
  */
 
 import { ConvexError, v } from "convex/values";

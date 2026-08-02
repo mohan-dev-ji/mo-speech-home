@@ -1,6 +1,6 @@
 /**
  * List content-module plugin (ADR-014 §1). Sibling of `categories.ts`; content
- * in `convex/data/lists/<slug>.json`, metadata in `listLifecycle`.
+ * in `convex/data/lists/<slug>.json`, lifecycle metadata merged onto the `libraryModules` row.
  */
 
 import { ConvexError, v } from "convex/values";

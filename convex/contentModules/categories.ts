@@ -2,7 +2,7 @@
  * Category content-module plugin (ADR-014 §1) — install + the three universal
  * admin functions, mirroring the pack lifecycle functions in `resourcePacks.ts`
  * but per-type and folder-aware. Content lives in
- * `convex/data/categories/<slug>.json`; runtime metadata in `categoryLifecycle`.
+ * `convex/data/categories/<slug>.json`; lifecycle metadata merged onto the `libraryModules` row.
  */
 
 import { ConvexError, v } from "convex/values";
