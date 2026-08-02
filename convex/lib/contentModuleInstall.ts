@@ -288,6 +288,8 @@ export async function installContentModule(
           ? { authoredLanguage: sentence.authoredLanguage }
           : {}),
         ...(variantGroupId ? { variantGroupId } : {}),
+        ...(sentence.units ? { units: sentence.units } : {}),
+        ...(sentence.playback ? { playback: sentence.playback } : {}),
         folderId,
         librarySourceId: module.slug,
         updatedAt: now,
