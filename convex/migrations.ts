@@ -1142,6 +1142,29 @@ export const backfillSentenceUnits = internalMutation({
 });
 
 /**
+ * DR test / reset: delete every row in `libraryModules`. DESTRUCTIVE — the table
+ * is the live source of truth for the resource library + default seeding. It is
+ * rebuilt by `seedLibraryModulesFromJSON` (+ `seedCoreWordModules` if you want to
+ * re-resolve the core word-categories) from the committed JSON barrels. Take a
+ * full backup first (`npx convex export`). Requires `confirm: "WIPE"` so it can't
+ * fire by accident.
+ *
+ * Run:  npx convex run migrations:wipeLibraryModules '{"confirm":"WIPE"}'
+ */
+export const wipeLibraryModules = internalMutation({
+  args: { confirm: v.string() },
+  handler: async (ctx, { confirm }) => {
+    if (confirm !== "WIPE") {
+      throw new Error('Refusing: pass { confirm: "WIPE" } to wipe libraryModules.');
+    }
+    const rows = await ctx.db.query("libraryModules").collect();
+    for (const r of rows) await ctx.db.delete(r._id);
+    console.log(`[wipeLibraryModules] deleted ${rows.length} rows`);
+    return { deleted: rows.length };
+  },
+});
+
+/**
  * Backfill `text` on block/sequence sentences whose whole-utterance caption was
  * never captured. The block-sentence module pipeline only writes `text` on a
  * units *write* (create / units-edit / variant), so sentences last saved before
