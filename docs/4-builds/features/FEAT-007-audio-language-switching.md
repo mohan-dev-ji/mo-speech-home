@@ -103,6 +103,16 @@ The **board-language default** is `resolveSymbolAudioPath(voiceId, words.en, see
 
 **Together they deliver the spec:** each language starts from its symbols-table-derived default (in that language's voice); Generate Audio / recordings customise **one** language without leaking into the others.
 
+### Authoring side — the symbol editor writes overrides per board language
+
+The read path above only works if overrides are *stored* per language. The symbol editor (`SymbolEditorModal` + `PropertiesPanel`) keys **load / generate / save** by the **effective editing language** (`draft.pinnedLanguage ?? board language`) — not a hard-coded `en` slot (the original Phase 8.0 limitation):
+
+- **Generate** synthesises *that language's* label (`labelLoc[lang]`, else the English label) with a persona-matched voice for it — so generating on a Spanish board produces "escribir" in a Spanish voice, not "write".
+- **Save** merges the entry into `ps.audio[lang]`, **preserving other languages' overrides**. Reverting a language to its default **removes only that language's entry** (no `r2` written — the query ignores `r2` anyway).
+- **Load** reads `ps.audio[lang]` so re-opening the editor on that board shows that language's own override.
+
+So one symbol can carry independent `en` / `es` / `hi` overrides, each authored on its own board, and the **Save** button always updates the language you're currently on. Backend already accepts arbitrary language keys (`audio: v.record(...)`), so this was a client-only fix (`fix(symbol-editor): author audio per board language`).
+
 ---
 
 ## 5. Edge cases & gotchas
@@ -140,5 +150,6 @@ The rules in §3/§4 are implemented in `getProfileSymbolsWithImages` only. Othe
 | Sentences | _tbd_ | ⏳ Not audited | Block/sequence sentences play per-unit clips (ADR-015); verify unit audio follows board voice. |
 | Phrases | _tbd_ | ⏳ Not audited | Phrase word clips + `profilePhrases.audioPath`; verify vs board voice. |
 | Talker bar | _tbd_ | ⏳ Not audited | Fringe board tiles; likely same symbol-audio path as categories. |
+| **Symbol editor (authoring)** | `SymbolEditorModal` + `PropertiesPanel` | ✅ **Fixed** | Loads/generates/saves overrides per board language (shared by every surface). See "Authoring side" in section 4. |
 
 > When you audit a surface: confirm (1) it re-resolves per board voice (no frozen author-time cache), (2) it keys defaults by board language (no cross-language override bleed), (3) it uses the same `resolveSymbolAudioPath` convention. Record the resolver file + any fix commit in the row above.
