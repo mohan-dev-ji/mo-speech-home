@@ -205,13 +205,16 @@ export const getProfileSymbolsWithImages = query({
           (ps.audio as Record<string, { path: string; type?: string } | undefined>) ?? {};
         const overriddenLangs = new Set<string>();
         for (const [lang, src] of Object.entries(overrides)) {
-          if (src?.path) {
+          // Only a GENUINE recording / TTS is a real per-language override. The
+          // editor ALSO persists the SymbolStix default as a `type:'r2'` entry
+          // (resolved with the board voice AT AUTHOR TIME). That is a stale cache,
+          // not an override — if we let it populate `audio[lang]` it shadows the
+          // live board-voice re-resolution below, freezing audio to the authoring
+          // language so voice-follows-text breaks on every language switch. So skip
+          // `r2` entries here and let the default-locale resolution own them.
+          if (src?.path && (src.type === "recorded" || src.type === "tts")) {
             audio[lang] = src.path;
-            // Only a GENUINE recording / TTS counts as an override that a language
-            // pin must respect. The editor also persists the SymbolStix default as
-            // a `type:'r2'` entry (resolved with the board voice) — that must yield
-            // to a pin's language-appropriate voice, so don't treat it as locking.
-            if (src.type === "recorded" || src.type === "tts") overriddenLangs.add(lang);
+            overriddenLangs.add(lang);
           }
         }
 
