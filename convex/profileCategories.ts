@@ -6,7 +6,7 @@ import { requireProTier } from "./lib/access";
 import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
-import { getLanguage, getVoiceEntry } from "../lib/languages/registry";
+import { getLanguage, getVoiceEntry, getVoiceLang } from "../lib/languages/registry";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
@@ -182,6 +182,12 @@ export const getProfileSymbolsWithImages = query({
   },
   handler: async (ctx, args) => {
     const voiceId = args.voiceId ?? DEFAULT_VOICE_ID;
+    // The language of the board voice. The SymbolStix default is seeded under
+    // THIS key (not a hard-coded "en") so a genuine override in one language
+    // (e.g. Generate Audio on the en tile) can't bleed into other boards via the
+    // client's `displayValue(audio, lang, "en")` fallback — each language starts
+    // from its own board-voice default until the user customises it.
+    const boardLang = getVoiceLang(voiceId) ?? "en";
     const rows = await ctx.db
       .query("profileSymbols")
       .withIndex("by_profile_category_id_and_order", (q) =>
@@ -222,9 +228,10 @@ export const getProfileSymbolsWithImages = query({
           const sym = await ctx.db.get(ps.imageSource.symbolId);
           if (sym) {
             imagePath = sym.imagePath;
-            // 2) SymbolStix default — only seed the default-locale slot if no
-            //    override already claims it, so user recordings keep winning.
-            if (!audio.en) {
+            // 2) SymbolStix default for the BOARD language — seed it unless the
+            //    board language already has a genuine override, so per-language
+            //    customisation stays independent and never leaks across boards.
+            if (!audio[boardLang]) {
               const audioMap = sym.audio as Record<string, boolean>;
               const seeded = audioMap?.[voiceId] === true;
               const defaultPath = resolveSymbolAudioPath(
@@ -233,7 +240,7 @@ export const getProfileSymbolsWithImages = query({
                 seeded,
                 sym.audioBasename,
               );
-              if (defaultPath) audio.en = defaultPath;
+              if (defaultPath) audio[boardLang] = defaultPath;
             }
             // Phase 15 (Thread 1): a pinned symbol also seeds its pinned-language
             // clip, resolved with a voice for THAT language matching the board
