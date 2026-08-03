@@ -10,6 +10,7 @@ import { AccordionSection } from './AccordionSection';
 import type { Draft, AudioMode, TextSize, CardShape } from './types';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE, LANGUAGES, getLanguage } from '@/lib/languages/registry';
+import { voiceForLanguage, personaOf } from '@/lib/audio/resolveVoiceId';
 
 type Props = {
   draft: Draft;
@@ -149,15 +150,25 @@ export function PropertiesPanel({
   // ── Generate TTS ────────────────────────────────────────────────────────────
 
   async function handleGenerate() {
-    const text = draft.labelEng.trim();
+    // Generate for the language the board (or pin) is currently on — NOT always
+    // English. The override is saved under this same language in SymbolEditorModal,
+    // so each language is customised independently (voice-follows-text, FEAT-007).
+    const genLang = draft.pinnedLanguage ?? language;
+    const text = (genLang === 'en'
+      ? draft.labelEng
+      : (draft.labelLoc[genLang] || draft.labelEng)
+    ).trim();
     if (!text) return;
+    // Voice follows the generate language (persona preserved), so a symbol edited
+    // on a Hindi/Spanish board is spoken by a Hindi/Spanish voice.
+    const genVoiceId = voiceForLanguage(genLang, personaOf(voiceId));
     setIsGenerating(true);
     setGenerateError(null);
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voiceId }),
+        body: JSON.stringify({ text, voiceId: genVoiceId }),
       });
       if (!res.ok) {
         let detail = `${res.status}`;

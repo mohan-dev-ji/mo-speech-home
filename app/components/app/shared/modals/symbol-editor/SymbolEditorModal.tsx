@@ -293,7 +293,11 @@ export function SymbolEditorModal({
     // this) to the active-source model. Per ADR-009 §4 the SymbolStix
     // default path is convention-resolved via `resolveSymbolAudioPath` from
     // the seeded-voice boolean map on the underlying symbol.
-    const englishAudio = (ps.audio as Record<string, { type: string; path: string; alternates?: { generated?: string; recorded?: string } } | undefined> | undefined)?.en;
+    // Load the override for the effective editing language (pin, else board) —
+    // NOT a hard-coded English slot. Matches the per-language save below, so
+    // re-opening on a hi/es board shows that language's own override.
+    const effLang = ps.pinnedLanguage ?? language;
+    const langAudio = (ps.audio as Record<string, { type: string; path: string; alternates?: { generated?: string; recorded?: string } } | undefined> | undefined)?.[effLang];
     const symbolAudioMap =
       (ps.symbolRecord?.audio as Record<string, boolean> | undefined) ?? {};
     const englishWord = ps.symbolRecord?.words.en ?? '';
@@ -305,15 +309,15 @@ export function SymbolEditorModal({
         ps.symbolRecord?.audioBasename,
       ) ?? undefined;
     const activeSource: Draft['activeAudioSource'] =
-      !englishAudio ? (defaultPath ? 'default' : null) :
-      englishAudio.type === 'recorded' ? 'record' :
-      englishAudio.type === 'tts'      ? 'generate' : 'default';
+      !langAudio ? (defaultPath ? 'default' : null) :
+      langAudio.type === 'recorded' ? 'record' :
+      langAudio.type === 'tts'      ? 'generate' : 'default';
 
     // Each source's path: prefer alternates; fall back to the active path if it matches.
     const generatedAudioPath =
-      englishAudio?.alternates?.generated ?? (englishAudio?.type === 'tts' ? englishAudio.path : undefined);
+      langAudio?.alternates?.generated ?? (langAudio?.type === 'tts' ? langAudio.path : undefined);
     const recordedAudioPath =
-      englishAudio?.alternates?.recorded  ?? (englishAudio?.type === 'recorded' ? englishAudio.path : undefined);
+      langAudio?.alternates?.recorded  ?? (langAudio?.type === 'recorded' ? langAudio.path : undefined);
 
     // Placeholder type (created by the category-create modal) lands on the
     // SymbolStix tab. The label has already been pre-populated above into
@@ -702,36 +706,39 @@ export function SymbolEditorModal({
         language?: string;
         alternates?: { default?: string; generated?: string; recorded?: string };
       };
-      // Per-language audio override — ISO-keyed open record (ADR-009 §2).
-      // Phase 8.0 writes only the English slot; Phase 8.5 widens this once
-      // the editor exposes per-locale recording.
-      let audio: Record<string, AR> | undefined;
-      const activePath =
-        draft.activeAudioSource === 'default'  ? draft.defaultAudioPath :
+      // Per-language audio override — ISO-keyed open record (ADR-009 §2), merged
+      // into the effective editing language (pin, else board). Other languages'
+      // overrides are preserved. Only a genuine generate/record is persisted;
+      // reverting to the default REMOVES this language's entry so playback falls
+      // back to the live board-voice default (a "default"/r2 entry is ignored by
+      // getProfileSymbolsWithImages anyway — see FEAT-007).
+      const audioLang = draft.pinnedLanguage ?? language;
+      const prevAudio = (existingSymbol?.audio as Record<string, AR> | undefined) ?? {};
+      const nextAudio: Record<string, AR> = { ...prevAudio };
+      const genOrRecPath =
         draft.activeAudioSource === 'generate' ? draft.generatedAudioPath :
         draft.activeAudioSource === 'record'   ? recordedAudioPath :
         undefined;
 
-      if (draft.activeAudioSource && activePath) {
-        const activeType: AR['type'] =
-          draft.activeAudioSource === 'generate' ? 'tts' :
-          draft.activeAudioSource === 'record'   ? 'recorded' : 'r2';
-
+      if (genOrRecPath) {
+        const activeType: AR['type'] = draft.activeAudioSource === 'generate' ? 'tts' : 'recorded';
         const alternates: AR['alternates'] = {
-          ...(draft.activeAudioSource !== 'default'   && draft.defaultAudioPath   ? { default:   draft.defaultAudioPath   } : {}),
+          ...(draft.defaultAudioPath ? { default: draft.defaultAudioPath } : {}),
           ...(draft.activeAudioSource !== 'generate' && draft.generatedAudioPath ? { generated: draft.generatedAudioPath } : {}),
           ...(draft.activeAudioSource !== 'record'   && recordedAudioPath        ? { recorded:  recordedAudioPath        } : {}),
         };
-
-        audio = {
-          en: {
-            type: activeType,
-            path: activePath,
-            language: 'en',
-            ...(Object.keys(alternates).length ? { alternates } : {}),
-          },
+        nextAudio[audioLang] = {
+          type: activeType,
+          path: genOrRecPath,
+          language: audioLang,
+          ...(Object.keys(alternates).length ? { alternates } : {}),
         };
+      } else {
+        // 'default' or no source → this language carries no override.
+        delete nextAudio[audioLang];
       }
+      const audio: Record<string, AR> | undefined =
+        Object.keys(nextAudio).length ? nextAudio : undefined;
 
       // Strip bgColour / borderColour from the saved display when they
       // match the parent category's palette — this lets the symbol fall
