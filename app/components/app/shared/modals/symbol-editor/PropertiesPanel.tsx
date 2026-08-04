@@ -176,7 +176,18 @@ export function PropertiesPanel({
         throw new Error(detail);
       }
       const { r2Key, source } = (await res.json()) as { r2Key: string; cached: boolean; source: 'symbolstix' | 'cache' | 'generated' };
-      patch({ generatedAudioPath: r2Key, activeAudioSource: 'generate' });
+      if (source === 'symbolstix' && r2Key === draft.defaultAudioPath) {
+        // The route reused THIS tile's own SymbolStix default clip — the label
+        // matches the tile's symbol, so there's nothing custom. Select 'default'
+        // so Save stores NO override (avoids a redundant tts override that would
+        // otherwise seed via the module pipeline). If the reused clip is a
+        // DIFFERENT symbol's default (the label was changed to another symbol's
+        // word, e.g. "escribir" on a "writer" tile), keep it as an override so
+        // the tile speaks the chosen word.
+        patch({ activeAudioSource: 'default' });
+      } else {
+        patch({ generatedAudioPath: r2Key, activeAudioSource: 'generate' });
+      }
       setAudioSource(source);
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : t('audioGenerateError'));

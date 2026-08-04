@@ -2,11 +2,43 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { QueryCtx } from "./_generated/server";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
+import { getVoiceLang } from "../lib/languages/registry";
 
 type ResolveResult =
   | { source: "symbolstix"; englishWord: string; audioBasename?: string }
   | { source: "ttsCache"; r2Key: string }
   | { source: "none" };
+
+// Languages with a `search_text_<code>` index on `symbols` (schema.ts). The
+// SymbolStix reuse below can only exact-match a localized word for these.
+const SEARCHABLE_LANGS = new Set(["en", "hi", "es"]);
+
+/**
+ * Exact-match a symbol by its word in `lang` (case-insensitive), via that
+ * language's full-text index. Returns the symbol doc or undefined. Confirms the
+ * literal word equality to guard against ranker false positives (e.g. "apple" →
+ * "Apple Pie").
+ */
+async function matchSymbolByWord(ctx: QueryCtx, lang: string, text: string) {
+  const candidates =
+    lang === "hi"
+      ? await ctx.db
+          .query("symbols")
+          .withSearchIndex("search_text_hi", (q) => q.search("searchText.hi", text))
+          .take(10)
+      : lang === "es"
+        ? await ctx.db
+            .query("symbols")
+            .withSearchIndex("search_text_es", (q) => q.search("searchText.es", text))
+            .take(10)
+        : await ctx.db
+            .query("symbols")
+            .withSearchIndex("search_text_en", (q) => q.search("searchText.en", text))
+            .take(10);
+  return candidates.find(
+    (c) => ((c.words as Record<string, string>)[lang] ?? "").toLowerCase().trim() === text
+  );
+}
 
 /**
  * Shared resolution used by `lookup` (the /api/tts entry point) and `checkMany`
@@ -39,25 +71,22 @@ async function resolveCachedAudio(
   // SymbolStix seeded audio is the neutral cheap voice only — skip it for any
   // requested tone (a Gemini clip is never seeded).
   if (!viaGemini && !skipSymbolstix) {
-    // Match against SymbolStix case-insensitively. The exact-match index
-    // (by_words_en) is case-sensitive — "pringles" wouldn't find "Pringles" —
-    // so we hit the tokenised search index and confirm a result's label
-    // matches when lowercased. Confirmation guards against false positives
-    // ("apple" → "Apple Pie") that the search index would otherwise rank.
+    // Match against SymbolStix case-insensitively (the search index tokenises;
+    // `matchSymbolByWord` confirms the literal word to guard ranker false
+    // positives like "apple" → "Apple Pie").
     //
-    // Take a small batch instead of just `.first()`: the relevance ranker can
-    // surface a longer/multi-word symbol above the exact single-word match
-    // (e.g. searching "shiva" might rank "Shiva Goddess" first), and stopping
-    // at the top result would cause us to miss a perfectly valid SymbolStix
-    // recording and fall through to fresh TTS synthesis.
-    const candidates = await ctx.db
-      .query("symbols")
-      .withSearchIndex("search_text_en", (q) => q.search("searchText.en", text))
-      .take(10);
-
-    const exact = candidates.find(
-      (c) => (c.words.en ?? "").toLowerCase().trim() === text
-    );
+    // A seeded clip lives at `audio/<voiceId>/symbols/<words.en>.mp3` — keyed by
+    // the ENGLISH word but SPEAKING the voice's language. So match the requested
+    // text against English first, and — on a non-EN voice — the voice's OWN
+    // language too. Without the second pass a localized word (e.g. "escritor" on
+    // an es voice) never matches "writer" and we regenerate a duplicate of the
+    // default that already exists (FEAT-007).
+    const lang = getVoiceLang(voiceId) ?? "en";
+    const exact =
+      (await matchSymbolByWord(ctx, "en", text)) ??
+      (lang !== "en" && SEARCHABLE_LANGS.has(lang)
+        ? await matchSymbolByWord(ctx, lang, text)
+        : undefined);
     if (exact) {
       const audioMap = exact.audio as Record<string, boolean>;
       if (audioMap?.[voiceId] === true) {
