@@ -72,6 +72,22 @@ export type LibraryPackCategorySymbol = {
    * cache and is not persisted into the module JSON — receivers regenerate
    * from the label or use the SymbolStix default. */
   recordedAudioPath?: string;
+  /**
+   * Per-symbol per-language audio override carried through publish→seed
+   * (FEAT-007). Only globally-shareable `tts` entries are published — their
+   * paths are voice-keyed R2 clips any account can play; account-specific
+   * recordings are dropped at publish. Set on the seeded profileSymbol.
+   */
+  audio?: Record<
+    string,
+    {
+      type: "r2" | "tts" | "recorded";
+      path: string;
+      ttsText?: string;
+      language?: string;
+      alternates?: { default?: string; generated?: string; recorded?: string };
+    }
+  >;
 };
 
 export type LibraryPackCategory = {

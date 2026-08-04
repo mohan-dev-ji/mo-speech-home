@@ -165,6 +165,10 @@ const libraryModuleCategoryItems = v.array(
         license: v.optional(v.string()),
         aiPrompt: v.optional(v.string()),
         recordedAudioPath: v.optional(v.string()),
+        // Per-symbol audio override carried through publish→seed (FEAT-007).
+        // Publish emits only globally-shareable `tts` entries; account-specific
+        // recordings are dropped, so a seeded account can always resolve the path.
+        audio: v.optional(v.record(v.string(), audioSource)),
       })
     ),
   })

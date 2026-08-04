@@ -265,10 +265,30 @@ export const publishCategoryAsModule = mutation({
         const hasAnyLabel = Object.values(s.label).some(
           (vv) => typeof vv === "string" && vv !== ""
         );
+        // Carry per-symbol audio overrides through the seed round-trip, but only
+        // globally-shareable `tts` clips (voice-keyed R2 paths any account can
+        // play). Account-specific recordings can't seed, so they're dropped.
+        const audioMap =
+          (s.audio as
+            | Record<
+                string,
+                {
+                  type: "r2" | "tts" | "recorded";
+                  path: string;
+                  ttsText?: string;
+                  language?: string;
+                  alternates?: { default?: string; generated?: string; recorded?: string };
+                }
+              >
+            | undefined) ?? {};
+        const shareableAudio = Object.fromEntries(
+          Object.entries(audioMap).filter(([, a]) => a?.type === "tts")
+        );
         return {
           ...base,
           symbolId: s.imageSource.symbolId as string,
           ...(hasAnyLabel ? { labelOverride: s.label } : {}),
+          ...(Object.keys(shareableAudio).length ? { audio: shareableAudio } : {}),
         };
       }
       // Placeholders are filtered out above, so the remaining custom kinds map

@@ -62,6 +62,8 @@ export async function materialiseSymbolsFromJson(
         },
         label,
         ...(sym.display ? { display: sym.display } : {}),
+        // Per-symbol audio override carried from the module (tts only — FEAT-007).
+        ...(sym.audio ? { audio: sym.audio } : {}),
         updatedAt: now,
       });
       symbolsAdded++;
