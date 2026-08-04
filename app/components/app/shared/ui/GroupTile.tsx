@@ -16,10 +16,18 @@ import { TranslateRevertControl } from '@/app/components/app/shared/ui/Translate
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
 import { labelTranslateState } from '@/lib/languages/variants';
 
-const TITLE_FONT_SIZE = {
-  large: 'clamp(0.875rem, 6cqi, 1.25rem)',
-  medium: 'clamp(0.75rem, 6cqi, 1rem)',
-  small: 'clamp(0.625rem, 6cqi, 0.875rem)',
+// Per grid-size title type + tile padding: bigger grid → bigger title + roomier
+// padding. Design-system tokens only — p/large/h4 text sizes; symbol-card (8px)
+// padding for small/medium, general (16px) for large.
+const TITLE_TEXT_CLASS = {
+  small:  'text-theme-p',
+  medium: 'text-theme-large',
+  large:  'text-theme-h4',
+} as const;
+const TILE_PADDING_CLASS = {
+  small:  'p-theme-symbol',
+  medium: 'p-theme-symbol',
+  large:  'p-theme-general',
 } as const;
 
 type Props = {
@@ -107,7 +115,8 @@ export function GroupTile({
   };
 
   const colourPair = getCategoryColour(colour ?? '#6B7280');
-  const fontSize = TITLE_FONT_SIZE[gridSize];
+  const titleClass = TITLE_TEXT_CLASS[gridSize];
+  const paddingClass = TILE_PADDING_CLASS[gridSize];
   const Tag = isEditing ? ('div' as const) : ('button' as const);
 
   // Inline title editing — dashed box in edit mode, commit on blur / Enter.
@@ -156,7 +165,7 @@ export function GroupTile({
             : {})}
         className={[
           'relative w-full @container flex flex-col items-center justify-center text-center',
-          'gap-theme-gap p-theme-folder rounded-theme-card border-2 border-dashed',
+          `gap-theme-gap ${paddingClass} rounded-theme-card border-2 border-dashed`,
           isEditing
             ? 'border-theme-enter-mode'
             : 'border-transparent cursor-pointer group transition-opacity hover:opacity-90',
@@ -175,8 +184,8 @@ export function GroupTile({
                 else if (e.key === 'Escape') { setDraft(name); e.currentTarget.blur(); }
               }}
               aria-label={t('rename')}
-              className="flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none"
-              style={{ fontSize, background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
+              className={`flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none ${titleClass}`}
+              style={{ background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
             />
             {language && nameRecord && (
               <TranslateRevertControl
@@ -190,8 +199,7 @@ export function GroupTile({
           </div>
         ) : (
           <p
-            className="w-full text-center text-theme-alt-text font-normal truncate leading-tight"
-            style={{ fontSize }}
+            className={`w-full text-center text-theme-alt-text font-normal truncate leading-tight ${titleClass}`}
           >
             {name}
           </p>
