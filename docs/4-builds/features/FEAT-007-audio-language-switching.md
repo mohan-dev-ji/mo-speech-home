@@ -113,6 +113,16 @@ The read path above only works if overrides are *stored* per language. The symbo
 
 So one symbol can carry independent `en` / `es` / `hi` overrides, each authored on its own board, and the **Save** button always updates the language you're currently on. Backend already accepts arbitrary language keys (`audio: v.record(...)`), so this was a client-only fix (`fix(symbol-editor): author audio per board language`).
 
+### Publish → seed round-trip (per-symbol audio in default/tiered modules)
+
+Authored audio must also survive **publish → libraryModules → install** or a seeded account loses it. Symbolstix category-module symbols originally carried only `symbolId` + `labelOverride` (audio was assumed to always be the symbolstix default), so an author's generated audio was dropped on seed — a new signup fell back to the default (the *write/writer* edge case: label overridden to "write", audio still "writer"). Widened the round-trip (`feat(modules): carry per-symbol tts audio overrides through publish→seed`):
+
+- **schema** — optional per-language `audio` map on the category-module symbol (reuses `audioSource`); additive.
+- **publish** — emits only globally-shareable **`tts`** entries (voice-keyed R2 paths any account can play). **Account-specific recordings (`accounts/<id>/…`) are dropped** — they'd 404 for another user.
+- **install** — sets `audio` on the seeded `profileSymbol`.
+
+**Opt-in:** a symbol with no override still resolves from the symbolstix default, so strict library-first defaults are unchanged — this only stops silently dropping a deliberate override. Re-publish is required after authoring for the audio to reach the module.
+
 ---
 
 ## 5. Edge cases & gotchas
