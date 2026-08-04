@@ -37,7 +37,7 @@ export function ColourSwatchPicker({ value, onChange, ariaLabel }: Props) {
           {/* Click-away backdrop */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 p-1.5 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50"
+            className="absolute top-full left-0 mt-1.5 p-1.5 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50"
             style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1.25rem)', gap: '0.25rem' }}
           >
             {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => {
