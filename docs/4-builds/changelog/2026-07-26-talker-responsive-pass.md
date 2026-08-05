@@ -1,7 +1,7 @@
 # 2026-07-26 — Talker responsive pass
 
 **Milestone:** Responsive pass (Talker dropdown project) · **Issues:** MOS-5, MOS-6, MOS-7
-**Spec:** [FEAT-006](../features/FEAT-006-talker-dropdown-responsive.md) · **Plan:** [responsive-pass-talker](../plans/responsive-pass-talker.md) · **PR:** [#3](https://github.com/mohan-dev-ji/mo-speech-home/pull/3)
+**Spec:** [FEAT-006](../features/FEAT-006-talker-dropdown-responsive.md) · **Plan:** [phase-15.8-talker-responsive](../plans/_done/phase-15.8-talker-responsive.md) · **PR:** [#3](https://github.com/mohan-dev-ji/mo-speech-home/pull/3)
 
 Made the persistent talker responsive on small screens.
 

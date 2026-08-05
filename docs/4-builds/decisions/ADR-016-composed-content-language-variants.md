@@ -497,7 +497,7 @@ Scope: this makes *complete* variants seed correctly. Incomplete (untranslated)
 siblings are stripped at publish (MOS-26, folded in as the same change); genuine
 duplicate authoring rows are Phase-4 hygiene. Additive optional fields — no migration.
 
-Implemented by [`variant-aware-module-seeding.md`](../plans/variant-aware-module-seeding.md);
+Implemented by [`variant-aware-module-seeding.md`](../plans/_done/phase-15.9-variant-aware-module-seeding.md);
 design spec `docs/superpowers/specs/2026-08-01-variant-aware-module-seeding-design.md`.
 
 ---

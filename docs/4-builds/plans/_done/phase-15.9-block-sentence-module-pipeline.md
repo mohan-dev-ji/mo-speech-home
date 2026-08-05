@@ -1,5 +1,7 @@
 # Block-sentence Module Pipeline Implementation Plan
 
+**Status:** ✅ Shipped to `main` (2026-08-02). Landed via `1fd3348` / `cb58d6a` / `db19203` / `20a3e2e` / `21a3f88` / `f6f9985`; ADR-015 addendum `ecc50cf`. Archived 2026-08-05 (checkboxes below left as-authored). One of the phase-15.9 module seed round-trip pair with [`phase-15.9-variant-aware-module-seeding.md`](phase-15.9-variant-aware-module-seeding.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Carry block/sequence sentences' `units[]` + `playback` through the module publish → JSON → seed pipeline, and capture each block sentence's full localised text into `text` at authoring time — so seeded (default) accounts get working block sentences.

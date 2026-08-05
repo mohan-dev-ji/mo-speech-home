@@ -1,5 +1,7 @@
 # Variant-aware Module Seeding Implementation Plan
 
+**Status:** ✅ Shipped to `main` (2026-08-02). Landed via `3e475b2` / `411d199` / `3b0dce7` / `b863da6`; ADR-016 addendum `a8255ac`. Archived 2026-08-05 (checkboxes below left as-authored). One of the phase-15.9 module seed round-trip pair with [`phase-15.9-block-sentence-module-pipeline.md`](phase-15.9-block-sentence-module-pipeline.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Carry `authoredLanguage` + variant-group identity through the module publish → JSON → seed pipeline so seeded (default) accounts reproduce the authoring account's variant groups (collapse by board language + correct voice).

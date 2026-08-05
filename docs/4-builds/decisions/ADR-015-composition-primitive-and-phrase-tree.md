@@ -200,7 +200,7 @@ the same publish/seed round-trip): together they let a seeded default sentence
 carry both its language-variant grouping *and* its block decomposition. Additive
 optional fields throughout — no migration.
 
-Implemented by [`block-sentence-module-pipeline.md`](../plans/block-sentence-module-pipeline.md);
+Implemented by [`block-sentence-module-pipeline.md`](../plans/_done/phase-15.9-block-sentence-module-pipeline.md);
 design spec [`2026-08-02-block-sentence-module-pipeline-design.md`](../../superpowers/specs/2026-08-02-block-sentence-module-pipeline-design.md).
 
 ---
