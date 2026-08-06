@@ -64,28 +64,35 @@ export function SymbolStixTab({
         sym.audioBasename,
       ) ?? undefined;
 
+    const words = sym.words as Record<string, string | undefined>;
+    const currentLang = draft.pinnedLanguage ?? language;
+
+    // Overwrite the label with the picked symbol's word UNLESS the user has
+    // hand-typed this language (labelDirty). Placeholder / symbol-derived
+    // labels are replaced so "clicking around" symbols keeps the label in sync;
+    // a real edit is protected. Applies to every language the symbol provides.
+    const nextLabelEng =
+      draft.labelDirty['en'] ? draft.labelEng : (words.en ?? draft.labelEng);
+    const nextLabelLoc: Record<string, string> = { ...draft.labelLoc };
+    for (const [k, v] of Object.entries(words)) {
+      if (k === 'en' || !v) continue;
+      if (!draft.labelDirty[k]) nextLabelLoc[k] = v;
+    }
+
     patch({
       symbolstixId: sym._id,
       symbolstixImagePath: sym.imagePath,
       symbolstixAudioEng: defaultAudio,
       symbolstixAudioHin: undefined,
       defaultAudioPath: defaultAudio,
-      // Adopt 'default' as the active source only if nothing is active yet —
-      // swapping the symbol mid-edit must not clobber a generated/recorded clip.
-      ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const }),
-      ...(draft.labelEng.trim() === '' && sym.words.en ? { labelEng: sym.words.en } : {}),
-      // Phase 15: seed every non-English localised label from the picked symbol's
-      // words (where not already filled), so the dynamic label field is populated
-      // for whatever language the instructor is on.
-      ...(() => {
-        const words = sym.words as Record<string, string | undefined>;
-        const seed: Record<string, string> = {};
-        for (const [k, v] of Object.entries(words)) {
-          if (k !== 'en' && v && !(draft.labelLoc[k] ?? '').trim()) seed[k] = v;
-        }
-        return Object.keys(seed).length ? { labelLoc: { ...draft.labelLoc, ...seed } } : {};
-      })(),
+      symbolWords: (sym.words as Record<string, string>),
+      labelEng: nextLabelEng,
+      labelLoc: nextLabelLoc,
+      // Swapping the symbol must not clobber a generated/recorded clip the user
+      // committed; only adopt 'default' when nothing is active yet.
+      ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const, audioMode: 'default' as const }),
     });
+    void currentLang; // retained for readability; per-language handled above
   }
 
   return (

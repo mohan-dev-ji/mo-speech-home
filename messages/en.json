@@ -851,6 +851,8 @@
     "labelEng": "English",
     "labelHin": "Hindi",
     "labelPlaceholder": "Enter name for symbol",
+    "labelResetToSymbol": "Reset to \"{word}\"",
+    "labelFollowsSymbolHint": "Label and audio follow this symbol.",
     "sectionAudio": "Audio",
     "audioDefault": "Default",
     "audioDefaultHint": "Uses pre-generated SymbolStix audio",

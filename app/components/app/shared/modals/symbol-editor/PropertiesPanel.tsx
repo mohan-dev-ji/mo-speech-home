@@ -264,10 +264,11 @@ export function PropertiesPanel({
   // English master ('en'). English stays the master + fallback everywhere.
   const labelFieldLang = editorMode === 'categoryBoard' ? (draft.pinnedLanguage ?? language) : 'en';
   const labelFieldValue = labelFieldLang === 'en' ? draft.labelEng : (draft.labelLoc[labelFieldLang] ?? '');
-  const setLabelField = (v: string) =>
-    labelFieldLang === 'en'
-      ? patch({ labelEng: v })
-      : patch({ labelLoc: { ...draft.labelLoc, [labelFieldLang]: v } });
+  const setLabelField = (v: string) => {
+    const dirty = { ...draft.labelDirty, [labelFieldLang]: v.trim().length > 0 };
+    if (labelFieldLang === 'en') patch({ labelEng: v, labelDirty: dirty });
+    else patch({ labelLoc: { ...draft.labelLoc, [labelFieldLang]: v }, labelDirty: dirty });
+  };
   const labelFieldTitle = editorMode === 'listItem'
     ? t('sectionDescription')
     : (getLanguage(labelFieldLang)?.nativeLabel ?? t('labelEng'));
@@ -298,6 +299,24 @@ export function PropertiesPanel({
             }}
           />
         </label>
+        {(() => {
+          const word = (draft.symbolWords[labelFieldLang] ?? '').trim();
+          if (!word || labelFieldValue.trim() === word) return null;
+          return (
+            <button
+              type="button"
+              onClick={() =>
+                labelFieldLang === 'en'
+                  ? patch({ labelEng: word, labelDirty: { ...draft.labelDirty, en: false } })
+                  : patch({ labelLoc: { ...draft.labelLoc, [labelFieldLang]: word }, labelDirty: { ...draft.labelDirty, [labelFieldLang]: false } })
+              }
+              className="mt-1 text-theme-xs font-medium text-left"
+              style={{ color: 'var(--theme-brand-primary)' }}
+            >
+              {t('labelResetToSymbol', { word })}
+            </button>
+          );
+        })()}
       </AccordionSection>}
 
       {/* ── Language pin (categoryBoard only) — Phase 15 Thread 1. Placed high +
