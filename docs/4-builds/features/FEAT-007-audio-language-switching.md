@@ -160,7 +160,7 @@ The rules in §3/§4 are implemented in `getProfileSymbolsWithImages` only. Othe
 | Sentences | _tbd_ | ⏳ Not audited | Block/sequence sentences play per-unit clips (ADR-015); verify unit audio follows board voice. |
 | Phrases | _tbd_ | ⏳ Not audited | Phrase word clips + `profilePhrases.audioPath`; verify vs board voice. |
 | Talker bar | _tbd_ | ⏳ Not audited | Fringe board tiles; likely same symbol-audio path as categories. |
-| **Symbol editor (authoring)** | `SymbolEditorModal` + `PropertiesPanel` | ✅ **Fixed** · ⏳ open gap | Loads/generates/saves overrides per board language (shared by every surface). See "Authoring side" in section 4. **Open:** silent label↔symbol-word audio mismatch — see §8 F-1. |
+| **Symbol editor (authoring)** | `SymbolEditorModal` + `PropertiesPanel` | ✅ **Fixed** | Audio-follows-label redesign (phase-16): **Default** resolves the label per language, **Generate** carries a decoupled spoken text, **Record** unchanged. F-1 eliminated by construction — see §8. |
 
 > When you audit a surface: confirm (1) it re-resolves per board voice (no frozen author-time cache), (2) it keys defaults by board language (no cross-language override bleed), (3) it uses the same `resolveSymbolAudioPath` convention. Record the resolver file + any fix commit in the row above.
 
@@ -170,7 +170,7 @@ The rules in §3/§4 are implemented in `getProfileSymbolsWithImages` only. Othe
 
 ### F-1 — Label ↔ symbol-word divergence silently mismatches default audio, per language
 
-**Status:** ⏳ Open — editor warning not yet built. (Data-level instances are fixable by hand; the guardrail is the fix.)
+**Status:** ✅ Resolved by the audio-follows-label redesign (phase-16, `docs/4-builds/plans/_done/phase-16-audio-follows-label-editor-redesign-plan.md`). Rather than warn on divergence, audio now **follows the label by construction**: the editor's Default mode resolves `label[lang]` through the `/api/tts` chain on preview/save (storing a per-language `tts` override with `ttsText=label` when diverged, none when it matches the symbol word), so a label can never silently ride a different symbol word's audio. Deliberate audio≠label lives in the Generate tab's own spoken-text field. Verified live: diverging an es label stored `{type:'tts', ttsText:'natación libre'}`; reset restored `audio:null`. The original open description is kept below for history.
 
 **Symptom.** A tile displays one word but *speaks* another, in one or more languages, with no override involved and no warning in the editor. Only surfaces when you switch the board to the affected language and tap — invisible on the board you authored on.
 
