@@ -17,7 +17,7 @@
 - **`/api/tts` must be called WITHOUT the `literal` flag** — `literal: true` skips the symbols-folder reuse step. Preserve symbols-folder → tts-cache → generate order.
 - **No Convex schema change** — `audioSourceValidator` already carries `ttsText` (`convex/profileSymbols.ts:8`).
 - **Commit on `main`** (project convention — do not branch). End commit messages with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
-- Design spec: `docs/4-builds/plans/audio-follows-label-editor-redesign.md`.
+- Design spec: `docs/4-builds/plans/phase-16-audio-follows-label-editor-redesign-SPEC.md`.
 
 ---
 
@@ -685,8 +685,8 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - [ ] **Step 4: Move the plan to _done and push**
 
 ```bash
-git mv docs/4-builds/plans/audio-follows-label-editor-redesign-plan.md docs/4-builds/plans/_done/audio-follows-label-editor-redesign-plan.md
-git commit -m "chore(plans): retire audio-follows-label plan to _done
+git mv docs/4-builds/plans/phase-16-audio-follows-label-editor-redesign-plan.md docs/4-builds/plans/_done/phase-16-audio-follows-label-editor-redesign-plan.md
+git commit -m "chore(plans): retire phase-16 audio-follows-label plan to _done
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 git push origin HEAD
