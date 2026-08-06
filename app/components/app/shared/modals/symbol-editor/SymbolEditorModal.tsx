@@ -521,18 +521,33 @@ export function SymbolEditorModal({
   }
 
   function handlePreviewPlay() {
-    if (draft.activeAudioSource === 'default') {
+    // categoryBoard: the selected TAB (`audioMode`) is the source of truth,
+    // matching what Save persists (see the category-board branch of
+    // handleSave below). listItem keeps the legacy active-source model
+    // untouched — that flow is intentionally out of scope for this fix.
+    const activeMode = editorMode === 'categoryBoard' ? draft.audioMode : draft.activeAudioSource;
+
+    if (activeMode === 'default') {
       resolveDefaultKey()
-        .then((key) => { if (key) { const a = new Audio(`/api/assets?key=${key}`); previewAudioRef.current = a; setIsPreviewPlaying(true); a.addEventListener('ended', () => setIsPreviewPlaying(false)); a.addEventListener('error', () => setIsPreviewPlaying(false)); a.play().catch(() => setIsPreviewPlaying(false)); } })
+        .then((key) => {
+          if (!key) return;
+          previewAudioRef.current?.pause();
+          const a = new Audio(`/api/assets?key=${key}`);
+          previewAudioRef.current = a;
+          setIsPreviewPlaying(true);
+          a.addEventListener('ended', () => setIsPreviewPlaying(false));
+          a.addEventListener('error', () => setIsPreviewPlaying(false));
+          a.play().catch(() => setIsPreviewPlaying(false));
+        })
         .catch(() => setIsPreviewPlaying(false));
       return;
     }
 
     let audioUrl: string | null = null;
 
-    if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
+    if (activeMode === 'generate' && draft.generatedAudioPath) {
       audioUrl = `/api/assets?key=${draft.generatedAudioPath}`;
-    } else if (draft.activeAudioSource === 'record') {
+    } else if (activeMode === 'record') {
       if (pendingAudioBlobUrl) audioUrl = pendingAudioBlobUrl;
       else if (draft.recordedAudioPath) audioUrl = `/api/assets?key=${draft.recordedAudioPath}`;
     }
@@ -951,6 +966,7 @@ export function SymbolEditorModal({
               onAudioBlobChange={handleAudioBlobChange}
               editorMode={editorMode}
               voiceId={voiceId}
+              resolveDefaultKey={resolveDefaultKey}
             />
           )}
 

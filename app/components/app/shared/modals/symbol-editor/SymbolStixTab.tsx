@@ -65,7 +65,6 @@ export function SymbolStixTab({
       ) ?? undefined;
 
     const words = sym.words as Record<string, string | undefined>;
-    const currentLang = draft.pinnedLanguage ?? language;
 
     // Overwrite the label with the picked symbol's word UNLESS the user has
     // hand-typed this language (labelDirty). Placeholder / symbol-derived
@@ -92,7 +91,6 @@ export function SymbolStixTab({
       // committed; only adopt 'default' when nothing is active yet.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const, audioMode: 'default' as const }),
     });
-    void currentLang; // retained for readability; per-language handled above
   }
 
   return (

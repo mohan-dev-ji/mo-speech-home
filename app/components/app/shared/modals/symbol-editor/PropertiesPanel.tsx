@@ -21,6 +21,11 @@ type Props = {
   onAudioBlobChange: (blob: Blob | null, blobUrl: string | null) => void;
   editorMode: 'categoryBoard' | 'listItem' | 'sentenceSlot';
   voiceId: string;
+  // Resolves the R2 key the Default (follow-label) audio should play for the
+  // effective language — same resolver SymbolEditorModal uses for Save, so
+  // preview always matches what gets persisted (categoryBoard only; see
+  // SymbolEditorModal.handlePreviewPlay).
+  resolveDefaultKey: () => Promise<string | undefined>;
 };
 
 const AUDIO_MODES_BOARD: AudioMode[] = ['default', 'generate', 'record'];
@@ -43,6 +48,7 @@ export function PropertiesPanel({
   onAudioBlobChange,
   editorMode,
   voiceId,
+  resolveDefaultKey,
 }: Props) {
   const t = useTranslations('symbolEditor');
 
@@ -202,24 +208,33 @@ export function PropertiesPanel({
   }
 
   // ── Active-audio helpers ────────────────────────────────────────────────────
+  // categoryBoard: the selected TAB (`audioMode`) is the source of truth,
+  // matching what Save persists (see SymbolEditorModal.handleSave). listItem
+  // keeps the legacy active-source model — there a tab can be selected for
+  // browsing without being "active" until the user taps "Use generated/
+  // recorded audio" (see the Use-* buttons below), so it must stay keyed on
+  // `activeAudioSource`. That flow is intentionally untouched by this fix.
+  const activeAudioMode = editorMode === 'categoryBoard' ? draft.audioMode : draft.activeAudioSource;
 
-  function activeAudioUrl(): string | null {
-    if (draft.activeAudioSource === 'default' && draft.defaultAudioPath) {
-      return `/api/assets?key=${draft.defaultAudioPath}`;
+  async function playActiveAudio() {
+    if (activeAudioMode === 'default') {
+      const key = await resolveDefaultKey();
+      if (!key) return;
+      ttsPreviewAudioRef.current?.pause();
+      const audio = new Audio(`/api/assets?key=${key}`);
+      ttsPreviewAudioRef.current = audio;
+      audio.play().catch(() => {});
+      return;
     }
-    if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
-      return `/api/assets?key=${draft.generatedAudioPath}`;
-    }
-    if (draft.activeAudioSource === 'record') {
-      if (pendingAudioBlobUrl) return pendingAudioBlobUrl;
-      if (draft.recordedAudioPath) return `/api/assets?key=${draft.recordedAudioPath}`;
-    }
-    return null;
-  }
 
-  function playActiveAudio() {
-    const url = activeAudioUrl();
+    let url: string | null = null;
+    if (activeAudioMode === 'generate' && draft.generatedAudioPath) {
+      url = `/api/assets?key=${draft.generatedAudioPath}`;
+    } else if (activeAudioMode === 'record') {
+      url = pendingAudioBlobUrl ?? (draft.recordedAudioPath ? `/api/assets?key=${draft.recordedAudioPath}` : null);
+    }
     if (!url) return;
+
     ttsPreviewAudioRef.current?.pause();
     const audio = new Audio(url);
     ttsPreviewAudioRef.current = audio;
@@ -227,9 +242,9 @@ export function PropertiesPanel({
   }
 
   const statusLabelKey =
-    draft.activeAudioSource === 'default'  ? 'audioStatusDefault'   :
-    draft.activeAudioSource === 'generate' ? 'audioStatusGenerated' :
-    draft.activeAudioSource === 'record'   ? 'audioStatusRecorded'  :
+    activeAudioMode === 'default'  ? 'audioStatusDefault'   :
+    activeAudioMode === 'generate' ? 'audioStatusGenerated' :
+    activeAudioMode === 'record'   ? 'audioStatusRecorded'  :
     'audioStatusNone';
 
   // ── Labels ──────────────────────────────────────────────────────────────────
@@ -261,6 +276,14 @@ export function PropertiesPanel({
   // English master ('en'). English stays the master + fallback everywhere.
   const labelFieldLang = editorMode === 'categoryBoard' ? (draft.pinnedLanguage ?? language) : 'en';
   const labelFieldValue = labelFieldLang === 'en' ? draft.labelEng : (draft.labelLoc[labelFieldLang] ?? '');
+  // Play-button enablement, keyed on `activeAudioMode` (see playActiveAudio above).
+  // Default is "playable" whenever there's a label to resolve (even before any
+  // TTS call has run) or the symbol already has its own default clip.
+  const canPlay =
+    activeAudioMode === 'default'  ? !!(labelFieldValue.trim() || draft.defaultAudioPath) :
+    activeAudioMode === 'generate' ? !!draft.generatedAudioPath :
+    activeAudioMode === 'record'   ? !!(pendingAudioBlobUrl || draft.recordedAudioPath) :
+    false;
   const setLabelField = (v: string) => {
     const dirty = { ...draft.labelDirty, [labelFieldLang]: v.trim().length > 0 };
     if (labelFieldLang === 'en') patch({ labelEng: v, labelDirty: dirty });
@@ -359,13 +382,13 @@ export function PropertiesPanel({
           <button
             type="button"
             onClick={playActiveAudio}
-            disabled={!activeAudioUrl()}
+            disabled={!canPlay}
             aria-label={t('audioPlay')}
             className="flex items-center justify-center w-8 h-8 rounded-theme-sm shrink-0"
             style={{
               background: 'var(--theme-brand-primary)',
               color: 'var(--theme-alt-text)',
-              opacity: activeAudioUrl() ? 1 : 0.4,
+              opacity: canPlay ? 1 : 0.4,
             }}
           >
             <Play className="w-4 h-4" />
