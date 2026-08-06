@@ -1,8 +1,46 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+
+// Avoid the SSR useLayoutEffect warning while still fitting before paint on the client.
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+// Smallest we let the label shrink to (fraction of its base font size) before we
+// accept clipping — keeps very long single words legible rather than microscopic.
+const MIN_FIT_SCALE = 0.55;
+
+// Shrink the label font to fit the card width on one line instead of truncating.
+// Measures the span's overflow against its box and writes a `--fit` multiplier the
+// inline font-size calc() reads. Re-runs on label/size change and on card resize.
+function useFitLabel(deps: unknown[]) {
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    const el = spanRef.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.setProperty('--fit', '1');
+      const avail = el.clientWidth;
+      const needed = el.scrollWidth;
+      if (needed > avail && avail > 0) {
+        el.style.setProperty('--fit', String(Math.max(MIN_FIT_SCALE, avail / needed)));
+      }
+    };
+    fit();
+    // Observe the (font-independent) card container so refitting on resize can't loop.
+    const target = containerRef.current;
+    if (!target || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(target);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return { spanRef, containerRef };
+}
 
 // componentKey: "symbol-{symbolId}" — required for modelling mode targeting.
 
@@ -104,6 +142,10 @@ export function SymbolCard({
     ? DISPLAY_TEXT_CQW[textSizeOverride]
     : PROFILE_TEXT_CQW[stateFlags.symbol_text_size ?? 'small'];
 
+  // Refit when the label or its base size changes (profile text-size changes the base
+  // but not the container, so a resize alone wouldn't catch it).
+  const { spanRef, containerRef } = useFitLabel([label, textFontSize]);
+
   const shapeClass = SHAPE_CLASS[display?.shape ?? 'rounded'];
 
   const borderWidth = display?.borderWidth ?? 4;
@@ -113,7 +155,7 @@ export function SymbolCard({
     : (display?.borderColour ?? defaultBorder);
 
   return (
-    <div className="w-full aspect-square" style={{ containerType: 'inline-size' }}>
+    <div ref={containerRef} className="w-full aspect-square" style={{ containerType: 'inline-size' }}>
     <button
       type="button"
       onClick={onTap}
@@ -151,8 +193,12 @@ export function SymbolCard({
       )}
       {labelVisible && (
         <span
-          className={`${textWeightClass} text-center leading-tight mt-1 truncate w-full px-0.5`}
-          style={{ color: display?.textColour ?? 'var(--theme-text)', fontSize: textFontSize }}
+          ref={spanRef}
+          className={`${textWeightClass} text-center leading-tight mt-1 w-full px-0.5 whitespace-nowrap overflow-hidden`}
+          style={{
+            color: display?.textColour ?? 'var(--theme-text)',
+            fontSize: `calc(${textFontSize} * var(--fit, 1))`,
+          }}
         >
           {label}
         </span>
