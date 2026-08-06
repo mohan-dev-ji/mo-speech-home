@@ -31,6 +31,18 @@ export type Draft = {
   // field. Phase 15: replaces the old single `labelHin` field.
   labelEng: string;
   labelLoc: Record<string, string>;
+  // Canonical words of the currently-picked SymbolStix symbol, keyed by ISO
+  // code. Empty for non-symbolstix sources (no canonical word). Used to decide
+  // label-on-pick overwrite, the reset affordance, and whether audio needs a
+  // per-language override.
+  symbolWords: Record<string, string>;
+  // Per-language "the user hand-typed this label" flag. A dirty language is not
+  // overwritten when the user picks a different symbol.
+  labelDirty: Record<string, boolean>;
+  // Generate tab's own spoken text, decoupled from the label (the deferred
+  // Proloquo-style pronunciation field, scoped to Generate). Seeded from the
+  // label when the tab is first opened; then independently editable.
+  generateText?: string;
   // Audio — `audioMode` is purely tab navigation; `activeAudioSource` is what plays.
   audioMode: AudioMode;
   activeAudioSource: ActiveAudioSource | null;
@@ -56,6 +68,8 @@ export const INITIAL_DRAFT: Draft = {
   imageSourceTab: 'symbolstix',
   labelEng: '',
   labelLoc: {},
+  symbolWords: {},
+  labelDirty: {},
   audioMode: 'default',
   activeAudioSource: null,
   bgColour: '#ffffff',
