@@ -154,10 +154,7 @@ export function PropertiesPanel({
     // English. The override is saved under this same language in SymbolEditorModal,
     // so each language is customised independently (voice-follows-text, FEAT-007).
     const genLang = draft.pinnedLanguage ?? language;
-    const text = (genLang === 'en'
-      ? draft.labelEng
-      : (draft.labelLoc[genLang] || draft.labelEng)
-    ).trim();
+    const text = (draft.generateText ?? '').trim();
     if (!text) return;
     // Voice follows the generate language (persona preserved), so a symbol edited
     // on a Hindi/Spanish board is spoken by a Hindi/Spanish voice.
@@ -389,7 +386,14 @@ export function PropertiesPanel({
               <button
                 key={mode}
                 type="button"
-                onClick={() => patch({ audioMode: mode })}
+                onClick={() => {
+                  if (mode === 'generate' && !draft.generateText) {
+                    const seed = (labelFieldLang === 'en' ? draft.labelEng : (draft.labelLoc[labelFieldLang] || draft.labelEng)).trim();
+                    patch({ audioMode: mode, generateText: seed });
+                  } else {
+                    patch({ audioMode: mode });
+                  }
+                }}
                 className="flex-1 py-1.5 rounded text-theme-xs font-medium transition-colors"
                 style={{
                   background: isActive ? 'var(--theme-brand-primary)' : 'transparent',
@@ -406,39 +410,38 @@ export function PropertiesPanel({
         {draft.audioMode === 'default' && (
           <div className="flex flex-col gap-2">
             <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
-              {t('audioDefaultHint')}
+              {t('audioDefaultFollowsLabel')}
             </p>
-            {draft.defaultAudioPath && draft.activeAudioSource !== 'default' && (
-              <button
-                type="button"
-                onClick={() => patch({ activeAudioSource: 'default' })}
-                className="flex items-center justify-center gap-1.5 rounded-theme-sm py-2 text-theme-s font-medium"
-                style={{
-                  background: 'var(--theme-symbol-bg)',
-                  color: 'var(--theme-text)',
-                  border: '1px solid var(--theme-button-highlight)',
-                }}
-              >
-                {t('audioUseDefault')}
-              </button>
-            )}
           </div>
         )}
 
         {/* Generate */}
         {draft.audioMode === 'generate' && (
           <div className="flex flex-col gap-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
+                {t('audioGenerateTextLabel')}
+              </span>
+              <input
+                type="text"
+                value={draft.generateText ?? ''}
+                onChange={(e) => patch({ generateText: e.target.value, generatedAudioPath: undefined })}
+                placeholder={t('audioGenerateTextPlaceholder')}
+                className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
+                style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)', border: '1px solid var(--theme-button-highlight)' }}
+              />
+            </label>
             {!draft.generatedAudioPath ? (
               <>
                 <button
                   type="button"
                   onClick={handleGenerate}
-                  disabled={isGenerating || !draft.labelEng.trim()}
+                  disabled={isGenerating || !draft.generateText?.trim()}
                   className="flex items-center justify-center gap-2 rounded-theme-sm py-2.5 text-theme-s font-semibold"
                   style={{
                     background: 'var(--theme-brand-primary)',
                     color: 'var(--theme-alt-text)',
-                    opacity: (isGenerating || !draft.labelEng.trim()) ? 0.55 : 1,
+                    opacity: (isGenerating || !draft.generateText?.trim()) ? 0.55 : 1,
                   }}
                 >
                   {isGenerating
@@ -446,9 +449,9 @@ export function PropertiesPanel({
                     : t('audioGenerateButton')
                   }
                 </button>
-                {!draft.labelEng.trim() && (
+                {!draft.generateText?.trim() && (
                   <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
-                    {t('audioGenerateNeedsLabel')}
+                    {t('audioGenerateNeedsText')}
                   </p>
                 )}
               </>

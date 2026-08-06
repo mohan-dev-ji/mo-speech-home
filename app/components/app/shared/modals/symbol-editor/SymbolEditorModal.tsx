@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { DEFAULT_VOICE_ID } from '@/lib/r2-paths';
 import { resolveSymbolAudioPath } from '@/lib/audio/resolveAudioPath';
+import { voiceForLanguage, personaOf } from '@/lib/audio/resolveVoiceId';
 import { SymbolPreview } from './SymbolPreview';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SymbolStixTab } from './SymbolStixTab';
@@ -498,12 +499,37 @@ export function SymbolEditorModal({
 
   // ── Preview play overlay ───────────────────────────────────────────────────
 
+  // Resolve the R2 key the Default (follow-label) audio should play/persist for
+  // the effective language. Returns the symbol's own clip when the label matches
+  // the symbol word; otherwise resolves the label through /api/tts (symbols
+  // folder -> tts cache -> generate). No `literal` flag (keep symbols-folder reuse).
+  async function resolveDefaultKey(): Promise<string | undefined> {
+    const lang = draft.pinnedLanguage ?? language;
+    const labelText = (lang === 'en' ? draft.labelEng : (draft.labelLoc[lang] || draft.labelEng)).trim();
+    if (!labelText) return undefined;
+    const symbolWord = (draft.symbolWords[lang] ?? '').trim();
+    if (labelText === symbolWord) return draft.defaultAudioPath; // symbol's own clip
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: labelText, voiceId: voiceForLanguage(lang, personaOf(voiceId)) }),
+    });
+    if (!res.ok) throw new Error('tts');
+    const { r2Key } = (await res.json()) as { r2Key: string };
+    return r2Key;
+  }
+
   function handlePreviewPlay() {
+    if (draft.activeAudioSource === 'default') {
+      resolveDefaultKey()
+        .then((key) => { if (key) { const a = new Audio(`/api/assets?key=${key}`); previewAudioRef.current = a; setIsPreviewPlaying(true); a.addEventListener('ended', () => setIsPreviewPlaying(false)); a.addEventListener('error', () => setIsPreviewPlaying(false)); a.play().catch(() => setIsPreviewPlaying(false)); } })
+        .catch(() => setIsPreviewPlaying(false));
+      return;
+    }
+
     let audioUrl: string | null = null;
 
-    if (draft.activeAudioSource === 'default' && draft.defaultAudioPath) {
-      audioUrl = `/api/assets?key=${draft.defaultAudioPath}`;
-    } else if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
+    if (draft.activeAudioSource === 'generate' && draft.generatedAudioPath) {
       audioUrl = `/api/assets?key=${draft.generatedAudioPath}`;
     } else if (draft.activeAudioSource === 'record') {
       if (pendingAudioBlobUrl) audioUrl = pendingAudioBlobUrl;
