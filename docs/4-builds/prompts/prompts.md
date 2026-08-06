@@ -3,7 +3,54 @@
 ln -s /Users/mohanveraitch/Projects/mo-speech-home/.env.local /Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/dazzling-lamport-67c4f0/.env.local
 
 
-
+dog
+cat
+rabbit
+hamster
+goldfish
+horse
+cow
+pig
+sheep
+goat
+chicken
+duck 
+lion 
+tiger
+elephant
+giraffe
+monkey
+zebra
+fox
+deer
+wolf
+crocodile
+rhinoceros
+cheetah
+shark
+dolphin
+fish
+crab
+octopus
+turtle
+seahorse
+jellyfish
+eagle
+owl
+penguin
+flamingo
+robin
+parrot
+peacock
+crow
+butterfly
+bee
+spider
+ladybug
+caterpillar
+dragonfly
+grasshopper
+moth
 
 
 
