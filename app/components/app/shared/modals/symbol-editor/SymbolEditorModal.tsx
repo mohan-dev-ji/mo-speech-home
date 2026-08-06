@@ -17,7 +17,7 @@ import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
-import { deriveAudioMode, initLabelDirty, type StoredAudioEntry } from './audioLogic';
+import { deriveAudioMode, initLabelDirty, planFollowLabelAudio, type StoredAudioEntry } from './audioLogic';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -235,6 +235,7 @@ export function SymbolEditorModal({
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Shared search query — persists as the user jumps between SymbolStix,
   // Image Search and AI Generate tabs. Each tab still runs its own debounce
@@ -727,9 +728,8 @@ export function SymbolEditorModal({
           ? { type: 'aiGenerated', imagePath: resolvedImagePath! }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
-      // 4. Build audio override using the active-source model.
-      // type encodes the active source ('r2'=default, 'tts'=generated, 'recorded'=recorded);
-      // alternates carries the inactive ones so they survive a re-edit.
+      // 4. Resolve THIS language's audio override per the selected mode
+      // (record / generate / default — the "audio follows label" model).
       type AR = {
         type: 'r2' | 'tts' | 'recorded';
         path: string;
@@ -737,36 +737,35 @@ export function SymbolEditorModal({
         language?: string;
         alternates?: { default?: string; generated?: string; recorded?: string };
       };
-      // Per-language audio override — ISO-keyed open record (ADR-009 §2), merged
-      // into the effective editing language (pin, else board). Other languages'
-      // overrides are preserved. Only a genuine generate/record is persisted;
-      // reverting to the default REMOVES this language's entry so playback falls
-      // back to the live board-voice default (a "default"/r2 entry is ignored by
-      // getProfileSymbolsWithImages anyway — see FEAT-007).
       const audioLang = draft.pinnedLanguage ?? language;
       const prevAudio = (existingSymbol?.audio as Record<string, AR> | undefined) ?? {};
       const nextAudio: Record<string, AR> = { ...prevAudio };
-      const genOrRecPath =
-        draft.activeAudioSource === 'generate' ? draft.generatedAudioPath :
-        draft.activeAudioSource === 'record'   ? recordedAudioPath :
-        undefined;
 
-      if (genOrRecPath) {
-        const activeType: AR['type'] = draft.activeAudioSource === 'generate' ? 'tts' : 'recorded';
-        const alternates: AR['alternates'] = {
-          ...(draft.defaultAudioPath ? { default: draft.defaultAudioPath } : {}),
-          ...(draft.activeAudioSource !== 'generate' && draft.generatedAudioPath ? { generated: draft.generatedAudioPath } : {}),
-          ...(draft.activeAudioSource !== 'record'   && recordedAudioPath        ? { recorded:  recordedAudioPath        } : {}),
-        };
-        nextAudio[audioLang] = {
-          type: activeType,
-          path: genOrRecPath,
-          language: audioLang,
-          ...(Object.keys(alternates).length ? { alternates } : {}),
-        };
+      // Resolve THIS language's audio per the selected tab. Other languages'
+      // overrides are preserved untouched (per-language forks). A TTS failure
+      // throws and is caught below, blocking the save.
+      if (draft.audioMode === 'record' && recordedAudioPath) {
+        nextAudio[audioLang] = { type: 'recorded', path: recordedAudioPath, language: audioLang };
+      } else if (draft.audioMode === 'generate' && draft.generateText?.trim()) {
+        const genVoiceId = voiceForLanguage(audioLang, personaOf(voiceId));
+        const res = await fetch('/api/tts', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: draft.generateText.trim(), voiceId: genVoiceId }),
+        });
+        if (!res.ok) throw new Error('tts');
+        const { r2Key } = (await res.json()) as { r2Key: string };
+        const plan = planFollowLabelAudio({ language: audioLang, resolvedPath: r2Key, symbolDefaultPath: draft.defaultAudioPath, spokenText: draft.generateText.trim() });
+        if (plan.action === 'store') nextAudio[audioLang] = plan.entry; else delete nextAudio[audioLang];
       } else {
-        // 'default' or no source → this language carries no override.
-        delete nextAudio[audioLang];
+        // Default -> follow the label.
+        const key = await resolveDefaultKey(); // throws on TTS failure
+        const labelText = (audioLang === 'en' ? draft.labelEng : (draft.labelLoc[audioLang] || draft.labelEng)).trim();
+        if (!key || !labelText) {
+          delete nextAudio[audioLang];
+        } else {
+          const plan = planFollowLabelAudio({ language: audioLang, resolvedPath: key, symbolDefaultPath: draft.defaultAudioPath, spokenText: labelText });
+          if (plan.action === 'store') nextAudio[audioLang] = plan.entry; else delete nextAudio[audioLang];
+        }
       }
       const audio: Record<string, AR> | undefined =
         Object.keys(nextAudio).length ? nextAudio : undefined;
@@ -852,7 +851,8 @@ export function SymbolEditorModal({
       }
 
       onSave(savedId);
-      onClose();
+      setSaveSuccess(true);
+      setTimeout(() => { setSaveSuccess(false); onClose(); }, 700);
     } catch {
       setSaveError(t('errorSave'));
     } finally {
@@ -989,7 +989,7 @@ export function SymbolEditorModal({
                   opacity: isSaving ? 0.6 : 1,
                 }}
               >
-                {isSaving ? t('saving') : t('save')}
+                {isSaving ? t('saving') : saveSuccess ? t('saveSuccess') : t('save')}
               </button>
             </div>
           </div>
