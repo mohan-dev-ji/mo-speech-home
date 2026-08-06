@@ -31,6 +31,8 @@ Audio resolves from an explicit source, chosen per language via the Audio sectio
 - The previously-deferred decoupled spoken-text field **lives inside the Generate tab** — not as a second always-visible field in the label section. Default users never see it (avoids the "two confusing fields upfront" cost).
 - `/api/tts` already implements the resolve chain (symbolstix → ttsCache → generate); no new backend.
 
+> **Resolve order (must preserve).** For any word — including a custom label — `/api/tts` checks (1) the voice's **symbols folder** (`audio/<voiceId>/symbols/<word>.mp3`, real `fileExists`), then (2) the voice's **tts cache**, then (3) **generates** only if neither hit. So a custom label that matches an existing symbol's word reuses that seeded clip; generation is the last resort. The editor must call `/api/tts` **without** the `literal` flag — `literal: true` skips step 1 ([route.ts:230](../../../app/api/tts/route.ts)) and would defeat this reuse.
+
 ---
 
 ## 3. Label behaviour
