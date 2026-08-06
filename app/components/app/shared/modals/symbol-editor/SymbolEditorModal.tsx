@@ -697,9 +697,9 @@ export function SymbolEditorModal({
         resolvedImagePath = key;
       }
 
-      // 2. Upload pending audio recording (only if record is the active source)
+      // 2. Upload pending audio recording (only if the record tab is selected)
       let recordedAudioPath = draft.recordedAudioPath;
-      if (pendingAudioBlob && draft.activeAudioSource === 'record') {
+      if (pendingAudioBlob && draft.audioMode === 'record') {
         const ext = pendingAudioBlob.type.includes('ogg') ? 'ogg' : 'webm';
         const key = `accounts/${accountId}/audio/${crypto.randomUUID()}.${ext}`;
         await uploadBlobToR2(pendingAudioBlob, key);
