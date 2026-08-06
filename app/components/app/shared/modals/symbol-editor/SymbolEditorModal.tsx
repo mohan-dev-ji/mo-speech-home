@@ -16,6 +16,7 @@ import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
 import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
+import { deriveAudioMode, initLabelDirty, type StoredAudioEntry } from './audioLogic';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -297,7 +298,10 @@ export function SymbolEditorModal({
     // NOT a hard-coded English slot. Matches the per-language save below, so
     // re-opening on a hi/es board shows that language's own override.
     const effLang = ps.pinnedLanguage ?? language;
-    const langAudio = (ps.audio as Record<string, { type: string; path: string; alternates?: { generated?: string; recorded?: string } } | undefined> | undefined)?.[effLang];
+    const effLabel = (effLang === 'en' ? (ps.label.en ?? '') : (ps.label[effLang] ?? ps.label.en ?? ''));
+    const symbolWords = (ps.symbolRecord?.words as Record<string, string> | undefined) ?? {};
+    const langEntry = (ps.audio as Record<string, StoredAudioEntry> | undefined)?.[effLang];
+
     const symbolAudioMap =
       (ps.symbolRecord?.audio as Record<string, boolean> | undefined) ?? {};
     const englishWord = ps.symbolRecord?.words.en ?? '';
@@ -308,16 +312,14 @@ export function SymbolEditorModal({
         symbolAudioMap[voiceId] === true,
         ps.symbolRecord?.audioBasename,
       ) ?? undefined;
-    const activeSource: Draft['activeAudioSource'] =
-      !langAudio ? (defaultPath ? 'default' : null) :
-      langAudio.type === 'recorded' ? 'record' :
-      langAudio.type === 'tts'      ? 'generate' : 'default';
 
-    // Each source's path: prefer alternates; fall back to the active path if it matches.
-    const generatedAudioPath =
-      langAudio?.alternates?.generated ?? (langAudio?.type === 'tts' ? langAudio.path : undefined);
-    const recordedAudioPath =
-      langAudio?.alternates?.recorded  ?? (langAudio?.type === 'recorded' ? langAudio.path : undefined);
+    const derived = deriveAudioMode(langEntry, effLabel);
+    const activeSource: Draft['activeAudioSource'] =
+      derived.mode === 'record'   ? 'record'   :
+      derived.mode === 'generate' ? 'generate' :
+      (defaultPath ? 'default' : null);
+    const generatedAudioPath = derived.generatedAudioPath;
+    const recordedAudioPath = derived.recordedAudioPath;
 
     // Placeholder type (created by the category-create modal) lands on the
     // SymbolStix tab. The label has already been pre-populated above into
@@ -356,7 +358,10 @@ export function SymbolEditorModal({
       labelEng: ps.label.en ?? '',
       // All non-English localised labels, keyed by ISO code (Phase 15).
       labelLoc: { ...ps.label },
-      audioMode: activeSource ?? 'default',
+      symbolWords,
+      labelDirty: initLabelDirty(ps.label as Record<string, string>, symbolWords, ps.imageSource.type === 'placeholder'),
+      generateText: derived.mode === 'generate' ? (derived.generateText ?? '') : undefined,
+      audioMode: derived.mode,
       activeAudioSource: activeSource,
       defaultAudioPath: defaultPath,
       generatedAudioPath,
