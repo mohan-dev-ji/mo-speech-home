@@ -45,6 +45,26 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
     setSymbols((prev) => [...prev, '']);
   }
 
+  // Bulk paste: pasting a multi-item list (newline-, comma-, or tab-separated)
+  // into a symbol field distributes the items across fields starting at that
+  // field, overwriting from `index` onward and appending new fields as the list
+  // runs on. A single-item paste falls through to the browser's default so
+  // normal one-word pasting into a field is unaffected.
+  function handleSymbolPaste(index: number, e: React.ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData('text');
+    const items = text
+      .split(/[\r\n,\t]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    if (items.length <= 1) return; // let the browser handle a plain single paste
+    e.preventDefault();
+    setSymbols((prev) => {
+      const next = prev.slice(0, index); // keep everything before the paste point
+      next.push(...items);               // fill from here, growing as long as the list
+      return next;
+    });
+  }
+
   function reset() {
     setName('');
     setSymbols(INITIAL_SYMBOLS);
@@ -105,6 +125,9 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
             <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
               {t('createModalSymbolsLabel')}
             </label>
+            <p className="text-theme-xs -mt-1" style={{ color: 'var(--theme-secondary-text)' }}>
+              {t('createModalBulkHint')}
+            </p>
 
             {/* Cap the visible input list at ~5 rows; anything beyond
                 scrolls inside this container so the footer Create button
@@ -126,6 +149,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                     type="text"
                     value={symbol}
                     onChange={(e) => updateSymbol(i, e.target.value)}
+                    onPaste={(e) => handleSymbolPaste(i, e)}
                     placeholder={t('createModalSymbolPlaceholder')}
                     className="flex-1 px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
                     style={{

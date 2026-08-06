@@ -507,6 +507,7 @@
     "createModalNamePlaceholder": "e.g. Outside, Animals, Music",
     "createModalSymbolsLabel": "Symbols",
     "createModalSymbolPlaceholder": "Type a word, e.g. dog",
+    "createModalBulkHint": "Tip: paste a list — one per line or comma-separated — to add many at once.",
     "createModalAddSymbols": "Add more symbols",
     "createModalCancel": "Cancel",
     "createModalCreate": "Create",
