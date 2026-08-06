@@ -104,7 +104,7 @@ Tightens §3/§4 rather than breaking them: label-matches-symbol stores no overr
 
 | File | Change |
 |---|---|
-| `app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx` | Default = follow label (no field); Generate = own text field; auto-flip Default→Generate on first divergence (once, don't fight manual tab changes); reset affordance |
+| `app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx` | Default = follow label (no field; preview resolves the label); Generate = its own decoupled text field driving `handleGenerate`; reset-to-symbol affordance in the label section. No tab auto-flip — Default handles a diverged label transparently. |
 | `app/components/app/shared/modals/symbol-editor/SymbolStixTab.tsx` | Dirty-flag label-on-pick (replaces fill-only-if-empty) |
 | `app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx` | Per-language resolve on save; block-on-failure spinner/UX; reopen mode derivation |
 | `app/components/app/shared/modals/symbol-editor/types.ts` | Draft additions: per-language label-dirty flags, Generate custom-text field |
