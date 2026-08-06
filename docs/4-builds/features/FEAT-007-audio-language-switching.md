@@ -160,6 +160,36 @@ The rules in §3/§4 are implemented in `getProfileSymbolsWithImages` only. Othe
 | Sentences | _tbd_ | ⏳ Not audited | Block/sequence sentences play per-unit clips (ADR-015); verify unit audio follows board voice. |
 | Phrases | _tbd_ | ⏳ Not audited | Phrase word clips + `profilePhrases.audioPath`; verify vs board voice. |
 | Talker bar | _tbd_ | ⏳ Not audited | Fringe board tiles; likely same symbol-audio path as categories. |
-| **Symbol editor (authoring)** | `SymbolEditorModal` + `PropertiesPanel` | ✅ **Fixed** | Loads/generates/saves overrides per board language (shared by every surface). See "Authoring side" in section 4. |
+| **Symbol editor (authoring)** | `SymbolEditorModal` + `PropertiesPanel` | ✅ **Fixed** · ⏳ open gap | Loads/generates/saves overrides per board language (shared by every surface). See "Authoring side" in section 4. **Open:** silent label↔symbol-word audio mismatch — see §8 F-1. |
 
 > When you audit a surface: confirm (1) it re-resolves per board voice (no frozen author-time cache), (2) it keys defaults by board language (no cross-language override bleed), (3) it uses the same `resolveSymbolAudioPath` convention. Record the resolver file + any fix commit in the row above.
+
+---
+
+## 8. Open findings (authoring)
+
+### F-1 — Label ↔ symbol-word divergence silently mismatches default audio, per language
+
+**Status:** ⏳ Open — editor warning not yet built. (Data-level instances are fixable by hand; the guardrail is the fix.)
+
+**Symptom.** A tile displays one word but *speaks* another, in one or more languages, with no override involved and no warning in the editor. Only surfaces when you switch the board to the affected language and tap — invisible on the board you authored on.
+
+**Concrete case (Activities → "arts and crafts", order 13, 2026-08-05).** Authored starting from an "art" concept (which seeded `es:"Arte"`, `hi:"कला"`), then the **image was swapped** to a different symbol — `kn7b8rjf` (`words: {en:"arts and crafts", es:"manualidades", hi:"हस्तकला"}`). The label was then changed to "arts and crafts" on the EN board only. Resulting live doc: `label {en:"arts and crafts", es:"Arte", hi:"कला"}`, `audio: null`. Resolved playback:
+
+| Board | Label shows | Default audio speaks | Match |
+|---|---|---|---|
+| en | arts and crafts | arts and crafts | ✅ |
+| es | Arte | manualidades | ❌ |
+| hi | कला | हस्तकला | ❌ |
+
+(Verified via `getProfileSymbolsWithImages` under `es-US-Wavenet-A` → resolved `audio.es = audio/es-US-Wavenet-A/symbols/arts and crafts.mp3`, whose seeded content is the es word "manualidades".) Fixed at the data level by matching the es/hi labels to the symbol's own words.
+
+**Root cause.** Default audio resolves from the **underlying symbol's `words[lang]`** (§1/§3), never from the tile's `label[lang]`. Two editor behaviours are individually correct but combine badly:
+- Swapping the SymbolStix image swaps the symbol *identity* (and therefore the audio source), but **`SymbolStixTab` deliberately preserves already-filled labels** (won't clobber the author's wording).
+- `handleGenerate` only writes an override for the **board language you're on**, and writes *nothing* when the label equals the symbol's own word (the `reuse the symbolstix default` optimisation). So generating on EN can leave es/hi riding a default that speaks a different word than they display.
+
+**Why publish→seed can't catch it.** There is no stale override to carry or drop (F-007 §4 handles those). The divergence lives entirely in `label[lang] ≠ symbol.words[lang]` with `audio: null`, so the module ships the mismatch to every seeded account.
+
+**Proposed guardrail.** In the symbol editor, for each language, warn when `label[lang]` differs from the underlying symbol's `words[lang]` **and** there is no audio override for that language: e.g. *"This tile shows 'Arte' but will speak 'manualidades'. Generate audio to match, or rename to 'manualidades'."* Check every language, not just the active board (this is the whole point — the mismatch hides on the other boards). Secondary nice-to-have: a per-language audio-coverage indicator so "I generated audio" on one board doesn't read as done for all.
+
+**Files:** `SymbolStixTab.tsx` (label-preserving pick), `PropertiesPanel.tsx` `handleGenerate` (board-language-only generate), `SymbolEditorModal.tsx` save (per-language override merge). Resolver that exposes the mismatch: `getProfileSymbolsWithImages`.
