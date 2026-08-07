@@ -13,7 +13,7 @@ import {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, symbolLabels: string[]) => Promise<void>;
+  onCreate: (name: string, rows: Array<{ label: string; autoMatch: boolean }>) => Promise<void>;
 };
 
 const INITIAL_SYMBOLS = ['', '', '', ''];
@@ -22,6 +22,13 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
   const t = useTranslations('categories');
   const [name, setName] = useState('');
   const [symbols, setSymbols] = useState<string[]>(INITIAL_SYMBOLS);
+  const [autoMatch, setAutoMatch] = useState<boolean[]>(() => INITIAL_SYMBOLS.map(() => false));
+  const allChecked = autoMatch.length > 0 && autoMatch.every(Boolean);
+  const someChecked = autoMatch.some(Boolean);
+  const headerRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (headerRef.current) headerRef.current.indeterminate = someChecked && !allChecked;
+  }, [someChecked, allChecked]);
   const [isCreating, setIsCreating] = useState(false);
 
   // Per-slot input refs so we can focus the newly-added field after addSymbol.
@@ -43,6 +50,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
 
   function addSymbol() {
     setSymbols((prev) => [...prev, '']);
+    setAutoMatch((prev) => [...prev, allChecked]); // inherit the header state
   }
 
   // Bulk paste: pasting a multi-item list (newline-, comma-, or tab-separated)
@@ -63,11 +71,18 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
       next.push(...items);               // fill from here, growing as long as the list
       return next;
     });
+    setAutoMatch((prev) => {
+      const next = prev.slice(0, index);
+      while (next.length < index) next.push(false);
+      for (let k = 0; k < items.length; k++) next.push(allChecked); // pasted rows inherit header state
+      return next;
+    });
   }
 
   function reset() {
     setName('');
     setSymbols(INITIAL_SYMBOLS);
+    setAutoMatch(INITIAL_SYMBOLS.map(() => false));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,7 +91,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
     if (!trimmed) return;
     setIsCreating(true);
     try {
-      await onCreate(trimmed, symbols);
+      await onCreate(trimmed, symbols.map((label, i) => ({ label, autoMatch: autoMatch[i] ?? false })));
       reset();
       onClose();
     } finally {
@@ -122,9 +137,21 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
 
           {/* Symbol labels — placeholder slots created with the category */}
           <div className="flex flex-col gap-2">
-            <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-              {t('createModalSymbolsLabel')}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
+                {t('createModalSymbolsLabel')}
+              </label>
+              <label className="flex items-center gap-2 text-theme-xs cursor-pointer" style={{ color: 'var(--theme-secondary-text)' }}>
+                <input
+                  ref={headerRef}
+                  type="checkbox"
+                  checked={allChecked}
+                  onChange={(e) => setAutoMatch(symbols.map(() => e.target.checked))}
+                  className="w-4 h-4 accent-[var(--theme-brand-primary)]"
+                />
+                {t('createModalAutoMatchAll')}
+              </label>
+            </div>
             <p className="text-theme-xs -mt-1" style={{ color: 'var(--theme-secondary-text)' }}>
               {t('createModalBulkHint')}
             </p>
@@ -157,6 +184,15 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                       color: 'var(--theme-text)',
                       border: '1px solid rgba(255,255,255,0.1)',
                     }}
+                  />
+                  <input
+                    type="checkbox"
+                    checked={autoMatch[i] ?? false}
+                    onChange={(e) =>
+                      setAutoMatch((prev) => prev.map((v, k) => (k === i ? e.target.checked : v)))
+                    }
+                    aria-label={t('createModalAutoMatchRow')}
+                    className="w-5 h-5 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
                   />
                 </div>
               ))}
@@ -193,7 +229,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
-              {isCreating ? t('creating') : t('createModalCreate')}
+              {isCreating ? (someChecked ? t('createModalAutoMatching') : t('creating')) : t('createModalCreate')}
             </button>
           </div>
 
