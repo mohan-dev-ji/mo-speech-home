@@ -30,9 +30,13 @@
 | `convex/profileSymbols.ts` | Export `audioSourceValidator` for reuse | Modify |
 | `convex/profileCategories.ts` | `createProfileCategory` accepts an ordered `symbols` array (placeholder or fully-formed symbolstix) | Modify |
 | `lib/categories/autoMatchSymbols.ts` | Pure async: rows + language + deps → ordered `CreateSymbolSpec[]` | **Create** |
-| `app/components/app/categories/sections/CategoriesContent.tsx` | `handleCreate` wires real deps (Convex search, `/api/tts`) → helper → mutation → route | Modify |
+| `app/lib/categories/useCreateCategory.ts` | Shared hook: wires real deps (Convex search, `/api/tts`), runs the helper, calls the mutation, returns the new id | **Create** |
+| `app/components/app/categories/sections/CategoriesContent.tsx` | `handleCreate` uses the hook then routes | Modify |
+| `app/components/app/home/sections/HomeContent.tsx` | `handleCreateCategory` uses the hook then routes (second mount of CreateCategoryModal) | Modify |
 | `app/components/app/categories/modals/CreateCategoryModal.tsx` | Per-row + header checkboxes, spinner, new `onCreate` signature | Modify |
 | `messages/en.json` | Copy (en only) | Modify |
+
+> **Two callers:** `CreateCategoryModal` is mounted by BOTH `CategoriesContent` (Categories page) and `HomeContent` (Home page "Create a category" card). The `useCreateCategory` hook exists so both get identical auto-match behaviour without duplicated deps-wiring, and both must be updated when Task 4 changes `onCreate`'s signature.
 
 ---
 
@@ -224,45 +228,50 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
-## Task 3: Wire `handleCreate` to search, resolve, and persist
+## Task 3: `useCreateCategory` hook + wire both callers (Categories + Home)
 
 **Files:**
-- Modify: `app/components/app/categories/sections/CategoriesContent.tsx` (`handleCreate`, ~lines 194–205; imports)
+- Create: `app/lib/categories/useCreateCategory.ts`
+- Modify: `app/components/app/categories/sections/CategoriesContent.tsx` (`handleCreate` + drop the now-unused direct mutation)
+- Modify: `app/components/app/home/sections/HomeContent.tsx` (`handleCreateCategory` + drop the now-unused direct mutation)
 
 **Interfaces:**
-- Consumes: `buildCreateSymbols` (Task 2); `createProfileCategory({ name, symbols })` (Task 1).
-- Produces: `handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>): Promise<void>` — the modal's new `onCreate`.
+- Consumes: `buildCreateSymbols` + `SearchHit` (Task 2); `createProfileCategory({ name, symbols })` (Task 1).
+- Produces: `useCreateCategory(): (name: string, rows: Array<{ label: string; autoMatch: boolean }>) => Promise<Id<'profileCategories'>>`. Both callers' modal `onCreate` become `(name, rows) => Promise<void>`.
 
-- [ ] **Step 1: Add imports**
+- [ ] **Step 1: Create the shared hook**
 
-In `CategoriesContent.tsx`, add:
+Create `app/lib/categories/useCreateCategory.ts`:
 
 ```typescript
-import { useConvex } from 'convex/react';
-import { buildCreateSymbols, type SearchHit } from '@/lib/categories/autoMatchSymbols';
+"use client";
+
+import { useConvex, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useProfile } from '@/app/contexts/ProfileContext';
 import { voiceForLanguage } from '@/lib/audio/resolveVoiceId';
-```
+import { buildCreateSymbols, type SearchHit } from '@/lib/categories/autoMatchSymbols';
 
-(`@/lib/...` is the repo-root `lib/` alias — matches the existing `@/lib/audio/resolveVoiceId` and `@/lib/languages/*` imports in this file. Confirm against a sibling import.)
-
-Near the other hooks in the component, add:
-
-```typescript
+/**
+ * Create a category from create-modal rows, auto-matching ticked words to their
+ * top SymbolStix hit (image + label + audio-follows-label). Shared by the
+ * Categories page and the Home page, which both mount CreateCategoryModal.
+ * Returns the new category id; the caller handles routing.
+ */
+export function useCreateCategory() {
   const convex = useConvex();
-```
+  const createCategory = useMutation(api.profileCategories.createProfileCategory);
+  const { language } = useProfile();
 
-- [ ] **Step 2: Replace `handleCreate`**
-
-Replace the whole `handleCreate` function (currently lines 194–205) with:
-
-```typescript
-  async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+  return async function create(
+    name: string,
+    rows: Array<{ label: string; autoMatch: boolean }>,
+  ): Promise<Id<'profileCategories'>> {
     const symbols = await buildCreateSymbols(rows, language, {
       search: async (term, lang): Promise<SearchHit | null> => {
         const results = await convex.query(api.symbols.searchSymbols, {
-          searchTerm: term,
-          language: lang,
-          limit: 1,
+          searchTerm: term, language: lang, limit: 1,
         });
         const first = results?.[0];
         return first ? { _id: first._id, words: first.words } : null;
@@ -282,30 +291,58 @@ Replace the whole `handleCreate` function (currently lines 194–205) with:
         }
       },
     });
+    // Names never auto-translate; key by the board language (ADR-016 Addendum D).
+    return createCategory({ name: { [language]: name }, symbols }) as Promise<Id<'profileCategories'>>;
+  };
+}
+```
 
-    const id = await createCategoryMutation({
-      // Names never auto-translate; key by the board language (ADR-016 Addendum D).
-      name: { [language]: name },
-      symbols,
-    });
+- [ ] **Step 2: Confirm `searchSymbols` returns `_id` + `words`**
+
+Run: `grep -n "return\|_id\|words\|map(" convex/symbols.ts | sed -n '1,40p'` and confirm the `searchSymbols` result objects expose `_id` and `words`. If the query maps to a narrower shape, read the fields it exposes and adjust the `search` dep + `SearchHit` (Task 2) to match. Document what you found in the report.
+
+- [ ] **Step 3: Wire `CategoriesContent`**
+
+In `app/components/app/categories/sections/CategoriesContent.tsx`:
+- Add import: `import { useCreateCategory } from '@/app/lib/categories/useCreateCategory';`
+- Near the other hooks, add: `const createCategory = useCreateCategory();`
+- Replace the whole `handleCreate` (currently ~lines 194–205) with:
+
+```typescript
+  async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+    const id = await createCategory(name, rows);
     router.push(`/${locale}/categories/${id}?edit=1`);
   }
 ```
 
-- [ ] **Step 3: Confirm `searchSymbols` returns `_id` + `words`**
+- Remove the now-unused direct mutation: delete the `const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);` line (~102) **only if** `grep -n "createCategoryMutation" app/components/app/categories/sections/CategoriesContent.tsx` shows no other use. If `useMutation`/`api` become unused, drop those imports too.
 
-Run: `grep -n "return\|_id\|words" convex/symbols.ts | sed -n '1,40p'` and confirm the `searchSymbols` result objects expose `_id` and `words`. If the query maps to a narrower shape, adjust the `search` dep to read the exposed fields (and update `SearchHit` in Task 2 to match). Document what you found in the report.
+- [ ] **Step 4: Wire `HomeContent`**
 
-- [ ] **Step 4: Typecheck + lint**
+In `app/components/app/home/sections/HomeContent.tsx`:
+- Add import: `import { useCreateCategory } from '@/app/lib/categories/useCreateCategory';`
+- Replace the `const createCategory = useMutation(api.profileCategories.createProfileCategory);` line (~59) with: `const createCategory = useCreateCategory();`
+- Replace `handleCreateCategory` (~lines 64–67) with:
 
-Run: `npx tsc --noEmit -p tsconfig.json 2>&1 | grep "CategoriesContent"` → no output. (`CreateCategoryModal` still errors on the old `onCreate` type until Task 4 — expected.)
-Run: `npx eslint app/components/app/categories/sections/CategoriesContent.tsx` → no new problems.
+```typescript
+  async function handleCreateCategory(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+    const id = await createCategory(name, rows);
+    router.push(`/${locale}/categories/${id}?edit=1`);
+  }
+```
 
-- [ ] **Step 5: Commit**
+(This also fixes HomeContent's pre-existing hard-coded `{ en: name }` — the hook now keys the name by the board language, matching `handleCreateSentence` right below it.)
+
+- [ ] **Step 5: Typecheck + lint**
+
+Run: `npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "useCreateCategory|CategoriesContent|HomeContent"` → no output. (`CreateCategoryModal` still errors on the old `onCreate` type until Task 4 — expected, and not in this grep.)
+Run: `npx eslint app/lib/categories/useCreateCategory.ts app/components/app/categories/sections/CategoriesContent.tsx app/components/app/home/sections/HomeContent.tsx` → no new problems.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add app/components/app/categories/sections/CategoriesContent.tsx
-git commit -m "feat(categories): handleCreate resolves auto-matched symbols then creates
+git add app/lib/categories/useCreateCategory.ts app/components/app/categories/sections/CategoriesContent.tsx app/components/app/home/sections/HomeContent.tsx
+git commit -m "feat(categories): useCreateCategory hook; wire Categories + Home create flows
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
