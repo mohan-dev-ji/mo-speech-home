@@ -8,6 +8,7 @@ import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 import { getLanguage, getVoiceEntry, getVoiceLang } from "../lib/languages/registry";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
+import { audioSourceValidator } from "./profileSymbols";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
 // Phase 8.4: callers pass the active profile's resolved `voiceId`; this is the
@@ -310,12 +311,19 @@ export const getProfileSymbolsWithImages = query({
 export const createProfileCategory = mutation({
   args: {
     name: v.record(v.string(), v.string()),
-    // Optional list of labels — one placeholder profileSymbol is created per
-    // non-empty entry, ordered as given. Empty / whitespace-only entries are
-    // skipped. The instructor opens each placeholder via SymbolEditorModal;
-    // the saved label drives the SymbolStix search so picking a matching
-    // symbol is a one-tap action.
-    symbolLabels: v.optional(v.array(v.string())),
+    // Ordered symbol specs — one profileSymbol per entry with a non-empty label,
+    // in array order. `symbolId` present → a fully-formed SymbolStix symbol
+    // (auto-match); absent → a placeholder the instructor fills via the editor.
+    // Empty-label entries are skipped. Labels are keyed by the authoring language.
+    symbols: v.optional(
+      v.array(
+        v.object({
+          label: v.record(v.string(), v.string()),
+          symbolId: v.optional(v.id("symbols")),
+          audio: v.optional(v.record(v.string(), audioSourceValidator)),
+        })
+      )
+    ),
     // When "core", the category joins the structural core-word surface (the
     // talker dropdown's Core-words tab) instead of the main Categories board.
     // getCoreWordCategories / getProfileCategories partition on this field so
@@ -343,19 +351,23 @@ export const createProfileCategory = mutation({
       updatedAt: now,
     });
 
-    // Seed placeholder symbols, if any. The category is brand new so there
-    // are no existing rows to shift — assign explicit order = index.
-    // Empty / whitespace-only entries are skipped.
-    const cleaned = (args.symbolLabels ?? [])
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    for (let i = 0; i < cleaned.length; i++) {
+    // Seed symbols in array order. A non-empty label is required; a symbolId
+    // makes a fully-formed SymbolStix symbol (with optional per-language audio
+    // override), otherwise a placeholder. Order = index among the kept entries.
+    const kept = (args.symbols ?? []).filter((s) =>
+      Object.values(s.label).some((v) => (v ?? "").trim().length > 0)
+    );
+    for (let i = 0; i < kept.length; i++) {
+      const s = kept[i];
       await ctx.db.insert("profileSymbols", {
         accountId,
         profileCategoryId: categoryId,
         order: i,
-        imageSource: { type: "placeholder" },
-        label: { en: cleaned[i] },
+        imageSource: s.symbolId
+          ? { type: "symbolstix" as const, symbolId: s.symbolId }
+          : { type: "placeholder" as const },
+        label: s.label,
+        ...(s.audio ? { audio: s.audio } : {}),
         updatedAt: now,
       });
     }

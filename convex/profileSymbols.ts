@@ -5,7 +5,7 @@ import { requireProTier } from "./lib/access";
 import { collectReferencedPersonalKeys, countRowsReferencingKeys } from "./lib/personalAssetRefs";
 import { isPersonalAssetKey } from "./lib/contentModuleDelete";
 
-const audioSourceValidator = v.object({
+export const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
   path: v.string(),
   ttsText: v.optional(v.string()),
