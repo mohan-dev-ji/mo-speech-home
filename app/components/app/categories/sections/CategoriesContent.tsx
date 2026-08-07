@@ -23,6 +23,7 @@ import {
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { useCreateCategory } from '@/app/lib/categories/useCreateCategory';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { stripLocaleKey } from '@/lib/languages/variants';
@@ -99,7 +100,7 @@ export function CategoriesContent() {
   // existing module slug/class when already published → Update mode.
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
-  const createCategoryMutation = useMutation(api.profileCategories.createProfileCategory);
+  const createCategory = useCreateCategory();
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
@@ -191,13 +192,8 @@ export function CategoriesContent() {
     }
   }
 
-  async function handleCreate(name: string, symbolLabels: string[]) {
-    const id = await createCategoryMutation({
-      // Key by the board language you're authoring in (ADR-016 Addendum D — names
-      // never auto-translate; the translate icon fills other languages on demand).
-      name: { [language]: name },
-      symbolLabels,
-    });
+  async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+    const id = await createCategory(name, rows);
     // ?edit=1 lands the detail page in edit mode so the newly-seeded
     // placeholder symbols are tappable right away — nudges the user to
     // pick an image for each label they just typed.

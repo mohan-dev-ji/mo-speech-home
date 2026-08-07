@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
+import { useCreateCategory } from "@/app/lib/categories/useCreateCategory";
 import { ResourceLibraryBanner } from "@/app/components/app/home/sections/ResourceLibraryBanner";
 import { HomeNavCards } from "@/app/components/app/home/sections/HomeNavCards";
 import { HomeCreateCards } from "@/app/components/app/home/sections/HomeCreateCards";
@@ -56,13 +57,13 @@ export function HomeContent() {
   // gate save when categories exist. With none, send the user to /categories.
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
-  const createCategory = useMutation(api.profileCategories.createProfileCategory);
+  const createCategory = useCreateCategory();
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const createSentence = useMutation(api.profileSentences.createProfileSentence);
 
-  async function handleCreateCategory(name: string, symbolLabels: string[]) {
-    const id = await createCategory({ name: { en: name }, symbolLabels });
+  async function handleCreateCategory(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+    const id = await createCategory(name, rows);
     router.push(`/${locale}/categories/${id}?edit=1`);
   }
 
