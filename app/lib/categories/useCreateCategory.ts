@@ -46,6 +46,6 @@ export function useCreateCategory() {
       },
     });
     // Names never auto-translate; key by the board language (ADR-016 Addendum D).
-    return createCategory({ name: { [language]: name }, symbols }) as Promise<Id<'profileCategories'>>;
+    return createCategory({ name: { [language]: name }, symbols });
   };
 }

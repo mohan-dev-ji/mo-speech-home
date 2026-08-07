@@ -266,18 +266,19 @@ export function SymbolEditorModal({
     editorMode === 'categoryBoard' ? {} : 'skip'
   );
 
-  // Edit-mode: once `existingSymbol` arrives, mirror its English label into
-  // the search bar so the SymbolStix / Image Search / AI Generate tabs all
-  // start with the symbol's current description as their query. Fires once
-  // per open — refreshing the symbol mid-edit doesn't re-seed.
+  // Edit-mode: once `existingSymbol` arrives, mirror its board-language label
+  // (falling back to English, then any available label) into the search bar
+  // so the SymbolStix / Image Search / AI Generate tabs all start with the
+  // symbol's current description as their query. Fires once per open —
+  // refreshing the symbol mid-edit doesn't re-seed.
   const editSearchSeededRef = useRef(false);
   useEffect(() => {
     if (!isEditMode) return;
     if (!existingSymbol) return;
     if (editSearchSeededRef.current) return;
-    setSearchQuery(existingSymbol.label.en ?? '');
+    setSearchQuery(existingSymbol.label[language] ?? existingSymbol.label.en ?? Object.values(existingSymbol.label)[0] ?? '');
     editSearchSeededRef.current = true;
-  }, [isEditMode, existingSymbol]);
+  }, [isEditMode, existingSymbol, language]);
 
   useEffect(() => {
     if (!isOpen) editSearchSeededRef.current = false;

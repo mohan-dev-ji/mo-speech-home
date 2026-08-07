@@ -191,7 +191,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                     onChange={(e) =>
                       setAutoMatch((prev) => prev.map((v, k) => (k === i ? e.target.checked : v)))
                     }
-                    aria-label={t('createModalAutoMatchRow')}
+                    aria-label={t('createModalAutoMatchRow', { word: symbols[i]?.trim() || String(i + 1) })}
                     className="w-5 h-5 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
                   />
                 </div>
