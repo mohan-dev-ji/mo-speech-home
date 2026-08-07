@@ -512,7 +512,7 @@ export function PropertiesPanel({
                     {t('audioGenerateRegenerate')}
                   </button>
                 </div>
-                {draft.activeAudioSource !== 'generate' && (
+                {editorMode === 'listItem' && draft.activeAudioSource !== 'generate' && (
                   <button
                     type="button"
                     onClick={() => patch({ activeAudioSource: 'generate' })}
@@ -595,7 +595,7 @@ export function PropertiesPanel({
                     {t('audioRecordDiscard')}
                   </button>
                 </div>
-                {draft.activeAudioSource !== 'record' && (
+                {editorMode === 'listItem' && draft.activeAudioSource !== 'record' && (
                   <button
                     type="button"
                     onClick={() => patch({ activeAudioSource: 'record' })}
