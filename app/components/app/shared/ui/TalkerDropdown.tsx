@@ -12,6 +12,7 @@
 // sentinels (convex/dropbar.ts).
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -42,6 +43,8 @@ import { PhraseBuilderBody } from '@/app/components/app/shared/ui/composition/Ph
 import { BlockEditControls } from '@/app/components/app/shared/ui/composition/BlockEditControls';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
+import { AddListModal } from '@/app/components/app/shared/modals/AddListModal';
+import { useAddSymbolsToCategory } from '@/app/lib/categories/useAddSymbolsToCategory';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -109,6 +112,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [addedRows, setAddedRows] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [createPhraseOpen, setCreatePhraseOpen] = useState(false);
+  const [addListOpen, setAddListOpen] = useState(false);
 
   // Tab 1 symbol editor + delete.
   const [symbolEditor, setSymbolEditor] = useState<
@@ -155,6 +159,25 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const barRef   = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Close the panel on any route change — clicking a navbar item navigates, and
+  // the talker shell persists across the talker pages (Search ↔ Categories), so
+  // an open panel would otherwise linger after navigation.
+  const pathname = usePathname();
+  useEffect(() => { setIsOpen(false); }, [pathname]);
+
+  // Also close on a navbar click that DOESN'T change the route — e.g. tapping
+  // "Categories" while already on the categories board to bail out of a detail
+  // view. The pathname effect can't catch a same-route click, so watch for a
+  // pointerdown inside the sidebar rail (tagged data-app-sidebar).
+  useEffect(() => {
+    if (!isOpen) return;
+    const onNavPointerDown = (e: Event) => {
+      if ((e.target as Element | null)?.closest('[data-app-sidebar]')) setIsOpen(false);
+    };
+    document.addEventListener('pointerdown', onNavPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onNavPointerDown, true);
+  }, [isOpen]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
@@ -169,6 +192,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const reorderProfilePhrases    = useMutation(api.profilePhrases.reorderProfilePhrases);
   const createProfilePhrase      = useMutation(api.profilePhrases.createProfilePhrase);
   const createPhraseVariant      = useMutation(api.profilePhrases.createPhraseVariant);
+  const addSymbolsToCategory     = useAddSymbolsToCategory();
 
   // The fixed panel is anchored just under the toggle bar. Snapshotting the bar
   // rect once at open goes stale the moment the talker chip area reflows to more
@@ -777,16 +801,28 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                     {editing ? t('exitEditLabel') : t('editLabel')}
                   </Button>
                   {editing && activeTab === 'core' && (
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setSymbolEditor({ open: true, slot: occupiedMax + 1 })}
-                      icon={<Plus className="w-3.5 h-3.5" />}
-                      className="px-3 py-1.5"
-                    >
-                      {t('createWord')}
-                    </Button>
+                    <>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setSymbolEditor({ open: true, slot: occupiedMax + 1 })}
+                        icon={<Plus className="w-3.5 h-3.5" />}
+                        className="px-3 py-1.5"
+                      >
+                        {t('createWord')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setAddListOpen(true)}
+                        icon={<Plus className="w-3.5 h-3.5" />}
+                        className="px-3 py-1.5"
+                      >
+                        {t('addListLabel')}
+                      </Button>
+                    </>
                   )}
                   {editing && activeTab === 'phrases' && (
                     <Button
@@ -828,6 +864,15 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </>,
           document.body
         )}
+
+      {/* Add a list — bulk paste + auto-match into the Core-words grid. */}
+      {coreCategoryId && (
+        <AddListModal
+          isOpen={addListOpen}
+          onClose={() => setAddListOpen(false)}
+          onSubmit={async (rows) => { await addSymbolsToCategory(coreCategoryId, rows); }}
+        />
+      )}
 
       {/* Create Phrase — reuses the New-sentence modal; files into the folder. */}
       <CreateSentenceModal

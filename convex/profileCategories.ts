@@ -377,6 +377,65 @@ export const createProfileCategory = mutation({
 });
 
 /**
+ * Append symbols to an EXISTING category, in array order, after the current last
+ * slot. Mirrors the seed loop in `createProfileCategory` (same spec shape: a
+ * `symbolId` → a SymbolStix symbol with optional per-language audio override,
+ * absent → a placeholder; empty-label entries skipped). Used by the core-words
+ * dropdown "Add a list" bulk-insert. Order continues from `max(order) + 1` to
+ * match the nudge-mode append the dropdown already does for single symbols.
+ */
+export const addProfileSymbols = mutation({
+  args: {
+    profileCategoryId: v.id("profileCategories"),
+    symbols: v.array(
+      v.object({
+        label: v.record(v.string(), v.string()),
+        symbolId: v.optional(v.id("symbols")),
+        audio: v.optional(v.record(v.string(), audioSourceValidator)),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    requireProTier(user);
+
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category) throw new Error("Category not found");
+    if (category.accountId !== accountId) throw new Error("Not authorised");
+
+    const existing = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id", (q) =>
+        q.eq("profileCategoryId", args.profileCategoryId)
+      )
+      .collect();
+    let order = existing.reduce((m, s) => Math.max(m, s.order), -1) + 1;
+
+    const kept = args.symbols.filter((s) =>
+      Object.values(s.label).some((v) => (v ?? "").trim().length > 0)
+    );
+
+    const now = Date.now();
+    const ids = [];
+    for (const s of kept) {
+      const id = await ctx.db.insert("profileSymbols", {
+        accountId,
+        profileCategoryId: args.profileCategoryId,
+        order: order++,
+        imageSource: s.symbolId
+          ? { type: "symbolstix" as const, symbolId: s.symbolId }
+          : { type: "placeholder" as const },
+        label: s.label,
+        ...(s.audio ? { audio: s.audio } : {}),
+        updatedAt: now,
+      });
+      ids.push(id);
+    }
+    return ids;
+  },
+});
+
+/**
  * Persist a new order for the categories on the caller's account.
  */
 export const reorderCategories = mutation({

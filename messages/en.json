@@ -407,7 +407,13 @@
     "saveUngrouped": "Ungrouped",
     "saveCancel": "Cancel",
     "saveConfirm": "Save",
-    "saveSaving": "Saving…"
+    "saveSaving": "Saving…",
+    "addListLabel": "Add a list",
+    "addListTitle": "Add a list of words",
+    "addListSubmit": "Add words",
+    "addListAdding": "Adding…",
+    "addListAutoMatching": "Auto-matching your words…",
+    "addListCancel": "Cancel"
   },
   "categoryDetail": {
     "back": "Categories",

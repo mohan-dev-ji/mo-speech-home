@@ -13,33 +13,39 @@ import { SymbolListFields, type SymbolRow } from '@/app/components/app/shared/ui
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, rows: Array<{ label: string; autoMatch: boolean }>) => Promise<void>;
+  /** Insert the pasted rows into the target container (auto-match resolved by the host). */
+  onSubmit: (rows: SymbolRow[]) => Promise<void>;
 };
 
-export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
-  const t = useTranslations('categories');
-  const [name, setName] = useState('');
+/**
+ * "Add a list" modal for the core-words dropdown — the paste + auto-match block
+ * from the New-category modal, minus the name field. Submits the rows for the
+ * host to auto-match and append into the core-words grid (ticked rows resolve to
+ * their top symbol hit; unticked rows land as editable placeholders).
+ */
+export function AddListModal({ isOpen, onClose, onSubmit }: Props) {
+  const t = useTranslations('talker');
   const [rows, setRows] = useState<SymbolRow[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const hasWords = rows.some((r) => r.label.trim().length > 0);
   const someChecked = rows.some((r) => r.autoMatch);
 
   function reset() {
-    setName('');
     setResetSignal((n) => n + 1);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setIsCreating(true);
+    if (!hasWords) return;
+    setIsAdding(true);
     try {
-      await onCreate(trimmed, rows);
+      await onSubmit(rows);
       reset();
       onClose();
     } finally {
-      setIsCreating(false);
+      setIsAdding(false);
     }
   }
 
@@ -54,36 +60,13 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('createModalTitle')}</DialogTitle>
+          <DialogTitle>{t('addListTitle')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-          {/* Category name */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-              {t('createModalNameLabel')}
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('createModalNamePlaceholder')}
-              autoFocus
-              className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
-              style={{
-                background: 'var(--theme-symbol-bg)',
-                color: 'var(--theme-text)',
-                border: '1px solid rgba(255,255,255,0.12)',
-              }}
-            />
-          </div>
-
-          {/* Symbol labels — placeholder slots created with the category.
-              `key` bump remounts the fields for a clean reset. */}
+          {/* `key` bump remounts the fields for a clean reset. */}
           <SymbolListFields key={resetSignal} onRowsChange={setRows} />
 
-          {/* Footer */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -91,18 +74,19 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
               className="py-3 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80"
               style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}
             >
-              {t('createModalCancel')}
+              {t('addListCancel')}
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || isCreating}
+              disabled={!hasWords || isAdding}
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
-              {isCreating ? (someChecked ? t('createModalAutoMatching') : t('creating')) : t('createModalCreate')}
+              {isAdding
+                ? (someChecked ? t('addListAutoMatching') : t('addListAdding'))
+                : t('addListSubmit')}
             </button>
           </div>
-
         </form>
       </DialogContent>
     </Dialog>

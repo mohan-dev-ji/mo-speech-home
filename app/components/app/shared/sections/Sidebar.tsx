@@ -54,6 +54,9 @@ export function Sidebar({ locale }: SidebarProps) {
   // and moves the edge line to the left.
   return (
     <aside
+      // data-app-sidebar: the talker dropdown closes on any pointerdown inside
+      // this rail, so tapping a nav item (even the current route) dismisses it.
+      data-app-sidebar
       className={`hidden md:flex flex-col shrink-0 h-full border-theme-line px-theme-general ${
         onRight ? 'order-last border-l' : 'border-r'
       } ${minimal ? 'w-[84px]' : ''}`}
