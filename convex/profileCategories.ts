@@ -50,9 +50,16 @@ export const seedDefaultAccount = internalMutation({
       .query("libraryModules")
       .withIndex("by_default", (q) => q.eq("isDefault", true))
       .collect();
-    // categories < lists < sentences alphabetically — install in that order.
+    // Install trees in a sensible reading order (categories < lists < phrases <
+    // sentences), and WITHIN each tree follow the admin's arranged position
+    // (`defaultOrder`, logged at publish) so a new account mirrors the admin's
+    // layout instead of alphabetical slug order. Modules published before
+    // `defaultOrder` shipped have none → they sort last, then by slug.
     defaults.sort(
-      (a, b) => a.tree.localeCompare(b.tree) || a.slug.localeCompare(b.slug)
+      (a, b) =>
+        a.tree.localeCompare(b.tree) ||
+        (a.defaultOrder ?? Infinity) - (b.defaultOrder ?? Infinity) ||
+        a.slug.localeCompare(b.slug)
     );
 
     let installed = 0;

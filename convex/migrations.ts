@@ -523,6 +523,7 @@ export const seedLibraryModulesFromJSON = mutation({
           defaultTier: mod.defaultTier,
           ...(mod.surface ? { surface: mod.surface } : {}),
           ...(mod.isDefault ? { isDefault: true } : {}),
+          ...(mod.defaultOrder !== undefined ? { defaultOrder: mod.defaultOrder } : {}),
           items: mod.items,
           publishedAt: now,
           featured: false,

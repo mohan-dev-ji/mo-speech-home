@@ -1019,6 +1019,12 @@ export default defineSchema({
     // paid tier in the UI: a Default module shows a "Default" badge instead of
     // a Free/Pro/Max one. Replaces the bundled-`core` idea (ADR-014 Task C/D).
     isDefault: v.optional(v.boolean()),
+    // The admin's arranged position for this source (category `order` on the
+    // Categories page, or folder `order` for list/sentence trees), captured at
+    // publish. `seedDefaultAccount` installs defaults in this order so new
+    // accounts mirror the admin's layout instead of alphabetical slug order.
+    // Optional: modules published before this shipped fall back to slug order.
+    defaultOrder: v.optional(v.number()),
     // Translation bookkeeping (ADR-014 Task E) — a flat map of
     // fieldPath → the English value that the current non-English translations
     // were produced from. Lets the translator (re)translate only what's missing

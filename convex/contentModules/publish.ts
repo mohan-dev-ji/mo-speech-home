@@ -178,6 +178,8 @@ export const publishFolderAsModule = mutation({
         ...(folder.imagePath ? { coverImagePath: folder.imagePath } : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
+        // Log the admin's folder position so default seeds mirror it.
+        defaultOrder: folder.order,
         items,
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
@@ -195,6 +197,8 @@ export const publishFolderAsModule = mutation({
         ...(folder.imagePath ? { coverImagePath: folder.imagePath } : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
+        // Log the admin's folder position so default seeds mirror it.
+        defaultOrder: folder.order,
         items,
         publishedAt: now,
         lastPublishedAt: now,
@@ -375,6 +379,8 @@ export const publishCategoryAsModule = mutation({
         ...(cat.imagePath ? { coverImagePath: cat.imagePath } : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
+        // Log the admin's category-page position so default seeds mirror it.
+        defaultOrder: cat.order,
         items,
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
@@ -393,6 +399,8 @@ export const publishCategoryAsModule = mutation({
         ...(cat.imagePath ? { coverImagePath: cat.imagePath } : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
+        // Log the admin's category-page position so default seeds mirror it.
+        defaultOrder: cat.order,
         items,
         publishedAt: now,
         lastPublishedAt: now,

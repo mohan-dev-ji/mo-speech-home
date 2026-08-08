@@ -34,6 +34,9 @@ export const dumpAllModules = query({
       // `core-*` module stops being a core-word module.
       ...(m.surface ? { surface: m.surface } : {}),
       ...(m.isDefault ? { isDefault: true } : {}),
+      // Admin's arranged position — drives default-seed order (seedDefaultAccount),
+      // so it must survive the git export/import round-trip.
+      ...(m.defaultOrder !== undefined ? { defaultOrder: m.defaultOrder } : {}),
       items: m.items,
     }));
   },

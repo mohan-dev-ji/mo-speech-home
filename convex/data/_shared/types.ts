@@ -232,6 +232,10 @@ type ContentModuleBase = {
    * (ADR-014 Task C/D). Present in the git-export artifact so a re-seed restores
    * the flag. The live source of truth is `libraryModules.isDefault`. */
   isDefault?: boolean;
+  /** The admin's arranged position, captured at publish. Drives default-seed
+   * order (`seedDefaultAccount`); carried in the git-export artifact so a
+   * re-seed restores the admin's layout. Live source: `libraryModules.defaultOrder`. */
+  defaultOrder?: number;
   provenance?: ModuleProvenance;
 };
 
