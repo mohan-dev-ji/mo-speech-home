@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -137,24 +137,36 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
 
           {/* Symbol labels — placeholder slots created with the category */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+            {/* Header: "Symbols" + info tooltip on the left; the paste/auto-match
+                hint now lives in the (i) icon's hover text. The "Auto-match"
+                select-all sits at the right, its checkbox column-aligned with the
+                per-row checkboxes below (matching pr-1 + w-5). */}
+            <div className="flex items-center gap-2 pr-1">
               <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
                 {t('createModalSymbolsLabel')}
               </label>
+              <button
+                type="button"
+                title={t('createModalBulkHint')}
+                aria-label={t('createModalBulkHint')}
+                className="inline-flex items-center justify-center cursor-help"
+                style={{ color: 'var(--theme-secondary-text)' }}
+              >
+                <Info className="w-4 h-4" />
+              </button>
+              <div className="flex-1" />
               <label className="flex items-center gap-2 text-theme-xs cursor-pointer" style={{ color: 'var(--theme-secondary-text)' }}>
+                {t('createModalAutoMatch')}
                 <input
                   ref={headerRef}
                   type="checkbox"
                   checked={allChecked}
                   onChange={(e) => setAutoMatch(symbols.map(() => e.target.checked))}
-                  className="w-4 h-4 accent-[var(--theme-brand-primary)]"
+                  aria-label={t('createModalAutoMatchAll')}
+                  className="w-5 h-5 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
                 />
-                {t('createModalAutoMatchAll')}
               </label>
             </div>
-            <p className="text-theme-xs -mt-1" style={{ color: 'var(--theme-secondary-text)' }}>
-              {t('createModalBulkHint')}
-            </p>
 
             {/* Cap the visible input list at ~5 rows; anything beyond
                 scrolls inside this container so the footer Create button
