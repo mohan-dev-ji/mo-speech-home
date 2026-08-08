@@ -17,11 +17,11 @@ import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOrig
 import { labelTranslateState } from '@/lib/languages/variants';
 
 // Per grid-size title type + tile padding: bigger grid → bigger title + roomier
-// padding. Design-system tokens only — p/large/h4 text sizes; symbol-card (8px)
+// padding. Design-system tokens only — s/p/h4 text sizes; symbol-card (8px)
 // padding for small/medium, general (16px) for large.
 const TITLE_TEXT_CLASS = {
-  small:  'text-theme-p',
-  medium: 'text-theme-large',
+  small:  'text-theme-s',
+  medium: 'text-theme-p',
   large:  'text-theme-h4',
 } as const;
 const TILE_PADDING_CLASS = {

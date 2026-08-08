@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { CATEGORY_COLOURS, getCategoryColour } from '@/app/lib/categoryColours';
 
 type Props = {
@@ -22,9 +22,37 @@ export function ColourSwatchPicker({ value, onChange, ariaLabel }: Props) {
   const [open, setOpen] = useState(false);
   const current = getCategoryColour(value);
 
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  // Flip the popover away from whichever viewport edge it would overflow, so it
+  // never gets clipped near the right/bottom of the screen.
+  const [placement, setPlacement] = useState<{
+    vertical: 'top' | 'bottom';
+    horizontal: 'left' | 'right';
+  }>({ vertical: 'bottom', horizontal: 'left' });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const trigger = triggerRef.current;
+    const pop = popoverRef.current;
+    if (!trigger || !pop) return;
+    const t = trigger.getBoundingClientRect();
+    const p = pop.getBoundingClientRect();
+    const margin = 8;
+    const overflowsBottom = t.bottom + p.height + margin > window.innerHeight;
+    const fitsAbove = t.top - p.height - margin > 0;
+    const overflowsRight = t.left + p.width + margin > window.innerWidth;
+    const fitsLeftAligned = t.right - p.width >= 0; // right-0 anchors the popover's right edge to the trigger's
+    setPlacement({
+      vertical: overflowsBottom && fitsAbove ? 'top' : 'bottom',
+      horizontal: overflowsRight && fitsLeftAligned ? 'right' : 'left',
+    });
+  }, [open]);
+
   return (
     <div className="relative inline-flex shrink-0 align-middle" onClick={(e) => e.stopPropagation()}>
       <button
+        ref={triggerRef}
         type="button"
         aria-label={ariaLabel ?? 'Choose colour'}
         onClick={() => setOpen((o) => !o)}
@@ -37,7 +65,12 @@ export function ColourSwatchPicker({ value, onChange, ariaLabel }: Props) {
           {/* Click-away backdrop */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute top-full left-0 mt-1.5 p-1.5 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50"
+            ref={popoverRef}
+            className={[
+              'absolute p-1.5 rounded-theme-card border border-theme-line bg-theme-surface elevation-modal z-50',
+              placement.vertical === 'bottom' ? 'top-full mt-1.5' : 'bottom-full mb-1.5',
+              placement.horizontal === 'left' ? 'left-0' : 'right-0',
+            ].join(' ')}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1.25rem)', gap: '0.25rem' }}
           >
             {Object.entries(CATEGORY_COLOURS).map(([name, pair]) => {
