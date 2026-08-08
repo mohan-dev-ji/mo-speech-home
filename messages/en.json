@@ -508,6 +508,8 @@
     "createModalSymbolsLabel": "Symbols",
     "createModalSymbolPlaceholder": "Type a word, e.g. dog",
     "createModalBulkHint": "Paste a list — one per line or comma-separated — to add many symbols at once. Tick Auto-match to fill each word's symbol automatically.",
+    "createModalTipTitle": "Top Tip",
+    "createModalTipBody": "Paste a list separated by a comma:\n\nword 1, word 2, word 3\n\n…or on a new line:\n\nword 1\nword 2\nword 3\n\n…to add many at once.",
     "createModalAddSymbols": "Add more symbols",
     "createModalAutoMatch": "Auto-match",
     "createModalAutoMatchAll": "Auto-match all",

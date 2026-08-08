@@ -31,6 +31,24 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
   }, [someChecked, allChecked]);
   const [isCreating, setIsCreating] = useState(false);
 
+  // Paste/auto-match tip — click-to-toggle (works on touch, unlike hover).
+  // Dismisses on outside-click or Escape.
+  const [tipOpen, setTipOpen] = useState(false);
+  const tipRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!tipOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (tipRef.current && !tipRef.current.contains(e.target as Node)) setTipOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setTipOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [tipOpen]);
+
   // Per-slot input refs so we can focus the newly-added field after addSymbol.
   const symbolInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const prevSymbolsLengthRef = useRef(symbols.length);
@@ -83,6 +101,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
     setName('');
     setSymbols(INITIAL_SYMBOLS);
     setAutoMatch(INITIAL_SYMBOLS.map(() => false));
+    setTipOpen(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -145,15 +164,34 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
               <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
                 {t('createModalSymbolsLabel')}
               </label>
-              <button
-                type="button"
-                title={t('createModalBulkHint')}
-                aria-label={t('createModalBulkHint')}
-                className="inline-flex items-center justify-center cursor-help"
-                style={{ color: 'var(--theme-secondary-text)' }}
-              >
-                <Info className="w-4 h-4" />
-              </button>
+              <div className="relative" ref={tipRef}>
+                <button
+                  type="button"
+                  onClick={() => setTipOpen((o) => !o)}
+                  aria-label={t('createModalBulkHint')}
+                  aria-expanded={tipOpen}
+                  className="inline-flex items-center justify-center cursor-pointer"
+                  style={{ color: 'var(--theme-secondary-text)' }}
+                >
+                  <Info className="w-4 h-4" />
+                </button>
+                {tipOpen && (
+                  <div
+                    role="tooltip"
+                    className="absolute left-0 top-full mt-2 z-20 w-64 rounded-theme p-3 shadow-lg text-theme-xs"
+                    style={{
+                      background: 'var(--theme-symbol-bg)',
+                      color: 'var(--theme-secondary-text)',
+                      border: '1px solid var(--theme-line)',
+                    }}
+                  >
+                    <p className="font-semibold mb-1" style={{ color: 'var(--theme-text)' }}>
+                      {t('createModalTipTitle')}
+                    </p>
+                    <p className="whitespace-pre-line leading-snug">{t('createModalTipBody')}</p>
+                  </div>
+                )}
+              </div>
               <div className="flex-1" />
               <label className="flex items-center gap-2 text-theme-xs cursor-pointer" style={{ color: 'var(--theme-secondary-text)' }}>
                 {t('createModalAutoMatch')}
@@ -163,7 +201,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                   checked={allChecked}
                   onChange={(e) => setAutoMatch(symbols.map(() => e.target.checked))}
                   aria-label={t('createModalAutoMatchAll')}
-                  className="w-5 h-5 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
+                  className="w-6 h-6 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
                 />
               </label>
             </div>
@@ -204,7 +242,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                       setAutoMatch((prev) => prev.map((v, k) => (k === i ? e.target.checked : v)))
                     }
                     aria-label={t('createModalAutoMatchRow', { word: symbols[i]?.trim() || String(i + 1) })}
-                    className="w-5 h-5 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
+                    className="w-6 h-6 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
                   />
                 </div>
               ))}
