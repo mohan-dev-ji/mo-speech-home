@@ -10,7 +10,7 @@
 // a press-and-hold (so a swipe scrolls the row instead; see sensors below). A tap
 // still plays: tapping a chip calls onChipTap; the parent decides play-vs-other.
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -103,6 +103,20 @@ export function TalkerBar({
     onReorder(oldIdx, newIdx);
   }
 
+  // Keep the newest chip in view. Symbols append to the right, so once the tray
+  // overflows a freshly-tapped symbol lands off-screen — scroll to the end when
+  // the count grows. Only on growth: reorder keeps the length (don't yank the
+  // view) and removal shrinks it (nothing new to reveal).
+  const trayRef = useRef<HTMLDivElement>(null);
+  const prevCountRef = useRef(symbols.length);
+  useEffect(() => {
+    const el = trayRef.current;
+    if (el && symbols.length > prevCountRef.current) {
+      el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    }
+    prevCountRef.current = symbols.length;
+  }, [symbols.length]);
+
   if (symbols.length === 0) {
     return (
       <div className="flex flex-1 min-w-0 self-stretch items-center flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
@@ -117,7 +131,10 @@ export function TalkerBar({
   }
 
   return (
-    <div className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements">
+    <div
+      ref={trayRef}
+      className="flex flex-1 min-w-0 self-stretch items-start flex-nowrap overflow-x-auto gap-theme-elements py-theme-elements"
+    >
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
