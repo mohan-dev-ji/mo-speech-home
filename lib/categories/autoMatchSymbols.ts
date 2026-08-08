@@ -47,8 +47,11 @@ export async function buildCreateSymbols(
       const hit = await deps.search(r.label, language);
       if (!hit) return placeholder; // no match → placeholder
 
+      // Carry the matched symbol's full multi-language words so the tile's label
+      // switches with the board language (not just the authoring language). The
+      // board language slot is overridden with the typed word.
       const spec: CreateSymbolSpec = {
-        label: { [language]: r.label },
+        label: { ...hit.words, [language]: r.label },
         symbolId: hit._id,
       };
 
