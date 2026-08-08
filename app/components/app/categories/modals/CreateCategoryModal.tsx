@@ -178,7 +178,7 @@ export function CreateCategoryModal({ isOpen, onClose, onCreate }: Props) {
                 {tipOpen && (
                   <div
                     role="tooltip"
-                    className="absolute left-0 top-full mt-2 z-20 w-64 rounded-theme p-3 shadow-lg text-theme-xs"
+                    className="absolute left-full top-0 ml-2 z-20 w-64 rounded-theme p-3 shadow-lg text-theme-xs"
                     style={{
                       background: 'var(--theme-symbol-bg)',
                       color: 'var(--theme-secondary-text)',
