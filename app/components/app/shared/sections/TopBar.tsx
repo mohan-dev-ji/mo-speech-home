@@ -5,6 +5,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { QuickSettings } from '@/app/components/app/shared/ui/QuickSettings';
+import { TalkerToggle } from '@/app/components/app/shared/ui/TalkerToggle';
 import { BreadcrumbViewModeDropdown } from '@/app/components/app/shared/ui/BreadcrumbViewModeDropdown';
 import { useEffect, useState } from 'react';
 import { Menu, X, Home, Search, Tag, List, MessageSquare, Settings } from 'lucide-react';
@@ -21,6 +22,10 @@ const mobileNavItems = [
   { segment: 'sentences',  icon: MessageSquare, flag: 'sentences_visible'  },
   { segment: 'settings',   icon: Settings,      flag: 'settings_visible'   },
 ] as const;
+
+// Segments whose boards render the talker bar — the only pages where the
+// talker-mode toggle is meaningful, so it's hidden everywhere else.
+const TALKER_SEGMENTS = new Set(['search', 'categories']);
 
 const linkStyle = { color: 'var(--theme-secondary-alt-text)' } as const;
 const boldStyle = { color: 'var(--theme-alt-text)' } as const;
@@ -177,7 +182,14 @@ export function TopBar() {
 
         <div className="flex-1" />
 
-        {(!isStudent || stateFlags.quick_settings_visible) && <QuickSettings />}
+        {(!isStudent || stateFlags.quick_settings_visible) && (
+          <div className="flex items-center gap-theme-elements">
+            {/* Talker mode only applies on the boards that render the talker bar
+                (Search + Categories) — hide the toggle everywhere else. */}
+            {TALKER_SEGMENTS.has(currentSegment) && <TalkerToggle />}
+            <QuickSettings />
+          </div>
+        )}
       </header>
 
       {/* Mobile dropdown */}
