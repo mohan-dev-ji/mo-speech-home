@@ -604,10 +604,15 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                   editLabel={t('edit')}
                   exitLabel={t('exitEdit')}
                 />
-                <CreateButton
-                  onClick={handleCreateOpen}
-                  label={t('create')}
-                />
+                {/* Create lives inside edit mode (matches the module pages, the
+                    dropdown tabs + category detail): clearer intent, and clearly
+                    behind the tier-gated Edit toggle. */}
+                {isEditing && (
+                  <CreateButton
+                    onClick={handleCreateOpen}
+                    label={t('create')}
+                  />
+                )}
               </>
             )}
             {/* Publish as module — admin-only, from the folder's own page.
