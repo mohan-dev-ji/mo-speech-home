@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
@@ -104,24 +103,16 @@ export function ListItemPlayModal({
 
   return (
     <PlayModalBackdrop onClose={onClose} className="items-center justify-center p-6">
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full"
-        style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}
-        aria-label="Close"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
       <div
         className="flex flex-col items-center gap-5 rounded-2xl p-8 w-full max-w-xs transition-colors"
-        style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'var(--theme-surface)' }}
+        // No card fill by default — the symbol + label sit directly on the dimmed
+        // overlay. Checked (checklist mode) still tints green as feedback.
+        style={{ background: checked ? 'var(--theme-success, #22c55e)' : 'transparent' }}
         onClick={(e) => e.stopPropagation()}
       >
         {showFirstThen && <FirstThenPill index={index} />}
         {showNumbers && (
-          <span className="text-theme-h2 font-bold" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>
+          <span className="text-theme-h2 font-bold" style={{ color: checked ? '#fff' : 'var(--theme-button-primary)' }}>
             {index + 1}
           </span>
         )}
@@ -142,7 +133,7 @@ export function ListItemPlayModal({
           )}
         </div>
         {item.description && (
-          <p className="text-theme-h4 font-semibold text-center" style={{ color: checked ? '#fff' : 'var(--theme-text-primary)' }}>
+          <p className="text-theme-h4 font-semibold text-center" style={{ color: checked ? '#fff' : 'var(--theme-button-primary)' }}>
             {item.description}
           </p>
         )}
