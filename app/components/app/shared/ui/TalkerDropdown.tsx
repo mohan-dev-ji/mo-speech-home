@@ -12,7 +12,7 @@
 // sentinels (convex/dropbar.ts).
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -45,6 +45,8 @@ import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-edi
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
 import { AddListModal } from '@/app/components/app/shared/modals/AddListModal';
 import { useAddSymbolsToCategory } from '@/app/lib/categories/useAddSymbolsToCategory';
+import { useAppState } from '@/app/contexts/AppStateProvider';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -103,6 +105,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // columns, enlarging each symbol (FEAT-006 "too small" fix).
   const cols = useGridColumns(stateFlags.grid_size);
   const isAdmin = useIsAdmin();
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
+  // Authoring is Pro (matches Categories/Lists/Sentences): free tier gets the
+  // upgrade nudge instead of entering edit mode — otherwise the create/edit
+  // actions inside hit the server-side requireProTier gate and error.
+  const canEdit = viewMode !== 'student-view' || !!stateFlags.student_can_edit;
+  const locale = useParams().locale as string;
   const [isOpen, setIsOpen]       = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('core');
   const [editing, setEditing]     = useState(false);
@@ -113,6 +122,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [createPhraseOpen, setCreatePhraseOpen] = useState(false);
   const [addListOpen, setAddListOpen] = useState(false);
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
 
   // Tab 1 symbol editor + delete.
   const [symbolEditor, setSymbolEditor] = useState<
@@ -790,16 +800,25 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
                 {/* Edit chrome. */}
                 <div className="flex items-center gap-2 px-4 py-3 shrink-0">
-                  <Button
-                    type="button"
-                    variant={editing ? 'edit-mode' : 'primary'}
-                    size="sm"
-                    onClick={() => setEditing((e) => !e)}
-                    icon={<Pencil className="w-3.5 h-3.5" />}
-                    className="px-3 py-1.5"
-                  >
-                    {editing ? t('exitEditLabel') : t('editLabel')}
-                  </Button>
+                  {/* Authoring gate — mirrors the Categories/Lists/Sentences pages:
+                      hidden in student-view unless `student_can_edit`, and free
+                      tier gets the upgrade nudge instead of entering edit mode
+                      (server enforces requireProTier on the create/edit calls). */}
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      variant={editing ? 'edit-mode' : 'primary'}
+                      size="sm"
+                      onClick={() => {
+                        if (isFree) { setUpgradeNudgeOpen(true); return; }
+                        setEditing((e) => !e);
+                      }}
+                      icon={<Pencil className="w-3.5 h-3.5" />}
+                      className="px-3 py-1.5"
+                    >
+                      {editing ? t('exitEditLabel') : t('editLabel')}
+                    </Button>
+                  )}
                   {editing && activeTab === 'core' && (
                     <>
                       <Button
@@ -864,6 +883,14 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           </>,
           document.body
         )}
+
+      {/* Free-tier upgrade nudge — fired from the Edit toggle (authoring is Pro). */}
+      <UpgradeNudge
+        open={upgradeNudgeOpen}
+        onOpenChange={setUpgradeNudgeOpen}
+        feature="editAuthoring"
+        locale={locale}
+      />
 
       {/* Add a list — bulk paste + auto-match into the Core-words grid. */}
       {coreCategoryId && (
