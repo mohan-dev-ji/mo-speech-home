@@ -16,7 +16,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import {
   DndContext,
   closestCenter,
@@ -105,6 +105,10 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // columns, enlarging each symbol (FEAT-006 "too small" fix).
   const cols = useGridColumns(stateFlags.grid_size);
   const isAdmin = useIsAdmin();
+  // During sign-out, Convex auth flips to unauthenticated while this tree is
+  // still mounted — used to skip the container-create mutation so it doesn't
+  // throw Unauthenticated (getDropbarBoard tolerates it, ensureContainers can't).
+  const { isAuthenticated } = useConvexAuth();
   const { subscription } = useAppState();
   const isFree = subscription.tier === 'free';
   // Authoring is Pro (matches Categories/Lists/Sentences): free tier gets the
@@ -277,11 +281,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   // Get-or-create the two containers the first time the board resolves without
   // them (accounts that predate the seeded defaults).
   useEffect(() => {
-    if (!isOpen || !board) return;
+    if (!isOpen || !isAuthenticated || !board) return;
     if (board.coreCategoryId && board.phrasesFolderId) return;
     ensureContainers({}).catch((e) => console.error('[TalkerDropdown] ensure containers failed', e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, board]);
+  }, [isOpen, isAuthenticated, board]);
 
   // Leaving edit mode / switching tab drops any transient empty rows.
   useEffect(() => { if (!editing) setAddedRows(0); }, [editing]);
