@@ -247,10 +247,15 @@ export function CategoriesContent() {
                   editLabel={t('edit')}
                   exitLabel={t('exitEdit')}
                 />
-                <CreateButton
-                  onClick={handleCreateOpen}
-                  label={t('create')}
-                />
+                {/* Create lives inside edit mode (matches the dropdown tabs +
+                    category detail page): out of edit mode it read ambiguously,
+                    and it's now clearly behind the tier-gated Edit toggle. */}
+                {isEditing && (
+                  <CreateButton
+                    onClick={handleCreateOpen}
+                    label={t('create')}
+                  />
+                )}
               </>
             )}
             {/* Admin only: re-log the seed order of all published categories from

@@ -220,7 +220,11 @@ export function GroupsView({
               editLabel={t('edit')}
               exitLabel={t('exitEdit')}
             />
-            <CreateButton onClick={handleCreateOpen} label={t('createGroup')} />
+            {/* Create lives inside edit mode (matches the dropdown tabs + category
+                detail page): clearer intent and clearly behind the tier-gated Edit. */}
+            {isEditing && (
+              <CreateButton onClick={handleCreateOpen} label={t('createGroup')} />
+            )}
           </PageBanner>
         </div>
       )}
