@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
+import { ArrowDownUp } from 'lucide-react';
 import { PageBanner } from '@/app/components/app/shared/ui/PageBanner';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { CreateButton } from '@/app/components/app/shared/ui/CreateButton';
+import { Button } from '@/app/components/app/shared/ui/Button';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
 import {
   DndContext,
   closestCenter,
@@ -104,6 +107,25 @@ export function CategoriesContent() {
   const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
+
+  // Admin: re-log every published category's seed order from the current grid
+  // arrangement in one pass, so reordering doesn't require re-publishing each
+  // category to fix new-account seed order (order-only; content untouched).
+  const syncSeedOrder = useMutation(api.contentModules.publish.syncCategorySeedOrder);
+  const { showToast } = useToast();
+  const [isSyncingOrder, setIsSyncingOrder] = useState(false);
+  async function handleSyncSeedOrder() {
+    if (isSyncingOrder) return;
+    setIsSyncingOrder(true);
+    try {
+      const { synced } = await syncSeedOrder({});
+      showToast({ tone: 'info', title: t('seedOrderSynced', { count: synced }) });
+    } catch {
+      showToast({ tone: 'warning', title: t('seedOrderSyncError') });
+    } finally {
+      setIsSyncingOrder(false);
+    }
+  }
 
   // Inline rename from the edit-mode dashed title box. Merge into the existing
   // localised name so other locales are preserved; only the active locale's
@@ -230,6 +252,20 @@ export function CategoriesContent() {
                   label={t('create')}
                 />
               </>
+            )}
+            {/* Admin only: re-log the seed order of all published categories from
+                the current grid, so a reorder doesn't need each one re-published. */}
+            {showAdminBadges && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleSyncSeedOrder}
+                disabled={isSyncingOrder}
+                icon={<ArrowDownUp className="w-3.5 h-3.5" />}
+              >
+                {isSyncingOrder ? t('seedOrderSyncing') : t('seedOrderSync')}
+              </Button>
             )}
           </PageBanner>
         </div>

@@ -526,7 +526,11 @@
     "creating": "Creating…",
     "deleteCategory": "Delete {name}",
     "moveCategory": "Move {name}",
-    "rename": "Rename {name}"
+    "rename": "Rename {name}",
+    "seedOrderSync": "Sync seed order",
+    "seedOrderSyncing": "Syncing…",
+    "seedOrderSynced": "Seed order synced ({count} updated)",
+    "seedOrderSyncError": "Could not sync seed order"
   },
   "settings": {
     "title": "Settings",

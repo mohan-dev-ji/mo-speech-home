@@ -421,3 +421,55 @@ export const publishCategoryAsModule = mutation({
     return { slug, tree: "categories" as const, moduleId, updated };
   },
 });
+
+/**
+ * Re-log the seed order of every already-published category from the admin's
+ * current Categories-page arrangement, in one pass. Reordering categories shifts
+ * their `order`, which leaves each published module's `defaultOrder` stale — so
+ * new-account seeds no longer match the admin's layout. Rather than re-publish
+ * each category (which needlessly re-serialises symbols + audio), this patches
+ * ONLY `defaultOrder` on the linked module, for categories that carry a
+ * `publishedModuleSlug`. Unpublished categories are skipped (nothing to sync),
+ * and core-word categories are left to the dropbar's own publish flow.
+ */
+export const syncCategorySeedOrder = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { accountId } = await requireCallerIsAdmin(ctx);
+
+    const cats = await ctx.db
+      .query("profileCategories")
+      .withIndex("by_account_id_and_order", (q) => q.eq("accountId", accountId))
+      .order("asc")
+      .collect();
+
+    const now = Date.now();
+    let synced = 0;
+    let skipped = 0;
+    for (const cat of cats) {
+      // Core-word categories live in the talker dropbar, published separately.
+      if (cat.surface === "core") continue;
+      const slug = cat.publishedModuleSlug;
+      if (!slug) {
+        skipped++;
+        continue;
+      }
+      const mod = await ctx.db
+        .query("libraryModules")
+        .withIndex("by_tree_and_slug", (q) =>
+          q.eq("tree", "categories").eq("slug", slug)
+        )
+        .unique();
+      if (!mod) {
+        skipped++;
+        continue;
+      }
+      if (mod.defaultOrder !== cat.order) {
+        await ctx.db.patch(mod._id, { defaultOrder: cat.order, updatedAt: now });
+        synced++;
+      }
+    }
+
+    return { synced, skipped };
+  },
+});
