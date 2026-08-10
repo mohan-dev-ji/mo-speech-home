@@ -1264,3 +1264,38 @@ export const backfillSequenceSentenceText = internalMutation({
     return summary;
   },
 });
+
+/**
+ * One-off backfill (phase-18): list items auto-matched before the imageSourceType
+ * fix carry a SymbolStix `imagePath` (`symbols/…`) but no `imageSourceType`, so
+ * the imageOnly editor reopens them on the Upload tab. Stamp
+ * `imageSourceType: 'symbolstix'` on any list item whose image is a SymbolStix
+ * path and lacks a type. Account uploads (`accounts/…`) are left untouched.
+ * Idempotent — safe to re-run. Run: `npx convex run migrations:backfillListItemImageSource`.
+ */
+export const backfillListItemImageSource = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const lists = await ctx.db.query("profileLists").collect();
+    let listsPatched = 0;
+    let itemsStamped = 0;
+    for (const list of lists) {
+      let changed = false;
+      const items = list.items.map((item) => {
+        if (item.imagePath?.startsWith("symbols/") && !item.imageSourceType) {
+          changed = true;
+          itemsStamped++;
+          return { ...item, imageSourceType: "symbolstix" as const };
+        }
+        return item;
+      });
+      if (changed) {
+        await ctx.db.patch(list._id, { items, updatedAt: Date.now() });
+        listsPatched++;
+      }
+    }
+    const summary = { listsScanned: lists.length, listsPatched, itemsStamped };
+    console.log(`[backfillListItemImageSource] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
