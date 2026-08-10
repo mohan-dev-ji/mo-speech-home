@@ -56,9 +56,10 @@ async function resolveCachedAudio(
   text: string,
   voiceId: string,
   tone?: string,
-  // `skipSymbolstix` (Variant Lifecycle Stage 2 perf): literal requests bypass the
-  // SymbolStix default lookup so a KNOWN word (e.g. "breakfast") still resolves the
-  // cached literal TTS clip instead of short-circuiting at symbolstix + regenerating.
+  // `skipSymbolstix` = literal mode (list items, composed content). It skips the
+  // English cross-language match (which would speak the localized word for text
+  // typed in another language) but STILL reuses a seeded clip on an EXACT match
+  // in the active voice's language — same audio, no regenerated duplicate.
   skipSymbolstix?: boolean,
 ): Promise<ResolveResult> {
   // ANY requested tone — including the emoji row's "neutral" — is a fluent
@@ -95,6 +96,30 @@ async function resolveCachedAudio(
           englishWord: exact.words.en,
           audioBasename: exact.audioBasename,
         };
+      }
+    }
+  }
+
+  // Literal requests (list items, composed sentence/phrase words) author exact
+  // text. Reuse a seeded SymbolStix clip ONLY on an exact match in the ACTIVE
+  // VOICE's language (never an English cross-match — that would speak the
+  // localized word for text typed in another language). This avoids
+  // regenerating a duplicate of a clip the symbol already has, while still
+  // speaking exactly the authored text. Keyed off the settings voice, not the
+  // content's authored language.
+  if (!viaGemini && skipSymbolstix) {
+    const lang = getVoiceLang(voiceId) ?? "en";
+    if (SEARCHABLE_LANGS.has(lang)) {
+      const exact = await matchSymbolByWord(ctx, lang, text);
+      if (exact) {
+        const audioMap = exact.audio as Record<string, boolean>;
+        if (audioMap?.[voiceId] === true) {
+          return {
+            source: "symbolstix",
+            englishWord: exact.words.en,
+            audioBasename: exact.audioBasename,
+          };
+        }
       }
     }
   }

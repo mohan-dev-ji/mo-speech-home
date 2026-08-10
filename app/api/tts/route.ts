@@ -162,10 +162,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing text" }, { status: 400 });
   }
 
-  // `literal` (Variant Lifecycle Stage 2): skip the SymbolStix default-audio
-  // lookup and synthesise the EXACT text in the requested voice. Composed content
-  // (sentence blocks) authors its own text, so a word must say what was typed in
-  // the board voice, not the symbol's canonical per-language word (the translation).
+  // `literal` (Variant Lifecycle Stage 2): the caller authors exact text (list
+  // items, composed sentence/phrase words), so it must say what was typed in the
+  // active voice — not a symbol's canonical word matched via English. It skips the
+  // English cross-language match, but a seeded clip is still reused on an EXACT
+  // match in the active voice's language (same audio → no regenerated duplicate).
   const literal = body.literal === true;
 
   const voiceId: VoiceId =
@@ -233,7 +234,11 @@ export async function POST(request: Request) {
   }) as LookupResult;
   console.log(`[TTS] text="${normalised}" voiceId="${voiceId}" tone="${requestedTone ?? "-"}" lookup=`, JSON.stringify(lookup));
 
-  if (!literal && lookup.source === "symbolstix") {
+  // A symbolstix result is honoured for literal requests too: `ttsCache.lookup`
+  // only returns one for a literal request on an EXACT match in the active
+  // voice's language (never an English cross-match), so it speaks exactly the
+  // authored text — reusing the seeded clip instead of regenerating a duplicate.
+  if (lookup.source === "symbolstix") {
     const key = resolveSymbolAudioPath(
       voiceId,
       lookup.englishWord,
