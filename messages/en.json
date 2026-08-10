@@ -112,7 +112,8 @@
     "toastLibraryOn": "Published to library",
     "toastLibraryOff": "Removed from library",
     "toastTierUpdated": "Plan tier updated",
-    "toastAdminError": "Could not complete admin action"
+    "toastAdminError": "Could not complete admin action",
+    "createModalAutoMatching": "Auto-matching your steps…"
   },
   "translate": {
     "madeInBadge": "Made in {lang}",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, useConvex } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import {
   DndContext,
@@ -310,6 +310,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const [editingNameValue, setEditingNameValue] = useState('');
 
   const lists = useQuery(api.profileLists.getProfileLists, {});
+  const convex = useConvex();
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const deleteList = useMutation(api.profileLists.deleteProfileList);
@@ -425,17 +426,31 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     });
   }
 
-  async function handleCreate(name: string, steps: string[]) {
+  async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createList({
       name: { en: name },
       ...(realFolderId ? { folderId: realFolderId } : {}),
     });
-    const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
-    if (nonEmpty.length > 0) {
-      await updateListItems({
-        profileListId: id,
-        items: nonEmpty.map((description, i) => ({ order: i, description })),
-      });
+    const kept = rows
+      .map((r) => ({ description: r.label.trim(), autoMatch: r.autoMatch }))
+      .filter((r) => r.description.length > 0);
+    if (kept.length > 0) {
+      // Auto-match rows resolve their step's top symbol IMAGE (searchSymbols
+      // returns imagePath); the description stays the typed step. Text + audio
+      // are authored on the row, not derived from the picked symbol.
+      const items = await Promise.all(
+        kept.map(async ({ description, autoMatch }, i) => {
+          let imagePath: string | undefined;
+          if (autoMatch) {
+            const hits = await convex.query(api.symbols.searchSymbols, {
+              searchTerm: description, language, limit: 1,
+            });
+            imagePath = hits?.[0]?.imagePath;
+          }
+          return { order: i, description, ...(imagePath ? { imagePath } : {}) };
+        }),
+      );
+      await updateListItems({ profileListId: id, items });
     }
     // ?edit=1 lands the detail page in edit mode so the new symbol slots
     // are immediately visible — nudges the user to pick imagery for the

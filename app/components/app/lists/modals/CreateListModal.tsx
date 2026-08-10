@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -9,45 +8,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/app/components/app/shared/ui/Dialog';
+import { SymbolListFields, type SymbolRow } from '@/app/components/app/shared/ui/SymbolListFields';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, steps: string[]) => Promise<void>;
+  onCreate: (name: string, rows: Array<{ label: string; autoMatch: boolean }>) => Promise<void>;
 };
-
-const INITIAL_STEPS = ['', '', '', ''];
 
 export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
   const t = useTranslations('lists');
   const [name, setName] = useState('');
-  const [steps, setSteps] = useState<string[]>(INITIAL_STEPS);
+  const [rows, setRows] = useState<SymbolRow[]>([]);
+  const [resetSignal, setResetSignal] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
-
-  // Per-step input refs so we can focus the newly-added field after addStep.
-  const stepInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const prevStepsLengthRef = useRef(steps.length);
-
-  // When the steps array grows (i.e. the user clicked "Add steps"), focus
-  // the new last input. Shrinks (reset on close, submit) are ignored.
-  useEffect(() => {
-    if (steps.length > prevStepsLengthRef.current) {
-      stepInputRefs.current[steps.length - 1]?.focus();
-    }
-    prevStepsLengthRef.current = steps.length;
-  }, [steps.length]);
-
-  function updateStep(index: number, value: string) {
-    setSteps((prev) => prev.map((s, i) => (i === index ? value : s)));
-  }
-
-  function addStep() {
-    setSteps((prev) => [...prev, '']);
-  }
+  const someChecked = rows.some((r) => r.autoMatch);
 
   function reset() {
     setName('');
-    setSteps(INITIAL_STEPS);
+    setResetSignal((n) => n + 1);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,7 +35,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
     if (!trimmed) return;
     setIsCreating(true);
     try {
-      await onCreate(trimmed, steps);
+      await onCreate(trimmed, rows);
       reset();
       onClose();
     } finally {
@@ -100,59 +79,15 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
             />
           </div>
 
-          {/* Steps */}
-          <div className="flex flex-col gap-2">
-            <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-              {t('createModalListLabel')}
-            </label>
-
-            {/* Cap the visible input list at ~5 rows; anything beyond
-                scrolls inside this container so the footer Create button
-                stays anchored at the bottom of the dialog. `pr-1` gives
-                the scrollbar a little breathing room next to the inputs.
-                Browsers auto-scroll the focused input into view when
-                "Add more steps" inserts and focuses a new field below the
-                fold. Mirrors CreateCategoryModal. */}
-            <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto pr-1">
-              {steps.map((step, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div
-                    className="w-7 h-7 rounded-theme-sm shrink-0 flex items-center justify-center text-theme-s font-bold"
-                    style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}
-                  >
-                    {i + 1}
-                  </div>
-                  <input
-                    ref={(el) => { stepInputRefs.current[i] = el; }}
-                    type="text"
-                    value={step}
-                    onChange={(e) => updateStep(i, e.target.value)}
-                    placeholder={t('createModalStepPlaceholder')}
-                    className="flex-1 px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
-                    style={{
-                      background: 'var(--theme-symbol-bg)',
-                      color: 'var(--theme-text)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={addStep}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-theme-sm text-theme-s font-medium transition-opacity hover:opacity-80 mt-1"
-              style={{
-                background: 'var(--theme-primary)',
-                color: 'var(--theme-alt-text)',
-                border: 'none',
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              {t('createModalAddSteps')}
-            </button>
-          </div>
+          {/* Steps — shared paste + auto-match block; `key` bump resets on close.
+              Auto-match fills each step's symbol IMAGE (text stays the typed step). */}
+          <SymbolListFields
+            key={resetSignal}
+            onRowsChange={setRows}
+            sectionLabel={t('createModalListLabel')}
+            placeholder={t('createModalStepPlaceholder')}
+            addLabel={t('createModalAddSteps')}
+          />
 
           {/* Footer */}
           <div className="grid grid-cols-2 gap-3">
@@ -170,7 +105,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
-              {isCreating ? t('creating') : t('createModalCreate')}
+              {isCreating ? (someChecked ? t('createModalAutoMatching') : t('creating')) : t('createModalCreate')}
             </button>
           </div>
 

@@ -11,6 +11,12 @@ const INITIAL_SYMBOLS = ['', '', '', ''];
 type Props = {
   /** Fires with the current rows whenever a field or checkbox changes. */
   onRowsChange: (rows: SymbolRow[]) => void;
+  /** Section heading above the rows (defaults to the category "Symbols" copy). */
+  sectionLabel?: string;
+  /** Per-row input placeholder (defaults to the category "Type a word…" copy). */
+  placeholder?: string;
+  /** "Add more" button label (defaults to the category "Add more symbols" copy). */
+  addLabel?: string;
 };
 
 /**
@@ -22,7 +28,7 @@ type Props = {
  * changes its `key` so it remounts fresh. Copy lives under the `categories`
  * namespace (generic enough for both hosts).
  */
-export function SymbolListFields({ onRowsChange }: Props) {
+export function SymbolListFields({ onRowsChange, sectionLabel, placeholder, addLabel }: Props) {
   const t = useTranslations('categories');
   const [symbols, setSymbols] = useState<string[]>(INITIAL_SYMBOLS);
   const [autoMatch, setAutoMatch] = useState<boolean[]>(() => INITIAL_SYMBOLS.map(() => false));
@@ -105,7 +111,7 @@ export function SymbolListFields({ onRowsChange }: Props) {
           right, column-aligned with the per-row checkboxes below. */}
       <div className="flex items-center gap-2 pr-1">
         <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
-          {t('createModalSymbolsLabel')}
+          {sectionLabel ?? t('createModalSymbolsLabel')}
         </label>
         <div className="relative" ref={tipRef}>
           <button
@@ -165,7 +171,7 @@ export function SymbolListFields({ onRowsChange }: Props) {
               value={symbol}
               onChange={(e) => updateSymbol(i, e.target.value)}
               onPaste={(e) => handleSymbolPaste(i, e)}
-              placeholder={t('createModalSymbolPlaceholder')}
+              placeholder={placeholder ?? t('createModalSymbolPlaceholder')}
               className="flex-1 px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
               style={{
                 background: 'var(--theme-symbol-bg)',
@@ -193,7 +199,7 @@ export function SymbolListFields({ onRowsChange }: Props) {
         style={{ background: 'var(--theme-primary)', color: 'var(--theme-alt-text)', border: 'none' }}
       >
         <Plus className="w-4 h-4" />
-        {t('createModalAddSymbols')}
+        {addLabel ?? t('createModalAddSymbols')}
       </button>
     </div>
   );
