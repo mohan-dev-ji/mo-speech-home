@@ -41,7 +41,7 @@ function FirstThenPill({ index }: { index: number }) {
   const t = useTranslations('lists');
   return (
     <span
-      className="text-theme-l font-bold shrink-0 w-14 text-center py-1 rounded-theme-sm"
+      className="text-theme-l font-bold shrink-0 min-w-14 px-3 text-center whitespace-nowrap py-1 rounded-theme-sm"
       style={{
         background: index === 0 ? 'var(--theme-brand-primary)' : 'rgba(255,255,255,0.12)',
         color: index === 0 ? 'var(--theme-alt-text)' : 'var(--theme-text-primary)',

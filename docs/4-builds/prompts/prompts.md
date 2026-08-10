@@ -1,5 +1,22 @@
 ##Sym link env
 
+1	Actions
+2	People
+3	Feelings
+4	Describe
+5	Food & Drink
+6	Home
+7	Activities
+8	School
+9	Health
+10	Animals
+11	Nature
+12	Community
+13	Time
+14	Numbers
+15	Chat
+16	Questions
+
 ln -s /Users/mohanveraitch/Projects/mo-speech-home/.env.local /Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/dazzling-lamport-67c4f0/.env.local
 
 

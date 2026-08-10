@@ -47,7 +47,7 @@ import { AddListModal } from '@/app/components/app/shared/modals/AddListModal';
 import { useAddSymbolsToCategory } from '@/app/lib/categories/useAddSymbolsToCategory';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
-import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
+import { AudioAuthorModal } from '@/app/components/app/shared/modals/AudioAuthorModal';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
@@ -996,7 +996,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
 
       {/* Phrase audio — reuses the sentence audio modal via saveOverride. */}
       {phraseAudioTarget && accountId && (
-        <SentenceAudioModal
+        <AudioAuthorModal
           isOpen
           sentenceId={null}
           accountId={accountId}

@@ -119,6 +119,8 @@ The pipeline has **no glossary mechanism** — every item is translated in isola
 | English | Hindi | Notes |
 |---|---|---|
 | routine | रूटीन | **locked** — रूटीन over दिनचर्या (register-consistent with टॉयलेट रूटीन) |
+| morning routine (title) | सुबह की रूटीन | **locked** — genitive की reads more natural than a bare compound for time-of-day; keeps locked रूटीन |
+| bedtime routine (title) | सोने की रूटीन | **locked** — सोने की (of going to sleep), not रात की (night); keeps locked रूटीन |
 | wash your hands | हाथ धो लो | तुम imperative |
 | dry your hands | हाथ सुखा लो / हाथ पोंछ लो | सुखा लो = dry off (result); पोंछ लो = wipe (towel). Match the symbol; keep …लो cadence |
 | snack | नाश्ता | ambiguous w/ breakfast — see §4 |
@@ -188,3 +190,4 @@ Keep the existing rules (placeholders, native script, proper nouns, same-keys) �
 
 - **2026-07-18** — created from the ES/HI defaults QC pass. Locked: two-bucket casing, Sentence-case titles, neutral-LatAm Spanish, glossary (feelings→sentimientos, routine→ rutina / रूटीन, going places→ de paseo). Pending: everyday consistency.
 - **2026-07-18 (later)** — normalization-on-save **rejected** on personalization grounds; §1 reframed as **advisory, not enforced** (the app never overrides user casing). The `phase-15.9-casing-normalization` plan was withdrawn.
+- **2026-08-09** — Hindi glossary: locked *morning routine* → सुबह की रूटीन and *bedtime routine* → सोने की रूटीन (both keep the locked रूटीन loanword).

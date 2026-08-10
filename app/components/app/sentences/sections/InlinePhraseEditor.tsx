@@ -12,7 +12,7 @@ import { PhraseBuilderBody } from '@/app/components/app/shared/ui/composition/Ph
 import { BlockEditControls } from '@/app/components/app/shared/ui/composition/BlockEditControls';
 import { SymbolEditorModal } from '@/app/components/app/shared/modals/symbol-editor';
 import type { SentenceSlotSaveResult } from '@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal';
-import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
+import { AudioAuthorModal } from '@/app/components/app/shared/modals/AudioAuthorModal';
 import type { CompositionUnitClient } from '@/app/components/app/shared/ui/composition/blocks';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -149,7 +149,7 @@ export function InlinePhraseEditor({
 
       {/* Phrase audio — reuses the sentence audio modal via saveOverride. */}
       {audioOpen && accountId && (
-        <SentenceAudioModal
+        <AudioAuthorModal
           isOpen
           sentenceId={null}
           accountId={accountId}

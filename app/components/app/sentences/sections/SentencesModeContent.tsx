@@ -55,7 +55,7 @@ import { Button } from '@/app/components/app/shared/ui/Button';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
-import { SentenceAudioModal } from '@/app/components/app/sentences/modals/SentenceAudioModal';
+import { AudioAuthorModal } from '@/app/components/app/shared/modals/AudioAuthorModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
 import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
 import { InlinePhraseEditor } from '@/app/components/app/sentences/sections/InlinePhraseEditor';
@@ -952,7 +952,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       // `createVariant` early-returns the existing id without applying `args.text`
       // when a half-finished variant already exists, so passing `text` into it
       // silently discards the MT output. Write via `updateProfileSentenceAudio`
-      // instead — same mutation + shape `SentenceAudioModal`'s fork-on-edit path
+      // instead — same mutation + shape `AudioAuthorModal`'s fork-on-edit path
       // uses for fluent text: a plain string tagged by the variant's own
       // `authoredLanguage` (== `language` here), which `fluentPrimary` above reads.
       const variantId = await createVariant({ sourceSentenceId: source._id, authoredLanguage: language });
@@ -1539,7 +1539,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
       {/* Audio editor */}
       {sentenceEditTarget && accountId && (
-        <SentenceAudioModal
+        <AudioAuthorModal
           isOpen
           sentenceId={sentenceEditTarget.sentenceId}
           accountId={accountId}

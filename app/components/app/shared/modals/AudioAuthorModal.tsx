@@ -52,7 +52,7 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
   if (!res.ok) throw new Error('Upload failed');
 }
 
-export function SentenceAudioModal({
+export function AudioAuthorModal({
   isOpen,
   sentenceId,
   accountId,
