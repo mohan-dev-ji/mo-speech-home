@@ -1,6 +1,12 @@
 # Phase 18 — Separate image / text / audio for list items (+ `imageOnly` editor mode)
 
-**Status:** planned · **Owner:** Mo · **Started:** 2026-08-10
+**Status:** SHIPPED (tsc-verified; live eyeball pending) · **Owner:** Mo · **Started:** 2026-08-10
+
+> **Done 2026-08-10:** step 1 (AudioAuthorModal move/rename), Change 1 (create-list
+> auto-match), A–C (imageOnly editor + list-item image-only), D (per-row audio via
+> AudioAuthorModal with `literal` TTS). Note: `listItem` editor mode was NOT removed
+> — it's still used by SentencesModeContent (sentence units). Recording restored:
+> list rows have an Audio control that generates literal TTS or records.
 
 ## Problem
 

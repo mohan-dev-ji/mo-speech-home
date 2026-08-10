@@ -26,6 +26,7 @@ import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
 import { SymbolEditorModal, type ImageOnlySaveResult } from '@/app/components/app/shared/modals/symbol-editor';
+import { AudioAuthorModal } from '@/app/components/app/shared/modals/AudioAuthorModal';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
@@ -70,6 +71,7 @@ export function ListDetailContent({ listId }: Props) {
   const [localItems, setLocalItems] = useState<ListItem[]>([]);
   const localItemsRef = useRef<ListItem[]>([]);
   const [symbolPickerForIndex, setSymbolPickerForIndex] = useState<number | null>(null);
+  const [audioTargetIndex, setAudioTargetIndex] = useState<number | null>(null);
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [playModal, setPlayModal] = useState<PlayModalState>(null);
@@ -441,6 +443,7 @@ export function ListDetailContent({ listId }: Props) {
     onAddSymbol: (index: number) => setSymbolPickerForIndex(index),
     onRemoveSymbol: handleRemoveSymbol,
     onAddItem: () => setSymbolPickerForIndex(localItems.length),
+    onAudioRequest: (index: number) => setAudioTargetIndex(index),
     // Stage C — per-item translate/revert (edit mode only).
     onTranslateRequest: (index: number) => setItemTranslate(index),
     onRevertRequest: (index: number) =>
@@ -630,6 +633,48 @@ export function ListDetailContent({ listId }: Props) {
           onClose={() => setSymbolPickerForIndex(null)}
           onSave={() => {}}
           onImageOnlySave={handleListItemSaved}
+        />
+      )}
+
+      {/* Per-item audio — generate (literal TTS, matching playback) or record.
+          Symbol and audio are fully separate: this authors the item's text +
+          audio; the symbol editor only picks the image. */}
+      {audioTargetIndex !== null && accountId && (
+        <AudioAuthorModal
+          isOpen
+          sentenceId={null}
+          accountId={accountId}
+          literal
+          initialValue={localItems[audioTargetIndex]?.description ?? ''}
+          title={t('itemAudioTitle')}
+          fieldLabel={t('itemAudioFieldLabel')}
+          onClose={() => setAudioTargetIndex(null)}
+          saveOverride={async ({ text, recordedAudioPath }) => {
+            const idx = audioTargetIndex;
+            if (idx === null) return;
+            const prev = localItemsRef.current;
+            const merge = (item: ListItem): ListItem => {
+              const next: ListItem = {
+                ...item,
+                description: text,
+                descriptionRecord: { ...item.descriptionRecord, [language]: text },
+              };
+              if (recordedAudioPath === null) {
+                // Chose TTS → drop any recording; playback falls back to literal TTS of the text.
+                next.recordedAudioPath = undefined;
+                next.activeAudioSource = 'default';
+              } else if (recordedAudioPath !== undefined) {
+                // New recording → play it (activeAudioSource must be 'record').
+                next.recordedAudioPath = recordedAudioPath;
+                next.activeAudioSource = 'record';
+              }
+              return next;
+            };
+            const nextItems = prev.map((it, i) => (i === idx ? merge(it) : it));
+            setLocalItems(nextItems);
+            setAudioTargetIndex(null);
+            await persistItems(nextItems);
+          }}
         />
       )}
 

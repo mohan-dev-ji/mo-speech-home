@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash2, Move } from 'lucide-react';
+import { Plus, Trash2, Move, Volume2 } from 'lucide-react';
 import { EditSymbolSlot } from '../ui/ListItemAtoms';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
@@ -38,6 +38,7 @@ type EditItemProps = {
   onDescriptionBlur: () => void;
   onAddSymbol: () => void;
   onRemoveSymbol: () => void;
+  onAudioRequest: () => void;
   onTranslateRequest: () => void;
   onRevertRequest: () => void;
 };
@@ -54,6 +55,7 @@ export type EditContainerProps = {
   onAddSymbol: (index: number) => void;
   onRemoveSymbol: (index: number) => void;
   onAddItem: () => void;
+  onAudioRequest: (index: number) => void;
   onTranslateRequest: (index: number) => void;
   onRevertRequest: (index: number) => void;
 };
@@ -65,7 +67,7 @@ const SENSOR_OPTIONS = { activationConstraint: { distance: 8 } };
 function SortableEditRow({
   item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
-  onTranslateRequest, onRevertRequest,
+  onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
   const tTranslate = useTranslations('translate');
@@ -95,6 +97,7 @@ function SortableEditRow({
         />
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
             state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
@@ -115,7 +118,7 @@ function SortableEditRow({
 function SortableEditColumn({
   item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
-  onTranslateRequest, onRevertRequest,
+  onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
   const tTranslate = useTranslations('translate');
@@ -145,6 +148,7 @@ function SortableEditColumn({
         />
         {showChecklist && <div className="w-5 h-5 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="mt-auto shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
             state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
@@ -165,7 +169,7 @@ function SortableEditColumn({
 function SortableEditGrid({
   item, index, showNumbers, showChecklist, language,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
-  onTranslateRequest, onRevertRequest,
+  onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
   const t = useTranslations('lists');
   const tTranslate = useTranslations('translate');
@@ -195,6 +199,7 @@ function SortableEditGrid({
         />
         {showChecklist && <div className="w-4 h-4 rounded shrink-0" style={{ border: '2px solid var(--theme-primary)' }} />}
         <EditPanel className="shrink-0 flex-wrap">
+          <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
             state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
@@ -233,7 +238,7 @@ function AddItemButton({ onClick, className = '' }: { onClick: () => void; class
 
 // ─── Edit containers ──────────────────────────────────────────────────────────
 
-export function EditRows({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditRows({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -252,6 +257,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, onDragEn
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onAudioRequest={() => onAudioRequest(idx)}
               onTranslateRequest={() => onTranslateRequest(idx)}
               onRevertRequest={() => onRevertRequest(idx)}
             />
@@ -263,7 +269,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, onDragEn
   );
 }
 
-export function EditColumns({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditColumns({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const t = useTranslations('lists');
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
@@ -283,6 +289,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, onDra
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onAudioRequest={() => onAudioRequest(idx)}
               onTranslateRequest={() => onTranslateRequest(idx)}
               onRevertRequest={() => onRevertRequest(idx)}
             />
@@ -306,7 +313,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, onDra
   );
 }
 
-export function EditGrid({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditGrid({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -325,6 +332,7 @@ export function EditGrid({ items, showNumbers, showChecklist, language, onDragEn
               onDescriptionBlur={onDescriptionBlur}
               onAddSymbol={() => onAddSymbol(idx)}
               onRemoveSymbol={() => onRemoveSymbol(idx)}
+              onAudioRequest={() => onAudioRequest(idx)}
               onTranslateRequest={() => onTranslateRequest(idx)}
               onRevertRequest={() => onRevertRequest(idx)}
             />

@@ -42,6 +42,10 @@ type Props = {
   // Optional copy overrides — default to the sentence strings when omitted.
   title?: string;
   fieldLabel?: string;
+  // Generate/preview the EXACT text (skip the SymbolStix default lookup), so the
+  // clip matches a literal-TTS consumer at play time. List items play with
+  // `literal: true`, so their audio control must generate the same clip.
+  literal?: boolean;
 };
 
 async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
@@ -62,6 +66,7 @@ export function AudioAuthorModal({
   saveOverride,
   title,
   fieldLabel,
+  literal = false,
 }: Props) {
   const t = useTranslations('sentences');
   const updateAudio    = useMutation(api.profileSentences.updateProfileSentenceAudio);
@@ -117,7 +122,7 @@ export function AudioAuthorModal({
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: value.trim(), voiceId }),
+        body: JSON.stringify({ text: value.trim(), voiceId, ...(literal ? { literal: true } : {}) }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

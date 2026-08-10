@@ -113,7 +113,10 @@
     "toastLibraryOff": "Removed from library",
     "toastTierUpdated": "Plan tier updated",
     "toastAdminError": "Could not complete admin action",
-    "createModalAutoMatching": "Auto-matching your steps…"
+    "createModalAutoMatching": "Auto-matching your steps…",
+    "itemAudio": "Audio",
+    "itemAudioTitle": "Item audio",
+    "itemAudioFieldLabel": "Item text"
   },
   "translate": {
     "madeInBadge": "Made in {lang}",
