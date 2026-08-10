@@ -384,12 +384,12 @@ export function CategoriesContent() {
           accountId={accountId}
           language={language}
           voiceId={voiceId}
-          folderImageMode={true}
+          editorMode="imageOnly"
           initialImagePath={imageTarget.imagePath}
           initialLabel={imageTarget.name}
           onClose={() => setImageTarget(null)}
           onSave={() => {}}
-          onFolderImageSave={handleFolderImageSave}
+          onImageOnlySave={(r) => { if (r.imagePath) handleFolderImageSave(r.imagePath); }}
         />
       )}
     </div>

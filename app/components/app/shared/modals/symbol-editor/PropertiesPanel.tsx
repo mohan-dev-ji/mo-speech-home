@@ -19,7 +19,9 @@ type Props = {
   categories: Doc<'profileCategories'>[] | undefined;
   pendingAudioBlobUrl: string | null;
   onAudioBlobChange: (blob: Blob | null, blobUrl: string | null) => void;
-  editorMode: 'categoryBoard' | 'listItem' | 'sentenceSlot';
+  // 'imageOnly' never renders this panel (the editor gates it out), but the prop
+  // type must accept it since the parent passes its full editorMode union.
+  editorMode: 'categoryBoard' | 'listItem' | 'sentenceSlot' | 'imageOnly';
   voiceId: string;
   // Resolves the R2 key the Default (follow-label) audio should play for the
   // effective language — same resolver SymbolEditorModal uses for Save, so

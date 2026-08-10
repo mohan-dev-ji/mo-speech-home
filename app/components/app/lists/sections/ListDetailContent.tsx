@@ -25,7 +25,7 @@ import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { useIsSmallScreen } from '@/app/hooks/useIsSmallScreen';
-import { SymbolEditorModal, type ListItemSaveResult } from '@/app/components/app/shared/modals/symbol-editor';
+import { SymbolEditorModal, type ImageOnlySaveResult } from '@/app/components/app/shared/modals/symbol-editor';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter, DialogClose,
@@ -209,26 +209,17 @@ export function ListDetailContent({ listId }: Props) {
     persistItems(localItemsRef.current);
   }
 
-  async function handleListItemSaved(result: ListItemSaveResult) {
+  async function handleListItemSaved(result: ImageOnlySaveResult) {
     if (symbolPickerForIndex === null) return;
     const idx = symbolPickerForIndex;
     const prev = localItemsRef.current;
+    // imageOnly editor: ONLY the image changes here. Text (description) and audio
+    // are authored on the row, never derived from the picked symbol — so browsing
+    // symbols no longer rewrites the item's text.
     const merge = (item: ListItem): ListItem => ({
       ...item,
-      imagePath:          result.imagePath,
-      description:        result.description ?? item.description,
-      // Keep the localised record in step when the editor set a description —
-      // the board-language key holds the new value; other languages persist.
-      descriptionRecord:
-        result.description !== undefined
-          ? { ...item.descriptionRecord, [language]: result.description }
-          : item.descriptionRecord,
-      audioPath:          result.audioPath,
-      activeAudioSource:  result.activeAudioSource,
-      defaultAudioPath:   result.defaultAudioPath,
-      generatedAudioPath: result.generatedAudioPath,
-      recordedAudioPath:  result.recordedAudioPath,
-      imageSourceType:    result.imageSourceType,
+      imagePath:       result.imagePath,
+      imageSourceType: result.imageSourceType,
     });
     const next =
       idx < prev.length
@@ -629,19 +620,16 @@ export function ListDetailContent({ listId }: Props) {
           isOpen={true}
           accountId={accountId}
           language={language}
-          editorMode="listItem"
+          editorMode="imageOnly"
           voiceId={voiceId}
+          // Seeds the symbol search with the step text (imageOnly uses initialLabel
+          // only to prefill the search — it never writes a label).
           initialLabel={localItems[symbolPickerForIndex]?.description}
           initialImagePath={localItems[symbolPickerForIndex]?.imagePath}
-          initialAudioPath={localItems[symbolPickerForIndex]?.audioPath}
-          initialActiveAudioSource={localItems[symbolPickerForIndex]?.activeAudioSource}
-          initialDefaultAudioPath={localItems[symbolPickerForIndex]?.defaultAudioPath}
-          initialGeneratedAudioPath={localItems[symbolPickerForIndex]?.generatedAudioPath}
-          initialRecordedAudioPath={localItems[symbolPickerForIndex]?.recordedAudioPath}
           initialImageSourceType={localItems[symbolPickerForIndex]?.imageSourceType}
           onClose={() => setSymbolPickerForIndex(null)}
           onSave={() => {}}
-          onListItemSave={handleListItemSaved}
+          onImageOnlySave={handleListItemSaved}
         />
       )}
 

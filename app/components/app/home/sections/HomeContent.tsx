@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
@@ -58,6 +58,7 @@ export function HomeContent() {
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
   const createCategory = useCreateCategory();
+  const convex = useConvex();
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const createSentence = useMutation(api.profileSentences.createProfileSentence);
@@ -67,14 +68,27 @@ export function HomeContent() {
     router.push(`/${locale}/categories/${id}?edit=1`);
   }
 
-  async function handleCreateList(name: string, steps: string[]) {
+  async function handleCreateList(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createList({ name: { en: name } });
-    const nonEmpty = steps.map((s) => s.trim()).filter(Boolean);
-    if (nonEmpty.length > 0) {
-      await updateListItems({
-        profileListId: id,
-        items: nonEmpty.map((description, i) => ({ order: i, description })),
-      });
+    const kept = rows
+      .map((r) => ({ description: r.label.trim(), autoMatch: r.autoMatch }))
+      .filter((r) => r.description.length > 0);
+    if (kept.length > 0) {
+      // Auto-match rows resolve each step's top symbol IMAGE; the description
+      // stays the typed step (text + audio are authored on the row).
+      const items = await Promise.all(
+        kept.map(async ({ description, autoMatch }, i) => {
+          let imagePath: string | undefined;
+          if (autoMatch) {
+            const hits = await convex.query(api.symbols.searchSymbols, {
+              searchTerm: description, language, limit: 1,
+            });
+            imagePath = hits?.[0]?.imagePath;
+          }
+          return { order: i, description, ...(imagePath ? { imagePath } : {}) };
+        }),
+      );
+      await updateListItems({ profileListId: id, items });
     }
     router.push(`/${locale}/lists/${id}?edit=1`);
   }

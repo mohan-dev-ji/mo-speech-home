@@ -929,7 +929,8 @@
     "errorNoLabel": "Please enter a symbol name.",
     "errorNoCategory": "Please select a category.",
     "errorNoImage": "Please select an image source.",
-    "errorSave": "Something went wrong. Please try again."
+    "errorSave": "Something went wrong. Please try again.",
+    "titleImageOnly": "Choose an image"
   },
   "library": {
     "title": "Resource Library",

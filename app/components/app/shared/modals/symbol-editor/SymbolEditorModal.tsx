@@ -32,6 +32,13 @@ export type ListItemSaveResult = {
   imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
 
+// `imageOnly` mode — a pure image picker (no label/audio/display, no preview
+// play). Used for group/category cover images and list-item images.
+export type ImageOnlySaveResult = {
+  imagePath?: string;
+  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+};
+
 export type SentenceSlotSaveResult = {
   imagePath?: string;
   displayProps?: {
@@ -55,17 +62,16 @@ export type SymbolEditorModalProps = {
   accountId: Id<'users'>;                         // R2 key prefix + ownership context
   language: string;
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
-  editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot';  // defaults to 'categoryBoard'
+  editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot' | 'imageOnly';  // defaults to 'categoryBoard'
   initialLabel?: string;                          // pre-populate label / description field
   onClose: () => void;
   onSave: (id: Id<'profileSymbols'>) => void;
   onListItemSave?: (result: ListItemSaveResult) => void;
   onSentenceSlotSave?: (result: SentenceSlotSaveResult) => void;
-  // Folder image mode — picks an image for the category folder, skips label/audio/display
-  folderImageMode?: boolean;
+  // imageOnly mode — pure image picker (group covers, list items).
+  onImageOnlySave?: (result: ImageOnlySaveResult) => void;
   initialImagePath?: string;
   initialAudioPath?: string;
-  onFolderImageSave?: (imagePath: string) => void;
   // Override the modal header title
   modalTitle?: string;
   // List-item rehydration — restores active-source audio + image-source-tab on re-edit
@@ -118,10 +124,9 @@ export function SymbolEditorModal({
   onSave,
   onListItemSave,
   onSentenceSlotSave,
-  folderImageMode = false,
+  onImageOnlySave,
   initialImagePath,
   initialAudioPath,
-  onFolderImageSave,
   modalTitle,
   initialActiveAudioSource,
   initialDefaultAudioPath,
@@ -134,21 +139,29 @@ export function SymbolEditorModal({
 }: SymbolEditorModalProps) {
   const t = useTranslations('symbolEditor');
   const isEditMode = !!profileSymbolId;
+  // Pure image picker (group/category covers, list-item images): no label/audio/
+  // display panel, no preview play — just choose an image.
+  const imageOnly = editorMode === 'imageOnly';
 
   // ── State ──────────────────────────────────────────────────────────────────
 
   // ── Initial draft ──────────────────────────────────────────────────────────
   // listItem rehydration uses the active-source model: each source is held
   // independently and `activeAudioSource` selects which one playback uses.
+  // Image restore for the active-source model — used by listItem AND imageOnly
+  // (list-item re-edit reopens on its saved image/source). Group covers are
+  // imageOnly with no initial image, so this yields {} and the draft default
+  // (symbolstix tab) stands.
+  const restoresImage = editorMode === 'listItem' || imageOnly;
   const listItemImageTab: ImageSourceTab | undefined =
-    editorMode === 'listItem' && initialImageSourceType
+    restoresImage && initialImageSourceType
       ? (initialImageSourceType === 'symbolstix'   ? 'symbolstix'   :
          initialImageSourceType === 'imageSearch'  ? 'image-search' :
          initialImageSourceType === 'aiGenerated'  ? 'ai-generate'  : 'upload')
       : undefined;
 
   const listItemImageSeed =
-    editorMode === 'listItem' && initialImagePath
+    restoresImage && initialImagePath
       ? (listItemImageTab === 'symbolstix'
           ? { imageSourceTab: 'symbolstix' as const, symbolstixImagePath: initialImagePath }
           : { imageSourceTab: (listItemImageTab ?? 'upload') as ImageSourceTab, resolvedImagePath: initialImagePath })
@@ -196,7 +209,7 @@ export function SymbolEditorModal({
     activeAudioSource: initialActive,
     profileCategoryId: initCategoryId ?? '',
     ...(initialLabel ? { labelEng: initialLabel } : {}),
-    // folderImageMode opens on the SymbolStix tab so the admin/instructor
+    // imageOnly opens on the SymbolStix tab so the admin/instructor
     // can search for an iconic symbol matching the category name (the
     // search bar lazy-inits from `initialLabel` — see searchQuery state).
     // Existing folder image isn't seeded into the upload tab; if the user
@@ -572,8 +585,8 @@ export function SymbolEditorModal({
   async function handleSave() {
     setSaveError(null);
 
-    // ── Folder image mode (category folder image) ─────────────────────────
-    if (folderImageMode) {
+    // ── Image-only mode (group/category cover image, list-item image) ─────
+    if (imageOnly) {
       const hasImage =
         draft.imageSourceTab === 'symbolstix'
           ? !!draft.symbolstixImagePath
@@ -582,20 +595,23 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath = draft.resolvedImagePath;
+        let imageSourceType: ImageOnlySaveResult['imageSourceType'] = initialImageSourceType;
         // Upload pending bytes for every non-SymbolStix tab — upload,
         // image-search proxy, and AI generate all land a blob here that
-        // needs to go to R2 before we can persist a path. Previously only
-        // the upload tab was handled, which silently dropped image-search
-        // and AI picks on save.
+        // needs to go to R2 before we can persist a path.
         if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
+          imageSourceType =
+            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
+            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
         }
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
+          imageSourceType = 'symbolstix';
         }
-        onFolderImageSave?.(imagePath!);
+        onImageOnlySave?.({ imagePath, imageSourceType });
         onClose();
       } catch {
         setSaveError(t('errorSave'));
@@ -903,6 +919,7 @@ export function SymbolEditorModal({
     previewLang === 'en' ? draft.labelEng : (draft.labelLoc[previewLang] || draft.labelEng);
 
   const defaultTitle =
+    imageOnly                     ? t('titleImageOnly') :
     editorMode === 'sentenceSlot' ? t('titleSentenceSlot') :
     editorMode === 'listItem'     ? t('titleListItem') :
     isEditMode ? t('titleEdit') : t('titleCreate');
@@ -943,21 +960,21 @@ export function SymbolEditorModal({
             </h2>
           </div>
 
-          {/* Live preview card */}
-          <div className={`px-6 pt-3 pb-2 ${folderImageMode ? 'flex-1 flex items-center justify-center' : 'shrink-0'}`}>
+          {/* Live preview card — imageOnly has no label + no play (straight picker) */}
+          <div className={`px-6 pt-3 pb-2 ${imageOnly ? 'flex-1 flex items-center justify-center' : 'shrink-0'}`}>
             <div className="w-1/2 mx-auto">
               <SymbolPreview
                 imageSrc={previewImageSrc}
-                label={folderImageMode ? '' : previewLabel}
+                label={imageOnly ? '' : previewLabel}
                 draft={draft}
-                onPlay={handlePreviewPlay}
+                onPlay={imageOnly ? undefined : handlePreviewPlay}
                 isPlaying={isPreviewPlaying}
               />
             </div>
           </div>
 
-          {/* Properties — hidden in folder image mode */}
-          {!folderImageMode && (
+          {/* Properties — hidden in image-only mode */}
+          {!imageOnly && (
             <PropertiesPanel
               draft={draft}
               patch={patch}
