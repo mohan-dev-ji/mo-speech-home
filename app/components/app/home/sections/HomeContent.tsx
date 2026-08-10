@@ -85,7 +85,13 @@ export function HomeContent() {
             });
             imagePath = hits?.[0]?.imagePath;
           }
-          return { order: i, description, ...(imagePath ? { imagePath } : {}) };
+          // Tag the source so the imageOnly editor reopens on the SymbolStix tab
+          // (not Upload) — an auto-matched image is a SymbolStix image.
+          return {
+            order: i,
+            description,
+            ...(imagePath ? { imagePath, imageSourceType: 'symbolstix' as const } : {}),
+          };
         }),
       );
       await updateListItems({ profileListId: id, items });
