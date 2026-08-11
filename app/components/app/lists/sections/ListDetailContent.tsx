@@ -587,6 +587,7 @@ export function ListDetailContent({ listId }: Props) {
         onToggle={toggleChecked}
         onClose={() => setPlayModal(null)}
         voiceId={voiceId}
+        language={language}
       />
 
       {/* Phase 15.5 — item translate: whole list / just this item / manual. */}

@@ -64,6 +64,8 @@ type ListItemPlayModalProps = {
   onClose: () => void;
   /** Active voice — TTS resolved per (description, voiceId) at play time. */
   voiceId: string;
+  /** Active board language — decides literal vs symbol-fallback audio. */
+  language: string;
 };
 
 export function ListItemPlayModal({
@@ -75,6 +77,7 @@ export function ListItemPlayModal({
   onToggle,
   onClose,
   voiceId,
+  language,
 }: ListItemPlayModalProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -87,15 +90,19 @@ export function ListItemPlayModal({
       if (item.activeAudioSource === 'record' && item.recordedAudioPath) {
         audioRef.current = playKey(item.recordedAudioPath);
       } else if (item.description) {
-        // Board-accent literal-TTS (Stage 2): a list description is authored text, so
-        // speak it exactly in the board voice — a 1-word description ("breakfast") must
-        // not resolve the SymbolStix default and get spoken as the translated word.
+        // Audio follows the item's text. If the item HAS an authored translation
+        // in the active language, speak it exactly (literal) in the board voice.
+        // If it DOESN'T (the resolved string fell back to another language), go
+        // non-literal so the English word resolves the symbol's seeded localized
+        // clip — like a category tap — instead of speaking the English fallback
+        // in the active voice.
+        const hasLocalised = !!item.descriptionRecord?.[language]?.trim();
         audioRef.current = null;
-        playTts(item.description, voiceId, undefined, { literal: true });
+        playTts(item.description, voiceId, undefined, { literal: hasLocalised });
       }
     }
     return () => { audioRef.current?.pause(); };
-  }, [state, voiceId]);
+  }, [state, voiceId, language]);
 
   if (!state) return null;
   const { item, index } = state;
