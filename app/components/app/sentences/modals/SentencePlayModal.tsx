@@ -9,7 +9,7 @@ import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
 import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { resolveTtsKey } from '@/lib/audio/playTts';
-import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
+import { voiceForResolvedLocale } from '@/lib/audio/resolveSpokenVoice';
 import type { Tone } from '@/lib/audio/tonePresets';
 
 type Slot = {
@@ -62,8 +62,8 @@ export function SentencePlayModal({
     if (cur) { activeAudioRef.current = null; cur.audio.pause(); cur.done(); }
   }
 
-  // Voice follows the resolved text's language (Phase 15, 3e).
-  const effVoice = textLocale ? voiceForLanguage(textLocale, personaOf(voiceId)) : voiceId;
+  // Voice follows the resolved text's language (ADR-018) via the shared helper.
+  const effVoice = voiceForResolvedLocale(textLocale, voiceId);
 
   // Play a resolved clip and hold the glow on until it ENDS. State is driven off
   // the audio element's own play/ended events, so nothing fires synchronously in
