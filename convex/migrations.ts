@@ -1299,3 +1299,58 @@ export const backfillListItemImageSource = mutation({
     return summary;
   },
 });
+
+// ─── One-off: purge wrong-voice ttsCache rows (ADR-018 cache hygiene) ──────────
+// Removes rows polluted with cross-language clips (e.g. English text synthesised
+// under a hi-IN/es-US voice). Driven by an owner-curated _id hit-list run through
+// scripts/purge-tts-cache.mjs. Internal — admin-only via `npx convex run`.
+
+/** Read-only preview: return the rows for these ids (for a dry run). */
+export const getTtsCacheRowsByIds = internalQuery({
+  args: { ids: v.array(v.id("ttsCache")) },
+  handler: async (ctx, { ids }) => {
+    const rows: Array<{
+      _id: Id<"ttsCache">;
+      r2Key: string;
+      text: string;
+      voiceId: string;
+      tone?: string;
+    }> = [];
+    for (const id of ids) {
+      const doc = await ctx.db.get(id);
+      if (!doc) continue; // already gone — idempotent
+      rows.push({
+        _id: doc._id,
+        r2Key: doc.r2Key,
+        text: doc.text,
+        voiceId: doc.voiceId,
+        tone: doc.tone,
+      });
+    }
+    return rows;
+  },
+});
+
+/**
+ * Delete the given ttsCache rows and return their R2 keys so the caller can
+ * delete the objects (row-before-object: the rows are gone before any object is
+ * removed, so no live play can hit a row pointing at a deleted file). Idempotent:
+ * ids that no longer exist are counted as `missing`, not errors.
+ */
+export const purgeTtsCacheRowsByIds = internalMutation({
+  args: { ids: v.array(v.id("ttsCache")) },
+  handler: async (ctx, { ids }) => {
+    const deletedKeys: string[] = [];
+    let missing = 0;
+    for (const id of ids) {
+      const doc = await ctx.db.get(id);
+      if (!doc) {
+        missing++;
+        continue;
+      }
+      deletedKeys.push(doc.r2Key);
+      await ctx.db.delete(id);
+    }
+    return { deletedKeys, deleted: deletedKeys.length, missing };
+  },
+});
