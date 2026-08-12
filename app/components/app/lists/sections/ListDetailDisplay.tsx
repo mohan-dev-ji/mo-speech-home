@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { SymbolThumb, CheckboxBtn } from '../ui/ListItemAtoms';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { playKey, playTts } from '@/lib/audio/playTts';
+import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
 import type { ListItem } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -90,15 +91,19 @@ export function ListItemPlayModal({
       if (item.activeAudioSource === 'record' && item.recordedAudioPath) {
         audioRef.current = playKey(item.recordedAudioPath);
       } else if (item.description) {
-        // Audio follows the item's text. If the item HAS an authored translation
-        // in the active language, speak it exactly (literal) in the board voice.
-        // If it DOESN'T (the resolved string fell back to another language), go
-        // non-literal so the English word resolves the symbol's seeded localized
-        // clip — like a category tap — instead of speaking the English fallback
-        // in the active voice.
-        const hasLocalised = !!item.descriptionRecord?.[language]?.trim();
+        // Voice follows the resolved text's language (ADR-018). An untranslated
+        // item (its description fell back to the authored language) speaks in that
+        // language's voice — e.g. English "put on your shoes" on a Hindi board is
+        // spoken by an English voice, not English words in a Hindi accent. Always
+        // literal: speak the exact authored text, skipping the SymbolStix
+        // per-language default lookup (matches how phrases/sentences behave).
+        const { voiceId: spokenVoice } = resolveSpokenVoice(
+          item.descriptionRecord,
+          language,
+          voiceId,
+        );
         audioRef.current = null;
-        playTts(item.description, voiceId, undefined, { literal: hasLocalised });
+        playTts(item.description, spokenVoice, undefined, { literal: true });
       }
     }
     return () => { audioRef.current?.pause(); };
