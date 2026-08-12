@@ -49,3 +49,7 @@ Existing polluted `ttsCache` rows (English text synthesised under `hi-IN-*`/`es-
 - **ADR-016 §B's "board voice for authored content" is narrowed**: authored content speaks in its *resolved-text* voice, which equals the board voice only when a board-language translation exists.
 - **Option 2 (`d8a0589`) is retired for lists** — untranslated list items no longer symbol-localize; they speak the made-in voice like every other composed type.
 - No change to text records, translation/variant flows, the "Made in <lang>" badge, or the recorded-human-audio path.
+
+## Addendum — list items never inherit a symbol's multilingual labels (design §6 resolved)
+
+The design left open whether an auto-matched list item stores just `{ en: "eat" }` or inherits the matched symbol's full `{ en, hi, es }` labels — which would decide whether it speaks the localized clip or the made-in voice. Verified in code: it is neither/moot. `convex/profileLists.ts` `addItemFromSymbol` adds items with `description: undefined` — **list items are image-only** (the phase-18 model); the description is authored separately per row and keyed under the authoring board language (or `DEFAULT_LOCALE` for a legacy plain string, `ListDetailContent.tsx` hydration). List-item descriptions therefore **never inherit a symbol's localized labels**, so there is no hybrid case for lists: an untranslated description always resolves to its authored locale and speaks the made-in voice. The rule holds with no special-casing.
