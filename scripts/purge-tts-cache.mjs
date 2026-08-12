@@ -51,10 +51,13 @@ function convexRun(fnRef, argsObj) {
   }
 }
 
-// Blast-radius guard: cross-language pollution only ever lives under a
-// non-English voice's tts/ folder (audio/hi-IN-*/tts/… or audio/es-US-*/tts/…).
-// Any target outside that prefix means the hit-list is wrong.
-const EXPECTED_KEY = /^audio\/(hi-IN|es-US)-[\w-]+\/tts\//;
+// Note: there is no prefix-based blast-radius guard. Cross-language pollution is
+// bidirectional (any text-language ≠ voice-language — e.g. Spanish text under an
+// EN voice as well as EN text under a Hindi voice), so no folder prefix classifies
+// it, and a correct clip can't be told from reverse-pollution without real language
+// detection (the hard problem the manual hit-list exists to sidestep). The safety
+// model is: the curated hit-list + this dry-run preview + self-heal (a mis-flagged
+// correct row just regenerates the identical clip on next play).
 
 // ── Dry run: preview only ─────────────────────────────────────────────────────
 if (!COMMIT) {
@@ -65,13 +68,9 @@ if (!COMMIT) {
   }
   const missing = ids.length - rows.length;
   if (missing > 0) console.log(`\n  (${missing} ids not found — already gone)`);
-  const unexpected = rows.filter((r) => !EXPECTED_KEY.test(r.r2Key));
-  if (unexpected.length > 0) {
-    console.log(
-      `\n⚠️  ${unexpected.length} row(s) are NOT under a non-English tts/ prefix — --commit will ABORT on these:`
-    );
-    for (const r of unexpected) console.log(`   ${r.voiceId}  "${r.text}"  →  ${r.r2Key}`);
-  }
+  console.log(`\nReview the (voice, text) pairs above — anything spoken in the wrong`);
+  console.log(`language for its voice is pollution. A mis-flagged correct clip is harmless:`);
+  console.log(`deleting it just regenerates the identical clip on next play.`);
   console.log(`\nRe-run with --commit to delete rows + R2 objects.`);
   process.exit(0);
 }
@@ -92,17 +91,6 @@ if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
     "❌ R2 env vars missing (R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME). " +
       "Nothing deleted — set them and re-run --commit."
   );
-  process.exit(1);
-}
-
-// Blast-radius guard — abort untouched if any target is outside the expected prefix.
-const unexpected = rows.filter((r) => !EXPECTED_KEY.test(r.r2Key));
-if (unexpected.length > 0) {
-  console.error(
-    `\n❌ ${unexpected.length} target row(s) are NOT under a non-English tts/ prefix — aborting, nothing deleted:`
-  );
-  for (const r of unexpected) console.error(`   ${r.voiceId}  "${r.text}"  →  ${r.r2Key}`);
-  console.error(`Review ${HIT_LIST} — it must list only wrong-voice (hi-IN/es-US) rows.`);
   process.exit(1);
 }
 
