@@ -8,7 +8,7 @@ import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
 import { resolveTtsKey } from '@/lib/audio/playTts';
-import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
+import { voiceForResolvedLocale } from '@/lib/audio/resolveSpokenVoice';
 import type { Tone } from '@/lib/audio/tonePresets';
 
 // Block play modal (ADR-015). Shows the whole composition at once and steps a
@@ -54,7 +54,7 @@ export function CompositionPlayModal({
       // English block on a Hindi board is synthesised with an English voice
       // (persona preserved), not the board's Hindi voice. Live talker blocks have
       // no `locale` and use the board voiceId as-is.
-      const blockVoice = b.locale ? voiceForLanguage(b.locale, personaOf(voiceId)) : voiceId;
+      const blockVoice = voiceForResolvedLocale(b.locale, voiceId);
       // `literal`: speak the authored text in the board voice, skipping the
       // SymbolStix per-language default (which would swap a word for its canonical
       // board-language word — the translation). Matches how phrases already behave.
@@ -106,7 +106,7 @@ export function CompositionPlayModal({
     // Whole utterance is one authored language; take the first block's resolved
     // locale (all share it) so the voice follows the text, not the board.
     const locale = blocks.find((b) => b.locale)?.locale;
-    const voice = locale ? voiceForLanguage(locale, personaOf(voiceId)) : voiceId;
+    const voice = voiceForResolvedLocale(locale, voiceId);
     setActiveTone(tone);
     setBusy(true);
     const key = await resolveTtsKey(text, voice, tone);

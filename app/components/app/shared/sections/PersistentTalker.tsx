@@ -24,10 +24,10 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/app/components/app/shared/ui/Dialog';
-import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
+import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { playTts } from '@/lib/audio/playTts';
-import { personaOf, voiceForLanguage } from '@/lib/audio/resolveVoiceId';
+import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -86,10 +86,8 @@ export function PersistentTalker() {
       // Voice follows the resolved text's language (Phase 15 3e): an EN-only
       // phrase on a Hindi/Spanish board speaks English in an ENGLISH voice — not
       // the board voice (which read English words in a Hindi accent).
-      const loc = item.phraseNameRecord
-        ? resolvedLocale(item.phraseNameRecord, language, DEFAULT_LOCALE)
-        : undefined;
-      const voice = loc ? voiceForLanguage(loc, personaOf(voiceId)) : voiceId;
+      // Voice follows the resolved text's language (ADR-018) via the shared helper.
+      const { voiceId: voice } = resolveSpokenVoice(item.phraseNameRecord, language, voiceId);
       void playTts(item.phraseName ?? item.label, voice);
     }
   }
