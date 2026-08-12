@@ -51,6 +51,11 @@ function convexRun(fnRef, argsObj) {
   }
 }
 
+// Blast-radius guard: cross-language pollution only ever lives under a
+// non-English voice's tts/ folder (audio/hi-IN-*/tts/… or audio/es-US-*/tts/…).
+// Any target outside that prefix means the hit-list is wrong.
+const EXPECTED_KEY = /^audio\/(hi-IN|es-US)-[\w-]+\/tts\//;
+
 // ── Dry run: preview only ─────────────────────────────────────────────────────
 if (!COMMIT) {
   const rows = convexRun("migrations:getTtsCacheRowsByIds", { ids });
@@ -60,37 +65,57 @@ if (!COMMIT) {
   }
   const missing = ids.length - rows.length;
   if (missing > 0) console.log(`\n  (${missing} ids not found — already gone)`);
+  const unexpected = rows.filter((r) => !EXPECTED_KEY.test(r.r2Key));
+  if (unexpected.length > 0) {
+    console.log(
+      `\n⚠️  ${unexpected.length} row(s) are NOT under a non-English tts/ prefix — --commit will ABORT on these:`
+    );
+    for (const r of unexpected) console.log(`   ${r.voiceId}  "${r.text}"  →  ${r.r2Key}`);
+  }
   console.log(`\nRe-run with --commit to delete rows + R2 objects.`);
   process.exit(0);
 }
 
-// ── Commit: delete rows first (Convex), then R2 objects ───────────────────────
-console.log(`\n🗑  Deleting ${ids.length} ttsCache rows…`);
-const { deletedKeys, deleted, missing } = convexRun(
-  "migrations:purgeTtsCacheRowsByIds",
-  { ids }
-);
-console.log(`   rows deleted: ${deleted}   already gone: ${missing}`);
+// ── Commit: validate first (rows intact), then delete rows → R2 objects ───────
+// Fetch the targets up front so env + blast-radius are checked BEFORE any
+// deletion — a failed check leaves every row and object intact.
+const rows = convexRun("migrations:getTtsCacheRowsByIds", { ids });
+console.log(`\n${rows.length} rows targeted (${ids.length - rows.length} already gone).`);
 
-// R2 client (same construction as scripts/checkR2Audio.mjs).
+// R2 env must be present before we delete anything.
 const accountId = process.env.R2_ACCOUNT_ID;
 const accessKeyId = process.env.R2_ACCESS_KEY_ID;
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 const bucketName = process.env.R2_BUCKET_NAME;
 if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
   console.error(
-    "❌ Rows deleted, but R2 env vars are missing — objects NOT removed. " +
-      "Set R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME and re-run --commit " +
-      "(rows are already gone, so only the orphaned objects remain — harmless, but re-run to reclaim them)."
+    "❌ R2 env vars missing (R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME). " +
+      "Nothing deleted — set them and re-run --commit."
   );
   process.exit(1);
 }
+
+// Blast-radius guard — abort untouched if any target is outside the expected prefix.
+const unexpected = rows.filter((r) => !EXPECTED_KEY.test(r.r2Key));
+if (unexpected.length > 0) {
+  console.error(
+    `\n❌ ${unexpected.length} target row(s) are NOT under a non-English tts/ prefix — aborting, nothing deleted:`
+  );
+  for (const r of unexpected) console.error(`   ${r.voiceId}  "${r.text}"  →  ${r.r2Key}`);
+  console.error(`Review ${HIT_LIST} — it must list only wrong-voice (hi-IN/es-US) rows.`);
+  process.exit(1);
+}
+
+// Delete rows first (row-before-object), then their R2 objects.
+console.log(`\n🗑  Deleting ${rows.length} ttsCache rows…`);
+const { deletedKeys, deleted, missing } = convexRun("migrations:purgeTtsCacheRowsByIds", { ids });
+console.log(`   rows deleted: ${deleted}   already gone: ${missing}`);
+
 const client = new S3Client({
   region: "auto",
   endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
   credentials: { accessKeyId, secretAccessKey },
 });
-
 console.log(`\n🪣 Deleting ${deletedKeys.length} R2 objects from ${bucketName}…`);
 let objDeleted = 0;
 for (const key of deletedKeys) {

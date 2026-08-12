@@ -83,10 +83,8 @@ export function PersistentTalker() {
   function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; phraseNameRecord?: Record<string, string>; label: string }) {
     if (item.audioPath) { playAudio(item.audioPath); return; }
     if (item.kind === 'phrase') {
-      // Voice follows the resolved text's language (Phase 15 3e): an EN-only
-      // phrase on a Hindi/Spanish board speaks English in an ENGLISH voice — not
-      // the board voice (which read English words in a Hindi accent).
-      // Voice follows the resolved text's language (ADR-018) via the shared helper.
+      // Voice follows the resolved text's language (ADR-018): an EN-only phrase on
+      // a Hindi/Spanish board speaks English in an ENGLISH voice, via the shared helper.
       const { voiceId: voice } = resolveSpokenVoice(item.phraseNameRecord, language, voiceId);
       void playTts(item.phraseName ?? item.label, voice);
     }
