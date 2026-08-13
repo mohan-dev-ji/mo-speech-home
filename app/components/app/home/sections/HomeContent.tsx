@@ -72,7 +72,7 @@ export function HomeContent() {
     // Key the name under the ACTIVE board language, not a hardcoded `en` — else
     // non-English lists are mislabelled "Made in EN" (variant state is derived
     // from which language keys the record holds). Mirrors createSentence below.
-    const id = await createList({ name: { [language]: name } });
+    const id = await createList({ name: { [language]: name }, authoredLanguage: language });
     const kept = rows
       .map((r) => ({ description: r.label.trim(), autoMatch: r.autoMatch }))
       .filter((r) => r.description.length > 0);

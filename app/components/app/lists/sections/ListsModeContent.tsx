@@ -433,6 +433,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
       // inverts the translate/revert affordances (the variant state is derived
       // from which language keys the record holds — see labelTranslateState).
       name: { [language]: name },
+      authoredLanguage: language,
       ...(realFolderId ? { folderId: realFolderId } : {}),
     });
     const kept = rows
