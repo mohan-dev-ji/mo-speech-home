@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  let body: { texts?: unknown; targetLang?: unknown };
+  let body: { texts?: unknown; targetLang?: unknown; lowercase?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -42,6 +42,10 @@ export async function POST(request: Request) {
     ? body.texts.map((s) => (typeof s === "string" ? s : "")).map((s) => s.trim())
     : [];
   const targetLang = typeof body.targetLang === "string" ? body.targetLang : "";
+  // Optional casing nudge (list-item translations opt in). Soft, prompt-level —
+  // no strict formatter — and self-scoping to cased scripts, so it's a no-op for
+  // caseless scripts like Hindi/Devanagari.
+  const lowercase = body.lowercase === true;
   if (texts.length === 0 || texts.some((s) => !s) || !targetLang) {
     return NextResponse.json(
       { error: "`texts` (non-empty strings) and `targetLang` are required." },
@@ -62,6 +66,12 @@ export async function POST(request: Request) {
   texts.forEach((s, i) => { entries[String(i)] = s; });
   const keys = Object.keys(entries);
 
+  // Casing clause — only when the caller opts in (e.g. list items). Self-scoping:
+  // lowercase for cased/Latin scripts, natural text for caseless scripts.
+  const casingClause = lowercase
+    ? `\n\nCASING: If the target language uses a cased/Latin script (e.g. English, Spanish), return every translation in all lowercase — do not capitalize the first letter or any word — EXCEPT genuine proper nouns (names of people, places, brands) and the English pronoun "I", which keep their normal capitalization. For scripts without letter case (e.g. Devanagari/Hindi), return the natural text unchanged.`
+    : "";
+
   try {
     const vertex = await buildVertexClient();
     const { result } = await callJsonResponse(
@@ -73,7 +83,7 @@ export async function POST(request: Request) {
             role: "user",
             parts: [
               {
-                text: `Target language: ${lang.label} (${lang.nativeLabel}, ISO: ${lang.code}).\n\nTranslate every value in this JSON object. Return a JSON object with the SAME keys mapping to the translations.\n\n${JSON.stringify(entries, null, 2)}`,
+                text: `Target language: ${lang.label} (${lang.nativeLabel}, ISO: ${lang.code}).\n\nTranslate every value in this JSON object. Return a JSON object with the SAME keys mapping to the translations.${casingClause}\n\n${JSON.stringify(entries, null, 2)}`,
               },
             ],
           },

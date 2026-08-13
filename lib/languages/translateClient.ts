@@ -10,12 +10,13 @@ import { DEFAULT_LOCALE } from './registry';
 export async function translateTexts(
   texts: string[],
   targetLang: string,
+  opts?: { lowercase?: boolean },
 ): Promise<string[]> {
   if (texts.length === 0) return [];
   const res = await fetch('/api/translate-text', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ texts, targetLang }),
+    body: JSON.stringify({ texts, targetLang, ...(opts?.lowercase ? { lowercase: true } : {}) }),
   });
   if (!res.ok) throw new Error(`translate-text ${res.status}`);
   const data = (await res.json()) as { translations?: unknown };
@@ -39,6 +40,7 @@ export async function makeRecordFiller(
   records: (Record<string, string> | undefined)[],
   srcLang: string,
   targetLang: string,
+  opts?: { lowercase?: boolean },
 ): Promise<<T extends Record<string, string> | undefined>(record: T) => T> {
   const need: string[] = [];
   for (const r of records) {
@@ -48,7 +50,7 @@ export async function makeRecordFiller(
     }
   }
   const uniq = [...new Set(need)];
-  const translated = uniq.length ? await translateTexts(uniq, targetLang) : [];
+  const translated = uniq.length ? await translateTexts(uniq, targetLang, opts) : [];
   const map = new Map(uniq.map((s, i) => [s, translated[i]]));
 
   return <T extends Record<string, string> | undefined>(record: T): T => {

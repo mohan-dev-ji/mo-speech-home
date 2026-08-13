@@ -374,7 +374,8 @@ export function ListDetailContent({ listId }: Props) {
       const base = localItems[i];
       const srcLang = resolvedLocale(base.descriptionRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
       const rec = recordOf(base, srcLang);
-      const fill = await makeRecordFiller([rec], srcLang, language);
+      // List items translate to all-lowercase (romanised langs); see 'whole' below.
+      const fill = await makeRecordFiller([rec], srcLang, language, { lowercase: true });
       const filled = fill(rec);
       const next = localItems.map((it, idx) =>
         idx === i
@@ -387,16 +388,22 @@ export function ListDetailContent({ listId }: Props) {
       return;
     }
 
-    // 'whole' — list title + every item, in one batch.
+    // 'whole' — list title + every item. Two fills (run together): the title keeps
+    // its normal capitalization; items come back all-lowercase (romanised langs),
+    // proper nouns and "I" preserved. Casing is a soft prompt nudge, not a formatter.
     const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
-    const fill = await makeRecordFiller(
-      [list.name, ...localItems.map((it) => recordOf(it, srcLang))],
-      srcLang,
-      language,
-    );
-    await renameList({ profileListId: listId, name: fill(list.name) });
+    const [fillTitle, fillItems] = await Promise.all([
+      makeRecordFiller([list.name], srcLang, language),
+      makeRecordFiller(
+        localItems.map((it) => recordOf(it, srcLang)),
+        srcLang,
+        language,
+        { lowercase: true },
+      ),
+    ]);
+    await renameList({ profileListId: listId, name: fillTitle(list.name) });
     const next = localItems.map((it) => {
-      const filled = fill(recordOf(it, srcLang));
+      const filled = fillItems(recordOf(it, srcLang));
       return { ...it, descriptionRecord: filled, description: displayString(filled, language, DEFAULT_LOCALE) };
     });
     setLocalItems(next);
