@@ -69,7 +69,10 @@ export function HomeContent() {
   }
 
   async function handleCreateList(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
-    const id = await createList({ name: { en: name } });
+    // Key the name under the ACTIVE board language, not a hardcoded `en` — else
+    // non-English lists are mislabelled "Made in EN" (variant state is derived
+    // from which language keys the record holds). Mirrors createSentence below.
+    const id = await createList({ name: { [language]: name } });
     const kept = rows
       .map((r) => ({ description: r.label.trim(), autoMatch: r.autoMatch }))
       .filter((r) => r.description.length > 0);
@@ -89,7 +92,9 @@ export function HomeContent() {
           // (not Upload) — an auto-matched image is a SymbolStix image.
           return {
             order: i,
-            description,
+            // Key under the active board language too (a plain string hydrates
+            // under DEFAULT_LOCALE `en`).
+            description: { [language]: description },
             ...(imagePath ? { imagePath, imageSourceType: 'symbolstix' as const } : {}),
           };
         }),

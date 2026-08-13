@@ -428,7 +428,11 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
 
   async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createList({
-      name: { en: name },
+      // Key the name under the ACTIVE board language, not a hardcoded `en`.
+      // Keying non-English content under `en` mislabels it "Made in EN" and
+      // inverts the translate/revert affordances (the variant state is derived
+      // from which language keys the record holds — see labelTranslateState).
+      name: { [language]: name },
       ...(realFolderId ? { folderId: realFolderId } : {}),
     });
     const kept = rows
@@ -451,7 +455,9 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
           // (not Upload) — an auto-matched image is a SymbolStix image.
           return {
             order: i,
-            description,
+            // Key under the active board language too — same reason as the list
+            // name above. A plain string would hydrate under DEFAULT_LOCALE (`en`).
+            description: { [language]: description },
             ...(imagePath ? { imagePath, imageSourceType: 'symbolstix' as const } : {}),
           };
         }),
