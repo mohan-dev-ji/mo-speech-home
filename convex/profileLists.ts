@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { stripLocaleKey } from "../lib/languages/variants";
+import { DEFAULT_LOCALE } from "../lib/languages/registry";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ export const getProfileLists = query({
         itemCount: list.items.length,
         thumbnails: orderedItems.map((item) => ({ imagePath: item.imagePath })),
         librarySourceId: list.librarySourceId,
+        authoredLanguage: list.authoredLanguage,
         folderId: list.folderId, // ADR-014 — group membership (Lists tree)
       };
     });
@@ -60,6 +62,7 @@ export const getProfileListWithItems = query({
       showChecklist: list.showChecklist ?? false,
       showFirstThen: list.showFirstThen ?? false,
       librarySourceId: list.librarySourceId,
+      authoredLanguage: list.authoredLanguage,
       folderId: list.folderId, // ADR-014 — group membership (for breadcrumb/back)
       items,
     };
@@ -74,6 +77,7 @@ export const createProfileList = mutation({
     // ADR-014 — file the new list into a group (set when created from inside a
     // List Group). Omit to leave it Ungrouped.
     folderId: v.optional(v.id("profileFolders")),
+    authoredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -88,6 +92,7 @@ export const createProfileList = mutation({
     return ctx.db.insert("profileLists", {
       accountId,
       name: args.name,
+      ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       order: last ? last.order + 1 : 0,
       items: [],
       displayFormat: "rows",
@@ -239,6 +244,9 @@ export const revertProfileListLanguage = mutation({
     requireProTier(user);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
+    // ADR-019: never strip the origin language — reverting the master would
+    // delete it (the UI won't offer this on the origin board, but guard here too).
+    if (args.language === (list.authoredLanguage ?? DEFAULT_LOCALE)) return;
     // list.name is always a Record (never the legacy plain-string form), so
     // stripLocaleKey's return is a Record too — narrow past its wider union
     // return type (shared with the string|Record `description` field below).

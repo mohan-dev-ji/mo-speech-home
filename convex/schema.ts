@@ -686,6 +686,9 @@ export default defineSchema({
     name: localisedString,
     order: v.number(),
     librarySourceId: v.optional(v.string()),
+    // The list's origin/master language (ADR-019). Set at create = board language.
+    // Absent on pre-ADR-019 rows and `_starter` defaults → read as DEFAULT_LOCALE.
+    authoredLanguage: v.optional(v.string()),
     // ADR-014 — parent folder within the Lists tree. See profileCategories.folderId.
     folderId: v.optional(v.id("profileFolders")),
     items: v.array(
