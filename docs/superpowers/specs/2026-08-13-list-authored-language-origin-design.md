@@ -84,7 +84,7 @@ Items have no origin of their own — they inherit the **list's** `authoredLangu
 - **`app/components/app/lists/sections/ListDetailContent.tsx`** — it holds `list`, so compute `const authoredLang = list.authoredLanguage ?? DEFAULT_LOCALE;` and pass it to `ListDetailEdit`. Gate the per-item translate/revert on it:
   - The `untranslated` filter (~line 317) and the item-translate entry use `listTranslateState(recordOf(it, srcLang), language, authoredLang)`.
   - `handleItemRevertConfirm` (~line 418): no-op when `language === authoredLang` (don't strip an item's master key on the origin board), in addition to not offering it.
-- **`app/components/app/lists/sections/ListDetailEdit.tsx`** — accept an `authoredLanguage` prop; each per-item control uses `state={item.description ? listTranslateState(item.descriptionRecord, language, authoredLanguage) : 'none'}` (replacing `labelTranslateState`), and shows the per-item Made-in label on both non-origin states.
+- **`app/components/app/lists/sections/ListDetailEdit.tsx`** — accept an `authoredLanguage` prop; each per-item control (three variants: row/column/grid) uses `listTranslateState(item.descriptionRecord, language, authoredLanguage)` (replacing `labelTranslateState`), mapping `'origin' → 'none'` so no translate/revert glyph shows on the origin board. **Item level is control-only** — there is no existing per-item "Made in" pill, and none is added (the list-level badge already carries the origin signal). This keeps the item change to the destructive-revert fix.
 
 ### 3.6 Revert mutation guard (defense-in-depth)
 
