@@ -71,6 +71,23 @@ export function labelTranslateState(
 }
 
 /**
+ * Origin-aware control state for a single localised record whose master language
+ * is known (lists carry `authoredLanguage`; ADR-019). Unlike `labelTranslateState`
+ * it distinguishes the master board (no affordances) from a non-origin board:
+ *   'origin'       — board IS the master language: no label, no control.
+ *   'untranslated' — non-origin, board-lang key absent: "Made in <origin>" + Translate.
+ *   'translated'   — non-origin, board-lang key present: "Made in <origin>" + Revert.
+ */
+export function listTranslateState(
+  record: Record<string, string> | undefined,
+  boardLang: string,
+  authoredLanguage: string,
+): 'origin' | 'untranslated' | 'translated' {
+  if (boardLang === authoredLanguage) return 'origin';
+  return needsTranslation(record, boardLang) ? 'untranslated' : 'translated';
+}
+
+/**
  * Collapse sibling-variant rows to one visible row per group for `language`.
  * Pick order: the board-language variant → the source row → any sibling.
  * A legacy row with no `authoredLanguage` counts as DEFAULT_LOCALE.
