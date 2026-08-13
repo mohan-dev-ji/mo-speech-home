@@ -38,7 +38,7 @@ import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClien
 import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
 import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
-import { labelTranslateState } from '@/lib/languages/variants';
+import { labelTranslateState, listTranslateState } from '@/lib/languages/variants';
 import { TranslateChoiceModal, type TranslateOption } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -65,6 +65,7 @@ type ListRow = {
   thumbnails: { imagePath?: string }[];
   librarySourceId?: string;
   folderId?: Id<'profileFolders'>;
+  authoredLanguage?: string;
 };
 
 
@@ -143,6 +144,11 @@ function SortableListRow({
 
   const name = displayString(list.name, language, DEFAULT_LOCALE);
   const isEditingThisName = editingNameId === list._id;
+  const cardState = listTranslateState(
+    list.name,
+    language,
+    list.authoredLanguage ?? DEFAULT_LOCALE,
+  );
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -179,7 +185,7 @@ function SortableListRow({
                     untranslated → translate glyph (opens the choice modal);
                     translated → ↺ (opens the shared "Use original" confirm). */}
                 <TranslateRevertControl
-                  state={labelTranslateState(list.name, language)}
+                  state={cardState === 'origin' ? 'none' : cardState}
                   onTranslate={() => onTranslateList(list._id)}
                   onRevert={() => onRevertRequest(list._id, name)}
                   translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -211,9 +217,10 @@ function SortableListRow({
               </EditPanel>
             )}
             {/* Made-in pill — tucked directly under the toolbar, right-aligned
-                (Figma 3025-2325). Only while the control above is `untranslated`. */}
-            {isEditing && labelTranslateState(list.name, language) === 'untranslated' && (
-              <MadeInLabel lang={resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE} />
+                (Figma 3025-2325). Shown on both non-origin states (untranslated
+                and translated); hidden on the origin board (ADR-019). */}
+            {isEditing && cardState !== 'origin' && (
+              <MadeInLabel lang={list.authoredLanguage ?? DEFAULT_LOCALE} />
             )}
           </div>
         </div>
