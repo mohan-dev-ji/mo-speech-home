@@ -21,8 +21,8 @@ import { Plus, Trash2, Move, Volume2 } from 'lucide-react';
 import { EditSymbolSlot } from '../ui/ListItemAtoms';
 import { IconButton } from '@/app/components/app/shared/ui/IconButton';
 import { EditPanel } from '@/app/components/app/shared/ui/EditPanel';
-import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
-import { labelTranslateState } from '@/lib/languages/variants';
+import { TranslateRevertControl, type TranslateRevertState } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { listTranslateState } from '@/lib/languages/variants';
 import type { ListItem } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,6 +33,7 @@ type EditItemProps = {
   showNumbers: boolean;
   showChecklist: boolean;
   language: string;
+  authoredLanguage: string;
   onDeleteRequest: () => void;
   onDescriptionChange: (v: string) => void;
   onDescriptionBlur: () => void;
@@ -48,6 +49,7 @@ export type EditContainerProps = {
   showNumbers: boolean;
   showChecklist: boolean;
   language: string;
+  authoredLanguage: string;
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteRequest: (index: number) => void;
   onDescriptionChange: (index: number, value: string) => void;
@@ -65,7 +67,7 @@ const SENSOR_OPTIONS = { activationConstraint: { distance: 8 } };
 // ─── Row edit item ────────────────────────────────────────────────────────────
 
 function SortableEditRow({
-  item, index, showNumbers, showChecklist, language,
+  item, index, showNumbers, showChecklist, language, authoredLanguage,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -73,6 +75,10 @@ function SortableEditRow({
   const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
+  const originState = item.description
+    ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
+    : 'origin';
+  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -100,7 +106,7 @@ function SortableEditRow({
           <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
+            state={controlState}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -116,7 +122,7 @@ function SortableEditRow({
 // ─── Column edit item ─────────────────────────────────────────────────────────
 
 function SortableEditColumn({
-  item, index, showNumbers, showChecklist, language,
+  item, index, showNumbers, showChecklist, language, authoredLanguage,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -124,6 +130,10 @@ function SortableEditColumn({
   const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
+  const originState = item.description
+    ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
+    : 'origin';
+  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style} className="flex-1 min-w-0 flex flex-col">
@@ -151,7 +161,7 @@ function SortableEditColumn({
           <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
+            state={controlState}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -167,7 +177,7 @@ function SortableEditColumn({
 // ─── Grid edit item ───────────────────────────────────────────────────────────
 
 function SortableEditGrid({
-  item, index, showNumbers, showChecklist, language,
+  item, index, showNumbers, showChecklist, language, authoredLanguage,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -175,6 +185,10 @@ function SortableEditGrid({
   const tTranslate = useTranslations('translate');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.localId });
   const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, position: 'relative' };
+  const originState = item.description
+    ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
+    : 'origin';
+  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -202,7 +216,7 @@ function SortableEditGrid({
           <IconButton size="sm" variant="neutral" className={item.activeAudioSource === 'record' && item.recordedAudioPath ? 'text-theme-primary' : undefined} icon={<Volume2 />} label={t('itemAudio')} onClick={onAudioRequest} />
           <IconButton size="sm" variant="neutral" className="text-theme-warning" icon={<Trash2 />} label={t('itemDelete')} onClick={onDeleteRequest} />
           <TranslateRevertControl
-            state={item.description ? labelTranslateState(item.descriptionRecord, language) : 'none'}
+            state={controlState}
             onTranslate={onTranslateRequest}
             onRevert={onRevertRequest}
             translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
@@ -238,7 +252,7 @@ function AddItemButton({ onClick, className = '' }: { onClick: () => void; class
 
 // ─── Edit containers ──────────────────────────────────────────────────────────
 
-export function EditRows({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditRows({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -252,6 +266,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, onDragEn
               showNumbers={showNumbers}
               showChecklist={showChecklist}
               language={language}
+              authoredLanguage={authoredLanguage}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
@@ -269,7 +284,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, onDragEn
   );
 }
 
-export function EditColumns({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditColumns({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const t = useTranslations('lists');
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
@@ -284,6 +299,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, onDra
               showNumbers={showNumbers}
               showChecklist={showChecklist}
               language={language}
+              authoredLanguage={authoredLanguage}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
@@ -313,7 +329,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, onDra
   );
 }
 
-export function EditGrid({ items, showNumbers, showChecklist, language, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditGrid({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -327,6 +343,7 @@ export function EditGrid({ items, showNumbers, showChecklist, language, onDragEn
               showNumbers={showNumbers}
               showChecklist={showChecklist}
               language={language}
+              authoredLanguage={authoredLanguage}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}

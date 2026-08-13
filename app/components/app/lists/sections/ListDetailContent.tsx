@@ -20,7 +20,7 @@ import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { TranslateChoiceModal, type TranslateOption } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
-import { stripLocaleKey, labelTranslateState } from '@/lib/languages/variants';
+import { stripLocaleKey, listTranslateState } from '@/lib/languages/variants';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -314,7 +314,7 @@ export function ListDetailContent({ listId }: Props) {
     const srcLang = resolvedLocale(list.name, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE;
     return localItems.filter((it) => {
       if (!it.description) return false;
-      return labelTranslateState(recordOf(it, srcLang), language) === 'untranslated';
+      return listTranslateState(recordOf(it, srcLang), language, list.authoredLanguage ?? DEFAULT_LOCALE) === 'untranslated';
     }).length;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localItems, list, language]);
@@ -416,7 +416,9 @@ export function ListDetailContent({ listId }: Props) {
   // untouched), recompute its display string, and persist via the existing
   // items mutation.
   async function handleItemRevertConfirm() {
-    if (!pendingItemRevert) return;
+    if (!pendingItemRevert || !list) return;
+    // ADR-019: never strip an item's master key on the origin board.
+    if (language === (list.authoredLanguage ?? DEFAULT_LOCALE)) { setPendingItemRevert(null); return; }
     const idx = pendingItemRevert.index;
     const next = localItems.map((it, i) => {
       if (i !== idx) return it;
@@ -443,6 +445,7 @@ export function ListDetailContent({ listId }: Props) {
     showNumbers: list.showNumbers,
     showChecklist: list.showChecklist,
     language,
+    authoredLanguage: list.authoredLanguage ?? DEFAULT_LOCALE,
     onDragEnd: handleDragEnd,
     onDeleteRequest: (index: number) => setPendingDeleteIndex(index),
     onDescriptionChange: handleDescriptionChange,
