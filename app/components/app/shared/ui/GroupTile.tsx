@@ -13,8 +13,9 @@ import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { translateTexts } from '@/lib/languages/translateClient';
 import { TranslateRevertControl } from '@/app/components/app/shared/ui/TranslateRevertControl';
+import { MadeInLabel } from '@/app/components/app/shared/ui/MadeInLabel';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
-import { labelTranslateState } from '@/lib/languages/variants';
+import { listTranslateState } from '@/lib/languages/variants';
 
 // Per grid-size title type + tile padding: bigger grid → bigger title + roomier
 // padding. Design-system tokens only — s/p/h4 text sizes; symbol-card (8px)
@@ -61,6 +62,8 @@ type Props = {
    */
   nameRecord?: Record<string, string>;
   language?: string;
+  /** The record's origin/master language (ADR-020). Falls back to DEFAULT_LOCALE. */
+  authoredLanguage?: string;
   /** Strip the board-language key from the name record (parent owns the mutation). */
   onRevert?: () => void;
   /** New colour key from the swatch picker. */
@@ -99,6 +102,7 @@ export function GroupTile({
   published,
   nameRecord,
   language,
+  authoredLanguage,
   onRevert,
 }: Props) {
   const t = useTranslations('group');
@@ -187,15 +191,25 @@ export function GroupTile({
               className={`flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none ${titleClass}`}
               style={{ background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
             />
-            {language && nameRecord && (
-              <TranslateRevertControl
-                state={labelTranslateState(nameRecord, language)}
-                onTranslate={() => void handleTranslate()}
-                onRevert={() => setRevertOpen(true)}
-                translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
-                revertLabel={tTranslate('controlRevertLabel')}
-              />
-            )}
+            {language && nameRecord && (() => {
+              // Origin-aware (ADR-020): no control on the master board; on a
+              // non-origin board show Translate (untranslated) or Revert (translated).
+              const tileState = listTranslateState(nameRecord, language, authoredLanguage ?? DEFAULT_LOCALE);
+              return (
+                <>
+                  <TranslateRevertControl
+                    state={tileState === 'origin' ? 'none' : tileState}
+                    onTranslate={() => void handleTranslate()}
+                    onRevert={() => setRevertOpen(true)}
+                    translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                    revertLabel={tTranslate('controlRevertLabel')}
+                  />
+                  {tileState !== 'origin' && (
+                    <MadeInLabel lang={authoredLanguage ?? DEFAULT_LOCALE} />
+                  )}
+                </>
+              );
+            })()}
           </div>
         ) : (
           <p
