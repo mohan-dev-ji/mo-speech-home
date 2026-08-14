@@ -248,7 +248,7 @@ export function GroupsView({
             <SortableContext items={localOrder} strategy={rectSortingStrategy}>
               <div className={`grid gap-3 ${GROUPS_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
                 {orderedFolders.map((folder) => {
-                  const name = displayString(folder.name, language, DEFAULT_LOCALE);
+                  const name = displayString(folder.name, language, folder.authoredLanguage ?? DEFAULT_LOCALE);
                   return (
                     <GroupTile
                       key={folder._id}
@@ -265,9 +265,12 @@ export function GroupsView({
                       }
                       nameRecord={folder.name}
                       language={language}
+                      authoredLanguage={folder.authoredLanguage ?? DEFAULT_LOCALE}
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRevert={() => {
+                        // ADR-020: never strip the origin key on the master board.
+                        if (language === (folder.authoredLanguage ?? DEFAULT_LOCALE)) return;
                         const stripped = stripLocaleKey(folder.name, language) as Record<string, string>;
                         if (Object.keys(stripped).length === 0) return; // never strip the last key
                         void renameFolder({ folderId: folder._id, name: stripped });

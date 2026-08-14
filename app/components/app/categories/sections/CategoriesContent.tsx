@@ -291,7 +291,9 @@ export function CategoriesContent() {
             <SortableContext items={filteredOrder} strategy={rectSortingStrategy}>
               <div className={`grid gap-3 ${CATEGORIES_GRID_CLASSES[stateFlags.grid_size ?? 'large']}`}>
                 {filteredCategories.map((cat) => {
-                  const name = displayString(cat.name, language, DEFAULT_LOCALE);
+                  // Origin-aware fallback (ADR-020): show the made-in language, not
+                  // a prior translation, when the board language is absent.
+                  const name = displayString(cat.name, language, cat.authoredLanguage ?? DEFAULT_LOCALE);
                   return (
                     <GroupTile
                       key={cat._id}
@@ -308,9 +310,12 @@ export function CategoriesContent() {
                       }
                       nameRecord={cat.name}
                       language={language}
+                      authoredLanguage={cat.authoredLanguage ?? DEFAULT_LOCALE}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
                       onRevert={() => {
+                        // ADR-020: never strip the origin key on the master board.
+                        if (language === (cat.authoredLanguage ?? DEFAULT_LOCALE)) return;
                         const stripped = stripLocaleKey(cat.name, language) as Record<string, string>;
                         if (Object.keys(stripped).length === 0) return; // never strip the last key
                         void updateCategoryMeta({ profileCategoryId: cat._id, name: stripped });
