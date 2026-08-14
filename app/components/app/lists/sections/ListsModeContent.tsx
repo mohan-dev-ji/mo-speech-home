@@ -142,7 +142,11 @@ function SortableListRow({
     position: 'relative',
   };
 
-  const name = displayString(list.name, language, DEFAULT_LOCALE);
+  // Fall back to the list's ORIGIN (authoredLanguage), not DEFAULT_LOCALE — so a
+  // list with no board-language text (incl. right after a revert) shows its made-in
+  // language, matching the "Made in <origin>" badge, instead of a prior translation
+  // (first-key fallback). ADR-019.
+  const name = displayString(list.name, language, list.authoredLanguage ?? DEFAULT_LOCALE);
   const isEditingThisName = editingNameId === list._id;
   const cardState = listTranslateState(
     list.name,

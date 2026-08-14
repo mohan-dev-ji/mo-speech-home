@@ -109,7 +109,7 @@ export function ListDetailContent({ listId }: Props) {
       description:
         typeof item.description === 'string'
           ? item.description
-          : displayString(item.description, language, DEFAULT_LOCALE),
+          : displayString(item.description, language, list.authoredLanguage ?? DEFAULT_LOCALE),
       // Carry the full localised record so a later save preserves every
       // language (not just the board one) and the translate badge can fill
       // the missing board-language key. A legacy plain string predates i18n
@@ -131,7 +131,7 @@ export function ListDetailContent({ listId }: Props) {
 
   useEffect(() => {
     if (!list) return;
-    const label = displayString(list.name, language, DEFAULT_LOCALE);
+    const label = displayString(list.name, language, list.authoredLanguage ?? DEFAULT_LOCALE);
     const listCrumb = { label };
     // Lists › <group|Ungrouped> › <list>.
     const groupLabel = list.folderId
@@ -152,7 +152,7 @@ export function ListDetailContent({ listId }: Props) {
   // canonical value if the user reverts an in-progress edit via Escape.
   useEffect(() => {
     if (!list) return;
-    const next = displayString(list.name, language, DEFAULT_LOCALE);
+    const next = displayString(list.name, language, list.authoredLanguage ?? DEFAULT_LOCALE);
     setNameDraft(next);
   }, [list, language]);
 
@@ -327,7 +327,9 @@ export function ListDetailContent({ listId }: Props) {
     );
   }
 
-  const listName = displayString(list.name, language, DEFAULT_LOCALE);
+  // Origin-aware fallback (ADR-019): show the made-in language, not a prior
+  // translation, when the board language is absent. Matches the "Made in" badge.
+  const listName = displayString(list.name, language, list.authoredLanguage ?? DEFAULT_LOCALE);
   const effectiveDisplayFormat = isSmallScreen ? 'rows' : list.displayFormat;
   const isColumns = effectiveDisplayFormat === 'columns';
 
@@ -432,7 +434,7 @@ export function ListDetailContent({ listId }: Props) {
       return {
         ...it,
         descriptionRecord: strippedRecord,
-        description: displayString(strippedRecord, language, DEFAULT_LOCALE),
+        description: displayString(strippedRecord, language, list.authoredLanguage ?? DEFAULT_LOCALE),
       };
     });
     setPendingItemRevert(null);
@@ -607,7 +609,7 @@ export function ListDetailContent({ listId }: Props) {
           onClose={() => setItemTranslate(null)}
           title={tTranslate('chooseTitle', { lang: language.toUpperCase() })}
           description={tTranslate('chooseDescription', {
-            authoredLang: (resolvedLocale(localItems[itemTranslate]?.descriptionRecord, language, DEFAULT_LOCALE) ?? DEFAULT_LOCALE).toUpperCase(),
+            authoredLang: (list.authoredLanguage ?? DEFAULT_LOCALE).toUpperCase(),
             lang: language.toUpperCase(),
           })}
           options={([
