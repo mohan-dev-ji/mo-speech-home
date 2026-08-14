@@ -159,6 +159,13 @@ export function GroupTile({
 
   const imageUrl = imagePath ? `/api/assets?key=${imagePath}` : null;
 
+  // Origin-aware tile state (ADR-019/020): 'origin' on the master board (no
+  // control, no badge), else 'untranslated'/'translated'. Computed once so the
+  // control (title row) and the Made-in badge (its own row) stay in sync.
+  const tileState = language && nameRecord
+    ? listTranslateState(nameRecord, language, authoredLanguage ?? DEFAULT_LOCALE)
+    : 'origin';
+
   return (
     <div ref={setNodeRef} style={style}>
       <Tag
@@ -191,25 +198,18 @@ export function GroupTile({
               className={`flex-1 min-w-0 text-center text-theme-alt-text font-normal leading-tight rounded-theme-sm px-2 py-1 outline-none ${titleClass}`}
               style={{ background: 'transparent', border: '2px dashed var(--theme-enter-mode)' }}
             />
-            {language && nameRecord && (() => {
+            {language && nameRecord && (
               // Origin-aware (ADR-020): no control on the master board; on a
               // non-origin board show Translate (untranslated) or Revert (translated).
-              const tileState = listTranslateState(nameRecord, language, authoredLanguage ?? DEFAULT_LOCALE);
-              return (
-                <>
-                  <TranslateRevertControl
-                    state={tileState === 'origin' ? 'none' : tileState}
-                    onTranslate={() => void handleTranslate()}
-                    onRevert={() => setRevertOpen(true)}
-                    translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
-                    revertLabel={tTranslate('controlRevertLabel')}
-                  />
-                  {tileState !== 'origin' && (
-                    <MadeInLabel lang={authoredLanguage ?? DEFAULT_LOCALE} />
-                  )}
-                </>
-              );
-            })()}
+              // The "Made in <origin>" badge is a separate row below (see next block).
+              <TranslateRevertControl
+                state={tileState === 'origin' ? 'none' : tileState}
+                onTranslate={() => void handleTranslate()}
+                onRevert={() => setRevertOpen(true)}
+                translateLabel={tTranslate('controlTranslateLabel', { lang: language.toUpperCase() })}
+                revertLabel={tTranslate('controlRevertLabel')}
+              />
+            )}
           </div>
         ) : (
           <p
@@ -217,6 +217,15 @@ export function GroupTile({
           >
             {name}
           </p>
+        )}
+
+        {/* Made-in origin label — its own row between the title and the thumbnail
+            (edit mode, non-origin board). Kept off the title row so it can't
+            crowd or truncate against the rename input + control. */}
+        {isEditing && tileState !== 'origin' && (
+          <div className="w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
+            <MadeInLabel lang={authoredLanguage ?? DEFAULT_LOCALE} />
+          </div>
         )}
 
         {/* Folder image — dashed + clickable in edit mode (opens Symbol Editor) */}
