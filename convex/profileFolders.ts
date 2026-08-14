@@ -57,6 +57,8 @@ export const createFolder = mutation({
     name: v.record(v.string(), v.string()),
     colour: v.optional(v.string()),
     icon: v.optional(v.string()),
+    // Origin/master language (ADR-020). Set at create = board language.
+    authoredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId } = await requireCallerAccountId(ctx);
@@ -71,6 +73,7 @@ export const createFolder = mutation({
       accountId,
       tree: args.tree,
       name: args.name,
+      ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       ...(args.icon ? { icon: args.icon } : {}),
       ...(args.colour ? { colour: args.colour } : {}),
       order: last ? last.order + 1 : 0,

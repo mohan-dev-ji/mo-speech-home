@@ -543,6 +543,9 @@ export default defineSchema({
   profileCategories: defineTable({
     accountId: v.optional(v.id("users")), // owner account; populated by migration. New writes always set this.
     name: localisedString,
+    // Origin/master language (ADR-020, extends ADR-019). Set at create = board
+    // language. Absent on legacy rows → read as DEFAULT_LOCALE at runtime.
+    authoredLanguage: v.optional(v.string()),
     icon: v.string(),
     colour: v.string(),
     imagePath: v.optional(v.string()), // R2 path for the folder cover image
@@ -845,6 +848,7 @@ export default defineSchema({
       v.literal("phrases")
     ),
     name: localisedString,
+    authoredLanguage: v.optional(v.string()),
     icon: v.optional(v.string()),
     colour: v.optional(v.string()),
     imagePath: v.optional(v.string()), // R2 folder cover

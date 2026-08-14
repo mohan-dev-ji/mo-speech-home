@@ -336,6 +336,8 @@ export const createProfileCategory = mutation({
     // getCoreWordCategories / getProfileCategories partition on this field so
     // the two surfaces never bleed (ADR-015 dropdown edit modes).
     surface: v.optional(v.literal("core")),
+    // Origin/master language (ADR-020). Set at create = board language.
+    authoredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
@@ -351,6 +353,7 @@ export const createProfileCategory = mutation({
     const categoryId = await ctx.db.insert("profileCategories", {
       accountId,
       name: args.name,
+      ...(args.authoredLanguage ? { authoredLanguage: args.authoredLanguage } : {}),
       icon: "📁",
       colour: "#6B7280",
       order: last ? last.order + 1 : 0,
