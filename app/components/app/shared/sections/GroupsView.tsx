@@ -149,7 +149,7 @@ export function GroupsView({
   async function handleCreate(name: string) {
     // Key by the board language you're authoring in (ADR-016 Addendum D — names
     // never auto-translate; the translate icon fills other languages on demand).
-    await createFolder({ tree, name: { [language]: name } });
+    await createFolder({ tree, name: { [language]: name }, authoredLanguage: language });
   }
 
   function handleRename(id: Id<'profileFolders'>, value: string) {

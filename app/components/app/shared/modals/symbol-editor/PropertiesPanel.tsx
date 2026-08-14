@@ -79,7 +79,7 @@ export function PropertiesPanel({
     try {
       // Key the name under the ACTIVE board language, not a hardcoded `en`, so a
       // category authored on a non-English board isn't mislabelled as English.
-      const id = await createCategory({ name: { [language]: name } });
+      const id = await createCategory({ name: { [language]: name }, authoredLanguage: language });
       patch({ profileCategoryId: id as Id<'profileCategories'> });
       setNewCategoryName('');
       setCreatingCategory(false);

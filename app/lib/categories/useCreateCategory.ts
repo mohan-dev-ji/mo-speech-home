@@ -24,6 +24,6 @@ export function useCreateCategory() {
   ): Promise<Id<'profileCategories'>> {
     const symbols = await buildCreateSymbols(rows, language, deps);
     // Names never auto-translate; key by the board language (ADR-016 Addendum D).
-    return createCategory({ name: { [language]: name }, symbols });
+    return createCategory({ name: { [language]: name }, symbols, authoredLanguage: language });
   };
 }
