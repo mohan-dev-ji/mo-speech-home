@@ -1,6 +1,16 @@
 # Origin markers survive publish → install — `authoredLanguage` for library modules (phase-23)
 
-**Status:** approved design (brainstorming complete) · **Owner:** Mo · **Written:** 2026-08-15
+> **⛔ SUPERSEDED — 2026-08-15, never implemented.** Replaced by
+> [`2026-08-15-provenance-gated-origin-affordances-design.md`](2026-08-15-provenance-gated-origin-affordances-design.md).
+>
+> This design propagates a *correct* origin marker onto library-installed content. The owner's
+> call, the same day: library content shouldn't carry the affordance at all. Modules ship complete
+> in every supported language, so "Made in EN" is noise and Revert is destructive (it strips a
+> curated translation, not a user variant). Translate/revert is a **user-authoring** feature.
+> With the badge and controls gated on provenance, nothing consumes a module-level
+> `authoredLanguage` and this propagation has no purpose. Kept for the record only — do not build.
+
+**Status:** superseded (never implemented) · **Owner:** Mo · **Written:** 2026-08-15
 **Extends:** ADR-019 (lists) + ADR-020 (categories & folders) across the module publish/install boundary.
 **Decision record:** ADR-021 (to be written with the implementation).
 
