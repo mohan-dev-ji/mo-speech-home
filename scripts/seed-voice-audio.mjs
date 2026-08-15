@@ -29,11 +29,6 @@
  *   interruption. Only flips the DB flag for symbols whose file is present and
  *   whose flag isn't already set.
  *
- * ── NOT for en-GB-News-M ──
- *   The legacy male voice lives at audio/eng/default/<basename>.mp3 and the
- *   resolver routes it there — a new-convention upload would never be read.
- *   The script refuses that voice.
- *
  * Backup BEFORE running (per CLAUDE.md — this flips a field on ~58k rows):
  *   node --env-file=.env.local scripts/backup-symbols.mjs "phase-8-4-en-female"
  *   npx convex export --path backups/<date>-phase-8-4.zip
@@ -51,7 +46,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ── Voice → language map. Mirrors TTS_VOICES in lib/r2-paths.ts. Voice-id
 //    parsing is forbidden (ADR-009 §4), so the mapping is explicit here too.
 const VOICE_LANG = {
-  "en-GB-News-M": { languageCode: "en-GB", lang: "en", legacy: true },
+  "en-GB-News-M": { languageCode: "en-GB", lang: "en" },
   "en-GB-News-G": { languageCode: "en-GB", lang: "en" },
   // Phase 8.4 (Spanish) — synthesise words.es; filename stays words.en.
   "es-US-Wavenet-C": { languageCode: "es-US", lang: "es" }, // male
@@ -60,8 +55,6 @@ const VOICE_LANG = {
   "hi-IN-Wavenet-F": { languageCode: "hi-IN", lang: "hi" }, // male
   "hi-IN-Wavenet-E": { languageCode: "hi-IN", lang: "hi" }, // female
 };
-
-const LEGACY_VOICE_ID = "en-GB-News-M";
 
 // ── Args ──
 const argv = process.argv.slice(2);
@@ -89,12 +82,6 @@ const NEEDS_AUDIO_DEPS = !DRY_RUN && !FLAGS_ONLY; // GCP + R2 only needed for re
 // ── Validation ──
 if (!VOICE_ID) {
   console.error("❌ --voice <ttsVoiceId> is required (e.g. --voice en-GB-News-G)");
-  process.exit(1);
-}
-if (VOICE_ID === LEGACY_VOICE_ID) {
-  console.error(
-    `❌ ${LEGACY_VOICE_ID} is the legacy voice — its audio lives at audio/eng/default/ and the resolver reads it there. Do not re-seed it under the new convention.`,
-  );
   process.exit(1);
 }
 const voiceMeta = VOICE_LANG[VOICE_ID];
@@ -147,7 +134,7 @@ let googleClient = null;
 
 // ── Helpers ──
 
-/** R2 key — MUST match resolveSymbolAudioPath for non-legacy voices. */
+/** R2 key — MUST match resolveSymbolAudioPath. */
 const symbolKey = (englishWord) => `audio/${VOICE_ID}/symbols/${englishWord}.mp3`;
 
 async function fileExists(key) {

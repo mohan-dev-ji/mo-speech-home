@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "label": "phase-20-pre-reseed-en-gb-news-m",
+  "createdAt": "2026-08-15T09:47:57.149Z",
+  "count": 58807,
+  "pages": 30,
+  "deployment": "dev:wandering-marmot-955",
+  "jsonlFile": "2026_08_15_phase_20_pre_reseed_en_gb_news_m.jsonl"
+}
