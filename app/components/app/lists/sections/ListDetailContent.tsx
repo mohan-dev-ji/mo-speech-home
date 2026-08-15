@@ -450,7 +450,7 @@ export function ListDetailContent({ listId }: Props) {
     authoredLanguage: list.authoredLanguage ?? DEFAULT_LOCALE,
     // ADR-021 — item controls follow the PARENT list's provenance; items carry
     // no librarySourceId of their own.
-    isLibraryContent: isLibraryContent(list),
+    isLibraryContent: isLibraryContent(list) && !showAdminButtons,
     onDragEnd: handleDragEnd,
     onDeleteRequest: (index: number) => setPendingDeleteIndex(index),
     onDescriptionChange: handleDescriptionChange,

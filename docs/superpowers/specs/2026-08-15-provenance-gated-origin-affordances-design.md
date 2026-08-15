@@ -41,7 +41,7 @@ isLibraryContent(record) === record.librarySourceId !== undefined
 1. A freshly seeded account, on any board language, shows **no** translate/revert control and **no** "Made in" badge anywhere in edit mode — its content is all library-installed.
 2. Content the user creates (category, folder, list, sentence, phrase) behaves exactly as today: origin board clean; non-origin boards show "Made in \<origin\>" + Translate or Revert.
 3. An installed library list/category/sentence/phrase cannot be reverted from the UI at all — the control is absent, not merely disabled.
-4. The admin's authoring account is unaffected: source categories/folders/lists there have no `librarySourceId`, so the full kit stays available for building multilingual defaults.
+4. The admin's authoring account is caught by the gate too: `seedDefaultAccount` installs the default modules into every account at signup, so the admin's source categories/folders/lists carry `librarySourceId` just like anyone else's. The gate is suppressed explicitly for admins in admin view, so the full kit stays available for building multilingual defaults there while instructors and students see none.
 5. Editing library content still works normally (rename writes the board-language key, per the existing edit paths) — the gate removes the translate/revert affordance only.
 
 ### 2.2 Explicitly unchanged

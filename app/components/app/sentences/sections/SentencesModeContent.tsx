@@ -509,6 +509,9 @@ type SortableSentenceRowProps = {
   onPlay: (sentence: SentenceRow) => void;
   // ADR-016 — tap the "Made in <lang>" badge to author a board-language variant.
   onAuthorVariant: (sentence: SentenceRow) => void;
+  /** ADR-021 — suppresses the provenance gate so an admin authoring default
+   *  content in admin view keeps the origin badge + translate/revert control. */
+  isAdminView: boolean;
 };
 
 function SortableSentenceRow({
@@ -516,7 +519,7 @@ function SortableSentenceRow({
   onDeleteRequest, onRevertRequest, onMoveRequest,
   onEditSlot, onRemoveSlot, onAddSlot, onReorderSlots,
   onEditWord, onRemoveUnit, onAddWord, onAddPhrase, onReorderUnits, onPhraseChange,
-  onEditSentence, onPlay, onAuthorVariant,
+  onEditSentence, onPlay, onAuthorVariant, isAdminView,
 }: SortableSentenceRowProps) {
   const t = useTranslations('sentences');
   const tTranslate = useTranslations('translate');
@@ -556,7 +559,7 @@ function SortableSentenceRow({
   // ADR-021 — library-installed sentences are finished content: no badge, no
   // variant authoring, no revert (their sibling variants are curated, not the
   // user's). Computed once and applied to both the badge and the control.
-  const isLibrarySentence = isLibraryContent(sentence);
+  const isLibrarySentence = isLibraryContent(sentence) && !isAdminView;
   const badgeLang = isLibrarySentence
     ? undefined
     : isSequenceRow(sentence)
@@ -1330,6 +1333,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
                       language={language}
                       isEditing={isEditing}
                       audioReady={audioReady}
+                      isAdminView={showAdminButtons}
                       onDeleteRequest={(id, name) => setPendingDelete({ id, name })}
                       onRevertRequest={(id, name) => setPendingRevert({ id, name })}
                       onMoveRequest={(id, name) => { setMoveTarget({ id, name }); setMoveSelection(null); }}

@@ -121,6 +121,9 @@ type SortableListRowProps = {
   onTranslateList: (id: Id<'profileLists'>) => void;
   /** Stage 3 — strip this board's language key from the list name + item descriptions. */
   onRevertRequest: (id: Id<'profileLists'>, name: string) => void;
+  /** ADR-021 — suppresses the provenance gate so an admin authoring default
+   *  content in admin view keeps the origin badge + translate/revert control. */
+  isAdminView: boolean;
 };
 
 function SortableListRow({
@@ -128,6 +131,7 @@ function SortableListRow({
   editingNameId, editingNameValue,
   onEditNameStart, onEditNameChange, onEditNameSave, onEditNameCancel,
   onDeleteRequest, onMoveRequest, onOpen, onTranslateList, onRevertRequest,
+  isAdminView,
 }: SortableListRowProps) {
   const t = useTranslations('lists');
   const tTranslate = useTranslations('translate');
@@ -150,7 +154,7 @@ function SortableListRow({
   const isEditingThisName = editingNameId === list._id;
   // ADR-021 — library lists ship complete in every language: no badge, no
   // control. 'origin' is the existing "no affordances" state.
-  const cardState = isLibraryContent(list)
+  const cardState = isLibraryContent(list) && !isAdminView
     ? 'origin'
     : listTranslateState(list.name, language, list.authoredLanguage ?? DEFAULT_LOCALE);
 
@@ -711,6 +715,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
                     onOpen={(id) => router.push(`/${locale}/lists/${id}`)}
                     onTranslateList={(id) => setTranslateTarget(id)}
                     onRevertRequest={(id, name) => setPendingRevert({ id, name })}
+                    isAdminView={showAdminBadges}
                   />
                 ))}
               </div>

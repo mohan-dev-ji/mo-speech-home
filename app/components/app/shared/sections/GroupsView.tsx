@@ -266,7 +266,7 @@ export function GroupsView({
                       nameRecord={folder.name}
                       language={language}
                       authoredLanguage={folder.authoredLanguage ?? DEFAULT_LOCALE}
-                      isLibraryContent={isLibraryContent(folder)}
+                      isLibraryContent={isLibraryContent(folder) && !showPublish}
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRevert={() => {

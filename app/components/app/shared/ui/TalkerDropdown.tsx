@@ -673,7 +673,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 // dropbar CONTAINER folder carries the sentinel), so it keeps
                 // the full authoring kit.
                 const phraseState: TranslateRevertState =
-                  isLibraryContent(p) ? 'none'
+                  isLibraryContent(p) && !(isAdmin && viewMode === 'admin') ? 'none'
                   : needsTranslation(p.name, language) ? 'untranslated'
                   : isRevertableVariant(p) ? 'translated'
                   : 'none';

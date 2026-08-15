@@ -311,7 +311,7 @@ export function CategoriesContent() {
                       nameRecord={cat.name}
                       language={language}
                       authoredLanguage={cat.authoredLanguage ?? DEFAULT_LOCALE}
-                      isLibraryContent={isLibraryContent(cat)}
+                      isLibraryContent={isLibraryContent(cat) && !showAdminBadges}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
                       onRevert={() => {
