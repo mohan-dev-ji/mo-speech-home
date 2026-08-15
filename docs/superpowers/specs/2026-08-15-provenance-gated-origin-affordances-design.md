@@ -3,7 +3,7 @@
 **Status:** approved design (brainstorming complete) · **Owner:** Mo · **Written:** 2026-08-15
 **Scopes:** ADR-016 / ADR-019 / ADR-020 — those remain correct, but only for **user-authored** content.
 **Supersedes:** [`2026-08-15-library-module-authored-language-design.md`](2026-08-15-library-module-authored-language-design.md) (abandoned — see §1.2).
-**Decision record:** ADR-021 (to be written with the implementation).
+**Decision record:** ADR-021 ([`ADR-021-provenance-gated-origin-affordances.md`](../../4-builds/decisions/ADR-021-provenance-gated-origin-affordances.md)).
 
 ---
 
