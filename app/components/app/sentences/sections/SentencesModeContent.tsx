@@ -38,7 +38,7 @@ import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant, isLibraryContent } from '@/lib/languages/variants';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { translateTexts, makeRecordFiller } from '@/lib/languages/translateClient';
 import { useAppState } from '@/app/contexts/AppStateProvider';
@@ -553,11 +553,17 @@ function SortableSentenceRow({
     typeof sentence.text === 'string'
       ? (sentence.text ? { [authoredLang]: sentence.text } : sentence.name)
       : (sentence.text && Object.keys(sentence.text).length ? sentence.text : sentence.name);
-  const badgeLang = isSequenceRow(sentence)
-    ? (authoredLang !== language ? authoredLang : undefined)
-    : (needsTranslation(fluentPrimary, language)
-        ? resolvedLocale(fluentPrimary, language, DEFAULT_LOCALE)
-        : undefined);
+  // ADR-021 — library-installed sentences are finished content: no badge, no
+  // variant authoring, no revert (their sibling variants are curated, not the
+  // user's). Computed once and applied to both the badge and the control.
+  const isLibrarySentence = isLibraryContent(sentence);
+  const badgeLang = isLibrarySentence
+    ? undefined
+    : isSequenceRow(sentence)
+      ? (authoredLang !== language ? authoredLang : undefined)
+      : (needsTranslation(fluentPrimary, language)
+          ? resolvedLocale(fluentPrimary, language, DEFAULT_LOCALE)
+          : undefined);
   // Stage D (Figma 3025-2324) — one control, two meanings. Sentences are
   // COMPOSED content (ADR-016): the "translate" verb here opens variant
   // AUTHORING, never machine translation — see onAuthorVariant below.
@@ -566,7 +572,8 @@ function SortableSentenceRow({
   // way) — that half-finished state must keep the route back into authoring, per
   // convex/profileSentences.ts:199-203 and lib/languages/variants.ts:44-48.
   const translateState: TranslateRevertState =
-    badgeLang ? 'untranslated'
+    isLibrarySentence ? 'none'
+    : badgeLang ? 'untranslated'
     : isRevertableVariant(sentence) ? 'translated'
     : 'none';
   // Talker-saved (sequence) sentences keep no maintained whole-sentence title
