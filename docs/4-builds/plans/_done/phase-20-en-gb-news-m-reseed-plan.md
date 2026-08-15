@@ -2,7 +2,30 @@
 
 > **For a fresh session:** this plan is self-contained — you do NOT need any prior conversation. Read it top to bottom, then execute stage by stage. It migrates the default English voice off a legacy audio-path special-case and onto the same convention every other voice already uses. **It touches the DEFAULT voice on shared production R2, so the cutover is gated on a verification pass and is fully reversible.**
 
-**Written:** 2026-08-13 · **Owner:** Mo · **Status:** ready to execute (not started)
+**Written:** 2026-08-13 · **Owner:** Mo · **Status:** ✅ SHIPPED 2026-08-15 (Stages 0–3; Stage 4 deferred by design)
+
+## Outcome (2026-08-15)
+
+Executed on worktree branch `claude/en-male-default-generation-f48795`, merged to `main` as `a6b7338`.
+
+| Measure | Result |
+|---|---|
+| Dry run | 58,807 clips · 690,986 chars · ~$11.06 est. |
+| Seed run | 54,615 uploaded + 4,192 skipped (duplicate `words.en` keys) · **0 failed** |
+| Coverage gate | 58,807 flagged · 42,592 unique keys · **0 missing** |
+| Type-check | identical to pre-change baseline (one pre-existing `lib/stripe.ts` error) |
+| Acceptance | board audio confirmed serving `audio/en-GB-News-M/symbols/<word>.mp3`, plays correctly |
+
+**Two corrections to this plan, both worth carrying forward:**
+1. **Stage 3 Step 4 was wrong about Convex** — see the ⚠️ note in that step. This is the one thing that nearly shipped unverified.
+2. **The seeded set was a superset of what this plan assumed.** The plan says the seed covers "every symbol where `audio["en-GB-News-M"]===true`"; `seed-voice-audio.mjs` actually iterates every symbol with a `words.en` regardless of flag. Moot here — all 58,807 were already flagged — but the flag count is not what bounds the run.
+
+**Scale fact:** 55,429 of 58,807 symbols (94%) had an `audioBasename` differing from `words.en`, so the corpus really did depend on the legacy mapping. Since every symbol was already flagged seeded, the cutover left **no fallback** — which is why the Stage 2 gate was load-bearing rather than ceremonial.
+
+**Also deviated (deliberately):** `verify-voice-seeded.mjs` dedupes by R2 key and **hard-fails** on a symbol flagged seeded but lacking `words.en` (the plan only warned). Such a symbol resolves to `symbols/.mp3` after the flip — a guaranteed 404 — so it must block. None existed.
+
+---
+
 **Related:** finishes the migration the code already anticipates (`lib/audio/resolveAudioPath.ts` header comment: "Once Phase 8.4 re-seeds en-GB-News-M under the new convention … this branch goes too").
 
 ---
@@ -283,7 +306,11 @@ using eng/default; Home no longer depends on it. Revert to fall back.
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 4: Deploy so it reaches the app.** Convex isn't affected by this change (it's app-side lib code), but the app must ship. This repo deploys from `main`; push and let the normal deploy run:
+- [x] **Step 4: Deploy so it reaches the app. ⚠️ CONVEX *IS* AFFECTED — corrected 2026-08-15.** This step originally claimed "Convex isn't affected by this change (it's app-side lib code)". **That was wrong.** `lib/audio/resolveAudioPath.ts` is imported by `convex/profileCategories.ts` (two sites) and `convex/ttsCache.ts` — see this plan's own Stage 4 list, which contradicts the old claim. The board resolves its audio path **inside a Convex query at read time**, so until the function is redeployed the backend keeps handing the client `audio/eng/default/…` keys no matter what the app-side lib says.
+
+  Consequence when executing from a **worktree**: the deployed Convex functions are whatever `main` has (the owner runs `convex dev` on main), so the Stage 5 acceptance test **cannot pass from a worktree branch** — it is structurally blocked until the change reaches `main`. Merging to `main` is what actually deploys the cutover; `convex dev` picks it up and every board flips. (If the watcher doesn't notice a change made outside `convex/`, `touch convex/profileCategories.ts` to force the rebuild.)
+
+  Good news: the path is computed at read time, **not persisted** — so there is no backfill or migration, and rollback is instant.
 ```bash
 git push origin main
 ```
