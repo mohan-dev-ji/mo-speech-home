@@ -29,7 +29,7 @@ import { useProfile } from '@/app/contexts/ProfileContext';
 import { useCreateCategory } from '@/app/lib/categories/useCreateCategory';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { stripLocaleKey } from '@/lib/languages/variants';
+import { isLibraryContent, stripLocaleKey } from '@/lib/languages/variants';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useAppState } from '@/app/contexts/AppStateProvider';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
@@ -311,6 +311,7 @@ export function CategoriesContent() {
                       nameRecord={cat.name}
                       language={language}
                       authoredLanguage={cat.authoredLanguage ?? DEFAULT_LOCALE}
+                      isLibraryContent={isLibraryContent(cat)}
                       onOpen={() => router.push(`/${locale}/categories/${cat._id}`)}
                       onRename={(value) => handleRename(cat._id, value)}
                       onRevert={() => {
