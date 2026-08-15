@@ -212,9 +212,7 @@ export async function POST(request: Request) {
 
   // ── Step 1: SymbolStix folder for this voice ──────────────────────────────
   // Per ADR-009 §4 the lookup returns just the English word — the route
-  // resolves the R2 key via convention (with the legacy
-  // `audio/eng/default/` fallback baked into `resolveSymbolAudioPath` for
-  // the en-GB-News-M voice until Phase 8.4 re-seeds it).
+  // resolves the R2 key via convention in `resolveSymbolAudioPath`.
   //
   // Requested tones never have SymbolStix recordings (seeded audio is the
   // neutral cheap voice), so the lookup skips it and only consults the
