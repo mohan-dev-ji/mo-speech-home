@@ -20,7 +20,7 @@ import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { TranslateChoiceModal, type TranslateOption } from '@/app/components/app/shared/modals/TranslateChoiceModal';
 import { UseOriginalConfirmDialog } from '@/app/components/app/shared/ui/UseOriginalConfirmDialog';
-import { stripLocaleKey, listTranslateState } from '@/lib/languages/variants';
+import { stripLocaleKey, listTranslateState, isLibraryContent } from '@/lib/languages/variants';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { EditButton } from '@/app/components/app/shared/ui/EditButton';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
@@ -448,6 +448,9 @@ export function ListDetailContent({ listId }: Props) {
     showChecklist: list.showChecklist,
     language,
     authoredLanguage: list.authoredLanguage ?? DEFAULT_LOCALE,
+    // ADR-021 — item controls follow the PARENT list's provenance; items carry
+    // no librarySourceId of their own.
+    isLibraryContent: isLibraryContent(list) && !showAdminButtons,
     onDragEnd: handleDragEnd,
     onDeleteRequest: (index: number) => setPendingDeleteIndex(index),
     onDescriptionChange: handleDescriptionChange,

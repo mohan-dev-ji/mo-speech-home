@@ -63,7 +63,7 @@ import {
 import type { QuickSymbolItem } from './TalkerBar';
 import { displayString, resolvedLocale } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant } from '@/lib/languages/variants';
+import { collapseVariants, reconcileVariantOrder, variantGroupKey, needsTranslation, isRevertableVariant, isLibraryContent } from '@/lib/languages/variants';
 import { makeRecordFiller } from '@/lib/languages/translateClient';
 import { VariantAuthorModal } from '@/app/components/app/shared/modals/VariantAuthorModal';
 import { TranslateRevertControl, type TranslateRevertState } from '@/app/components/app/shared/ui/TranslateRevertControl';
@@ -668,8 +668,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
                 // untranslated FIRST — a variant row can exist while its name is
                 // still the source language (half-finished), and that state must
                 // keep the route back into authoring.
+                // ADR-021 — a library-installed phrase is finished content. A
+                // phrase the user made HERE has no librarySourceId (only the
+                // dropbar CONTAINER folder carries the sentinel), so it keeps
+                // the full authoring kit.
                 const phraseState: TranslateRevertState =
-                  needsTranslation(p.name, language) ? 'untranslated'
+                  isLibraryContent(p) && !(isAdmin && viewMode === 'admin') ? 'none'
+                  : needsTranslation(p.name, language) ? 'untranslated'
                   : isRevertableVariant(p) ? 'translated'
                   : 'none';
                 return (

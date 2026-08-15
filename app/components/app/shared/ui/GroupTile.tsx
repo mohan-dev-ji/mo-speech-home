@@ -64,6 +64,14 @@ type Props = {
   language?: string;
   /** The record's origin/master language (ADR-020). Falls back to DEFAULT_LOCALE. */
   authoredLanguage?: string;
+  /**
+   * ADR-021 — true for library-installed rows (those carrying `librarySourceId`).
+   * Suppresses BOTH the "Made in" badge and the translate/revert control:
+   * curated content ships complete in every supported language, so there is
+   * nothing to translate, and a revert would strip a curated translation rather
+   * than a user variant. Omitted → user content → unchanged ADR-019/020 kit.
+   */
+  isLibraryContent?: boolean;
   /** Strip the board-language key from the name record (parent owns the mutation). */
   onRevert?: () => void;
   /** New colour key from the swatch picker. */
@@ -103,6 +111,7 @@ export function GroupTile({
   nameRecord,
   language,
   authoredLanguage,
+  isLibraryContent,
   onRevert,
 }: Props) {
   const t = useTranslations('group');
@@ -162,9 +171,9 @@ export function GroupTile({
   // Origin-aware tile state (ADR-019/020): 'origin' on the master board (no
   // control, no badge), else 'untranslated'/'translated'. Computed once so the
   // control (title row) and the Made-in badge (its own row) stay in sync.
-  const tileState = language && nameRecord
-    ? listTranslateState(nameRecord, language, authoredLanguage ?? DEFAULT_LOCALE)
-    : 'origin';
+  const tileState = isLibraryContent || !language || !nameRecord
+    ? 'origin'
+    : listTranslateState(nameRecord, language, authoredLanguage ?? DEFAULT_LOCALE);
 
   return (
     <div ref={setNodeRef} style={style}>

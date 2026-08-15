@@ -35,7 +35,7 @@ import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { track } from '@/lib/analytics';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
-import { stripLocaleKey } from '@/lib/languages/variants';
+import { isLibraryContent, stripLocaleKey } from '@/lib/languages/variants';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import {
   Dialog,
@@ -266,6 +266,7 @@ export function GroupsView({
                       nameRecord={folder.name}
                       language={language}
                       authoredLanguage={folder.authoredLanguage ?? DEFAULT_LOCALE}
+                      isLibraryContent={isLibraryContent(folder) && !showPublish}
                       onOpen={() => router.push(`/${locale}/${tree}/folder/${folder._id}`)}
                       onRename={(value) => handleRename(folder._id, value)}
                       onRevert={() => {

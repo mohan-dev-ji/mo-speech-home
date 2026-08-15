@@ -88,6 +88,23 @@ export function listTranslateState(
 }
 
 /**
+ * ADR-021 — library-installed content is FINISHED content: no origin badge, no
+ * translate, no revert, whatever language keys it holds. Provenance beats
+ * language state, because a library row's non-board keys are CURATED
+ * translations, not user variants — offering Revert there strips good copy and
+ * ADR-019's origin guard doesn't fire (the origin key isn't the one being
+ * removed). User-authored rows (no `librarySourceId`) keep the full ADR-019/020
+ * behaviour.
+ *
+ * `librarySourceId` is stamped only by `convex/lib/contentModuleInstall.ts`, so
+ * anything the user creates by hand — including a phrase made in the talker
+ * dropbar — is user content.
+ */
+export function isLibraryContent(record: { librarySourceId?: string }): boolean {
+  return record.librarySourceId !== undefined;
+}
+
+/**
  * Collapse sibling-variant rows to one visible row per group for `language`.
  * Pick order: the board-language variant → the source row → any sibling.
  * A legacy row with no `authoredLanguage` counts as DEFAULT_LOCALE.
