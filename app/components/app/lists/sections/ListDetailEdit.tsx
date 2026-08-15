@@ -34,6 +34,8 @@ type EditItemProps = {
   showChecklist: boolean;
   language: string;
   authoredLanguage: string;
+  /** ADR-021 — parent list is library-installed: no translate/revert control. */
+  isLibraryContent: boolean;
   onDeleteRequest: () => void;
   onDescriptionChange: (v: string) => void;
   onDescriptionBlur: () => void;
@@ -50,6 +52,8 @@ export type EditContainerProps = {
   showChecklist: boolean;
   language: string;
   authoredLanguage: string;
+  /** ADR-021 — parent list is library-installed: no translate/revert control. */
+  isLibraryContent: boolean;
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteRequest: (index: number) => void;
   onDescriptionChange: (index: number, value: string) => void;
@@ -67,7 +71,7 @@ const SENSOR_OPTIONS = { activationConstraint: { distance: 8 } };
 // ─── Row edit item ────────────────────────────────────────────────────────────
 
 function SortableEditRow({
-  item, index, showNumbers, showChecklist, language, authoredLanguage,
+  item, index, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -78,7 +82,8 @@ function SortableEditRow({
   const originState = item.description
     ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
     : 'origin';
-  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
+  const controlState: TranslateRevertState =
+    isLibraryContent || originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -122,7 +127,7 @@ function SortableEditRow({
 // ─── Column edit item ─────────────────────────────────────────────────────────
 
 function SortableEditColumn({
-  item, index, showNumbers, showChecklist, language, authoredLanguage,
+  item, index, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -133,7 +138,8 @@ function SortableEditColumn({
   const originState = item.description
     ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
     : 'origin';
-  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
+  const controlState: TranslateRevertState =
+    isLibraryContent || originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style} className="flex-1 min-w-0 flex flex-col">
@@ -177,7 +183,7 @@ function SortableEditColumn({
 // ─── Grid edit item ───────────────────────────────────────────────────────────
 
 function SortableEditGrid({
-  item, index, showNumbers, showChecklist, language, authoredLanguage,
+  item, index, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent,
   onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol,
   onAudioRequest, onTranslateRequest, onRevertRequest,
 }: EditItemProps) {
@@ -188,7 +194,8 @@ function SortableEditGrid({
   const originState = item.description
     ? listTranslateState(item.descriptionRecord, language, authoredLanguage)
     : 'origin';
-  const controlState: TranslateRevertState = originState === 'origin' ? 'none' : originState;
+  const controlState: TranslateRevertState =
+    isLibraryContent || originState === 'origin' ? 'none' : originState;
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -252,7 +259,7 @@ function AddItemButton({ onClick, className = '' }: { onClick: () => void; class
 
 // ─── Edit containers ──────────────────────────────────────────────────────────
 
-export function EditRows({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditRows({ items, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -267,6 +274,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, authored
               showChecklist={showChecklist}
               language={language}
               authoredLanguage={authoredLanguage}
+              isLibraryContent={isLibraryContent}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
@@ -284,7 +292,7 @@ export function EditRows({ items, showNumbers, showChecklist, language, authored
   );
 }
 
-export function EditColumns({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditColumns({ items, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const t = useTranslations('lists');
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
@@ -300,6 +308,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, autho
               showChecklist={showChecklist}
               language={language}
               authoredLanguage={authoredLanguage}
+              isLibraryContent={isLibraryContent}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
@@ -329,7 +338,7 @@ export function EditColumns({ items, showNumbers, showChecklist, language, autho
   );
 }
 
-export function EditGrid({ items, showNumbers, showChecklist, language, authoredLanguage, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
+export function EditGrid({ items, showNumbers, showChecklist, language, authoredLanguage, isLibraryContent, onDragEnd, onDeleteRequest, onDescriptionChange, onDescriptionBlur, onAddSymbol, onRemoveSymbol, onAddItem, onAudioRequest, onTranslateRequest, onRevertRequest }: EditContainerProps) {
   const sensors = useSensors(useSensor(PointerSensor, SENSOR_OPTIONS));
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -344,6 +353,7 @@ export function EditGrid({ items, showNumbers, showChecklist, language, authored
               showChecklist={showChecklist}
               language={language}
               authoredLanguage={authoredLanguage}
+              isLibraryContent={isLibraryContent}
               onDeleteRequest={() => onDeleteRequest(idx)}
               onDescriptionChange={(v) => onDescriptionChange(idx, v)}
               onDescriptionBlur={onDescriptionBlur}
