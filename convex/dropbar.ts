@@ -134,6 +134,9 @@ export const getDropbarPhrases = query({
         // the "Made in <lang>" badge / author entry.
         authoredLanguage: p.authoredLanguage,
         variantGroupId: p.variantGroupId,
+        // ADR-021 — provenance gate: library-installed phrases show no badge and
+        // no translate/revert. Absent on anything the user created here.
+        librarySourceId: p.librarySourceId,
       }));
   },
 });
