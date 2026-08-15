@@ -70,7 +70,9 @@ One rule, one home. Each surface calls it and collapses the control state to `'n
 
 ### 3.2 Surfaces
 
-Every read query already returns raw docs, so `librarySourceId` reaches the client with **no query changes**: `getProfileCategories` / `getCoreWordCategories` (`profileCategories.ts:132`, `:154`) and `getProfileFolders` (`profileFolders.ts:24`) `.collect()` whole rows; the list, sentence and phrase queries project it explicitly (`profileLists.ts:41`/`:64`, `profileSentences.ts:111`, `profilePhrases.ts:68`).
+Five of the six surfaces already have `librarySourceId` on the client: `getProfileCategories` / `getCoreWordCategories` (`profileCategories.ts:132`, `:154`) and `getProfileFolders` (`profileFolders.ts:24`) `.collect()` whole rows; the list, sentence and Phrases-page queries project it explicitly (`profileLists.ts:41`/`:64`, `profileSentences.ts:111`, `profilePhrases.ts:68`).
+
+**One query change is needed.** The talker dropdown does *not* read phrases through `profilePhrases.ts` — it reads `dropbar.ts:getDropbarPhrases` (`:110`), which builds an explicit projection (`_id`, `name`, `words`, audio paths, `authoredLanguage`, `variantGroupId`) and drops every other field. Add `librarySourceId: p.librarySourceId` to that projection.
 
 | Surface | File | Gate point |
 |---|---|---|
@@ -79,13 +81,15 @@ Every read query already returns raw docs, so `librarySourceId` reaches the clie
 | List card | `ListsModeContent.tsx` | Collapse `cardState` (`:151`) to `'origin'` for library lists → control (`:191`) and badge (`:227`) both vanish. |
 | List items | `ListDetailContent.tsx` (`:317`, `:450`) | The per-item `controlState` passed into `ListDetailEdit`'s three layouts (`:108`, `:163`, `:218`) is computed here, where the parent `list` is in scope — gate on the **list's** provenance. |
 | Sentences | `SentencesModeContent.tsx` | Gate `translateState` (`:568`) and `badgeLang` (`:556`) on `sentence.librarySourceId`. |
-| Phrases (talker dropdown) | `TalkerDropdown.tsx` | Gate `phraseState` (`:671`) → control (`:699`) and `madeInLabel` (`:707`) both fall away. |
+| Phrases (talker dropdown) | `TalkerDropdown.tsx` | Gate `phraseState` (`:671`) → control (`:699`) and `madeInLabel` (`:707`) both fall away. Needs the `getDropbarPhrases` projection fix above. |
 
-No mutation, schema, publish or install changes anywhere.
+No mutation, schema, publish or install changes anywhere — the only backend edit is the one added field in the `getDropbarPhrases` projection.
+
+**A user-created dropbar phrase is user content.** `createPhrase` (`profilePhrases.ts:98`) stamps `accountId` / `folderId` / `authoredLanguage` and never `librarySourceId` — only `contentModuleInstall.ts` writes that field — so a phrase made in the dropbar keeps the full badge + translate/revert kit, exactly like one made on the Phrases page. Only its *container* folder is sentinel-marked (§3.3).
 
 ### 3.3 Edge cases
 
-- **Dropbar sentinel containers.** `dropbar.ts:70`/`:85`/`:167` create the core-words category and phrases folder with sentinel `librarySourceId` values (`CORE_SLUG`, `PHRASES_SLUG`). Those *containers* therefore read as library content and lose their tile controls — correct, since their names are app-provided. Phrases the user creates **inside** that folder have no `librarySourceId` and keep the full kit: the rule keys on the row being rendered, never its parent.
+- **Dropbar sentinel containers.** `dropbar.ts:70`/`:85`/`:167` create the core-words category and phrases folder with sentinel `librarySourceId` values (`CORE_SLUG`, `PHRASES_SLUG`). Those *containers* therefore read as library content and lose their tile controls — correct, since their names are app-provided. Phrases the user creates **inside** that folder have no `librarySourceId` and keep the full kit: the rule keys on the row being rendered, never its parent. In practice the container holds user content only — installing a phrases module always creates its own folder (`contentModuleInstall.ts:141`), so a library phrase reaches the dropbar only if the user moves it there, where it keeps its provenance and correctly shows no controls beside their own phrases that do.
 - **Provenance is fixed at install.** Editing a library list does not convert it to user content, so its controls never return. Accepted: library content arrives fully translated, so edits are preference tweaks rather than translation work. The alternative ("edited library content becomes user content") needs an edited-marker and is not worth the machinery today.
 - **Sentence/phrase variant groups keep `authoredLanguage`.** It is already propagated through install and is used *structurally* by `planVariantGroups` (`lib/variantGroupPlan.ts:45`) to pick the source row of a variant group. That is data resolution, not UI, and must not be removed.
 
@@ -110,8 +114,8 @@ Today the (misplaced) Translate button is an accidental recovery path for that g
 ## 6. Verification
 
 - `npx tsc --noEmit`
-- `source ~/.nvm/nvm.sh && nvm use 20.17.0 && npx tsc -p convex/tsconfig.json` (no Convex changes expected — run as a guard)
+- `source ~/.nvm/nvm.sh && nvm use 20.17.0 && npx tsc -p convex/tsconfig.json` (covers the `getDropbarPhrases` projection change)
 - eslint on the touched files
 - No unit-test runner in this repo. Owner-run browser acceptance: on a fresh/seeded account confirm no badge or control on default categories, seeded lists, seeded sentences and dropbar phrases in edit mode; then create one of each by hand and confirm the badge + Translate/Revert behave exactly as before on a non-origin board.
 
-**Deployment note:** client-only change; nothing to push to Convex. Still lands on `main` for the dev server.
+**Deployment note:** near-client-only. The single `getDropbarPhrases` projection field is the one change that must reach Convex, so it takes effect when this lands on `main` (where `convex dev` runs) — never from a worktree.
