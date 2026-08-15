@@ -218,7 +218,7 @@ export async function POST(request: Request) {
   // neutral cheap voice), so the lookup skips it and only consults the
   // tone-keyed ttsCache.
   type LookupResult =
-    | { source: "symbolstix"; englishWord: string; audioBasename?: string }
+    | { source: "symbolstix"; englishWord: string }
     | { source: "ttsCache"; r2Key: string }
     | { source: "none" };
 
@@ -237,12 +237,7 @@ export async function POST(request: Request) {
   // voice's language (never an English cross-match), so it speaks exactly the
   // authored text — reusing the seeded clip instead of regenerating a duplicate.
   if (lookup.source === "symbolstix") {
-    const key = resolveSymbolAudioPath(
-      voiceId,
-      lookup.englishWord,
-      true,
-      lookup.audioBasename,
-    );
+    const key = resolveSymbolAudioPath(voiceId, lookup.englishWord, true);
     if (key) {
       const exists = await fileExists(key);
       console.log(`[TTS] symbolstix key="${key}" exists=${exists}`);

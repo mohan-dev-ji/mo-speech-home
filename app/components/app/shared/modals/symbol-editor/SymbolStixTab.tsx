@@ -57,12 +57,7 @@ export function SymbolStixTab({
     const seeded = audioMap[voiceId] === true;
     const englishWord = sym.words.en ?? '';
     const defaultAudio =
-      resolveSymbolAudioPath(
-        voiceId,
-        englishWord,
-        seeded,
-        sym.audioBasename,
-      ) ?? undefined;
+      resolveSymbolAudioPath(voiceId, englishWord, seeded) ?? undefined;
 
     const words = sym.words as Record<string, string | undefined>;
 

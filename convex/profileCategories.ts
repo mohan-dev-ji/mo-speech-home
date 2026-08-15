@@ -246,7 +246,6 @@ export const getProfileSymbolsWithImages = query({
                 voiceId,
                 sym.words.en ?? "",
                 seeded,
-                sym.audioBasename,
               );
               if (defaultPath) audio[boardLang] = defaultPath;
             }
@@ -272,7 +271,6 @@ export const getProfileSymbolsWithImages = query({
                   pinnedVoice,
                   sym.words.en ?? "",
                   seeded,
-                  sym.audioBasename,
                 );
                 if (p) audio[pin] = p;
               }

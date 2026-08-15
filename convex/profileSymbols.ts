@@ -67,9 +67,6 @@ export const getProfileSymbol = query({
       // Path is convention-resolved client-side; this field surfaces only
       // "has a seeded recording" presence.
       audio: Record<string, boolean>;
-      // Legacy en-GB-News-M filename — needed because the MVP's R2 layout
-      // doesn't follow `<word>.mp3`. See `lib/audio/resolveAudioPath.ts`.
-      audioBasename?: string;
     } | null = null;
 
     if (ps.imageSource.type === "symbolstix") {
@@ -79,7 +76,6 @@ export const getProfileSymbol = query({
           words: sym.words,
           imagePath: sym.imagePath,
           audio: sym.audio as Record<string, boolean>,
-          ...(sym.audioBasename ? { audioBasename: sym.audioBasename } : {}),
         };
       }
     }

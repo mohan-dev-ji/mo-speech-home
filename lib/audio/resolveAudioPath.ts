@@ -32,10 +32,6 @@ export function resolveSymbolAudioPath(
   voiceId: string,
   englishWord: string,
   seeded: boolean,
-  // Deprecated and ignored. Only the removed legacy en-GB-News-M path used
-  // this; kept in the signature so callers need not change here. Goes with
-  // `symbols.audioBasename` in phase-20 Stage 4.
-  _audioBasename?: string,
 ): string | null {
   if (!seeded) return null;
   return `audio/${voiceId}/symbols/${englishWord}.mp3`;

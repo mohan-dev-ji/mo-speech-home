@@ -326,7 +326,6 @@ export function SymbolEditorModal({
         voiceId,
         englishWord,
         symbolAudioMap[voiceId] === true,
-        ps.symbolRecord?.audioBasename,
       ) ?? undefined;
 
     const derived = deriveAudioMode(langEntry, effLabel);

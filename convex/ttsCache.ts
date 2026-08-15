@@ -5,7 +5,7 @@ import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 import { getVoiceLang } from "../lib/languages/registry";
 
 type ResolveResult =
-  | { source: "symbolstix"; englishWord: string; audioBasename?: string }
+  | { source: "symbolstix"; englishWord: string }
   | { source: "ttsCache"; r2Key: string }
   | { source: "none" };
 
@@ -94,7 +94,6 @@ async function resolveCachedAudio(
         return {
           source: "symbolstix",
           englishWord: exact.words.en,
-          audioBasename: exact.audioBasename,
         };
       }
     }
@@ -117,7 +116,6 @@ async function resolveCachedAudio(
           return {
             source: "symbolstix",
             englishWord: exact.words.en,
-            audioBasename: exact.audioBasename,
           };
         }
       }
@@ -203,12 +201,7 @@ export const checkMany = query({
       } else if (res.source === "symbolstix") {
         // Convention-resolve the seeded path so a cached tap can play it
         // synchronously. `true` = seeded (flag already confirmed above).
-        const key = resolveSymbolAudioPath(
-          voiceId,
-          res.englishWord,
-          true,
-          res.audioBasename
-        );
+        const key = resolveSymbolAudioPath(voiceId, res.englishWord, true);
         out.push({ text, available: true, r2Key: key ?? undefined });
       } else {
         out.push({ text, available: false });

@@ -153,16 +153,13 @@ export function SearchContent() {
               const label = displayString(symbol.words, language, DEFAULT_LOCALE);
 
               // Per ADR-009 §4 audio paths are convention-resolved from the
-              // voice-keyed boolean map; resolver uses the per-symbol
-              // `audioBasename` (MVP filename) when present, else the
-              // English-word convention.
+              // voice-keyed boolean map, using the English-word convention.
               const audioMap = (symbol.audio as Record<string, boolean> | undefined) ?? {};
               const audioPath =
                 resolveSymbolAudioPath(
                   voiceId,
                   symbol.words.en ?? '',
                   audioMap[voiceId] === true,
-                  symbol.audioBasename,
                 ) ?? '';
 
               return (
@@ -215,7 +212,6 @@ export function SearchContent() {
               voiceId,
               editorSymbol.words.en ?? '',
               ((editorSymbol.audio as Record<string, boolean> | undefined) ?? {})[voiceId] === true,
-              editorSymbol.audioBasename,
             ) ?? undefined
           }
           initialActiveAudioSource="default"
