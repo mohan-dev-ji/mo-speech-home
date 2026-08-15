@@ -325,18 +325,31 @@ git push origin main
 
 ---
 
-## Stage 4 — OPTIONAL, later: remove the dead `audioBasename` field
+## Stage 4 — split into 4a (DONE) and 4b (WON'T DO)
 
-Only worth doing once Stage 3 has been stable in production for a while. The field is harmless dead weight until then. This is pure dead-code/schema removal — no behaviour change. **This touches ~6 files, so treat it as its own small plan/PR.** Known references to remove (grep `audioBasename` to confirm the current set):
+> **Correction 2026-08-15.** This stage originally ended with: *"`convex/schema.ts` — remove `audioBasename: v.optional(v.string())`. Requires a deploy; optional migration to strip the field from existing docs (**or leave it — an unused optional field is harmless**)."*
+>
+> **The parenthetical is wrong and dangerous.** You cannot remove the schema line and leave the data. Per the Convex docs: *"Upon the first push of a new or modified schema, the system validates all existing documents; if any fail, the push is rejected."* 58,202 of 58,807 symbol docs still carry `audioBasename`, so deleting the schema line **rejects the push** — and that rejection lands on whatever `convex dev` is running on `main`, blocking every unrelated deploy until it's undone. Safe order is: strip the field from all documents first, verify zero remain, *then* remove the schema line.
 
-- `lib/audio/resolveAudioPath.ts` — drop the `_audioBasename` param entirely.
-- Call sites passing it (drop the last arg): `convex/ttsCache.ts` (`checkMany` → `resolveSymbolAudioPath(...)`), `app/api/tts/route.ts` (the symbolstix branch), `convex/profileCategories.ts` (two sites, ~lines 249 & 275).
-- `convex/ttsCache.ts` — remove `audioBasename` from the `symbolstix` result type + the two return objects in `resolveCachedAudio`.
-- `convex/profileSymbols.ts` — stop snapshotting `sym.audioBasename` (~lines 72, 82).
-- `convex/schema.ts` — remove `audioBasename: v.optional(v.string())` (~line 358). Requires a deploy; optional migration to strip the field from existing docs (or leave it — an unused optional field is harmless).
-- `convex/migrations.ts` — remove the `backfillAudioBasenames` migration (~line 900+) and delete `scripts/backfill-audio-basenames.mjs`.
+### Stage 4a — remove the dead code ✅ DONE 2026-08-15 (`a3fab7b`)
 
-Each removal is mechanical; type-check (`tsc --noEmit` + `tsc -p convex/tsconfig.json`) after each and commit in small steps. Do NOT delete `audio/eng/default/` objects from R2 — the live MVP still serves them.
+Pure code, no data touched, behaviour-identical (the param was already ignored). Removed:
+
+- `lib/audio/resolveAudioPath.ts` — the `_audioBasename` param.
+- All 7 call sites: `convex/profileCategories.ts` (×2), `convex/ttsCache.ts`, `app/api/tts/route.ts`, `app/components/.../SymbolStixTab.tsx`, `.../SearchContent.tsx` (×2), `.../SymbolEditorModal.tsx`.
+- `convex/ttsCache.ts` — `audioBasename` from the `symbolstix` result type + both return objects.
+- `app/api/tts/route.ts` — the same field from its local `LookupResult` type.
+- `convex/profileSymbols.ts` — from the `getProfileSymbol` return projection. (Note: this was a **read-time projection**, not a stored snapshot as the original text implied — nothing persisted it.)
+
+Verified: `tsc -p convex/tsconfig.json` clean; `tsc --noEmit` unchanged from baseline; no new lint.
+
+### Stage 4b — remove the field + data ❌ NOT WORTH DOING
+
+Would require a paginated migration stripping `audioBasename` from 58,202 documents, verification that zero remain, then the schema-line removal and a deploy — **a 58k-row mutation on the most important table in the app, to reclaim ~1.64 MB** (~0.3% of the 0.5 GB free tier; longest value 47 chars). An unused optional field that is still declared in the schema *and* still present in the data is genuinely harmless. Only the halfway state bites.
+
+`convex/migrations.ts::backfillAudioBasenames` and `scripts/backfill-audio-basenames.mjs` are therefore left in place — they're inert (nothing invokes them automatically) and they still type-check against the retained field.
+
+Do NOT delete `audio/eng/default/` objects from R2 — the live MVP still serves them.
 
 ---
 
@@ -346,7 +359,7 @@ Each removal is mechanical; type-check (`tsc --noEmit` + `tsc -p convex/tsconfig
 - `resolveSymbolAudioPath` has no voice special-case; `en-GB-News-M` symbol audio serves from `audio/en-GB-News-M/symbols/<word>.mp3` (confirmed in the browser Network tab).
 - Real content on the default English board plays symbol audio correctly.
 - The MVP is untouched: `audio/eng/default/` objects still exist; no MVP code changed.
-- (Stage 4, if done) no `audioBasename` references remain; type-checks clean.
+- (Stage 4a ✅) no `audioBasename` references remain in live code paths — only `convex/schema.ts`, the inert backfill migration, and its script. Type-checks clean. Stage 4b deliberately not done; see that section.
 
 ## Non-goals / cautions
 
