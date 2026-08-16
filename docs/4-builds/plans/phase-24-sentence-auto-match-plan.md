@@ -562,8 +562,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 Resolve the slots **before** the create mutation so the sentence never exists in a half-filled state, then pass them straight through — `createProfileSentence` already accepts `slots[]` and its `displayProps` is optional, so `{ order, imagePath }` validates as-is. No schema or Convex change.
 
+**There are three callers of `CreateSentenceModal`, not two.** Besides the Sentences page and the talker dropbar, the **Home page's quick-create card** opens it too. Home's create-a-list and create-a-category cards already auto-match, so leaving its sentence card out would make it the only one of the three that doesn't — it gets the same wiring. The talker's Create Phrase stays untouched.
+
 **Files:**
 - Modify: `app/components/app/sentences/sections/SentencesModeContent.tsx` (imports; the hook call near `createSentence` at ~line 822; `handleCreate` at ~line 924; the `<CreateSentenceModal>` usage at ~line 1376)
+- Modify: `app/components/app/home/sections/HomeContent.tsx` (imports; hook call near `createSentence` at ~line 64; `handleCreateSentence` at ~line 107; the `<CreateSentenceModal>` usage at ~line 149)
 
 **Interfaces:**
 - Consumes: `buildSentenceSlots` from `@/lib/sentences/autoMatchSlots` (Task 2), `useAutoMatchDeps` from `@/app/lib/symbols/useAutoMatchDeps` (Task 1), `showAutoMatch` on `CreateSentenceModal` (Task 3).
@@ -642,23 +645,77 @@ At the `<CreateSentenceModal>` usage (~line 1376), add the prop:
       />
 ```
 
-- [ ] **Step 5: Type-check**
+- [ ] **Step 5: Do the same for the Home quick-create card**
+
+In `app/components/app/home/sections/HomeContent.tsx`, add the same two imports to the import block (~line 17):
+
+```tsx
+import { buildSentenceSlots } from "@/lib/sentences/autoMatchSlots";
+import { useAutoMatchDeps } from "@/app/lib/symbols/useAutoMatchDeps";
+```
+
+After the `createSentence` mutation line (~line 64), add the hook:
+
+```tsx
+  // MOS-13 — search resolver for the create-sentence card's auto-match checkbox.
+  const autoMatchDeps = useAutoMatchDeps();
+```
+
+Replace `handleCreateSentence` (~lines 107–113) in full with:
+
+```tsx
+  async function handleCreateSentence(name: string, autoMatch: boolean) {
+    // MOS-13 — auto-match: one image-only slot per word, resolved BEFORE the
+    // create so the sentence is never persisted half-filled. Brings this card
+    // in line with the create-a-list and create-a-category cards beside it,
+    // which already auto-match.
+    const slots = autoMatch
+      ? await buildSentenceSlots(name, language, autoMatchDeps)
+      : undefined;
+    // Key the name by the CURRENT board language (you're authoring in it) and
+    // stamp authoredLanguage — consistent with the Sentences-page + talker saves
+    // (ADR-016). Hardcoding `en` mislabelled every quick-created sentence.
+    await createSentence({
+      name: { [language]: name },
+      authoredLanguage: language,
+      ...(slots ? { slots } : {}),
+    });
+    router.push(`/${locale}/sentences`);
+  }
+```
+
+Note Home resolves its list auto-match with an inline `convex.query(...)`; **do not copy that pattern** — use `buildSentenceSlots` + `useAutoMatchDeps` so both sentence hosts share one implementation.
+
+Then add the prop to the `<CreateSentenceModal>` usage (~line 149):
+
+```tsx
+      <CreateSentenceModal
+        isOpen={sentenceOpen}
+        onClose={() => setSentenceOpen(false)}
+        onCreate={handleCreateSentence}
+        showAutoMatch
+      />
+```
+
+Leave the `<CreateListModal>` and `<CreateCategoryModal>` usages above it alone.
+
+- [ ] **Step 6: Type-check**
 
 ```bash
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "SentencesModeContent|autoMatchSlots|useAutoMatchDeps"
+npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "SentencesModeContent|HomeContent|autoMatchSlots|useAutoMatchDeps"
 ```
 
 Expected: **no output**.
 
-- [ ] **Step 6: Lint**
+- [ ] **Step 7: Lint**
 
 ```bash
-npx eslint app/components/app/sentences/sections/SentencesModeContent.tsx
+npx eslint app/components/app/sentences/sections/SentencesModeContent.tsx app/components/app/home/sections/HomeContent.tsx
 ```
 
 Expected: no errors.
 
-- [ ] **Step 7: Browser verification — the full table**
+- [ ] **Step 8: Browser verification — the full table**
 
 In signed-in Chrome on **http://localhost:3000**, Sentences page. Create each of these and check the strip that results. Delete each test sentence after checking it.
 
@@ -673,17 +730,22 @@ In signed-in Chrome on **http://localhost:3000**, Sentences page. Create each of
 
 Then confirm the checkbox resets: create one with it ticked, reopen the modal, and check it is unticked again.
 
+Then the **Home page** quick-create card: create a sentence with the box ticked. Expected: the checkbox is present, and after the redirect to `/sentences` the new sentence's strip is filled (you may need to enter edit mode to see the tiles — Home routes without `?edit=1`).
+
 Finally, talker dropbar → "Create Phrase": still no checkbox, phrase creation unchanged.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add app/components/app/sentences/sections/SentencesModeContent.tsx
+git add app/components/app/sentences/sections/SentencesModeContent.tsx app/components/app/home/sections/HomeContent.tsx
 git commit -m "feat(sentences): fill the slot strip from the sentence text (MOS-13)
 
 Ticking auto-match resolves each word's top search hit before the create
 mutation, so the new sentence lands in edit mode with its strip already
 populated instead of needing a symbol picked per word by hand.
+
+Wired on both hosts that create sentences — the Sentences page and the Home
+quick-create card, which already auto-matched lists and categories.
 
 Slots resolve in the board language, which is also the stamped
 authoredLanguage.
