@@ -1619,6 +1619,11 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           initialLabel={existingUnitLabel}
           initialImagePath={existingUnitImagePath}
           initialAudioPath={existingUnitAudioPath}
+          // Word units store no `imageSourceType` (ADR-015 `compositionWord`), so
+          // the listItem rehydration had nothing to restore and opened on Upload.
+          // Editing a unit is "find a better symbol", not "replace with a photo" —
+          // the same call SlotStrip's editor already makes for sentence slots.
+          initialImageTab="symbolstix"
           onClose={() => setUnitEditTarget(null)}
           onSave={() => {}}
           onListItemSave={handleUnitSave}

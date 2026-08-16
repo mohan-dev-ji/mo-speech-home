@@ -86,6 +86,11 @@ export type SymbolEditorModalProps = {
   initialGeneratedAudioPath?: string;
   initialRecordedAudioPath?: string;
   initialImageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  // Which image tab to open on when the caller has NO stored provenance to give.
+  // Sentence word units (ADR-015 `compositionWord`) store no `imageSourceType`,
+  // so without this they fell through to the 'upload' default and opened on the
+  // wrong tab. A stored `initialImageSourceType` still wins over this.
+  initialImageTab?: ImageSourceTab;
   // Pre-select a SymbolStix symbol (e.g. opened from a search result) so the
   // editor opens locked onto it — image + ids + label + default audio seeded,
   // category left unpicked. categoryBoard create mode only.
@@ -140,6 +145,7 @@ export function SymbolEditorModal({
   initialGeneratedAudioPath,
   initialRecordedAudioPath,
   initialImageSourceType,
+  initialImageTab,
   initialSymbolstixId,
   initialSymbolstixImagePath,
   initialLabelHin,
@@ -171,7 +177,12 @@ export function SymbolEditorModal({
     restoresImage && initialImagePath
       ? (listItemImageTab === 'symbolstix'
           ? { imageSourceTab: 'symbolstix' as const, symbolstixImagePath: initialImagePath }
-          : { imageSourceTab: (listItemImageTab ?? 'upload') as ImageSourceTab, resolvedImagePath: initialImagePath })
+          // No stored provenance → fall back to the caller's preferred tab before
+          // 'upload'. The image stays as `resolvedImagePath` rather than
+          // `symbolstixImagePath`, so we don't assert a provenance we don't have:
+          // the preview still shows it (previewImageSrc falls through to
+          // resolvedImagePath) and an untouched save still preserves it.
+          : { imageSourceTab: (listItemImageTab ?? initialImageTab ?? 'upload') as ImageSourceTab, resolvedImagePath: initialImagePath })
       : {};
 
   // Back-compat: items saved before the active-source model only carry `audioPath`.
