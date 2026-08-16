@@ -13,6 +13,11 @@ import type { AutoMatchDeps } from '@/lib/symbols/autoMatchDeps';
 export type SlotSpec = {
   order: number;
   imagePath?: string;
+  // AUTHORING ONLY — never rendered. Seeds the slot editor's symbol search.
+  // Carries the matched symbol's full multi-language words with the typed word
+  // winning for the board language, so the seed follows the board — the same
+  // shape `buildCreateSymbols` stores for category symbols.
+  label?: Record<string, string>;
 };
 
 /** Max slots one auto-match run creates. The sentence name keeps every word. */
@@ -62,11 +67,16 @@ export async function buildSentenceSlots(
   const words = splitSentenceWords(text);
   return Promise.all(
     words.map(async (word, order): Promise<SlotSpec> => {
+      // Every slot is stamped with its word, matched or not: a blank tile has no
+      // artwork to say what it was for, so the seed is worth MORE there.
+      const typed = { [language]: word };
       try {
         const hit = await deps.search(word, language);
-        return hit ? { order, imagePath: hit.imagePath } : { order };
+        return hit
+          ? { order, imagePath: hit.imagePath, label: { ...hit.words, ...typed } }
+          : { order, label: typed };
       } catch {
-        return { order };
+        return { order, label: typed };
       }
     }),
   );
