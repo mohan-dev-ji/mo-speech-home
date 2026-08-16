@@ -284,10 +284,21 @@ Display, Text and Shape write `displayProps`, which **no sentence renderer reads
 
 Once they're gone, `PropertiesPanel` renders **nothing** in `sentenceSlot` mode (Label/Description and Audio are already hidden for it, and the remaining sections are `categoryBoard`-only), so the panel is also gated out at the modal to avoid an empty bordered container.
 
+**`editorMode="sentenceSlot"` has THREE consumers, not one.** Besides sentence slots, the talker's
+phrase-word editor and the inline phrase editor both open this mode and both write
+`result.displayProps` into `profilePhrases.words[].displayProps`. Checked with grep: no composition
+renderer (`CompositionBlock.tsx`, `UnitCardShell.tsx`, `PhraseBuilderBody.tsx`) touches `display`,
+`SymbolCard`, `bgColour`, `cardShape` or `showLabel` — phrase-word tiles render image-only exactly
+like sentence slots. Every `displayProps` occurrence in `app/` is a *writer*; there are no readers.
+
+So the panels are dead in all three, and all three are cleaned. Owner decision, 2026-08-16.
+
 **Files:**
 - Modify: `app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx:623, 698, 730`
 - Modify: `app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx` (`SentenceSlotSaveResult` type ~line 42; the `sentenceSlot` save branch ~line 624; the `PropertiesPanel` render ~line 976)
 - Modify: `app/components/app/sentences/sections/SentencesModeContent.tsx` (`handleSlotSave` ~line 1080)
+- Modify: `app/components/app/shared/ui/TalkerDropdown.tsx:476, 478` (`handlePhraseWordSave`)
+- Modify: `app/components/app/sentences/sections/InlinePhraseEditor.tsx:85, 87` (phrase word save)
 
 **Interfaces:**
 - Consumes: nothing from Tasks 1–2.
@@ -442,39 +453,96 @@ Replace that block with:
 
 Leave `handleRemoveSlot` and `handleReorderSlots` alone — they pass stored `displayProps` straight through, which is exactly the preservation described above.
 
+- [ ] **Step 5b: Stop the talker's phrase-word editor reading it**
+
+In `app/components/app/shared/ui/TalkerDropdown.tsx`, `handlePhraseWordSave` currently contains:
+
+```tsx
+    if (wordIndex === -1) {
+      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
+    } else if (current[wordIndex]) {
+      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath, displayProps: result.displayProps };
+    }
+```
+
+Replace it with:
+
+```tsx
+    // displayProps is no longer authored — the editor's Display/Text/Shape
+    // sections are categoryBoard-only now. No composition renderer ever read it
+    // for phrase words; existing stored values are preserved by the spread.
+    if (wordIndex === -1) {
+      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined });
+    } else if (current[wordIndex]) {
+      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath };
+    }
+```
+
+Change nothing else in that file.
+
+- [ ] **Step 5c: Stop the inline phrase editor reading it**
+
+In `app/components/app/sentences/sections/InlinePhraseEditor.tsx`, lines 85 and 87 currently read:
+
+```tsx
+      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
+```
+```tsx
+      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath, displayProps: result.displayProps };
+```
+
+Replace them with:
+
+```tsx
+      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined });
+```
+```tsx
+      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath };
+```
+
+Add this comment above the `if` that contains them:
+
+```tsx
+    // displayProps is no longer authored — see TalkerDropdown.handlePhraseWordSave.
+```
+
+Change nothing else in that file.
+
 - [ ] **Step 6: Type-check**
 
 ```bash
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "SymbolEditorModal|PropertiesPanel|SentencesModeContent|TalkerDropdown"
+npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "SymbolEditorModal|PropertiesPanel|SentencesModeContent|TalkerDropdown|InlinePhraseEditor"
 ```
 
-Expected: **no output**. (`TalkerDropdown` is in the grep because it imports `SentenceSlotSaveResult` — confirm the type change didn't break it.)
+Expected: **no output**. All three `sentenceSlot` consumers are in the grep — a leftover `result.displayProps` anywhere is exactly what this catches.
 
 - [ ] **Step 7: Lint**
 
 ```bash
-npx eslint app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx app/components/app/sentences/sections/SentencesModeContent.tsx
+npx eslint app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx app/components/app/sentences/sections/SentencesModeContent.tsx app/components/app/shared/ui/TalkerDropdown.tsx app/components/app/sentences/sections/InlinePhraseEditor.tsx
 ```
 
-Expected: clean on the first two. On `SentencesModeContent.tsx` expect **exactly the 2 pre-existing `react-hooks/refs` errors** and nothing else (see Global Constraints).
+Expected: clean on all but `SentencesModeContent.tsx`, where you should see **exactly the 2 pre-existing `react-hooks/refs` errors** and nothing else (see Global Constraints).
 
 - [ ] **Step 8: Browser check**
 
 In signed-in Chrome on **http://localhost:3000**:
 
 1. Sentences page → Edit → tap a slot tile. Expected: the editor shows the image-source tabs, the search box and the preview — and **no** Display / Text / Shape sections. Save still works and the tile keeps its image.
-2. Categories page → tap a symbol to edit it. Expected: Display, Text size and Shape are all **still there** — they're categoryBoard-only, not deleted.
-3. A list item editor (Lists page → Edit → tap an item). Expected: unchanged.
+2. Talker dropbar → a phrase → edit a phrase word tile. Expected: same editor, also without the three sections; picking a symbol and saving still swaps the tile's image.
+3. Categories page → tap a symbol to edit it. Expected: Display, Text size and Shape are all **still there** — they're categoryBoard-only, not deleted.
+4. A list item editor (Lists page → Edit → tap an item). Expected: unchanged.
 
 - [ ] **Step 9: Commit**
 
 ```bash
-git add app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx app/components/app/sentences/sections/SentencesModeContent.tsx
-git commit -m "refactor(sentences): drop the dead Display/Text/Shape panels from the slot editor
+git add app/components/app/shared/modals/symbol-editor/PropertiesPanel.tsx app/components/app/shared/modals/symbol-editor/SymbolEditorModal.tsx app/components/app/sentences/sections/SentencesModeContent.tsx app/components/app/shared/ui/TalkerDropdown.tsx app/components/app/sentences/sections/InlinePhraseEditor.tsx
+git commit -m "refactor(symbol-editor): drop the dead Display/Text/Shape panels from sentenceSlot mode
 
-They wrote displayProps, which no sentence renderer reads — ThumbnailStrip
-and SortableSlot both draw image-only. Three panels of controls that never
-did anything.
+They wrote displayProps, which nothing reads — sentence slots and phrase
+words both render image-only, and no composition renderer touches it. Three
+panels of controls that never did anything, in all three callers of this
+mode: sentence slots, talker phrase words, and the inline phrase editor.
 
 The save result now reports the search word and the picked symbol's words
 instead, which the label wiring needs next.
