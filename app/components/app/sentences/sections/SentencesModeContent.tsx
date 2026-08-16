@@ -55,6 +55,8 @@ import { Button } from '@/app/components/app/shared/ui/Button';
 import { PublishModuleModal } from '@/app/components/app/shared/modals/PublishModuleModal';
 import { AdminPackEditingBanner } from '@/app/components/app/shared/ui/AdminPackEditingBanner';
 import { CreateSentenceModal } from '@/app/components/app/sentences/modals/CreateSentenceModal';
+import { buildSentenceSlots } from '@/lib/sentences/autoMatchSlots';
+import { useAutoMatchDeps } from '@/app/lib/symbols/useAutoMatchDeps';
 import { AudioAuthorModal } from '@/app/components/app/shared/modals/AudioAuthorModal';
 import { SentencePlayModal } from '@/app/components/app/sentences/modals/SentencePlayModal';
 import { CompositionPlayModal } from '@/app/components/app/shared/modals/CompositionPlayModal';
@@ -820,6 +822,8 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     [allSentences, language],
   );
   const createSentence   = useMutation(api.profileSentences.createProfileSentence);
+  // MOS-13 — search resolver for the create modal's auto-match checkbox.
+  const autoMatchDeps    = useAutoMatchDeps();
   const updateSlots      = useMutation(api.profileSentences.updateProfileSentenceSlots);
   const updateUnits      = useMutation(api.profileSentences.updateProfileSentenceUnits);
   const createVariant    = useMutation(api.profileSentences.createSentenceVariant);
@@ -921,7 +925,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     });
   }
 
-  async function handleCreate(name: string) {
+  async function handleCreate(name: string, autoMatch: boolean) {
+    // MOS-13 — auto-match: one image-only slot per word, in order, each carrying
+    // its top search hit's artwork (unmatched words keep a blank slot so tiles
+    // stay aligned with the text). Resolved BEFORE the create so the sentence is
+    // never persisted half-filled, and so a slow search shows on the button
+    // rather than as a sentence that fills in late.
+    const slots = autoMatch
+      ? await buildSentenceSlots(name, language, autoMatchDeps)
+      : undefined;
     // Phase 15: key the name by the CURRENT board language (you're authoring in it),
     // and stamp authoredLanguage — consistent with the talker save. The old hardcoded
     // `en` mislabelled every created sentence as English regardless of board.
@@ -929,6 +941,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       name: { [language]: name },
       authoredLanguage: language,
       ...(realFolderId ? { folderId: realFolderId } : {}),
+      ...(slots ? { slots } : {}),
     });
     // Drop straight into edit mode so the new sentence's empty slots and
     // audio affordances are visible immediately — same pattern as list
@@ -1377,6 +1390,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
+        showAutoMatch
       />
 
       {/* ADR-016 — variant authoring (badge → manual | translate-assist). */}

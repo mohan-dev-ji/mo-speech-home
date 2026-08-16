@@ -13,6 +13,8 @@ import { HomeCreateCards } from "@/app/components/app/home/sections/HomeCreateCa
 import { CreateCategoryModal } from "@/app/components/app/categories/modals/CreateCategoryModal";
 import { CreateListModal } from "@/app/components/app/lists/modals/CreateListModal";
 import { CreateSentenceModal } from "@/app/components/app/sentences/modals/CreateSentenceModal";
+import { buildSentenceSlots } from "@/lib/sentences/autoMatchSlots";
+import { useAutoMatchDeps } from "@/app/lib/symbols/useAutoMatchDeps";
 import { SymbolEditorModal } from "@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal";
 import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
 
@@ -62,6 +64,8 @@ export function HomeContent() {
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
   const createSentence = useMutation(api.profileSentences.createProfileSentence);
+  // MOS-13 — search resolver for the create-sentence card's auto-match checkbox.
+  const autoMatchDeps = useAutoMatchDeps();
 
   async function handleCreateCategory(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createCategory(name, rows);
@@ -104,11 +108,22 @@ export function HomeContent() {
     router.push(`/${locale}/lists/${id}?edit=1`);
   }
 
-  async function handleCreateSentence(name: string) {
+  async function handleCreateSentence(name: string, autoMatch: boolean) {
+    // MOS-13 — auto-match: one image-only slot per word, resolved BEFORE the
+    // create so the sentence is never persisted half-filled. Brings this card
+    // in line with the create-a-list and create-a-category cards beside it,
+    // which already auto-match.
+    const slots = autoMatch
+      ? await buildSentenceSlots(name, language, autoMatchDeps)
+      : undefined;
     // Key the name by the CURRENT board language (you're authoring in it) and
     // stamp authoredLanguage — consistent with the Sentences-page + talker saves
     // (ADR-016). Hardcoding `en` mislabelled every quick-created sentence.
-    await createSentence({ name: { [language]: name }, authoredLanguage: language });
+    await createSentence({
+      name: { [language]: name },
+      authoredLanguage: language,
+      ...(slots ? { slots } : {}),
+    });
     router.push(`/${locale}/sentences`);
   }
 
@@ -150,6 +165,7 @@ export function HomeContent() {
         isOpen={sentenceOpen}
         onClose={() => setSentenceOpen(false)}
         onCreate={handleCreateSentence}
+        showAutoMatch
       />
 
       {/* Create-a-Symbol — categoryBoard mode with no preset category; the
