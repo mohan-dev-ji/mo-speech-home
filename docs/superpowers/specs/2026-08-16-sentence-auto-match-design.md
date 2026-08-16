@@ -184,23 +184,32 @@ so the "first search-page result" guarantee comes from the same exact-whole-word
 | Re-opening the modal | `reset()` clears the checkbox alongside the name |
 | Double-submit | Existing `isCreating` guard wraps the whole `onCreate`, so it covers the search pass |
 
-## 6. Testing
+## 6. Verification
 
-**Unit** — `buildSentenceSlots` / `splitSentenceWords` with a stub `search`:
+**This repo has no test runner** — no vitest/jest, no `.test.ts` files, no test script. Phase-17
+states it outright: *"No test runner exists… Do not add a test runner."* The gate is therefore the
+phase-17 gate, and the pure module's edge cases are verified through the real UI rather than in
+isolation.
 
-- ordering preserved across mixed hit/miss
-- blank slot on a `null` hit
-- blank slot on a throwing search, siblings unaffected
-- punctuation stripping (`"home."` → `home`)
-- contraction + hyphen retention (`don't`, `sit-down`)
-- empty and punctuation-only input
-- the 30-word cap
+**Per task:** `npx tsc --noEmit -p tsconfig.json` filtered to the touched files, then
+`npx eslint <files>`.
 
-**Browser** (against the running dev server, sentences page):
+**Browser** — signed-in Chrome on the running dev server (`:3000`), Sentences page. Each row is one
+typed sentence and the strip it produces:
 
-- create with the box ticked → tiles land in word order, edit mode opens
-- create unticked → sentence is empty, exactly as before
-- Create Phrase from the talker dropbar → no checkbox appears
+| Typed into the modal | Expected strip |
+|---|---|
+| `I want to go home` (ticked) | 5 tiles, word order, edit mode opens |
+| `I want to go home.` | Same 5 tiles — trailing `.` stripped, no 6th tile |
+| `don't sit-down now` | 3 tiles — contraction and hyphen searched intact |
+| A sentence with a made-up word | A blank tile at that word's position, siblings filled |
+| A 35-word sentence | 30 tiles; the name keeps all 35 words |
+| `I want to go home` (unticked) | No tiles — today's behaviour |
+| Talker dropbar → Create Phrase | No checkbox in the modal at all |
+
+**Regressions to re-check** (the file moves touch live category paths): create a category with
+auto-match ticked, and add a list to core words with auto-match ticked. Both must still fill symbols
+and audio exactly as before.
 
 ## 7. Out of scope
 
