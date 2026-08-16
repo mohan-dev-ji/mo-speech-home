@@ -90,6 +90,8 @@ type Slot = {
     showImage?: boolean;
     cardShape?: 'square' | 'rounded' | 'circle';
   };
+  // AUTHORING ONLY — never rendered. Seeds the slot editor's symbol search.
+  label?: Record<string, string>;
 };
 
 type SentenceRow = {
@@ -1054,31 +1056,52 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     setSlotEditTarget({ sentenceId, slotIndex: -1 });
   }
 
-  function handleRemoveSlot(sentenceId: Id<'profileSentences'>, slotIndex: number) {
+  // ADR-016 fork-on-edit: editing a fallback (source / other-language) row on
+  // this board creates or reuses the board-language variant (idempotent) and
+  // returns ITS id, so the source is never mutated from another board. The
+  // variant is seeded from the source's slots and units, so the caller's
+  // snapshot of the row is still the right thing to write.
+  //
+  // Shared by the unit path and all three slot writers. The slot writers used
+  // to skip this entirely and edit the displayed row directly — which meant a
+  // reorder on a Hindi board silently rewrote the English sentence.
+  async function resolveWriteTarget(
+    sentenceId: Id<'profileSentences'>,
+  ): Promise<Id<'profileSentences'>> {
+    const row = sentences?.find((s) => s._id === sentenceId);
+    return row && (row.authoredLanguage ?? DEFAULT_LOCALE) !== language
+      ? await createVariant({ sourceSentenceId: row._id, authoredLanguage: language })
+      : sentenceId;
+  }
+
+  async function handleRemoveSlot(sentenceId: Id<'profileSentences'>, slotIndex: number) {
     const sentence = sentences?.find((s) => s._id === sentenceId);
     if (!sentence) return;
     const updated = sentence.slots
       .filter((_, i) => i !== slotIndex)
       .map((slot, i) => ({ ...slot, order: i }));
-    updateSlots({ profileSentenceId: sentenceId, slots: updated });
+    const targetId = await resolveWriteTarget(sentenceId);
+    await updateSlots({ profileSentenceId: targetId, slots: updated });
   }
 
-  function handleReorderSlots(sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) {
+  async function handleReorderSlots(sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) {
     // `nextSlots` already carries reindexed `order` values from SlotStrip.
-    // Re-shape to the mutation arg type so optional displayProps default
-    // to undefined when absent.
+    // Re-shape to the mutation arg type so optional fields default to undefined
+    // when absent. `label` rides along so a reorder never drops a slot's seed.
     const slotsArg = nextSlots.map((s, i) => ({
       order: i,
       imagePath: s.imagePath,
       displayProps: s.displayProps,
+      label: s.label,
     }));
-    updateSlots({
-      profileSentenceId: sentenceId,
+    const targetId = await resolveWriteTarget(sentenceId);
+    await updateSlots({
+      profileSentenceId: targetId,
       slots: slotsArg,
     });
   }
 
-  function handleSlotSave(result: SentenceSlotSaveResult) {
+  async function handleSlotSave(result: SentenceSlotSaveResult) {
     if (!slotEditTarget) return;
     const sentence = sentences?.find((s) => s._id === slotEditTarget.sentenceId);
     if (!sentence) return;
@@ -1096,7 +1119,8 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));
-    updateSlots({ profileSentenceId: slotEditTarget.sentenceId, slots: reindexed });
+    const targetId = await resolveWriteTarget(slotEditTarget.sentenceId);
+    await updateSlots({ profileSentenceId: targetId, slots: reindexed });
     setSlotEditTarget(null);
   }
 
@@ -1109,14 +1133,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   }
 
   async function persistUnits(sentenceId: Id<'profileSentences'>, units: CompositionUnitClient[]) {
-    const row = sentences?.find((s) => s._id === sentenceId);
-    // Fork-on-edit: editing a fallback (source/other-language) row on this board
-    // creates/reuses the board-language variant (idempotent) and writes to IT, so
-    // the source is never mutated from another board.
-    const targetId =
-      row && (row.authoredLanguage ?? DEFAULT_LOCALE) !== language
-        ? await createVariant({ sourceSentenceId: row._id, authoredLanguage: language })
-        : sentenceId;
+    const targetId = await resolveWriteTarget(sentenceId);
     const reindexed = units.map((u, i) => ({ ...u, order: i }));
     await updateUnits({ profileSentenceId: targetId, units: reindexed });
   }
