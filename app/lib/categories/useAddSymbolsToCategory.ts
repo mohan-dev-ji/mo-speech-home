@@ -5,7 +5,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { buildCreateSymbols } from '@/lib/categories/autoMatchSymbols';
-import { useAutoMatchDeps } from '@/app/lib/categories/useAutoMatchDeps';
+import { useAutoMatchDeps } from '@/app/lib/symbols/useAutoMatchDeps';
 
 /**
  * Append a list of words to an EXISTING profileCategory (e.g. the core-words

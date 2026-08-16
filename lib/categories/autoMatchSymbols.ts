@@ -4,11 +4,7 @@
 // from the symbol's own word for the board language. Pure orchestration — the
 // caller injects the Convex search and the /api/tts resolve.
 import type { Id } from '@/convex/_generated/dataModel';
-
-export type SearchHit = {
-  _id: Id<'symbols'>;
-  words: Record<string, string>;
-};
+import type { AutoMatchDeps } from '@/lib/symbols/autoMatchDeps';
 
 export type AudioOverride = {
   type: 'tts';
@@ -21,13 +17,6 @@ export type CreateSymbolSpec = {
   label: Record<string, string>;
   symbolId?: Id<'symbols'>;
   audio?: Record<string, AudioOverride>;
-};
-
-export type AutoMatchDeps = {
-  // Top hit for a word in the given language, or null if none.
-  search: (term: string, language: string) => Promise<SearchHit | null>;
-  // Resolve spoken text to an R2 key via /api/tts, or null on failure.
-  resolveTts: (text: string, language: string) => Promise<string | null>;
 };
 
 export async function buildCreateSymbols(

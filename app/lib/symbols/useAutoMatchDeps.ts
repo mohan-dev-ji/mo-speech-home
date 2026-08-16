@@ -4,12 +4,17 @@ import { useConvex } from 'convex/react';
 import { useMemo } from 'react';
 import { api } from '@/convex/_generated/api';
 import { voiceForLanguage } from '@/lib/audio/resolveVoiceId';
-import type { AutoMatchDeps, SearchHit } from '@/lib/categories/autoMatchSymbols';
+import type { AutoMatchDeps, SearchHit } from '@/lib/symbols/autoMatchDeps';
 
 /**
- * The search + TTS resolvers `buildCreateSymbols` needs to auto-match pasted
- * words to their top SymbolStix hit. Shared by every host that turns a list of
- * words into symbol specs (create-category, add-list-to-core-words).
+ * The search + TTS resolvers the auto-match builders need to match a typed word
+ * to its top SymbolStix hit. Shared by every host that turns typed words into
+ * content: create-category, add-list-to-core-words, and create-sentence.
+ *
+ * `limit: 1` gives the same first result the search page shows — the exact
+ * whole-word boost in `convex/symbols.ts:searchSymbols` runs either way, so
+ * short function words ("is", "go") resolve to their canonical symbol rather
+ * than a longer prefix match.
  */
 export function useAutoMatchDeps(): AutoMatchDeps {
   const convex = useConvex();
@@ -19,7 +24,9 @@ export function useAutoMatchDeps(): AutoMatchDeps {
         searchTerm: term, language: lang, limit: 1,
       });
       const first = results?.[0];
-      return first ? { _id: first._id, words: first.words } : null;
+      return first
+        ? { _id: first._id, words: first.words, imagePath: first.imagePath }
+        : null;
     },
     resolveTts: async (text, lang): Promise<string | null> => {
       try {
