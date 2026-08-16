@@ -66,6 +66,10 @@ export type SymbolEditorModalProps = {
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
   editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot' | 'imageOnly';  // defaults to 'categoryBoard'
   initialLabel?: string;                          // pre-populate label / description field
+  // Seed ONLY the SymbolStix search box, without touching the label field.
+  // sentenceSlot mode has no label field (its panel is gated out), so it needs
+  // a way to pre-fill the search that doesn't drag the label machinery in.
+  initialSearchQuery?: string;
   onClose: () => void;
   onSave: (id: Id<'profileSymbols'>) => void;
   onListItemSave?: (result: ListItemSaveResult) => void;
@@ -122,6 +126,7 @@ export function SymbolEditorModal({
   voiceId = DEFAULT_VOICE_ID,
   editorMode = 'categoryBoard',
   initialLabel,
+  initialSearchQuery,
   onClose,
   onSave,
   onListItemSave,
@@ -264,7 +269,7 @@ export function SymbolEditorModal({
   // isn't always supplied by callers in edit flows).
   // The user can then refine the search independently of the label field.
   // Resets when the modal closes so it doesn't bleed into the next open.
-  const [searchQuery, setSearchQuery] = useState(() => initialLabel ?? '');
+  const [searchQuery, setSearchQuery] = useState(() => initialSearchQuery ?? initialLabel ?? '');
   useEffect(() => {
     if (!isOpen) setSearchQuery('');
   }, [isOpen]);

@@ -1106,16 +1106,45 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const sentence = sentences?.find((s) => s._id === slotEditTarget.sentenceId);
     if (!sentence) return;
 
+    // The slot's label is authoring-only (never rendered): it seeds this
+    // editor's symbol search next time. The BOARD-language word is whatever is
+    // in the search box — and because the box seeded FROM this label, it only
+    // differs when the user typed a new search. Clicking a different symbol
+    // therefore does NOT change their word.
+    //
+    // The other languages DO follow the picked symbol, so they stay true to the
+    // tile. Upload / Image Search / AI Generate carry no word set, so there the
+    // existing languages are kept.
+    const prevLabel =
+      slotEditTarget.slotIndex >= 0
+        ? sentence.slots[slotEditTarget.slotIndex]?.label
+        : undefined;
+    const typedWord = result.searchWord?.trim();
+    const labelBase =
+      result.symbolWords && Object.keys(result.symbolWords).length > 0
+        ? result.symbolWords
+        : (prevLabel ?? {});
+    let nextLabel: Record<string, string> | undefined;
+    if (typedWord) {
+      nextLabel = { ...labelBase, [language]: typedWord };
+    } else {
+      // Cleared box → drop just this language's seed, keep any others.
+      const rest = { ...labelBase };
+      delete rest[language];
+      nextLabel = Object.keys(rest).length > 0 ? rest : undefined;
+    }
+
     // displayProps is no longer authored for slots — the editor's Display/Text/
     // Shape sections are categoryBoard-only now. Values already stored on
     // existing slots are preserved by the spread, just never updated.
     const current = [...sentence.slots];
     if (slotEditTarget.slotIndex === -1) {
-      current.push({ order: current.length, imagePath: result.imagePath });
+      current.push({ order: current.length, imagePath: result.imagePath, label: nextLabel });
     } else {
       current[slotEditTarget.slotIndex] = {
         ...current[slotEditTarget.slotIndex],
         imagePath: result.imagePath,
+        label: nextLabel,
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));
@@ -1247,6 +1276,18 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const existingSlotImagePath =
     slotEditTarget && slotEditTarget.slotIndex >= 0
       ? slotEditorSentence?.slots[slotEditTarget.slotIndex]?.imagePath
+      : undefined;
+
+  // Seeds the editor's SymbolStix search with this slot's word, resolved for the
+  // board language (so a Hindi board seeds the Hindi word where the matched
+  // symbol had one). Undefined for slots with no label — pre-existing sentences
+  // and hand-added tiles — which open with an empty box, as before.
+  const existingSlotSearch =
+    slotEditTarget && slotEditTarget.slotIndex >= 0
+      ? (() => {
+          const label = slotEditorSentence?.slots[slotEditTarget.slotIndex]?.label;
+          return label ? displayString(label, language, DEFAULT_LOCALE) || undefined : undefined;
+        })()
       : undefined;
 
   // Seed the unit editor when editing an existing word unit (label + image +
@@ -1556,6 +1597,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           voiceId={voiceId}
           editorMode="sentenceSlot"
           initialImagePath={existingSlotImagePath}
+          initialSearchQuery={existingSlotSearch}
           onClose={() => setSlotEditTarget(null)}
           onSave={() => {}}
           onSentenceSlotSave={handleSlotSave}
