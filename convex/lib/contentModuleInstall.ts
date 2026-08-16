@@ -266,6 +266,9 @@ export async function installContentModule(
             ...(slot.displayProps !== undefined
               ? { displayProps: slot.displayProps }
               : {}),
+            // Authoring-only search seed — carried through so an installed
+            // sentence pre-fills the symbol search the same way the author's did.
+            ...(slot.label !== undefined ? { label: slot.label } : {}),
           };
         }),
       );

@@ -146,6 +146,8 @@ export type LibraryPackSentenceSlot = {
   symbolId?: string;
   imagePath?: string;
   displayProps?: LibraryPackSentenceSlotDisplay;
+  /** Authoring-only search seed — never rendered. */
+  label?: Record<string, string>;
 };
 
 /** ADR-015 composition — mirror of `compositionWord` in `schema.ts`. */

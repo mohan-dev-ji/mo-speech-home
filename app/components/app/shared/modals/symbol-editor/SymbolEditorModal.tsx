@@ -960,7 +960,11 @@ export function SymbolEditorModal({
           </div>
 
           {/* Live preview card — imageOnly has no label + no play (straight picker) */}
-          <div className={`px-6 pt-3 pb-2 ${imageOnly ? 'flex-1 flex items-center justify-center' : 'shrink-0'}`}>
+          {/* The preview takes the leftover height in the modes that render no
+              properties panel (imageOnly, and sentenceSlot since its sections
+              became categoryBoard-only) — otherwise the column's only flex-1
+              child is gone and the action buttons float up under the preview. */}
+          <div className={`px-6 pt-3 pb-2 ${imageOnly || editorMode === 'sentenceSlot' ? 'flex-1 flex items-center justify-center' : 'shrink-0'}`}>
             <div className="w-1/2 mx-auto">
               <SymbolPreview
                 imageSrc={previewImageSrc}

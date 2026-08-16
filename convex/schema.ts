@@ -298,6 +298,10 @@ const libraryModuleSentenceItems = v.array(
             ),
           })
         ),
+        // AUTHORING ONLY — never rendered. Seeds the slot editor's SymbolStix
+        // search box. Carried through publish/install so an installed sentence
+        // gives families the same pre-filled search the author had.
+        label: v.optional(localisedString),
       })
     ),
     audioPath: v.optional(v.string()),
