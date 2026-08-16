@@ -12,7 +12,11 @@ import {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string) => Promise<void>;
+  onCreate: (name: string, autoMatch: boolean) => Promise<void>;
+  // Show the auto-match checkbox. Off by default: the talker dropbar reuses this
+  // modal for "Create Phrase", and a phrase stores words[] with per-word labels
+  // and clips — a different shape this fill doesn't produce.
+  showAutoMatch?: boolean;
   // Optional copy overrides — default to the sentence strings. The talker
   // dropbar reuses this modal for "Create Phrase" and passes phrase copy.
   title?: string;
@@ -20,13 +24,15 @@ type Props = {
   placeholder?: string;
 };
 
-export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabel, placeholder }: Props) {
+export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch = false, title, nameLabel, placeholder }: Props) {
   const t = useTranslations('sentences');
   const [name, setName] = useState('');
+  const [autoMatch, setAutoMatch] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   function reset() {
     setName('');
+    setAutoMatch(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,7 +41,7 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabe
     if (!trimmed) return;
     setIsCreating(true);
     try {
-      await onCreate(trimmed);
+      await onCreate(trimmed, autoMatch);
       reset();
       onClose();
     } finally {
@@ -52,7 +58,7 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabe
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title ?? t('createModalTitle')}</DialogTitle>
         </DialogHeader>
@@ -62,19 +68,38 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabe
             <label className="text-theme-s font-medium" style={{ color: 'var(--theme-text)' }}>
               {nameLabel ?? t('createModalNameLabel')}
             </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={placeholder ?? t('createModalNamePlaceholder')}
-              autoFocus
-              className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
-              style={{
-                background: 'var(--theme-symbol-bg)',
-                color: 'var(--theme-text)',
-                border: '1px solid rgba(255,255,255,0.12)',
-              }}
-            />
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={placeholder ?? t('createModalNamePlaceholder')}
+                autoFocus
+                className="flex-1 min-w-0 px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
+                style={{
+                  background: 'var(--theme-symbol-bg)',
+                  color: 'var(--theme-text)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                }}
+              />
+              {/* Auto-match: fills one image-only slot per word from each word's
+                  top search hit. Styling matches SymbolListFields' select-all. */}
+              {showAutoMatch && (
+                <label
+                  className="flex items-center gap-2 text-theme-xs cursor-pointer shrink-0"
+                  style={{ color: 'var(--theme-secondary-text)' }}
+                >
+                  {t('createModalAutoMatch')}
+                  <input
+                    type="checkbox"
+                    checked={autoMatch}
+                    onChange={(e) => setAutoMatch(e.target.checked)}
+                    aria-label={t('createModalAutoMatchAria')}
+                    className="w-6 h-6 shrink-0 accent-[var(--theme-brand-primary)] cursor-pointer"
+                  />
+                </label>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -92,7 +117,9 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, title, nameLabe
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: '#16a34a', color: '#fff' }}
             >
-              {isCreating ? t('creating') : t('createModalCreate')}
+              {isCreating
+                ? (autoMatch ? t('createModalAutoMatching') : t('creating'))
+                : t('createModalCreate')}
             </button>
           </div>
         </form>
