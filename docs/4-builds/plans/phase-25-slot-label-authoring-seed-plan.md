@@ -966,20 +966,25 @@ In the same file, find the existing slot-editor seed value:
 Add directly below it:
 
 ```tsx
-  // Seeds the editor's SymbolStix search with this slot's word, resolved for the
-  // board language (so a Hindi board seeds the Hindi word where the matched
-  // symbol had one). Undefined for slots with no label — pre-existing sentences
-  // and hand-added tiles — which open with an empty box, as before.
+  // Exact-language only — deliberately NOT displayString/displayValue, whose
+  // 3-tier fallback (exact → en → first key) is right for display and wrong for
+  // a search seed. With the fallback, clearing the box couldn't work (another
+  // language's word resurfaced), and the next save would write that word back
+  // under THIS language's key — an English string stored under `hi`, reseeding
+  // forever. No entry for this board's language means no seed, which is the
+  // honest answer: an English word typed into a Hindi board's search queries
+  // the `search_text_hi` surface, which contains Hindi words and their
+  // romanisations, never English — so it would just return nothing.
   const existingSlotSearch =
     slotEditTarget && slotEditTarget.slotIndex >= 0
-      ? (() => {
-          const label = slotEditorSentence?.slots[slotEditTarget.slotIndex]?.label;
-          return label ? displayString(label, language, DEFAULT_LOCALE) || undefined : undefined;
-        })()
+      ? slotEditorSentence?.slots[slotEditTarget.slotIndex]?.label?.[language] || undefined
       : undefined;
 ```
 
-`displayString` and `DEFAULT_LOCALE` are already imported in this file.
+`|| undefined` keeps an empty-string entry from seeding an empty-but-defined value. Do **not** reach
+for `displayString` here even though it is already imported and used elsewhere in this file — see the
+comment. (An earlier draft of this plan specified `displayString` and it was a defect; the review
+caught it.)
 
 - [ ] **Step 7: Pass it to the slot editor**
 

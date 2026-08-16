@@ -55,6 +55,19 @@ them true to the tile.
 
 Clearing the box drops that language's entry; the label is removed entirely if nothing remains.
 
+**The seed is read exact-language only — `label[boardLang]`, never `displayString`.** This matters more
+than it looks. `displayValue` falls back exact → `en` → *first key in insertion order*, which is right
+for display and wrong for a seed, because every SymbolStix pick supplies a multi-language word set:
+
+- Clearing would never work — deleting `label.en` leaves `{es:'fuera'}`, and tier 3 resurfaces `fuera`.
+- Worse, the save contract is "the box's content **is** this language's word". So a fallback-seeded box
+  that the user never retypes gets written straight back under the wrong key — `label.en = 'fuera'`,
+  or on a Hindi board `label.hi = 'home'`, which then reseeds forever. A display convenience becomes a
+  persisted cross-language write.
+
+No entry for the board's language means no seed, which is the honest answer: `searchText.hi` holds
+Hindi words and their romanisations, never English, so an English seed there returns nothing anyway.
+
 ### 2.3 Display / Text / Shape come out of the slot editor
 
 Those three accordions write `displayProps`, which **no sentence renderer reads** — `ThumbnailStrip`
