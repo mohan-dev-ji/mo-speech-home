@@ -25,15 +25,18 @@ const MAX_SLOTS = 30;
  * Inner punctuation is deliberately kept, so contractions and hyphenated words
  * stay whole ("don't", "sit-down") — they are single searchable words, and
  * splitting them would produce meaningless tiles. Tokens that strip to nothing
- * (a lone "—") are dropped. Unicode-aware, so Hindi and Spanish text survive.
+ * (a lone "—") are dropped. Unicode-aware, including combining marks (\p{M}:
+ * Devanagari matras, anusvara, visarga, and similar diacritics elsewhere) so
+ * they're kept as part of the word instead of stripped as trailing punctuation
+ * — otherwise most Hindi words lose their final vowel sign.
  */
 export function splitSentenceWords(text: string, max: number = MAX_SLOTS): string[] {
   return text
     .split(/\s+/)
     .map((word) =>
       word
-        .replace(/^[^\p{L}\p{N}]+/u, '')
-        .replace(/[^\p{L}\p{N}]+$/u, ''),
+        .replace(/^[^\p{L}\p{N}\p{M}]+/u, '')
+        .replace(/[^\p{L}\p{N}\p{M}]+$/u, ''),
     )
     .filter((word) => word.length > 0)
     .slice(0, max);

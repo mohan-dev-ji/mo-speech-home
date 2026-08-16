@@ -33,6 +33,10 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch =
   function reset() {
     setName('');
     setAutoMatch(false);
+    // Convex's query() has no rejection path for a disconnected socket, so a
+    // create that never settles would otherwise leave isCreating stuck true —
+    // the Create button permanently disabled on reopen, until a full reload.
+    setIsCreating(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
