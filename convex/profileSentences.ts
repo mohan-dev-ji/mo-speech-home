@@ -137,6 +137,9 @@ export const createProfileSentence = mutation({
           order:        v.number(),
           imagePath:    v.optional(v.string()),
           displayProps: displayPropsSchema,
+          // Authoring-only seed for the slot editor's symbol search — never
+          // rendered. See convex/schema.ts profileSentences.slots.
+          label:        v.optional(v.record(v.string(), v.string())),
         })
       )
     ),
@@ -259,6 +262,9 @@ export const updateProfileSentenceSlots = mutation({
         order:        v.number(),
         imagePath:    v.optional(v.string()),
         displayProps: displayPropsSchema,
+        // Authoring-only seed for the slot editor's symbol search — never
+        // rendered. See convex/schema.ts profileSentences.slots.
+        label:        v.optional(v.record(v.string(), v.string())),
       })
     ),
   },

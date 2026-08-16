@@ -761,6 +761,13 @@ export default defineSchema({
         order: v.number(),
         imagePath: v.optional(v.string()),
         displayProps: v.optional(slotDisplayProps),
+        // AUTHORING ONLY — never rendered. Seeds the slot editor's SymbolStix
+        // search box so changing a tile doesn't mean retyping the word, and so
+        // a blank tile still knows which word it was for. Localised so the seed
+        // follows the board language (a Hindi variant seeds Hindi words rather
+        // than stranding English ones). Do NOT wire this into ThumbnailStrip or
+        // SortableSlot — sentence display is deliberately image-only.
+        label: v.optional(localisedString),
       })
     ),
     // ADR-015 — composition model (additive in Phase 14). Each unit is a word or
