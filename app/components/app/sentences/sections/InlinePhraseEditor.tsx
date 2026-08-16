@@ -81,10 +81,11 @@ export function InlinePhraseEditor({
   function handleWordSave(result: SentenceSlotSaveResult) {
     if (!wordEditor) return;
     const words = [...unit.words];
+    // displayProps is no longer authored — see TalkerDropdown.handlePhraseWordSave.
     if (wordEditor.index === -1) {
-      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
+      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined });
     } else if (words[wordEditor.index]) {
-      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath, displayProps: result.displayProps };
+      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath };
     }
     emit({ ...unit, words: words.map((w, idx) => ({ ...w, order: idx })) });
     setWordEditor(null);

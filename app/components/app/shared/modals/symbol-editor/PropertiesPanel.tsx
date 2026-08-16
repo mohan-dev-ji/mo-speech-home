@@ -619,8 +619,8 @@ export function PropertiesPanel({
         )}
       </AccordionSection>}
 
-      {/* ── Display (categoryBoard + sentenceSlot) ────────────────────────── */}
-      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
+      {/* ── Display (categoryBoard) ────────────────────────── */}
+      {editorMode === 'categoryBoard' && (
         <AccordionSection
           label={t('sectionDisplay')}
           isOpen={openSections.has('display')}
@@ -694,8 +694,8 @@ export function PropertiesPanel({
         </AccordionSection>
       )}
 
-      {/* ── Text size (categoryBoard + sentenceSlot) ─────────────────────── */}
-      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
+      {/* ── Text size (categoryBoard) ─────────────────────── */}
+      {editorMode === 'categoryBoard' && (
         <AccordionSection
           label={t('sectionText')}
           isOpen={openSections.has('text')}
@@ -726,8 +726,8 @@ export function PropertiesPanel({
         </AccordionSection>
       )}
 
-      {/* ── Shape (categoryBoard + sentenceSlot) ─────────────────────────── */}
-      {(editorMode === 'categoryBoard' || editorMode === 'sentenceSlot') && (
+      {/* ── Shape (categoryBoard) ─────────────────────────── */}
+      {editorMode === 'categoryBoard' && (
         <AccordionSection
           label={t('sectionShape')}
           isOpen={openSections.has('shape')}

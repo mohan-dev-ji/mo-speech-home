@@ -41,14 +41,16 @@ export type ImageOnlySaveResult = {
 
 export type SentenceSlotSaveResult = {
   imagePath?: string;
-  displayProps?: {
-    bgColour?: string;
-    textColour?: string;
-    textSize?: 'sm' | 'md' | 'lg';
-    showLabel?: boolean;
-    showImage?: boolean;
-    cardShape?: 'square' | 'rounded' | 'circle';
-  };
+  // What was in the SymbolStix search box at save time. The box seeds FROM the
+  // slot's stored label, so an untouched box reports the same word back — which
+  // is what makes the slot's word change only when the user types a new search,
+  // never merely because they clicked a different symbol.
+  searchWord?: string;
+  // Canonical words of the currently-picked SymbolStix symbol, keyed by ISO
+  // code. Empty for Upload / Image Search / AI Generate, which have no word set.
+  symbolWords?: Record<string, string>;
+  // NOTE: no displayProps. Sentence slots never rendered it — see the editor's
+  // Display/Text/Shape sections, which are categoryBoard-only.
 };
 
 export type SymbolEditorModalProps = {
@@ -632,17 +634,10 @@ export function SymbolEditorModal({
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
         }
-        const ts = draft.textSize;
         onSentenceSlotSave?.({
           imagePath,
-          displayProps: {
-            bgColour:   draft.bgColour,
-            textColour: draft.textColour,
-            textSize:   (ts === 'xl' ? 'lg' : ts) as 'sm' | 'md' | 'lg',
-            showLabel:  draft.showLabel,
-            showImage:  draft.showImage,
-            cardShape:  draft.shape,
-          },
+          searchWord: searchQuery.trim() || undefined,
+          symbolWords: draft.symbolWords,
         });
         onClose();
       } catch {
@@ -972,8 +967,11 @@ export function SymbolEditorModal({
             </div>
           </div>
 
-          {/* Properties — hidden in image-only mode */}
-          {!imageOnly && (
+          {/* Properties — hidden in image-only mode, and in sentenceSlot mode,
+              where every section is now categoryBoard-only (Display/Text/Shape
+              wrote displayProps, which no sentence renderer reads). Without this
+              guard the panel would render as an empty bordered container. */}
+          {!imageOnly && editorMode !== 'sentenceSlot' && (
             <PropertiesPanel
               draft={draft}
               patch={patch}

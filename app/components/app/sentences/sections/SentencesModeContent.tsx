@@ -1083,14 +1083,16 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const sentence = sentences?.find((s) => s._id === slotEditTarget.sentenceId);
     if (!sentence) return;
 
+    // displayProps is no longer authored for slots — the editor's Display/Text/
+    // Shape sections are categoryBoard-only now. Values already stored on
+    // existing slots are preserved by the spread, just never updated.
     const current = [...sentence.slots];
     if (slotEditTarget.slotIndex === -1) {
-      current.push({ order: current.length, imagePath: result.imagePath, displayProps: result.displayProps });
+      current.push({ order: current.length, imagePath: result.imagePath });
     } else {
       current[slotEditTarget.slotIndex] = {
         ...current[slotEditTarget.slotIndex],
-        imagePath:    result.imagePath,
-        displayProps: result.displayProps,
+        imagePath: result.imagePath,
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));

@@ -472,10 +472,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     if (!phrase) { setPhraseWordEditor({ open: false }); return; }
     const targetId = await resolvePhraseTargetId(phrase);
     const current = normaliseWords(phrase.words);
+    // displayProps is no longer authored — the editor's Display/Text/Shape
+    // sections are categoryBoard-only now. No composition renderer ever read it
+    // for phrase words; existing stored values are preserved by the spread.
     if (wordIndex === -1) {
-      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: result.displayProps });
+      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: undefined });
     } else if (current[wordIndex]) {
-      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath, displayProps: result.displayProps };
+      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath };
     }
     const reindexed = current.map((w, i) => ({ ...w, order: i }));
     updateProfilePhraseWords({ profilePhraseId: targetId, words: reindexed }).catch((e) =>
