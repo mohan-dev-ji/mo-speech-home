@@ -47,6 +47,13 @@ genuinely don't need, and the types say so.
 - Keep contractions and hyphens intact — `don't` and `sit-down` are searched as typed.
 - One slot per surviving token, in order. Cap at **30** slots.
 
+"Punctuation" here means "not a letter, digit, **or combining mark**" (`[^\p{L}\p{N}\p{M}]`).
+The combining-mark class is load-bearing, not defensive: without it, Devanagari matras are read as
+trailing punctuation and stripped, so `मुझे` → `मुझ` and `है` → `ह`. That failure is worse than a
+blank tile, because the truncated stem still matches the `search_text_hi` index — the board fills
+with confidently wrong artwork and no error. English and Spanish are byte-identical either way,
+which is exactly why English-only testing cannot catch it.
+
 ### 2.3 Unmatched words → blank slot, not skipped
 
 A word with no search hit still gets a slot, with no `imagePath` — the existing blank grey tile.
@@ -142,6 +149,10 @@ export async function buildSentenceSlots(
 - **`app/components/app/sentences/modals/CreateSentenceModal.tsx`** — new `showAutoMatch?: boolean`
   prop (default `false`); checkbox state reset by `reset()`; `onCreate` becomes
   `(name: string, autoMatch: boolean) => Promise<void>`.
+- **`app/components/app/home/sections/HomeContent.tsx`** — the Home page's quick-create card is a
+  **third** caller of this modal, which this spec originally missed. Its create-a-list and
+  create-a-category siblings already auto-match, so its sentence card gets the same wiring rather
+  than being the only one of the three without it. Same two-line change as the Sentences page.
 - **`app/components/app/sentences/sections/SentencesModeContent.tsx`** — `handleCreate(name, autoMatch)`
   awaits `buildSentenceSlots(name, language, deps)` when ticked and passes `slots` into the existing
   `createSentence` call. Passes `showAutoMatch`.
@@ -178,11 +189,23 @@ so the "first search-page result" guarantee comes from the same exact-whole-word
 | Checkbox unticked | `slots: []` — today's behaviour, no search calls |
 | Empty / punctuation-only name | Submit already blocked on `!name.trim()`; if every token strips to nothing, create with `slots: []` |
 | Word has no hit | `{ order: i }` with no `imagePath` → blank tile at that position |
-| One search throws (network) | Each search is caught individually → that slot is blank, the rest still fill |
-| All searches fail | Sentence still created, all slots blank — never a failed create |
+| One search **rejects** (server-side query error) | Caught individually → that slot is blank, the rest still fill |
+| Offline / disconnected socket | **The create hangs.** See the note below — this is not graceful degradation |
 | More than 30 words | First 30 get slots; the name keeps every word, extra words are un-tiled |
 | Re-opening the modal | `reset()` clears the checkbox alongside the name |
 | Double-submit | Existing `isCreating` guard wraps the whole `onCreate`, so it covers the search pass |
+
+### 5.1 Offline is a hang, not a blank row
+
+An earlier draft of this spec claimed a failed network lookup degrades to a blank slot. **It does
+not.** `ConvexReactClient.query()` resolves on the first `onUpdate` and has no rejection path for a
+disconnected socket, so offline the promise never settles — the per-word `try/catch` only ever
+catches errors the *server* throws. The button sits on "Auto-matching…" indefinitely.
+
+Mitigated, not solved: `reset()` clears `isCreating` alongside the name, so cancelling a wedged
+create leaves the reopened modal usable instead of leaving its Create button permanently disabled
+until a page reload. `CreateListModal` carries the same never-settling exposure and was deliberately
+left alone — fixing that shared pattern is its own decision, not this feature's.
 
 ## 6. Verification
 
@@ -205,7 +228,13 @@ typed sentence and the strip it produces:
 | A sentence with a made-up word | A blank tile at that word's position, siblings filled |
 | A 35-word sentence | 30 tiles; the name keeps all 35 words |
 | `I want to go home` (unticked) | No tiles — today's behaviour |
+| Home page quick-create card, ticked | Checkbox present; strip filled after the redirect to `/sentences` |
 | Talker dropbar → Create Phrase | No checkbox in the modal at all |
+
+**Hindi is not optional here.** `splitSentenceWords` must be exercised against Devanagari, because
+the combining-mark bug (§2.2) is invisible in English and Spanish. The tokeniser is pure, so a `node`
+one-liner over the regex is sufficient and cheaper than driving a Hindi board:
+`"मुझे घर जाना है।"` must yield `["मुझे","घर","जाना","है"]`, not `["मुझ","घर","जान","ह"]`.
 
 **Regressions to re-check** (the file moves touch live category paths): create a category with
 auto-match ticked, and add a list to core words with auto-match ticked. Both must still fill symbols
