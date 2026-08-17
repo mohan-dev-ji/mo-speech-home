@@ -117,7 +117,12 @@ Changing what Home's cards do when the picker is left on Drafts (they still stra
   `saveSelection` becomes a `GroupSelection`; confirm resolves it before `createProfileSentence`.
 - `app/components/app/lists/modals/CreateListModal.tsx` — opt-in `showGroupPicker`; `onCreate` gains
   the selection.
-- `app/components/app/sentences/modals/CreateSentenceModal.tsx` — same.
+- `app/components/app/sentences/modals/CreateSentenceModal.tsx` — same. Note this callback already
+  gained an `autoMatch` argument in phase-24, so a third positional arg would make it
+  `onCreate(name, autoMatch, group)` — three positionals a caller has to get in the right order.
+  Collapse the extras instead: `onCreate(name: string, opts: { autoMatch: boolean; group?: GroupSelection })`.
+  `CreateListModal` takes the same shape (it already passes rows separately), so the two modals stay
+  symmetrical and each new option is named at the call site rather than counted.
 - `app/components/app/home/sections/HomeContent.tsx` — passes `showGroupPicker`, resolves the
   selection, and files the new list/sentence into the result.
 - `messages/en.json` — `saveNewGroup`, `saveNewGroupPlaceholder`, and the three "Drafts" values.
