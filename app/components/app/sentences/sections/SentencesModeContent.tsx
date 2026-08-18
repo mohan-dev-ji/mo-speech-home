@@ -927,7 +927,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     });
   }
 
-  async function handleCreate(name: string, autoMatch: boolean) {
+  async function handleCreate(name: string, { autoMatch }: { autoMatch: boolean }) {
     // MOS-13 — auto-match: one image-only slot per word, in order, each carrying
     // its top search hit's artwork (unmatched words keep a blank slot so tiles
     // stay aligned with the text). Resolved BEFORE the create so the sentence is

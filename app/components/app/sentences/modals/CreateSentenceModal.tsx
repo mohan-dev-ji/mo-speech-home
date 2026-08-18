@@ -8,11 +8,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/app/components/app/shared/ui/Dialog';
+import { GroupPicker, DRAFTS_SELECTION, isGroupSelectionReady, type GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, autoMatch: boolean) => Promise<void>;
+  // Options are named rather than positional: autoMatch arrived in phase-24 and
+  // the group would have made a third argument whose order a caller has to
+  // remember. CreateListModal takes the same shape.
+  onCreate: (name: string, opts: { autoMatch: boolean; group?: GroupSelection }) => Promise<void>;
+  // Ask where the sentence should go. Off by default: the Sentences page opens
+  // this from inside a group, and the talker's Create Phrase files into
+  // board.phrasesFolderId.
+  showGroupPicker?: boolean;
   // Show the auto-match checkbox. Off by default: the talker dropbar reuses this
   // modal for "Create Phrase", and a phrase stores words[] with per-word labels
   // and clips — a different shape this fill doesn't produce.
@@ -24,15 +32,17 @@ type Props = {
   placeholder?: string;
 };
 
-export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch = false, title, nameLabel, placeholder }: Props) {
+export function CreateSentenceModal({ isOpen, onClose, onCreate, showGroupPicker = false, showAutoMatch = false, title, nameLabel, placeholder }: Props) {
   const t = useTranslations('sentences');
   const [name, setName] = useState('');
   const [autoMatch, setAutoMatch] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [group, setGroup] = useState<GroupSelection>(DRAFTS_SELECTION);
 
   function reset() {
     setName('');
     setAutoMatch(false);
+    setGroup(DRAFTS_SELECTION);
     // Convex's query() has no rejection path for a disconnected socket, so a
     // create that never settles would otherwise leave isCreating stuck true —
     // the Create button permanently disabled on reopen, until a full reload.
@@ -45,7 +55,7 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch =
     if (!trimmed) return;
     setIsCreating(true);
     try {
-      await onCreate(trimmed, autoMatch);
+      await onCreate(trimmed, { autoMatch, ...(showGroupPicker ? { group } : {}) });
       reset();
       onClose();
     } finally {
@@ -106,6 +116,10 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch =
             </div>
           </div>
 
+          {showGroupPicker && (
+            <GroupPicker tree="sentences" value={group} onChange={setGroup} />
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -117,7 +131,7 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, showAutoMatch =
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || isCreating}
+              disabled={!name.trim() || isCreating || (showGroupPicker && !isGroupSelectionReady(group))}
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: '#16a34a', color: '#fff' }}
             >

@@ -72,7 +72,7 @@ export function HomeContent() {
     router.push(`/${locale}/categories/${id}?edit=1`);
   }
 
-  async function handleCreateList(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+  async function handleCreateList(name: string, { rows }: { rows: Array<{ label: string; autoMatch: boolean }> }) {
     // Key the name under the ACTIVE board language, not a hardcoded `en` — else
     // non-English lists are mislabelled "Made in EN" (variant state is derived
     // from which language keys the record holds). Mirrors createSentence below.
@@ -108,7 +108,7 @@ export function HomeContent() {
     router.push(`/${locale}/lists/${id}?edit=1`);
   }
 
-  async function handleCreateSentence(name: string, autoMatch: boolean) {
+  async function handleCreateSentence(name: string, { autoMatch }: { autoMatch: boolean }) {
     // MOS-13 — auto-match: one image-only slot per word, resolved BEFORE the
     // create so the sentence is never persisted half-filled. Brings this card
     // in line with the create-a-list and create-a-category cards beside it,

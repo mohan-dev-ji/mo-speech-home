@@ -441,7 +441,7 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     });
   }
 
-  async function handleCreate(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
+  async function handleCreate(name: string, { rows }: { rows: Array<{ label: string; autoMatch: boolean }> }) {
     const id = await createList({
       // Key the name under the ACTIVE board language, not a hardcoded `en`.
       // Keying non-English content under `en` mislabels it "Made in EN" and

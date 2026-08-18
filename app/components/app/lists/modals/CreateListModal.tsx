@@ -9,24 +9,33 @@ import {
   DialogTitle,
 } from '@/app/components/app/shared/ui/Dialog';
 import { SymbolListFields, type SymbolRow } from '@/app/components/app/shared/ui/SymbolListFields';
+import { GroupPicker, DRAFTS_SELECTION, isGroupSelectionReady, type GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, rows: Array<{ label: string; autoMatch: boolean }>) => Promise<void>;
+  // Options are named rather than positional: this callback already carried the
+  // rows, and the group would have made a third argument whose order a caller
+  // has to remember. CreateSentenceModal takes the same shape.
+  onCreate: (name: string, opts: { rows: SymbolRow[]; group?: GroupSelection }) => Promise<void>;
+  // Ask where the list should go. Off by default: the Lists page opens this
+  // modal from inside a group, where the folder is already implied.
+  showGroupPicker?: boolean;
 };
 
-export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
+export function CreateListModal({ isOpen, onClose, onCreate, showGroupPicker = false }: Props) {
   const t = useTranslations('lists');
   const [name, setName] = useState('');
   const [rows, setRows] = useState<SymbolRow[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
+  const [group, setGroup] = useState<GroupSelection>(DRAFTS_SELECTION);
   const someChecked = rows.some((r) => r.autoMatch);
 
   function reset() {
     setName('');
     setResetSignal((n) => n + 1);
+    setGroup(DRAFTS_SELECTION);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,7 +44,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
     if (!trimmed) return;
     setIsCreating(true);
     try {
-      await onCreate(trimmed, rows);
+      await onCreate(trimmed, { rows, ...(showGroupPicker ? { group } : {}) });
       reset();
       onClose();
     } finally {
@@ -89,6 +98,10 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
             addLabel={t('createModalAddSteps')}
           />
 
+          {showGroupPicker && (
+            <GroupPicker tree="lists" value={group} onChange={setGroup} />
+          )}
+
           {/* Footer */}
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -101,7 +114,7 @@ export function CreateListModal({ isOpen, onClose, onCreate }: Props) {
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || isCreating}
+              disabled={!name.trim() || isCreating || (showGroupPicker && !isGroupSelectionReady(group))}
               className="py-3 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
