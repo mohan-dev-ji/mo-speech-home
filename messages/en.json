@@ -11,6 +11,12 @@
     "updateModule": "Update module",
     "uninstallError": "Couldn't remove this module. Please try again."
   },
+  "groupPicker": {
+    "label": "Group",
+    "drafts": "Drafts",
+    "newGroup": "+ New group",
+    "newGroupPlaceholder": "Group name"
+  },
   "publishModule": {
     "title": "Publish as module",
     "titleUpdate": "Update module",
