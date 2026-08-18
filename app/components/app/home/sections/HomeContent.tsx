@@ -17,6 +17,8 @@ import { buildSentenceSlots } from "@/lib/sentences/autoMatchSlots";
 import { useAutoMatchDeps } from "@/app/lib/symbols/useAutoMatchDeps";
 import { SymbolEditorModal } from "@/app/components/app/shared/modals/symbol-editor/SymbolEditorModal";
 import { UpgradeNudge } from "@/app/components/app/shared/ui/UpgradeNudge";
+import { useResolveGroupSelection } from '@/app/lib/folders/useResolveGroupSelection';
+import type { GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
 
 /**
  * In-app Home (Figma `1391:20546`) — a links-and-library landing page:
@@ -66,17 +68,31 @@ export function HomeContent() {
   const createSentence = useMutation(api.profileSentences.createProfileSentence);
   // MOS-13 — search resolver for the create-sentence card's auto-match checkbox.
   const autoMatchDeps = useAutoMatchDeps();
+  // MOS-13 — Home's quick-create cards used to file nothing, stranding every
+  // list and sentence in Drafts. One resolver per tree.
+  const resolveListGroup = useResolveGroupSelection('lists');
+  const resolveSentenceGroup = useResolveGroupSelection('sentences');
 
   async function handleCreateCategory(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createCategory(name, rows);
     router.push(`/${locale}/categories/${id}?edit=1`);
   }
 
-  async function handleCreateList(name: string, { rows }: { rows: Array<{ label: string; autoMatch: boolean }> }) {
+  async function handleCreateList(
+    name: string,
+    { rows, group }: { rows: Array<{ label: string; autoMatch: boolean }>; group?: GroupSelection },
+  ) {
+    // Resolve BEFORE the list create: if this makes a folder and then throws,
+    // nothing is written. See useResolveGroupSelection.
+    const folderId = group ? await resolveListGroup(group) : undefined;
     // Key the name under the ACTIVE board language, not a hardcoded `en` — else
     // non-English lists are mislabelled "Made in EN" (variant state is derived
     // from which language keys the record holds). Mirrors createSentence below.
-    const id = await createList({ name: { [language]: name }, authoredLanguage: language });
+    const id = await createList({
+      name: { [language]: name },
+      authoredLanguage: language,
+      ...(folderId ? { folderId } : {}),
+    });
     const kept = rows
       .map((r) => ({ description: r.label.trim(), autoMatch: r.autoMatch }))
       .filter((r) => r.description.length > 0);
@@ -108,7 +124,12 @@ export function HomeContent() {
     router.push(`/${locale}/lists/${id}?edit=1`);
   }
 
-  async function handleCreateSentence(name: string, { autoMatch }: { autoMatch: boolean }) {
+  async function handleCreateSentence(
+    name: string,
+    { autoMatch, group }: { autoMatch: boolean; group?: GroupSelection },
+  ) {
+    // Resolve BEFORE the sentence create — see useResolveGroupSelection.
+    const folderId = group ? await resolveSentenceGroup(group) : undefined;
     // MOS-13 — auto-match: one image-only slot per word, resolved BEFORE the
     // create so the sentence is never persisted half-filled. Brings this card
     // in line with the create-a-list and create-a-category cards beside it,
@@ -123,6 +144,7 @@ export function HomeContent() {
       name: { [language]: name },
       authoredLanguage: language,
       ...(slots ? { slots } : {}),
+      ...(folderId ? { folderId } : {}),
     });
     router.push(`/${locale}/sentences`);
   }
@@ -160,12 +182,14 @@ export function HomeContent() {
         isOpen={listOpen}
         onClose={() => setListOpen(false)}
         onCreate={handleCreateList}
+        showGroupPicker
       />
       <CreateSentenceModal
         isOpen={sentenceOpen}
         onClose={() => setSentenceOpen(false)}
         onCreate={handleCreateSentence}
         showAutoMatch
+        showGroupPicker
       />
 
       {/* Create-a-Symbol — categoryBoard mode with no preset category; the
