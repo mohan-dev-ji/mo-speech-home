@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
-import { ImageIcon } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -283,8 +282,12 @@ export function GroupsView({
                   );
                 })}
 
-                {/* Synthetic Ungrouped tile — not editable, always last. Mirrors
-                    GroupTile's view-mode look (same ImageIcon fallback). */}
+                {/* Synthetic Drafts tile — items whose folderId is unset. Not a
+                    profileFolders row, so it is deliberately not editable: no
+                    rename, colour, delete or drag, and it renders only while
+                    something is in it. Keeps the grey UNGROUPED_COLOUR as the cue
+                    that it isn't a recolourable folder. The `ungrouped` URL
+                    sentinel is unchanged — this is a label, not a new concept. */}
                 {ungroupedCount > 0 && (
                   <button
                     type="button"
@@ -297,7 +300,13 @@ export function GroupsView({
                       {t('ungrouped')}
                     </p>
                     <div className="w-full aspect-square rounded-theme-sm flex items-center justify-center overflow-hidden" style={{ backgroundColor: getCategoryColour(UNGROUPED_COLOUR).c100, padding: '8cqi' }}>
-                      <ImageIcon className="w-1/2 h-1/2" style={{ color: getCategoryColour(UNGROUPED_COLOUR).c500 }} />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/api/assets?key=symbols/write.png"
+                        alt=""
+                        className="w-full h-full object-contain"
+                        draggable={false}
+                      />
                     </div>
                   </button>
                 )}
