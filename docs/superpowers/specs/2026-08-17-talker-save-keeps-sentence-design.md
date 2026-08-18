@@ -65,8 +65,8 @@ dialog adds a step to a flow about to be used heavily for authoring.
   the group label and `showToast({ tone: 'info', title })`.
 - Add `useToast()` and a `useTranslations('groupPicker')` alongside the existing `talker` one (the
   Drafts label lives in the picker's namespace).
-- `clearTalker` may become unused in the file — remove it from the `useTalker()` destructure only if
-  nothing else references it.
+- `clearTalker` **stays** in the `useTalker()` destructure: `PersistentTalker.tsx:224` still passes
+  it as the bar's manual `onClear`. Only the call inside `handleSaveConfirm` goes.
 
 **Changed — `messages/en.json`** (`en.json` only, per CLAUDE.md rule 1):
 
