@@ -327,7 +327,7 @@ export function GroupPicker({ tree, value, onChange }: Props) {
             style={{
               background: 'var(--theme-symbol-bg)',
               color: 'var(--theme-text)',
-              border: '1px solid rgba(255,255,255,0.12)',
+              border: '1px solid var(--theme-line)',
             }}
           />
         )}
