@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { stripLocaleKey } from "../lib/languages/variants";
@@ -82,6 +82,18 @@ export const createProfileList = mutation({
   handler: async (ctx, args) => {
     const { accountId, user } = await requireCallerAccountId(ctx);
     requireProTier(user);
+
+    // The client picks a folder id off-screen from two tree-bound pickers now
+    // living on one page (Home). An id from the wrong tree (e.g. a
+    // sentences-tree folder) matches no list-folder view and isn't counted as
+    // unfiled either, so the list would disappear from every screen with no
+    // error. Same check/error shape as moveListToGroup in profileFolders.ts.
+    if (args.folderId) {
+      const folder = await ctx.db.get(args.folderId);
+      if (!folder || folder.accountId !== accountId || folder.tree !== "lists") {
+        throw new ConvexError({ code: "BAD_FOLDER", message: "Invalid target group." });
+      }
+    }
 
     const last = await ctx.db
       .query("profileLists")
