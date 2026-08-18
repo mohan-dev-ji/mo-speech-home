@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
@@ -28,6 +27,8 @@ import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
 import { playTts } from '@/lib/audio/playTts';
 import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
+import { GroupPicker, DRAFTS_SELECTION, isGroupSelectionReady, type GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
+import { useResolveGroupSelection } from '@/app/lib/folders/useResolveGroupSelection';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -66,7 +67,8 @@ export function PersistentTalker() {
   const sentenceFolders = useQuery(api.profileFolders.getProfileFolders, { tree: 'sentences' });
   const createProfileSentence = useMutation(api.profileSentences.createProfileSentence);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [saveSelection, setSaveSelection] = useState<Id<'profileFolders'> | 'ungrouped' | null>(null);
+  const [saveSelection, setSaveSelection] = useState<GroupSelection>(DRAFTS_SELECTION);
+  const resolveGroup = useResolveGroupSelection('sentences');
   const [isSaving, setIsSaving] = useState(false);
 
   // Only render in sentence-builder mode; banner mode shows page-level banners instead
@@ -103,15 +105,15 @@ export function PersistentTalker() {
 
   // Smart default (ADR-014 §7): if working inside a category, default the save
   // target to the sentence folder whose name matches it. Otherwise Ungrouped.
-  function computeDefaultFolder(): Id<'profileFolders'> | 'ungrouped' {
+  function computeDefaultFolder(): GroupSelection {
     const label = breadcrumbExtra?.label?.trim().toLowerCase();
     if (label) {
       const match = (sentenceFolders ?? []).find(
         (f) => displayString(f.name, language, DEFAULT_LOCALE).trim().toLowerCase() === label
       );
-      if (match) return match._id;
+      if (match) return { kind: 'folder', id: match._id };
     }
-    return 'ungrouped';
+    return DRAFTS_SELECTION;
   }
 
   function handleSaveOpen() {
@@ -168,7 +170,9 @@ export function PersistentTalker() {
         .map((s) => (s.kind === 'phrase' ? (s.phraseName ?? s.label) : s.label))
         .join(' ');
 
-      const folderId = saveSelection === 'ungrouped' ? undefined : saveSelection;
+      // Resolve BEFORE the sentence create: if this makes a folder and then
+      // throws, nothing is written. See useResolveGroupSelection.
+      const folderId = await resolveGroup(saveSelection);
       await createProfileSentence({
         name: { [language]: nameText },
         kind: 'sentence',
@@ -231,38 +235,7 @@ export function PersistentTalker() {
           <DialogHeader>
             <DialogTitle>{t('saveModalTitle')}</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-2 max-h-[50vh] overflow-auto">
-            {(sentenceFolders ?? []).map((f) => {
-              const isSelected = saveSelection === f._id;
-              return (
-                <button
-                  key={f._id}
-                  type="button"
-                  onClick={() => setSaveSelection(f._id)}
-                  className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors"
-                  style={{
-                    background: isSelected ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
-                    color: isSelected ? 'var(--theme-alt-text)' : 'var(--theme-text)',
-                    border: `2px solid ${isSelected ? 'var(--theme-primary)' : 'transparent'}`,
-                  }}
-                >
-                  {displayString(f.name, language, DEFAULT_LOCALE)}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setSaveSelection('ungrouped')}
-              className="text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors"
-              style={{
-                background: saveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
-                color: saveSelection === 'ungrouped' ? 'var(--theme-alt-text)' : 'var(--theme-text)',
-                border: `2px solid ${saveSelection === 'ungrouped' ? 'var(--theme-primary)' : 'transparent'}`,
-              }}
-            >
-              {t('saveUngrouped')}
-            </button>
-          </div>
+          <GroupPicker tree="sentences" value={saveSelection} onChange={setSaveSelection} />
           <DialogFooter>
             <DialogClose asChild>
               <button type="button" className="px-4 py-2 rounded-theme-sm text-theme-s font-medium" style={{ background: 'var(--theme-symbol-bg)', color: 'var(--theme-text)' }}>
@@ -272,7 +245,7 @@ export function PersistentTalker() {
             <button
               type="button"
               onClick={handleSaveConfirm}
-              disabled={!saveSelection || isSaving}
+              disabled={!isGroupSelectionReady(saveSelection) || isSaving}
               className="px-4 py-2 rounded-theme-sm text-theme-s font-semibold transition-opacity disabled:opacity-40"
               style={{ background: 'var(--theme-create)', color: '#fff' }}
             >
