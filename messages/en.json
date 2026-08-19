@@ -420,6 +420,8 @@
     "saveCancel": "Cancel",
     "saveConfirm": "Save",
     "saveSaving": "Saving…",
+    "saveToastTitle": "Saved to {group}",
+    "saveToastTitleGeneric": "Sentence saved",
     "addListLabel": "Add a list",
     "addListTitle": "Add a list of words",
     "addListSubmit": "Add words",

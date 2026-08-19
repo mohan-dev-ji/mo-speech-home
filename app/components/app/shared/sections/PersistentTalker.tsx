@@ -29,6 +29,7 @@ import { playTts } from '@/lib/audio/playTts';
 import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
 import { GroupPicker, DRAFTS_SELECTION, isGroupSelectionReady, type GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
 import { useResolveGroupSelection } from '@/app/lib/folders/useResolveGroupSelection';
+import { useToast } from '@/app/components/app/shared/ui/Toast';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -56,6 +57,10 @@ function playAudio(audioPath: string) {
 
 export function PersistentTalker() {
   const t = useTranslations('talker');
+  // The Drafts label lives in the picker's namespace, since that's the row the
+  // user actually chose.
+  const tGroup = useTranslations('groupPicker');
+  const { showToast } = useToast();
   const { stateFlags, language, voiceId } = useProfile();
   const { talkerSymbols, talkerMode, addToTalker, removeFromTalker, reorderTalker, clearTalker } = useTalker();
   const { breadcrumbExtra } = useBreadcrumb();
@@ -122,6 +127,24 @@ export function PersistentTalker() {
     setSaveDialogOpen(true);
   }
 
+  // Where the sentence just went, for the save confirmation. All three cases are
+  // already in scope: a picked folder resolves against the same `sentenceFolders`
+  // the picker rendered from, a new group is the name just typed, and Drafts uses
+  // the picker's own label. A folder we can't resolve falls back to the generic
+  // title — "Saved to ." would be a worse failure than a plain confirmation.
+  function savedToastTitle(sel: GroupSelection): string {
+    let group: string | undefined;
+    if (sel.kind === 'drafts') {
+      group = tGroup('drafts');
+    } else if (sel.kind === 'new') {
+      group = sel.name.trim();
+    } else {
+      const match = (sentenceFolders ?? []).find((f) => f._id === sel.id);
+      group = match ? displayString(match.name, language, DEFAULT_LOCALE) : undefined;
+    }
+    return group ? t('saveToastTitle', { group }) : t('saveToastTitleGeneric');
+  }
+
   async function handleSaveConfirm() {
     if (talkerSymbols.length === 0 || !saveSelection) return;
     setIsSaving(true);
@@ -185,7 +208,11 @@ export function PersistentTalker() {
         slots,
         ...(folderId ? { folderId } : {}),
       });
-      clearTalker();
+      // The bar is deliberately NOT cleared. The composition stays so it can be
+      // filed into a second group without rebuilding, and the toast — rather than
+      // the symbols vanishing — is what confirms the save. This sits after the
+      // await and inside the existing try, so a failed save confirms nothing.
+      showToast({ tone: 'info', title: savedToastTitle(saveSelection) });
       setSaveDialogOpen(false);
     } finally {
       setIsSaving(false);
