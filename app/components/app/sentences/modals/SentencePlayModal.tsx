@@ -5,7 +5,10 @@ import { getCategoryColour } from '@/app/lib/categoryColours';
 import { PLAY_GLOW } from '@/app/components/app/shared/ui/playGlow';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { useTranslations } from 'next-intl';
-import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
+import { usePlayPulse } from '@/app/hooks/usePlayPulse';
+import {
+  PLAY_SURFACE_MIN_H, PLAY_SURFACE_ZOOM_CLASS, playSurfaceTransform,
+} from '@/app/components/app/shared/ui/playSurface';
 import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import { resolveTtsKey } from '@/lib/audio/playTts';
@@ -41,7 +44,11 @@ type SentencePlayModalProps = {
 // of the block CompositionPlayModal: the whole sentence plays as ONE clip, so the
 // shared yellow play-glow sits on the WHOLE symbol group for exactly as long as the
 // audio sounds (not stepped per symbol). The symbols group on the module colour at
-// 50% so the glow reads; a smaller sentence pill + the shared Replay button below.
+// 50% so the glow reads, with the sentence pill under it.
+//
+// There is no separate Replay button here: the symbols + pill ARE the replay
+// target (one big tap area rather than a small pill to aim at), answering with a
+// short zoom pulse so the tap is felt as well as heard.
 export function SentencePlayModal({
   isOpen, sentenceText, slots, recordedAudioPath, voiceId, textLocale, moduleColour, onClose,
 }: SentencePlayModalProps) {
@@ -54,7 +61,10 @@ export function SentencePlayModal({
   // `activeTone` drives the selected chip; `busy` disables the row mid-synth.
   const [activeTone, setActiveTone] = useState<Tone | null>(null);
   const [busy, setBusy] = useState(false);
+  // Tap feedback on the replay surface — a brief scale-up that eases back.
+  const { zoom, pulse, reset: resetPulse } = usePlayPulse(isOpen);
   const t = useTranslations('tone');
+  const tTalker = useTranslations('talker');
   const { showToast } = useToast();
 
   function stopActive() {
@@ -116,7 +126,16 @@ export function SentencePlayModal({
     await playResolvedKey(key, myRun, tone);
   }
 
-  function close() { runIdRef.current++; stopActive(); setPlaying(false); setActiveTone(null); setBusy(false); onClose(); }
+  // Tapping the symbols + pill replays.
+  function handleReplay() { pulse(); playClip(); }
+
+  function close() {
+    runIdRef.current++;
+    stopActive();
+    resetPulse();
+    setPlaying(false); setActiveTone(null); setBusy(false);
+    onClose();
+  }
 
   useEffect(() => {
     if (isOpen) playClip();
@@ -135,35 +154,44 @@ export function SentencePlayModal({
         className="flex flex-col items-center gap-theme-gap"
         onClick={(e) => e.stopPropagation()}
       >
-        {filledSlots.length > 0 && (
-          <div
-            className="flex flex-wrap items-center justify-center gap-theme-gap p-theme-general rounded-theme max-w-[min(90vw,900px)] transition-shadow duration-300"
-            style={{ background: groupBg, boxShadow: playing ? PLAY_GLOW : undefined }}
-          >
-            {filledSlots.map((slot, i) => (
-              <div
-                key={i}
-                className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] rounded-theme border-2 border-theme-line overflow-hidden flex items-center justify-center"
-                style={{ background: 'var(--theme-symbol-card-bg)' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/assets?key=${slot.imagePath}`}
-                  alt=""
-                  className="w-full h-full object-contain p-2"
-                  draggable={false}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        {/* The whole symbols + pill block is the replay control. */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleReplay(); }}
+          aria-label={tTalker('replay')}
+          className={`flex flex-col items-center justify-center gap-theme-gap ${PLAY_SURFACE_MIN_H} ${PLAY_SURFACE_ZOOM_CLASS}`}
+          style={{ transform: playSurfaceTransform(zoom) }}
+        >
+          {filledSlots.length > 0 && (
+            <div
+              className="flex flex-wrap items-center justify-center gap-theme-gap p-theme-general rounded-theme max-w-[min(90vw,900px)] transition-shadow duration-300"
+              style={{ background: groupBg, boxShadow: playing ? PLAY_GLOW : undefined }}
+            >
+              {filledSlots.map((slot, i) => (
+                <div
+                  key={i}
+                  className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] rounded-theme border-2 border-theme-line overflow-hidden flex items-center justify-center"
+                  style={{ background: 'var(--theme-symbol-card-bg)' }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/assets?key=${slot.imagePath}`}
+                    alt=""
+                    className="w-full h-full object-contain p-2"
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* Footer — pt keeps the glow clear of the buttons (Figma note). */}
-        <div className="w-full flex flex-col items-center gap-theme-gap pt-theme-general">
-          <div className="w-full min-h-[44px] flex items-center justify-center px-4 py-2 rounded-theme-chip border border-theme-line bg-theme-button-primary text-theme-button-secondary text-theme-h4 font-semibold text-center">
+          {/* pt keeps the glow clear of the pill (Figma note). */}
+          <div className="w-full min-h-[44px] flex items-center justify-center px-4 py-2 mt-theme-general rounded-theme-chip border border-theme-line bg-theme-button-primary text-theme-button-secondary text-theme-h4 font-semibold text-center">
             {sentenceText}
           </div>
-          <ReplayButton onClick={() => playClip()} />
+        </button>
+
+        <div className="pt-theme-general">
           <ToneChipRow activeTone={activeTone} busy={busy} onSelect={playToned} />
         </div>
       </div>

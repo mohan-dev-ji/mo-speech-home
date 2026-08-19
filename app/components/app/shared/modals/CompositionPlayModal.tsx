@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { CompositionBlock } from '@/app/components/app/shared/ui/composition/CompositionBlock';
 import { PlayModalBackdrop } from '@/app/components/app/shared/ui/PlayModalBackdrop';
 import { useTranslations } from 'next-intl';
-import { ReplayButton } from '@/app/components/app/shared/ui/ReplayButton';
+import { usePlayPulse } from '@/app/hooks/usePlayPulse';
+import {
+  PLAY_SURFACE_MIN_H, PLAY_SURFACE_ZOOM_CLASS, playSurfaceTransform,
+} from '@/app/components/app/shared/ui/playSurface';
 import { ToneChipRow } from '@/app/components/app/shared/ui/ToneChipRow';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
 import type { PlayBlock } from '@/app/components/app/shared/ui/composition/blocks';
@@ -12,10 +15,18 @@ import { voiceForResolvedLocale } from '@/lib/audio/resolveSpokenVoice';
 import type { Tone } from '@/lib/audio/tonePresets';
 
 // Block play modal (ADR-015). Shows the whole composition at once and steps a
-// yellow glow through each block in time with its audio. Replay re-runs the
-// sequence; tapping a block cancels the run and plays just that block; clicking
-// the backdrop closes. A block with no stored clip falls back to TTS of its
-// label/name (better than silence).
+// yellow glow through each block in time with its audio. Tapping anywhere on the
+// strip re-runs the whole sequence in order; clicking the backdrop closes. A
+// block with no stored clip falls back to TTS of its label/name (better than
+// silence). Individual blocks are not tap targets: one big control beats a row
+// of small ones to aim at.
+//
+// The surface matches SentencePlayModal's (shared `playSurface` tokens): same
+// height, same zoom pulse, no Replay button — a block sentence and a fluent one
+// are the same object to the student, so they should not behave like two
+// different screens. It carries no panel fill of its own, unlike fluent: the
+// blocks are already cards on their own backgrounds, and they fill the surface,
+// so a tint behind them would only be visible in the gaps.
 export function CompositionPlayModal({
   isOpen, blocks, voiceId, onClose,
 }: { isOpen: boolean; blocks: PlayBlock[]; voiceId: string; onClose: () => void }) {
@@ -31,7 +42,10 @@ export function CompositionPlayModal({
   const [fluentPlaying, setFluentPlaying] = useState(false);
   const [activeTone, setActiveTone] = useState<Tone | null>(null);
   const [busy, setBusy] = useState(false);
+  // Tap feedback on the replay surface — a brief scale-up that eases back.
+  const { zoom, pulse, reset: resetPulse } = usePlayPulse(isOpen);
   const t = useTranslations('tone');
+  const tTalker = useTranslations('talker');
   const { showToast } = useToast();
 
   function ttsText(b: PlayBlock) { return b.kind === 'word' ? b.label : b.name; }
@@ -84,15 +98,6 @@ export function CompositionPlayModal({
     if (runIdRef.current === myRun) setActiveIndex(null);
   }
 
-  function playSingle(i: number) {
-    const myRun = ++runIdRef.current;   // cancel any running sequence
-    stopActive();
-    setFluentPlaying(false);
-    setActiveTone(null);
-    setActiveIndex(i);
-    playOne(blocks[i], myRun).then(() => { if (runIdRef.current === myRun) setActiveIndex(null); });
-  }
-
   // Fluent tone playback (Phase 15, Thread 2): join the blocks in authored-language
   // order into one utterance and synthesise it with the chosen tone via Gemini —
   // ONE whole-utterance clip, glow held on all blocks. Distinct from the stepped
@@ -130,7 +135,19 @@ export function CompositionPlayModal({
     });
   }
 
-  function close() { runIdRef.current++; stopActive(); setFluentPlaying(false); setActiveTone(null); setBusy(false); onClose(); }
+  // Tapping the surface (anywhere but a block) restarts the stepped sequence.
+  function handleReplay() {
+    pulse();
+    setFluentPlaying(false);
+    setActiveTone(null);
+    runSequence();
+  }
+
+  function close() {
+    runIdRef.current++; stopActive(); resetPulse();
+    setFluentPlaying(false); setActiveTone(null); setBusy(false);
+    onClose();
+  }
 
   useEffect(() => {
     if (isOpen) runSequence();
@@ -139,15 +156,24 @@ export function CompositionPlayModal({
   }, [isOpen]);
 
   if (!isOpen) return null;
+
   return (
-    <PlayModalBackdrop onClose={close} className="flex-col items-center justify-center gap-8 p-8">
-      <div className="flex flex-wrap gap-4 justify-center max-w-5xl" onClick={(e) => e.stopPropagation()}>
+    <PlayModalBackdrop onClose={close} className="flex-col items-center justify-center gap-theme-gap p-8">
+      {/* The whole block strip is the replay control — the blocks themselves are
+          not tappable, so there is one target rather than a row of small ones. */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); handleReplay(); }}
+        aria-label={tTalker('replay')}
+        className={`flex flex-wrap items-center justify-center gap-theme-gap p-theme-general rounded-theme max-w-[min(95vw,1200px)] ${PLAY_SURFACE_MIN_H} ${PLAY_SURFACE_ZOOM_CLASS}`}
+        style={{ transform: playSurfaceTransform(zoom) }}
+      >
         {blocks.map((b, i) => (
-          <CompositionBlock key={i} block={b} active={activeIndex === i || fluentPlaying} onTap={() => playSingle(i)} />
+          <CompositionBlock key={i} block={b} size="lg" active={activeIndex === i || fluentPlaying} />
         ))}
-      </div>
-      <div className="flex flex-col items-center gap-theme-gap" onClick={(e) => e.stopPropagation()}>
-        <ReplayButton onClick={() => { setFluentPlaying(false); setActiveTone(null); runSequence(); }} />
+      </button>
+
+      <div className="pt-theme-general" onClick={(e) => e.stopPropagation()}>
         <ToneChipRow activeTone={activeTone} busy={busy} onSelect={playFluent} />
       </div>
     </PlayModalBackdrop>
