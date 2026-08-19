@@ -1,6 +1,12 @@
 # New-session prompt — `authoredLanguage` for library modules (phase-23)
 
-Paste the block below into a fresh Claude Code session.
+Start a fresh Claude Code session **from the worktree**, then paste the block below:
+
+```bash
+cd /Users/mohanveraitch/Projects/mo-speech-home/.claude/worktrees/phase-23-library-module-authored-language
+```
+
+The worktree already exists on branch `worktree-phase-23-library-module-authored-language` (branched from `origin/main` @ 663f789) with `npm install` done. It runs in parallel with phase-20 (another worktree) and MOS-13 (on `main`) — hence the worktree instead of the usual work-on-main convention.
 
 ---
 
@@ -21,8 +27,29 @@ Content **installed from a library module** (the default manifest that seeds new
 2. **Publish** flow (category/list/folder → `libraryModules`): capture the source profile record's `authoredLanguage` onto the module. Find the publish mutations (grep `libraryModules` + `insert`/`publish` in `convex/profileCategories.ts`, `convex/profileFolders.ts`, `convex/profileLists.ts`, and `convex/contentModules/*`).
 3. **Install** flow (`convex/lib/contentModuleInstall.ts`): set `authoredLanguage` on the created `profileFolders`/`profileCategories`/`profileLists` from the module's value, using the same conditional-spread pattern already used there for sentences/phrases.
 4. Runtime fallback `?? DEFAULT_LOCALE` for legacy modules (no migration). Optionally note a first-key backfill for existing library modules, as ADR-019/020 did.
-5. Record as an ADR (extends ADR-019/020). Verify with `tsc --noEmit` + `tsc -p convex/tsconfig.json` + eslint; no unit-test runner exists (browser acceptance test is owner-run).
+5. Record as an ADR (extends ADR-019/020). **Use ADR-022** — it is reserved for you. Phase-20 Stage 5 is running in parallel and has been told to take 023, so do not renumber. Verify with `tsc --noEmit` + `tsc -p convex/tsconfig.json` + eslint; no unit-test runner exists (browser acceptance test is owner-run).
 
-**Constraints (this repo):** work on `main` (no worktree); no `npm run dev` (owner runs the dev server); no `npx convex dev` — type-check Convex with `source ~/.nvm/nvm.sh && nvm use 20.17.0 && npx tsc -p convex/tsconfig.json`. Save the plan to `docs/4-builds/plans/phase-23-*.md`. Read `docs/4-builds/decisions/ADR-019-list-authored-language.md` and `ADR-020-category-folder-authored-language.md` first for the model.
+**Environment — read this before running anything. Three streams of work are live at once, so these are hard constraints, not preferences:**
+
+- **Stay in this worktree.** Do NOT create another worktree, do NOT `git checkout main`, do NOT push or merge to `main`. Commit to `worktree-phase-23-library-module-authored-language` and hand back — the owner merges.
+- **Never run `npx convex dev`.** The owner runs it on `main`, and it is the single writer to the shared dev deployment. Running it here would spin up an anonymous local backend and rewrite `.env.local`.
+- **Never run `npm run dev`.** Two dev servers are already up (main + the phase-20 worktree). A third would not help: this worktree cannot deploy the schema change, so it could not exercise it anyway.
+- **This worktree has no `.env.local` and needs none.** Nothing in this task runs a script or hits a backend.
+- **Do not touch `scripts/` or `lib/audio/`** — phase-20 (`docs/4-builds/plans/phase-20-en-gb-news-m-reseed-plan.md`) is mid-flight in a sibling worktree and owns those paths.
+- `convex/_generated/` is committed, so type-checks work without a deploy. This task edits existing mutations and adds no new Convex functions, so `_generated` should not drift — if you find yourself needing to regenerate it, stop and flag it.
+
+**Verification (the whole toolbox — there is no test runner):**
+
+```bash
+npx tsc --noEmit
+npx tsc -p convex/tsconfig.json
+npx eslint <files you changed>
+```
+
+Baseline recorded on a clean checkout of this worktree: `npx tsc --noEmit` emits exactly one pre-existing, unrelated error — `lib/stripe.ts(8,3): error TS2322` (Stripe API-version literal). That is the baseline, not your regression. `npx tsc -p convex/tsconfig.json` is **clean** — keep it clean. Node is already 20.17.0 here; if a shell reports otherwise, prefix with `source ~/.nvm/nvm.sh && nvm use 20.17.0`.
+
+**Browser acceptance is deferred and owner-run.** It cannot happen in this worktree — the schema field only reaches the backend once the branch merges to `main`, where `convex dev` pushes it. Finish at "type-checks clean + committed", and say plainly in your handoff that runtime behaviour is unverified.
+
+**Other constraints:** save the plan to `docs/4-builds/plans/phase-23-*.md`. Read `docs/4-builds/decisions/ADR-019-list-authored-language.md` and `ADR-020-category-folder-authored-language.md` first for the model.
 
 **Non-goals:** symbol labels (no board-level revert; out of scope, same as ADR-020); re-doing lists/categories/folders/sentences/phrases (all shipped); any change to the interactive create paths (already set `authoredLanguage`).
