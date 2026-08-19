@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type ThemeRow = {
   slug: string;
@@ -103,16 +104,16 @@ export function EditThemeLifecycleModal({ theme, open, onOpenChange }: Props) {
           </div>
 
           <Field label="Tier override">
-            <select
+            <Select
               value={tierOverride}
               onChange={(e) => setTierOverride(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+              variant="admin"
             >
               <option value="">— Use default ({theme.defaultTier})</option>
               <option value="free">Free</option>
               <option value="pro">Pro</option>
               <option value="max">Max</option>
-            </select>
+            </Select>
           </Field>
 
           <div className="flex items-center gap-2">

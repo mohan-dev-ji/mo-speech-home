@@ -18,6 +18,7 @@ import {
   CUSTOM_ACCESS_REASONS,
   type CustomAccessReason,
 } from "@/app/components/admin/constants";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type Props = {
   userId: Id<"users">;
@@ -101,17 +102,17 @@ export function GrantCustomAccessModal({
             <label className="text-caption font-medium text-muted-foreground uppercase tracking-wider">
               Reason
             </label>
-            <select
+            <Select
               value={reason}
               onChange={(e) => setReason(e.target.value as CustomAccessReason)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+              variant="admin"
             >
               {CUSTOM_ACCESS_REASONS.map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div className="space-y-1.5">

@@ -7,6 +7,7 @@ import { AccessBadge } from "@/app/components/admin/ui/AccessBadge";
 import { StripeLink } from "@/app/components/admin/ui/StripeLink";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
 import { formatDate } from "@/lib/utils";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type AdminUserRow = {
   _id: string;
@@ -92,13 +93,15 @@ export function UsersAdminTable({ users }: Props) {
           <label className="text-caption font-medium text-muted-foreground uppercase tracking-wider block">
             Status
           </label>
-          <select
+          <Select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value as StatusFilter);
               setPage(0);
             }}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+            variant="admin"
+            wrapperClassName="w-fit"
+            className="py-1.5"
           >
             <option value="all">All statuses</option>
             <option value="active">Active</option>
@@ -106,7 +109,7 @@ export function UsersAdminTable({ users }: Props) {
             <option value="past_due">Past due</option>
             <option value="expired">Expired</option>
             <option value="trial">Free (legacy)</option>
-          </select>
+          </Select>
         </div>
         <div className="ml-auto text-caption text-muted-foreground">
           {filtered.length} of {users.length}

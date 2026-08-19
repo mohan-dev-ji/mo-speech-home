@@ -11,6 +11,7 @@ import type { Draft, AudioMode, TextSize, CardShape } from './types';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE, LANGUAGES, getLanguage } from '@/lib/languages/registry';
 import { voiceForLanguage, personaOf } from '@/lib/audio/resolveVoiceId';
+import { Select } from '@/app/components/app/shared/ui/Select';
 
 type Props = {
   draft: Draft;
@@ -351,21 +352,17 @@ export function PropertiesPanel({
           isOpen={openSections.has('language')}
           onToggle={() => toggleSection('language')}
         >
-          <select
+          <Select
             value={draft.pinnedLanguage ?? ''}
             onChange={(e) => patch({ pinnedLanguage: e.target.value || undefined })}
-            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
-            style={{
-              background: 'var(--theme-symbol-bg)',
-              color: 'var(--theme-text)',
-              border: '1px solid var(--theme-button-highlight)',
-            }}
+            className="py-2"
+            style={{ border: '1px solid var(--theme-button-highlight)' }}
           >
             <option value="">{t('languageAuto')}</option>
             {LANGUAGES.map((l) => (
               <option key={l.code} value={l.code}>{l.nativeLabel}</option>
             ))}
-          </select>
+          </Select>
         </AccordionSection>
       )}
 
@@ -765,22 +762,18 @@ export function PropertiesPanel({
           isOpen={openSections.has('category')}
           onToggle={() => toggleSection('category')}
         >
-          <select
+          <Select
             value={draft.profileCategoryId}
             onChange={(e) => patch({ profileCategoryId: e.target.value as Draft['profileCategoryId'] })}
-            className="w-full rounded-theme-sm px-3 py-2 text-theme-s outline-none"
-            style={{
-              background: 'var(--theme-symbol-bg)',
-              color: 'var(--theme-text)',
-              border: '1px solid var(--theme-button-highlight)',
-            }}
+            className="py-2"
+            style={{ border: '1px solid var(--theme-button-highlight)' }}
           >
             <option value="" disabled>{t('categoryPlaceholder')}</option>
             {categories?.map((cat) => {
               const name = displayString(cat.name, language, DEFAULT_LOCALE);
               return <option key={cat._id} value={cat._id}>{name}</option>;
             })}
-          </select>
+          </Select>
 
           {/* Inline create — "+ New category" */}
           {creatingCategory ? (

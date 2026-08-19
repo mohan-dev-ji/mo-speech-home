@@ -13,6 +13,7 @@ import {
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
 import type { LanguageTranslationStatus } from "@/app/components/admin/constants";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type LanguageRow = {
   code: string;
@@ -111,28 +112,28 @@ export function EditLanguageLifecycleModal({
           </div>
 
           <Field label="Translation status">
-            <select
+            <Select
               value={status}
               onChange={(e) => setStatus(e.target.value as LanguageTranslationStatus)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+              variant="admin"
             >
               <option value="machine-translated">Machine-translated (hidden in prod)</option>
               <option value="beta">Beta (preview pill in pickers)</option>
               <option value="stable">Stable (no pill)</option>
-            </select>
+            </Select>
           </Field>
 
           <Field label="Tier override">
-            <select
+            <Select
               value={tierOverride}
               onChange={(e) => setTierOverride(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+              variant="admin"
             >
               <option value="">— Default (free)</option>
               <option value="free">Free</option>
               <option value="pro">Pro</option>
               <option value="max">Max</option>
-            </select>
+            </Select>
           </Field>
 
           <Field label="Notes">

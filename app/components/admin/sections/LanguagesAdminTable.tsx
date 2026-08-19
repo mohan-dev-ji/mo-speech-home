@@ -20,6 +20,7 @@ import type {
 } from "@/app/components/admin/constants";
 import { formatDate } from "@/lib/utils";
 import { MoreHorizontal, Plus, Languages } from "lucide-react";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type LanguageRow = {
   code: string;
@@ -378,17 +379,19 @@ function FilterSelect({
       <label className="text-caption font-medium text-muted-foreground uppercase tracking-wider block">
         {label}
       </label>
-      <select
+      <Select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-border bg-background px-3 py-1.5 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+        variant="admin"
+        wrapperClassName="w-fit"
+        className="py-1.5"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }

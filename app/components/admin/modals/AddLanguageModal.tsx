@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/app/components/app/shared/ui/Dialog";
 import { Button } from "@/app/components/app/shared/ui/Button";
+import { Select } from "@/app/components/app/shared/ui/Select";
 
 type Props = {
   open: boolean;
@@ -131,14 +132,14 @@ export function AddLanguageModal({ open, onOpenChange, existingCodes, onAdded }:
               />
             </Field>
             <Field label="Direction">
-              <select
+              <Select
                 value={dir}
                 onChange={(e) => setDir(e.target.value as "ltr" | "rtl")}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-small focus:outline-none focus:ring-2 focus:ring-primary/50"
+                variant="admin"
               >
                 <option value="ltr">LTR</option>
                 <option value="rtl">RTL (Arabic / Hebrew)</option>
-              </select>
+              </Select>
             </Field>
           </div>
 
