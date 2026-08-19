@@ -89,6 +89,11 @@ export const getModuleDetail = query({
     let sentences: Array<{
       name: Record<string, string>;
       text: Record<string, string> | string | null;
+      // ADR-016 variant metadata. A module ships EVERY language variant (that is
+      // how install seeds each board), so the library page has to collapse them
+      // to one row per logical sentence — and it cannot without these two.
+      authoredLanguage: string | null;
+      variantGroupKey: string | null;
       slots: Array<{ order: number } & ResolvedSymbol>;
     }> = [];
 
@@ -152,6 +157,8 @@ export const getModuleDetail = query({
         (module.items as ContentItems["sentences"]).map(async (sent) => ({
           name: sent.name,
           text: sent.text ?? null,
+          authoredLanguage: sent.authoredLanguage ?? null,
+          variantGroupKey: sent.variantGroupKey ?? null,
           slots: await Promise.all(
             sent.slots.map(async (slot, i) => ({
               order: i,

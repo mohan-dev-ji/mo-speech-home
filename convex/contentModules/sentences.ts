@@ -24,6 +24,22 @@ import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
+/**
+ * How many LOGICAL sentences a module holds — sibling language variants share a
+ * `variantGroupKey` and count once. `items.length` counts every variant, which
+ * made a 4-sentence module advertise "12 sentences" once it had 3 languages.
+ *
+ * Locale-independent by construction: collapsing always yields exactly one row
+ * per group whatever the board language, so this needs no locale argument and
+ * no per-locale caching.
+ */
+function logicalSentenceCount(
+  items: readonly { variantGroupKey?: string }[],
+): number {
+  // Singletons carry no group key — key them by index so they never merge.
+  return new Set(items.map((it, i) => it.variantGroupKey ?? `__solo_${i}`)).size;
+}
+
 export const installSentenceModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
@@ -112,7 +128,7 @@ export const getPublicSentenceCatalogue = query({
             | "free"
             | "pro"
             | "max",
-          counts: { sentences: module.items.length },
+          counts: { sentences: logicalSentenceCount(module.items) },
         };
       })
       .filter((m): m is NonNullable<typeof m> => m !== null);
@@ -229,7 +245,7 @@ export const listAllSentenceModulesForAdmin = query({
           | "free"
           | "pro"
           | "max",
-        counts: { sentences: module.items.length },
+        counts: { sentences: logicalSentenceCount(module.items) },
       };
     });
   },

@@ -184,3 +184,38 @@ export function collapseVariants<T extends VariantRow>(
     );
   });
 }
+
+/**
+ * Collapse PUBLISHED MODULE items to one row per logical sentence, preferring the
+ * locale's variant. A module ships every language variant — that is how install
+ * seeds each board — so any surface rendering a module for one locale has to
+ * collapse them, or it lists the same sentence once per language.
+ *
+ * Sibling variants share `variantGroupKey` (the source row's original `_id`),
+ * carried through publish; see `libraryModuleSentenceItems` in convex/schema.ts.
+ *
+ * Distinct from `collapseVariants` above: a module item has no `_id`, so the
+ * SOURCE row cannot be identified among its siblings. When the locale has no
+ * variant we therefore fall back to the first in publish order, not to the source.
+ */
+export function collapseModuleVariants<
+  T extends { authoredLanguage?: string | null; variantGroupKey?: string | null },
+>(items: readonly T[], locale: string): T[] {
+  const groups = new Map<string, T[]>();
+  const order: string[] = [];
+  items.forEach((item, i) => {
+    // Singletons carry no group key — key them by index so they never merge.
+    const key = item.variantGroupKey ?? `__solo_${i}`;
+    const sibs = groups.get(key);
+    if (sibs) {
+      sibs.push(item);
+    } else {
+      groups.set(key, [item]);
+      order.push(key);
+    }
+  });
+  return order.map((key) => {
+    const sibs = groups.get(key)!;
+    return sibs.find((s) => (s.authoredLanguage ?? DEFAULT_LOCALE) === locale) ?? sibs[0];
+  });
+}

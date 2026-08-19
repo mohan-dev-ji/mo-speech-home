@@ -20,6 +20,7 @@ import {
 } from "@/app/components/marketing/ui/moduleClass";
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
+import { collapseModuleVariants } from "@/lib/languages/variants";
 
 type LocalisedString = Record<string, string>;
 
@@ -50,6 +51,9 @@ type ModuleDetail = {
   sentences: Array<{
     name: LocalisedString;
     text: LocalisedString | string | null;
+    // ADR-016 variant metadata — a module ships every language variant.
+    authoredLanguage: string | null;
+    variantGroupKey: string | null;
     slots: Symbol[];
   }>;
 };
@@ -89,6 +93,23 @@ export function ModuleDetailContent({
   locale: string;
 }) {
   const t = useTranslations("library");
+  // One row per logical sentence, in this locale. Without this the page lists
+  // the same sentence once per published language variant.
+  const sentences = collapseModuleVariants(module.sentences, locale);
+
+  // Prefer `text` over `name`: a variant is created by copying the source's
+  // name (English keys) and only its TEXT gets translated — and publish drops
+  // variants whose text still needs translating, so a published variant always
+  // has translated text and a stale English name. Same order as the app's own
+  // renderer in SentencesModeContent.
+  const sentenceTitle = (sent: (typeof sentences)[number]) => {
+    const text =
+      typeof sent.text === "string"
+        ? sent.text
+        : displayString(sent.text ?? undefined, locale, DEFAULT_LOCALE);
+    return text || displayString(sent.name, locale, DEFAULT_LOCALE);
+  };
+
   const name = displayString(module.name, locale, DEFAULT_LOCALE);
   const description = module.description
     ? displayString(module.description, locale, DEFAULT_LOCALE)
@@ -150,8 +171,8 @@ export function ModuleDetailContent({
             {module.counts.lists > 0 && (
               <li>{t("itemsLists", { count: module.counts.lists })}</li>
             )}
-            {module.counts.sentences > 0 && (
-              <li>{t("itemsSentences", { count: module.counts.sentences })}</li>
+            {sentences.length > 0 && (
+              <li>{t("itemsSentences", { count: sentences.length })}</li>
             )}
           </ul>
         </div>
@@ -201,16 +222,16 @@ export function ModuleDetailContent({
         </section>
       )}
 
-      {module.sentences.length > 0 && (
+      {sentences.length > 0 && (
         <section className="border-t border-border pt-8 mb-10">
           <h2 className="text-subheading font-semibold text-foreground mb-5">
             {t("detailSectionSentences")}
           </h2>
           <div className="flex flex-col gap-8">
-            {module.sentences.map((sent, si) => (
+            {sentences.map((sent, si) => (
               <div key={si} className="flex flex-col gap-3">
                 <h3 className="text-body font-medium text-foreground">
-                  {displayString(sent.name, locale, DEFAULT_LOCALE)}
+                  {sentenceTitle(sent)}
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {sent.slots.map((slot) => (
