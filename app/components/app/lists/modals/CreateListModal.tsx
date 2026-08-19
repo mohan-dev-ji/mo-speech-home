@@ -61,7 +61,7 @@ export function CreateListModal({ isOpen, onClose, onCreate, showGroupPicker = f
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('createModalTitle')}</DialogTitle>
         </DialogHeader>

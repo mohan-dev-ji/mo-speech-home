@@ -8,6 +8,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { Select } from '@/app/components/app/shared/ui/Select';
 
 /**
  * Where a newly created thing should go. The picker REPORTS this; it never
@@ -28,6 +29,11 @@ export function isGroupSelectionReady(sel: GroupSelection): boolean {
   return sel.kind === 'new' ? sel.name.trim().length > 0 : true;
 }
 
+// Sentinel option values. Folder options carry their real id, so these two only
+// have to avoid colliding with a Convex id.
+const DRAFTS_VALUE = '__drafts';
+const NEW_VALUE = '__new';
+
 type Props = {
   tree: 'sentences' | 'lists';
   value: GroupSelection;
@@ -38,6 +44,10 @@ type Props = {
  * "Where does this go?" — the tree's folders, Drafts, and an inline new group.
  * Shared by the talker's save dialog and Home's two create modals so the
  * question looks and behaves the same wherever content is created.
+ *
+ * A single <select> rather than a row per folder: a profile with a dozen groups
+ * pushed the create modals past the viewport and cut off the footer buttons.
+ * Same shape as the symbol editor's category picker.
  */
 export function GroupPicker({ tree, value, onChange }: Props) {
   const t = useTranslations('groupPicker');
@@ -46,13 +56,14 @@ export function GroupPicker({ tree, value, onChange }: Props) {
   // Kept across a toggle away and back, so a mistyped name isn't lost.
   const [newName, setNewName] = useState('');
 
-  const rowStyle = (selected: boolean) => ({
-    background: selected ? 'var(--theme-primary)' : 'var(--theme-symbol-bg)',
-    color: selected ? 'var(--theme-alt-text)' : 'var(--theme-text)',
-    border: `2px solid ${selected ? 'var(--theme-primary)' : 'transparent'}`,
-  });
+  const selectValue =
+    value.kind === 'folder' ? value.id : value.kind === 'new' ? NEW_VALUE : DRAFTS_VALUE;
 
-  const rowClass = 'text-left px-3 py-2.5 rounded-theme-sm text-theme-s font-medium transition-colors';
+  function handleSelect(next: string) {
+    if (next === DRAFTS_VALUE) onChange({ kind: 'drafts' });
+    else if (next === NEW_VALUE) onChange({ kind: 'new', name: newName });
+    else onChange({ kind: 'folder', id: next as Id<'profileFolders'> });
+  }
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -60,59 +71,34 @@ export function GroupPicker({ tree, value, onChange }: Props) {
         {t('label')}
       </label>
 
-      <div className="flex flex-col gap-2 max-h-[40vh] overflow-auto">
-        {(folders ?? []).map((f) => {
-          const selected = value.kind === 'folder' && value.id === f._id;
-          return (
-            <button
-              key={f._id}
-              type="button"
-              onClick={() => onChange({ kind: 'folder', id: f._id })}
-              className={rowClass}
-              style={rowStyle(selected)}
-            >
-              {displayString(f.name, language, DEFAULT_LOCALE)}
-            </button>
-          );
-        })}
+      <Select value={selectValue} onChange={(e) => handleSelect(e.target.value)}>
+        <option value={DRAFTS_VALUE}>{t('drafts')}</option>
+        {(folders ?? []).map((f) => (
+          <option key={f._id} value={f._id}>
+            {displayString(f.name, language, DEFAULT_LOCALE)}
+          </option>
+        ))}
+        <option value={NEW_VALUE}>{t('newGroup')}</option>
+      </Select>
 
-        <button
-          type="button"
-          onClick={() => onChange({ kind: 'drafts' })}
-          className={rowClass}
-          style={rowStyle(value.kind === 'drafts')}
-        >
-          {t('drafts')}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onChange({ kind: 'new', name: newName })}
-          className={rowClass}
-          style={rowStyle(value.kind === 'new')}
-        >
-          {t('newGroup')}
-        </button>
-
-        {value.kind === 'new' && (
-          <input
-            type="text"
-            value={newName}
-            autoFocus
-            onChange={(e) => {
-              setNewName(e.target.value);
-              onChange({ kind: 'new', name: e.target.value });
-            }}
-            placeholder={t('newGroupPlaceholder')}
-            className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
-            style={{
-              background: 'var(--theme-symbol-bg)',
-              color: 'var(--theme-text)',
-              border: '1px solid var(--theme-line)',
-            }}
-          />
-        )}
-      </div>
+      {value.kind === 'new' && (
+        <input
+          type="text"
+          value={newName}
+          autoFocus
+          onChange={(e) => {
+            setNewName(e.target.value);
+            onChange({ kind: 'new', name: e.target.value });
+          }}
+          placeholder={t('newGroupPlaceholder')}
+          className="w-full px-3 py-2.5 rounded-theme-sm text-theme-s outline-none"
+          style={{
+            background: 'var(--theme-symbol-bg)',
+            color: 'var(--theme-text)',
+            border: '1px solid var(--theme-line)',
+          }}
+        />
+      )}
     </div>
   );
 }

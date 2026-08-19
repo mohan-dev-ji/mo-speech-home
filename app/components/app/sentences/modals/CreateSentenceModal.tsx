@@ -72,7 +72,7 @@ export function CreateSentenceModal({ isOpen, onClose, onCreate, showGroupPicker
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title ?? t('createModalTitle')}</DialogTitle>
         </DialogHeader>
