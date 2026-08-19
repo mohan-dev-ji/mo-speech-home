@@ -71,7 +71,11 @@ export type SymbolEditorModalProps = {
   // a way to pre-fill the search that doesn't drag the label machinery in.
   initialSearchQuery?: string;
   onClose: () => void;
-  onSave: (id: Id<'profileSymbols'>) => void;
+  // The second argument is the category the symbol was filed into. Callers that
+  // preset the category already know it; Home's Create-a-Symbol card doesn't —
+  // the picker inside this modal is where it gets chosen, so it has to come back
+  // out for the post-save redirect.
+  onSave: (id: Id<'profileSymbols'>, profileCategoryId: Id<'profileCategories'>) => void;
   onListItemSave?: (result: ListItemSaveResult) => void;
   onSentenceSlotSave?: (result: SentenceSlotSaveResult) => void;
   // imageOnly mode — pure image picker (group covers, list items).
@@ -892,7 +896,7 @@ export function SymbolEditorModal({
         });
       }
 
-      onSave(savedId);
+      onSave(savedId, catId);
       setSaveSuccess(true);
       setTimeout(() => { setSaveSuccess(false); onClose(); }, 700);
     } catch {

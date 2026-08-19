@@ -26,9 +26,13 @@ import type { GroupSelection } from '@/app/components/app/shared/ui/GroupPicker'
  *   2. Nav cards → Categories / Lists / Sentences / Search
  *   3. Create cards → the matching create modals
  *
- * Owns the create-modal state + mutations; the create handlers mirror the
- * Categories / Lists / Sentences listings so a Home-created item lands in the
- * same place with the same edit-mode hand-off.
+ * Owns the create-modal state + mutations. Every create handler ends by routing
+ * to the CONTAINER the user filed the new item into — the chosen group for a
+ * list or sentence, the chosen category for a symbol, the new board for a
+ * category — so you land looking at where it went, with the destination's Edit
+ * toggle one click away. Deliberately no `?edit=1`: Home's cards drop you at the
+ * module, not inside edit mode (the feature pages' own create buttons still do
+ * the straight-into-edit hand-off, which is right when you're already there).
  */
 export function HomeContent() {
   const router = useRouter();
@@ -75,7 +79,7 @@ export function HomeContent() {
 
   async function handleCreateCategory(name: string, rows: Array<{ label: string; autoMatch: boolean }>) {
     const id = await createCategory(name, rows);
-    router.push(`/${locale}/categories/${id}?edit=1`);
+    router.push(`/${locale}/categories/${id}`);
   }
 
   async function handleCreateList(
@@ -121,7 +125,7 @@ export function HomeContent() {
       );
       await updateListItems({ profileListId: id, items });
     }
-    router.push(`/${locale}/lists/${id}?edit=1`);
+    router.push(`/${locale}/lists/folder/${folderId ?? 'ungrouped'}`);
   }
 
   async function handleCreateSentence(
@@ -146,7 +150,7 @@ export function HomeContent() {
       ...(slots ? { slots } : {}),
       ...(folderId ? { folderId } : {}),
     });
-    router.push(`/${locale}/sentences`);
+    router.push(`/${locale}/sentences/folder/${folderId ?? 'ungrouped'}`);
   }
 
   function handleCreateSymbol() {
@@ -202,7 +206,10 @@ export function HomeContent() {
           voiceId={voiceId}
           editorMode="categoryBoard"
           onClose={() => setSymbolOpen(false)}
-          onSave={() => setSymbolOpen(false)}
+          onSave={(_id, profileCategoryId) => {
+            setSymbolOpen(false);
+            router.push(`/${locale}/categories/${profileCategoryId}`);
+          }}
         />
       )}
 
