@@ -74,15 +74,45 @@ the marketing dark toggle. That is the deliberate choice, not an oversight: Symb
 drawing that needs a light ground to read, and the preview should look like what the installer
 actually gets. In light mode `#FAFAFA` sits against the page's existing `#F5F5F5` tiles — 2% apart.
 
-### 2.4 Blocks resolve against `authoredLanguage`, not the page locale
+### 2.4 Two steps: the board picks the variant, the variant picks the language
 
-`blocksFromUnits(units, sent.authoredLanguage ?? DEFAULT_LOCALE)`.
+These are separate and easy to conflate, so both are stated.
 
-This is the app's rule (ADR-015/016): a block sentence's structure is language-specific and resolves
-against the language it was authored in, never a viewer's language. Because the page already
-collapses to the locale's variant these are normally the same value — but they diverge exactly when a
-locale has no variant and the collapse falls back to another, and there the authored language is the
-correct one.
+**Step 1 — which variant to show. Follows the page locale.** Already shipped, in
+`collapseModuleVariants`:
+
+```ts
+sibs.find((s) => (s.authoredLanguage ?? DEFAULT_LOCALE) === locale) ?? sibs[0]
+```
+
+If a variant exists for the page's language, **that** variant is shown. Only when none exists does it
+fall back to the first in publish order.
+
+**Step 2 — which language to read the chosen variant's labels in. Follows that variant.**
+
+```ts
+blocksFromUnits(sent.units, sent.authoredLanguage ?? DEFAULT_LOCALE)
+```
+
+In the normal case these are the same value: step 1 picked the Spanish variant, so its
+`authoredLanguage` *is* `es` and the labels resolve in Spanish.
+
+They differ only in the fallback case, and that is the whole point. Passing `locale` there would
+resolve an **English** variant's units against `es` — each unit label is a localised record, so some
+words would find a Spanish key and others would not, producing a half-Spanish sentence laid out in
+English word order. Passing `authoredLanguage` yields a coherent English sentence instead: clearly
+the untranslated one, rather than a mixture that looks like a bug.
+
+This is the app's own rule (ADR-015/016) — a block sentence's structure is language-specific and
+resolves against the language it was authored in, never a viewer's language.
+
+**This is not a theoretical edge case.** It is exactly the window after a new language is added and
+before old content has been re-authored into it: some sentences have the new variant, some do not,
+and the ones that do not should read as clean source-language content.
+
+*(Categories and lists have no variants at all — their names are localised records read with
+`displayString(name, locale, …)`, i.e. translation in place. Same outcome for a viewer, different
+mechanism, which is why they never needed collapsing.)*
 
 ## 3. Code shape
 
