@@ -20,7 +20,7 @@
 - **Styling is deliberately provisional on this surface.** Reuse `CompositionBlock` as-is. Its `var(--theme-*)` resolve to the `:root` Defaults on marketing (`globals.css` is imported by the root layout; `ThemeProvider` mounts only inside `AppProviders`), and the phrase box's zinc is already a plain JS constant. **CLAUDE.md rule 5 governs AAC UI, not the marketing site** — a hex literal or an existing marketing background class would be acceptable here, though this plan needs neither. The marketing design system comes in a later pass.
 - **Blocks stay light in dark mode.** That is the decision, not an oversight: SymbolStix art is line drawing that needs a light ground, and the preview should look like what the installer gets. Do not add dark-mode variants.
 - **Do not modify `CompositionBlock`, `blocksFromUnits`, the schema, or anything in the publish/install paths.**
-- **Dev server is already running on http://localhost:3000.** Do **not** run `npm run dev`. **Never run `npx convex dev`** — verify Convex types with `npx tsc -p convex/tsconfig.json`.
+- **The owner keeps a dev server on http://localhost:3000.** Do **not** start your own with `npm run dev`. If `:3000` is not responding, stop and ask rather than starting one — this repo's Convex env is wired to the running deployment. **Never run `npx convex dev`** — verify Convex types with `npx tsc -p convex/tsconfig.json`.
 - **Browser verification uses signed-in Chrome** (the `claude-in-chrome` tools). The library pages are public, but use the same browser for consistency.
 - **Work on `main`.** Do not create a branch. Stage only the two paths the commit lists — never `git add -A`.
 
