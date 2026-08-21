@@ -21,6 +21,8 @@ import {
 import { displayString } from "@/lib/languages/displayValue";
 import { DEFAULT_LOCALE } from "@/lib/languages/registry";
 import { collapseModuleVariants } from "@/lib/languages/variants";
+import { CompositionBlock } from "@/app/components/app/shared/ui/composition/CompositionBlock";
+import { blocksFromUnits, type CompositionUnitClient } from "@/app/components/app/shared/ui/composition/blocks";
 
 type LocalisedString = Record<string, string>;
 
@@ -54,6 +56,9 @@ type ModuleDetail = {
     // ADR-016 variant metadata — a module ships every language variant.
     authoredLanguage: string | null;
     variantGroupKey: string | null;
+    // ADR-015 — a block sentence's phrase grouping. `slots` is the flat mirror.
+    units: CompositionUnitClient[] | null;
+    playback: "sequence" | "fluent" | null;
     slots: Symbol[];
   }>;
 };
@@ -78,9 +83,15 @@ function SymbolTile({ symbol, locale }: { symbol: Symbol; locale: string }) {
           <span className="text-caption text-muted-foreground">—</span>
         )}
       </div>
-      <span className="text-caption text-foreground text-center line-clamp-2 leading-tight">
-        {label}
-      </span>
+      {/* Fluent sentence slots carry no label — the app renders them image-only
+          too. Rendering the span anyway left an empty element reserving layout
+          space under every sentence tile. Categories and lists always have a
+          label, so they are unaffected. */}
+      {label && (
+        <span className="text-caption text-foreground text-center line-clamp-2 leading-tight">
+          {label}
+        </span>
+      )}
     </div>
   );
 }
@@ -228,20 +239,45 @@ export function ModuleDetailContent({
             {t("detailSectionSentences")}
           </h2>
           <div className="flex flex-col gap-8">
-            {sentences.map((sent, si) => (
-              <div key={si} className="flex flex-col gap-3">
-                <h3 className="text-body font-medium text-foreground">
-                  {sentenceTitle(sent)}
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {sent.slots.map((slot) => (
-                    <div key={slot.order} className="w-20 shrink-0">
-                      <SymbolTile symbol={slot} locale={locale} />
+            {sentences.map((sent, si) => {
+              // A talker-saved sentence groups words into phrase units. Requires
+              // BOTH playback and non-empty units, mirroring the app's
+              // isSequenceRow — a legacy row with one but not the other falls
+              // back to flat rather than rendering something half-formed.
+              //
+              // The language is the SENTENCE's authoredLanguage, not the page
+              // locale. Collapsing already picked this locale's variant where one
+              // exists, so they normally match; they differ exactly when a locale
+              // has no variant, and there the authored language is correct — the
+              // alternative resolves an English variant's units against `es` and
+              // yields a half-Spanish sentence in English word order.
+              const blocks =
+                sent.playback === "sequence" && sent.units && sent.units.length > 0
+                  ? blocksFromUnits(sent.units, sent.authoredLanguage ?? DEFAULT_LOCALE)
+                  : null;
+              return (
+                <div key={si} className="flex flex-col gap-3">
+                  <h3 className="text-body font-medium text-foreground">
+                    {sentenceTitle(sent)}
+                  </h3>
+                  {blocks ? (
+                    <div className="flex flex-wrap items-end gap-3">
+                      {blocks.map((b, i) => (
+                        <CompositionBlock key={i} block={b} />
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="flex flex-wrap gap-3">
+                      {sent.slots.map((slot) => (
+                        <div key={slot.order} className="w-20 shrink-0">
+                          <SymbolTile symbol={slot} locale={locale} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

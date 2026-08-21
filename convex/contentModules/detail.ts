@@ -94,6 +94,11 @@ export const getModuleDetail = query({
       // to one row per logical sentence — and it cannot without these two.
       authoredLanguage: string | null;
       variantGroupKey: string | null;
+      // ADR-015 — the real shape of a talker-saved sentence. `slots` is the flat
+      // back-compat mirror; a block sentence's phrase grouping lives only here,
+      // so without these the library previews it as a row of loose tiles.
+      units: NonNullable<ContentItems["sentences"][number]["units"]> | null;
+      playback: NonNullable<ContentItems["sentences"][number]["playback"]> | null;
       slots: Array<{ order: number } & ResolvedSymbol>;
     }> = [];
 
@@ -159,6 +164,8 @@ export const getModuleDetail = query({
           text: sent.text ?? null,
           authoredLanguage: sent.authoredLanguage ?? null,
           variantGroupKey: sent.variantGroupKey ?? null,
+          units: sent.units ?? null,
+          playback: sent.playback ?? null,
           slots: await Promise.all(
             sent.slots.map(async (slot, i) => ({
               order: i,
