@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { usePreloadedQuery, type Preloaded } from "convex/react";
 import type { api } from "@/convex/_generated/api";
@@ -36,7 +37,19 @@ export function ModuleLibrary({
   initialTab = "categories",
 }: Props) {
   const t = useTranslations("library");
+  const router = useRouter();
   const [tab, setTab] = useState<TabKey>(initialTab);
+
+  // Switching tabs rewrites the URL to match, so the browser's own Back button
+  // returns to the tab the user left rather than to the Categories default.
+  // `replace`, not `push`: a tab is a view of one page, so walking back through
+  // every tab someone tried would be noise. It also means the entry a detail
+  // page is pushed onto already names the right tab, which is what makes Back
+  // out of a module land where it should. `scroll: false` keeps the grid still.
+  function selectTab(key: TabKey) {
+    setTab(key);
+    router.replace(`/${locale}/library/modules/${key}`, { scroll: false });
+  }
 
   const categoryModules = usePreloadedQuery(categories);
   const listModules = usePreloadedQuery(lists);
@@ -63,7 +76,7 @@ export function ModuleLibrary({
               key={tb.key}
               role="tab"
               aria-selected={active}
-              onClick={() => setTab(tb.key)}
+              onClick={() => selectTab(tb.key)}
               className={`-mb-px border-b-2 px-4 py-2 text-body font-medium transition-colors ${
                 active
                   ? "border-primary text-foreground"
