@@ -155,7 +155,13 @@ export function ModuleDetailContent({
 
       <header className="grid gap-6 items-start mb-10 md:grid-cols-[1fr_auto]">
         <div className="md:order-2 md:justify-self-end">
-          <div className="w-44 h-44 md:w-56 md:h-56 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+          {/* Same light-in-both-themes ground as the tiles and the library
+              card covers. Nothing is overlaid here, so the ground is the whole
+              change. */}
+          <div
+            className="w-44 h-44 md:w-56 md:h-56 rounded-lg overflow-hidden flex items-center justify-center"
+            style={{ background: "var(--theme-symbol-card-bg)" }}
+          >
             {coverSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

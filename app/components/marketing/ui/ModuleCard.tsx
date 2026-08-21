@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/app/components/app/shared/ui/Badge";
@@ -74,7 +75,13 @@ export function ModuleCard({
         className="flex flex-col group"
         aria-label={t("moduleViewLink", { name })}
       >
-        <div className="relative aspect-square bg-muted">
+        {/* Light in both themes, like every other symbol ground on the site:
+            SymbolStix covers are line drawings and `bg-muted` darkened them
+            into near-invisibility in dark mode. */}
+        <div
+          className="relative aspect-square"
+          style={{ background: "var(--theme-symbol-card-bg)" }}
+        >
           {coverSrc ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -86,7 +93,20 @@ export function ModuleCard({
           ) : (
             <div className="w-full h-full" aria-hidden />
           )}
-          <div className="absolute top-2 right-2">
+          {/* The badge is the one bit of text sitting ON the cover, so it has
+              to stop following the page theme now that the cover never darkens.
+              Pinning the two tokens that actually vary — the other variants'
+              colours (success/primary/warning) are identical in both themes —
+              keeps every badge readable without forking the shared Badge. */}
+          <div
+            className="absolute top-2 right-2"
+            style={
+              {
+                "--border": "229 229 229",
+                "--muted-foreground": "115 115 115",
+              } as CSSProperties
+            }
+          >
             <Badge variant={MODULE_CLASS_BADGE[cls]}>{tierLabel}</Badge>
           </div>
         </div>
