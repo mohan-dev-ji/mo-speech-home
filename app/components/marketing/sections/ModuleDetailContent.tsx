@@ -146,7 +146,9 @@ export function ModuleDetailContent({
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl">
       <Link
-        href={`/${locale}/library/modules`}
+        // Back to the tab this module came from, not the default one. A list
+        // opened from the Lists tab used to land the user on Categories.
+        href={`/${locale}/library/modules/${module.tree}`}
         className="inline-flex items-center gap-1 text-small text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ChevronLeft className="w-4 h-4" />

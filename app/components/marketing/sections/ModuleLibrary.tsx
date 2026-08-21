@@ -19,6 +19,13 @@ type Props = {
   lists: Preloaded<typeof api.contentModules.lists.getPublicListCatalogue>;
   sentences: Preloaded<typeof api.contentModules.sentences.getPublicSentenceCatalogue>;
   locale: string;
+  /**
+   * Which tab opens. Comes from the `/library/modules/[tree]` path segment, so
+   * a detail page's "back to library" can return to the tab its module came
+   * from. Switching tabs afterwards stays client-side — the seed only decides
+   * where the page starts.
+   */
+  initialTab?: TabKey;
 };
 
 export function ModuleLibrary({
@@ -26,9 +33,10 @@ export function ModuleLibrary({
   lists,
   sentences,
   locale,
+  initialTab = "categories",
 }: Props) {
   const t = useTranslations("library");
-  const [tab, setTab] = useState<TabKey>("categories");
+  const [tab, setTab] = useState<TabKey>(initialTab);
 
   const categoryModules = usePreloadedQuery(categories);
   const listModules = usePreloadedQuery(lists);
