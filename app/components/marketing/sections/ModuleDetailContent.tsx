@@ -268,7 +268,16 @@ export function ModuleDetailContent({
                   ? blocksFromUnits(sent.units, sent.authoredLanguage ?? DEFAULT_LOCALE)
                   : null;
               return (
-                <div key={si} className="flex flex-col gap-3">
+                // Each sentence sits on its own band so the title and its symbols
+                // read as one unit. A sentence is only as wide as its words, so
+                // without a full-width ground a short one and a long one look
+                // like unrelated fragments floating on the page. `zinc-500/5`
+                // rather than a solid grey: it tints whatever is behind it, so
+                // the band stays equally subtle in light and dark mode.
+                <div
+                  key={si}
+                  className="flex flex-col gap-3 rounded-lg border border-border bg-zinc-500/5 p-4 sm:p-5"
+                >
                   <h3 className="text-body font-medium text-foreground">
                     {sentenceTitle(sent)}
                   </h3>
