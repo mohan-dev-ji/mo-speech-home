@@ -70,7 +70,14 @@ function SymbolTile({ symbol, locale }: { symbol: Symbol; locale: string }) {
     : null;
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="w-full aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center">
+      {/* Same ground as CompositionBlock's word card, deliberately: SymbolStix
+          art is line drawing that needs a light background, so the tile must
+          not invert in dark mode the way `bg-muted` did. Sharing the token
+          rather than a hex keeps the two rows matched by construction. */}
+      <div
+        className="w-full aspect-square rounded-md overflow-hidden flex items-center justify-center"
+        style={{ background: "var(--theme-symbol-card-bg)" }}
+      >
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -80,7 +87,12 @@ function SymbolTile({ symbol, locale }: { symbol: Symbol; locale: string }) {
             className="w-full h-full object-contain p-2"
           />
         ) : (
-          <span className="text-caption text-muted-foreground">—</span>
+          // The em-dash placeholder sits INSIDE the now-always-light card, so it
+          // cannot use `text-muted-foreground` — that lightens in dark mode and
+          // would vanish. Pair the card's own ink with its background.
+          <span className="text-caption" style={{ color: "var(--theme-symbol-card-text)" }}>
+            —
+          </span>
         )}
       </div>
       {/* Fluent sentence slots carry no label — the app renders them image-only
