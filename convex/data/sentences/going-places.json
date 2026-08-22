@@ -1,258 +1,300 @@
 {
-  "colour": "sky",
+  "colour": "green",
   "coverImagePath": "symbols/places_i_go.png",
+  "defaultOrder": 2,
   "defaultTier": "free",
   "isDefault": true,
   "items": [
     {
+      "authoredLanguage": "en",
       "name": {
         "en": "I want to go outside"
       },
       "order": 0,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
           },
-          "imagePath": "symbols/i_want_to_go.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/want.png",
+          "label": {
+            "en": "want",
+            "es": "querer",
+            "hi": "चाहिए"
           },
-          "imagePath": "symbols/outside_1.png",
           "order": 1
-        }
-      ],
-      "text": {
-        "en": "I want to go outside"
-      },
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_want_to_go.png",
-          "kind": "word",
-          "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/to2.png",
+          "label": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
           },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 3
+        },
+        {
           "imagePath": "symbols/outside_1.png",
-          "kind": "word",
-          "order": 1
+          "label": {
+            "en": "outside",
+            "es": "afuera",
+            "hi": "बाहर"
+          },
+          "order": 4
         }
       ],
-      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
+      "variantGroupKey": "k573bc9dhm5xkzq2ksqhetxbd18cm1yv"
     },
     {
       "authoredLanguage": "hi",
       "name": {
-        "hi": "मुझे बाहर जाना है"
+        "en": "I want to go outside"
       },
       "order": 1,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
           },
-          "imagePath": "symbols/i_want_to_go.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/outside_1.png",
+          "label": {
+            "en": "outside",
+            "es": "afuera",
+            "hi": "बाहर"
+          },
           "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "label": {
+            "en": "is",
+            "es": "es",
+            "hi": "है"
+          },
+          "order": 3
         }
       ],
       "text": "मुझे बाहर जाना है",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_want_to_go.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/outside_1.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
+      "variantGroupKey": "k573bc9dhm5xkzq2ksqhetxbd18cm1yv"
     },
     {
       "authoredLanguage": "es",
       "name": {
-        "es": "Quiero salir"
+        "en": "I want to go outside"
       },
       "order": 2,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
           },
-          "imagePath": "symbols/i_want_to_go.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
           },
-          "imagePath": "symbols/outside_1.png",
           "order": 1
+        },
+        {
+          "imagePath": "symbols/outside_1.png",
+          "label": {
+            "en": "outside",
+            "es": "afuera",
+            "hi": "बाहर"
+          },
+          "order": 2
         }
       ],
       "text": "Quiero salir",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_want_to_go.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/outside_1.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k578m8qq7d1yktv0xhmyg7fcp189e6fv"
+      "variantGroupKey": "k573bc9dhm5xkzq2ksqhetxbd18cm1yv"
     },
     {
       "authoredLanguage": "en",
       "name": {
-        "en": "I am going to school."
+        "en": "I am going to school"
       },
       "order": 3,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
           },
-          "imagePath": "symbols/my.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
           },
-          "imagePath": "symbols/symbol00197343.png",
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/to2.png",
+          "label": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
           },
-          "imagePath": "symbols/harvard_law_school.png",
           "order": 2
+        },
+        {
+          "imagePath": "symbols/symbol00060131.png",
+          "label": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 3
         }
       ],
-      "text": "I am going to school.",
-      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
+      "variantGroupKey": "k57enn61eana3aryrazv97x4ex8cnxfe"
     },
     {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I am going to school"
+      },
+      "order": 4,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/symbol00060131.png",
+          "label": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "label": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
+          },
+          "order": 3
+        }
+      ],
+      "text": "मैं स्कूल जा रहा हूँ",
+      "variantGroupKey": "k57enn61eana3aryrazv97x4ex8cnxfe"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I am going to school"
+      },
+      "order": 5,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "label": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "label": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/symbol00060131.png",
+          "label": {
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
+          },
+          "order": 3
+        }
+      ],
+      "text": "Voy a la escuela",
+      "variantGroupKey": "k57enn61eana3aryrazv97x4ex8cnxfe"
+    },
+    {
+      "authoredLanguage": "en",
       "name": {
         "en": "I want to go to the countryside"
       },
-      "order": 4,
+      "order": 6,
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_am.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -286,7 +328,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -300,44 +342,118 @@
           ]
         },
         {
-          "kind": "phrase",
-          "name": {
-            "en": "to the"
+          "audioPath": "audio/en-GB-News-M/symbols/to.mp3",
+          "imagePath": "symbols/to2.png",
+          "kind": "word",
+          "label": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
           },
-          "order": 1,
-          "words": [
-            {
-              "imagePath": "symbols/to2.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/the.png",
-              "order": 1
-            }
-          ]
+          "order": 1
         },
         {
-          "audioPath": "audio/eng/default/symbol00194581.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/the.mp3",
+          "imagePath": "symbols/the.png",
+          "kind": "word",
+          "label": {
+            "en": "the",
+            "es": "el",
+            "hi": "यह"
+          },
+          "order": 2
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/countryside.mp3",
           "imagePath": "symbols/symbol00194581.png",
           "kind": "word",
           "label": {
-            "en": "countryside"
+            "en": "countryside",
+            "es": "campo",
+            "hi": "देहात"
           },
-          "order": 2
+          "order": 3
         }
       ],
-      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
+      "variantGroupKey": "k578pxgtez3yayhht4a3c29j2d8cmmws"
+    },
+    {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I want to go to the countryside"
+      },
+      "order": 7,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/symbol00194581.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 3
+        }
+      ],
+      "text": "मुझे देहात जाना है",
+      "units": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/countryside.mp3",
+          "imagePath": "symbols/symbol00194581.png",
+          "kind": "word",
+          "label": {
+            "en": "countryside",
+            "es": "campo",
+            "hi": "देहात"
+          },
+          "order": 1
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go",
+            "hi": "जाना है"
+          },
+          "order": 2,
+          "words": [
+            {
+              "imagePath": "symbols/go.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "variantGroupKey": "k578pxgtez3yayhht4a3c29j2d8cmmws"
     },
     {
       "authoredLanguage": "es",
       "name": {
         "en": "I want to go to the countryside"
       },
-      "order": 5,
+      "order": 8,
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_am.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -349,16 +465,12 @@
           "order": 2
         },
         {
-          "imagePath": "symbols/to2.png",
+          "imagePath": "symbols/the.png",
           "order": 3
         },
         {
-          "imagePath": "symbols/the.png",
-          "order": 4
-        },
-        {
           "imagePath": "symbols/symbol00194581.png",
-          "order": 5
+          "order": 4
         }
       ],
       "text": "Quiero ir al campo",
@@ -372,7 +484,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -386,44 +498,37 @@
           ]
         },
         {
-          "kind": "phrase",
-          "name": {
-            "en": "to the",
+          "imagePath": "symbols/the.png",
+          "kind": "word",
+          "label": {
             "es": "al"
           },
-          "order": 1,
-          "words": [
-            {
-              "imagePath": "symbols/to2.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/the.png",
-              "order": 1
-            }
-          ]
+          "order": 1
         },
         {
-          "audioPath": "audio/eng/default/symbol00194581.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/countryside.mp3",
           "imagePath": "symbols/symbol00194581.png",
           "kind": "word",
           "label": {
-            "es": "campo"
+            "en": "countryside",
+            "es": "campo",
+            "hi": "देहात"
           },
           "order": 2
         }
       ],
-      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
+      "variantGroupKey": "k578pxgtez3yayhht4a3c29j2d8cmmws"
     },
     {
+      "authoredLanguage": "en",
       "name": {
-        "en": "I want to go to the playground"
+        "en": "I want to go to the park and play on the swings"
       },
-      "order": 6,
+      "order": 9,
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_am.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -459,7 +564,7 @@
           "order": 8
         },
         {
-          "imagePath": "symbols/swing.png",
+          "imagePath": "symbols/symbol00056722.png",
           "order": 9
         }
       ],
@@ -473,7 +578,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -489,34 +594,30 @@
               "order": 3
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/the.png",
               "order": 4
             }
           ]
         },
         {
-          "audioPath": "audio/eng/default/park_1.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/park.mp3",
           "imagePath": "symbols/park_1.png",
           "kind": "word",
           "label": {
-            "en": "park"
+            "en": "park",
+            "es": "parque",
+            "hi": "पार्क"
           },
           "order": 1
         },
         {
-          "audioPath": "audio/eng/default/and.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/and.mp3",
           "imagePath": "symbols/and.png",
           "kind": "word",
           "label": {
-            "en": "and"
+            "en": "and",
+            "es": "y",
+            "hi": "और"
           },
           "order": 2
         },
@@ -528,56 +629,156 @@
           "order": 3,
           "words": [
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/play.png",
               "order": 0
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/on.png",
               "order": 1
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/swing.png",
+              "imagePath": "symbols/symbol00056722.png",
               "order": 2
             }
           ]
         }
       ],
-      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
+      "variantGroupKey": "k574kyvede0xyahqz6wb7zbdcs8cm4rz"
     },
     {
-      "authoredLanguage": "es",
+      "authoredLanguage": "hi",
       "name": {
-        "en": "I want to go to the playground"
+        "en": "I want to go to the park and play on the swings"
       },
-      "order": 7,
+      "order": 10,
       "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/park_1.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/and.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00056722.png",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/on.png",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/play.png",
+          "order": 7
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 8
+        }
+      ],
+      "text": "मुझे पार्क जाना है और झूलों पर खेलना है",
+      "units": [
+        {
+          "imagePath": "symbols/i_am.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/park.mp3",
+          "imagePath": "symbols/park_1.png",
+          "kind": "word",
+          "label": {
+            "en": "park",
+            "es": "parque",
+            "hi": "पार्क"
+          },
+          "order": 1
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go to the",
+            "hi": "जाना है"
+          },
+          "order": 2,
+          "words": [
+            {
+              "imagePath": "symbols/go.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/and.mp3",
+          "imagePath": "symbols/and.png",
+          "kind": "word",
+          "label": {
+            "en": "and",
+            "es": "y",
+            "hi": "और"
+          },
+          "order": 3
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "play on the swings",
+            "hi": "झूलों पर खेलना है"
+          },
+          "order": 4,
+          "words": [
+            {
+              "imagePath": "symbols/symbol00056722.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/on.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/play.png",
+              "order": 2
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 3
+            }
+          ]
+        }
+      ],
+      "variantGroupKey": "k574kyvede0xyahqz6wb7zbdcs8cm4rz"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to go to the park and play on the swings"
+      },
+      "order": 11,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -613,7 +814,7 @@
           "order": 8
         },
         {
-          "imagePath": "symbols/swing.png",
+          "imagePath": "symbols/symbol00056722.png",
           "order": 9
         }
       ],
@@ -628,7 +829,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -644,36 +845,30 @@
               "order": 3
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/the.png",
               "order": 4
             }
           ]
         },
         {
-          "audioPath": "audio/eng/default/park_1.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/park.mp3",
           "imagePath": "symbols/park_1.png",
           "kind": "word",
           "label": {
             "en": "park",
-            "es": "parque"
+            "es": "parque",
+            "hi": "पार्क"
           },
           "order": 1
         },
         {
-          "audioPath": "audio/eng/default/and.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/and.mp3",
           "imagePath": "symbols/and.png",
           "kind": "word",
           "label": {
             "en": "and",
-            "es": "y"
+            "es": "y",
+            "hi": "और"
           },
           "order": 2
         },
@@ -686,412 +881,27 @@
           "order": 3,
           "words": [
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/play.png",
               "order": 0
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
               "imagePath": "symbols/on.png",
               "order": 1
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/swing.png",
+              "imagePath": "symbols/symbol00056722.png",
               "order": 2
             }
           ]
         }
       ],
-      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "en": "I want to go to the playground"
-      },
-      "order": 8,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/i_am.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/want.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/park_1.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/go.png",
-          "order": 3
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 4
-        },
-        {
-          "imagePath": "symbols/and.png",
-          "order": 5
-        },
-        {
-          "imagePath": "symbols/swing.png",
-          "order": 6
-        },
-        {
-          "imagePath": "symbols/on.png",
-          "order": 7
-        },
-        {
-          "imagePath": "symbols/play.png",
-          "order": 8
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 9
-        }
-      ],
-      "text": "मुझे पार्क जाना है और झूलों पर खेलना है",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I want to go to the",
-            "hi": "मुझे"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_am.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/want.png",
-              "order": 1
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/hi-IN-Wavenet-F/tts/60e49945-cbc8-45d9-bf1a-61f97e47b70e.mp3",
-          "imagePath": "symbols/park_1.png",
-          "kind": "word",
-          "label": {
-            "hi": "पार्क"
-          },
-          "order": 1
-        },
-        {
-          "kind": "phrase",
-          "name": {
-            "hi": "जाना है"
-          },
-          "order": 2,
-          "words": [
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/go.png",
-              "order": 0
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/is.png",
-              "order": 1
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/eng/default/and.mp3",
-          "imagePath": "symbols/and.png",
-          "kind": "word",
-          "label": {
-            "hi": "और"
-          },
-          "order": 3
-        },
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "play on the swings",
-            "hi": "झूलों पर खेलना है"
-          },
-          "order": 4,
-          "words": [
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/swing.png",
-              "order": 0
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/on.png",
-              "order": 1
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/play.png",
-              "order": 2
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/is.png",
-              "order": 3
-            }
-          ]
-        }
-      ],
-      "variantGroupKey": "k57940sk2qz8p3dkx4n8gmk4x589wdc7"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "en": "I want to go to the countryside"
-      },
-      "order": 9,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/i_am.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/symbol00194581.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/go.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 3
-        }
-      ],
-      "text": "मुझे गाँव जाना है",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I want to go",
-            "hi": "मुझे"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_am.png",
-              "order": 0
-            }
-          ]
-        },
-        {
-          "imagePath": "symbols/symbol00194581.png",
-          "kind": "word",
-          "label": {
-            "hi": "गाँव"
-          },
-          "order": 1
-        },
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "to the",
-            "hi": "जाना है"
-          },
-          "order": 2,
-          "words": [
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/go.png",
-              "order": 0
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/is.png",
-              "order": 1
-            }
-          ]
-        }
-      ],
-      "variantGroupKey": "k57e5hayjdpw66pt6shhxmp7yd89zne8"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "hi": "मैं स्कूल जा रहा हूँ"
-      },
-      "order": 10,
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/my.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/harvard_law_school.png",
-          "order": 1
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00197343.png",
-          "order": 2
-        }
-      ],
-      "text": "मैं स्कूल जा रहा हूँ",
-      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "es": "Voy a la escuela"
-      },
-      "order": 11,
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/my.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00197343.png",
-          "order": 1
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/harvard_law_school.png",
-          "order": 2
-        }
-      ],
-      "text": "Voy a la escuela",
-      "variantGroupKey": "k572jm3qyrkj73dcqr7kf5dt798a5kvq"
+      "variantGroupKey": "k574kyvede0xyahqz6wb7zbdcs8cm4rz"
     }
   ],
   "name": {
     "en": "Going places",
     "es": "De paseo",
-    "hi": "बाहर जा रहे हैं"
+    "hi": "घूमने जा रहे हैं"
   },
   "slug": "going-places",
   "tree": "sentences"

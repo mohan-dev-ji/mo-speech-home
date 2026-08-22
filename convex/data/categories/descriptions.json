@@ -1,18 +1,19 @@
 {
-  "colour": "#14B8A6",
-  "coverImagePath": "symbols/symbol00200090.png",
+  "colour": "emerald",
+  "coverImagePath": "symbols/describe.png",
+  "defaultOrder": 7,
   "defaultTier": "free",
-  "icon": "🔵",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#14B8A6",
-      "icon": "🔵",
-      "imagePath": "symbols/symbol00200090.png",
+      "colour": "emerald",
+      "icon": "📁",
+      "imagePath": "symbols/describe.png",
       "name": {
         "en": "Descriptions",
         "es": "Descripciones",
-        "hi": "वर्णन"
+        "hi": "विवरण"
       },
       "symbols": [
         {
@@ -220,7 +221,7 @@
             "hi": "सूखा"
           },
           "order": 22,
-          "symbolId": "kn778dp671vhj929v0dxxk881984npp8"
+          "symbolId": "kn7bts2dgc8zj8ynsbgx3e9pms84n2e9"
         },
         {
           "labelOverride": {
@@ -316,10 +317,10 @@
           "labelOverride": {
             "en": "good",
             "es": "bueno",
-            "hi": "बढ़िया"
+            "hi": "अच्छा"
           },
           "order": 33,
-          "symbolId": "kn7arrhpvse84vtjakdemdnxad84n905"
+          "symbolId": "kn72f9q2wb5h5qw9c2abb75gwn84mddr"
         },
         {
           "labelOverride": {
@@ -346,7 +347,7 @@
             "hi": "साफ़ करना"
           },
           "order": 36,
-          "symbolId": "kn75dwxy9kem6be1n8cwkaqnwn84nxjh"
+          "symbolId": "kn73qpyynamv7ax9695779he6d84njc0"
         },
         {
           "labelOverride": {
@@ -453,7 +454,7 @@
   "name": {
     "en": "Descriptions",
     "es": "Descripciones",
-    "hi": "वर्णन"
+    "hi": "विवरण"
   },
   "slug": "descriptions",
   "tree": "categories"

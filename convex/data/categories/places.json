@@ -1,118 +1,37 @@
 {
-  "colour": "lime",
+  "colour": "green",
   "coverImagePath": "symbols/places.png",
+  "defaultOrder": 3,
   "defaultTier": "free",
   "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "lime",
+      "colour": "green",
       "icon": "📁",
       "imagePath": "symbols/places.png",
       "name": {
         "en": "Places",
-        "es": "Lugares",
         "hi": "जगहें"
       },
       "symbols": [
         {
           "labelOverride": {
-            "en": "city",
-            "es": "ciudad",
-            "hi": "शहर"
+            "en": "home",
+            "es": "casa",
+            "hi": "घर"
           },
           "order": 0,
-          "symbolId": "kn7d94vj1vw9gzy5kf4ykgnwvx84nth0"
+          "symbolId": "kn7e4b2m8jjpz4ydatz4x978m584mbp3"
         },
         {
           "labelOverride": {
-            "en": "countryside",
-            "es": "campo",
-            "hi": "देहात"
+            "en": "school",
+            "es": "escuela",
+            "hi": "स्कूल"
           },
           "order": 1,
-          "symbolId": "kn7b1qf8g84mh4zfk8vd4cb23h84n80f"
-        },
-        {
-          "labelOverride": {
-            "en": "dentist's office",
-            "es": "consultorio del dentista",
-            "hi": "दांतों का क्लिनिक"
-          },
-          "order": 2,
-          "symbolId": "kn7feb6vpqwgyhgd1zt11azxw584mbt5"
-        },
-        {
-          "labelOverride": {
-            "en": "surgery room",
-            "es": "quirófano",
-            "hi": "ऑपरेशन थिएटर"
-          },
-          "order": 3,
-          "symbolId": "kn74xm5vqw4bjx0qvewmhqc7en84m7hc"
-        },
-        {
-          "labelOverride": {
-            "en": "speech therapy",
-            "es": "logopedia",
-            "hi": "स्पीच थेरेपी"
-          },
-          "order": 4,
-          "symbolId": "kn7b536ckvwz1x12jjarkatjqn84n60s"
-        },
-        {
-          "labelOverride": {
-            "en": "music therapy",
-            "es": "musicoterapia",
-            "hi": "संगीत चिकित्सा"
-          },
-          "order": 5,
-          "symbolId": "kn7cbm2dedqnyqcqp1xfk4qc1184mh9q"
-        },
-        {
-          "labelOverride": {
-            "en": "therapy room",
-            "es": "sala de terapia",
-            "hi": "थेरेपी रूम"
-          },
-          "order": 6,
-          "symbolId": "kn7deaxcak4qxp73av27enfhpd84m4v0"
-        },
-        {
-          "labelOverride": {
-            "en": "shop",
-            "es": "tienda",
-            "hi": "खरीदारी करना"
-          },
-          "order": 7,
-          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
-        },
-        {
-          "labelOverride": {
-            "en": "restaurant",
-            "es": "restaurante",
-            "hi": "रेस्तरां"
-          },
-          "order": 8,
-          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
-        },
-        {
-          "labelOverride": {
-            "en": "playground",
-            "es": "parque infantil",
-            "hi": "खेल का मैदान"
-          },
-          "order": 9,
-          "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
-        },
-        {
-          "labelOverride": {
-            "en": "living room",
-            "es": "sala de estar",
-            "hi": "बैठक"
-          },
-          "order": 10,
-          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
         },
         {
           "labelOverride": {
@@ -120,7 +39,7 @@
             "es": "aula",
             "hi": "कक्षा"
           },
-          "order": 11,
+          "order": 2,
           "symbolId": "kn72p6xke1wzmfr3v1wbm3s01x84ntsr"
         },
         {
@@ -129,44 +48,70 @@
             "es": "coche",
             "hi": "कार"
           },
-          "order": 12,
-          "symbolId": "kn7cp3wan5gh76sqgwfq5jkkgs84ncsv"
+          "order": 3,
+          "symbolId": "kn70md999d25tj4jaabyb49y9s84n7ph"
         },
         {
           "labelOverride": {
-            "en": "cafeteria",
-            "es": "cafetería",
-            "hi": "कैफेटेरिया"
+            "en": "restaurant",
+            "es": "restaurante",
+            "hi": "रेस्तरां"
           },
-          "order": 13,
-          "symbolId": "kn72as5vhqqpha19q35n5h6q2184nzqq"
+          "order": 4,
+          "symbolId": "kn79w9dj5g81xw1vysk45t87px84nh3p"
         },
         {
           "labelOverride": {
-            "en": "bus",
-            "es": "autobús",
-            "hi": "बस"
+            "en": "park",
+            "es": "parque",
+            "hi": "पार्क"
           },
-          "order": 14,
-          "symbolId": "kn748yfp678vxhv42gmfq4zp2984nx9h"
+          "order": 5,
+          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/a3ea75ba-d83c-45be-8d11-8bd2a7d566c7.mp3",
+              "ttsText": "shopping centre",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "shopping centre",
+            "es": "centro comercial",
+            "hi": "मॉल"
+          },
+          "order": 6,
+          "symbolId": "kn7ed50dhfk4k5gn9rahdxc8b984ngfn"
         },
         {
           "labelOverride": {
-            "en": "mini bus",
-            "es": "minibús",
-            "hi": "मिनी बस"
+            "en": "music therapy",
+            "es": "musicoterapia",
+            "hi": "संगीत चिकित्सा"
           },
-          "order": 15,
-          "symbolId": "kn7753rkhwgeerxj20ywcpzzbs84m3s9"
+          "order": 7,
+          "symbolId": "kn7cbm2dedqnyqcqp1xfk4qc1184mh9q"
         },
         {
           "labelOverride": {
-            "en": "bathroom",
-            "es": "baño",
-            "hi": "बाथरूम"
+            "en": "living room",
+            "es": "sala de estar",
+            "hi": "बैठक"
           },
-          "order": 16,
-          "symbolId": "kn72kxvzp8v15z63zy9gxncy5n84m7d1"
+          "order": 8,
+          "symbolId": "kn761xn0y76n51p3q0r88xk9cx84n1gh"
+        },
+        {
+          "labelOverride": {
+            "en": "toilet",
+            "es": "inodoro",
+            "hi": "पॉटी"
+          },
+          "order": 9,
+          "symbolId": "kn7dj1e9543swk2azf09qzyejs84mjbf"
         },
         {
           "labelOverride": {
@@ -174,51 +119,261 @@
             "es": "apartamento",
             "hi": "अपार्टमेंट"
           },
-          "order": 17,
+          "order": 10,
           "symbolId": "kn7cx9eq8vbkd8gpfm36hzzejs84mj3m"
         },
         {
           "labelOverride": {
-            "en": "school",
-            "es": "escuela",
-            "hi": "स्कूल"
+            "en": "shop",
+            "es": "tienda",
+            "hi": "खरीदारी करना"
+          },
+          "order": 11,
+          "symbolId": "kn7f70d23ezw1gb3j4zvzryhjx84mcw8"
+        },
+        {
+          "labelOverride": {
+            "en": "airport",
+            "es": "aeropuerto",
+            "hi": "हवाई अड्डा"
+          },
+          "order": 12,
+          "symbolId": "kn7cdbv6z67hm1yb2h2fgbxwzh84m2tj"
+        },
+        {
+          "labelOverride": {
+            "en": "library",
+            "es": "biblioteca",
+            "hi": "पुस्तकालय"
+          },
+          "order": 13,
+          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/850506e1-1c17-4545-b1d1-28fe48358ca7.mp3",
+              "ttsText": "cinema",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "cinema",
+            "es": "cine",
+            "hi": "सिनेमाघर"
+          },
+          "order": 14,
+          "symbolId": "kn7eyf6sp0zqkrxy1gphftrwjs84mzr5"
+        },
+        {
+          "labelOverride": {
+            "en": "my room",
+            "es": "mi habitación",
+            "hi": "मेरा कमरा"
+          },
+          "order": 15,
+          "symbolId": "kn73aha4r6813rehw5waywddps84mcrn"
+        },
+        {
+          "labelOverride": {
+            "en": "forest",
+            "es": "bosque",
+            "hi": "जंगल"
+          },
+          "order": 16,
+          "symbolId": "kn7bv6pmf2rz3fxj8e46xg8mmx84nw3n"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/ef7cc18d-a2ac-4288-a64a-1dd1a0a06261.mp3",
+              "ttsText": "woods",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "woods",
+            "es": "Bosque caducifolio",
+            "hi": "पर्णपाती वन"
+          },
+          "order": 17,
+          "symbolId": "kn78q3v7f2zbgdhg0jc7ysab0n84maqz"
+        },
+        {
+          "labelOverride": {
+            "en": "countryside",
+            "es": "campo",
+            "hi": "देहात"
           },
           "order": 18,
-          "symbolId": "kn7f9dtkyfvy0e2n8yeyppsggx84nevy"
+          "symbolId": "kn7b1qf8g84mh4zfk8vd4cb23h84n80f"
         },
         {
           "labelOverride": {
-            "en": "home",
-            "es": "casa",
-            "hi": "घर"
+            "en": "city",
+            "es": "ciudad",
+            "hi": "शहर"
           },
           "order": 19,
-          "symbolId": "kn7e4b2m8jjpz4ydatz4x978m584mbp3"
+          "symbolId": "kn750xnxn9djmk5rg0rg95kkgn84mzhy"
         },
         {
           "labelOverride": {
-            "en": "outside",
-            "es": "afuera",
-            "hi": "बाहर"
+            "en": "town",
+            "es": "pueblo",
+            "hi": "कस्बा"
           },
           "order": 20,
-          "symbolId": "kn790ca6hr8me6a7c08htde7s584m982"
+          "symbolId": "kn7d6rkxvhatvpawayz27ntpmd84mmk3"
         },
         {
           "labelOverride": {
-            "en": "inside",
-            "es": "Dentro",
-            "hi": "अंदर"
+            "en": "beach",
+            "es": "playa",
+            "hi": "बीच"
           },
           "order": 21,
-          "symbolId": "kn7ayschda5jr6nxen41z9x62h84mqyf"
+          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+        },
+        {
+          "labelOverride": {
+            "en": "lake",
+            "es": "lago",
+            "hi": "झील"
+          },
+          "order": 22,
+          "symbolId": "kn7dr90wzd0paknmz9b4y775bn84mga3"
+        },
+        {
+          "labelOverride": {
+            "en": "farm",
+            "es": "granja",
+            "hi": "खेत"
+          },
+          "order": 23,
+          "symbolId": "kn7dn0qdt3361ttymkmc36tfmh84nt7q"
+        },
+        {
+          "labelOverride": {
+            "en": "swimming pool",
+            "es": "piscina",
+            "hi": "स्विमिंग पूल"
+          },
+          "order": 24,
+          "symbolId": "kn71x6aaj1hncp3vkfqck6wn3184mf11"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/ccd07ed0-93a0-4a75-a091-154c90785f09.mp3",
+              "ttsText": "doctor's surgery",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "doctor's surgery",
+            "es": "cirugía",
+            "hi": "सर्जरी"
+          },
+          "order": 25,
+          "symbolId": "kn74xz1raebw451phc13zkpzrx84mfew"
+        },
+        {
+          "labelOverride": {
+            "en": "dentist",
+            "es": "dentista",
+            "hi": "डेंटिस्ट"
+          },
+          "order": 26,
+          "symbolId": "kn78wjxsjnbtpgqw25crt4k4js84nvz4"
+        },
+        {
+          "labelOverride": {
+            "en": "hospital",
+            "es": "Hospital",
+            "hi": "अस्पताल"
+          },
+          "order": 27,
+          "symbolId": "kn7cptdjskwjk162z6s0n2x9nn84mddy"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/51f36429-e985-4d80-a45c-e248cea1ea21.mp3",
+              "ttsText": "football ground",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "football ground",
+            "es": "estadio de fútbol",
+            "hi": "फ़ुटबॉल स्टेडियम"
+          },
+          "order": 28,
+          "symbolId": "kn720vwjh15gmevzjqh3v01e1984naer"
+        },
+        {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/ab28eb7e-408e-4470-814f-d633609096a0.mp3",
+              "ttsText": "motorway",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "motorway",
+            "es": "autopista",
+            "hi": "मोटरवे"
+          },
+          "order": 29,
+          "symbolId": "kn747c9kthvx9hethe1bsxy7jh84n1a4"
+        },
+        {
+          "labelOverride": {
+            "en": "road",
+            "es": "carretera",
+            "hi": "सड़क"
+          },
+          "order": 30,
+          "symbolId": "kn76xnvk4g4jgtb35ffeprqmqn84msaf"
+        },
+        {
+          "labelOverride": {
+            "en": "train station",
+            "es": "estación de tren",
+            "hi": "रेलवे स्टेशन"
+          },
+          "order": 31,
+          "symbolId": "kn789yw1gr8szwzbyvjystw0hx84mpgm"
+        },
+        {
+          "labelOverride": {
+            "en": "village",
+            "es": "pueblo",
+            "hi": "गाँव"
+          },
+          "order": 32,
+          "symbolId": "kn7e4tbtnq1s8f4hnpy0ddw9kn84msrd"
+        },
+        {
+          "labelOverride": {
+            "en": "museum",
+            "es": "museo",
+            "hi": "संग्रहालय"
+          },
+          "order": 33,
+          "symbolId": "kn7f790jvbscsbfgamh5j9c2j984mv3d"
         }
       ]
     }
   ],
   "name": {
     "en": "Places",
-    "es": "Lugares",
     "hi": "जगहें"
   },
   "slug": "places",

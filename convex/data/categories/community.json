@@ -1,13 +1,14 @@
 {
-  "colour": "#6366F1",
+  "colour": "orange",
   "coverImagePath": "symbols/community.png",
+  "defaultOrder": 12,
   "defaultTier": "free",
-  "icon": "🏘️",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#6366F1",
-      "icon": "🏘️",
+      "colour": "orange",
+      "icon": "📁",
       "imagePath": "symbols/community.png",
       "name": {
         "en": "Community",
@@ -31,7 +32,7 @@
             "hi": "स्कूल"
           },
           "order": 1,
-          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+          "symbolId": "kn7f9dtkyfvy0e2n8yeyppsggx84nevy"
         },
         {
           "labelOverride": {
@@ -76,7 +77,7 @@
             "hi": "खरीदारी करना"
           },
           "order": 6,
-          "symbolId": "kn721svqz495vwcf5nev0k3b8584m78r"
+          "symbolId": "kn7f70d23ezw1gb3j4zvzryhjx84mcw8"
         },
         {
           "labelOverride": {
@@ -166,7 +167,7 @@
             "hi": "ट्रेन"
           },
           "order": 16,
-          "symbolId": "kn7bzp8rma9refexp43f7s9zed84mk2x"
+          "symbolId": "kn7bkpag2d8ckjm307de0pdgz584n7a8"
         },
         {
           "labelOverride": {
@@ -382,7 +383,7 @@
             "hi": "चिड़ियाघर"
           },
           "order": 40,
-          "symbolId": "kn7efvh1f17h92x3hrtvfsp15n84nmjs"
+          "symbolId": "kn747vmaqze01h7skchm202m0n84nw7e"
         },
         {
           "labelOverride": {
@@ -391,7 +392,7 @@
             "hi": "संग्रहालय"
           },
           "order": 41,
-          "symbolId": "kn74fhnbd627m151z63ar96v7s84ncbe"
+          "symbolId": "kn7f790jvbscsbfgamh5j9c2j984mv3d"
         },
         {
           "labelOverride": {

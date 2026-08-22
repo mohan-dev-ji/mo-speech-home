@@ -21,12 +21,17 @@ import dropbarCore from "./dropbar-core.json";
 import feelings from "./feelings.json";
 import foodDrink from "./food-drink.json";
 import fun from "./fun.json";
+import general from "./general.json";
 import health from "./health.json";
 import home from "./home.json";
+import joiningWords from "./joining-words.json";
+import letters from "./letters.json";
 import nature from "./nature.json";
 import numbers from "./numbers.json";
 import people from "./people.json";
 import places from "./places.json";
+import positionWords from "./position-words.json";
+import pronouns from "./pronouns.json";
 import religion from "./religion.json";
 import school from "./school.json";
 import space from "./space.json";
@@ -48,12 +53,17 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "feelings": feelings as unknown as CategoryModule,
   "food-drink": foodDrink as unknown as CategoryModule,
   "fun": fun as unknown as CategoryModule,
+  "general": general as unknown as CategoryModule,
   "health": health as unknown as CategoryModule,
   "home": home as unknown as CategoryModule,
+  "joining-words": joiningWords as unknown as CategoryModule,
+  "letters": letters as unknown as CategoryModule,
   "nature": nature as unknown as CategoryModule,
   "numbers": numbers as unknown as CategoryModule,
   "people": people as unknown as CategoryModule,
   "places": places as unknown as CategoryModule,
+  "position-words": positionWords as unknown as CategoryModule,
+  "pronouns": pronouns as unknown as CategoryModule,
   "religion": religion as unknown as CategoryModule,
   "school": school as unknown as CategoryModule,
   "space": space as unknown as CategoryModule,

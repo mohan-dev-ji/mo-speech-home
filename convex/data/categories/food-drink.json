@@ -1,18 +1,19 @@
 {
-  "colour": "#EF4444",
-  "coverImagePath": "symbols/symbol00188596.png",
+  "colour": "rose",
+  "coverImagePath": "symbols/food.png",
+  "defaultOrder": 5,
   "defaultTier": "free",
-  "icon": "🍎",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#EF4444",
-      "icon": "🍎",
-      "imagePath": "symbols/symbol00188596.png",
+      "colour": "rose",
+      "icon": "📁",
+      "imagePath": "symbols/food.png",
       "name": {
         "en": "Food & Drink",
-        "es": "Comida y bebida",
-        "hi": "खाना और पीना"
+        "es": "Comida y Bebida",
+        "hi": "खाना-पीना"
       },
       "symbols": [
         {
@@ -27,11 +28,11 @@
         {
           "labelOverride": {
             "en": "drink",
-            "es": "beber",
+            "es": "bebida",
             "hi": "पीना"
           },
           "order": 1,
-          "symbolId": "kn7ehv1pp3askgswygsmqcyg8n84nsqr"
+          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
         },
         {
           "labelOverride": {
@@ -70,13 +71,21 @@
           "symbolId": "kn71rgnpy42sg88kbe6cnsbrq584m8mp"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/f689464f-92d4-414d-9e67-b1cd1fd5f0c4.mp3",
+              "ttsText": "water",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "water",
-            "es": "agua",
-            "hi": "पानी"
+            "es": "agua mineral",
+            "hi": "मिनरल वाटर"
           },
           "order": 6,
-          "symbolId": "kn75zb9xxvc622tc9z998jk0p584mq5s"
+          "symbolId": "kn7a1g5y0xpxpjcrnvrc5k10k184ndx8"
         },
         {
           "labelOverride": {
@@ -85,7 +94,7 @@
             "hi": "जूस"
           },
           "order": 7,
-          "symbolId": "kn79rex6bxcaebt1zzasq8evvn84n61z"
+          "symbolId": "kn79r5kry3yk56k2bfx8pdp9ms84mkvr"
         },
         {
           "labelOverride": {
@@ -115,6 +124,14 @@
           "symbolId": "kn74qaypjz6sd98e90kq23dpmx84mj1s"
         },
         {
+          "audio": {
+            "hi": {
+              "language": "hi",
+              "path": "audio/hi-IN-Wavenet-F/tts/44442074-f192-47c1-b6f4-b85f55260952.mp3",
+              "ttsText": "hot chocolate",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "hot chocolate",
             "es": "chocolate caliente"
@@ -174,7 +191,7 @@
             "hi": "पास्ता"
           },
           "order": 17,
-          "symbolId": "kn72n7xwcyy0cz61wsv4yrp47d84mz1r"
+          "symbolId": "kn7e1mfhd0v6neh9am0g1fqba584mrn6"
         },
         {
           "labelOverride": {
@@ -207,10 +224,10 @@
           "labelOverride": {
             "en": "chicken",
             "es": "pollo",
-            "hi": "चिकन"
+            "hi": "मुर्गी"
           },
           "order": 21,
-          "symbolId": "kn704y3rvwq1g3rhdq19r3hkvd84n8wd"
+          "symbolId": "kn704zk4cmwfjqxyqat7h8j73h84m1rt"
         },
         {
           "labelOverride": {
@@ -246,7 +263,7 @@
             "hi": "मछली"
           },
           "order": 25,
-          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+          "symbolId": "kn76d8mm4jwc9fakn8q8brrf3n84mffq"
         },
         {
           "labelOverride": {
@@ -273,7 +290,7 @@
             "hi": "नारंगी"
           },
           "order": 28,
-          "symbolId": "kn78gj32c6mqn03t1mhq7wz6x984n6xv"
+          "symbolId": "kn7f23g4za288b59nyf8zwqg0584m7gm"
         },
         {
           "labelOverride": {
@@ -451,8 +468,8 @@
   ],
   "name": {
     "en": "Food & Drink",
-    "es": "Comida y bebida",
-    "hi": "खाना और पीना"
+    "es": "Comida y Bebida",
+    "hi": "खाना-पीना"
   },
   "slug": "food-drink",
   "tree": "categories"

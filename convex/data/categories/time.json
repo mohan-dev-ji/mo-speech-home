@@ -1,14 +1,15 @@
 {
-  "colour": "#0EA5E9",
-  "coverImagePath": "symbols/clock_blank.png",
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/time.png",
+  "defaultOrder": 15,
   "defaultTier": "free",
-  "icon": "⏰",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#0EA5E9",
-      "icon": "⏰",
-      "imagePath": "symbols/clock_blank.png",
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/time.png",
       "name": {
         "en": "Time",
         "es": "Tiempo",
@@ -22,7 +23,7 @@
             "hi": "अप्रैल"
           },
           "order": 0,
-          "symbolId": "kn71aac8bfn5pszw6ffje7s23184nr5h"
+          "symbolId": "kn7agps2sa6tdz3f5kknh1ha7d84mt2a"
         },
         {
           "labelOverride": {
@@ -67,7 +68,7 @@
             "hi": "March"
           },
           "order": 5,
-          "symbolId": "kn790eeby896yecvty44qz025n84mdem"
+          "symbolId": "kn7cr9yj3kc05jb1ktzbtch65584m119"
         },
         {
           "labelOverride": {
@@ -76,7 +77,7 @@
             "hi": "मई"
           },
           "order": 6,
-          "symbolId": "kn71qnsy4apb7y1m851k3fae5584mjsn"
+          "symbolId": "kn74m90bg826jn3wsdykm0av7x84npnp"
         },
         {
           "labelOverride": {
@@ -292,7 +293,7 @@
             "hi": "साल"
           },
           "order": 30,
-          "symbolId": "kn7a93mxmbt0gxbsb1r8vbe12n84ne71"
+          "symbolId": "kn7bv9133rm5at9jefshn2d5a984mfvh"
         },
         {
           "labelOverride": {
@@ -302,6 +303,158 @@
           },
           "order": 31,
           "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+        },
+        {
+          "labelOverride": {
+            "en": "here",
+            "es": "aquí",
+            "hi": "यहाँ"
+          },
+          "order": 32,
+          "symbolId": "kn7a1h4vjfda0qxd84g7sjksc184m79r"
+        },
+        {
+          "labelOverride": {
+            "en": "there",
+            "es": "allí",
+            "hi": "वहाँ"
+          },
+          "order": 33,
+          "symbolId": "kn707k87g1kn854bpt6jwstnhn84nw7f"
+        },
+        {
+          "labelOverride": {
+            "en": "maybe",
+            "es": "Quizás",
+            "hi": "शायद"
+          },
+          "order": 34,
+          "symbolId": "kn77qfbz0y4cwqkqqtxf8191r184ng72"
+        },
+        {
+          "labelOverride": {
+            "en": "very",
+            "es": "muy",
+            "hi": "बहुत"
+          },
+          "order": 35,
+          "symbolId": "kn77agttsq8wr00zadmj7wv2d584nf96"
+        },
+        {
+          "labelOverride": {
+            "en": "just",
+            "es": "solo",
+            "hi": "बस"
+          },
+          "order": 36,
+          "symbolId": "kn79na8cqbpdnbr3v742cpw7k984mjfq"
+        },
+        {
+          "labelOverride": {
+            "en": "almost",
+            "es": "casi",
+            "hi": "लगभग"
+          },
+          "order": 37,
+          "symbolId": "kn7cmzx1e85csnm951a5szfshs84mwk7"
+        },
+        {
+          "labelOverride": {
+            "en": "away",
+            "es": "lejos",
+            "hi": "दूर"
+          },
+          "order": 38,
+          "symbolId": "kn71gvqmn4encgnc4mp0m72x4s84m0xs"
+        },
+        {
+          "labelOverride": {
+            "en": "far",
+            "es": "lejos",
+            "hi": "दूर"
+          },
+          "order": 39,
+          "symbolId": "kn74bebhmgk5xfkkmk33rtqb0984mjpa"
+        },
+        {
+          "labelOverride": {
+            "en": "outside",
+            "es": "afuera",
+            "hi": "बाहर"
+          },
+          "order": 40,
+          "symbolId": "kn70eh888402etkx8af9tg2ar184nvt8"
+        },
+        {
+          "labelOverride": {
+            "en": "inside",
+            "es": "Dentro",
+            "hi": "अंदर"
+          },
+          "order": 41,
+          "symbolId": "kn7e7wp3tane86njf74sm8p6eh84n0ez"
+        },
+        {
+          "labelOverride": {
+            "en": "anywhere",
+            "es": "en cualquier lugar",
+            "hi": "कहीं भी"
+          },
+          "order": 42,
+          "symbolId": "kn77m9qnn12cmn56w4rr6jms9184n2g5"
+        },
+        {
+          "labelOverride": {
+            "en": "somewhere",
+            "es": "en algún lugar",
+            "hi": "कहीं"
+          },
+          "order": 43,
+          "symbolId": "kn70pjzstbyhhbtc6b994bmpex84n1t2"
+        },
+        {
+          "labelOverride": {
+            "en": "yet",
+            "es": "todavía",
+            "hi": "अभी तक"
+          },
+          "order": 44,
+          "symbolId": "kn70q6qjeqbjsj707x4n3jkems84nws6"
+        },
+        {
+          "labelOverride": {
+            "en": "well",
+            "es": "bien",
+            "hi": "ठीक"
+          },
+          "order": 45,
+          "symbolId": "kn7a9ak43jzzbmvw4v72kxt0g184makc"
+        },
+        {
+          "labelOverride": {
+            "en": "else",
+            "es": "más",
+            "hi": "और"
+          },
+          "order": 46,
+          "symbolId": "kn7eq40vatxhbsdazk7884bg7h84nprm"
+        },
+        {
+          "labelOverride": {
+            "en": "instead",
+            "es": "en su lugar",
+            "hi": "बजाए"
+          },
+          "order": 47,
+          "symbolId": "kn7df5yag1jzayqfx5270r4a4x84nbn6"
+        },
+        {
+          "labelOverride": {
+            "en": "even",
+            "hi": "बराबर"
+          },
+          "order": 48,
+          "symbolId": "kn73cyp6ntrwmyxwr5aptnf0ed84n1h1"
         }
       ]
     }

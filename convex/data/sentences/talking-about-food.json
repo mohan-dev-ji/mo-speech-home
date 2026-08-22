@@ -1,337 +1,240 @@
 {
-  "colour": "green",
-  "coverImagePath": "symbols/symbol00062051.png",
+  "colour": "red",
+  "coverImagePath": "symbols/food.png",
+  "defaultOrder": 1,
   "defaultTier": "free",
   "isDefault": true,
   "items": [
     {
-      "audioPath": "audio/en-GB-News-M/tts/2c33974a-1fbf-4d66-b62a-c72213737939.mp3",
+      "authoredLanguage": "en",
       "name": {
         "en": "I am hungry"
       },
       "order": 0,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/symbol00054072.png",
+          "label": {
+            "en": "I am",
+            "es": "soy",
+            "hi": "मैं हूँ"
           },
-          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/hungry_2.png",
+          "label": {
+            "en": "hungry",
+            "es": "tengo hambre",
+            "hi": "भूखा"
+          },
           "order": 1
         }
       ],
-      "text": "I am hungry",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_i_am.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/hungry_2.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
+      "variantGroupKey": "k579b8e7db2ae06889vmmw889n8cms0b"
     },
     {
       "authoredLanguage": "hi",
       "name": {
-        "hi": "मैंने खा लिया है"
+        "en": "I am hungry"
       },
       "order": 1,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/i_am.png",
+          "label": {
+            "en": "I am",
+            "es": "soy",
+            "hi": "मैं"
           },
-          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/hungry_2.png",
+          "label": {
+            "en": "hungry",
+            "es": "tengo hambre",
+            "hi": "भूखा"
           },
-          "imagePath": "symbols/finished_all_done.png",
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/is.png",
+          "label": {
+            "en": "is",
+            "es": "es",
+            "hi": "है"
           },
-          "imagePath": "symbols/have.png",
           "order": 2
         }
       ],
-      "text": "मैंने खा लिया है",
-      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
+      "text": "मुझे भूख लगी है",
+      "variantGroupKey": "k579b8e7db2ae06889vmmw889n8cms0b"
     },
     {
       "authoredLanguage": "es",
       "name": {
-        "es": "Ya comí"
+        "en": "I am hungry"
       },
       "order": 2,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/symbol00054072.png",
+          "label": {
+            "en": "I am",
+            "es": "soy",
+            "hi": "मैं हूँ"
           },
-          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/finished_all_done.png",
-          "order": 1
-        }
-      ],
-      "text": "Ya comí",
-      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "en": "I am hungry"
-      },
-      "order": 3,
-      "playback": "fluent",
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_i_am.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/hungry_2.png",
-          "order": 1
-        }
-      ],
-      "text": {
-        "en": "I am hungry",
-        "hi": "मुझे भूख लगी है"
-      },
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "label": {
+            "en": "hungry",
+            "es": "tengo hambre",
+            "hi": "भूखा"
           },
-          "imagePath": "symbols/i_i_am.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/hungry_2.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "en": "I am hungry"
-      },
-      "order": 4,
-      "playback": "fluent",
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_i_am.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/hungry_2.png",
           "order": 1
         }
       ],
       "text": "Tengo hambre",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_i_am.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/hungry_2.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k575rp8ta4gz8rzhye91hq62y9892zjg"
+      "variantGroupKey": "k579b8e7db2ae06889vmmw889n8cms0b"
     },
     {
       "authoredLanguage": "en",
       "name": {
         "en": "I have already eaten"
       },
-      "order": 5,
+      "order": 3,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/have.png",
+          "label": {
+            "en": "have",
+            "es": "tener",
+            "hi": "पास होना"
+          },
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/eat.png",
+          "label": {
+            "en": "eat",
+            "es": "comer",
+            "hi": "खाना"
           },
-          "imagePath": "symbols/finished_all_done.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/symbol00194802.png",
+          "label": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
+          "order": 3
+        }
+      ],
+      "variantGroupKey": "k57d0r35hrcz54tkqmkaa14ven8cncd0"
+    },
+    {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I have already eaten"
+      },
+      "order": 4,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/eat.png",
+          "label": {
+            "en": "eat",
+            "es": "comer",
+            "hi": "खाना"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00194802.png",
+          "label": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "label": {
+            "en": "is",
+            "es": "es",
+            "hi": "है"
+          },
+          "order": 3
+        }
+      ],
+      "text": "मैंने पहले ही खा लिया है।",
+      "variantGroupKey": "k57d0r35hrcz54tkqmkaa14ven8cncd0"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I have already eaten"
+      },
+      "order": 5,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/eat.png",
+          "label": {
+            "en": "eat",
+            "es": "comer",
+            "hi": "खाना"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00194802.png",
+          "label": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
           "order": 2
         }
       ],
-      "text": "I have already eaten",
-      "variantGroupKey": "k575sjt74kkxzxgerbsd8jjegs8adqzp"
+      "text": "Ya comí",
+      "variantGroupKey": "k57d0r35hrcz54tkqmkaa14ven8cncd0"
     },
     {
       "authoredLanguage": "en",
       "name": {
-        "en": "What time is lunch"
+        "en": "What time is dinner"
       },
       "order": 6,
       "playback": "sequence",
@@ -349,11 +252,11 @@
           "order": 2
         },
         {
-          "imagePath": "symbols/lunch.png",
+          "imagePath": "symbols/dinner.png",
           "order": 3
         }
       ],
-      "text": "What time is lunch",
+      "text": "What time is dinner",
       "units": [
         {
           "kind": "phrase",
@@ -377,240 +280,37 @@
           ]
         },
         {
-          "audioPath": "audio/eng/default/lunch.mp3",
-          "imagePath": "symbols/lunch.png",
+          "audioPath": "audio/en-GB-News-M/symbols/dinner.mp3",
+          "imagePath": "symbols/dinner.png",
           "kind": "word",
           "label": {
-            "en": "lunch"
+            "en": "dinner",
+            "es": "cena",
+            "hi": "रात का खाना"
           },
           "order": 1
         }
       ],
-      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
+      "variantGroupKey": "k577a5q68zc0f14jwzyfk1x8jx8cmm6m"
     },
     {
-      "authoredLanguage": "en",
+      "authoredLanguage": "hi",
       "name": {
-        "en": "I want to make a sandwich"
+        "en": "What time is dinner"
       },
       "order": 7,
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_i_am.png",
+          "imagePath": "symbols/dinner.png",
           "order": 0
         },
         {
-          "imagePath": "symbols/want.png",
+          "imagePath": "symbols/what_2.png",
           "order": 1
         },
         {
-          "imagePath": "symbols/to2.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/make.png",
-          "order": 3
-        },
-        {
-          "imagePath": "symbols/a_3.png",
-          "order": 4
-        },
-        {
-          "imagePath": "symbols/sandwich2.png",
-          "order": 5
-        }
-      ],
-      "text": "I want to make a sandwich",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I want to"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_i_am.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/want.png",
-              "order": 1
-            },
-            {
-              "imagePath": "symbols/to2.png",
-              "order": 2
-            }
-          ]
-        },
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "make a"
-          },
-          "order": 1,
-          "words": [
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/make.png",
-              "order": 0
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/a_3.png",
-              "order": 1
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/eng/default/sandwich2.mp3",
-          "imagePath": "symbols/sandwich2.png",
-          "kind": "word",
-          "label": {
-            "en": "sandwich"
-          },
-          "order": 2
-        }
-      ],
-      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "en": "I want to make a sandwich"
-      },
-      "order": 8,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/i_i_am.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/want.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/to2.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/make.png",
-          "order": 3
-        },
-        {
-          "imagePath": "symbols/a_3.png",
-          "order": 4
-        },
-        {
-          "imagePath": "symbols/sandwich2.png",
-          "order": 5
-        }
-      ],
-      "text": "Quiero hacer un sándwich",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I want to",
-            "es": "Quiero"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_i_am.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/want.png",
-              "order": 1
-            },
-            {
-              "imagePath": "symbols/to2.png",
-              "order": 2
-            }
-          ]
-        },
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "make a",
-            "es": "hacer un"
-          },
-          "order": 1,
-          "words": [
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/make.png",
-              "order": 0
-            },
-            {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/a_3.png",
-              "order": 1
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/eng/default/sandwich2.mp3",
-          "imagePath": "symbols/sandwich2.png",
-          "kind": "word",
-          "label": {
-            "en": "sandwich",
-            "es": "sándwich"
-          },
-          "order": 2
-        }
-      ],
-      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "en": "I want to make a sandwich"
-      },
-      "order": 9,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/me.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/sandwich2.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/make.png",
+          "imagePath": "symbols/time.png",
           "order": 2
         },
         {
@@ -618,68 +318,47 @@
           "order": 3
         }
       ],
-      "text": "मुझे सैंडविच बनाना है",
+      "text": "खाना कितने बजे है?",
       "units": [
         {
-          "audioPath": "audio/hi-IN-Wavenet-F/tts/c8bfdd26-aee2-4022-96ad-bffbf7e8b254.mp3",
-          "imagePath": "symbols/me.png",
+          "imagePath": "symbols/dinner.png",
           "kind": "word",
           "label": {
-            "hi": "मुझे"
+            "hi": "खाना"
           },
           "order": 0
         },
         {
-          "imagePath": "symbols/sandwich2.png",
-          "kind": "word",
-          "label": {
-            "hi": "सैंडविच"
-          },
-          "order": 1
-        },
-        {
           "kind": "phrase",
           "name": {
-            "en": "make a",
-            "hi": "बनाना है"
+            "en": "What time is",
+            "hi": "कितने बजे है?"
           },
-          "order": 2,
+          "order": 1,
           "words": [
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/make.png",
+              "imagePath": "symbols/what_2.png",
               "order": 0
             },
             {
-              "displayProps": {
-                "bgColour": "#ffffff",
-                "cardShape": "rounded",
-                "showImage": true,
-                "showLabel": true,
-                "textColour": "#111827",
-                "textSize": "sm"
-              },
-              "imagePath": "symbols/is.png",
+              "imagePath": "symbols/time.png",
               "order": 1
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "order": 2
             }
           ]
         }
       ],
-      "variantGroupKey": "k570jg3gsx3660ss26xr4cnm318ak6cq"
+      "variantGroupKey": "k577a5q68zc0f14jwzyfk1x8jx8cmm6m"
     },
     {
       "authoredLanguage": "es",
       "name": {
-        "en": "What time is lunch"
+        "en": "What time is dinner"
       },
-      "order": 10,
+      "order": 8,
       "playback": "sequence",
       "slots": [
         {
@@ -732,26 +411,111 @@
           "order": 1
         }
       ],
-      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
+      "variantGroupKey": "k577a5q68zc0f14jwzyfk1x8jx8cmm6m"
+    },
+    {
+      "authoredLanguage": "en",
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 9,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/to2.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/a_3.png",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/sandwich1.png",
+          "order": 5
+        }
+      ],
+      "text": "I want to make a sandwich",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to make"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/to2.png",
+              "order": 2
+            },
+            {
+              "imagePath": "symbols/make.png",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/a.mp3",
+          "imagePath": "symbols/a_3.png",
+          "kind": "word",
+          "label": {
+            "en": "a",
+            "es": "un",
+            "hi": "एक"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/sandwich.mp3",
+          "imagePath": "symbols/sandwich1.png",
+          "kind": "word",
+          "label": {
+            "en": "sandwich",
+            "es": "sándwich",
+            "hi": "सैंडविच"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k578tyz0g8abyjnn7c99bxvmk58cm8z1"
     },
     {
       "authoredLanguage": "hi",
       "name": {
-        "en": "What time is lunch"
+        "en": "I want to make a sandwich"
       },
-      "order": 11,
+      "order": 10,
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/dinner.png",
+          "imagePath": "symbols/i_am.png",
           "order": 0
         },
         {
-          "imagePath": "symbols/what_2.png",
+          "imagePath": "symbols/sandwich1.png",
           "order": 1
         },
         {
-          "imagePath": "symbols/time.png",
+          "imagePath": "symbols/make.png",
           "order": 2
         },
         {
@@ -759,46 +523,131 @@
           "order": 3
         }
       ],
-      "text": "खाना कितने बजे है",
+      "text": "मुझे सैंडविच बनाना है",
       "units": [
         {
-          "imagePath": "symbols/dinner.png",
+          "imagePath": "symbols/i_am.png",
           "kind": "word",
           "label": {
-            "hi": "खाना"
+            "hi": "मुझे"
           },
           "order": 0
         },
         {
+          "audioPath": "audio/en-GB-News-M/symbols/sandwich.mp3",
+          "imagePath": "symbols/sandwich1.png",
+          "kind": "word",
+          "label": {
+            "en": "sandwich",
+            "es": "sándwich",
+            "hi": "सैंडविच"
+          },
+          "order": 1
+        },
+        {
           "kind": "phrase",
           "name": {
-            "en": "What time is",
-            "hi": "कितने बजे है"
+            "en": "I want to make",
+            "hi": "बनाना है"
           },
-          "order": 1,
+          "order": 2,
           "words": [
             {
-              "imagePath": "symbols/what_2.png",
+              "imagePath": "symbols/make.png",
               "order": 0
             },
             {
-              "imagePath": "symbols/time.png",
-              "order": 1
-            },
-            {
               "imagePath": "symbols/is.png",
-              "order": 2
+              "order": 1
             }
           ]
         }
       ],
-      "variantGroupKey": "k5796d0c7rh9b8e4q6q5vzxhxd8arvxb"
+      "variantGroupKey": "k578tyz0g8abyjnn7c99bxvmk58cm8z1"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to make a sandwich"
+      },
+      "order": 11,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/make.png",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/a_3.png",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/sandwich1.png",
+          "order": 4
+        }
+      ],
+      "text": "Quiero hacer un sándwich",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to make",
+            "es": "Quiero hacer"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/make.png",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/a.mp3",
+          "imagePath": "symbols/a_3.png",
+          "kind": "word",
+          "label": {
+            "en": "a",
+            "es": "un",
+            "hi": "एक"
+          },
+          "order": 1
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/sandwich.mp3",
+          "imagePath": "symbols/sandwich1.png",
+          "kind": "word",
+          "label": {
+            "en": "sandwich",
+            "es": "sándwich",
+            "hi": "सैंडविच"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k578tyz0g8abyjnn7c99bxvmk58cm8z1"
     }
   ],
   "name": {
     "en": "Talking about food",
     "es": "Hablando de comida",
-    "hi": "खाने की बात"
+    "hi": "खाने के बारे में बात करना"
   },
   "slug": "talking-about-food",
   "tree": "sentences"

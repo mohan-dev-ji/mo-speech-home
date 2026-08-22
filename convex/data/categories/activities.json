@@ -1,14 +1,15 @@
 {
-  "colour": "#22C55E",
-  "coverImagePath": "symbols/symbol00102991.png",
+  "colour": "yellow",
+  "coverImagePath": "symbols/symbol00183226.png",
+  "defaultOrder": 2,
   "defaultTier": "free",
-  "icon": "⚽",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#22C55E",
-      "icon": "⚽",
-      "imagePath": "symbols/symbol00102991.png",
+      "colour": "yellow",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00183226.png",
       "name": {
         "en": "Activities",
         "es": "Actividades",
@@ -18,6 +19,7 @@
         {
           "labelOverride": {
             "en": "work out",
+            "es": "hacer ejercicio",
             "hi": "व्यायाम करना"
           },
           "order": 0,
@@ -42,13 +44,23 @@
           "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
         },
         {
+          "audio": {
+            "en": {
+              "alternates": {
+                "default": "audio/eng/default/soccer_ball.mp3"
+              },
+              "language": "en",
+              "path": "audio/eng/default/football_sign_language.mp3",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "football",
-            "es": "fútbol americano",
-            "hi": "फुटबॉल"
+            "es": "balón de fútbol",
+            "hi": "फ़ुटबॉल"
           },
           "order": 3,
-          "symbolId": "kn7cgmt1vq59zb7e1z6bc1tgsn84mxp3"
+          "symbolId": "kn7e1fp86gxtv0w5dtx046tj8984nt7x"
         },
         {
           "labelOverride": {
@@ -84,7 +96,7 @@
             "hi": "कराटे"
           },
           "order": 7,
-          "symbolId": "kn7802mms4tkpdd2vy6w7zd6tn84mphv"
+          "symbolId": "kn7bjygnsgd9xepvvxqnvennmh84n974"
         },
         {
           "labelOverride": {
@@ -102,7 +114,7 @@
             "hi": "नाचना"
           },
           "order": 9,
-          "symbolId": "kn7d6t3y6tzrrvp2vwd5b65ge184nxep"
+          "symbolId": "kn7722kh6n7n6v73n7rhfspnrx84njnf"
         },
         {
           "labelOverride": {
@@ -126,19 +138,19 @@
           "labelOverride": {
             "en": "race",
             "es": "carrera",
-            "hi": "दौड़"
+            "hi": "दौड़ना"
           },
           "order": 12,
-          "symbolId": "kn70sam6dmjed7w0z4v6errg4d84n0t1"
+          "symbolId": "kn77f0vbth9m1bft9zr8kh6efd84nke8"
         },
         {
           "labelOverride": {
-            "en": "art",
-            "es": "Arte",
-            "hi": "कला"
+            "en": "arts and crafts",
+            "es": "manualidades",
+            "hi": "हस्तकला"
           },
           "order": 13,
-          "symbolId": "kn7f64xyytd7ttq48ejdb1pwkd84mqc1"
+          "symbolId": "kn7b8rjf344anvpvp145kzq19h84nyjg"
         },
         {
           "labelOverride": {
@@ -201,7 +213,7 @@
             "hi": "पियानो"
           },
           "order": 20,
-          "symbolId": "kn7an13qv15kfvkd8b4ydpsc9184m7xw"
+          "symbolId": "kn739f0r1ar3y0ew82a0cjgh6d84njvj"
         },
         {
           "labelOverride": {
@@ -210,7 +222,7 @@
             "hi": "खेल"
           },
           "order": 21,
-          "symbolId": "kn76a9t81pcy8pdc294yjc548984mggx"
+          "symbolId": "kn7525t2297bjf1tff36131djh84nb5w"
         },
         {
           "labelOverride": {
@@ -237,7 +249,7 @@
             "hi": "पहेली"
           },
           "order": 24,
-          "symbolId": "kn7bezhnta9dh97cx6gdg3gcwx84m79v"
+          "symbolId": "kn7f1f2hbt8kpm6f3785f1tw7984ma2s"
         },
         {
           "labelOverride": {
@@ -255,7 +267,7 @@
             "hi": "लुका-छिपी"
           },
           "order": 26,
-          "symbolId": "kn79az2t3gw1qbq7nfdfanwakd84ntkt"
+          "symbolId": "kn76jxy0mmg3zfrw0mn7cpswh984njmt"
         },
         {
           "labelOverride": {
@@ -300,7 +312,7 @@
             "hi": "जन्मदिन"
           },
           "order": 31,
-          "symbolId": "kn73e66h5g9630f9ye29aef09h84m7rn"
+          "symbolId": "kn733750dzbzr1jhsxs0qxyewh84n025"
         },
         {
           "labelOverride": {
@@ -327,7 +339,7 @@
             "hi": "पार्क"
           },
           "order": 34,
-          "symbolId": "kn705te1yv3qekhemszqwq5x7n84nph4"
+          "symbolId": "kn7035v5m531em8h7y2w7217sd84nrwr"
         },
         {
           "labelOverride": {
@@ -345,7 +357,7 @@
             "hi": "बीच"
           },
           "order": 36,
-          "symbolId": "kn73rxy94y1pk7crmg85y9rgrh84mnre"
+          "symbolId": "kn7e833mwc8ztq78dye9dtd36s84n0av"
         },
         {
           "labelOverride": {
@@ -354,7 +366,7 @@
             "hi": "पुस्तकालय"
           },
           "order": 37,
-          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+          "symbolId": "kn7evpck4p5k74c0pd938703xn84m5z0"
         },
         {
           "labelOverride": {
@@ -363,7 +375,7 @@
             "hi": "कैंपिंग"
           },
           "order": 38,
-          "symbolId": "kn78pedh9f8dfbd25n54tyqam584m120"
+          "symbolId": "kn74yvnqsmvz7wyhs9h8czbg7d84n3pf"
         },
         {
           "labelOverride": {
@@ -372,7 +384,7 @@
             "hi": "कसरत"
           },
           "order": 39,
-          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+          "symbolId": "kn7dxhxbfxjwjrw6dfv4njq0s184n203"
         },
         {
           "labelOverride": {
@@ -381,7 +393,7 @@
             "hi": "खेल"
           },
           "order": 40,
-          "symbolId": "kn726apnpbra0ryewwa9e8n73d84n44s"
+          "symbolId": "kn7575wqb0tgy1yzw0brf2tcr584n7gr"
         },
         {
           "labelOverride": {
@@ -429,13 +441,39 @@
           "symbolId": "kn7eg40dnv9mbp62pk9nzmfj1n84n86y"
         },
         {
+          "audio": {
+            "en": {
+              "alternates": {
+                "default": "audio/eng/default/symbol00109041.mp3"
+              },
+              "language": "en",
+              "path": "audio/eng/default/holiday_2.mp3",
+              "type": "tts"
+            },
+            "es": {
+              "alternates": {
+                "default": "audio/es-US-Wavenet-C/symbols/school holiday UK.mp3"
+              },
+              "language": "es",
+              "path": "audio/es-US-Wavenet-C/symbols/school vacation.mp3",
+              "type": "tts"
+            },
+            "hi": {
+              "alternates": {
+                "default": "audio/hi-IN-Wavenet-F/symbols/school holiday UK.mp3"
+              },
+              "language": "hi",
+              "path": "audio/hi-IN-Wavenet-F/symbols/school holiday.mp3",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "holiday",
-            "es": "día festivo",
-            "hi": "छुट्टी"
+            "es": "vacaciones escolares",
+            "hi": "स्कूल की छुट्टी"
           },
           "order": 46,
-          "symbolId": "kn7ag03qbap8ht3ns7smr40g4x84nqm5"
+          "symbolId": "kn756y35597668dw1dpqx82ex184me98"
         }
       ]
     }

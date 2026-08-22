@@ -1,13 +1,14 @@
 {
   "colour": "cyan",
   "coverImagePath": "symbols/symbol00202158.png",
+  "defaultOrder": 11,
   "defaultTier": "free",
-  "icon": "🌿",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
       "colour": "cyan",
-      "icon": "🌿",
+      "icon": "📁",
       "imagePath": "symbols/symbol00202158.png",
       "name": {
         "en": "Nature",
@@ -31,7 +32,7 @@
             "hi": "कोहरे वाला"
           },
           "order": 1,
-          "symbolId": "kn79tpc0v6y85n83makv9cyhw584mk20"
+          "symbolId": "kn7akhj45zqdvqftdwf7m968m584n7aq"
         },
         {
           "labelOverride": {
@@ -97,13 +98,21 @@
           "symbolId": "kn73yc3pznydyzn48ap8sdvsbh84ntpv"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/eng/default/symbol00193300.mp3",
+              "ttsText": "fog",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "fog",
-            "es": "niebla",
-            "hi": "कोहरा"
+            "es": "con niebla",
+            "hi": "कोहरे वाला"
           },
           "order": 9,
-          "symbolId": "kn7drq53atbyvv8qqqr2wat9dn84nyng"
+          "symbolId": "kn79tpc0v6y85n83makv9cyhw584mk20"
         },
         {
           "labelOverride": {
@@ -214,13 +223,21 @@
           "symbolId": "kn7a011kprcg1q6vehfr4657g984my5w"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/ade07534-e71b-4cfd-bb57-765760c07321.mp3",
+              "ttsText": "Sea",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
-            "en": "sea",
-            "es": "mar",
-            "hi": "समुद्र"
+            "en": "Sea",
+            "es": "Mar Amarillo",
+            "hi": "Yellow Sea"
           },
           "order": 22,
-          "symbolId": "kn706wyp3g3dtescg2qr56fddh84npmt"
+          "symbolId": "kn7bx2dcjdfhm3czmngn019gt984n3ch"
         },
         {
           "labelOverride": {
@@ -310,7 +327,7 @@
             "hi": "मिट्टी"
           },
           "order": 32,
-          "symbolId": "kn7acwhmjw5v05tsd725fdde9h84nhn1"
+          "symbolId": "kn738s91nm3qsr70f8b73ejyzx84mhtk"
         },
         {
           "labelOverride": {
@@ -394,22 +411,38 @@
           "symbolId": "kn74fazwcsycz2dg4wq7677fex84n9x5"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/eng/default/symbol00214351.mp3",
+              "ttsText": "field",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "field",
-            "es": "campo",
-            "hi": "मैदान"
+            "es": "prado",
+            "hi": "घास का मैदान"
           },
           "order": 42,
-          "symbolId": "kn7d7n2rsgpe1fy5k0th8xncpx84n6pb"
+          "symbolId": "kn72dy9mgt24grkrajbmr6jynh84mqwt"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/eng/default/symbol00208267.mp3",
+              "ttsText": "star",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "star",
-            "es": "estrella",
-            "hi": "तारा"
+            "es": "Contemplar las estrellas",
+            "hi": "तारे देखना"
           },
           "order": 43,
-          "symbolId": "kn7ffj2zxvdysgfzzc9yzw1h5x84msbk"
+          "symbolId": "kn70hz58w3p3bzabt3rcdswqvn84mpzw"
         },
         {
           "labelOverride": {

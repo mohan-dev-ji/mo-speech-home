@@ -1,0 +1,461 @@
+{
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/symbol00197918.png",
+  "defaultOrder": 16,
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00197918.png",
+      "name": {
+        "en": "General",
+        "es": "General",
+        "hi": "सामान्य"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "yes",
+            "es": "sí",
+            "hi": "हाँ"
+          },
+          "order": 0,
+          "symbolId": "kn7edcf1f58e661q54eych76pn84m0sp"
+        },
+        {
+          "labelOverride": {
+            "en": "please",
+            "es": "por favor",
+            "hi": "कृपया"
+          },
+          "order": 1,
+          "symbolId": "kn7b1x0z1n881hgz6zk3zd7bxn84nwjf"
+        },
+        {
+          "labelOverride": {
+            "en": "more",
+            "es": "más",
+            "hi": "और"
+          },
+          "order": 2,
+          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
+        },
+        {
+          "labelOverride": {
+            "en": "stop",
+            "es": "parar",
+            "hi": "रुकना"
+          },
+          "order": 3,
+          "symbolId": "kn77vqh14r04s8rk8r7ng0y46n84nmk4"
+        },
+        {
+          "labelOverride": {
+            "en": "good",
+            "es": "bueno",
+            "hi": "अच्छा"
+          },
+          "order": 4,
+          "symbolId": "kn72f9q2wb5h5qw9c2abb75gwn84mddr"
+        },
+        {
+          "labelOverride": {
+            "en": "bad",
+            "es": "malo",
+            "hi": "बुरा"
+          },
+          "order": 5,
+          "symbolId": "kn7627040bv3gxerf984we3bf584ndt5"
+        },
+        {
+          "labelOverride": {
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
+          },
+          "order": 6,
+          "symbolId": "kn770fvp1mzrxej3xkd0xeyqtn84nf69"
+        },
+        {
+          "labelOverride": {
+            "en": "sad",
+            "es": "Triste",
+            "hi": "उदास"
+          },
+          "order": 7,
+          "symbolId": "kn7784v062saq80pg1jtv17cn584mpqp"
+        },
+        {
+          "labelOverride": {
+            "en": "me",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 8,
+          "symbolId": "kn75wz7p324jzfycy3nayq0nfx84mad2"
+        },
+        {
+          "labelOverride": {
+            "en": "my",
+            "es": "mi",
+            "hi": "मेरा"
+          },
+          "order": 9,
+          "symbolId": "kn7d05mwzbc1vhwp3ez8wha7p984ny7t"
+        },
+        {
+          "labelOverride": {
+            "en": "he",
+            "es": "Él",
+            "hi": "वह"
+          },
+          "order": 10,
+          "symbolId": "kn77tb4mzqbndc57zxwmzrwj8184nfwm"
+        },
+        {
+          "labelOverride": {
+            "en": "she",
+            "es": "ella",
+            "hi": "वह"
+          },
+          "order": 11,
+          "symbolId": "kn77zbpymwqea2cpmhe65dcp1d84n8bm"
+        },
+        {
+          "labelOverride": {
+            "en": "we",
+            "es": "nosotros",
+            "hi": "हम"
+          },
+          "order": 12,
+          "symbolId": "kn7c3rz97sdefvrn84sp5mn0m584mzph"
+        },
+        {
+          "labelOverride": {
+            "en": "they",
+            "es": "ellos",
+            "hi": "वे"
+          },
+          "order": 13,
+          "symbolId": "kn75d8mxg5njcqfxw3y84qx9mx84n4xm"
+        },
+        {
+          "labelOverride": {
+            "en": "all",
+            "es": "todo",
+            "hi": "सब"
+          },
+          "order": 14,
+          "symbolId": "kn779q2n2sp809fn230nkbwkd184m6kn"
+        },
+        {
+          "labelOverride": {
+            "en": "same",
+            "es": "igual",
+            "hi": "एक जैसा"
+          },
+          "order": 15,
+          "symbolId": "kn7f3pr79yqdmgd9gg24wxebvh84m2w6"
+        },
+        {
+          "labelOverride": {
+            "en": "different",
+            "es": "diferente",
+            "hi": "अलग"
+          },
+          "order": 16,
+          "symbolId": "kn7cc0vq1h6jbwnywwwehgp5e184nwc0"
+        },
+        {
+          "labelOverride": {
+            "en": "big",
+            "es": "grande",
+            "hi": "बड़ा"
+          },
+          "order": 17,
+          "symbolId": "kn78t28gqxmp0tyz1q4m5ytfgx84nsj8"
+        },
+        {
+          "labelOverride": {
+            "en": "little",
+            "es": "pequeño",
+            "hi": "छोटा"
+          },
+          "order": 18,
+          "symbolId": "kn7depk4k6jpdsyj5yhwzgt1g184n75n"
+        },
+        {
+          "labelOverride": {
+            "en": "what",
+            "es": "qué",
+            "hi": "क्या"
+          },
+          "order": 19,
+          "symbolId": "kn7a5f987035w41mz2dvg2n0wh84nhee"
+        },
+        {
+          "labelOverride": {
+            "en": "how",
+            "es": "cómo",
+            "hi": "कैसे"
+          },
+          "order": 20,
+          "symbolId": "kn71vahzd66bcfn4sssxqk6eas84m91e"
+        },
+        {
+          "labelOverride": {
+            "en": "who",
+            "es": "quién",
+            "hi": "कौन"
+          },
+          "order": 21,
+          "symbolId": "kn7eydv73kg752591z0v4emyhx84n6hj"
+        },
+        {
+          "labelOverride": {
+            "en": "and",
+            "es": "y",
+            "hi": "और"
+          },
+          "order": 22,
+          "symbolId": "kn78yhe6tq6hf5hst54tyqm5h984nqb1"
+        },
+        {
+          "labelOverride": {
+            "en": "but",
+            "es": "pero",
+            "hi": "लेकिन"
+          },
+          "order": 23,
+          "symbolId": "kn72bcy0wyq9q4fz0k24zqp29x84nrsx"
+        },
+        {
+          "labelOverride": {
+            "en": "want",
+            "es": "querer",
+            "hi": "चाहिए"
+          },
+          "order": 24,
+          "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1"
+        },
+        {
+          "labelOverride": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
+          },
+          "order": 25,
+          "symbolId": "kn7bqp8w7tn53a6dysev66hhp984nshr"
+        },
+        {
+          "labelOverride": {
+            "en": "help",
+            "es": "ayuda",
+            "hi": "मदद"
+          },
+          "order": 26,
+          "symbolId": "kn76c4bbv7sk92vceyb1pegr1984nrje"
+        },
+        {
+          "labelOverride": {
+            "en": "go",
+            "es": "ir",
+            "hi": "जाओ"
+          },
+          "order": 27,
+          "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a"
+        },
+        {
+          "labelOverride": {
+            "en": "come",
+            "es": "venir",
+            "hi": "आओ"
+          },
+          "order": 28,
+          "symbolId": "kn73fcp7jsscfb73q74kdwpcvd84ns0y"
+        },
+        {
+          "labelOverride": {
+            "en": "eat",
+            "es": "comer",
+            "hi": "खाना"
+          },
+          "order": 29,
+          "symbolId": "kn76k6jpevb6hgghcn7qn31pw984mdvy"
+        },
+        {
+          "labelOverride": {
+            "en": "drink",
+            "es": "bebida",
+            "hi": "पीना"
+          },
+          "order": 30,
+          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
+        },
+        {
+          "labelOverride": {
+            "en": "play",
+            "es": "jugar",
+            "hi": "खेलना"
+          },
+          "order": 31,
+          "symbolId": "kn77bjf6mgbnns10bxkar5tbj184m99m"
+        },
+        {
+          "labelOverride": {
+            "en": "open",
+            "es": "abrir",
+            "hi": "खोलो"
+          },
+          "order": 32,
+          "symbolId": "kn73aarny8zyn9sn5mb6qyvd1x84m5gr"
+        },
+        {
+          "labelOverride": {
+            "en": "close",
+            "es": "cerrar",
+            "hi": "बंद करना"
+          },
+          "order": 33,
+          "symbolId": "kn775gxambh6021z89tvpvq7ad84naem"
+        },
+        {
+          "labelOverride": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
+          "order": 34,
+          "symbolId": "kn738dd2fge139z2m9t809vgzs84nvf1"
+        },
+        {
+          "labelOverride": {
+            "en": "look",
+            "es": "mirar",
+            "hi": "देखो"
+          },
+          "order": 35,
+          "symbolId": "kn73bwrrf4y9ys8fwyypmydgbs84m8jr"
+        },
+        {
+          "labelOverride": {
+            "en": "see",
+            "es": "ver",
+            "hi": "देखना"
+          },
+          "order": 36,
+          "symbolId": "kn735p07bj4aabn0vg8msvd3yd84na80"
+        },
+        {
+          "labelOverride": {
+            "en": "feel",
+            "es": "sentir",
+            "hi": "महसूस करना"
+          },
+          "order": 37,
+          "symbolId": "kn7fgb31ekn67yrvrw8zhza6s984nfj8"
+        },
+        {
+          "labelOverride": {
+            "en": "do",
+            "es": "hacer",
+            "hi": "करना"
+          },
+          "order": 38,
+          "symbolId": "kn73n1tp1b29tj1jvgk4msfdvx84nzjj"
+        },
+        {
+          "labelOverride": {
+            "en": "can",
+            "es": "poder",
+            "hi": "कर सकता हूँ"
+          },
+          "order": 39,
+          "symbolId": "kn7a69epwyhzcnr1m3srb30f0184nbjc"
+        },
+        {
+          "labelOverride": {
+            "en": "have",
+            "es": "tener",
+            "hi": "पास होना"
+          },
+          "order": 40,
+          "symbolId": "kn78dn60mpj7w3rc3da944zjn184mbwt"
+        },
+        {
+          "labelOverride": {
+            "en": "make",
+            "es": "Hacer",
+            "hi": "बनाना"
+          },
+          "order": 41,
+          "symbolId": "kn74w1km22htz4ztwck3ea6df184nt85"
+        },
+        {
+          "labelOverride": {
+            "en": "get",
+            "es": "conseguir",
+            "hi": "लेना"
+          },
+          "order": 42,
+          "symbolId": "kn73g9e9svgf4vr7b07xj07n2n84m2re"
+        },
+        {
+          "labelOverride": {
+            "en": "put",
+            "es": "poner",
+            "hi": "रखो"
+          },
+          "order": 43,
+          "symbolId": "kn76jebnwzchvaf6kzanxpb76n84mkxw"
+        },
+        {
+          "labelOverride": {
+            "en": "say",
+            "es": "decir",
+            "hi": "कहना"
+          },
+          "order": 44,
+          "symbolId": "kn7f8ztx8v2q0fnye39cxvta5x84mh0f"
+        },
+        {
+          "labelOverride": {
+            "en": "tell",
+            "es": "decir",
+            "hi": "बताना"
+          },
+          "order": 45,
+          "symbolId": "kn7bh0h2fxbn3vbbawth9mrwqs84nbcf"
+        },
+        {
+          "labelOverride": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 46,
+          "symbolId": "kn71c7wh6kwx5f9menkzwzg4tx84mvj5"
+        },
+        {
+          "labelOverride": {
+            "en": "now",
+            "es": "ahora",
+            "hi": "अब"
+          },
+          "order": 47,
+          "symbolId": "kn7fcvvwthszkgm2qt3bcv5dq184ndd2"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "General",
+    "es": "General",
+    "hi": "सामान्य"
+  },
+  "slug": "general",
+  "tree": "categories"
+}

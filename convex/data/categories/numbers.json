@@ -1,28 +1,29 @@
 {
-  "colour": "#06B6D4",
-  "coverImagePath": "symbols/number.png",
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/numbers_2.png",
+  "defaultOrder": 19,
   "defaultTier": "free",
-  "icon": "🔢",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#06B6D4",
-      "icon": "🔢",
-      "imagePath": "symbols/number.png",
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/numbers_2.png",
       "name": {
         "en": "Numbers",
         "es": "Números",
-        "hi": "गिनती"
+        "hi": "अंक"
       },
       "symbols": [
         {
           "labelOverride": {
-            "en": "0",
-            "es": "Cero",
-            "hi": "0"
+            "en": "zero",
+            "es": "cero",
+            "hi": "शून्य"
           },
           "order": 0,
-          "symbolId": "kn7ak0nr9e20mktrm3v7750ar984mmds"
+          "symbolId": "kn775p1ee4yaqs2t2fqw6ym6z184mm3v"
         },
         {
           "labelOverride": {
@@ -115,47 +116,29 @@
         },
         {
           "labelOverride": {
-            "en": "11",
-            "es": "once",
-            "hi": "ग्यारह"
-          },
-          "order": 11,
-          "symbolId": "kn7eswggygpyt9w0sd6n1ne8zn84mahr"
-        },
-        {
-          "labelOverride": {
-            "en": "12",
-            "es": "12",
-            "hi": "बारह"
-          },
-          "order": 12,
-          "symbolId": "kn78gy1aq2zkavcr6yrs2r6nhd84n6fd"
-        },
-        {
-          "labelOverride": {
-            "en": "15",
-            "es": "15",
-            "hi": "पंद्रह"
-          },
-          "order": 13,
-          "symbolId": "kn787e83e4wfsvf69f0jh7k4n584m6rc"
-        },
-        {
-          "labelOverride": {
             "en": "20",
             "hi": "बीस"
           },
-          "order": 14,
+          "order": 11,
           "symbolId": "kn76vvwnhkx6bdvndh6eeh5tss84ny0b"
         },
         {
           "labelOverride": {
-            "en": "25",
-            "es": "25",
-            "hi": "पच्चीस"
+            "en": "30",
+            "es": "treinta",
+            "hi": "तीस"
           },
-          "order": 15,
-          "symbolId": "kn778n8paf3kazfcmghq6dh87184nv5e"
+          "order": 12,
+          "symbolId": "kn7fkwdjpk28kbvn23ptae83k184nf41"
+        },
+        {
+          "labelOverride": {
+            "en": "40",
+            "es": "40",
+            "hi": "चालीस"
+          },
+          "order": 13,
+          "symbolId": "kn7a17djjj6v4xajw6e4n1b9sn84n47q"
         },
         {
           "labelOverride": {
@@ -163,8 +146,44 @@
             "es": "cincuenta",
             "hi": "50"
           },
-          "order": 16,
+          "order": 14,
           "symbolId": "kn7b4zf1dq0a18px2jjh8jsn9h84myhf"
+        },
+        {
+          "labelOverride": {
+            "en": "60",
+            "es": "sesenta",
+            "hi": "साठ"
+          },
+          "order": 15,
+          "symbolId": "kn72f0wb8pmb3vdhfka2epcezs84mmpn"
+        },
+        {
+          "labelOverride": {
+            "en": "70",
+            "es": "setenta",
+            "hi": "सत्तर"
+          },
+          "order": 16,
+          "symbolId": "kn7cpj5xmcs5tpejpjvebd4d5d84mv8b"
+        },
+        {
+          "labelOverride": {
+            "en": "80",
+            "es": "ochenta",
+            "hi": "अस्सी"
+          },
+          "order": 17,
+          "symbolId": "kn728asvba2592asat628gw10584nvnc"
+        },
+        {
+          "labelOverride": {
+            "en": "90",
+            "es": "noventa",
+            "hi": "नब्बे"
+          },
+          "order": 18,
+          "symbolId": "kn7ctbhqawpwcesy1gz4yf2v0184nanf"
         },
         {
           "labelOverride": {
@@ -172,278 +191,8 @@
             "es": "cien",
             "hi": "सौ"
           },
-          "order": 17,
-          "symbolId": "kn7exkd29q2jnpxwy5ch29fqex84n8tn"
-        },
-        {
-          "labelOverride": {
-            "en": "add",
-            "es": "añadir",
-            "hi": "जोड़ना"
-          },
-          "order": 18,
-          "symbolId": "kn72sf89c9dva31802jqn0y27184nefp"
-        },
-        {
-          "labelOverride": {
-            "en": "subtract",
-            "es": "restar",
-            "hi": "घटाना"
-          },
           "order": 19,
-          "symbolId": "kn7b13m81ree2bps4090c7tjfd84n0fr"
-        },
-        {
-          "labelOverride": {
-            "en": "multiply",
-            "es": "multiplicar",
-            "hi": "गुणा करना"
-          },
-          "order": 20,
-          "symbolId": "kn7epxabs1382tzfj9t5e7yc1s84mvrj"
-        },
-        {
-          "labelOverride": {
-            "en": "divide",
-            "es": "dividir",
-            "hi": "बाँटना"
-          },
-          "order": 21,
-          "symbolId": "kn7bp5h6yvjtkw43f9n85xt83h84md5h"
-        },
-        {
-          "labelOverride": {
-            "en": "count",
-            "es": "contar",
-            "hi": "गिनना"
-          },
-          "order": 22,
-          "symbolId": "kn7bsmy974zddafbsr2dztcjv184nghw"
-        },
-        {
-          "labelOverride": {
-            "en": "total",
-            "es": "total",
-            "hi": "कुल"
-          },
-          "order": 23,
-          "symbolId": "kn77qw8hmjet9r9hyq6ffghdw184n022"
-        },
-        {
-          "labelOverride": {
-            "en": "half",
-            "es": "mitad",
-            "hi": "आधा"
-          },
-          "order": 24,
-          "symbolId": "kn7bhxv9sxedyzcwh952h6zz2184msgr"
-        },
-        {
-          "labelOverride": {
-            "en": "quarter",
-            "es": "cuarto",
-            "hi": "चौथाई"
-          },
-          "order": 25,
-          "symbolId": "kn7a4pz2a4k8rwh3vg9cv87zf184nkhv"
-        },
-        {
-          "labelOverride": {
-            "en": "fraction",
-            "es": "fracción",
-            "hi": "भिन्न"
-          },
-          "order": 26,
-          "symbolId": "kn751p6trd0d7xpyh9ccr8jk2x84mtyk"
-        },
-        {
-          "labelOverride": {
-            "en": "amount",
-            "es": "Cantidad",
-            "hi": "मात्रा"
-          },
-          "order": 27,
-          "symbolId": "kn7bq02mmmzvypnqkr6bqjb6b184nd4t"
-        },
-        {
-          "labelOverride": {
-            "en": "more",
-            "es": "más",
-            "hi": "और"
-          },
-          "order": 28,
-          "symbolId": "kn73t6640z45kn4769bgb1ctxh84nekv"
-        },
-        {
-          "labelOverride": {
-            "en": "less",
-            "es": "menos",
-            "hi": "कम"
-          },
-          "order": 29,
-          "symbolId": "kn71c2r8r8qkgr1mmnrbtb8xgd84m2h5"
-        },
-        {
-          "labelOverride": {
-            "en": "some",
-            "es": "algunos",
-            "hi": "कुछ"
-          },
-          "order": 30,
-          "symbolId": "kn796k24es0e52x56v772mnczd84nqn0"
-        },
-        {
-          "labelOverride": {
-            "en": "many",
-            "es": "muchos",
-            "hi": "बहुत"
-          },
-          "order": 31,
-          "symbolId": "kn767n9z2wyqapt0vxqd62hz3d84ns46"
-        },
-        {
-          "labelOverride": {
-            "en": "few",
-            "es": "pocos",
-            "hi": "कुछ"
-          },
-          "order": 32,
-          "symbolId": "kn780szsgbd6sxsgkspvnekd8d84n0zv"
-        },
-        {
-          "labelOverride": {
-            "en": "all",
-            "es": "todo",
-            "hi": "सब"
-          },
-          "order": 33,
-          "symbolId": "kn779q2n2sp809fn230nkbwkd184m6kn"
-        },
-        {
-          "labelOverride": {
-            "en": "none",
-            "es": "ninguno",
-            "hi": "कोई नहीं"
-          },
-          "order": 34,
-          "symbolId": "kn74s2sk181e14xner3j0ct7qn84n5rs"
-        },
-        {
-          "labelOverride": {
-            "en": "first",
-            "es": "primero",
-            "hi": "पहला"
-          },
-          "order": 35,
-          "symbolId": "kn72vbbfqhbpzppttnx5teen8584nzrt"
-        },
-        {
-          "labelOverride": {
-            "en": "second",
-            "es": "segundo",
-            "hi": "सेकंड"
-          },
-          "order": 36,
-          "symbolId": "kn76y5gxdtnxafg7zz4d6m0qe184njzw"
-        },
-        {
-          "labelOverride": {
-            "en": "third",
-            "es": "tercero",
-            "hi": "तीसरा"
-          },
-          "order": 37,
-          "symbolId": "kn761mw7yph9208n23zqtkdhnd84ncms"
-        },
-        {
-          "labelOverride": {
-            "en": "number",
-            "es": "número",
-            "hi": "संख्या"
-          },
-          "order": 38,
-          "symbolId": "kn7cxmc8npkta1vvee6tbe5jd584n7za"
-        },
-        {
-          "labelOverride": {
-            "en": "money",
-            "es": "dinero",
-            "hi": "पैसा"
-          },
-          "order": 39,
-          "symbolId": "kn7984vqkkbtkqvkbwqcsd8crx84nwgn"
-        },
-        {
-          "labelOverride": {
-            "en": "pound",
-            "es": "libra",
-            "hi": "पाउंड"
-          },
-          "order": 40,
-          "symbolId": "kn79rr5f1vcrhy6nb3jbch1mr984n655"
-        },
-        {
-          "labelOverride": {
-            "en": "penny",
-            "es": "centavo",
-            "hi": "पैसा"
-          },
-          "order": 41,
-          "symbolId": "kn7aqg9j2at6gxq1tmra0c0b9h84nn7c"
-        },
-        {
-          "labelOverride": {
-            "en": "coin",
-            "es": "moneda",
-            "hi": "सिक्का"
-          },
-          "order": 42,
-          "symbolId": "kn7b0f5nmqkwbdd32wvbc91f3184mf9k"
-        },
-        {
-          "labelOverride": {
-            "en": "pay",
-            "es": "pagar",
-            "hi": "पैसे देना"
-          },
-          "order": 43,
-          "symbolId": "kn7avv9kqg4ph8t31vpacxxg0584mbd6"
-        },
-        {
-          "labelOverride": {
-            "en": "change",
-            "es": "cambiar",
-            "hi": "बदलना"
-          },
-          "order": 44,
-          "symbolId": "kn7777c0bwrydtv1q6q4aedvt984mje4"
-        },
-        {
-          "labelOverride": {
-            "en": "free",
-            "es": "Gratis",
-            "hi": "आज़ाद"
-          },
-          "order": 45,
-          "symbolId": "kn7exfdpymf5yfn6vsd0mfmvpd84m2mp"
-        },
-        {
-          "labelOverride": {
-            "en": "expensive",
-            "es": "caro",
-            "hi": "महंगा"
-          },
-          "order": 46,
-          "symbolId": "kn70hj0ff7wttpb98pkf8p518n84mrgc"
-        },
-        {
-          "labelOverride": {
-            "en": "cheap",
-            "es": "barato",
-            "hi": "सस्ता"
-          },
-          "order": 47,
-          "symbolId": "kn7f0v9x5kbhyar747ebw8t6p184mhy4"
+          "symbolId": "kn7exkd29q2jnpxwy5ch29fqex84n8tn"
         }
       ]
     }
@@ -451,7 +200,7 @@
   "name": {
     "en": "Numbers",
     "es": "Números",
-    "hi": "गिनती"
+    "hi": "अंक"
   },
   "slug": "numbers",
   "tree": "categories"

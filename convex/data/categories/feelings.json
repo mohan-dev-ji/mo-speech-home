@@ -1,13 +1,14 @@
 {
-  "colour": "fuchsia",
+  "colour": "purple",
   "coverImagePath": "symbols/feelings.png",
+  "defaultOrder": 6,
   "defaultTier": "free",
-  "icon": "😊",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "fuchsia",
-      "icon": "😊",
+      "colour": "purple",
+      "icon": "📁",
       "imagePath": "symbols/feelings.png",
       "name": {
         "en": "Feelings",
@@ -220,7 +221,7 @@
             "hi": "दोषी"
           },
           "order": 22,
-          "symbolId": "kn79zz6s0ayhpkn8rfh7ea5jhs84mk8h"
+          "symbolId": "kn736asadbs0n5yzqfjs0y8prh84mv44"
         },
         {
           "labelOverride": {
@@ -265,7 +266,7 @@
             "hi": "ठीक है"
           },
           "order": 27,
-          "symbolId": "kn7apqy79w8ky9qbb83txkvxps84m5xy"
+          "symbolId": "kn76e8b51w1k6q8bsgnhjda9y584n7j7"
         },
         {
           "labelOverride": {

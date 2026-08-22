@@ -1,23 +1,25 @@
 {
-  "colour": "#3B82F6",
+  "colour": "cyan",
   "coverImagePath": "symbols/home.png",
+  "defaultOrder": 8,
   "defaultTier": "free",
-  "icon": "🏠",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#3B82F6",
-      "icon": "🏠",
+      "colour": "cyan",
+      "icon": "📁",
       "imagePath": "symbols/home.png",
       "name": {
         "en": "Home",
-        "es": "Casa",
+        "es": "Inicio",
         "hi": "घर"
       },
       "symbols": [
         {
           "labelOverride": {
             "en": "house",
+            "es": "casa",
             "hi": "घर"
           },
           "order": 0,
@@ -84,7 +86,7 @@
             "hi": "कुर्सी"
           },
           "order": 7,
-          "symbolId": "kn72tfngp2h5bzj0d5gzsn4tts84n3vm"
+          "symbolId": "kn75ejt717h005y4m82dc5ypzx84n758"
         },
         {
           "labelOverride": {
@@ -111,7 +113,7 @@
             "hi": "अलमारी"
           },
           "order": 10,
-          "symbolId": "kn7a3b97fmjk8ym16gc93c1wb584nv9e"
+          "symbolId": "kn7b837sxwfy7qy3rb58enp4cx84msag"
         },
         {
           "labelOverride": {
@@ -204,13 +206,21 @@
           "symbolId": "kn79xs5gtpwrtyfxhpq05h2xph84mpp3"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/eng/default/kettle.mp3",
+              "ttsText": "kettle",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "kettle",
-            "es": "Tetera",
-            "hi": "केतली"
+            "es": "cafetera",
+            "hi": "कॉफी पॉट"
           },
           "order": 21,
-          "symbolId": "kn789467c8wd5p5z5xyhn5eaq184mg1k"
+          "symbolId": "kn78wy1hzn2abgr17e5kd906y584nzc7"
         },
         {
           "labelOverride": {
@@ -224,11 +234,11 @@
         {
           "labelOverride": {
             "en": "sink",
-            "es": "lavabo",
-            "hi": "धोना"
+            "es": "fregadero",
+            "hi": "डूबना"
           },
           "order": 23,
-          "symbolId": "kn7a4n6kbcfc1ztv0j3e5v105184n0ej"
+          "symbolId": "kn73x2w1egb9785689jtjqfy3d84ny3b"
         },
         {
           "labelOverride": {
@@ -245,7 +255,7 @@
             "hi": "नहाना"
           },
           "order": 25,
-          "symbolId": "kn79bw0rhjfp9y17dkw3w5yf3x84mxv5"
+          "symbolId": "kn7d1qzaphpjjmpjp9z7arnxt584m8d9"
         },
         {
           "labelOverride": {
@@ -326,7 +336,7 @@
             "hi": "वैक्यूम क्लीनर"
           },
           "order": 34,
-          "symbolId": "kn7db072x376sw6z83zjqjmj6184n8ty"
+          "symbolId": "kn7daggcts8mmrwvd80bhp9xzd84mjq3"
         },
         {
           "labelOverride": {
@@ -416,7 +426,7 @@
             "hi": "डिब्बा"
           },
           "order": 44,
-          "symbolId": "kn72nx6spn8f3fwnsvm9n24crn84nvvp"
+          "symbolId": "kn7e47zkmvh2qbzwe81vze2chh84n6vs"
         },
         {
           "labelOverride": {
@@ -450,7 +460,7 @@
   ],
   "name": {
     "en": "Home",
-    "es": "Casa",
+    "es": "Inicio",
     "hi": "घर"
   },
   "slug": "home",

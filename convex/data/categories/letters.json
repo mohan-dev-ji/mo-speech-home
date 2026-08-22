@@ -1,0 +1,271 @@
+{
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/abc_lowercase.png",
+  "defaultOrder": 18,
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/abc_lowercase.png",
+      "name": {
+        "en": "Letters",
+        "es": "Letras",
+        "hi": "अक्षर"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "a",
+            "es": "un",
+            "hi": "एक"
+          },
+          "order": 0,
+          "symbolId": "kn73txzs06xjeyypxsyedh4bnd84nc4m"
+        },
+        {
+          "labelOverride": {
+            "en": "b",
+            "es": "b",
+            "hi": "बी"
+          },
+          "order": 1,
+          "symbolId": "kn728smjrb9993wxgsg0sax2es84napt"
+        },
+        {
+          "labelOverride": {
+            "en": "c",
+            "es": "c",
+            "hi": "सी"
+          },
+          "order": 2,
+          "symbolId": "kn7bcvmzx2kb8revhqahk0nwfs84nz9m"
+        },
+        {
+          "labelOverride": {
+            "en": "d",
+            "es": "d",
+            "hi": "डी"
+          },
+          "order": 3,
+          "symbolId": "kn79ps21nev1ywy7yxpkz4esr984mkqh"
+        },
+        {
+          "labelOverride": {
+            "en": "e",
+            "es": "e",
+            "hi": "ए"
+          },
+          "order": 4,
+          "symbolId": "kn770xd595d67f8hqpnqmgcspd84mmjz"
+        },
+        {
+          "labelOverride": {
+            "en": "f",
+            "es": "f",
+            "hi": "एफ"
+          },
+          "order": 5,
+          "symbolId": "kn7f5h2a9r5y02rmbecwsstfvd84nbh5"
+        },
+        {
+          "labelOverride": {
+            "en": "g",
+            "es": "g",
+            "hi": "जी"
+          },
+          "order": 6,
+          "symbolId": "kn7fenyp9zjjjsycsy53v89e1n84nay3"
+        },
+        {
+          "labelOverride": {
+            "en": "h",
+            "es": "h",
+            "hi": "एच"
+          },
+          "order": 7,
+          "symbolId": "kn702912dxcxmsn7rkybh1t0h984mh67"
+        },
+        {
+          "audio": {
+            "hi": {
+              "language": "hi",
+              "path": "audio/hi-IN-Wavenet-F/tts/0a7abcd2-fde4-4a71-b49e-1b87226535e6.mp3",
+              "ttsText": "आई",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "i",
+            "es": "yo",
+            "hi": "आई"
+          },
+          "order": 8,
+          "symbolId": "kn7484dmbegm9pt5wh76kgw9kn84mwpd"
+        },
+        {
+          "labelOverride": {
+            "en": "j",
+            "es": "jota",
+            "hi": "जे"
+          },
+          "order": 9,
+          "symbolId": "kn7fpfdwgqbrmnmcq0131kkpf984ntfj"
+        },
+        {
+          "labelOverride": {
+            "en": "k",
+            "es": "k",
+            "hi": "के"
+          },
+          "order": 10,
+          "symbolId": "kn77cgn8xb5dzerfmw6wcz5zeh84mttf"
+        },
+        {
+          "labelOverride": {
+            "en": "l",
+            "es": "L",
+            "hi": "एल"
+          },
+          "order": 11,
+          "symbolId": "kn7d1qpgw8en2abdhbcz4gr5xx84mxaz"
+        },
+        {
+          "labelOverride": {
+            "en": "m",
+            "es": "m",
+            "hi": "एम"
+          },
+          "order": 12,
+          "symbolId": "kn75pw05exsat71k75wqkqs0gh84nt5h"
+        },
+        {
+          "labelOverride": {
+            "en": "n",
+            "es": "n",
+            "hi": "एन"
+          },
+          "order": 13,
+          "symbolId": "kn74tfgxc7db6rqd3jmx6np3w584nz7q"
+        },
+        {
+          "labelOverride": {
+            "en": "o",
+            "es": "o",
+            "hi": "ओ"
+          },
+          "order": 14,
+          "symbolId": "kn7a4eq36zxekn313485szf7r584nfbs"
+        },
+        {
+          "labelOverride": {
+            "en": "p",
+            "es": "pe",
+            "hi": "पी"
+          },
+          "order": 15,
+          "symbolId": "kn70t7mcanmm3m0ds7decc23xn84m0ay"
+        },
+        {
+          "labelOverride": {
+            "en": "q",
+            "es": "q",
+            "hi": "क्यू"
+          },
+          "order": 16,
+          "symbolId": "kn7djqbc970cf0zyb0wsyk27sd84m1jx"
+        },
+        {
+          "labelOverride": {
+            "en": "r",
+            "es": "r",
+            "hi": "आर"
+          },
+          "order": 17,
+          "symbolId": "kn7drmqekt8fvvmytvz2ev3v4184mph7"
+        },
+        {
+          "labelOverride": {
+            "en": "s",
+            "es": "ese",
+            "hi": "स"
+          },
+          "order": 18,
+          "symbolId": "kn7d0t1sz4jbcz6qgcn701sa2584myy2"
+        },
+        {
+          "labelOverride": {
+            "en": "t",
+            "es": "t",
+            "hi": "टी"
+          },
+          "order": 19,
+          "symbolId": "kn7ahkmsx06gkjxja749bf3d1984nw05"
+        },
+        {
+          "labelOverride": {
+            "en": "u",
+            "es": "u",
+            "hi": "यू"
+          },
+          "order": 20,
+          "symbolId": "kn79jnt4dqq9j4qngzayyhsfzs84mwyp"
+        },
+        {
+          "labelOverride": {
+            "en": "v",
+            "es": "v",
+            "hi": "वी"
+          },
+          "order": 21,
+          "symbolId": "kn79yz19nzjyg0z6fsrs279vws84nv7v"
+        },
+        {
+          "labelOverride": {
+            "en": "w",
+            "es": "w",
+            "hi": "डब्लू"
+          },
+          "order": 22,
+          "symbolId": "kn78bdmpexxtg827yc6jmr89hh84mxxj"
+        },
+        {
+          "labelOverride": {
+            "en": "x",
+            "es": "equis",
+            "hi": "एक्स"
+          },
+          "order": 23,
+          "symbolId": "kn76qjmdaw7vqh8hxqrsa97qs184n51p"
+        },
+        {
+          "labelOverride": {
+            "en": "y",
+            "es": "y",
+            "hi": "वाई"
+          },
+          "order": 24,
+          "symbolId": "kn7a833cgjhy6gcy89r6frxpg584nfc3"
+        },
+        {
+          "labelOverride": {
+            "en": "z",
+            "es": "zeta",
+            "hi": "ज़ेड"
+          },
+          "order": 25,
+          "symbolId": "kn7fth0y3kdf2hqadqz0sevf8184nq2c"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Letters",
+    "es": "Letras",
+    "hi": "अक्षर"
+  },
+  "slug": "letters",
+  "tree": "categories"
+}

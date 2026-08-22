@@ -1,341 +1,437 @@
 {
-  "colour": "purple",
-  "coverImagePath": "symbols/feelings.png",
+  "colour": "fuchsia",
+  "coverImagePath": "symbols/symbol00198116.png",
+  "defaultOrder": 3,
   "defaultTier": "free",
   "items": [
     {
-      "audioPath": "audio/en-GB-News-M/tts/cf001866-3b73-46d2-bbb7-a88aeb96776f.mp3",
+      "authoredLanguage": "en",
       "name": {
-        "hi": "I am very happy"
+        "en": "I feel happy"
       },
       "order": 0,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "feel",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/symbol00002700.png",
+          "label": {
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
+          },
           "order": 1
         }
       ],
-      "text": "I am very happy",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_feel.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00002700.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "hi": "I am very happy"
-      },
-      "order": 1,
-      "playback": "fluent",
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_feel.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00002700.png",
-          "order": 1
-        }
-      ],
-      "text": "Estoy muy feliz",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_feel.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00002700.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
+      "variantGroupKey": "k571nh5ngw9zqcgzaek35vf9nd8csa45"
     },
     {
       "authoredLanguage": "hi",
       "name": {
-        "hi": "I am very happy"
+        "en": "I feel happy"
+      },
+      "order": 1,
+      "slots": [
+        {
+          "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "feel",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/symbol00002700.png",
+          "label": {
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
+          },
+          "order": 1
+        }
+      ],
+      "text": "मैं खुश हूँ",
+      "variantGroupKey": "k571nh5ngw9zqcgzaek35vf9nd8csa45"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I feel happy"
       },
       "order": 2,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "feel",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/symbol00002700.png",
+          "label": {
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
+          },
           "order": 1
         }
       ],
-      "text": "मैं बहुत खुश हूँ",
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_feel.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00002700.png",
-          "kind": "word",
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k57fmpem9fk1wvnr1p1x8zk7v58931p7"
+      "text": "Me siento feliz",
+      "variantGroupKey": "k571nh5ngw9zqcgzaek35vf9nd8csa45"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/93081200-19d5-4865-8954-15a7fb3c8a16.mp3",
+      "authoredLanguage": "en",
       "name": {
-        "en": "My stomach hurts",
-        "es": "Me duele la barriga",
-        "hi": "मेरे पेट में दर्द है"
+        "en": "My stomach hurts"
       },
       "order": 3,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/my.png",
+          "label": {
+            "en": "My",
+            "es": "mi",
+            "hi": "मेरा"
           },
-          "imagePath": "symbols/symbol00055155.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/stomach_2.png",
+          "label": {
+            "en": "stomach",
+            "es": "estómago",
+            "hi": "पेट"
           },
-          "imagePath": "symbols/stomach_ache.png",
           "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00055155.png",
+          "label": {
+            "en": "hurt",
+            "es": "escala del dolor: el peor dolor",
+            "hi": "सबसे ज़्यादा दर्द है"
+          },
+          "order": 2
         }
       ],
-      "text": {
-        "en": "My stomach hurts",
-        "es": "Me duele la barriga",
-        "hi": "मेरे पेट में दर्द है"
-      },
-      "units": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/symbol00055155.png",
-          "kind": "word",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/stomach_ache.png",
-          "kind": "word",
-          "order": 1
-        }
-      ]
+      "variantGroupKey": "k571c32zk2wbmcyc5g45a7pcxh8csv22"
     },
     {
-      "audioPath": "audio/en-GB-News-M/tts/a5cc2c8b-bc52-4d95-a4ab-af947e48add9.mp3",
+      "authoredLanguage": "hi",
       "name": {
-        "en": "I like music",
-        "es": "Me gusta la música",
-        "hi": "मुझे गाना पसंद है"
+        "en": "My stomach hurts"
       },
       "order": 4,
-      "playback": "fluent",
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/my.png",
+          "label": {
+            "en": "My",
+            "es": "mi",
+            "hi": "मेरा"
           },
-          "imagePath": "symbols/like_2.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/stomach_2.png",
+          "label": {
+            "en": "stomach",
+            "es": "estómago",
+            "hi": "पेट"
           },
-          "imagePath": "symbols/symbol00193569.png",
           "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00055155.png",
+          "label": {
+            "en": "hurt",
+            "es": "escala del dolor: el peor dolor",
+            "hi": "सबसे ज़्यादा दर्द है"
+          },
+          "order": 2
         }
       ],
-      "text": {
-        "en": "I like music",
-        "es": "Me gusta la música",
-        "hi": "मुझे गाना पसंद है"
+      "text": "मेरा पेट दुख रहा है",
+      "variantGroupKey": "k571c32zk2wbmcyc5g45a7pcxh8csv22"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "My stomach hurts"
       },
-      "units": [
+      "order": 5,
+      "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/my.png",
+          "label": {
+            "en": "My",
+            "es": "mi",
+            "hi": "मेरा"
           },
-          "imagePath": "symbols/like_2.png",
-          "kind": "word",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/stomach_2.png",
+          "label": {
+            "en": "stomach",
+            "es": "estómago",
+            "hi": "पेट"
           },
-          "imagePath": "symbols/symbol00193569.png",
-          "kind": "word",
           "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00055155.png",
+          "label": {
+            "en": "hurt",
+            "es": "escala del dolor: el peor dolor",
+            "hi": "सबसे ज़्यादा दर्द है"
+          },
+          "order": 2
         }
-      ]
+      ],
+      "text": "Me duele la barriga",
+      "variantGroupKey": "k571c32zk2wbmcyc5g45a7pcxh8csv22"
+    },
+    {
+      "authoredLanguage": "en",
+      "name": {
+        "en": "I like music"
+      },
+      "order": 6,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/like_2.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/music.png",
+          "label": {
+            "en": "music",
+            "es": "música",
+            "hi": "संगीत"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k578e86dz4nfdss4hn0b8amthh8crv4s"
+    },
+    {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I like music"
+      },
+      "order": 7,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/music.png",
+          "label": {
+            "en": "music",
+            "es": "música",
+            "hi": "संगीत"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/like_2.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 2
+        }
+      ],
+      "text": "मुझे संगीत पसंद है",
+      "variantGroupKey": "k578e86dz4nfdss4hn0b8amthh8crv4s"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I like music"
+      },
+      "order": 8,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/like_2.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/music.png",
+          "label": {
+            "en": "music",
+            "es": "música",
+            "hi": "संगीत"
+          },
+          "order": 2
+        }
+      ],
+      "text": "Me gusta la música",
+      "variantGroupKey": "k578e86dz4nfdss4hn0b8amthh8crv4s"
+    },
+    {
+      "authoredLanguage": "en",
+      "name": {
+        "en": "I feel like dancing"
+      },
+      "order": 9,
+      "slots": [
+        {
+          "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "I feel like",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/like.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/dance_boy.png",
+          "label": {
+            "en": "dance",
+            "es": "bailar",
+            "hi": "नाचना"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k57612mjwbd4zksqb77hmnvd8h8csppa"
+    },
+    {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I feel like dancing"
+      },
+      "order": 10,
+      "slots": [
+        {
+          "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "I feel like",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/dance_boy.png",
+          "label": {
+            "en": "dance",
+            "es": "bailar",
+            "hi": "नाचना"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/like.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 2
+        }
+      ],
+      "text": "मुझे नाचने का मन कर रहा है",
+      "variantGroupKey": "k57612mjwbd4zksqb77hmnvd8h8csppa"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I feel like dancing"
+      },
+      "order": 11,
+      "slots": [
+        {
+          "imagePath": "symbols/i_feel.png",
+          "label": {
+            "en": "I feel like",
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/like.png",
+          "label": {
+            "en": "like",
+            "es": "gustar",
+            "hi": "पसंद है"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/dance_boy.png",
+          "label": {
+            "en": "dance",
+            "es": "bailar",
+            "hi": "नाचना"
+          },
+          "order": 2
+        }
+      ],
+      "text": "Tengo ganas de bailar",
+      "variantGroupKey": "k57612mjwbd4zksqb77hmnvd8h8csppa"
     }
   ],
   "name": {
-    "en": "Expressing Feelings",
+    "en": "Expressing feelings",
     "es": "Expresar sentimientos",
     "hi": "भावनाएँ व्यक्त करना"
   },

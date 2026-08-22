@@ -1,0 +1,236 @@
+{
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/symbol00161491.png",
+  "defaultOrder": 17,
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00161491.png",
+      "name": {
+        "en": "Joining Words",
+        "es": "Juntando palabras",
+        "hi": "जोड़ने वाले शब्द"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "and",
+            "es": "y",
+            "hi": "और"
+          },
+          "order": 0,
+          "symbolId": "kn78yhe6tq6hf5hst54tyqm5h984nqb1"
+        },
+        {
+          "labelOverride": {
+            "en": "but",
+            "es": "pero",
+            "hi": "लेकिन"
+          },
+          "order": 1,
+          "symbolId": "kn72bcy0wyq9q4fz0k24zqp29x84nrsx"
+        },
+        {
+          "labelOverride": {
+            "en": "or",
+            "es": "o",
+            "hi": "या"
+          },
+          "order": 2,
+          "symbolId": "kn7f0bfxg57xd5jpdzbqag06fn84nbyp"
+        },
+        {
+          "labelOverride": {
+            "en": "because",
+            "es": "porque",
+            "hi": "क्योंकि"
+          },
+          "order": 3,
+          "symbolId": "kn7att5cxs1gpgzs5k1r9akxzd84mmw8"
+        },
+        {
+          "labelOverride": {
+            "en": "if",
+            "es": "si",
+            "hi": "अगर"
+          },
+          "order": 4,
+          "symbolId": "kn78etpbstsyr8zsmcc1npzy1h84n15y"
+        },
+        {
+          "labelOverride": {
+            "en": "when",
+            "es": "cuándo",
+            "hi": "कब"
+          },
+          "order": 5,
+          "symbolId": "kn79t93m8z6vknpce0qpd9adg184n81j"
+        },
+        {
+          "labelOverride": {
+            "en": "where",
+            "es": "dónde",
+            "hi": "कहाँ"
+          },
+          "order": 6,
+          "symbolId": "kn71rf5sbkkb78va83b422aze584nj0x"
+        },
+        {
+          "labelOverride": {
+            "en": "who",
+            "es": "quién",
+            "hi": "कौन"
+          },
+          "order": 7,
+          "symbolId": "kn7av54fw8rr4fymd7f3zcdhg184msa3"
+        },
+        {
+          "labelOverride": {
+            "en": "why",
+            "es": "¿por qué?",
+            "hi": "क्यों"
+          },
+          "order": 8,
+          "symbolId": "kn7bk0dvqxx01ck8vk3hg8yb6s84nb70"
+        },
+        {
+          "labelOverride": {
+            "en": "so",
+            "es": "así",
+            "hi": "तो"
+          },
+          "order": 9,
+          "symbolId": "kn78y4tz7z2ts1wjmnyjh6tm5n84ndfx"
+        },
+        {
+          "labelOverride": {
+            "en": "but",
+            "es": "pero",
+            "hi": "लेकिन"
+          },
+          "order": 10,
+          "symbolId": "kn72bcy0wyq9q4fz0k24zqp29x84nrsx"
+        },
+        {
+          "labelOverride": {
+            "en": "after",
+            "es": "Después",
+            "hi": "बाद"
+          },
+          "order": 11,
+          "symbolId": "kn72wfzwmkjd7eg267jqwbxp9x84nkan"
+        },
+        {
+          "labelOverride": {
+            "en": "before",
+            "es": "antes",
+            "hi": "पहले"
+          },
+          "order": 12,
+          "symbolId": "kn74096vxg71g3ba4axvfgrzhn84mm49"
+        },
+        {
+          "labelOverride": {
+            "en": "during",
+            "es": "durante",
+            "hi": "दौरान"
+          },
+          "order": 13,
+          "symbolId": "kn7erwf1pg55p6wqm38bghvhbh84njqc"
+        },
+        {
+          "labelOverride": {
+            "en": "since",
+            "es": "desde",
+            "hi": "तब से"
+          },
+          "order": 14,
+          "symbolId": "kn78v9jw4w2czjmffnfzbdpsdh84mcs4"
+        },
+        {
+          "labelOverride": {
+            "en": "until",
+            "es": "hasta",
+            "hi": "जब तक"
+          },
+          "order": 15,
+          "symbolId": "kn70apdtk60r7xv6frzv5cqyps84mv7c"
+        },
+        {
+          "labelOverride": {
+            "en": "either",
+            "es": "o",
+            "hi": "या तो"
+          },
+          "order": 16,
+          "symbolId": "kn740sdqmvh80kyrrftkjf9h8184nbrs"
+        },
+        {
+          "labelOverride": {
+            "en": "both",
+            "es": "ambos",
+            "hi": "दोनों"
+          },
+          "order": 17,
+          "symbolId": "kn725kcrjqgnaz8xy2k7ag101584nsf3"
+        },
+        {
+          "labelOverride": {
+            "en": "as",
+            "es": "como",
+            "hi": "जैसे"
+          },
+          "order": 18,
+          "symbolId": "kn7fqnxwpnrmthv5acqxzh2tcd84m52j"
+        },
+        {
+          "labelOverride": {
+            "en": "than",
+            "es": "que",
+            "hi": "से"
+          },
+          "order": 19,
+          "symbolId": "kn77na2pztyyqmjcq3p88gw4sx84mzs1"
+        },
+        {
+          "labelOverride": {
+            "en": "though",
+            "es": "aunque",
+            "hi": "हालाँकि"
+          },
+          "order": 20,
+          "symbolId": "kn7dw3rsr439cqqms1c6hxxc4d84n20c"
+        },
+        {
+          "labelOverride": {
+            "en": "yet",
+            "es": "todavía",
+            "hi": "अभी तक"
+          },
+          "order": 21,
+          "symbolId": "kn70q6qjeqbjsj707x4n3jkems84nws6"
+        },
+        {
+          "labelOverride": {
+            "en": "for",
+            "es": "para",
+            "hi": "के लिए"
+          },
+          "order": 22,
+          "symbolId": "kn72c1wphf1j7kse06ngx538cs84nmj6"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Joining Words",
+    "es": "Juntando palabras",
+    "hi": "जोड़ने वाले शब्द"
+  },
+  "slug": "joining-words",
+  "tree": "categories"
+}

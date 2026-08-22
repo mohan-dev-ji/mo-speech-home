@@ -137,11 +137,6 @@
     "es": "Dinosaurios",
     "hi": "डायनासोर"
   },
-  "provenance": {
-    "author": "Mo Speech",
-    "licence": "proprietary",
-    "version": "1"
-  },
   "slug": "dinosaurs",
   "tree": "categories"
 }

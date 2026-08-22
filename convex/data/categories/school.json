@@ -1,14 +1,15 @@
 {
-  "colour": "green",
-  "coverImagePath": "symbols/symbol00114621.png",
+  "colour": "rose",
+  "coverImagePath": "symbols/symbol00060131.png",
+  "defaultOrder": 9,
   "defaultTier": "free",
-  "icon": "📚",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "green",
-      "icon": "📚",
-      "imagePath": "symbols/symbol00114621.png",
+      "colour": "rose",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00060131.png",
       "name": {
         "en": "School",
         "es": "Escuela",
@@ -22,7 +23,7 @@
             "hi": "स्कूल"
           },
           "order": 0,
-          "symbolId": "kn79nx0nhmyt9ypj26qdy8xek984mts4"
+          "symbolId": "kn7f9dtkyfvy0e2n8yeyppsggx84nevy"
         },
         {
           "labelOverride": {
@@ -40,7 +41,7 @@
             "hi": "पुस्तकालय"
           },
           "order": 2,
-          "symbolId": "kn7dp2qsyy9x4whpcvyz7nze2h84n5p9"
+          "symbolId": "kn7evpck4p5k74c0pd938703xn84m5z0"
         },
         {
           "labelOverride": {
@@ -121,7 +122,7 @@
             "hi": "इतिहास"
           },
           "order": 11,
-          "symbolId": "kn76vgch2qm6f4kfvv9he04rc984mtzd"
+          "symbolId": "kn7f3t7f2pckgb9ydn7wjayg3s84mf19"
         },
         {
           "labelOverride": {
@@ -271,10 +272,10 @@
           "labelOverride": {
             "en": "letter",
             "es": "letra",
-            "hi": "अक्षर"
+            "hi": "चिट्ठी"
           },
           "order": 28,
-          "symbolId": "kn74cwd9hv02773qrjpar4q7r184mfkf"
+          "symbolId": "kn7e2smq030zpmxxaq1s7c3f7d84md3j"
         },
         {
           "labelOverride": {
@@ -301,7 +302,7 @@
             "hi": "सवाल"
           },
           "order": 31,
-          "symbolId": "kn7emegfzk2krjr13aw7nwvzvh84n6wg"
+          "symbolId": "kn77hmtvy1jxq62y74rjy0zyv184ngtm"
         },
         {
           "labelOverride": {
@@ -377,12 +378,12 @@
         },
         {
           "labelOverride": {
-            "en": "school bus",
-            "es": "autobús escolar",
-            "hi": "स्कूल बस"
+            "en": "bus",
+            "es": "autobús",
+            "hi": "बस"
           },
           "order": 40,
-          "symbolId": "kn70dvj4sk7r35wtg54y577n1s84mnbm"
+          "symbolId": "kn7a093xp95eemqty9sryfyzc184msv7"
         },
         {
           "labelOverride": {

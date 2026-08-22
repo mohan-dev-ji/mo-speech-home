@@ -1,0 +1,245 @@
+{
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/symbol00205784.png",
+  "defaultOrder": 20,
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00205784.png",
+      "name": {
+        "en": "Position words",
+        "es": "Palabras de posición",
+        "hi": "जगह बताने वाले शब्द"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "in",
+            "es": "en",
+            "hi": "में"
+          },
+          "order": 0,
+          "symbolId": "kn706mb4nxb530b4nbc5wy6yks84mk4k"
+        },
+        {
+          "labelOverride": {
+            "en": "on",
+            "es": "En",
+            "hi": "पर"
+          },
+          "order": 1,
+          "symbolId": "kn7d5b20wva0ysh8hzr3g3r8s184mc4r"
+        },
+        {
+          "labelOverride": {
+            "en": "at",
+            "es": "en",
+            "hi": "पर"
+          },
+          "order": 2,
+          "symbolId": "kn7chb930k8e6atzxwd60472hx84mj2w"
+        },
+        {
+          "labelOverride": {
+            "en": "the",
+            "es": "el",
+            "hi": "यह"
+          },
+          "order": 3,
+          "symbolId": "kn73xah036znyg69gk9pn9x6kx84myng"
+        },
+        {
+          "labelOverride": {
+            "en": "a",
+            "es": "un",
+            "hi": "एक"
+          },
+          "order": 4,
+          "symbolId": "kn73txzs06xjeyypxsyedh4bnd84nc4m"
+        },
+        {
+          "labelOverride": {
+            "en": "an",
+            "es": "un",
+            "hi": "एक"
+          },
+          "order": 5,
+          "symbolId": "kn7f5xwp413tkvazvyj2s5hvds84mkjz"
+        },
+        {
+          "labelOverride": {
+            "en": "with",
+            "es": "con",
+            "hi": "के साथ"
+          },
+          "order": 6,
+          "symbolId": "kn7e7wsc5mnrm8ebane98b3rjx84nne4"
+        },
+        {
+          "labelOverride": {
+            "en": "to",
+            "es": "a",
+            "hi": "को"
+          },
+          "order": 7,
+          "symbolId": "kn726ja44kbkza4942w9gxrc3x84ncp7"
+        },
+        {
+          "labelOverride": {
+            "en": "from",
+            "es": "de",
+            "hi": "से"
+          },
+          "order": 8,
+          "symbolId": "kn7dnm05g2kcagan5drwyp18hn84mbe6"
+        },
+        {
+          "labelOverride": {
+            "en": "of",
+            "es": "de",
+            "hi": "का"
+          },
+          "order": 9,
+          "symbolId": "kn7agrksc7qjgqcn9c2pmqeddx84nhfz"
+        },
+        {
+          "labelOverride": {
+            "en": "by",
+            "es": "por",
+            "hi": "से"
+          },
+          "order": 10,
+          "symbolId": "kn7b91es0q0psdmpv204gpvd0984mzyf"
+        },
+        {
+          "labelOverride": {
+            "en": "over",
+            "es": "encima",
+            "hi": "ऊपर"
+          },
+          "order": 11,
+          "symbolId": "kn73s9c90zt9jd1gt5y0a5wa9s84ma5g"
+        },
+        {
+          "labelOverride": {
+            "en": "under",
+            "es": "debajo",
+            "hi": "नीचे"
+          },
+          "order": 12,
+          "symbolId": "kn7cvp2ey52d6q12qtjypbvndx84mqs7"
+        },
+        {
+          "labelOverride": {
+            "en": "up",
+            "es": "arriba",
+            "hi": "ऊपर"
+          },
+          "order": 13,
+          "symbolId": "kn78bn0wc214f3yb6r8rnj0gz984m84x"
+        },
+        {
+          "labelOverride": {
+            "en": "down",
+            "es": "Abajo",
+            "hi": "नीचे"
+          },
+          "order": 14,
+          "symbolId": "kn70bf9z0j2vpak2wx5g2ktyyd84madd"
+        },
+        {
+          "labelOverride": {
+            "en": "near",
+            "es": "Cerca",
+            "hi": "पास"
+          },
+          "order": 15,
+          "symbolId": "kn7dbvk6x0agtt55yxfcgrztks84nqek"
+        },
+        {
+          "labelOverride": {
+            "en": "between",
+            "es": "entre",
+            "hi": "बीच"
+          },
+          "order": 16,
+          "symbolId": "kn75w0brqsqerza9rzg8vtadb984nzkv"
+        },
+        {
+          "labelOverride": {
+            "en": "behind",
+            "es": "detrás",
+            "hi": "पीछे"
+          },
+          "order": 17,
+          "symbolId": "kn70hgcsg3b984mhn6nhxxr3g584mr8b"
+        },
+        {
+          "labelOverride": {
+            "en": "beside",
+            "es": "al lado de",
+            "hi": "बगल में"
+          },
+          "order": 18,
+          "symbolId": "kn73nf4ckncetvrj2egdkvyb5d84nprm"
+        },
+        {
+          "labelOverride": {
+            "en": "around",
+            "es": "Alrededor",
+            "hi": "चारों ओर"
+          },
+          "order": 19,
+          "symbolId": "kn7b32srdvnqx2r8dbmafq1dvh84mga7"
+        },
+        {
+          "labelOverride": {
+            "en": "through",
+            "es": "a través de",
+            "hi": "से होकर"
+          },
+          "order": 20,
+          "symbolId": "kn78t4an6dcka11k3tpb1j54xs84mh4t"
+        },
+        {
+          "labelOverride": {
+            "en": "past",
+            "es": "pasado",
+            "hi": "बीता हुआ"
+          },
+          "order": 21,
+          "symbolId": "kn73hp8mh2d4zhjwdsqh46j8v184msqx"
+        },
+        {
+          "labelOverride": {
+            "en": "inside",
+            "es": "Dentro",
+            "hi": "अंदर"
+          },
+          "order": 22,
+          "symbolId": "kn7e7wp3tane86njf74sm8p6eh84n0ez"
+        },
+        {
+          "labelOverride": {
+            "en": "about",
+            "es": "aproximadamente",
+            "hi": "के बारे में"
+          },
+          "order": 23,
+          "symbolId": "kn7dxmwmsk5t4ppw9pgev9y5dn84nv41"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Position words",
+    "es": "Palabras de posición",
+    "hi": "जगह बताने वाले शब्द"
+  },
+  "slug": "position-words",
+  "tree": "categories"
+}

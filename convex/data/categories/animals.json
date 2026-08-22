@@ -1,14 +1,15 @@
 {
-  "colour": "#F59E0B",
-  "coverImagePath": "symbols/symbol00000992.png",
+  "colour": "lime",
+  "coverImagePath": "symbols/symbol00000769.png",
+  "defaultOrder": 4,
   "defaultTier": "free",
-  "icon": "🐾",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#F59E0B",
-      "icon": "🐾",
-      "imagePath": "symbols/symbol00000992.png",
+      "colour": "lime",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00000769.png",
       "name": {
         "en": "Animals",
         "es": "Animales",
@@ -256,7 +257,7 @@
             "hi": "मछली"
           },
           "order": 26,
-          "symbolId": "kn7c4q1fh601z25cwk0a0yn0fh84m22m"
+          "symbolId": "kn75r2xha9w7eqy9tybfwy0n0584nztr"
         },
         {
           "labelOverride": {
@@ -283,7 +284,7 @@
             "hi": "कछुआ"
           },
           "order": 29,
-          "symbolId": "kn7ancpf6wj3mcdndgs0z8vzr184nej5"
+          "symbolId": "kn726nqvzx54j1pjnwdraw3ggs84m60q"
         },
         {
           "labelOverride": {
@@ -337,7 +338,7 @@
             "hi": "फ्लेमिंगो"
           },
           "order": 35,
-          "symbolId": "kn749fzy94dz77dkeqf6h1wez584nxhy"
+          "symbolId": "kn7ffh7xsaqxyrjn60mn7t56zs84n13b"
         },
         {
           "labelOverride": {
@@ -346,7 +347,7 @@
             "hi": "रॉबिन"
           },
           "order": 36,
-          "symbolId": "kn7bzd2e3xhzjfh9kqh928rqnh84m7hm"
+          "symbolId": "kn73ke4x5a91j3e52gtfp85q7h84m45a"
         },
         {
           "labelOverride": {
@@ -418,7 +419,7 @@
             "hi": "इल्ली"
           },
           "order": 44,
-          "symbolId": "kn774y9vq2nmfgw62rzc2bwkpx84mb4m"
+          "symbolId": "kn78m4wr5g7sxq1zgs1ysqxgm584n4t3"
         },
         {
           "labelOverride": {

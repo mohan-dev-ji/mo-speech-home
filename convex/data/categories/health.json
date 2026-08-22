@@ -1,14 +1,15 @@
 {
-  "colour": "#F43F5E",
-  "coverImagePath": "symbols/doctor.png",
+  "colour": "green",
+  "coverImagePath": "symbols/healthy_1.png",
+  "defaultOrder": 10,
   "defaultTier": "free",
-  "icon": "❤️",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#F43F5E",
-      "icon": "❤️",
-      "imagePath": "symbols/doctor.png",
+      "colour": "green",
+      "icon": "📁",
+      "imagePath": "symbols/healthy_1.png",
       "name": {
         "en": "Health",
         "es": "Salud",
@@ -256,7 +257,7 @@
             "hi": "पट्टी"
           },
           "order": 26,
-          "symbolId": "kn75tsbxrvt0w3q772bwvsyyhs84mw6a"
+          "symbolId": "kn7203p8m5hmcz2v7h119mtb2s84mrkn"
         },
         {
           "labelOverride": {
@@ -372,7 +373,7 @@
             "hi": "कसरत"
           },
           "order": 39,
-          "symbolId": "kn773smrz1gv6h4axgthqx7sad84njk9"
+          "symbolId": "kn7dxhxbfxjwjrw6dfv4njq0s184n203"
         },
         {
           "labelOverride": {
@@ -390,7 +391,7 @@
             "hi": "आपातकाल"
           },
           "order": 41,
-          "symbolId": "kn7brsk1byhymtz9mq6s5g4qqh84mqwd"
+          "symbolId": "kn7a60zwjynq05q4rht2s0788s84nsfc"
         },
         {
           "labelOverride": {
@@ -435,7 +436,7 @@
             "hi": "मुलाक़ात"
           },
           "order": 46,
-          "symbolId": "kn7exawrqgmrm908fe7627jkk184nh0q"
+          "symbolId": "kn70s43g7gshp2ayawjfdachtn84m0hv"
         },
         {
           "labelOverride": {

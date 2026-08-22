@@ -1,18 +1,19 @@
 {
-  "colour": "#F472B6",
-  "coverImagePath": "symbols/symbol00213947.png",
+  "colour": "pink",
+  "coverImagePath": "symbols/symbol00200693.png",
+  "defaultOrder": 13,
   "defaultTier": "free",
-  "icon": "💬",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#F472B6",
-      "icon": "💬",
-      "imagePath": "symbols/symbol00213947.png",
+      "colour": "pink",
+      "icon": "📁",
+      "imagePath": "symbols/symbol00200693.png",
       "name": {
         "en": "Chat",
         "es": "Charla",
-        "hi": "बातचीत"
+        "hi": "बातें"
       },
       "symbols": [
         {
@@ -220,7 +221,7 @@
             "hi": "माफ़ करना"
           },
           "order": 22,
-          "symbolId": "kn737gmeq524gr5ypke1pr9k5984nn04"
+          "symbolId": "kn7czackr00yz22kx2tb95yqf984mmvg"
         },
         {
           "labelOverride": {
@@ -274,7 +275,7 @@
             "hi": "क्या"
           },
           "order": 28,
-          "symbolId": "kn7dxc077h1xaq1tbp8ecqtdf184nyv0"
+          "symbolId": "kn7a5f987035w41mz2dvg2n0wh84nhee"
         },
         {
           "labelOverride": {
@@ -300,7 +301,7 @@
   "name": {
     "en": "Chat",
     "es": "Charla",
-    "hi": "बातचीत"
+    "hi": "बातें"
   },
   "slug": "chat",
   "tree": "categories"

@@ -1,8 +1,8 @@
 {
-  "colour": "#f97316",
-  "coverImagePath": "symbols/i_want_to_go.png",
+  "colour": "yellow",
+  "coverImagePath": "symbols/symbol00095311.png",
+  "defaultOrder": 0,
   "defaultTier": "free",
-  "icon": "MessageSquare",
   "isDefault": true,
   "items": [
     {
@@ -13,141 +13,110 @@
       "order": 0,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/need.png",
+          "label": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
           },
-          "imagePath": "symbols/need2.png",
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/help.png",
+          "label": {
+            "en": "help",
+            "es": "ayuda",
+            "hi": "मदद"
+          },
           "order": 2
         }
       ],
-      "text": "I need help",
-      "variantGroupKey": "k579rgm786em8dp2446vw92zgh8ajmjf"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "en": "I need help"
-      },
-      "order": 1,
-      "slots": [
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/i_i_am.png",
-          "order": 0
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/need2.png",
-          "order": 1
-        },
-        {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
-          "imagePath": "symbols/help.png",
-          "order": 2
-        }
-      ],
-      "text": {
-        "en": "I need help",
-        "es": "Necesito ayuda"
-      },
-      "variantGroupKey": "k579rgm786em8dp2446vw92zgh8ajmjf"
+      "variantGroupKey": "k57csxrx113h68wd1evv1z0g3d8ck2zy"
     },
     {
       "authoredLanguage": "hi",
       "name": {
         "en": "I need help"
       },
-      "order": 2,
+      "order": 1,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/help.png",
+          "label": {
+            "en": "help",
+            "es": "ayuda",
+            "hi": "मदद"
+          },
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/need.png",
+          "label": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
           },
-          "imagePath": "symbols/need2.png",
           "order": 2
         }
       ],
       "text": "मुझे मदद चाहिए",
-      "variantGroupKey": "k579rgm786em8dp2446vw92zgh8ajmjf"
+      "variantGroupKey": "k57csxrx113h68wd1evv1z0g3d8ck2zy"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I need help"
+      },
+      "order": 2,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/need.png",
+          "label": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/help.png",
+          "label": {
+            "en": "help",
+            "es": "ayuda",
+            "hi": "मदद"
+          },
+          "order": 2
+        }
+      ],
+      "text": "Necesito ayuda",
+      "variantGroupKey": "k57csxrx113h68wd1evv1z0g3d8ck2zy"
     },
     {
       "authoredLanguage": "en",
@@ -157,315 +126,250 @@
       "order": 3,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/can_i.png",
+          "label": {
+            "en": "Can I",
+            "es": "¿Puedo?",
+            "hi": "क्या मैं"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/have.png",
+          "label": {
+            "en": "have",
+            "es": "tener",
+            "hi": "पास होना"
+          },
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/symbol00194799.png",
+          "label": {
+            "en": "some",
+            "es": "algunos",
+            "hi": "कुछ"
           },
-          "imagePath": "symbols/symbol00195039.png",
           "order": 2
+        },
+        {
+          "imagePath": "symbols/clean_water.png",
+          "label": {
+            "en": "water",
+            "es": "agua limpia",
+            "hi": "साफ पानी"
+          },
+          "order": 3
         }
       ],
-      "variantGroupKey": "k573ssba9fw0p6yvfyzs0wtjf58aketw"
+      "variantGroupKey": "k575hy6cnq2x14hvgp32xapjfx8cjqt2"
     },
     {
-      "authoredLanguage": "es",
+      "authoredLanguage": "hi",
       "name": {
         "en": "Can I have some water"
       },
       "order": 4,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/me.png",
+          "label": {
+            "en": "me",
+            "es": "yo",
+            "hi": "मुझे"
           },
-          "imagePath": "symbols/can_i.png",
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/clean_water.png",
+          "label": {
+            "en": "water",
+            "es": "agua limpia",
+            "hi": "साफ पानी"
           },
-          "imagePath": "symbols/have.png",
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/want.png",
+          "label": {
+            "en": "want",
+            "es": "querer",
+            "hi": "चाहिए"
           },
-          "imagePath": "symbols/symbol00195039.png",
           "order": 2
         }
       ],
-      "text": {
-        "es": "¿Me das agua?"
-      },
-      "variantGroupKey": "k573ssba9fw0p6yvfyzs0wtjf58aketw"
+      "text": "मुझे पानी चाहिए",
+      "variantGroupKey": "k575hy6cnq2x14hvgp32xapjfx8cjqt2"
     },
     {
-      "authoredLanguage": "hi",
+      "authoredLanguage": "es",
       "name": {
         "en": "Can I have some water"
       },
       "order": 5,
       "slots": [
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
-          },
           "imagePath": "symbols/can_i.png",
+          "label": {
+            "en": "Can I",
+            "es": "¿Puedo?",
+            "hi": "क्या मैं"
+          },
           "order": 0
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/have.png",
+          "label": {
+            "en": "have",
+            "es": "tener",
+            "hi": "पास होना"
           },
-          "imagePath": "symbols/symbol00195039.png",
           "order": 1
         },
         {
-          "displayProps": {
-            "bgColour": "#ffffff",
-            "cardShape": "rounded",
-            "showImage": true,
-            "showLabel": true,
-            "textColour": "#111827",
-            "textSize": "sm"
+          "imagePath": "symbols/symbol00194799.png",
+          "label": {
+            "en": "some",
+            "es": "algunos",
+            "hi": "कुछ"
           },
-          "imagePath": "symbols/have.png",
           "order": 2
+        },
+        {
+          "imagePath": "symbols/clean_water.png",
+          "label": {
+            "en": "water",
+            "es": "agua limpia",
+            "hi": "साफ पानी"
+          },
+          "order": 3
         }
       ],
-      "text": "मुझे पानी चाहिए",
-      "variantGroupKey": "k573ssba9fw0p6yvfyzs0wtjf58aketw"
+      "text": "¿Puedo tomar agua?",
+      "variantGroupKey": "k575hy6cnq2x14hvgp32xapjfx8cjqt2"
     },
     {
       "authoredLanguage": "en",
       "name": {
-        "en": "I need the tablet"
+        "en": "I need the remote control"
       },
       "order": 6,
-      "playback": "sequence",
       "slots": [
         {
           "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
           "order": 0
         },
         {
-          "imagePath": "symbols/need2.png",
+          "imagePath": "symbols/need.png",
+          "label": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
+          },
           "order": 1
         },
         {
           "imagePath": "symbols/the.png",
+          "label": {
+            "en": "the",
+            "es": "el",
+            "hi": "यह"
+          },
           "order": 2
         },
         {
-          "imagePath": "symbols/remote_control.png",
+          "imagePath": "symbols/symbol00205369.png",
+          "label": {
+            "en": "remote",
+            "es": "usando el control remoto",
+            "hi": "रिमोट से"
+          },
           "order": 3
         }
       ],
-      "text": "I need the remote control",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I need the"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_i_am.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/need2.png",
-              "order": 1
-            },
-            {
-              "imagePath": "symbols/the.png",
-              "order": 2
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/eng/default/remote_control.mp3",
-          "imagePath": "symbols/remote_control.png",
-          "kind": "word",
-          "label": {
-            "en": "remote control"
-          },
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k575qp18xp4j4f60xzk65xy02x8akn7a"
-    },
-    {
-      "authoredLanguage": "es",
-      "name": {
-        "en": "I need the tablet"
-      },
-      "order": 7,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/i_i_am.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/need2.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/the.png",
-          "order": 2
-        },
-        {
-          "imagePath": "symbols/remote_control.png",
-          "order": 3
-        }
-      ],
-      "text": "Necesito el control remoto",
-      "units": [
-        {
-          "kind": "phrase",
-          "name": {
-            "en": "I need the",
-            "es": "Necesito el"
-          },
-          "order": 0,
-          "words": [
-            {
-              "imagePath": "symbols/i_i_am.png",
-              "order": 0
-            },
-            {
-              "imagePath": "symbols/need2.png",
-              "order": 1
-            },
-            {
-              "imagePath": "symbols/the.png",
-              "order": 2
-            }
-          ]
-        },
-        {
-          "audioPath": "audio/eng/default/remote_control.mp3",
-          "imagePath": "symbols/remote_control.png",
-          "kind": "word",
-          "label": {
-            "en": "remote control",
-            "es": "control remoto"
-          },
-          "order": 1
-        }
-      ],
-      "variantGroupKey": "k575qp18xp4j4f60xzk65xy02x8akn7a"
+      "variantGroupKey": "k574274t0f1hqggwwsh7vaj29x8ckdmg"
     },
     {
       "authoredLanguage": "hi",
       "name": {
-        "en": "I need the tablet"
+        "en": "I need the remote control"
       },
-      "order": 8,
-      "playback": "sequence",
+      "order": 7,
       "slots": [
         {
-          "imagePath": "symbols/me.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/remote_control.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/want.png",
-          "order": 2
-        }
-      ],
-      "text": "मुझे रिमोट चाहिए",
-      "units": [
-        {
-          "audioPath": "audio/hi-IN-Wavenet-F/symbols/me.mp3",
-          "imagePath": "symbols/me.png",
-          "kind": "word",
+          "imagePath": "symbols/i_i_am.png",
           "label": {
-            "hi": "मुझे"
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
           },
           "order": 0
         },
         {
-          "audioPath": "audio/eng/default/remote_control.mp3",
-          "imagePath": "symbols/remote_control.png",
-          "kind": "word",
+          "imagePath": "symbols/symbol00205369.png",
           "label": {
-            "en": "remote control",
-            "hi": "रिमोट"
+            "en": "remote",
+            "es": "usando el control remoto",
+            "hi": "रिमोट से"
           },
           "order": 1
         },
         {
-          "audioPath": "audio/hi-IN-Wavenet-F/symbols/want.mp3",
           "imagePath": "symbols/want.png",
-          "kind": "word",
           "label": {
+            "en": "want",
+            "es": "querer",
             "hi": "चाहिए"
           },
           "order": 2
         }
       ],
-      "variantGroupKey": "k575qp18xp4j4f60xzk65xy02x8akn7a"
+      "text": "मुझे रिमोट कंट्रोल चाहिए",
+      "variantGroupKey": "k574274t0f1hqggwwsh7vaj29x8ckdmg"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "es": "Necesito el control remoto"
+      },
+      "order": 8,
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "label": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/need.png",
+          "label": {
+            "en": "need",
+            "es": "necesitar",
+            "hi": "चाहिए"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/symbol00205369.png",
+          "label": {
+            "en": "remote",
+            "es": "usando el control remoto",
+            "hi": "रिमोट से"
+          },
+          "order": 2
+        }
+      ],
+      "text": "Necesito el control remoto",
+      "variantGroupKey": "k574274t0f1hqggwwsh7vaj29x8ckdmg"
     },
     {
       "authoredLanguage": "en",
@@ -476,7 +380,7 @@
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_am.png",
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -492,7 +396,7 @@
           "order": 3
         },
         {
-          "imagePath": "symbols/sleep2.png",
+          "imagePath": "symbols/sleep.png",
           "order": 4
         }
       ],
@@ -506,7 +410,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -520,28 +424,32 @@
           ]
         },
         {
-          "audioPath": "audio/eng/default/to2.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/to.mp3",
           "imagePath": "symbols/to2.png",
           "kind": "word",
           "label": {
-            "en": "to"
+            "en": "to",
+            "es": "a",
+            "hi": "को"
           },
           "order": 1
         },
         {
-          "audioPath": "audio/eng/default/sleep2.mp3",
-          "imagePath": "symbols/sleep2.png",
+          "audioPath": "audio/en-GB-News-M/symbols/sleep.mp3",
+          "imagePath": "symbols/sleep.png",
           "kind": "word",
           "label": {
-            "en": "sleep"
+            "en": "sleep",
+            "es": "dormir",
+            "hi": "सोना"
           },
           "order": 2
         }
       ],
-      "variantGroupKey": "k571ks2t5psq4w4gt88rt13mas8afhad"
+      "variantGroupKey": "k579efathce1m6tm7b0gsax3658cks4w"
     },
     {
-      "authoredLanguage": "es",
+      "authoredLanguage": "hi",
       "name": {
         "en": "I want to go to sleep"
       },
@@ -549,7 +457,60 @@
       "playback": "sequence",
       "slots": [
         {
-          "imagePath": "symbols/i_am.png",
+          "imagePath": "symbols/me.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/sleep.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "order": 2
+        }
+      ],
+      "text": "मुझे सोना है",
+      "units": [
+        {
+          "imagePath": "symbols/me.png",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/sleep.mp3",
+          "imagePath": "symbols/sleep.png",
+          "kind": "word",
+          "label": {
+            "en": "sleep",
+            "es": "dormir",
+            "hi": "सोना"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "kind": "word",
+          "label": {
+            "hi": "है"
+          },
+          "order": 2
+        }
+      ],
+      "variantGroupKey": "k579efathce1m6tm7b0gsax3658cks4w"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to go to sleep"
+      },
+      "order": 11,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
           "order": 0
         },
         {
@@ -565,7 +526,7 @@
           "order": 3
         },
         {
-          "imagePath": "symbols/sleep2.png",
+          "imagePath": "symbols/sleep.png",
           "order": 4
         }
       ],
@@ -580,7 +541,7 @@
           "order": 0,
           "words": [
             {
-              "imagePath": "symbols/i_am.png",
+              "imagePath": "symbols/i_i_am.png",
               "order": 0
             },
             {
@@ -594,80 +555,29 @@
           ]
         },
         {
-          "audioPath": "audio/eng/default/to2.mp3",
+          "audioPath": "audio/en-GB-News-M/symbols/to.mp3",
           "imagePath": "symbols/to2.png",
           "kind": "word",
           "label": {
             "en": "to",
-            "es": "a"
+            "es": "a",
+            "hi": "को"
           },
           "order": 1
         },
         {
-          "audioPath": "audio/eng/default/sleep2.mp3",
-          "imagePath": "symbols/sleep2.png",
+          "audioPath": "audio/en-GB-News-M/symbols/sleep.mp3",
+          "imagePath": "symbols/sleep.png",
           "kind": "word",
           "label": {
             "en": "sleep",
-            "es": "dormir"
-          },
-          "order": 2
-        }
-      ],
-      "variantGroupKey": "k571ks2t5psq4w4gt88rt13mas8afhad"
-    },
-    {
-      "authoredLanguage": "hi",
-      "name": {
-        "en": "I want to go to sleep"
-      },
-      "order": 11,
-      "playback": "sequence",
-      "slots": [
-        {
-          "imagePath": "symbols/me.png",
-          "order": 0
-        },
-        {
-          "imagePath": "symbols/sleep2.png",
-          "order": 1
-        },
-        {
-          "imagePath": "symbols/is.png",
-          "order": 2
-        }
-      ],
-      "text": "मुझे सोना है",
-      "units": [
-        {
-          "audioPath": "audio/hi-IN-Wavenet-F/symbols/me.mp3",
-          "imagePath": "symbols/me.png",
-          "kind": "word",
-          "label": {
-            "hi": "मुझे"
-          },
-          "order": 0
-        },
-        {
-          "audioPath": "audio/eng/default/sleep2.mp3",
-          "imagePath": "symbols/sleep2.png",
-          "kind": "word",
-          "label": {
+            "es": "dormir",
             "hi": "सोना"
           },
-          "order": 1
-        },
-        {
-          "audioPath": "audio/hi-IN-Wavenet-F/symbols/is.mp3",
-          "imagePath": "symbols/is.png",
-          "kind": "word",
-          "label": {
-            "hi": "है"
-          },
           "order": 2
         }
       ],
-      "variantGroupKey": "k571ks2t5psq4w4gt88rt13mas8afhad"
+      "variantGroupKey": "k579efathce1m6tm7b0gsax3658cks4w"
     }
   ],
   "name": {

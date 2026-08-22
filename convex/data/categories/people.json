@@ -1,17 +1,17 @@
 {
-  "colour": "#A855F7",
-  "coverImagePath": "symbols/family.png",
+  "colour": "indigo",
+  "coverImagePath": "symbols/people.png",
+  "defaultOrder": 1,
   "defaultTier": "free",
-  "icon": "👥",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "#A855F7",
-      "icon": "👥",
-      "imagePath": "symbols/family.png",
+      "colour": "indigo",
+      "icon": "📁",
+      "imagePath": "symbols/people.png",
       "name": {
         "en": "People",
-        "es": "Personas",
         "hi": "लोग"
       },
       "symbols": [
@@ -94,7 +94,7 @@
             "hi": "चाचा"
           },
           "order": 8,
-          "symbolId": "kn7cft94yre9rnk27wv431pesh84n5dk"
+          "symbolId": "kn7ddcp11n49e1r43byvgse18h84nzj2"
         },
         {
           "labelOverride": {
@@ -443,7 +443,6 @@
   ],
   "name": {
     "en": "People",
-    "es": "Personas",
     "hi": "लोग"
   },
   "slug": "people",

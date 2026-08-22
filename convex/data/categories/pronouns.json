@@ -1,0 +1,245 @@
+{
+  "colour": "#6B7280",
+  "coverImagePath": "symbols/pronouns.png",
+  "defaultOrder": 21,
+  "defaultTier": "free",
+  "icon": "📁",
+  "isDefault": true,
+  "items": [
+    {
+      "colour": "#6B7280",
+      "icon": "📁",
+      "imagePath": "symbols/pronouns.png",
+      "name": {
+        "en": "Pronouns",
+        "es": "Pronombres",
+        "hi": "सर्वनाम"
+      },
+      "symbols": [
+        {
+          "labelOverride": {
+            "en": "I",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 0,
+          "symbolId": "kn7fmh7pj8s4x7vgq5nnexb7qn84nvjf"
+        },
+        {
+          "labelOverride": {
+            "en": "you",
+            "es": "tú",
+            "hi": "तुम"
+          },
+          "order": 1,
+          "symbolId": "kn7a6w1bg6ddxedtdxt8cfsb9184mjpp"
+        },
+        {
+          "labelOverride": {
+            "en": "he",
+            "es": "Él",
+            "hi": "वह"
+          },
+          "order": 2,
+          "symbolId": "kn77tb4mzqbndc57zxwmzrwj8184nfwm"
+        },
+        {
+          "labelOverride": {
+            "en": "she",
+            "es": "ella",
+            "hi": "वह"
+          },
+          "order": 3,
+          "symbolId": "kn77zbpymwqea2cpmhe65dcp1d84n8bm"
+        },
+        {
+          "labelOverride": {
+            "en": "we",
+            "es": "nosotros",
+            "hi": "हम"
+          },
+          "order": 4,
+          "symbolId": "kn7c3rz97sdefvrn84sp5mn0m584mzph"
+        },
+        {
+          "labelOverride": {
+            "en": "they",
+            "es": "ellos",
+            "hi": "वे"
+          },
+          "order": 5,
+          "symbolId": "kn75d8mxg5njcqfxw3y84qx9mx84n4xm"
+        },
+        {
+          "labelOverride": {
+            "en": "me",
+            "es": "yo",
+            "hi": "मैं"
+          },
+          "order": 6,
+          "symbolId": "kn75wz7p324jzfycy3nayq0nfx84mad2"
+        },
+        {
+          "labelOverride": {
+            "en": "him",
+            "es": "él",
+            "hi": "उसको"
+          },
+          "order": 7,
+          "symbolId": "kn76zreqv3kkdwdeqz33rx2t1584np1t"
+        },
+        {
+          "labelOverride": {
+            "en": "her",
+            "es": "ella",
+            "hi": "उसका"
+          },
+          "order": 8,
+          "symbolId": "kn739gefz2q4ahccbb8grawhxd84nrr3"
+        },
+        {
+          "labelOverride": {
+            "en": "us",
+            "es": "nosotros",
+            "hi": "हमें"
+          },
+          "order": 9,
+          "symbolId": "kn7fsv9sj59hkkt2rpkak3avyd84n92d"
+        },
+        {
+          "labelOverride": {
+            "en": "them",
+            "es": "ellos",
+            "hi": "उन्हें"
+          },
+          "order": 10,
+          "symbolId": "kn76r80azxrqy87mpjnw3q688d84m9ey"
+        },
+        {
+          "labelOverride": {
+            "en": "it",
+            "es": "ello",
+            "hi": "यह"
+          },
+          "order": 11,
+          "symbolId": "kn7fa6mz4vrcpjxs3r8ekbh7kh84n85c"
+        },
+        {
+          "labelOverride": {
+            "en": "mine",
+            "es": "mío",
+            "hi": "मेरा"
+          },
+          "order": 12,
+          "symbolId": "kn7e2t594w4nvad078wrst51s984n7ss"
+        },
+        {
+          "labelOverride": {
+            "en": "yours",
+            "es": "tuyo",
+            "hi": "तुम्हारा है"
+          },
+          "order": 13,
+          "symbolId": "kn7772a3k2cpkpe3nsnsft0bm184mf9t"
+        },
+        {
+          "labelOverride": {
+            "en": "his",
+            "es": "su",
+            "hi": "उसका"
+          },
+          "order": 14,
+          "symbolId": "kn7fxs095wnh5259pr35y4ceqd84n0gw"
+        },
+        {
+          "labelOverride": {
+            "en": "hers",
+            "es": "suyo",
+            "hi": "उसकी"
+          },
+          "order": 15,
+          "symbolId": "kn7ewmeenw7bh2myctcpck279584mw50"
+        },
+        {
+          "labelOverride": {
+            "en": "ours",
+            "es": "nuestro",
+            "hi": "हमारा"
+          },
+          "order": 16,
+          "symbolId": "kn7ftsbkn60mzjanhag2vf39js84m0ym"
+        },
+        {
+          "labelOverride": {
+            "en": "theirs",
+            "es": "suyo",
+            "hi": "उनका"
+          },
+          "order": 17,
+          "symbolId": "kn7df5pd4gf1y4hg4treardbjd84nf1f"
+        },
+        {
+          "labelOverride": {
+            "en": "myself",
+            "es": "yo mismo/a",
+            "hi": "खुद"
+          },
+          "order": 18,
+          "symbolId": "kn78myr38bp02fg3ytmmbq2nhd84n7ab"
+        },
+        {
+          "labelOverride": {
+            "en": "yourself",
+            "es": "tú mismo",
+            "hi": "खुद"
+          },
+          "order": 19,
+          "symbolId": "kn72gme0rq97a0r4hswfs9ysys84mj9c"
+        },
+        {
+          "labelOverride": {
+            "en": "everyone",
+            "es": "todos",
+            "hi": "सब लोग"
+          },
+          "order": 20,
+          "symbolId": "kn747nk35z6863hemmc5tmbpd584m1da"
+        },
+        {
+          "labelOverride": {
+            "en": "nobody",
+            "es": "Nadie",
+            "hi": "कोई नहीं"
+          },
+          "order": 21,
+          "symbolId": "kn7e1sjpcy8yaytqgafqj15gq184mnj6"
+        },
+        {
+          "labelOverride": {
+            "en": "someone",
+            "es": "alguien",
+            "hi": "कोई"
+          },
+          "order": 22,
+          "symbolId": "kn7bmh16drwhxg9b42hbpa90kx84nfv5"
+        },
+        {
+          "labelOverride": {
+            "en": "anybody",
+            "es": "cualquiera",
+            "hi": "कोई भी"
+          },
+          "order": 23,
+          "symbolId": "kn7e0m0hberfka2kewrd2z7zss84n1md"
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Pronouns",
+    "es": "Pronombres",
+    "hi": "सर्वनाम"
+  },
+  "slug": "pronouns",
+  "tree": "categories"
+}

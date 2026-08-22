@@ -1,28 +1,65 @@
 {
-  "colour": "red",
+  "colour": "sky",
   "coverImagePath": "symbols/play.png",
+  "defaultOrder": 0,
   "defaultTier": "free",
-  "icon": "⚡",
+  "icon": "📁",
   "isDefault": true,
   "items": [
     {
-      "colour": "red",
-      "icon": "⚡",
+      "colour": "sky",
+      "icon": "📁",
       "imagePath": "symbols/play.png",
       "name": {
         "en": "Actions",
         "es": "Acciones",
-        "hi": "काम"
+        "hi": "क्रियाएँ"
       },
       "symbols": [
+        {
+          "audio": {
+            "en": {
+              "alternates": {
+                "default": "audio/eng/default/writer_author.mp3"
+              },
+              "language": "en",
+              "path": "audio/eng/default/symbol00197645.mp3",
+              "type": "tts"
+            },
+            "es": {
+              "alternates": {
+                "default": "audio/es-US-Wavenet-C/symbols/writer.mp3"
+              },
+              "language": "es",
+              "path": "audio/es-US-Wavenet-C/symbols/write.mp3",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "write",
+            "es": "escribir",
+            "hi": "लेखक"
+          },
+          "order": 0,
+          "symbolId": "kn781v4j60kkh8z5m8t8574g3984me1b"
+        },
         {
           "labelOverride": {
             "en": "go",
             "es": "ir",
             "hi": "जाओ"
           },
-          "order": 0,
+          "order": 1,
           "symbolId": "kn753ettkqwvqq5yx2hx1vd7kd84mr5a"
+        },
+        {
+          "labelOverride": {
+            "en": "turn",
+            "es": "girar",
+            "hi": "मोड़ना"
+          },
+          "order": 2,
+          "symbolId": "kn70ngj1xdgkka55gcty81gzf584n7q1"
         },
         {
           "labelOverride": {
@@ -30,7 +67,7 @@
             "es": "querer",
             "hi": "चाहिए"
           },
-          "order": 1,
+          "order": 3,
           "symbolId": "kn7fwzpceg5eq32gbv5e6qv4jx84mxt1"
         },
         {
@@ -39,17 +76,36 @@
             "es": "necesitar",
             "hi": "चाहिए"
           },
-          "order": 2,
+          "order": 4,
           "symbolId": "kn7bqp8w7tn53a6dysev66hhp984nshr"
         },
         {
           "labelOverride": {
-            "en": "stop",
-            "es": "parar",
+            "en": "wait",
+            "es": "esperar",
             "hi": "रुकना"
           },
-          "order": 3,
-          "symbolId": "kn77vqh14r04s8rk8r7ng0y46n84nmk4"
+          "order": 5,
+          "symbolId": "kn70sz82dxqs87p75q6stv832984m023"
+        },
+        {
+          "audio": {
+            "en": {
+              "alternates": {
+                "default": "audio/eng/default/stop_sign.mp3"
+              },
+              "language": "en",
+              "path": "audio/eng/default/symbol00199933.mp3",
+              "type": "tts"
+            }
+          },
+          "labelOverride": {
+            "en": "stop",
+            "es": "señal de alto",
+            "hi": "स्टॉप साइन"
+          },
+          "order": 6,
+          "symbolId": "kn7bncfdwx5sq1ewtyhde610jd84m9pe"
         },
         {
           "labelOverride": {
@@ -57,17 +113,17 @@
             "es": "comer",
             "hi": "खाना"
           },
-          "order": 4,
+          "order": 7,
           "symbolId": "kn76k6jpevb6hgghcn7qn31pw984mdvy"
         },
         {
           "labelOverride": {
             "en": "drink",
-            "es": "bebida",
-            "hi": "पीना"
+            "es": "beber",
+            "hi": "पानी"
           },
-          "order": 5,
-          "symbolId": "kn75vqdz6681t9nbwa40m32kf584mya9"
+          "order": 8,
+          "symbolId": "kn750depqv1hmkdnvhevkky79n84mmg7"
         },
         {
           "labelOverride": {
@@ -75,7 +131,7 @@
             "es": "ayuda",
             "hi": "मदद"
           },
-          "order": 6,
+          "order": 9,
           "symbolId": "kn76c4bbv7sk92vceyb1pegr1984nrje"
         },
         {
@@ -84,7 +140,7 @@
             "es": "jugar",
             "hi": "खेलना"
           },
-          "order": 7,
+          "order": 10,
           "symbolId": "kn77bjf6mgbnns10bxkar5tbj184m99m"
         },
         {
@@ -93,7 +149,7 @@
             "es": "mirar",
             "hi": "देखो"
           },
-          "order": 8,
+          "order": 11,
           "symbolId": "kn73bwrrf4y9ys8fwyypmydgbs84m8jr"
         },
         {
@@ -102,7 +158,7 @@
             "es": "venir",
             "hi": "आओ"
           },
-          "order": 9,
+          "order": 12,
           "symbolId": "kn73fcp7jsscfb73q74kdwpcvd84ns0y"
         },
         {
@@ -111,7 +167,7 @@
             "es": "conseguir",
             "hi": "लेना"
           },
-          "order": 10,
+          "order": 13,
           "symbolId": "kn73g9e9svgf4vr7b07xj07n2n84m2re"
         },
         {
@@ -120,7 +176,7 @@
             "es": "abrir",
             "hi": "खोलो"
           },
-          "order": 11,
+          "order": 14,
           "symbolId": "kn70s0tv43aby8v1jdfm622y7x84n01n"
         },
         {
@@ -129,7 +185,7 @@
             "es": "cerca",
             "hi": "बंद करना"
           },
-          "order": 12,
+          "order": 15,
           "symbolId": "kn7eejpzks7erwbt73es2ys3bn84nyev"
         },
         {
@@ -138,8 +194,8 @@
             "es": "dar",
             "hi": "देना"
           },
-          "order": 13,
-          "symbolId": "kn745hgzrnmaqz6aeyxke9t6t584nw97"
+          "order": 16,
+          "symbolId": "kn78b0jmsyrry2a5gryn84assd84n2ag"
         },
         {
           "labelOverride": {
@@ -147,8 +203,17 @@
             "es": "poner",
             "hi": "रखो"
           },
-          "order": 14,
+          "order": 17,
           "symbolId": "kn76jebnwzchvaf6kzanxpb76n84mkxw"
+        },
+        {
+          "labelOverride": {
+            "en": "share",
+            "es": "compartir",
+            "hi": "बाँटना"
+          },
+          "order": 18,
+          "symbolId": "kn786724xa145sx60xa1rxxrk984nrw7"
         },
         {
           "labelOverride": {
@@ -156,7 +221,7 @@
             "es": "ver",
             "hi": "देखना"
           },
-          "order": 15,
+          "order": 19,
           "symbolId": "kn735p07bj4aabn0vg8msvd3yd84na80"
         },
         {
@@ -165,7 +230,7 @@
             "es": "terminado",
             "hi": "खत्म हो गया"
           },
-          "order": 16,
+          "order": 20,
           "symbolId": "kn738dd2fge139z2m9t809vgzs84nvf1"
         },
         {
@@ -174,7 +239,7 @@
             "es": "gustar",
             "hi": "पसंद है"
           },
-          "order": 17,
+          "order": 21,
           "symbolId": "kn7bthxrdx9ss6nka0ye217mz984mjzh"
         },
         {
@@ -183,7 +248,7 @@
             "es": "amor",
             "hi": "प्यार"
           },
-          "order": 18,
+          "order": 22,
           "symbolId": "kn7at2ysp6cvs5t0gd5pd5qgm184mkff"
         },
         {
@@ -192,8 +257,8 @@
             "es": "sentarse",
             "hi": "बैठना"
           },
-          "order": 19,
-          "symbolId": "kn7a90xq8dh5dj3np7c9rhshe184na1y"
+          "order": 23,
+          "symbolId": "kn78qmwyk8gtt8ac0xtq8wqhzh84n9db"
         },
         {
           "labelOverride": {
@@ -201,7 +266,7 @@
             "es": "caminar",
             "hi": "चलना"
           },
-          "order": 20,
+          "order": 24,
           "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
         },
         {
@@ -210,8 +275,17 @@
             "es": "reloj",
             "hi": "घड़ी"
           },
-          "order": 21,
+          "order": 25,
           "symbolId": "kn7arzppbbk4basr3mbmxp8t1184mtg9"
+        },
+        {
+          "labelOverride": {
+            "en": "read",
+            "es": "leer",
+            "hi": "पढ़ना"
+          },
+          "order": 26,
+          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
         },
         {
           "labelOverride": {
@@ -219,7 +293,7 @@
             "es": "dormir",
             "hi": "सोना"
           },
-          "order": 22,
+          "order": 27,
           "symbolId": "kn74szjezc2fnemzxzttxbm7vd84m4f2"
         },
         {
@@ -228,17 +302,8 @@
             "es": "lavar",
             "hi": "धोना"
           },
-          "order": 23,
-          "symbolId": "kn71hezkxcw0y00vcvs0pp6fed84n5b5"
-        },
-        {
-          "labelOverride": {
-            "en": "read",
-            "es": "leer",
-            "hi": "पढ़ना"
-          },
-          "order": 24,
-          "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
+          "order": 28,
+          "symbolId": "kn788hzg0ft3jwre65q4ent58984ndbj"
         },
         {
           "labelOverride": {
@@ -246,7 +311,7 @@
             "es": "escuchar",
             "hi": "सुनना"
           },
-          "order": 25,
+          "order": 29,
           "symbolId": "kn7a183ssnwdk044x6zh6ynfeh84ne4d"
         },
         {
@@ -255,7 +320,7 @@
             "es": "hablar",
             "hi": "बात करना"
           },
-          "order": 26,
+          "order": 30,
           "symbolId": "kn7av90qyr653ezef764f6se0584mfyd"
         },
         {
@@ -264,7 +329,7 @@
             "es": "decir",
             "hi": "कहना"
           },
-          "order": 27,
+          "order": 31,
           "symbolId": "kn7f8ztx8v2q0fnye39cxvta5x84mh0f"
         },
         {
@@ -273,7 +338,7 @@
             "es": "Hacer",
             "hi": "बनाना"
           },
-          "order": 28,
+          "order": 32,
           "symbolId": "kn74w1km22htz4ztwck3ea6df184nt85"
         },
         {
@@ -282,7 +347,7 @@
             "es": "tomar",
             "hi": "लेना"
           },
-          "order": 29,
+          "order": 33,
           "symbolId": "kn7avr67zy5bkx7hr08jkmfz8584m2wm"
         },
         {
@@ -291,17 +356,27 @@
             "es": "tener",
             "hi": "पास होना"
           },
-          "order": 30,
+          "order": 34,
           "symbolId": "kn78dn60mpj7w3rc3da944zjn184mbwt"
         },
         {
+          "audio": {
+            "en": {
+              "alternates": {
+                "default": "audio/eng/default/symbol00198116.mp3"
+              },
+              "language": "en",
+              "path": "audio/eng/default/symbol00195556.mp3",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "feel",
-            "es": "sentir",
-            "hi": "महसूस करना"
+            "es": "Yo siento",
+            "hi": "मुझे महसूस हो रहा है।"
           },
-          "order": 31,
-          "symbolId": "kn7fgb31ekn67yrvrw8zhza6s984nfj8"
+          "order": 35,
+          "symbolId": "kn7cb0338p2bg0txxrxqt0n97s84n7dv"
         },
         {
           "labelOverride": {
@@ -309,7 +384,7 @@
             "es": "correr",
             "hi": "दौड़ना"
           },
-          "order": 32,
+          "order": 36,
           "symbolId": "kn7bkv013b59abs73jg0d4xtrs84nkvq"
         },
         {
@@ -318,7 +393,7 @@
             "es": "saltar",
             "hi": "कूदना"
           },
-          "order": 33,
+          "order": 37,
           "symbolId": "kn7c5xx95apwrg10k2fp132jp584m40b"
         },
         {
@@ -327,7 +402,7 @@
             "es": "lanzar",
             "hi": "फेंकना"
           },
-          "order": 34,
+          "order": 38,
           "symbolId": "kn79sey6cr3p7wgd4nab65y06n84na8f"
         },
         {
@@ -336,7 +411,7 @@
             "es": "atrapar",
             "hi": "पकड़ना"
           },
-          "order": 35,
+          "order": 39,
           "symbolId": "kn72snjvd4v0wkz5hwhvfddf1184n60m"
         },
         {
@@ -345,17 +420,8 @@
             "es": "dibujar",
             "hi": "बनाना"
           },
-          "order": 36,
+          "order": 40,
           "symbolId": "kn744d6bbh5py1wfk5x7dgnyhs84m2fr"
-        },
-        {
-          "labelOverride": {
-            "en": "write",
-            "es": "escribir",
-            "hi": "लिखना"
-          },
-          "order": 37,
-          "symbolId": "kn73p5hmh97n8xqh7af3hda6g584maqh"
         },
         {
           "labelOverride": {
@@ -363,7 +429,7 @@
             "es": "cantar",
             "hi": "गाना"
           },
-          "order": 38,
+          "order": 41,
           "symbolId": "kn7dg927wyv18xy10ap3rp15a984mtmw"
         },
         {
@@ -372,8 +438,8 @@
             "es": "bailar",
             "hi": "नाचना"
           },
-          "order": 39,
-          "symbolId": "kn7722kh6n7n6v73n7rhfspnrx84njnf"
+          "order": 42,
+          "symbolId": "kn764d9ta79sa0q3qr2ba9xy2x84msta"
         },
         {
           "labelOverride": {
@@ -381,35 +447,17 @@
             "es": "intentar",
             "hi": "कोशिश करो"
           },
-          "order": 40,
-          "symbolId": "kn7e6zmccgbf6sn1gztjm2y05s84n19p"
-        },
-        {
-          "labelOverride": {
-            "en": "wait",
-            "es": "esperar",
-            "hi": "रुकना"
-          },
-          "order": 41,
-          "symbolId": "kn70sz82dxqs87p75q6stv832984m023"
-        },
-        {
-          "labelOverride": {
-            "en": "share",
-            "es": "compartir",
-            "hi": "बाँटना"
-          },
-          "order": 42,
-          "symbolId": "kn786724xa145sx60xa1rxxrk984nrw7"
+          "order": 43,
+          "symbolId": "kn7bpvs94wmmb39ma7e0a4mtmx84ncs6"
         },
         {
           "labelOverride": {
             "en": "smile",
-            "es": "sonreír",
+            "es": "sonrisa",
             "hi": "मुस्कुराना"
           },
-          "order": 43,
-          "symbolId": "kn75dqs3nyk3ewmd0e9gj1s0c584n3r7"
+          "order": 44,
+          "symbolId": "kn79n8h9j2m5je8ncq69s90gg984nk6p"
         },
         {
           "labelOverride": {
@@ -417,7 +465,7 @@
             "es": "reír",
             "hi": "हँसना"
           },
-          "order": 44,
+          "order": 45,
           "symbolId": "kn73m4jex2zrh0w0tq7thpkh7d84m8sy"
         },
         {
@@ -426,7 +474,7 @@
             "es": "llorar",
             "hi": "रोना"
           },
-          "order": 45,
+          "order": 46,
           "symbolId": "kn7e25vb7jf30ezjft5hmqarx584nr7y"
         },
         {
@@ -435,17 +483,8 @@
             "es": "abrazo",
             "hi": "झप्पी"
           },
-          "order": 46,
-          "symbolId": "kn76v62y4fwcgymn5z39jdrqqh84mwgs"
-        },
-        {
-          "labelOverride": {
-            "en": "turn",
-            "es": "girar",
-            "hi": "मोड़ना"
-          },
           "order": 47,
-          "symbolId": "kn70ngj1xdgkka55gcty81gzf584n7q1"
+          "symbolId": "kn71fe6fzd3hb25wjkgrkfy49d84n2hv"
         }
       ]
     }
@@ -453,7 +492,7 @@
   "name": {
     "en": "Actions",
     "es": "Acciones",
-    "hi": "काम"
+    "hi": "क्रियाएँ"
   },
   "slug": "actions",
   "tree": "categories"

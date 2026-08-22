@@ -1,188 +1,234 @@
 {
+  "colour": "indigo",
   "coverImagePath": "symbols/fun.png",
+  "defaultOrder": 14,
   "defaultTier": "free",
-  "description": {
-    "en": "Toys, games, and everything they reach for when no one's making them work. Words for play.",
-    "es": "Juguetes, juegos y todo lo que quieren hacer cuando nadie les dice qué hacer. Palabras para jugar.",
-    "hi": "खिलौने, खेल, और वो सब कुछ जो बच्चे तब करते हैं जब कोई उनसे काम नहीं करवा रहा होता। खेलने के लिए शब्द।"
-  },
+  "icon": "📁",
+  "isDefault": true,
   "items": [
     {
-      "colour": "rose",
+      "colour": "indigo",
       "icon": "📁",
       "imagePath": "symbols/fun.png",
       "name": {
         "en": "Fun",
-        "es": "Diversión",
-        "hi": "मस्ती"
+        "es": "Divertido",
+        "hi": "मज़ा"
       },
       "symbols": [
         {
           "labelOverride": {
-            "en": "puzzle"
+            "en": "puzzle",
+            "es": "rompecabezas",
+            "hi": "पहेली"
           },
           "order": 0,
-          "symbolId": "kn7bezhnta9dh97cx6gdg3gcwx84m79v"
+          "symbolId": "kn7f1f2hbt8kpm6f3785f1tw7984ma2s"
         },
         {
           "labelOverride": {
-            "en": "Google"
+            "en": "Google",
+            "es": "Google",
+            "hi": "Google"
           },
           "order": 1,
-          "symbolId": "kn774djwg880nk52g3r2jz4gjx84nkyx"
+          "symbolId": "kn7bcvag3fevgcxftyj9rf6dtx84n0ee"
         },
         {
           "labelOverride": {
-            "en": "send email"
+            "en": "send email",
+            "es": "enviar correo electrónico",
+            "hi": "ईमेल भेजें"
           },
           "order": 2,
           "symbolId": "kn761gqm3kcbthpf0jny35xp1s84mk4e"
         },
         {
           "labelOverride": {
-            "en": "Facebook"
+            "en": "Facebook",
+            "es": "Facebook",
+            "hi": "Facebook"
           },
           "order": 3,
-          "symbolId": "kn78pfzm2h7w0c8091ttft88z584nsdj"
+          "symbolId": "kn7b4khhh95c2gbfp031x5335984nw04"
         },
         {
           "labelOverride": {
-            "en": "video game"
+            "en": "video game",
+            "es": "videojuego",
+            "hi": "वीडियो गेम"
           },
           "order": 4,
           "symbolId": "kn739knbmfya36dnm4hcqxhbjs84m18v"
         },
         {
           "labelOverride": {
-            "en": "trampoline"
+            "en": "trampoline",
+            "es": "cama elástica",
+            "hi": "ट्रैम्पोलिन"
           },
           "order": 5,
           "symbolId": "kn7dtk9ree8arqben756f08m1x84nqst"
         },
         {
           "labelOverride": {
-            "en": "tablet"
+            "en": "tablet",
+            "es": "tableta",
+            "hi": "टैबलेट"
           },
           "order": 6,
-          "symbolId": "kn79kjxmekdnw6hwr1hwm2xkp984nzab"
+          "symbolId": "kn71a4nk9nkhfx8tyk15xhkr5d84ndq1"
         },
         {
           "labelOverride": {
-            "en": "Play Doh"
+            "en": "Play Doh",
+            "es": "Play-Doh",
+            "hi": "Play Doh"
           },
           "order": 7,
           "symbolId": "kn74kx4thkg448n4m2tev8y9c184nqf1"
         },
         {
           "labelOverride": {
-            "en": "LEGO toys"
+            "en": "LEGO toys",
+            "es": "juguetes LEGO",
+            "hi": "लेगो खिलौने"
           },
           "order": 8,
           "symbolId": "kn79f8t61vr9vfywx8y9dgp15984n94y"
         },
         {
           "labelOverride": {
-            "en": "headphones"
+            "en": "headphones",
+            "es": "auriculares",
+            "hi": "हेडफोन"
           },
           "order": 9,
           "symbolId": "kn7djkxy5t5d8dvp6efma5vjwx84mavc"
         },
         {
           "labelOverride": {
-            "en": "TV show"
+            "en": "TV show",
+            "es": "programa de televisión",
+            "hi": "टीवी शो"
           },
           "order": 10,
           "symbolId": "kn77sfyr7vpqj3yknwc48a9bh184m192"
         },
         {
           "labelOverride": {
-            "en": "games"
+            "en": "games",
+            "es": "juegos",
+            "hi": "खेल"
           },
           "order": 11,
-          "symbolId": "kn79y2t70pngxn8zc70e6wv6sh84nmdp"
+          "symbolId": "kn7cg3za1hrjgc5g3wsjs2y32n84nb36"
         },
         {
           "labelOverride": {
-            "en": "computer"
+            "en": "computer",
+            "es": "computadora",
+            "hi": "कंप्यूटर"
           },
           "order": 12,
-          "symbolId": "kn74rsanh0ma7bgvvjdrjj7fzd84npb3"
+          "symbolId": "kn742sjhss94be59r8wp22ah4s84m7y8"
         },
         {
           "labelOverride": {
-            "en": "read"
+            "en": "read",
+            "es": "leer",
+            "hi": "पढ़ना"
           },
           "order": 13,
           "symbolId": "kn7ftrst9629ay3pcp0f99c85984n7t4"
         },
         {
           "labelOverride": {
-            "en": "playground"
+            "en": "playground",
+            "es": "parque infantil",
+            "hi": "खेल का मैदान"
           },
           "order": 14,
           "symbolId": "kn7emkyb9j8pnhj6ev9ek8d90984mpcr"
         },
         {
           "labelOverride": {
-            "en": "swing"
+            "en": "swing",
+            "es": "columpio",
+            "hi": "झूला"
           },
           "order": 15,
           "symbolId": "kn7252ffx2v2gte85z8aez73zd84m5m0"
         },
         {
           "labelOverride": {
-            "en": "catch bounced ball"
+            "en": "catch bounced ball",
+            "es": "atrapar la pelota que rebota",
+            "hi": "उछली गेंद पकड़ना"
           },
           "order": 16,
-          "symbolId": "kn736t1tvys8pcnksjkrev02r984n1fy"
+          "symbolId": "kn7frd5hay9qhce102b58ca78d84nqxj"
         },
         {
           "labelOverride": {
-            "en": "walk"
+            "en": "walk",
+            "es": "caminar",
+            "hi": "चलना"
           },
           "order": 17,
-          "symbolId": "kn7bt7t2hpqb50nn2ksnhcqmg984mkqc"
+          "symbolId": "kn7er0aa6z5f60jr9vdezr8jxn84m0ah"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/e6b84481-5216-4da5-844a-fc4af98dd21f.mp3",
+              "ttsText": "kick football",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
-            "en": "kick football"
+            "en": "kick football",
+            "es": "tiro de fútbol",
+            "hi": "फुटबॉल किक"
           },
           "order": 18,
           "symbolId": "kn774h1f1yb6xp64g4679c11s584nd0c"
         },
         {
           "labelOverride": {
-            "en": "play ball"
+            "en": "play ball",
+            "es": "jugar a la pelota",
+            "hi": "गेंद खेलना"
           },
           "order": 19,
           "symbolId": "kn7at9hj48xnag726hv3f3e28184nkhc"
         },
         {
           "labelOverride": {
-            "en": "watch YouTube"
+            "en": "watch YouTube",
+            "es": "YouTube",
+            "hi": "यूट्यूब देखना"
           },
           "order": 20,
           "symbolId": "kn75cerz1snk8qyrn6akpvtfhd84npxj"
         },
         {
           "labelOverride": {
-            "en": "bubbles"
+            "en": "bubbles",
+            "es": "burbujas",
+            "hi": "बुलबुले"
           },
           "order": 21,
-          "symbolId": "kn75e4c3vwddb9zpk8qh5pdqx184mbqf"
+          "symbolId": "kn71hbaezt4m45kedq709t5tvd84n88e"
         }
       ]
     }
   ],
   "name": {
     "en": "Fun",
-    "es": "Diversión",
-    "hi": "मस्ती"
-  },
-  "provenance": {
-    "author": "Mo Speech",
-    "licence": "proprietary",
-    "version": "1"
+    "es": "Divertido",
+    "hi": "मज़ा"
   },
   "slug": "fun",
   "tree": "categories"

@@ -190,11 +190,6 @@
     "en": "Vehicles",
     "hi": "गाड़ियाँ"
   },
-  "provenance": {
-    "author": "Mo Speech",
-    "licence": "proprietary",
-    "version": "1"
-  },
   "slug": "vehicles",
   "tree": "categories"
 }
