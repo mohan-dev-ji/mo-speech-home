@@ -13,6 +13,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useToast } from "@/app/components/app/shared/ui/Toast";
 import { track } from "@/lib/analytics";
+import { MODULE_SLUG_RE } from "@/lib/r2-paths";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,6 @@ import {
 type Kind = "category" | "lists" | "sentences" | "phrases";
 type Classification = "default" | "free" | "pro" | "max";
 const CLASSES: Classification[] = ["default", "free", "pro", "max"];
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function slugify(s: string): string {
   return s
@@ -76,7 +76,7 @@ export function PublishModuleModal({
     : slugTouched
       ? slug
       : slugify(name);
-  const slugValid = SLUG_RE.test(effectiveSlug);
+  const slugValid = MODULE_SLUG_RE.test(effectiveSlug);
   const tree = kind === "category" ? "categories" : kind;
 
   // ADR-022 — the personal R2 keys this source points at. Promoted to the
@@ -118,7 +118,9 @@ export function PublishModuleModal({
           mapping: Record<string, string>;
           stats: { copied: number; skipped: number; failed: number };
         };
-        console.log("[publish] promoted assets", stats);
+        if (process.env.NODE_ENV === "development") {
+          console.log("[publish] promoted assets", stats);
+        }
         // A partial map would publish some assets still pointing at
         // `accounts/…` — the exact failure ADR-022 exists to prevent. Fail
         // loudly instead. (R2 simply being unconfigured reports all-skipped,

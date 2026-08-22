@@ -49,6 +49,15 @@ module-scoped shared prefix and write the promoted paths into the module row:
   `audio/<voice>/tts/…`, and legacy `library_packs/…`.
 - **R2 unconfigured is not a publish failure.** The copy is skipped and paths
   are left alone, matching the prior pack-publish behaviour.
+- **A failed copy aborts the publish.** If any individual copy throws,
+  `promote-module-assets` reports it in `stats.failed` and the modal throws
+  before either publish mutation runs — no module row is written. This
+  diverges from the prior art: pack-era `promoteAsset`
+  (`7083f1a^:app/api/admin/pack-publish/route.ts`) returned the original path
+  on failure and let the publish continue. That's the wrong default here — a
+  module row written with even one unpromoted `accounts/…` path is the exact
+  bug this ADR exists to prevent, so partial promotion fails loudly instead of
+  publishing silently.
 
 Convex mutations cannot perform R2 I/O, so the copy runs in a Clerk-admin-gated
 Next.js route (`/api/admin/promote-module-assets`) which the publish modal calls
@@ -67,3 +76,7 @@ before the mutation, passing the resulting key mapping in.
   `space` and the other legacy modules use `library_packs/…` or `symbols/…`.
 - `library_packs/` is not migrated. It is a valid shared prefix; churning it
   would invalidate the committed artifact for no benefit.
+- A source row whose personal asset no longer exists in R2 (deleted object,
+  stale key) makes its copy fail, which now blocks publish entirely until the
+  reference is repaired — an operational cost traded for never publishing a
+  half-promoted module.

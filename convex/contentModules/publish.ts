@@ -94,8 +94,11 @@ function promoteListItem<
   };
 }
 
-/** Rewrite a sentence slot / composition word's `imagePath` (+ `audioPath`
- * where the shape carries one). Mirrors `sentenceKeys()` / `phraseKeys()`. */
+/** Rewrite a sentence slot's or composition word's asset paths. Shared by two
+ * shapes with different field coverage: sentence `slots[]` (schema: `order`,
+ * `imagePath`, `displayProps`, `label` — no `audioPath`, so that branch is a
+ * no-op there) and `units[].words[]`, which do carry `audioPath`. Mirrors
+ * `sentenceKeys()` / `phraseKeys()`. */
 function promoteWordLike<T extends { imagePath?: string; audioPath?: string }>(
   w: T,
   map: Record<string, string> | undefined,

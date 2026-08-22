@@ -1,3 +1,10 @@
+// Module `slug` validation (ADR-022 publish flow). Shared by the client modal
+// (`PublishModuleModal.tsx`, which also uses it to gate the submit button) and
+// the server route (`/api/admin/promote-module-assets`, which re-validates
+// before using the slug in an R2 key). Stricter than a bare `[a-z0-9-]+`: also
+// rejects leading/trailing/doubled hyphens.
+export const MODULE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export const TTS_VOICES = {
   "en-GB-News-M": { languageCode: "en-GB", name: "en-GB-News-M" },
   // Phase 8.4 — English female, same "News" family as the male above so the

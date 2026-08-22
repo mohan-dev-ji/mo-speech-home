@@ -17,6 +17,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { CopyObjectCommand } from "@aws-sdk/client-s3";
 import { r2Client, bucketName } from "@/lib/r2-storage";
+import { MODULE_SLUG_RE } from "@/lib/r2-paths";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  if (!/^[a-z0-9-]+$/.test(slug)) {
+  if (!MODULE_SLUG_RE.test(slug)) {
     return NextResponse.json({ error: "Bad slug" }, { status: 400 });
   }
   if (!/^(categories|lists|sentences|phrases)$/.test(tree)) {
