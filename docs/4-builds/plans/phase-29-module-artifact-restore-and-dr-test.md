@@ -17,7 +17,12 @@
 - **Never run `npx convex dev`** in a worktree. This phase runs in the main checkout, where `convex dev` is already running and auto-pushes; use `--no-push` on every `npx convex run` so a half-edited file can't deploy mid-command.
 - **Node 20.17.0 is required** by the Convex CLI. If nvm is in play, prefix with `source ~/.nvm/nvm.sh && nvm use 20.17.0`.
 - **Take a full deployment snapshot before every destructive step:** `npx convex export --path backups/<date>-<label>.zip`. `backups/` is gitignored.
-- **This repo has no test framework** (no vitest/jest/playwright, no `test` script). "Test" in this plan means: a runnable command with a stated expected output. Type-checking is `npx tsc -p convex/tsconfig.json --noEmit`.
+- **This repo has no test framework** (no vitest/jest/playwright, no `test` script) and **must not gain one** — phase-17 settled that. "Test" in this plan means: a runnable command with a stated expected output. Do not add a test runner, a test file, or a test dependency; do not report "no tests written" as a defect.
+- **Verification baseline, measured 2026-08-22.** Compare against these, never against zero:
+  - `npx tsc -p convex/tsconfig.json --noEmit` → **clean, exit 0.** Any error is yours.
+  - `npx tsc --noEmit` → **4 pre-existing errors**, all unrelated: three stale `.next/types/validator.ts` references to routes deleted long ago (`app/(admin)/admin/library/page.js`, `app/api/admin/pack-publish/route.js`, `app/api/reload-category-defaults/route.js`) and one Stripe `apiVersion` literal mismatch in `lib/stripe.ts:8`. `.next/types/validator.ts` is generated — the count may legitimately change when a route is added.
+  - `npm run lint` → **66 problems (36 errors, 30 warnings)**, all pre-existing. Known noise includes `no-assign-module-variable` in `convex/contentModules/{detail,phrases,sentences}.ts` (their legitimate `const module = …`), unused vars in `convex/schema.ts:32`, `convex/translationJobs.ts:42`, `lib/languages/variants.ts:158`, `scripts/pack-migrate.mjs`, and several React-hooks warnings in `SymbolEditorModal.tsx`, `GroupsView.tsx`, `ListsModeContent.tsx`, `SentencesModeContent.tsx`.
+  - **Do not fix pre-existing errors or warnings.** They are outside this phase. Only regressions you introduce count.
 - **Admin Clerk user id** is needed by `seedLibraryModulesFromJSON`. Derive it, never hard-code it into committed files:
   ```bash
   npx convex run contentModules/exportModules:dumpAllModules --no-push '{}' > /dev/null && \
@@ -1151,15 +1156,31 @@ Then, in the submit handler, before calling `publishFolder` / `publishCategory`:
 
 …and pass `assetPathMap` into whichever mutation is called. Match the file's existing error-surfacing convention (toast / inline error) rather than letting the throw escape — read the surrounding handler and follow it. Use the variable names the component already has for `tree`, `slug`, and the source id; the names above are indicative.
 
-- [ ] **Step 8: Type-check and lint**
+- [ ] **Step 8: Type-check and lint — against the recorded baseline, not against zero**
 
 ```bash
-npx tsc -p convex/tsconfig.json --noEmit
-npx tsc --noEmit
-npm run lint
+npx tsc -p convex/tsconfig.json --noEmit; echo "convex tsc exit=$?"
+npx tsc --noEmit 2>&1 | grep -c "error TS"
+npm run lint 2>&1 | tail -3
 ```
 
-Expected: all three clean.
+Expected, per the baseline measured 2026-08-22 (see Global Constraints):
+- convex tsc: **`exit=0`, no output.** Any error here is yours.
+- root tsc: **4**, and they must be the same four. Anything above 4, or a different file, is yours. Note that `.next/types/validator.ts` is a generated artifact — if the count *drops* because adding `app/api/admin/promote-module-assets/route.ts` triggered a regeneration, that is fine and expected.
+- lint: **`✖ 66 problems (36 errors, 30 warnings)`.** All pre-existing. Do not fix them — they are outside this phase's scope. Any increase is yours.
+
+Diff the actual error lines rather than trusting the counts:
+
+```bash
+npx tsc --noEmit 2>&1 | grep "error TS" | sort > /tmp/tsc-now.txt
+diff <(sort <<'EOF'
+.next/types/validator.ts(53,39): error TS2307: Cannot find module '../../app/(admin)/admin/library/page.js' or its corresponding type declarations.
+.next/types/validator.ts(233,39): error TS2307: Cannot find module '../../app/api/admin/pack-publish/route.js' or its corresponding type declarations.
+.next/types/validator.ts(314,39): error TS2307: Cannot find module '../../app/api/reload-category-defaults/route.js' or its corresponding type declarations.
+lib/stripe.ts(8,3): error TS2322: Type '"2026-03-25.dahlia"' is not assignable to type '"2026-05-27.dahlia"'.
+EOF
+) /tmp/tsc-now.txt && echo "✅ baseline unchanged"
+```
 
 - [ ] **Step 9: Prove promotion works, on a throwaway module**
 
