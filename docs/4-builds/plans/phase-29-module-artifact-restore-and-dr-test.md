@@ -1197,13 +1197,10 @@ EOF
 
 This is the acceptance test for the whole task. In the admin profile:
 
+**Scope note added after implementation review:** the implementation grew four *shape mappers* in `publish.ts` (`promoteListItem`, `promoteWordLike`, `promoteUnit`, `promoteAudioSource`) because this plan's original field list was wrong — `items`, `slots` and `units` pass whole objects through, carrying nested personal keys. Those mappers are the largest and least-specified part of the change, and a categories-only test never executes them. **The checklist below therefore covers three trees, not one.** A mapper bug would silently reintroduce the exact bug this task fixes, in lists and sentences.
+
 1. Create a scratch category `promo-test` with **one** uploaded image (any photo).
-2. Confirm the asset landed personal:
-   ```bash
-   npx convex run contentModules/publish:getPublishAssetKeys --no-push \
-     '{"tree":"categories","sourceId":"<the profileCategories _id>"}'
-   ```
-   Expected: one key starting `accounts/`.
+2. ~~Read the keys via `npx convex run`.~~ **No longer possible** — `getPublishAssetKeys` is admin-gated and `npx convex run` carries no Clerk identity, so it throws `UNAUTHENTICATED`. That gate is correct (the query returns raw personal R2 keys) and must not be removed. Skip this step; Step 3's `copied` count proves the same thing — `copied ≥ 1` means the key was personal, since only `accounts/`/`profiles/` keys are ever copied.
 3. Publish it as a module (free tier). Watch the browser console for `[publish] promoted assets { copied: 1, … }`.
 4. Confirm the published row points at the promoted path:
    ```bash
@@ -1231,7 +1228,24 @@ This is the acceptance test for the whole task. In the admin profile:
 
    (The script must live inside the repo — `node_modules` resolution fails from a scratch directory.)
 6. Open the module's library detail page and confirm its image still renders after the uninstall.
-7. Delete the `promo-test` module from the library to clean up, then re-run `node scripts/verify-module-roundtrip.mjs` and confirm it reports the module set you expect.
+7. **Exercise the shape mappers — the part a categories-only test never touches.** Two more publishes:
+
+   **a. Lists tree.** Make a scratch list folder `promo-test-list` with one list containing an item whose image you **upload** (not SymbolStix). Publish the folder. Confirm `copied ≥ 1`, then check the row:
+   ```bash
+   npx convex run contentModules/exportModules:dumpAllModules --no-push '{}' \
+     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+         const m=JSON.parse(s).find(x=>x.slug==="promo-test-list");
+         const paths=JSON.stringify(m).match(/"(accounts|profiles)\/[^"]+"/g);
+         console.log(paths?("❌ PERSONAL PATHS LEAKED: "+paths.join(", ")):"✅ no personal paths");
+       })'
+   ```
+   Expected: `✅ no personal paths`. This is `promoteListItem`'s only real test.
+
+   **b. Sentences tree, composed.** Make a scratch sentence folder `promo-test-sentence` containing a **block/sequence** sentence — one built from a phrase unit plus at least one word unit — where at least one word carries an uploaded image. Publish, then run the same leak check with `promo-test-sentence`. This is the only test of `promoteUnit` walking `units[].words[]`, the deepest nesting in the change.
+
+   Expected in both: `✅ no personal paths`. **A leak here means a mapper missed a field — stop and report which slug and which path.**
+
+8. Delete all three scratch modules (`promo-test`, `promo-test-list`, `promo-test-sentence`) from the library, uninstall their source content, then re-run `node scripts/verify-module-roundtrip.mjs` and confirm it reports the 38-module set with 0 drift. (The verifier will fail while the scratch modules exist — that is expected, since they are live but have no committed JSON. It must pass again once they are gone.)
 
 - [ ] **Step 10: Commit**
 
