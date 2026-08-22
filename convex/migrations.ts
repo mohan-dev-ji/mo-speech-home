@@ -526,7 +526,7 @@ export const seedLibraryModulesFromJSON = mutation({
           ...(mod.defaultOrder !== undefined ? { defaultOrder: mod.defaultOrder } : {}),
           items: mod.items,
           publishedAt: now,
-          featured: false,
+          featured: mod.featured ?? false,
           createdBy: adminClerkUserId,
           updatedAt: now,
         });

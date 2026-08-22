@@ -5,9 +5,24 @@
  * discipline used for the symbols table.
  *
  * The artifact is a BACKUP / review copy, NOT the live source — the live source
- * is the table. Volatile fields (`_id`, timestamps, `createdBy`, publish window)
- * are omitted so committed diffs reflect real content/curation changes, not
- * churn. Ungated (same as `symbols:dumpSymbolsPage`); module content is the
+ * is the table. Volatile fields (`_id`, timestamps, `createdBy`, publish window) are omitted
+ * so committed diffs reflect real content/curation changes, not churn.
+ *
+ * Deliberately NOT round-tripped, and why:
+ *   - `provenance`  — no column on `libraryModules`; the legacy pack JSONs that
+ *                     carry it all hold identical boilerplate. Per-symbol
+ *                     `attribution`/`license`/`imageSourceUrl` ARE round-tripped,
+ *                     and those are the ones that carry obligation.
+ *   - `lastPublishedAt` / `publishedAt` / `createdBy` — volatile.
+ *   - `tags` / `tierOverride` / `expiresAt` / `translationSnapshot` — unset on
+ *     every live row; add here if that ever changes.
+ *
+ * NOTE: Convex's value encoding returns object fields key-sorted, so the
+ * "fixed key order" below governs which keys are present, not their order on
+ * disk. Compare artifacts structurally (scripts/verify-module-roundtrip.mjs),
+ * never byte-wise.
+ *
+ * Ungated (same as `symbols:dumpSymbolsPage`); module content is the
  * public catalogue anyway, and `npx convex run` has no caller identity.
  */
 
@@ -37,6 +52,9 @@ export const dumpAllModules = query({
       // Admin's arranged position — drives default-seed order (seedDefaultAccount),
       // so it must survive the git export/import round-trip.
       ...(m.defaultOrder !== undefined ? { defaultOrder: m.defaultOrder } : {}),
+      // Curated-library featuring. Round-tripped (restored by
+      // seedLibraryModulesFromJSON) so a wipe/restore keeps the shelf layout.
+      ...(m.featured ? { featured: true } : {}),
       items: m.items,
     }));
   },

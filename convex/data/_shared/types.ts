@@ -238,6 +238,13 @@ type ContentModuleBase = {
    * order (`seedDefaultAccount`); carried in the git-export artifact so a
    * re-seed restores the admin's layout. Live source: `libraryModules.defaultOrder`. */
   defaultOrder?: number;
+  /** Curated-library featuring flag. Round-tripped so a wipe/restore does not
+   * destroy featuring decisions. Omitted from the artifact when false. Live
+   * source of truth: `libraryModules.featured`. */
+  featured?: boolean;
+  /** Artifact-only. `libraryModules` has no `provenance` column, so this is
+   * dropped on seed and not re-emitted by the exporter. Retained on the type
+   * for the legacy pack-converted JSONs that still carry it. */
   provenance?: ModuleProvenance;
 };
 
