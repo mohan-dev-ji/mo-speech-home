@@ -87,14 +87,21 @@ export function PersistentTalker() {
   // Play a talker item's clip. A clip-less phrase (no recorded/generated audio)
   // speaks its name via TTS so adding or tapping a phrase is never silent —
   // mirrors the block modal's fallback and matches how word symbols always sound.
-  function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; phraseNameRecord?: Record<string, string>; label: string }) {
+  function playItem(item: { audioPath?: string; kind?: 'word' | 'phrase'; phraseName?: string; phraseNameRecord?: Record<string, string>; labelRecord?: Record<string, string>; label: string }) {
     if (item.audioPath) { playAudio(item.audioPath); return; }
+    // Voice follows the resolved text's language (ADR-018): EN-only text on a
+    // Hindi/Spanish board speaks English in an ENGLISH voice, via the shared helper.
     if (item.kind === 'phrase') {
-      // Voice follows the resolved text's language (ADR-018): an EN-only phrase on
-      // a Hindi/Spanish board speaks English in an ENGLISH voice, via the shared helper.
       const { voiceId: voice } = resolveSpokenVoice(item.phraseNameRecord, language, voiceId);
       void playTts(item.phraseName ?? item.label, voice);
+      return;
     }
+    // Word chip with no clip. Symbols backed by SymbolStix always arrive with a
+    // resolved path, but custom-image symbols (upload / image search / AI) have
+    // no default to resolve — synthesise the label so the chip is never silent.
+    if (!item.label) return;
+    const { voiceId: voice } = resolveSpokenVoice(item.labelRecord, language, voiceId);
+    void playTts(item.label, voice, undefined, { literal: true });
   }
 
   // Single chip tap plays that chip's own clip (whole-composition playback is the

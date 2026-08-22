@@ -25,6 +25,8 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { displayString, displayValue } from '@/lib/languages/displayValue';
 import { DEFAULT_LOCALE } from '@/lib/languages/registry';
+import { playTts } from '@/lib/audio/playTts';
+import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
 import { useTalker } from '@/app/contexts/TalkerContext';
 import { useBreadcrumb } from '@/app/contexts/BreadcrumbContext';
 import { useModellingSession } from '@/app/contexts/ModellingSessionContext';
@@ -477,11 +479,29 @@ export function CategoryDetailContent({ categoryId }: Props) {
                       display={sym.display}
                       categoryColour={category?.colour}
                       onTap={() => {
-                        if (!audioPath) return;
+                        // A stored clip wins. Custom-image symbols (upload /
+                        // image search / AI) have no SymbolStix default to
+                        // resolve and carry no clip until someone authors one,
+                        // so synthesise from the label rather than going silent
+                        // — the same fallback lists and phrases already use.
+                        // Voice follows the resolved text's language (ADR-018).
+                        const speak = () => {
+                          if (audioPath) {
+                            playAudio(audioPath);
+                            return;
+                          }
+                          if (!label) return;
+                          const { voiceId: spokenVoice } = resolveSpokenVoice(
+                            sym.pinnedLanguage ? { [sym.pinnedLanguage]: label } : sym.label,
+                            resolveLang,
+                            voiceId,
+                          );
+                          void playTts(label, spokenVoice, undefined, { literal: true });
+                        };
                         if (talkerMode === 'banner') {
-                          playAudio(audioPath);
+                          speak();
                         } else if (sym.imagePath) {
-                          playAudio(audioPath);
+                          speak();
                           addToTalker({
                             symbolId: sym._id,
                             imagePath: `/api/assets?key=${sym.imagePath}`,
