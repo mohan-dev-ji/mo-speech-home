@@ -59,7 +59,21 @@ const MAP_NAME = {
   phrases: "PHRASE_MODULES",
 };
 
+// ── Barrels-only mode ───────────────────────────────────────────────────────
+// Regenerate the four `_index.ts` barrels from whatever JSON is on disk, with
+// no live dump and no prune. Needed when JSON is added or removed by hand
+// (e.g. pruning superseded modules, or staging a legacy module for a restore)
+// and a full export would prune the very files being staged.
+const BARRELS_ONLY = process.argv.includes("--barrels-only");
+
 // ── Fetch the dump ──────────────────────────────────────────────────────────
+if (BARRELS_ONLY) {
+  console.log("🧱 Regenerating barrels from on-disk JSON (no dump, no prune)…\n");
+  for (const tree of Object.keys(OUT)) regenBarrel(tree);
+  console.log("\n✅ Barrels regenerated.");
+  process.exit(0);
+}
+
 console.log("📦 Exporting libraryModules → committed JSON…\n");
 
 const tmpFile = join(tmpdir(), `modules_dump_${Date.now()}.json`);
