@@ -927,7 +927,9 @@ export async function collectSourcePersonalKeys(
     for (const k of categoryKeys(cat)) out.push(k);
     const symbols = await ctx.db
       .query("profileSymbols")
-      .withIndex("by_category_id", (q) => q.eq("categoryId", cat._id))
+      .withIndex("by_profile_category_id", (q) =>
+        q.eq("profileCategoryId", cat._id)
+      )
       .collect();
     for (const s of symbols) for (const k of symbolKeys(s)) out.push(k);
     return [...new Set(out)];
@@ -940,19 +942,19 @@ export async function collectSourcePersonalKeys(
   if (args.tree === "lists") {
     const rows = await ctx.db
       .query("profileLists")
-      .withIndex("by_folder_id", (q) => q.eq("folderId", folder._id))
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
     for (const r of rows) for (const k of listKeys(r)) out.push(k);
   } else if (args.tree === "sentences") {
     const rows = await ctx.db
       .query("profileSentences")
-      .withIndex("by_folder_id", (q) => q.eq("folderId", folder._id))
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
     for (const r of rows) for (const k of sentenceKeys(r)) out.push(k);
   } else {
     const rows = await ctx.db
       .query("profilePhrases")
-      .withIndex("by_folder_id", (q) => q.eq("folderId", folder._id))
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
     for (const r of rows) for (const k of phraseKeys(r)) out.push(k);
   }
@@ -961,13 +963,22 @@ export async function collectSourcePersonalKeys(
 }
 ```
 
-**Verify the index names before running this** — `by_category_id` and `by_folder_id` are assumed:
+**Index names verified against `convex/schema.ts` on 2026-08-22** — these are the real ones, not guesses:
+
+| Table | Index | Columns |
+|---|---|---|
+| `profileSymbols` | `by_profile_category_id` | `["profileCategoryId"]` |
+| `profileLists` / `profileSentences` / `profilePhrases` | `by_folder_id_and_order` | `["folderId", "order"]` |
+| `profileCategories` | `by_account_id` | `["accountId"]` |
+| `profileFolders` | `by_account_id`, `by_library_source_id` | — |
+
+Note the symbol foreign key is `profileCategoryId`, **not** `categoryId`. There is no `by_category_id` or bare `by_folder_id` index — using either will fail at runtime. Convex permits a prefix query on a compound index, so `by_folder_id_and_order` is correct for an equality-on-`folderId` lookup.
+
+Re-confirm before writing, in case the schema moved:
 
 ```bash
-grep -n "by_category_id\|by_folder_id" convex/schema.ts
+grep -n "by_profile_category_id\|by_folder_id_and_order" convex/schema.ts
 ```
-
-If either differs, use the real name; do not invent one.
 
 - [ ] **Step 4: Expose it as a query**
 
