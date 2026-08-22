@@ -1530,6 +1530,18 @@ Create `docs/4-builds/changelog/<today>-module-artifact-restore.md` (use the rea
   `libraryModules`. Mirrors the retired `promoteAssetsToPackPrefix`, which is
   why `library_packs/space/` was safe and a newly published module would not
   have been.
+- **Bug fix surfaced by the legacy QA pass** — custom-image symbols (upload /
+  image search / AI) were completely inert on the categories board: tapping one
+  produced no audio and did not add it to the talker, because a single
+  `if (!audioPath) return` skipped both. `materialiseSymbols` deliberately stores
+  no audio for them and `getProfileSymbolsWithImages` seeds a path only for
+  SymbolStix rows, so the runtime label-synthesis fallback they both rely on
+  simply did not exist. `PersistentTalker.playItem` had the same gap one layer
+  on (its fallback was phrase-only). Both now synthesise via `playTts` +
+  `resolveSpokenVoice` (ADR-018). Not `space`-specific — it affected every
+  custom-image symbol and went unnoticed only because the catalogue was 100%
+  SymbolStix until `space` was restored. **It would have broken all three
+  modules below.**
 - **Three custom-imagery modules**, the first non-SymbolStix content in the
   catalogue and the first exercise of all three image pipelines end to end:
   `weather` (image search, free), `jobs` (AI generated, pro), `my-home`
