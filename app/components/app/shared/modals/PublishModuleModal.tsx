@@ -6,7 +6,7 @@
 // auto-installed for new accounts and free to access.
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
@@ -79,9 +79,19 @@ export function PublishModuleModal({
   const slugValid = SLUG_RE.test(effectiveSlug);
   const tree = kind === "category" ? "categories" : kind;
 
+  // ADR-022 — the personal R2 keys this source points at. Promoted to the
+  // module-scoped prefix by the route below before the module row is written,
+  // so an admin uninstall can never delete a published module's assets.
+  const assetKeys = useQuery(
+    api.contentModules.publish.getPublishAssetKeys,
+    targetId ? { tree, sourceId: targetId } : "skip",
+  );
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!slugValid || saving) return;
+    // `assetKeys === undefined` = the query is still loading. Publishing then
+    // would silently skip promotion, so wait for it (ADR-022).
+    if (!slugValid || saving || assetKeys === undefined) return;
     setSaving(true);
     try {
       const trimmed = name.trim();
@@ -89,6 +99,37 @@ export function PublishModuleModal({
       const tier = isDefault ? "free" : classification;
       const nameArg =
         trimmed && trimmed !== defaultName ? { name: trimmed } : {};
+
+      // ADR-022 — copy personal assets to `library_modules/<tree>/<slug>/…`
+      // first, then publish with the resulting old→new key map so the module
+      // row points at the shared copies. A failure here aborts the publish:
+      // a module row written with unpromoted paths is the bug we're fixing.
+      let assetPathMap: Record<string, string> | undefined;
+      if (assetKeys && assetKeys.length > 0) {
+        const res = await fetch("/api/admin/promote-module-assets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tree, slug: effectiveSlug, keys: assetKeys }),
+        });
+        if (!res.ok) {
+          throw new Error(`Asset promotion failed (${res.status})`);
+        }
+        const { mapping, stats } = (await res.json()) as {
+          mapping: Record<string, string>;
+          stats: { copied: number; skipped: number; failed: number };
+        };
+        console.log("[publish] promoted assets", stats);
+        // A partial map would publish some assets still pointing at
+        // `accounts/…` — the exact failure ADR-022 exists to prevent. Fail
+        // loudly instead. (R2 simply being unconfigured reports all-skipped,
+        // no failures, and publishes with paths left in place.)
+        if (stats.failed > 0) {
+          throw new Error(`Asset promotion failed for ${stats.failed} asset(s)`);
+        }
+        assetPathMap = mapping;
+      }
+      const assetArg = assetPathMap ? { assetPathMap } : {};
+
       if (kind === "category") {
         await publishCategory({
           profileCategoryId: targetId as Id<"profileCategories">,
@@ -96,6 +137,7 @@ export function PublishModuleModal({
           tier,
           isDefault,
           ...nameArg,
+          ...assetArg,
         });
       } else {
         await publishFolder({
@@ -104,6 +146,7 @@ export function PublishModuleModal({
           tier,
           isDefault,
           ...nameArg,
+          ...assetArg,
         });
       }
       track("module_published", { slug: effectiveSlug, tree, tier: classification });
@@ -204,7 +247,7 @@ export function PublishModuleModal({
             </DialogClose>
             <button
               type="submit"
-              disabled={!slugValid || saving}
+              disabled={!slugValid || saving || assetKeys === undefined}
               className="px-4 py-2 rounded-theme-sm text-theme-s font-medium text-white transition-opacity disabled:opacity-50"
               style={{ background: "var(--theme-primary)" }}
             >

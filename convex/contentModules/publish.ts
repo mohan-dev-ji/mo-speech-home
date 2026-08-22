@@ -9,21 +9,163 @@
  * default `core` categories module is seeded separately (Task C). Only the
  * foldered trees — lists, sentences — have a folder to publish.
  *
- * R2 assets: list/sentence items reference personal R2 keys under
- * `accounts/<admin>/…` IN PLACE for V1 (no promotion to a module-scoped prefix).
- * If the authoring account were deleted, a published module's custom assets
- * would orphan — acceptable for the owner-authored default set; revisit (mirror
- * `promoteAssetsToPackPrefix`) if external contributors publish.
+ * R2 assets: personal keys under `accounts/<admin>/…` are PROMOTED at publish to
+ * `library_modules/<tree>/<slug>/<kind>/…` by `/api/admin/promote-module-assets`,
+ * which passes the resulting key map in as `assetPathMap` (ADR-022). Published
+ * modules therefore own their assets and survive an admin uninstall or account
+ * deletion. Non-personal keys (symbolstix, TTS cache, legacy library_packs) are
+ * passed through untouched.
  */
 
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { mutation } from "../_generated/server";
+import { mutation, query } from "../_generated/server";
 import { requireCallerIsAdmin } from "../lib/account";
+import { collectSourcePersonalKeys } from "../lib/personalAssetRefs";
 import { needsTranslation } from "../../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../../lib/languages/registry";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
+
+/** Promotion map arg shared by both publish mutations (ADR-022). */
+const ASSET_PATH_MAP = v.optional(v.record(v.string(), v.string()));
+
+/**
+ * Every personal R2 key the publish source points at, so the caller can copy
+ * them to the module-scoped prefix before publishing (ADR-022). Read-only —
+ * the copy itself happens in `/api/admin/promote-module-assets`, because a
+ * Convex mutation cannot perform R2 I/O.
+ */
+export const getPublishAssetKeys = query({
+  args: {
+    tree: v.union(
+      v.literal("categories"), v.literal("lists"),
+      v.literal("sentences"), v.literal("phrases"),
+    ),
+    sourceId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Same gate as the publish mutations — this returns raw R2 keys, so it must
+    // not be readable by anyone who can guess a document id.
+    await requireCallerIsAdmin(ctx);
+    return collectSourcePersonalKeys(ctx, args);
+  },
+});
+
+/** Rewrite one asset path through the promotion map (ADR-022). Unmapped paths —
+ * symbolstix, TTS cache, already-promoted keys — pass through untouched. */
+function promoted<T extends string | undefined>(
+  path: T,
+  map: Record<string, string> | undefined,
+): T {
+  if (!path || !map) return path;
+  return (map[path] ?? path) as T;
+}
+
+/**
+ * Rewrite the asset paths on one `profileLists` item. Field coverage mirrors
+ * `listKeys()` in `convex/lib/personalAssetRefs.ts` — every field that can hold
+ * a personal key must be rewritten, or the module keeps pointing at the
+ * admin's copy. `defaultAudioPath` is symbolstix-derived and never mapped; it
+ * is passed through the same helper for symmetry (a no-op).
+ */
+function promoteListItem<
+  T extends {
+    imagePath?: string;
+    audioPath?: string;
+    defaultAudioPath?: string;
+    generatedAudioPath?: string;
+    recordedAudioPath?: string;
+  },
+>(it: T, map: Record<string, string> | undefined): T {
+  return {
+    ...it,
+    ...(it.imagePath !== undefined ? { imagePath: promoted(it.imagePath, map) } : {}),
+    ...(it.audioPath !== undefined ? { audioPath: promoted(it.audioPath, map) } : {}),
+    ...(it.defaultAudioPath !== undefined
+      ? { defaultAudioPath: promoted(it.defaultAudioPath, map) }
+      : {}),
+    ...(it.generatedAudioPath !== undefined
+      ? { generatedAudioPath: promoted(it.generatedAudioPath, map) }
+      : {}),
+    ...(it.recordedAudioPath !== undefined
+      ? { recordedAudioPath: promoted(it.recordedAudioPath, map) }
+      : {}),
+  };
+}
+
+/** Rewrite a sentence slot / composition word's `imagePath` (+ `audioPath`
+ * where the shape carries one). Mirrors `sentenceKeys()` / `phraseKeys()`. */
+function promoteWordLike<T extends { imagePath?: string; audioPath?: string }>(
+  w: T,
+  map: Record<string, string> | undefined,
+): T {
+  return {
+    ...w,
+    ...(w.imagePath !== undefined ? { imagePath: promoted(w.imagePath, map) } : {}),
+    ...(w.audioPath !== undefined ? { audioPath: promoted(w.audioPath, map) } : {}),
+  };
+}
+
+/**
+ * Rewrite a composition unit (ADR-015). A `word` unit is word-shaped; a
+ * `phrase` unit carries its own clip plus a snapshot of its words, each of
+ * which can hold a personal image. Mirrors the `units[]` walk in
+ * `sentenceKeys()`.
+ */
+function promoteUnit<
+  T extends {
+    imagePath?: string;
+    audioPath?: string;
+    recordedAudioPath?: string;
+    words?: Array<{ imagePath?: string; audioPath?: string }>;
+  },
+>(u: T, map: Record<string, string> | undefined): T {
+  return {
+    ...promoteWordLike(u, map),
+    ...(u.recordedAudioPath !== undefined
+      ? { recordedAudioPath: promoted(u.recordedAudioPath, map) }
+      : {}),
+    ...(u.words !== undefined
+      ? { words: u.words.map((w) => promoteWordLike(w, map)) }
+      : {}),
+  };
+}
+
+/**
+ * Rewrite a per-symbol audio override. `symbolKeys()` treats BOTH `path` and
+ * `alternates.recorded` as personal, so both are rewritten here — a `tts`-typed
+ * entry can still carry a personal recording in `alternates`, and publish emits
+ * the whole entry. `alternates.default` / `.generated` are shared paths that
+ * never land in the map; passing them through the same helper is a no-op.
+ */
+function promoteAudioSource<
+  T extends {
+    path: string;
+    alternates?: { default?: string; generated?: string; recorded?: string };
+  },
+>(a: T, map: Record<string, string> | undefined): T {
+  return {
+    ...a,
+    path: promoted(a.path, map),
+    ...(a.alternates !== undefined
+      ? {
+          alternates: {
+            ...a.alternates,
+            ...(a.alternates.default !== undefined
+              ? { default: promoted(a.alternates.default, map) }
+              : {}),
+            ...(a.alternates.generated !== undefined
+              ? { generated: promoted(a.alternates.generated, map) }
+              : {}),
+            ...(a.alternates.recorded !== undefined
+              ? { recorded: promoted(a.alternates.recorded, map) }
+              : {}),
+          },
+        }
+      : {}),
+  };
+}
 
 /**
  * A NON-source variant sibling whose primary localised field lacks its own
@@ -56,8 +198,15 @@ export const publishFolderAsModule = mutation({
     // Optional English name override; defaults to the folder's name (all locales
     // preserved, English swapped in when provided).
     name: v.optional(v.string()),
+    // ADR-022 — old→new R2 key map from `/api/admin/promote-module-assets`.
+    // Absent means "publish without promotion" (R2 unconfigured, or nothing
+    // personal to promote); paths then pass through unchanged.
+    assetPathMap: ASSET_PATH_MAP,
   },
-  handler: async (ctx, { folderId, slug, tier, isDefault, name }) => {
+  handler: async (
+    ctx,
+    { folderId, slug, tier, isDefault, name, assetPathMap },
+  ) => {
     const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
 
     const folder = await ctx.db.get(folderId);
@@ -87,7 +236,9 @@ export const publishFolderAsModule = mutation({
       items = lists.map((l, i) => ({
         name: l.name,
         order: i,
-        items: [...l.items].sort((a, b) => a.order - b.order),
+        items: [...l.items]
+          .sort((a, b) => a.order - b.order)
+          .map((it) => promoteListItem(it, assetPathMap)),
         ...(l.displayFormat !== undefined ? { displayFormat: l.displayFormat } : {}),
         ...(l.showNumbers !== undefined ? { showNumbers: l.showNumbers } : {}),
         ...(l.showChecklist !== undefined ? { showChecklist: l.showChecklist } : {}),
@@ -105,14 +256,20 @@ export const publishFolderAsModule = mutation({
         name: s.name,
         order: i,
         ...(s.text !== undefined ? { text: s.text } : {}),
-        slots: [...s.slots].sort((a, b) => a.order - b.order),
-        ...(s.audioPath !== undefined ? { audioPath: s.audioPath } : {}),
+        slots: [...s.slots]
+          .sort((a, b) => a.order - b.order)
+          .map((slot) => promoteWordLike(slot, assetPathMap)),
+        ...(s.audioPath !== undefined
+          ? { audioPath: promoted(s.audioPath, assetPathMap) }
+          : {}),
         ...(s.recordedAudioPath !== undefined
-          ? { recordedAudioPath: s.recordedAudioPath }
+          ? { recordedAudioPath: promoted(s.recordedAudioPath, assetPathMap) }
           : {}),
         ...(s.authoredLanguage ? { authoredLanguage: s.authoredLanguage } : {}),
         ...(s.variantGroupId ? { variantGroupKey: s.variantGroupId } : {}),
-        ...(s.units ? { units: s.units } : {}),
+        ...(s.units
+          ? { units: s.units.map((u) => promoteUnit(u, assetPathMap)) }
+          : {}),
         ...(s.playback ? { playback: s.playback } : {}),
       }));
     } else {
@@ -129,9 +286,11 @@ export const publishFolderAsModule = mutation({
       items = phrases.map((p, i) => ({
         name: p.name,
         order: i,
-        ...(p.audioPath !== undefined ? { audioPath: p.audioPath } : {}),
+        ...(p.audioPath !== undefined
+          ? { audioPath: promoted(p.audioPath, assetPathMap) }
+          : {}),
         ...(p.recordedAudioPath !== undefined
-          ? { recordedAudioPath: p.recordedAudioPath }
+          ? { recordedAudioPath: promoted(p.recordedAudioPath, assetPathMap) }
           : {}),
         ...(p.authoredLanguage ? { authoredLanguage: p.authoredLanguage } : {}),
         ...(p.variantGroupId ? { variantGroupKey: p.variantGroupId } : {}),
@@ -139,7 +298,9 @@ export const publishFolderAsModule = mutation({
           .sort((a, b) => a.order - b.order)
           .map((w) => ({
             order: w.order,
-            ...(w.imagePath !== undefined ? { imagePath: w.imagePath } : {}),
+            ...(w.imagePath !== undefined
+              ? { imagePath: promoted(w.imagePath, assetPathMap) }
+              : {}),
             ...(w.label !== undefined ? { label: w.label } : {}),
             ...(w.displayProps !== undefined
               ? { displayProps: w.displayProps }
@@ -175,7 +336,9 @@ export const publishFolderAsModule = mutation({
         name: moduleName,
         ...(folder.icon ? { icon: folder.icon } : {}),
         ...(folder.colour ? { colour: folder.colour } : {}),
-        ...(folder.imagePath ? { coverImagePath: folder.imagePath } : {}),
+        ...(folder.imagePath
+          ? { coverImagePath: promoted(folder.imagePath, assetPathMap) }
+          : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
         // Log the admin's folder position so default seeds mirror it.
@@ -194,7 +357,9 @@ export const publishFolderAsModule = mutation({
         name: moduleName,
         ...(folder.icon ? { icon: folder.icon } : {}),
         ...(folder.colour ? { colour: folder.colour } : {}),
-        ...(folder.imagePath ? { coverImagePath: folder.imagePath } : {}),
+        ...(folder.imagePath
+          ? { coverImagePath: promoted(folder.imagePath, assetPathMap) }
+          : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
         // Log the admin's folder position so default seeds mirror it.
@@ -227,8 +392,8 @@ export const publishFolderAsModule = mutation({
  * publish — this serialises one `profileCategories` row + its symbols into a
  * one-category `CategoryModule`. Symbol serialisation mirrors
  * `resourcePacks.getPackContentForPublish` (symbolstix → `symbolId`; custom →
- * `imagePath` + attribution/recorded audio; placeholders dropped). R2 assets
- * referenced in place (see the folder mutation's note).
+ * `imagePath` + attribution/recorded audio; placeholders dropped). R2 assets are
+ * promoted to the module-scoped prefix (see the folder mutation's note, ADR-022).
  */
 export const publishCategoryAsModule = mutation({
   args: {
@@ -237,8 +402,13 @@ export const publishCategoryAsModule = mutation({
     tier: TIER,
     isDefault: v.optional(v.boolean()),
     name: v.optional(v.string()),
+    // ADR-022 — see `publishFolderAsModule`.
+    assetPathMap: ASSET_PATH_MAP,
   },
-  handler: async (ctx, { profileCategoryId, slug, tier, isDefault, name }) => {
+  handler: async (
+    ctx,
+    { profileCategoryId, slug, tier, isDefault, name, assetPathMap },
+  ) => {
     const { accountId, clerkUserId } = await requireCallerIsAdmin(ctx);
 
     const cat = await ctx.db.get(profileCategoryId);
@@ -286,7 +456,11 @@ export const publishCategoryAsModule = mutation({
               >
             | undefined) ?? {};
         const shareableAudio = Object.fromEntries(
-          Object.entries(audioMap).filter(([, a]) => a?.type === "tts")
+          Object.entries(audioMap)
+            .filter(([, a]) => a?.type === "tts")
+            // A `tts` entry can still carry a personal recording in
+            // `alternates.recorded` — promote it too (ADR-022).
+            .map(([k, a]) => [k, promoteAudioSource(a, assetPathMap)])
         );
         return {
           ...base,
@@ -308,19 +482,23 @@ export const publishCategoryAsModule = mutation({
             >
           | undefined) ?? {};
       const englishAudio = audioRec.en;
-      const recordedAudioPath =
+      const recordedAudioPath = promoted(
         englishAudio?.type === "recorded"
           ? englishAudio.path
-          : englishAudio?.alternates?.recorded;
+          : englishAudio?.alternates?.recorded,
+        assetPathMap,
+      );
       return {
         ...base,
         imageSourceType,
-        imagePath:
+        imagePath: promoted(
           s.imageSource.type === "imageSearch" ||
-          s.imageSource.type === "aiGenerated" ||
-          s.imageSource.type === "userUpload"
+            s.imageSource.type === "aiGenerated" ||
+            s.imageSource.type === "userUpload"
             ? s.imageSource.imagePath
             : "",
+          assetPathMap,
+        ),
         label: s.label,
         ...(s.imageSource.type === "imageSearch"
           ? {
@@ -348,7 +526,9 @@ export const publishCategoryAsModule = mutation({
         name: cat.name,
         icon: cat.icon,
         colour: cat.colour,
-        ...(cat.imagePath ? { imagePath: cat.imagePath } : {}),
+        ...(cat.imagePath
+          ? { imagePath: promoted(cat.imagePath, assetPathMap) }
+          : {}),
         symbols,
       },
     ];
@@ -376,7 +556,9 @@ export const publishCategoryAsModule = mutation({
         ...(cat.surface ? { surface: cat.surface } : {}),
         ...(cat.icon ? { icon: cat.icon } : {}),
         ...(cat.colour ? { colour: cat.colour } : {}),
-        ...(cat.imagePath ? { coverImagePath: cat.imagePath } : {}),
+        ...(cat.imagePath
+          ? { coverImagePath: promoted(cat.imagePath, assetPathMap) }
+          : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
         // Log the admin's category-page position so default seeds mirror it.
@@ -396,7 +578,9 @@ export const publishCategoryAsModule = mutation({
         name: moduleName,
         ...(cat.icon ? { icon: cat.icon } : {}),
         ...(cat.colour ? { colour: cat.colour } : {}),
-        ...(cat.imagePath ? { coverImagePath: cat.imagePath } : {}),
+        ...(cat.imagePath
+          ? { coverImagePath: promoted(cat.imagePath, assetPathMap) }
+          : {}),
         defaultTier: resolvedTier,
         isDefault: effectiveDefault,
         // Log the admin's category-page position so default seeds mirror it.

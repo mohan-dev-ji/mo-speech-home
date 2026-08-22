@@ -223,3 +223,61 @@ export async function countRowsReferencingKeys(
 
   return count;
 }
+
+/**
+ * Every personal (`accounts/` | `profiles/`) R2 key referenced by ONE publish
+ * source — the inverse of `collectReferencedPersonalKeys`, which returns the
+ * keys that SURVIVE a delete. Publish promotion needs the forward direction:
+ * "what does this thing point at, so I can copy it somewhere durable."
+ *
+ * `tree: "categories"` addresses a single `profileCategories` row plus its
+ * symbols; the foldered trees address a `profileFolders` row plus its children.
+ * Reuses the same per-table extractors, so field coverage can never drift from
+ * the delete path (ADR-022).
+ */
+export async function collectSourcePersonalKeys(
+  ctx: QueryCtx,
+  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+): Promise<string[]> {
+  const out: string[] = [];
+
+  if (args.tree === "categories") {
+    const cat = await ctx.db.get(args.sourceId as Id<"profileCategories">);
+    if (!cat) return [];
+    for (const k of categoryKeys(cat)) out.push(k);
+    const symbols = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id", (q) =>
+        q.eq("profileCategoryId", cat._id)
+      )
+      .collect();
+    for (const s of symbols) for (const k of symbolKeys(s)) out.push(k);
+    return [...new Set(out)];
+  }
+
+  const folder = await ctx.db.get(args.sourceId as Id<"profileFolders">);
+  if (!folder) return [];
+  for (const k of folderKeys(folder)) out.push(k);
+
+  if (args.tree === "lists") {
+    const rows = await ctx.db
+      .query("profileLists")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    for (const r of rows) for (const k of listKeys(r)) out.push(k);
+  } else if (args.tree === "sentences") {
+    const rows = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    for (const r of rows) for (const k of sentenceKeys(r)) out.push(k);
+  } else {
+    const rows = await ctx.db
+      .query("profilePhrases")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    for (const r of rows) for (const k of phraseKeys(r)) out.push(k);
+  }
+
+  return [...new Set(out)];
+}
