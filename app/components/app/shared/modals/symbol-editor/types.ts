@@ -25,6 +25,11 @@ export type Draft = {
   imageAttribution?: string;
   imageLicense?: string;
   imageProvider?: string;
+  // AI Generate — the prompt that produced the current image. Persists onto
+  // profileSymbols.imageSource (type 'aiGenerated') so the symbol can be
+  // regenerated/restyled later. Draft-only otherwise; cleared by the other
+  // image tabs so a stale prompt can't attach to a non-AI image.
+  aiPrompt?: string;
   // Labels. `labelEng` is the English master (also drives SymbolStix/AI/image
   // search + validation). `labelLoc` holds every NON-English localised label
   // (hi, es, pa, …), keyed by ISO code — edited via the dynamic per-language

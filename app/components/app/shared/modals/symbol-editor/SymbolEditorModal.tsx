@@ -392,6 +392,10 @@ export function SymbolEditorModal({
         ps.imageSource.type === 'imageSearch'
           ? (ps.imageSource as { license?: string }).license
           : undefined,
+      aiPrompt:
+        ps.imageSource.type === 'aiGenerated'
+          ? (ps.imageSource as { aiPrompt?: string }).aiPrompt
+          : undefined,
       labelEng: ps.label.en ?? '',
       // All non-English localised labels, keyed by ISO code (Phase 15).
       labelLoc: { ...ps.label },
@@ -771,7 +775,7 @@ export function SymbolEditorModal({
               license: draft.imageLicense,
             }
           : draft.imageSourceTab === 'ai-generate'
-          ? { type: 'aiGenerated', imagePath: resolvedImagePath! }
+          ? { type: 'aiGenerated', imagePath: resolvedImagePath!, ...(draft.aiPrompt ? { aiPrompt: draft.aiPrompt } : {}) }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
       // 4. Resolve THIS language's audio override per the selected mode

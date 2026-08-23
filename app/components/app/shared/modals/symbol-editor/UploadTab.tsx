@@ -39,7 +39,7 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
         if (!blob) return;
         const preview = URL.createObjectURL(blob);
         onImageSelected(blob, preview);
-        patch({ imageSourceTab: 'upload', resolvedImagePath: undefined });
+        patch({ imageSourceTab: 'upload', resolvedImagePath: undefined, aiPrompt: undefined });
       }, 'image/webp', 0.85);
     };
 
