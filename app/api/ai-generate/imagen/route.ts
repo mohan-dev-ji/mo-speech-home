@@ -14,7 +14,27 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const FEATURE = "aiImageGenerate";
-const DAILY_LIMIT = 10;
+/**
+ * Per-user daily generation cap. Defaults to 10; override with
+ * `AI_IMAGE_DAILY_LIMIT` for admin authoring sessions, where a single content
+ * module is 12 symbols and so cannot be authored in a day at the default.
+ *
+ * Parsed defensively: a malformed value must not become NaN, because the
+ * quota check is `current >= limit` and `x >= NaN` is always false — a typo
+ * would silently grant unlimited generations rather than failing closed.
+ */
+const DAILY_LIMIT = (() => {
+  const raw = process.env.AI_IMAGE_DAILY_LIMIT;
+  if (!raw) return 10;
+  const n = Number(raw);
+  if (!Number.isSafeInteger(n) || n < 1) {
+    console.warn(
+      `[ai-generate] ignoring invalid AI_IMAGE_DAILY_LIMIT=${raw}; using 10`
+    );
+    return 10;
+  }
+  return n;
+})();
 const MAX_PROMPT_LENGTH = 500;
 
 // Google retired the Imagen publisher models from Vertex (confirmed 2026-08:
