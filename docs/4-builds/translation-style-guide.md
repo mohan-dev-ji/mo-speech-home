@@ -94,6 +94,7 @@ Other Spanish rules:
   **Two constraints on it:**
   1. **No native word, no invention.** Piano, keyboard, violin, ukulele, xylophone, maracas and guitar are Western imports with no Hindi equivalent — पियानो, कीबोर्ड, वायलिन, युकुलेले, जाइलोफोन, मराकास, गिटार are the honest answer, not a failure.
   2. **The label must match the picture.** ढोल and डफली name *specific* South Asian instruments (a barrel drum and a frame drum), not generic categories. If the image is a Western drum kit, ढोल is a worse answer than ड्रम. Pick the image to fit the native term, or drop to the loanword — never let the board say one thing and show another.
+  3. **Native-first never overrides safety.** The most literal native word is sometimes socially loaded in a way its English source is not. **witch → जादूगरनी, never डायन or चुड़ैल**: *daayan* carries real stigma — witch-hunting is a live social problem in parts of India — and the English "witch" carries none of that weight in a children's story. Where a literal term is loaded, take the neutral native alternative; only fall back to a loanword if no neutral native word exists. When unsure, ask a speaker rather than a dictionary.
 
 ## 5. Punjabi (pa)
 
@@ -108,6 +109,8 @@ The pipeline has **no glossary mechanism** — every item is translated in isola
 ### Spanish
 
 > **Trap:** *recorder* is **flauta dulce**, never bare *flauta* — that is a flute, and a module carrying both makes them indistinguishable.
+>
+> The `storybook` module (dragón, castillo, mago, hada, unicornio, gigante, sirena, bruja, caballero, tesoro, monstruo, varita mágica) needed no adjudication — every term is unambiguous Spanish. Recorded so nobody re-litigates it. Note *bruja* carries none of the stigma its Hindi counterpart does; the §4 sensitive-term rule is Hindi-specific here.
 
 | English | Spanish | Notes |
 |---|---|---|
@@ -143,6 +146,17 @@ The pipeline has **no glossary mechanism** — every item is translated in isola
 | drums | ढोल | **locked** — native barrel drum. Only if the image is a hand drum; a Western kit takes ड्रम |
 | recorder | सीधी बांसुरी | **locked** — literally "straight flute". Avoid रिकॉर्डर, which also means a recording device |
 | guitar / piano / keyboard / violin / ukulele / xylophone / maracas | गिटार / पियानो / कीबोर्ड / वायलिन / युकुलेले / जाइलोफोन / मराकास | transliteration — no native term exists (§4 constraint 1) |
+| castle | महल | **locked** — महल (palace) over किला (fort): storybook castles are turrets-and-flags palaces. Pick by the image (§4 constraint 2) |
+| wizard | जादूगर | **locked** — native |
+| fairy | परी | **locked** — native, and deeply rooted (परी कथा = fairy tale) |
+| mermaid | जलपरी | **locked** — native, literally "water fairy"; pairs with परी |
+| witch | जादूगरनी | **locked** — see the sensitive-term note in §4. **Do NOT use डायन or चुड़ैल.** जादूगरनी ("female magician") pairs with जादूगर |
+| giant | दैत्य | **locked** — native, but leans "demon-giant". If the image is a gentle friendly giant, that is a §4 constraint-2 mismatch — check before shipping |
+| monster | राक्षस | **locked** — native. Kept distinct from giant (दैत्य); the two are adjacent mythological demon-words, so check they don't read as duplicates on one board |
+| knight | शूरवीर | **locked** — native ("brave warrior"). Not literally a European feudal knight; accepted as the closest native register |
+| treasure | खजाना | **locked** — native |
+| magic wand | जादू की छड़ी | **locked** — native, literally "magic stick" |
+| dragon / unicorn | ड्रैगन / यूनिकॉर्न | transliteration — no native term exists (§4 constraint 1) |
 
 ---
 
@@ -208,3 +222,4 @@ Keep the existing rules (placeholders, native script, proper nouns, same-keys) �
 - **2026-08-09** — Hindi glossary: locked *morning routine* → सुबह की रूटीन and *bedtime routine* → सोने की रूटीन (both keep the locked रूटीन loanword).
 - **2026-08-23** — **native-first locked for custom-imagery symbol labels** (§4): use a genuine Hindi word where one exists for the object (बांसुरी, तुरही, डफली, सीधी बांसुरी), transliterate only where the instrument is a Western import with no equivalent. Bounded by two constraints — never invent a native term, and never let a specific native term (ढोल, डफली) contradict the picture. Owner's rationale: native terminology is what makes a Hindi board a different board, and bilingual families can stay on EN if they prefer. Applies to `instruments`, `storybook` and `clothes` (phase-29 Task 8).
 - **2026-08-23** — **pipeline gap recorded**: `translate-modules` explicitly skips symbol labels because SymbolStix symbols resolve them from the global `symbols` table (ADR-014 §4). **Custom-image symbols have no `symbols` row**, so their labels are covered by neither pipeline and must be hand-authored per language. **Not yet ticketed** — every custom-imagery module needs manual ES/HI label entry until `translate-modules` is extended to cover `items[].symbols[].label` where `imageSourceType !== "symbolstix"`.
+- **2026-08-23 (later)** — **storybook glossary locked** (§6 Hindi): 10 of 12 terms take genuine native Hindi (महल, जादूगर, परी, जलपरी, जादूगरनी, दैत्य, राक्षस, शूरवीर, खजाना, जादू की छड़ी); only *dragon* and *unicorn* transliterate. Added **§4 constraint 3 — native-first never overrides safety**, prompted by *witch*: डायन is the literal term but carries real stigma (witch-hunting is a live social problem in parts of India), so जादूगरनी is locked instead. Spanish needed no adjudication and is recorded as settled.
