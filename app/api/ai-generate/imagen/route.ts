@@ -10,21 +10,33 @@ import { STYLE_PRESETS, isStyleId, type StyleId } from "@/lib/ai-style-prompts";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 
 export const dynamic = "force-dynamic";
-// Imagen calls take ~5–10s; bump from the default 10s.
+// Gemini image generation calls take ~5–10s; bump from the default 10s.
 export const maxDuration = 60;
 
 const FEATURE = "aiImageGenerate";
 const DAILY_LIMIT = 10;
 const MAX_PROMPT_LENGTH = 500;
 
-// ─── Imagen 4 Fast (Vertex AI REST) ──────────────────────────────────────────
+// Google retired the Imagen publisher models from Vertex (confirmed 2026-08:
+// zero `^imagen` models under publishers/google/models across us-central1,
+// europe-west1/2/4, and global). Image generation now lives in the Gemini
+// image family. This constant is the swap point for the next retirement —
+// change the model id here; the request/response shape below is Gemini's
+// :generateContent contract and will need to move too if a future model
+// changes it.
+const IMAGE_MODEL = "gemini-2.5-flash-image";
+
+// ─── Gemini image generation (Vertex AI REST) ────────────────────────────────
 
 async function generateImage(wrappedPrompt: string): Promise<Buffer> {
   const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!credJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not set");
   const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
   if (!projectId) throw new Error("GOOGLE_CLOUD_PROJECT_ID not set");
-  // Imagen 4 Fast is us-central1-only at time of writing (verified 2026-04-28).
+  // gemini-2.5-flash-image is not available on the `global` endpoint at time
+  // of writing (verified 2026-08) — must stay pinned to us-central1. Do NOT
+  // use GEMINI_TRANSLATION_LOCATION (europe-west4) here; that's a separate
+  // region for the text translation pipeline in lib/llm/vertex.ts.
   const location = process.env.GOOGLE_CLOUD_LOCATION ?? "us-central1";
 
   const googleAuth = new GoogleAuth({
@@ -36,7 +48,7 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
 
   const url =
     `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}` +
-    `/locations/${location}/publishers/google/models/imagen-4.0-fast-generate-001:predict`;
+    `/locations/${location}/publishers/google/models/${IMAGE_MODEL}:generateContent`;
 
   const res = await fetch(url, {
     method: "POST",
@@ -45,32 +57,36 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      instances: [{ prompt: wrappedPrompt }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: "1:1",
-      },
+      contents: [{ role: "user", parts: [{ text: wrappedPrompt }] }],
+      generationConfig: { imageConfig: { aspectRatio: "1:1" } },
     }),
   });
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Imagen API error ${res.status}: ${err}`);
+    throw new Error(`${IMAGE_MODEL} API error ${res.status}: ${err}`);
   }
 
   const json = (await res.json()) as {
-    predictions?: Array<{ bytesBase64Encoded?: string }>;
+    candidates?: Array<{
+      content?: { parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }> };
+    }>;
   };
-  const b64 = json.predictions?.[0]?.bytesBase64Encoded;
+  // The image part is not guaranteed to be first — a text part (e.g. a
+  // caption or refusal) can precede it, so scan for inlineData rather than
+  // indexing [0].
+  const parts = json.candidates?.[0]?.content?.parts ?? [];
+  const imagePart = parts.find((p) => p.inlineData?.data);
+  const b64 = imagePart?.inlineData?.data;
   if (!b64) {
-    throw new Error("Imagen response missing bytesBase64Encoded");
+    throw new Error(`${IMAGE_MODEL} response missing inlineData image part`);
   }
   return Buffer.from(b64, "base64");
 }
 
-function hashPromptStyle(style: StyleId, prompt: string): string {
+function hashPromptStyleModel(style: StyleId, prompt: string): string {
   return createHash("sha256")
-    .update(`${style}|${prompt.toLowerCase().trim()}`)
+    .update(`${IMAGE_MODEL}|${style}|${prompt.toLowerCase().trim()}`)
     .digest("hex");
 }
 
@@ -81,7 +97,7 @@ function hashPromptStyle(style: StyleId, prompt: string): string {
  * Body: { prompt: string, style: StyleId }
  *
  * Pipeline: auth → Max-tier check → cache lookup (free) → quota increment
- * (only on miss) → Imagen call → R2 upload → cache write → return.
+ * (only on miss) → Gemini image call → R2 upload → cache write → return.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {
@@ -135,7 +151,7 @@ export async function POST(request: Request) {
   }
 
   // ── Cache lookup (free; doesn't decrement quota) ─────────────────────────
-  const hash = hashPromptStyle(style, rawPrompt);
+  const hash = hashPromptStyleModel(style, rawPrompt);
   const cached = await convex.query(api.imageCache.lookupAi, { hash });
   if (cached) {
     await convex.mutation(api.imageCache.recordAiHit, { hash });
@@ -160,7 +176,7 @@ export async function POST(request: Request) {
     });
   }
 
-  // ── Quota check + increment (only counts a live Imagen call) ─────────────
+  // ── Quota check + increment (only counts a live Gemini image call) ───────
   let remaining: number;
   try {
     const incr = await convex.mutation(api.featureQuota.checkAndIncrement, {
@@ -184,7 +200,7 @@ export async function POST(request: Request) {
   try {
     pngBuffer = await generateImage(wrappedPrompt);
   } catch (err) {
-    console.error("[ai-generate] Imagen error", err);
+    console.error("[ai-generate] Gemini image generation error", err);
     return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 
