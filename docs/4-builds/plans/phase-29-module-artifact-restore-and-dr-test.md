@@ -1320,7 +1320,11 @@ Check as you go, and note anything that misbehaves rather than working around it
 
 Create category **Storybook**, populating 12–20 symbols via `app/api/ai-generate/imagen`. Labels: dragon, castle, wizard, fairy, unicorn, giant, mermaid, witch, knight, treasure, monster, magic wand.
 
-Keep the generation prompts stylistically consistent (same illustration style across all twelve) so the set reads as one module rather than twelve unrelated pictures. Record the style wording you use — `aiPrompt` persistence is verified below, and a consistent prefix makes regeneration reproducible.
+**Use a ONE-WORD prompt and the built-in `storybook` style preset.** Do not write style wording into the prompt — `lib/ai-style-prompts.ts` already wraps it as *"a friendly children's storybook illustration of {prompt}, single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text"*. Adding your own style words doubles up and fights the template. The preset **is** the consistency mechanism; there is no prefix to record.
+
+Two further reasons short wins: `AiGenerateTab.tsx:111` sets `labelEng` to the prompt, so a long prompt becomes a long label; and the `aiImageCache` key is `sha256(style|prompt)` shared across **all** Max users, so a common one-word prompt may return instantly without an Imagen call.
+
+Add words only to disambiguate the *object*, never to style it — `treasure` → `treasure chest`, `giant` → `giant person`.
 
 Check:
 - Generation completes and the image persists.
