@@ -71,7 +71,7 @@ Re-measure at the start of execution; these are the numbers the plan was written
 
 `space` is safe because its assets sit under `library_packs/space/`, which matches neither personal prefix. That was **not** luck — see below. The three modules built in Task 8 would not be safe, which is why the fix lands before they are authored rather than after.
 
-**Every image pipeline writes to the personal namespace.** `SymbolEditorModal.tsx:623` is explicit: "upload, image-search proxy, and AI generate all land a blob here that needs to go to R2" — all three persist to `accounts/${accountId}/images/${uuid}` (lines 624, 653, 682, 741). `R2_PATHS.aiCache` (`ai-cache/<uuid>.png`, `lib/r2-paths.ts:48`) is only the *generation-side* cache; once a generated image is chosen it is re-uploaded into the account namespace. So `jobs` needs promotion exactly as much as `my-home` — there is no free pass for AI-generated content.
+**Every image pipeline writes to the personal namespace.** `SymbolEditorModal.tsx:623` is explicit: "upload, image-search proxy, and AI generate all land a blob here that needs to go to R2" — all three persist to `accounts/${accountId}/images/${uuid}` (lines 624, 653, 682, 741). `R2_PATHS.aiCache` (`ai-cache/<uuid>.png`, `lib/r2-paths.ts:48`) is only the *generation-side* cache; once a generated image is chosen it is re-uploaded into the account namespace. So `storybook` needs promotion exactly as much as `british-money` — there is no free pass for AI-generated content.
 
 #### This pipeline existed and was deliberately removed
 
@@ -93,9 +93,21 @@ Closes MOS-13's open "build 2–3 demo-tier category modules to test the Publish
 
 | Slug | Name | Pipeline | Route | Tier |
 |---|---|---|---|---|
-| `weather` | Weather | image search | `app/api/image-search/search` | free |
-| `jobs` | Jobs | AI generation | `app/api/ai-generate/imagen` | pro |
-| `my-home` | My home | upload | `app/api/upload-asset` | max |
+| `clothes` | Clothes | image search | `app/api/image-search/search` | free |
+| `storybook` | Storybook | AI generation | `app/api/ai-generate/imagen` | pro |
+| `british-money` | British money | upload | `app/api/upload-asset` | max |
+
+**Topics chosen against measured coverage, 2026-08-23.** The first set (`weather` / `jobs` / `my-home`) was dropped: probing all **1,099** symbols in the catalogue showed `weather` duplicated 10 of 12 labels already in `nature`, and `my-home` 9 of 12 already in `home`. The replacements overlap nothing:
+
+| Probe | Coverage before | |
+|---|---|---|
+| clothing (shirt, shoes, socks, coat, "get dressed", …) | **0 / 11** | complete gap — and dressing is a daily routine |
+| storybook / fantasy (dragon, castle, wizard, fairy, …) | 1 / 11 (only "book") | near-total gap |
+| money denominations (1p … £20, purse) | 4 / 10 (money, coin, pay, shop) | no denominations at all |
+
+Each topic also matches what its pipeline is actually good at: photographs beat glyphs for specific garments; dragons and castles **cannot** be photographed and have no glyphs, so AI generation is the only option rather than a gimmick; and currency is something you photograph rather than search, because you want consistent, flat, unambiguous images.
+
+**Catalogue policy decided with this choice — the upload tier carries shareable content, not personal content.** Published modules land in a library other families install from, so photos of one family's kitchen do not belong there. Upload is for *admin-photographed content useful to everyone* (currency, road signs, Makaton handshapes, local landmarks). Genuinely personal photo sets stay unpublished in each family's own account, which the install-and-edit flow already supports. This is why `my-home` was not simply retitled.
 
 MOS-10 (core-words EN fallback), previously flagged on MOS-13 as blocking the marketing recordings, was **cancelled** on 2026-07-28 — not a blocker.
 
@@ -126,7 +138,7 @@ MOS-10 (core-words EN fallback), previously flagged on MOS-13 as blocking the ma
 | `convex/contentModules/publish.ts` | Modify | Both publish mutations accept an optional `assetPathMap` and rewrite emitted asset paths through it. |
 | `app/api/admin/promote-module-assets/route.ts` | Create | Clerk-admin-gated R2 copy step: `accounts/…` → `library_modules/<tree>/<slug>/<kind>/…`, returns the key mapping. Convex mutations cannot do R2 I/O, so this sits between the modal and the mutation. |
 | `app/components/app/shared/modals/PublishModuleModal.tsx` | Modify | Collect keys → POST the promote route → pass `assetPathMap` into the publish mutation. |
-| `convex/data/categories/{weather,jobs,my-home}.json` | Created by exporter | The three new custom-imagery modules, once authored and published. |
+| `convex/data/categories/{clothes,storybook,british-money}.json` | Created by exporter | The three new custom-imagery modules, once authored and published. |
 | `convex/data/*/_index.ts` (4) | Regenerated | Barrels follow the JSON on disk. |
 | `docs/4-builds/changelog/2026-MM-DD-module-artifact-restore.md` | Create | Ship record for MOS-13 + MOS-25. |
 
@@ -1276,13 +1288,13 @@ ADR-022. Refs MOS-25"
 
 Closes MOS-13's open "build 2–3 demo-tier category modules to test the Publish button". One module per image pipeline, one per tier. The point is as much the *verification* as the content: these are the first end-to-end exercises of image search, AI generation, and upload through authoring → publish → export → seed → install.
 
-**Files:** none by hand — authored in the app; `convex/data/categories/{weather,jobs,my-home}.json` appear via the exporter in Step 8.
+**Files:** none by hand — authored in the app; `convex/data/categories/{clothes,storybook,british-money}.json` appear via the exporter in Step 8.
 
 **Interfaces:**
 - Consumes: Task 7's promotion (every asset these modules reference must land under `library_modules/`).
 - Produces: live `libraryModules` at 41 rows.
 
-**Before starting:** have the upload source photos ready on disk for `my-home` — rooms and household objects, 12–20 of them. Nothing else in this task blocks on external input.
+**Before starting:** have the upload source photos ready on disk for `british-money` — UK coins and notes, shot flat on a plain background, 12–20 of them. Nothing else in this task blocks on external input.
 
 - [ ] **Step 1: Snapshot**
 
@@ -1290,9 +1302,11 @@ Closes MOS-13's open "build 2–3 demo-tier category modules to test the Publish
 npx convex export --path "backups/$(date +%Y-%m-%d)-pre-custom-imagery.zip"
 ```
 
-- [ ] **Step 2: Build `weather` — image search, free tier**
+- [ ] **Step 2: Build `clothes` — image search, free tier**
 
-In the admin profile, create category **Weather** and populate 12–20 symbols via the image-search picker (`app/api/image-search/search`). Suggested labels: sunny, rainy, cloudy, windy, snowy, foggy, stormy, rainbow, hot, cold, thunder, ice.
+In the admin profile, create category **Clothes** and populate 12–20 symbols via the image-search picker (`app/api/image-search/search`). Labels: t-shirt, jumper, trousers, shorts, dress, socks, shoes, coat, hat, gloves, pyjamas, scarf.
+
+This fills the catalogue's single largest gap — 0 of 1,099 existing symbols cover clothing.
 
 Check as you go, and note anything that misbehaves rather than working around it silently:
 - The picker returns results and the chosen image persists after a page reload.
@@ -1300,9 +1314,11 @@ Check as you go, and note anything that misbehaves rather than working around it
 - Each symbol speaks. These are custom images with no SymbolStix default audio, so audio must come from TTS on the label — verify in `en`, `es`, and `hi`.
 - Tiles render at the right aspect and don't invert in dark mode.
 
-- [ ] **Step 3: Build `jobs` — AI generated, pro tier**
+- [ ] **Step 3: Build `storybook` — AI generated, pro tier**
 
-Create category **Jobs**, populating 12–20 symbols via `app/api/ai-generate/imagen`. Suggested labels: doctor, nurse, teacher, firefighter, police officer, chef, builder, farmer, driver, cleaner, shopkeeper, vet.
+Create category **Storybook**, populating 12–20 symbols via `app/api/ai-generate/imagen`. Labels: dragon, castle, wizard, fairy, unicorn, giant, mermaid, witch, knight, treasure, monster, magic wand.
+
+Keep the generation prompts stylistically consistent (same illustration style across all twelve) so the set reads as one module rather than twelve unrelated pictures. Record the style wording you use — `aiPrompt` persistence is verified below, and a consistent prefix makes regeneration reproducible.
 
 Check:
 - Generation completes and the image persists.
@@ -1310,9 +1326,11 @@ Check:
 - Generated images land in R2 and survive a reload.
 - Audio, locales, and dark mode as in Step 2.
 
-- [ ] **Step 4: Build `my-home` — uploads, max tier**
+- [ ] **Step 4: Build `british-money` — uploads, max tier**
 
-Create category **My home**, uploading 12–20 of your own photos via `app/api/upload-asset`. Suggested labels: kitchen, bedroom, bathroom, sofa, television, fridge, bed, table, door, window, stairs, garden.
+Create category **British money**, uploading 12–20 of your own photographs via `app/api/upload-asset`. Labels: 1p, 2p, 5p, 10p, 20p, 50p, £1, £2, £5 note, £10 note, £20 note, purse.
+
+Shoot each coin and note flat, face-up, on the same plain background at the same scale, so the set is visually consistent and a student can tell denominations apart at tile size. This is the one module where upload genuinely beats both search and generation: you control framing and consistency, and the images are unambiguously the real currency.
 
 Check:
 - Upload succeeds and enforces the `accounts/{userId}/(images|audio)/…` key pattern (`app/api/upload-asset/route.ts:59`).
@@ -1325,7 +1343,7 @@ Before publishing, write down every defect or rough edge from Steps 2–4 — th
 
 - [ ] **Step 6: Publish all three at their tiers**
 
-Publish via the Publish modal: `weather` → **free**, `jobs` → **pro**, `my-home` → **max**. None are `isDefault` — they must not auto-install into new accounts.
+Publish via the Publish modal: `clothes` → **free**, `storybook` → **pro**, `british-money` → **max**. None are `isDefault` — they must not auto-install into new accounts.
 
 Watch the console for `[publish] promoted assets { copied: N, … }` on each. `copied` should roughly equal that module's symbol count.
 
@@ -1336,7 +1354,7 @@ npx convex run contentModules/exportModules:dumpAllModules --no-push '{}' \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
       const m=JSON.parse(s);
       console.log("total:",m.length);
-      for(const slug of ["weather","jobs","my-home"]){
+      for(const slug of ["clothes","storybook","british-money"]){
         const r=m.find(x=>x.slug===slug);
         if(!r){console.log("  "+slug+": MISSING ❌");continue;}
         const paths=[r.coverImagePath,...r.items.flatMap(i=>[i.imagePath,...i.symbols.map(y=>y.imagePath)])].filter(Boolean);
@@ -1351,7 +1369,7 @@ npx convex run contentModules/exportModules:dumpAllModules --no-push '{}' \
     })'
 ```
 
-Expected: `total: 41`; `weather` free / `jobs` pro / `my-home` max; every module `personal-leaks=0 ✅`; `imageSourceType` mixes of `imageSearch`, `aiGenerated`, `upload` respectively; no `aiPrompt missing`.
+Expected: `total: 41`; `clothes` free / `storybook` pro / `british-money` max; every module `personal-leaks=0 ✅`; `imageSourceType` mixes of `imageSearch`, `aiGenerated`, `upload` respectively; no `aiPrompt missing`.
 
 **Any `personal-leaks` above zero means Task 7 missed a path** — find which field, wrap it in `promoted(...)`, re-publish that module, and re-run.
 
@@ -1368,7 +1386,7 @@ Expected: `✅ Exported 41 modules.` then `✅ 41 compared, … 0 module(s) with
 git add convex/data
 git commit -m "content(modules): three custom-imagery modules at three tiers
 
-weather (image search, free), jobs (AI generated, pro), my-home (upload, max) —
+clothes (image search, free), storybook (AI generated, pro), british-money (upload, max) —
 the first modules built from anything other than SymbolStix, and the first
 exercise of all three image pipelines through publish → export → seed → install.
 All assets promoted to library_modules/ per ADR-022; zero personal-prefix leaks.
@@ -1479,8 +1497,8 @@ Expected: `✅ installed content unchanged` (diff prints nothing). Any differenc
 
 - `http://localhost:3000/en/library/modules` — all 41 modules, correct tier badges, covers render, `space` renders its R2 photo cover.
 - Open the `space` module's detail page and confirm all 16 symbols render (the legacy imageSearch/aiGenerated proof).
-- Open `weather`, `jobs` and `my-home` and confirm every symbol renders from `library_modules/…` — the post-ADR-022 proof that promoted assets survive a full table wipe.
-- Confirm the tier gates still bite after the restore: `weather` free, `jobs` pro, `my-home` max, and none of the three auto-installed.
+- Open `clothes`, `storybook` and `british-money` and confirm every symbol renders from `library_modules/…` — the post-ADR-022 proof that promoted assets survive a full table wipe.
+- Confirm the tier gates still bite after the restore: `clothes` free, `storybook` pro, `british-money` max, and none of the three auto-installed.
 - Install one restored module into a student profile and confirm symbols render and speak.
 - Create a fresh account and confirm `seedDefaultAccount` installs the 30 defaults **in `defaultOrder`** (`actions`, `people`, `activities`, `places`, `animals`, … per `convex/profileCategories.ts:33`), and that the 11 non-default modules (6 legacy + 3 custom-imagery + `self-help` + `expressing-feelings`) are **not** installed. Order is the thing most likely to be lost — check it explicitly, don't just count.
 
@@ -1544,7 +1562,7 @@ Create `docs/4-builds/changelog/<today>-module-artifact-restore.md` (use the rea
   modules below.**
 - **Three custom-imagery modules**, the first non-SymbolStix content in the
   catalogue and the first exercise of all three image pipelines end to end:
-  `weather` (image search, free), `jobs` (AI generated, pro), `my-home`
+  `clothes` (image search, free), `storybook` (AI generated, pro), `british-money`
   (upload, max). Closes MOS-13's "build 2–3 demo-tier category modules to test
   the Publish button".
 
@@ -1596,7 +1614,7 @@ Closes MOS-13, MOS-25"
 
 MOS-25's description was rewritten on 2026-08-22 to cover this full scope and moved to *In Progress*. Tick its checklist and move it to Done.
 
-MOS-13: tick the remaining items — "Build 2–3 demo-tier category modules to test the Publish button" is satisfied by Task 8 (`weather`, `jobs`, `my-home`), and "Add cover images to the modules" should be confirmed against the exported artifact before ticking:
+MOS-13: tick the remaining items — "Build 2–3 demo-tier category modules to test the Publish button" is satisfied by Task 8 (`clothes`, `storybook`, `british-money`), and "Add cover images to the modules" should be confirmed against the exported artifact before ticking:
 
 ```bash
 node -e '
