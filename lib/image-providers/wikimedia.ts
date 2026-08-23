@@ -14,8 +14,12 @@ const WIKIMEDIA_API = "https://commons.wikimedia.org/w/api.php";
 const USER_AGENT =
   "mo-speech (https://mospeech.com; support@mospeech.com)";
 const PAGE_SIZE = 20;
-const THUMB_WIDTH = 320;
-const FULL_WIDTH = 640;
+/**
+ * Width we ASK the API for. Wikimedia decides what we actually get — see
+ * `iiurlwidth` handling below. 640 matches the save width Unsplash and Pixabay
+ * use, so stored symbol images are consistent across providers.
+ */
+const REQUEST_WIDTH = 640;
 
 type ApiPage = {
   pageid: number;
@@ -50,30 +54,32 @@ function readMeta(
 }
 
 /**
- * Pick the URL to use for the "full size" (save) version of a result.
+ * NEVER construct or rewrite a Wikimedia thumbnail URL (MOS-8).
  *
- * Wikimedia's thumbnail factory will downscale on demand but **won't
- * upscale** — requesting a 640px thumbnail of a 200px-wide original returns
- * 404. License-mark icons (titles like "Public Domain Mark", "CC0 1.0") are
- * a common case of small originals that crashed the click handler before
- * this guard existed.
+ * Wikimedia restricts thumbnail generation to a per-file allowlist of widths.
+ * Asking for one outside it returns **400 "Use thumbnail sizes listed on
+ * https://w.wiki/GHai"** — which is what this provider used to do: it took the
+ * API's valid `thumburl` and rewrote the `/<N>px-` token to a hard-coded 640,
+ * so every result whose file did not happen to permit 640 failed on select.
  *
- *  - Original width ≥ FULL_WIDTH → widen the thumb URL by swapping
- *    `/<N>px-` → `/<FULL_WIDTH>px-` at the URL tail.
- *  - Original width < FULL_WIDTH → return `info.url`, the raw original file
- *    URL (also on `upload.wikimedia.org`, so the proxy allowlist passes).
+ * The allowlist is not predictable from the outside. Measured on one file:
  *
- * The regex anchors to the URL tail — some Wikimedia filenames legitimately
- * contain a `<digits>px-` token (screenshots of width markers etc.) and we
- * don't want to rewrite those mid-path.
+ *   iiurlwidth=320 → URL says 330px   iiurlwidth=512 → URL says 960px
+ *   iiurlwidth=500 → URL says 500px   iiurlwidth=640 → URL says 960px
+ *
+ * `thumbwidth` in the response echoes what you ASKED for, so it does not
+ * predict the URL either. Only the returned `thumburl` is authoritative, and
+ * every returned `thumburl` fetches.
+ *
+ * The API also handles the no-upscale case itself: request a width above the
+ * original and it returns the original file URL (tagged `thumbnail_unscaled`),
+ * still on `upload.wikimedia.org` so the proxy allowlist passes. That makes the
+ * old "small original" guard redundant — small originals need no special case.
+ *
+ * So: pass the width we want as `iiurlwidth`, then use `thumburl` verbatim for
+ * both grid and save. One URL per result, as `pixabay.ts` already does with
+ * `webformatURL`, which also saves the selected image a second fetch.
  */
-function pickFullImageUrl(info: { url: string; thumburl?: string; width: number }): string {
-  if (!info.thumburl) return info.url;
-  if (info.width >= FULL_WIDTH) {
-    return info.thumburl.replace(/\/\d+px-([^/]+)$/, `/${FULL_WIDTH}px-$1`);
-  }
-  return info.url;
-}
 
 /**
  * Search Wikimedia Commons. Returns up to 20 results per page; SVG results
@@ -97,7 +103,7 @@ export const searchWikimedia: ProviderSearchFn = async (
     gsroffset: String(page * PAGE_SIZE),
     prop: "imageinfo",
     iiprop: "url|size|extmetadata|mime",
-    iiurlwidth: String(THUMB_WIDTH),
+    iiurlwidth: String(REQUEST_WIDTH),
     origin: "*",
   });
 
@@ -139,8 +145,10 @@ export const searchWikimedia: ProviderSearchFn = async (
         providerId: String(p.pageid),
         provider: "wikimedia",
         title: p.title,
+        // Both come straight from the API — see the note above. Same URL for
+        // grid and save, so selecting a result needs no second download.
         thumbnailUrl: info.thumburl,
-        fullImageUrl: pickFullImageUrl(info),
+        fullImageUrl: info.thumburl,
         sourceUrl: info.descriptionurl,
         attribution: readMeta(info.extmetadata, "Artist") || "Unknown",
         license: readMeta(info.extmetadata, "LicenseShortName") || "Unknown",
