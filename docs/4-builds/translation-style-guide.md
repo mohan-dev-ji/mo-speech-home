@@ -87,6 +87,13 @@ Other Spanish rules:
 - **Register — loanword vs native.** Everyday spoken Hindi mixes English loanwords freely. **"routine" = रूटीन** (locked 2026-07-18) — the casual loanword, register-consistent with टॉयलेट रूटीन, chosen over the formal native दिनचर्या. Apply across all routine titles.
 - **Titles = gerund/infinitive label, not a sentence.** "Going to school" list title → स्कूल जाना (label), not स्कूल जा रहे हैं ("we are going to school", a sentence).
 - **Ambiguity flag — नाश्ता** = breakfast *or* snack. Fine for "snack" with a clear symbol, but if a separate "breakfast" card exists, disambiguate (हल्का नाश्ता for snack).
+- **Native-first for custom-imagery symbol labels (locked 2026-08-23).** Where a genuine Hindi word exists for the *thing itself*, use it rather than a transliteration: बांसुरी not फ्लूट, तुरही not ट्रम्पेट, डफली not टैम्बोरिन, सीधी बांसुरी not रिकॉर्डर. Owner's rationale: native terminology is what makes a Hindi board a genuinely *different* board rather than an English board in Devanagari — and no family is stuck with it, since a bilingual household can simply stay on the EN board.
+
+  This does **not** override the §4 loanword rule for *register* words like रूटीन. The distinction: रूटीन is a loanword Hindi speakers actually say; फ्लूट is a transliteration standing in for a word that already exists.
+
+  **Two constraints on it:**
+  1. **No native word, no invention.** Piano, keyboard, violin, ukulele, xylophone, maracas and guitar are Western imports with no Hindi equivalent — पियानो, कीबोर्ड, वायलिन, युकुलेले, जाइलोफोन, मराकास, गिटार are the honest answer, not a failure.
+  2. **The label must match the picture.** ढोल and डफली name *specific* South Asian instruments (a barrel drum and a frame drum), not generic categories. If the image is a Western drum kit, ढोल is a worse answer than ड्रम. Pick the image to fit the native term, or drop to the loanword — never let the board say one thing and show another.
 
 ## 5. Punjabi (pa)
 
@@ -99,6 +106,8 @@ Configured in the registry (`scriptFamily: non-latin`, Gurmukhi) but **no conten
 The pipeline has **no glossary mechanism** — every item is translated in isolation, so the same English label can come out differently in two places. Until a shared term list is wired in (§8), this table is the authority. **Same English → same translation, everywhere it appears.**
 
 ### Spanish
+
+> **Trap:** *recorder* is **flauta dulce**, never bare *flauta* — that is a flute, and a module carrying both makes them indistinguishable.
 
 | English | Spanish | Notes |
 |---|---|---|
@@ -128,6 +137,12 @@ The pipeline has **no glossary mechanism** — every item is translated in isola
 | I want to (do X) | मुझे … है | gender-neutral wanting-frame (मुझे जाना है / बनाना है) |
 | I am going | मैं … जा रहा/रही हूँ | gender-marked — profile-level decision |
 | going to school (title) | स्कूल जाना | gerund/infinitive label, not the sentence स्कूल जा रहे हैं |
+| flute | बांसुरी | **locked** — native; see §4 native-first |
+| trumpet | तुरही | **locked** — native; तुरही is a traditional horn, acceptable for a trumpet image |
+| tambourine | डफली | **locked** — native frame drum. Only if the image is a frame drum; otherwise टैम्बोरिन |
+| drums | ढोल | **locked** — native barrel drum. Only if the image is a hand drum; a Western kit takes ड्रम |
+| recorder | सीधी बांसुरी | **locked** — literally "straight flute". Avoid रिकॉर्डर, which also means a recording device |
+| guitar / piano / keyboard / violin / ukulele / xylophone / maracas | गिटार / पियानो / कीबोर्ड / वायलिन / युकुलेले / जाइलोफोन / मराकास | transliteration — no native term exists (§4 constraint 1) |
 
 ---
 
@@ -191,3 +206,5 @@ Keep the existing rules (placeholders, native script, proper nouns, same-keys) �
 - **2026-07-18** — created from the ES/HI defaults QC pass. Locked: two-bucket casing, Sentence-case titles, neutral-LatAm Spanish, glossary (feelings→sentimientos, routine→ rutina / रूटीन, going places→ de paseo). Pending: everyday consistency.
 - **2026-07-18 (later)** — normalization-on-save **rejected** on personalization grounds; §1 reframed as **advisory, not enforced** (the app never overrides user casing). The `phase-15.9-casing-normalization` plan was withdrawn.
 - **2026-08-09** — Hindi glossary: locked *morning routine* → सुबह की रूटीन and *bedtime routine* → सोने की रूटीन (both keep the locked रूटीन loanword).
+- **2026-08-23** — **native-first locked for custom-imagery symbol labels** (§4): use a genuine Hindi word where one exists for the object (बांसुरी, तुरही, डफली, सीधी बांसुरी), transliterate only where the instrument is a Western import with no equivalent. Bounded by two constraints — never invent a native term, and never let a specific native term (ढोल, डफली) contradict the picture. Owner's rationale: native terminology is what makes a Hindi board a different board, and bilingual families can stay on EN if they prefer. Applies to `instruments`, `storybook` and `clothes` (phase-29 Task 8).
+- **2026-08-23** — **pipeline gap recorded**: `translate-modules` explicitly skips symbol labels because SymbolStix symbols resolve them from the global `symbols` table (ADR-014 §4). **Custom-image symbols have no `symbols` row**, so their labels are covered by neither pipeline and must be hand-authored per language. Filed as a follow-up; until it lands, every custom-imagery module needs manual ES/HI label entry.
