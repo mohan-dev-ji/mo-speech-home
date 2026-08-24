@@ -145,6 +145,27 @@ const imageSourceTypeLiteral = v.union(
   v.literal("aiGenerated")
 );
 
+/**
+ * Custom-image provenance + credit, carried on EVERY image-bearing item shape
+ * (phase-30 §2). Naming and semantics mirror the category branch exactly —
+ * `libraryModuleCategoryItems → symbols` above and `profileSymbols.imageSource`
+ * (`imageSearch` member) below — so the same value round-trips through
+ * publish → export → restore → install in all four trees.
+ *
+ * Why it must exist outside categories: an Image Search result (Wikimedia
+ * CC BY-SA, Unsplash, Pixabay) carries a LICENCE OBLIGATION to display credit.
+ * Before this, a list item / sentence slot / phrase word stored the image and
+ * silently discarded `attribution` + `license`. All fields are optional — every
+ * row written before phase-30 simply has none of them, and a symbolstix-,
+ * upload- or AI-sourced item legitimately has no credit to carry.
+ */
+const imageProvenanceFields = {
+  imageSourceType: v.optional(imageSourceTypeLiteral),
+  imageSourceUrl: v.optional(v.string()), // original URL (audit trail)
+  attribution: v.optional(v.string()), // photographer / uploader credit
+  license: v.optional(v.string()), // e.g. "CC BY-SA 4.0"
+};
+
 const libraryModuleCategoryItems = v.array(
   v.object({
     name: localisedString,
@@ -195,7 +216,7 @@ const libraryModuleListItems = v.array(
         defaultAudioPath: v.optional(v.string()),
         generatedAudioPath: v.optional(v.string()),
         recordedAudioPath: v.optional(v.string()),
-        imageSourceType: v.optional(imageSourceTypeLiteral),
+        ...imageProvenanceFields,
       })
     ),
     displayFormat: v.optional(
@@ -233,6 +254,9 @@ const compositionWord = v.object({
   audioPath: v.optional(v.string()), // the symbol's own clip (sequence playback)
   label: v.optional(localisedString), // resolves live where present
   displayProps: v.optional(slotDisplayProps),
+  // Image provenance + credit (phase-30 §2). `profilePhrases.words` IS this
+  // shape, so this is also where a phrase word's attribution lives.
+  ...imageProvenanceFields,
 });
 
 // A unit in a sentence: a word OR a phrase (snapshot of its words + own clip).
@@ -244,6 +268,7 @@ const compositionUnit = v.union(
     audioPath: v.optional(v.string()),
     label: v.optional(localisedString),
     displayProps: v.optional(slotDisplayProps),
+    ...imageProvenanceFields, // phase-30 §2 — see compositionWord.
   }),
   v.object({
     kind: v.literal("phrase"),
@@ -302,6 +327,7 @@ const libraryModuleSentenceItems = v.array(
         // search box. Carried through publish/install so an installed sentence
         // gives families the same pre-filled search the author had.
         label: v.optional(localisedString),
+        ...imageProvenanceFields, // phase-30 §2.
       })
     ),
     audioPath: v.optional(v.string()),
@@ -326,7 +352,7 @@ const libraryModulePhraseItems = v.array(
         imagePath: v.optional(v.string()),
         label: v.optional(localisedString),
         displayProps: v.optional(slotDisplayProps),
-        imageSourceType: v.optional(imageSourceTypeLiteral),
+        ...imageProvenanceFields,
       })
     ),
   })
@@ -714,11 +740,9 @@ export default defineSchema({
         defaultAudioPath:   v.optional(v.string()), // derived from picked SymbolStix symbol
         generatedAudioPath: v.optional(v.string()), // R2 key from Generate
         recordedAudioPath:  v.optional(v.string()), // R2 key from Record
-        // Image source the user picked, so the editor lands on the right tab on re-edit.
-        imageSourceType: v.optional(v.union(
-          v.literal("symbolstix"), v.literal("upload"),
-          v.literal("imageSearch"), v.literal("aiGenerated")
-        )),
+        // Image source the user picked (so the editor lands on the right tab on
+        // re-edit) plus the Image Search credit that goes with it (phase-30 §2).
+        ...imageProvenanceFields,
       })
     ),
     displayFormat: v.optional(v.union(v.literal("rows"), v.literal("columns"), v.literal("grid"))),
@@ -772,6 +796,10 @@ export default defineSchema({
         // than stranding English ones). Do NOT wire this into ThumbnailStrip or
         // SortableSlot — sentence display is deliberately image-only.
         label: v.optional(localisedString),
+        // phase-30 §2 — slots were the ONE image-bearing shape with no
+        // `imageSourceType` at all, so an Image Search pick lost both its tab
+        // provenance and its licence credit.
+        ...imageProvenanceFields,
       })
     ),
     // ADR-015 — composition model (additive in Phase 14). Each unit is a word or

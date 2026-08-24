@@ -6,6 +6,24 @@ import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectSentenceOrphanKeys } from "./lib/contentModuleDelete";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 import { deriveCompositionText } from "./lib/compositionText";
+// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
+// in schema.ts. An Image Search result carries a licence obligation to display
+// credit, so `attribution`/`license` must be persisted alongside the image, not
+// dropped at the mutation boundary.
+const imageProvenanceSchema = {
+  imageSourceType: v.optional(
+    v.union(
+      v.literal("symbolstix"),
+      v.literal("upload"),
+      v.literal("imageSearch"),
+      v.literal("aiGenerated")
+    )
+  ),
+  imageSourceUrl: v.optional(v.string()),
+  attribution: v.optional(v.string()),
+  license: v.optional(v.string()),
+};
+
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -26,6 +44,7 @@ const compositionWordSchema = v.object({
   audioPath:    v.optional(v.string()),
   label:        v.optional(v.record(v.string(), v.string())),
   displayProps: displayPropsSchema,
+  ...imageProvenanceSchema,
 });
 
 const compositionUnitSchema = v.union(
@@ -36,6 +55,7 @@ const compositionUnitSchema = v.union(
     audioPath:    v.optional(v.string()),
     label:        v.optional(v.record(v.string(), v.string())),
     displayProps: displayPropsSchema,
+    ...imageProvenanceSchema,
   }),
   v.object({
     kind:              v.literal("phrase"),
@@ -50,21 +70,54 @@ const compositionUnitSchema = v.union(
 
 type CompositionUnit = Infer<typeof compositionUnitSchema>;
 
+// The image provenance + credit a word carries into its flattened slot
+// (phase-30 §2). `slots[]` is a DERIVED mirror of `units[]`, so it has to carry
+// the credit too — otherwise a reader on the flat path shows a CC BY-SA image
+// with no attribution.
+type FlatSlot = {
+  order: number;
+  imagePath?: string;
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+};
+
+function creditOf(w: {
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+}): Omit<FlatSlot, "order" | "imagePath"> {
+  return {
+    ...(w.imageSourceType ? { imageSourceType: w.imageSourceType } : {}),
+    ...(w.imageSourceUrl ? { imageSourceUrl: w.imageSourceUrl } : {}),
+    ...(w.attribution ? { attribution: w.attribution } : {}),
+    ...(w.license ? { license: w.license } : {}),
+  };
+}
+
 // Flatten units → flat word slots (the back-compat / fluent-fallback view kept in
 // sync on every unit write). A phrase expands to its words' imagePaths; a word
 // contributes its own. Order is reindexed. Mirrors the talker-save flatten in
 // PersistentTalker.handleSaveConfirm.
-function flattenUnitsToSlots(
-  units: CompositionUnit[]
-): Array<{ order: number; imagePath?: string }> {
-  const slots: Array<{ order: number; imagePath?: string }> = [];
+function flattenUnitsToSlots(units: CompositionUnit[]): FlatSlot[] {
+  const slots: FlatSlot[] = [];
   for (const u of units) {
     if (u.kind === "phrase") {
       for (const w of u.words) {
-        slots.push({ order: slots.length, ...(w.imagePath ? { imagePath: w.imagePath } : {}) });
+        slots.push({
+          order: slots.length,
+          ...(w.imagePath ? { imagePath: w.imagePath } : {}),
+          ...creditOf(w),
+        });
       }
     } else {
-      slots.push({ order: slots.length, ...(u.imagePath ? { imagePath: u.imagePath } : {}) });
+      slots.push({
+        order: slots.length,
+        ...(u.imagePath ? { imagePath: u.imagePath } : {}),
+        ...creditOf(u),
+      });
     }
   }
   return slots;
@@ -140,6 +193,7 @@ export const createProfileSentence = mutation({
           // Authoring-only seed for the slot editor's symbol search — never
           // rendered. See convex/schema.ts profileSentences.slots.
           label:        v.optional(v.record(v.string(), v.string())),
+          ...imageProvenanceSchema,
         })
       )
     ),
@@ -277,6 +331,7 @@ export const updateProfileSentenceSlots = mutation({
         // Authoring-only seed for the slot editor's symbol search — never
         // rendered. See convex/schema.ts profileSentences.slots.
         label:        v.optional(v.record(v.string(), v.string())),
+        ...imageProvenanceSchema,
       })
     ),
   },

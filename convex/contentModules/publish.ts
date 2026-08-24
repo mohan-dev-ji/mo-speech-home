@@ -72,6 +72,11 @@ function promoted<T extends string | undefined>(
  * a personal key must be rewritten, or the module keeps pointing at the
  * admin's copy. `defaultAudioPath` is symbolstix-derived and never mapped; it
  * is passed through the same helper for symmetry (a no-op).
+ *
+ * NOTE: the leading `...it` spread is load-bearing — it is what carries the
+ * non-path fields (`description`, `imageSourceType`, and the phase-30 §2 image
+ * credit `imageSourceUrl`/`attribution`/`license`) into the published module.
+ * Do NOT convert this to an explicit field list.
  */
 function promoteListItem<
   T extends {
@@ -102,7 +107,11 @@ function promoteListItem<
  * shapes with different field coverage: sentence `slots[]` (schema: `order`,
  * `imagePath`, `displayProps`, `label` — no `audioPath`, so that branch is a
  * no-op there) and `units[].words[]`, which do carry `audioPath`. Mirrors
- * `sentenceKeys()` / `phraseKeys()`. */
+ * `sentenceKeys()` / `phraseKeys()`.
+ *
+ * NOTE: as in `promoteListItem`, the `...w` spread is what carries the phase-30
+ * §2 image credit (`imageSourceType`/`imageSourceUrl`/`attribution`/`license`)
+ * through publish. Do NOT convert this to an explicit field list. */
 function promoteWordLike<T extends { imagePath?: string; audioPath?: string }>(
   w: T,
   map: Record<string, string> | undefined,
@@ -312,6 +321,17 @@ export const publishFolderAsModule = mutation({
             ...(w.displayProps !== undefined
               ? { displayProps: w.displayProps }
               : {}),
+            // Image provenance + credit (phase-30 §2). This branch enumerates
+            // fields rather than spreading, so an omission here silently drops a
+            // licence obligation on publish. Mirrors the category branch below.
+            ...(w.imageSourceType !== undefined
+              ? { imageSourceType: w.imageSourceType }
+              : {}),
+            ...(w.imageSourceUrl !== undefined
+              ? { imageSourceUrl: w.imageSourceUrl }
+              : {}),
+            ...(w.attribution !== undefined ? { attribution: w.attribution } : {}),
+            ...(w.license !== undefined ? { license: w.license } : {}),
           })),
       }));
     }

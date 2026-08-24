@@ -11,6 +11,24 @@ import { DEFAULT_LOCALE } from "../lib/languages/registry";
  * Returns all lists for the caller's account in display order, each with all of
  * its item image paths as thumbnails (the row UI wraps them onto new lines).
  */
+// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
+// in schema.ts. An Image Search result carries a licence obligation to display
+// credit, so `attribution`/`license` must be persisted alongside the image, not
+// dropped at the mutation boundary.
+const imageProvenanceSchema = {
+  imageSourceType: v.optional(
+    v.union(
+      v.literal("symbolstix"),
+      v.literal("upload"),
+      v.literal("imageSearch"),
+      v.literal("aiGenerated")
+    )
+  ),
+  imageSourceUrl: v.optional(v.string()),
+  attribution: v.optional(v.string()),
+  license: v.optional(v.string()),
+};
+
 export const getProfileLists = query({
   args: {},
   handler: async (ctx) => {
@@ -152,10 +170,7 @@ export const updateProfileListItems = mutation({
         defaultAudioPath:   v.optional(v.string()),
         generatedAudioPath: v.optional(v.string()),
         recordedAudioPath:  v.optional(v.string()),
-        imageSourceType: v.optional(v.union(
-          v.literal("symbolstix"), v.literal("upload"),
-          v.literal("imageSearch"), v.literal("aiGenerated")
-        )),
+        ...imageProvenanceSchema,
       })
     ),
   },
@@ -192,6 +207,25 @@ export const addItemFromSymbol = mutation({
       imagePath = src.imagePath;
     }
 
+    // Carry the SOURCE SYMBOL's provenance + credit onto the list item
+    // (phase-30 §2). Adding an Image-Search-sourced category symbol to a list
+    // used to keep the image and drop the attribution — the same licence leak
+    // as the editor save path. Every field is written explicitly (undefined
+    // included, which Convex omits) so replacing an item's image REPLACES its
+    // credit rather than inheriting the previous image's.
+    const src = sym.imageSource;
+    const provenance = {
+      imageSourceType:
+        src.type === "symbolstix" ? ("symbolstix" as const)
+        : src.type === "userUpload" ? ("upload" as const)
+        : src.type === "imageSearch" ? ("imageSearch" as const)
+        : src.type === "aiGenerated" ? ("aiGenerated" as const)
+        : undefined, // placeholder — no image, no provenance
+      imageSourceUrl: src.type === "imageSearch" ? src.imageSourceUrl : undefined,
+      attribution: src.type === "imageSearch" ? src.attribution : undefined,
+      license: src.type === "imageSearch" ? src.license : undefined,
+    };
+
     const list = await ctx.db.get(args.profileListId);
     if (!list) throw new Error("profileList not found");
     if (list.accountId !== accountId) throw new Error("Not authorised");
@@ -199,9 +233,18 @@ export const addItemFromSymbol = mutation({
     const items = [...list.items].sort((a, b) => a.order - b.order);
 
     if (args.insertAtIndex !== undefined && args.insertAtIndex < items.length) {
-      items[args.insertAtIndex] = { ...items[args.insertAtIndex], imagePath };
+      items[args.insertAtIndex] = {
+        ...items[args.insertAtIndex],
+        imagePath,
+        ...provenance,
+      };
     } else {
-      items.push({ imagePath, order: items.length, description: undefined });
+      items.push({
+        imagePath,
+        order: items.length,
+        description: undefined,
+        ...provenance,
+      });
     }
 
     const reindexed = items.map((item, i) => ({ ...item, order: i }));

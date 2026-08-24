@@ -112,6 +112,32 @@ export type InstallModuleResult = {
 };
 
 /**
+ * Image provenance + credit carried from a module item onto the installed row
+ * (phase-30 §2). Every image-bearing shape in every tree materialises through an
+ * explicit field list, so without this the installed copy would show an Image
+ * Search image with its `attribution` / `license` stripped — the licence
+ * obligation lost on the last hop of the chain. `imageSourceType` rides along so
+ * the editor still reopens on the right tab after an install.
+ */
+function installCredit(src: {
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+}) {
+  return {
+    ...(src.imageSourceType !== undefined
+      ? { imageSourceType: src.imageSourceType }
+      : {}),
+    ...(src.imageSourceUrl !== undefined
+      ? { imageSourceUrl: src.imageSourceUrl }
+      : {}),
+    ...(src.attribution !== undefined ? { attribution: src.attribution } : {}),
+    ...(src.license !== undefined ? { license: src.license } : {}),
+  };
+}
+
+/**
  * Create the default folder for `module` and materialise its items into the
  * caller's account. Caller is responsible for auth, visibility/tier gating, and
  * the dedup check (see `assertModuleNotInstalled`).
@@ -222,9 +248,7 @@ export async function installContentModule(
             ...(item.recordedAudioPath !== undefined
               ? { recordedAudioPath: item.recordedAudioPath }
               : {}),
-            ...(item.imageSourceType !== undefined
-              ? { imageSourceType: item.imageSourceType }
-              : {}),
+            ...installCredit(item),
           };
         })
       );
@@ -269,6 +293,7 @@ export async function installContentModule(
             // Authoring-only search seed — carried through so an installed
             // sentence pre-fills the symbol search the same way the author's did.
             ...(slot.label !== undefined ? { label: slot.label } : {}),
+            ...installCredit(slot),
           };
         }),
       );
@@ -329,6 +354,7 @@ export async function installContentModule(
             ...(word.displayProps !== undefined
               ? { displayProps: word.displayProps }
               : {}),
+            ...installCredit(word),
           };
         }),
       );

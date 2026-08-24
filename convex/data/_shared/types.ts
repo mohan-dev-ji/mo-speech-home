@@ -27,6 +27,24 @@ export type PackTier = "free" | "pro" | "max";
  */
 export type LocalisedString = Record<string, string>;
 
+/**
+ * Custom-image provenance + credit (phase-30 §2). Mirrors `imageProvenanceFields`
+ * in `convex/schema.ts` and the long-standing fields on
+ * `LibraryPackCategorySymbol` below — the category branch had these from the
+ * start; lists, sentences and phrases did not, so an Image Search pick outside
+ * categories silently discarded a licence obligation.
+ *
+ * `attribution` + `license` are the obligation (Wikimedia CC BY-SA and friends);
+ * `imageSourceUrl` is the audit trail back to the original file page;
+ * `imageSourceType` is what makes the editor reopen on the right tab.
+ */
+export type ImageProvenance = {
+  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+};
+
 export type SymbolDisplay = {
   bgColour?: string;
   textColour?: string;
@@ -119,8 +137,7 @@ export type LibraryPackListItem = {
   defaultAudioPath?: string;
   generatedAudioPath?: string;
   recordedAudioPath?: string;
-  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
-};
+} & ImageProvenance;
 
 export type LibraryPackList = {
   name: LocalisedString;
@@ -148,7 +165,7 @@ export type LibraryPackSentenceSlot = {
   displayProps?: LibraryPackSentenceSlotDisplay;
   /** Authoring-only search seed — never rendered. */
   label?: Record<string, string>;
-};
+} & ImageProvenance;
 
 /** ADR-015 composition — mirror of `compositionWord` in `schema.ts`. */
 export type CompositionWord = {
@@ -157,18 +174,18 @@ export type CompositionWord = {
   audioPath?: string;
   label?: LocalisedString;
   displayProps?: LibraryPackSentenceSlotDisplay;
-};
+} & ImageProvenance;
 
 /** ADR-015 composition — mirror of `compositionUnit` in `schema.ts`. */
 export type CompositionUnit =
-  | {
+  | ({
       kind: "word";
       order: number;
       imagePath?: string;
       audioPath?: string;
       label?: LocalisedString;
       displayProps?: LibraryPackSentenceSlotDisplay;
-    }
+    } & ImageProvenance)
   | {
       kind: "phrase";
       order: number;
@@ -283,8 +300,7 @@ export type LibraryPackPhraseWord = {
   imagePath?: string;
   label?: LocalisedString;
   displayProps?: PhraseWordDisplayProps;
-  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
-};
+} & ImageProvenance;
 
 /** A reusable phrase: a named, audio-bearing chunk of words (ADR-015). */
 export type LibraryPackPhrase = {

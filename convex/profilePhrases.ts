@@ -14,6 +14,24 @@ import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectPhraseOrphanKeys } from "./lib/contentModuleDelete";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 
+// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
+// in schema.ts. An Image Search result carries a licence obligation to display
+// credit, so `attribution`/`license` must be persisted alongside the image, not
+// dropped at the mutation boundary.
+const imageProvenanceSchema = {
+  imageSourceType: v.optional(
+    v.union(
+      v.literal("symbolstix"),
+      v.literal("upload"),
+      v.literal("imageSearch"),
+      v.literal("aiGenerated")
+    )
+  ),
+  imageSourceUrl: v.optional(v.string()),
+  attribution: v.optional(v.string()),
+  license: v.optional(v.string()),
+};
+
 const displayPropsSchema = v.optional(
   v.object({
     bgColour:   v.optional(v.string()),
@@ -33,6 +51,7 @@ const phraseWordsSchema = v.array(
     audioPath:    v.optional(v.string()),
     label:        v.optional(v.record(v.string(), v.string())),
     displayProps: displayPropsSchema,
+    ...imageProvenanceSchema,
   })
 );
 
