@@ -80,3 +80,87 @@ before the mutation, passing the resulting key mapping in.
   stale key) makes its copy fail, which now blocks publish entirely until the
   reference is repaired — an operational cost traded for never publishing a
   half-promoted module.
+
+---
+
+## Amendment — 2026-08-24: legacy `library_packs/` keys are promoted too
+
+**Status:** accepted · amends the Decision and Consequences above; the original
+text is left intact as the record of what was decided on 2026-08-22.
+
+### What changed
+
+Two statements above are now wrong and are superseded by this amendment:
+
+- Decision, bullet 3: "**Non-personal keys pass through untouched** — `symbols/…`,
+  `ai-cache/…`, `audio/<voice>/tts/…`, **and legacy `library_packs/…`**."
+  → `library_packs/…` is no longer in that list. It is now **promoted** like a
+  personal key. The other three still pass through untouched.
+- Consequences, bullet 5: "`library_packs/` is not migrated. It is a valid
+  shared prefix; churning it would invalidate the committed artifact for no
+  benefit."
+  → There is now a benefit: retiring the prefix entirely.
+
+### Why
+
+`space` is the last module still on the pack-era prefix — all 16 of its images
+live under `library_packs/space/images/…` (4.1 MB in the folder, 1.94 MB
+actually referenced). The owner wants `library_packs/` deleted outright, which
+requires `space` to be sitting on `library_modules/` first.
+
+Re-publishing `space` did not achieve that, because promotion refused
+non-personal keys at *two* independent layers:
+
+1. `collectSourcePersonalKeys` (`convex/lib/personalAssetRefs.ts`) filtered
+   through `isPersonalAssetKey`, so `library_packs/` keys were never even
+   *collected* — the promote route never saw them.
+2. `/api/admin/promote-module-assets` re-checked the same two prefixes and
+   skipped anything else.
+
+Both layers now use a wider predicate, so re-publishing `space` copies its 16
+images to `library_modules/categories/space/images/…`, writes the promoted
+paths into the module row via `assetPathMap`, and leaves the originals in
+place for a later sweep of the whole prefix.
+
+### The predicate that deliberately did NOT change
+
+`isPersonalAssetKey` is untouched, and this is the load-bearing decision of the
+amendment. That function has a *second*, unrelated job: it is the delete-path
+gate. `collectReferencedPersonalKeys`, `countRowsReferencingKeys`,
+`collectListOrphanKeys`, `collectSentenceOrphanKeys` and
+`collectPhraseOrphanKeys` all use it to decide which R2 objects an uninstall or
+a row delete may destroy.
+
+Teaching *that* predicate about `library_packs/` would classify a published
+module's shared assets as deletable by any account that uninstalls the module —
+the precise catastrophe this ADR was written to prevent, reintroduced through
+the back door.
+
+So the widening lives in a separate, deliberately-distinct predicate in the
+same file, `convex/lib/contentModuleDelete.ts`:
+
+    isPersonalAssetKey(key)    // may uninstall DELETE it?   accounts/ | profiles/
+    isPromotableAssetKey(key)  // should publish COPY it?    personal + library_packs/
+
+Copying is additive and always safe; deleting is destructive and is not. That
+asymmetry is why the two sets differ and why they must stay two functions. A
+"PROMOTABLE ≠ PERSONAL" docblock sits between them saying so.
+
+To make the separation structural rather than advisory, the per-table key
+extractors in `personalAssetRefs.ts` no longer hard-code a predicate — each
+takes a `keep: KeyFilter` parameter. The delete-path collectors pass
+`isPersonalAssetKey`; only `collectSourcePromotableKeys` (renamed from
+`collectSourcePersonalKeys`) passes `isPromotableAssetKey`. The delete path
+therefore cannot silently inherit a future widening of the promotion rule.
+
+### Consequences of the amendment
+
+- Re-publishing any pre-ADR-022 module now migrates it off `library_packs/`.
+  In practice that means `space`, the only remaining occupant.
+- `library_packs/` can be deleted once every module on it has been
+  re-published and the resulting module rows verified — a separate, owner-run
+  operation, not a code change.
+- Storage briefly doubles for `space` (originals + promoted copies) until the
+  prefix is swept, consistent with the ADR's existing copy-don't-move stance.
+- Field coverage still cannot drift between the delete and publish paths: both
+  walk the same extractors, differing only in `keep`.

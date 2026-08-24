@@ -25,6 +25,58 @@ export function isPersonalAssetKey(key: string | undefined | null): key is strin
   return key.startsWith("accounts/") || key.startsWith("profiles/");
 }
 
+/**
+ * The retired pack-era shared prefix (ADR-010). Assets under it are SHARED —
+ * a published module and every account that installed it point at the very
+ * same objects. Only the `space` module still lives here.
+ */
+const LEGACY_SHARED_MODULE_PREFIX = "library_packs/";
+
+/** True for a key under the retired pack-era `library_packs/` prefix. */
+export function isLegacySharedModuleAssetKey(
+  key: string | undefined | null,
+): key is string {
+  return !!key && key.startsWith(LEGACY_SHARED_MODULE_PREFIX);
+}
+
+/**
+ * PROMOTABLE ≠ PERSONAL. Read this before touching either predicate.
+ *
+ * Two different questions get asked about an R2 key, and they must never be
+ * answered by the same function:
+ *
+ *   `isPersonalAssetKey`  — "may uninstall DELETE this object from R2?"
+ *       Yes only for `accounts/` and `profiles/`, which are owned by exactly
+ *       one account. Every shared namespace (`symbols/`, `ai-cache/`,
+ *       `audio/<voice>/tts/`, `library_modules/`, `library_packs/`) answers
+ *       NO, because other accounts and published modules still point at those
+ *       objects. Widening this predicate makes a published module's assets
+ *       deletable by any account that uninstalls it — the exact catastrophe
+ *       ADR-022 exists to prevent.
+ *
+ *   `isPromotableAssetKey` — "should publish COPY this object into the
+ *       module's own `library_modules/<tree>/<slug>/…` prefix?"
+ *       Yes for personal keys (ADR-022's original case: the admin's own
+ *       images must not stay under `accounts/…`), AND yes for legacy
+ *       `library_packs/…` keys, so the `space` module can be migrated off the
+ *       retired prefix by re-publishing it and `library_packs/` can then be
+ *       deleted wholesale (ADR-022 amendment, 2026-08-24).
+ *
+ * Copying is additive and always safe; deleting is destructive and is not.
+ * That asymmetry is why "promotable" is deliberately the wider set and why
+ * these two functions stay separate even though one currently calls the other.
+ * DO NOT "simplify" them into one predicate.
+ *
+ * Used ONLY by the publish/promotion path:
+ *   - `collectSourcePromotableKeys` (convex/lib/personalAssetRefs.ts)
+ *   - `/api/admin/promote-module-assets`
+ */
+export function isPromotableAssetKey(
+  key: string | undefined | null,
+): key is string {
+  return isPersonalAssetKey(key) || isLegacySharedModuleAssetKey(key);
+}
+
 /** Personal R2 keys on a profileLists row's inline items (uploads + recordings). */
 export function collectListOrphanKeys(items: ReadonlyArray<{
   imagePath?: string;

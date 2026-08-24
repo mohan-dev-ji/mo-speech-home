@@ -1,10 +1,17 @@
 /**
  * `/api/admin/promote-module-assets` — ADR-022.
  *
- * Copies the personal R2 assets a publish source references into the shared
+ * Copies the PROMOTABLE R2 assets a publish source references into the shared
  * module-scoped prefix `library_modules/<tree>/<slug>/<kind>/<filename>`, and
  * returns the old→new key mapping for the caller to pass into the publish
  * mutation as `assetPathMap`.
+ *
+ * Promotable = personal (`accounts/`, `profiles/`) + legacy shared
+ * (`library_packs/`). The legacy half was added by the ADR-022 amendment of
+ * 2026-08-24 so `space` can be re-published onto `library_modules/` and the
+ * retired `library_packs/` prefix deleted wholesale. Everything else —
+ * `symbols/`, `ai-cache/`, `audio/<voice>/tts/`, already-promoted
+ * `library_modules/` — is counted in `stats.skipped` and left in place.
  *
  * Exists because Convex mutations cannot perform R2 I/O. Mirrors the retired
  * `promoteAssetsToPackPrefix` (git: 7083f1a^:app/api/admin/pack-publish/route.ts).
@@ -18,6 +25,13 @@ import { NextResponse } from "next/server";
 import { CopyObjectCommand } from "@aws-sdk/client-s3";
 import { r2Client, bucketName } from "@/lib/r2-storage";
 import { MODULE_SLUG_RE } from "@/lib/r2-paths";
+// Single source of truth for "which keys does publish COPY". Deliberately NOT
+// `isPersonalAssetKey`, which answers the narrower and destructive question
+// "which keys may uninstall DELETE" — see the "PROMOTABLE ≠ PERSONAL" docblock
+// in that module. Importing a pure, dependency-free predicate out of convex/lib
+// so this route and `collectSourcePromotableKeys` can never disagree about what
+// gets offered vs. what gets copied.
+import { isPromotableAssetKey } from "@/convex/lib/contentModuleDelete";
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +98,7 @@ export async function POST(req: Request) {
   }
 
   for (const key of keys) {
-    if (!key.startsWith("accounts/") && !key.startsWith("profiles/")) {
+    if (!isPromotableAssetKey(key)) {
       stats.skipped++;
       continue;
     }

@@ -9,19 +9,22 @@
  * default `core` categories module is seeded separately (Task C). Only the
  * foldered trees — lists, sentences — have a folder to publish.
  *
- * R2 assets: personal keys under `accounts/<admin>/…` are PROMOTED at publish to
- * `library_modules/<tree>/<slug>/<kind>/…` by `/api/admin/promote-module-assets`,
- * which passes the resulting key map in as `assetPathMap` (ADR-022). Published
- * modules therefore own their assets and survive an admin uninstall or account
- * deletion. Non-personal keys (symbolstix, TTS cache, legacy library_packs) are
- * passed through untouched.
+ * R2 assets: PROMOTABLE keys — personal ones under `accounts/<admin>/…` |
+ * `profiles/…`, plus legacy shared `library_packs/…` — are PROMOTED at publish
+ * to `library_modules/<tree>/<slug>/<kind>/…` by
+ * `/api/admin/promote-module-assets`, which passes the resulting key map in as
+ * `assetPathMap` (ADR-022 + its 2026-08-24 amendment). Published modules
+ * therefore own their assets and survive an admin uninstall or account
+ * deletion, and re-publishing `space` migrates it off the retired
+ * `library_packs/` prefix. Every other key (symbolstix, ai-cache, TTS cache,
+ * already-promoted `library_modules/…`) is passed through untouched.
  */
 
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, query } from "../_generated/server";
 import { requireCallerIsAdmin } from "../lib/account";
-import { collectSourcePersonalKeys } from "../lib/personalAssetRefs";
+import { collectSourcePromotableKeys } from "../lib/personalAssetRefs";
 import { needsTranslation } from "../../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../../lib/languages/registry";
 
@@ -31,8 +34,9 @@ const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 const ASSET_PATH_MAP = v.optional(v.record(v.string(), v.string()));
 
 /**
- * Every personal R2 key the publish source points at, so the caller can copy
- * them to the module-scoped prefix before publishing (ADR-022). Read-only —
+ * Every promotable R2 key the publish source points at — personal plus legacy
+ * `library_packs/` — so the caller can copy them to the module-scoped prefix
+ * before publishing (ADR-022 + 2026-08-24 amendment). Read-only —
  * the copy itself happens in `/api/admin/promote-module-assets`, because a
  * Convex mutation cannot perform R2 I/O.
  */
@@ -48,7 +52,7 @@ export const getPublishAssetKeys = query({
     // Same gate as the publish mutations — this returns raw R2 keys, so it must
     // not be readable by anyone who can guess a document id.
     await requireCallerIsAdmin(ctx);
-    return collectSourcePersonalKeys(ctx, args);
+    return collectSourcePromotableKeys(ctx, args);
   },
 });
 
