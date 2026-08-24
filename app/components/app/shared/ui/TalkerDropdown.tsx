@@ -421,6 +421,12 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
       audioPath: w.audioPath,
       label: w.label,
       displayProps: w.displayProps,
+      // phase-30 §2 — this rebuilds every word on reorder/delete, so the image
+      // credit has to be carried or an unrelated edit strips the attribution.
+      imageSourceType: w.imageSourceType,
+      imageSourceUrl: w.imageSourceUrl,
+      attribution: w.attribution,
+      license: w.license,
     }));
   }
 
@@ -475,10 +481,18 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     // displayProps is no longer authored — the editor's Display/Text/Shape
     // sections are categoryBoard-only now. No composition renderer ever read it
     // for phrase words; existing stored values are preserved by the spread.
+    // Image provenance + credit written as explicit keys (phase-30 §2), so
+    // replacing an Image Search picture also replaces its attribution.
+    const provenance = {
+      imageSourceType: result.imageSourceType,
+      imageSourceUrl: result.imageSourceUrl,
+      attribution: result.attribution,
+      license: result.license,
+    };
     if (wordIndex === -1) {
-      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: undefined });
+      current.push({ order: current.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, displayProps: undefined, ...provenance });
     } else if (current[wordIndex]) {
-      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath };
+      current[wordIndex] = { ...current[wordIndex], imagePath: result.imagePath, ...provenance };
     }
     const reindexed = current.map((w, i) => ({ ...w, order: i }));
     updateProfilePhraseWords({ profilePhraseId: targetId, words: reindexed }).catch((e) =>
@@ -759,6 +773,13 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
     );
   }
 
+  // The phrase word currently open in the editor. Carries its stored image
+  // provenance + credit (phase-30 §2) into the modal, so the credit line shows
+  // and an untouched save preserves the attribution.
+  const editingPhraseWord = phraseWordEditor.open && phraseWordEditor.wordIndex >= 0
+    ? findPhrase(phraseWordEditor.phraseId)?.words[phraseWordEditor.wordIndex]
+    : undefined;
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
@@ -991,11 +1012,11 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
           language={language}
           voiceId={voiceId}
           editorMode="sentenceSlot"
-          initialImagePath={
-            phraseWordEditor.wordIndex >= 0
-              ? findPhrase(phraseWordEditor.phraseId)?.words[phraseWordEditor.wordIndex]?.imagePath
-              : undefined
-          }
+          initialImagePath={editingPhraseWord?.imagePath}
+          initialImageSourceType={editingPhraseWord?.imageSourceType}
+          initialImageSourceUrl={editingPhraseWord?.imageSourceUrl}
+          initialAttribution={editingPhraseWord?.attribution}
+          initialLicense={editingPhraseWord?.license}
           onClose={() => setPhraseWordEditor({ open: false })}
           onSave={() => {}}
           onSentenceSlotSave={handlePhraseWordSave}

@@ -82,6 +82,12 @@ export function SymbolStixTab({
       symbolWords: (sym.words as Record<string, string>),
       labelEng: nextLabelEng,
       labelLoc: nextLabelLoc,
+      // Clear any prior image-search credit — it belongs to the picture this
+      // symbol replaces (phase-30 §2). Mirrors AiGenerateTab / UploadTab.
+      imageSourceUrl: undefined,
+      imageAttribution: undefined,
+      imageLicense: undefined,
+      imageProvider: undefined,
       // Swapping the symbol must not clobber a generated/recorded clip the user
       // committed; only adopt 'default' when nothing is active yet.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const, audioMode: 'default' as const }),

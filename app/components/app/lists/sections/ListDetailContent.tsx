@@ -177,6 +177,10 @@ export function ListDetailContent({ listId }: Props) {
         generatedAudioPath: item.generatedAudioPath,
         recordedAudioPath: item.recordedAudioPath,
         imageSourceType: item.imageSourceType,
+        // phase-30 §2 — persist the Image Search credit alongside the image.
+        imageSourceUrl: item.imageSourceUrl,
+        attribution: item.attribution,
+        license: item.license,
       })),
     });
   }
@@ -222,6 +226,12 @@ export function ListDetailContent({ listId }: Props) {
       ...item,
       imagePath:       result.imagePath,
       imageSourceType: result.imageSourceType,
+      // The editor reports credit as explicit keys — `undefined` when the new
+      // image has none — so swapping an Image Search photo for a SymbolStix
+      // symbol clears the old attribution instead of stranding it (phase-30 §2).
+      imageSourceUrl:  result.imageSourceUrl,
+      attribution:     result.attribution,
+      license:         result.license,
     });
     const next =
       idx < prev.length
@@ -646,6 +656,9 @@ export function ListDetailContent({ listId }: Props) {
           initialLabel={localItems[symbolPickerForIndex]?.description}
           initialImagePath={localItems[symbolPickerForIndex]?.imagePath}
           initialImageSourceType={localItems[symbolPickerForIndex]?.imageSourceType}
+          initialImageSourceUrl={localItems[symbolPickerForIndex]?.imageSourceUrl}
+          initialAttribution={localItems[symbolPickerForIndex]?.attribution}
+          initialLicense={localItems[symbolPickerForIndex]?.license}
           onClose={() => setSymbolPickerForIndex(null)}
           onSave={() => {}}
           onImageOnlySave={handleListItemSaved}

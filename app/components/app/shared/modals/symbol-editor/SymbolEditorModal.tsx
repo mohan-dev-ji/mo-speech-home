@@ -21,7 +21,23 @@ import { deriveAudioMode, initLabelDirty, planFollowLabelAudio, type StoredAudio
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ListItemSaveResult = {
+/**
+ * Image provenance + credit reported by every save path (phase-30 §2). An Image
+ * Search result carries a licence obligation to display credit, so the editor
+ * hands `attribution` / `license` / `imageSourceUrl` back to the caller for
+ * persistence instead of dropping them. Always reported as an explicit key —
+ * `undefined` means "this image has no credit", which is how switching from an
+ * Image Search picture to a SymbolStix one CLEARS the old credit rather than
+ * letting it ride along on an unrelated image.
+ */
+export type ImageCreditResult = {
+  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
+};
+
+export type ListItemSaveResult = ImageCreditResult & {
   imagePath?: string;
   description?: string;
   audioPath?: string;
@@ -29,17 +45,15 @@ export type ListItemSaveResult = {
   defaultAudioPath?: string;
   generatedAudioPath?: string;
   recordedAudioPath?: string;
-  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
 
 // `imageOnly` mode — a pure image picker (no label/audio/display, no preview
 // play). Used for group/category cover images and list-item images.
-export type ImageOnlySaveResult = {
+export type ImageOnlySaveResult = ImageCreditResult & {
   imagePath?: string;
-  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
 };
 
-export type SentenceSlotSaveResult = {
+export type SentenceSlotSaveResult = ImageCreditResult & {
   imagePath?: string;
   // What was in the SymbolStix search box at save time. The box seeds FROM the
   // slot's stored label, so an untouched box reports the same word back — which
@@ -90,6 +104,12 @@ export type SymbolEditorModalProps = {
   initialGeneratedAudioPath?: string;
   initialRecordedAudioPath?: string;
   initialImageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  // Stored Image Search credit for the item being edited (phase-30 §2). Seeds the
+  // credit line AND is what an untouched save hands back, so reopening a slot to
+  // change nothing does not quietly strip a CC BY-SA attribution.
+  initialImageSourceUrl?: string;
+  initialAttribution?: string;
+  initialLicense?: string;
   // Which image tab to open on when the caller has NO stored provenance to give.
   // Sentence word units (ADR-015 `compositionWord`) store no `imageSourceType`,
   // so without this they fell through to the 'upload' default and opened on the
@@ -149,6 +169,9 @@ export function SymbolEditorModal({
   initialGeneratedAudioPath,
   initialRecordedAudioPath,
   initialImageSourceType,
+  initialImageSourceUrl,
+  initialAttribution,
+  initialLicense,
   initialImageTab,
   initialSymbolstixId,
   initialSymbolstixImagePath,
@@ -249,6 +272,12 @@ export function SymbolEditorModal({
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'symbolstix' as const }
       : {}),
     ...listItemImageSeed,
+    // Stored image credit (phase-30 §2) — categoryBoard seeds its own from the
+    // profileSymbol in the rehydration effect below; every other mode gets it
+    // from the caller's props.
+    ...(initialImageSourceUrl ? { imageSourceUrl: initialImageSourceUrl } : {}),
+    ...(initialAttribution ? { imageAttribution: initialAttribution } : {}),
+    ...(initialLicense ? { imageLicense: initialLicense } : {}),
     ...(editorMode === 'listItem'
       ? {
           defaultAudioPath:   seededDefaultAudioPath,
@@ -607,6 +636,32 @@ export function SymbolEditorModal({
 
   // ── Save ───────────────────────────────────────────────────────────────────
 
+  /**
+   * The credit to persist for an image whose resolved source is `type`
+   * (phase-30 §2). Credit only ever belongs to an Image Search picture, so any
+   * other source reports every field as `undefined` — that is what CLEARS a
+   * stale attribution when the user swaps an Image Search photo for a SymbolStix
+   * symbol, an upload or an AI generation. (The image tabs do not reliably clear
+   * the draft themselves — UploadTab and SymbolStixTab leave the fields alone —
+   * so the gate has to live here, at the point of persistence.)
+   */
+  function creditFor(type: ImageCreditResult['imageSourceType']): ImageCreditResult {
+    if (type !== 'imageSearch') {
+      return {
+        imageSourceType: type,
+        imageSourceUrl: undefined,
+        attribution: undefined,
+        license: undefined,
+      };
+    }
+    return {
+      imageSourceType: type,
+      imageSourceUrl: draft.imageSourceUrl,
+      attribution: draft.imageAttribution,
+      license: draft.imageLicense,
+    };
+  }
+
   async function handleSave() {
     setSaveError(null);
 
@@ -620,7 +675,7 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath = draft.resolvedImagePath;
-        let imageSourceType: ImageOnlySaveResult['imageSourceType'] = initialImageSourceType;
+        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
         // Upload pending bytes for every non-SymbolStix tab — upload,
         // image-search proxy, and AI generate all land a blob here that
         // needs to go to R2 before we can persist a path.
@@ -636,7 +691,7 @@ export function SymbolEditorModal({
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
         }
-        onImageOnlySave?.({ imagePath, imageSourceType });
+        onImageOnlySave?.({ imagePath, ...creditFor(imageSourceType) });
         onClose();
       } catch {
         setSaveError(t('errorSave'));
@@ -651,17 +706,26 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath: string | undefined = draft.resolvedImagePath;
+        // Sentence slots (and phrase words, which share this mode) now record
+        // where the image came from — phase-30 §2. Untouched saves fall back to
+        // the caller's stored value so reopening a slot preserves its credit.
+        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
+          imageSourceType = 'symbolstix';
         } else if (pendingImageBlob) {
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
+          imageSourceType =
+            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
+            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
         }
         onSentenceSlotSave?.({
           imagePath,
           searchWord: searchQuery.trim() || undefined,
           symbolWords: draft.symbolWords,
+          ...creditFor(imageSourceType),
         });
         onClose();
       } catch {
@@ -678,7 +742,7 @@ export function SymbolEditorModal({
       try {
         // Resolve image and remember which tab it came from
         let imagePath: string | undefined = draft.resolvedImagePath;
-        let imageSourceType: ListItemSaveResult['imageSourceType'] = initialImageSourceType;
+        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
@@ -716,7 +780,7 @@ export function SymbolEditorModal({
           defaultAudioPath: draft.defaultAudioPath,
           generatedAudioPath: draft.generatedAudioPath,
           recordedAudioPath,
-          imageSourceType,
+          ...creditFor(imageSourceType),
         });
         onClose();
       } catch {
@@ -994,6 +1058,36 @@ export function SymbolEditorModal({
               />
             </div>
           </div>
+
+          {/* Image credit (phase-30 §2). An Image Search picture carries a
+              licence obligation to display its attribution, so the credit is
+              shown for the image currently attached — in EVERY editor mode, so
+              a list item, sentence slot and phrase word surface it exactly like
+              a category symbol. Renders only when there is credit to show:
+              SymbolStix, uploads and AI generations have none, and each of
+              those tabs clears the draft fields when it takes over the image. */}
+          {(draft.imageAttribution || draft.imageLicense) && (
+            <div className="shrink-0 px-6 pb-2 text-center">
+              <p className="text-theme-xs" style={{ color: 'var(--theme-secondary-text)' }}>
+                {t('imageCredit', {
+                  credit: [draft.imageLicense, draft.imageAttribution]
+                    .filter(Boolean)
+                    .join(' · '),
+                })}
+              </p>
+              {draft.imageSourceUrl && (
+                <a
+                  href={draft.imageSourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-theme-xs underline"
+                  style={{ color: 'var(--theme-brand-primary)' }}
+                >
+                  {t('imageCreditSource')}
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Properties — hidden in image-only mode, and in sentenceSlot mode,
               where every section is now categoryBoard-only (Display/Text/Shape

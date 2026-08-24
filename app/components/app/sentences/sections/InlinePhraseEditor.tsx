@@ -82,10 +82,18 @@ export function InlinePhraseEditor({
     if (!wordEditor) return;
     const words = [...unit.words];
     // displayProps is no longer authored — see TalkerDropdown.handlePhraseWordSave.
+    // Image provenance + credit is written as explicit keys (phase-30 §2), so
+    // replacing an Image Search picture also replaces its attribution.
+    const provenance = {
+      imageSourceType: result.imageSourceType,
+      imageSourceUrl: result.imageSourceUrl,
+      attribution: result.attribution,
+      license: result.license,
+    };
     if (wordEditor.index === -1) {
-      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined });
+      words.push({ order: words.length, imagePath: result.imagePath, audioPath: undefined, label: undefined, ...provenance });
     } else if (words[wordEditor.index]) {
-      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath };
+      words[wordEditor.index] = { ...words[wordEditor.index], imagePath: result.imagePath, ...provenance };
     }
     emit({ ...unit, words: words.map((w, idx) => ({ ...w, order: idx })) });
     setWordEditor(null);
@@ -102,8 +110,9 @@ export function InlinePhraseEditor({
     emit(next);
   }
 
-  const existingWordImagePath =
-    wordEditor && wordEditor.index >= 0 ? unit.words[wordEditor.index]?.imagePath : undefined;
+  const existingWord =
+    wordEditor && wordEditor.index >= 0 ? unit.words[wordEditor.index] : undefined;
+  const existingWordImagePath = existingWord?.imagePath;
 
   return (
     <div ref={setNodeRef} style={style} className="shrink-0 w-fit min-w-0 sm:min-w-[280px] max-w-full">
@@ -142,6 +151,10 @@ export function InlinePhraseEditor({
           voiceId={voiceId}
           editorMode="sentenceSlot"
           initialImagePath={existingWordImagePath}
+          initialImageSourceType={existingWord?.imageSourceType}
+          initialImageSourceUrl={existingWord?.imageSourceUrl}
+          initialAttribution={existingWord?.attribution}
+          initialLicense={existingWord?.license}
           onClose={() => setWordEditor(null)}
           onSave={() => {}}
           onSentenceSlotSave={handleWordSave}

@@ -26,7 +26,18 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
       const blob = await toResizedWebp(file);
       const preview = URL.createObjectURL(blob);
       onImageSelected(blob, preview);
-      patch({ imageSourceTab: 'upload', resolvedImagePath: undefined, aiPrompt: undefined });
+      patch({
+        imageSourceTab: 'upload',
+        resolvedImagePath: undefined,
+        aiPrompt: undefined,
+        // Clear any prior image-search credit — it belongs to the picture the
+        // user just replaced, not to this upload (phase-30 §2). Mirrors
+        // AiGenerateTab.
+        imageSourceUrl: undefined,
+        imageAttribution: undefined,
+        imageLicense: undefined,
+        imageProvider: undefined,
+      });
     } catch {
       // Resize failed (corrupt/unsupported image) — silently no-op, matching
       // the previous behaviour of the inline blob===null check.

@@ -19,4 +19,9 @@ export type ListItem = {
   generatedAudioPath?: string;
   recordedAudioPath?: string;
   imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  // Image Search credit (phase-30 §2) — a CC BY-SA picture's attribution is a
+  // licence obligation, so it rides with the item through save and publish.
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
 };

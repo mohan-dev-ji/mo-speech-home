@@ -874,6 +874,8 @@
     "imageSelectError": "Couldn't load that image. Please try another.",
     "imageSearchQuotaExceeded": "Daily search limit reached. Try again tomorrow.",
     "imageSearchAttributionLink": "View on Wikimedia Commons",
+    "imageCredit": "Image credit: {credit}",
+    "imageCreditSource": "View original",
     "imageSearchesLeft": "{count} searches left today",
     "imageSearchUpsellTitle": "Upgrade to Max",
     "imageSearchUpsellBody": "Image search is included with the Max plan — find CC-licensed photos and illustrations from Wikimedia Commons.",

@@ -1137,14 +1137,25 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     // displayProps is no longer authored for slots — the editor's Display/Text/
     // Shape sections are categoryBoard-only now. Values already stored on
     // existing slots are preserved by the spread, just never updated.
+    // Image provenance + credit reported by the editor (phase-30 §2). Written as
+    // explicit keys — `undefined` when the new image has none — so swapping an
+    // Image Search photo for a SymbolStix symbol clears the stale attribution
+    // rather than leaving it attached to an unrelated picture.
+    const provenance = {
+      imageSourceType: result.imageSourceType,
+      imageSourceUrl: result.imageSourceUrl,
+      attribution: result.attribution,
+      license: result.license,
+    };
     const current = [...sentence.slots];
     if (slotEditTarget.slotIndex === -1) {
-      current.push({ order: current.length, imagePath: result.imagePath, label: nextLabel });
+      current.push({ order: current.length, imagePath: result.imagePath, label: nextLabel, ...provenance });
     } else {
       current[slotEditTarget.slotIndex] = {
         ...current[slotEditTarget.slotIndex],
         imagePath: result.imagePath,
         label: nextLabel,
+        ...provenance,
       };
     }
     const reindexed = current.map((s, i) => ({ ...s, order: i }));
@@ -1221,6 +1232,12 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       ...(result.imagePath ? { imagePath: result.imagePath } : {}),
       ...audioField,
       ...(label ? { label: { [language]: label } } : {}),
+      // phase-30 §2 — the unit is rebuilt from scratch on every save, so the
+      // credit has to be re-attached here or an Image Search word loses it.
+      ...(result.imageSourceType ? { imageSourceType: result.imageSourceType } : {}),
+      ...(result.imageSourceUrl ? { imageSourceUrl: result.imageSourceUrl } : {}),
+      ...(result.attribution ? { attribution: result.attribution } : {}),
+      ...(result.license ? { license: result.license } : {}),
     };
     const units = [...unitsOf(unitEditTarget.sentenceId)];
     if (unitEditTarget.unitIndex === -1) {
@@ -1276,6 +1293,14 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const existingSlotImagePath =
     slotEditTarget && slotEditTarget.slotIndex >= 0
       ? slotEditorSentence?.slots[slotEditTarget.slotIndex]?.imagePath
+      : undefined;
+
+  // Stored image provenance + credit for the slot being edited (phase-30 §2).
+  // Seeds the editor's credit line and is what an untouched save hands back, so
+  // reopening a slot to change nothing can't strip a CC BY-SA attribution.
+  const existingSlot =
+    slotEditTarget && slotEditTarget.slotIndex >= 0
+      ? slotEditorSentence?.slots[slotEditTarget.slotIndex]
       : undefined;
 
   // Exact-language only — deliberately NOT displayString/displayValue, whose
@@ -1600,6 +1625,10 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           editorMode="sentenceSlot"
           initialImagePath={existingSlotImagePath}
           initialSearchQuery={existingSlotSearch}
+          initialImageSourceType={existingSlot?.imageSourceType}
+          initialImageSourceUrl={existingSlot?.imageSourceUrl}
+          initialAttribution={existingSlot?.attribution}
+          initialLicense={existingSlot?.license}
           onClose={() => setSlotEditTarget(null)}
           onSave={() => {}}
           onSentenceSlotSave={handleSlotSave}
@@ -1619,10 +1648,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           initialLabel={existingUnitLabel}
           initialImagePath={existingUnitImagePath}
           initialAudioPath={existingUnitAudioPath}
-          // Word units store no `imageSourceType` (ADR-015 `compositionWord`), so
-          // the listItem rehydration had nothing to restore and opened on Upload.
-          // Editing a unit is "find a better symbol", not "replace with a photo" —
-          // the same call SlotStrip's editor already makes for sentence slots.
+          initialImageSourceType={editingUnit?.imageSourceType}
+          initialImageSourceUrl={editingUnit?.imageSourceUrl}
+          initialAttribution={editingUnit?.attribution}
+          initialLicense={editingUnit?.license}
+          // Fallback tab for units authored BEFORE `imageSourceType` reached
+          // `compositionWord` (phase-30 §2): with nothing to restore, the listItem
+          // rehydration used to open on Upload. Editing a unit is "find a better
+          // symbol", not "replace with a photo" — the same call SlotStrip's editor
+          // makes for sentence slots. A stored provenance still wins over this.
           initialImageTab="symbolstix"
           onClose={() => setUnitEditTarget(null)}
           onSave={() => {}}
