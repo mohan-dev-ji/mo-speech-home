@@ -61,8 +61,16 @@ export async function GET(request: Request) {
   // stale-signature risk, which REDIRECT_MAX_AGE_SECONDS < SIGNATURE_EXPIRY_SECONDS
   // covers: the browser's cached 302 will always be re-fetched before the
   // signed URL it points to could have expired.
-  return NextResponse.redirect(url, {
+  // Built by hand rather than via `NextResponse.redirect(url, { headers })`.
+  // Both forms should behave identically; this one is explicit about the exact
+  // status and header set, which matters because the response passes through
+  // Clerk + next-intl in proxy.ts before reaching the browser. If Cache-Control
+  // ever goes missing in production, verify HERE first — a stale dev-server
+  // compile makes this route look header-less when it is not.
+  return new NextResponse(null, {
+    status: 307,
     headers: {
+      Location: url,
       "Cache-Control": `private, max-age=${REDIRECT_MAX_AGE_SECONDS}`,
     },
   });
