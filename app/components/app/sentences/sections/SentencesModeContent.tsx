@@ -1290,18 +1290,14 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     ? sentences?.find((s) => s._id === slotEditTarget.sentenceId)
     : undefined;
 
-  const existingSlotImagePath =
-    slotEditTarget && slotEditTarget.slotIndex >= 0
-      ? slotEditorSentence?.slots[slotEditTarget.slotIndex]?.imagePath
-      : undefined;
-
-  // Stored image provenance + credit for the slot being edited (phase-30 §2).
-  // Seeds the editor's credit line and is what an untouched save hands back, so
-  // reopening a slot to change nothing can't strip a CC BY-SA attribution.
+  // The slot being edited. Carries its image AND its stored provenance + credit
+  // (phase-30 §2) into the editor, so the credit line shows and an untouched
+  // save can't strip a CC BY-SA attribution.
   const existingSlot =
     slotEditTarget && slotEditTarget.slotIndex >= 0
       ? slotEditorSentence?.slots[slotEditTarget.slotIndex]
       : undefined;
+  const existingSlotImagePath = existingSlot?.imagePath;
 
   // Exact-language only — deliberately NOT displayString/displayValue, whose
   // 3-tier fallback (exact → en → first key) is right for display and wrong for
