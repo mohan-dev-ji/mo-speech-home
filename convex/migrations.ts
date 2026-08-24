@@ -1354,3 +1354,62 @@ export const purgeTtsCacheRowsByIds = internalMutation({
     return { deletedKeys, deleted: deletedKeys.length, missing };
   },
 });
+
+// ─── One-off: backfill AI Generate symbol images to 512px webp ────────────────
+// AI Generate images were saved as raw 1024x1024 PNGs (~880KB each) before the
+// client started resizing to 512px webp (~20KB) via resizeImage.ts (see that
+// file's docblock). Existing `aiGenerated` profileSymbols rows still point at
+// the oversized originals — a 12-symbol board was ~10.5MB and took ~10s to
+// render. Image Search JPEGs and userUpload images are out of scope: Image
+// Search already averages ~66KB and gets its own pass later; uploads are
+// already resized client-side.
+//
+// Driven end-to-end by scripts/backfill-ai-image-sizes.mjs, which defaults to
+// a read-only --dry-run and only writes with --apply. Run:
+//   npx convex run migrations:listAiGeneratedSymbolImages '{}' --no-push
+//   npx convex run migrations:repointSymbolImagePath '{"symbolId":"...","imagePath":"..."}' --no-push
+
+/** Read-only: every aiGenerated profileSymbols row's current image path. */
+export const listAiGeneratedSymbolImages = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("profileSymbols").collect();
+    const rows: Array<{ _id: string; imagePath: string }> = [];
+    for (const ps of all) {
+      if (ps.imageSource.type === "aiGenerated") {
+        rows.push({ _id: ps._id, imagePath: ps.imageSource.imagePath });
+      }
+    }
+    return rows;
+  },
+});
+
+/**
+ * Point one aiGenerated profileSymbols row at a freshly-resized R2 object.
+ * Patches ONLY `imageSource.imagePath` — every other field on the union
+ * member (notably `aiPrompt`, needed for regeneration) is preserved by
+ * spreading the existing `imageSource` before overriding the path. Throws
+ * if the row is no longer `aiGenerated` (e.g. hand-edited between the list
+ * and repoint calls) rather than silently corrupting a different union
+ * shape. Does NOT touch R2 — the old object is left in place; the caller
+ * script prints orphaned keys for a later sweep.
+ */
+export const repointSymbolImagePath = internalMutation({
+  args: { symbolId: v.string(), imagePath: v.string() },
+  handler: async (ctx, args) => {
+    const id = ctx.db.normalizeId("profileSymbols", args.symbolId);
+    if (!id) throw new Error(`Not a profileSymbols id: ${args.symbolId}`);
+    const ps = await ctx.db.get(id);
+    if (!ps) throw new Error(`profileSymbols row not found: ${args.symbolId}`);
+    if (ps.imageSource.type !== "aiGenerated") {
+      throw new Error(
+        `profileSymbols ${args.symbolId} is no longer aiGenerated (now "${ps.imageSource.type}") — refusing to repoint`
+      );
+    }
+    await ctx.db.patch(id, {
+      imageSource: { ...ps.imageSource, imagePath: args.imagePath },
+      updatedAt: Date.now(),
+    });
+    return { ok: true };
+  },
+});
