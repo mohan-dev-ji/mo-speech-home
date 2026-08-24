@@ -871,6 +871,7 @@
     "imageSearchLoading": "Searching…",
     "imageSearchNoResults": "No results for \"{query}\"",
     "imageSearchError": "Search failed. Please try again.",
+    "imageSelectError": "Couldn't load that image. Please try another.",
     "imageSearchQuotaExceeded": "Daily search limit reached. Try again tomorrow.",
     "imageSearchAttributionLink": "View on Wikimedia Commons",
     "imageSearchesLeft": "{count} searches left today",

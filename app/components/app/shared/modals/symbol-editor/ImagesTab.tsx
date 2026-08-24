@@ -61,7 +61,7 @@ export function ImagesTab({
   const [providersUsed, setProvidersUsed] = useState<ImageProvider[]>([]);
   const [providersEnabled, setProvidersEnabled] = useState<ImageProvider[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isFetchingFull, setIsFetchingFull] = useState(false);
 
@@ -83,13 +83,13 @@ export function ImagesTab({
       setResults(null);
       setProvidersUsed([]);
       setProvidersEnabled([]);
-      setSearchError(null);
+      setErrorMessage(null);
       return;
     }
 
     let cancelled = false;
     setIsSearching(true);
-    setSearchError(null);
+    setErrorMessage(null);
 
     fetch("/api/image-search/search", {
       method: "POST",
@@ -100,12 +100,12 @@ export function ImagesTab({
         if (cancelled) return;
         if (res.status === 429) {
           setResults([]);
-          setSearchError(t("imageSearchQuotaExceeded"));
+          setErrorMessage(t("imageSearchQuotaExceeded"));
           return;
         }
         if (!res.ok) {
           setResults([]);
-          setSearchError(t("imageSearchError"));
+          setErrorMessage(t("imageSearchError"));
           return;
         }
         const json = (await res.json()) as SearchResponse;
@@ -114,7 +114,7 @@ export function ImagesTab({
         setProvidersEnabled(json.providersEnabled ?? []);
       })
       .catch(() => {
-        if (!cancelled) setSearchError(t("imageSearchError"));
+        if (!cancelled) setErrorMessage(t("imageSearchError"));
       })
       .finally(() => {
         if (!cancelled) setIsSearching(false);
@@ -129,19 +129,23 @@ export function ImagesTab({
   async function handleSelect(result: ImageSearchResult) {
     setSelectedKey(resultKey(result));
     setIsFetchingFull(true);
-    setSearchError(null);
+    setErrorMessage(null);
     try {
       const res = await fetch("/api/image-search/proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullImageUrl: result.fullImageUrl,
           provider: result.provider,
           providerId: result.providerId,
+          // Wikimedia results carry no save URL — the proxy resolves one from
+          // the pageid (`providerId`) server-side (MOS-30).
+          ...(result.fullImageUrl ? { fullImageUrl: result.fullImageUrl } : {}),
         }),
       });
       if (!res.ok) {
-        setSearchError(t("imageSearchError"));
+        // The SEARCH succeeded — it's this one selection that failed to fetch.
+        // Saying "Search failed" here sent MOS-8 off as a search bug (MOS-30).
+        setErrorMessage(t("imageSelectError"));
         return;
       }
       const rawBlob = await res.blob();
@@ -165,7 +169,7 @@ export function ImagesTab({
         ...(trimmedQuery ? { labelEng: trimmedQuery } : {}),
       });
     } catch {
-      setSearchError(t("imageSearchError"));
+      setErrorMessage(t("imageSelectError"));
     } finally {
       setIsFetchingFull(false);
     }
@@ -251,15 +255,15 @@ export function ImagesTab({
           </div>
         )}
 
-        {searchError && (
+        {errorMessage && (
           <div className="flex items-center gap-2 p-3 rounded-theme-sm mb-2"
                style={{ background: "var(--theme-symbol-bg)", color: "var(--theme-warning)" }}>
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span className="text-theme-xs">{searchError}</span>
+            <span className="text-theme-xs">{errorMessage}</span>
           </div>
         )}
 
-        {!isSearching && debouncedSearch && results?.length === 0 && !searchError && (
+        {!isSearching && debouncedSearch && results?.length === 0 && !errorMessage && (
           <div className="flex items-center justify-center h-32">
             <p className="text-theme-s text-center" style={{ color: "var(--theme-secondary-text)" }}>
               {t("imageSearchNoResults", { query: debouncedSearch })}

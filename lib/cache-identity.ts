@@ -59,7 +59,7 @@
  * BUMP THIS whenever a change to `lib/image-providers/*` alters what ends up
  * in a cached result. See the bump procedure above.
  */
-export const IMAGE_SEARCH_CACHE_VERSION = 1;
+export const IMAGE_SEARCH_CACHE_VERSION = 2;
 
 /**
  * Identity of the AI image generator. Part of the `aiImageCache` key (see

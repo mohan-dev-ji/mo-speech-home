@@ -15,11 +15,17 @@ const USER_AGENT =
   "mo-speech (https://mospeech.com; support@mospeech.com)";
 const PAGE_SIZE = 20;
 /**
- * Width we ASK the API for. Wikimedia decides what we actually get — see
- * `iiurlwidth` handling below. 640 matches the save width Unsplash and Pixabay
- * use, so stored symbol images are consistent across providers.
+ * Widths we ASK the API for. Wikimedia decides what we actually get — see the
+ * `iiurlwidth` note below.
+ *
+ * The grid asks for 320 (tiles render at ~330px) and the save path asks for
+ * 640, which matches what Unsplash and Pixabay save and covers the largest a
+ * symbol image ever renders (`max-w-[260px]` in PlayModal) on a 2x display.
+ * Measured on File:Classical Guitar two views.jpg: ~22 KB vs ~104 KB per
+ * image, i.e. ~1.6 MB saved on a 19-result search (MOS-30).
  */
-const REQUEST_WIDTH = 640;
+const GRID_WIDTH = 320;
+const SAVE_WIDTH = 640;
 
 type ApiPage = {
   pageid: number;
@@ -76,9 +82,24 @@ function readMeta(
  * still on `upload.wikimedia.org` so the proxy allowlist passes. That makes the
  * old "small original" guard redundant — small originals need no special case.
  *
- * So: pass the width we want as `iiurlwidth`, then use `thumburl` verbatim for
- * both grid and save. One URL per result, as `pixabay.ts` already does with
- * `webformatURL`, which also saves the selected image a second fetch.
+ * So: pass the width we want as `iiurlwidth` and use `thumburl` verbatim.
+ *
+ * ## Two calls, two widths (MOS-30)
+ *
+ * `iiurlwidth` is per API call, so one search call can only produce one width.
+ * Serving both grid and save from it meant the grid downloaded save-size
+ * images (~2 MB per search). Instead:
+ *
+ *  - `searchWikimedia` asks for `GRID_WIDTH` and returns that `thumburl` as
+ *    `thumbnailUrl`. It deliberately does NOT set `fullImageUrl` — a Wikimedia
+ *    result carries only its `pageid` (as `providerId`) as the save reference.
+ *  - `resolveWikimediaSaveUrl` asks for `SAVE_WIDTH` by `pageid` at selection
+ *    time, one extra un-metered call per *selection* (not per search).
+ *
+ * Both still use the returned `thumburl` verbatim — neither hand-builds a
+ * `px-` token. The second call also means the save URL is resolved on the
+ * server from an id rather than round-tripped through the client, so the proxy
+ * cannot be steered at an arbitrary host for this provider.
  */
 
 /**
@@ -103,7 +124,7 @@ export const searchWikimedia: ProviderSearchFn = async (
     gsroffset: String(page * PAGE_SIZE),
     prop: "imageinfo",
     iiprop: "url|size|extmetadata|mime",
-    iiurlwidth: String(REQUEST_WIDTH),
+    iiurlwidth: String(GRID_WIDTH),
     origin: "*",
   });
 
@@ -145,10 +166,10 @@ export const searchWikimedia: ProviderSearchFn = async (
         providerId: String(p.pageid),
         provider: "wikimedia",
         title: p.title,
-        // Both come straight from the API — see the note above. Same URL for
-        // grid and save, so selecting a result needs no second download.
+        // Grid-size URL, straight from the API. No `fullImageUrl`: the save
+        // URL is resolved server-side from `providerId` (the pageid) by
+        // `resolveWikimediaSaveUrl` — see the note above.
         thumbnailUrl: info.thumburl,
-        fullImageUrl: info.thumburl,
         sourceUrl: info.descriptionurl,
         attribution: readMeta(info.extmetadata, "Artist") || "Unknown",
         license: readMeta(info.extmetadata, "LicenseShortName") || "Unknown",
@@ -159,3 +180,60 @@ export const searchWikimedia: ProviderSearchFn = async (
     })
     .filter((r): r is ImageSearchResult => r !== null);
 };
+
+/**
+ * Resolve the save-size image URL for one Wikimedia result, server-side.
+ *
+ * Called by `/api/image-search/proxy` when a result is selected. Takes the
+ * result's `providerId` (the Commons `pageid`) and asks the API for a
+ * `SAVE_WIDTH` thumbnail of that page, returning the `thumburl` verbatim.
+ *
+ * This is the whole reason the proxy never has to trust a client-supplied URL
+ * for this provider: the only thing that crosses the wire is a page id, which
+ * is validated as digits here before it goes anywhere near a request, and the
+ * URL that comes back is one Wikimedia itself produced.
+ *
+ * Returns null on a bad id, a failed call, or a page with no usable thumbnail
+ * — the caller turns that into a 502.
+ */
+export async function resolveWikimediaSaveUrl(
+  pageId: string
+): Promise<string | null> {
+  if (!/^\d+$/.test(pageId)) return null;
+
+  const params = new URLSearchParams({
+    action: "query",
+    format: "json",
+    formatversion: "2",
+    pageids: pageId,
+    prop: "imageinfo",
+    iiprop: "url|mime",
+    iiurlwidth: String(SAVE_WIDTH),
+    origin: "*",
+  });
+
+  let res: Response;
+  try {
+    res = await fetch(`${WIKIMEDIA_API}?${params}`, {
+      headers: { "User-Agent": USER_AGENT },
+    });
+  } catch (err) {
+    console.error("[image-providers/wikimedia] save-url fetch failed", err);
+    return null;
+  }
+  if (!res.ok) {
+    console.error(
+      `[image-providers/wikimedia] save-url API error: ${res.status}`
+    );
+    return null;
+  }
+
+  const json = (await res.json()) as SearchResponse;
+  const info = json.query?.pages?.[0]?.imageinfo?.[0];
+  // Same image-only guard the grid applies — a pageid that turns out to be a
+  // PDF or DjVu scan renders as a thumbnail but is not something we save.
+  if (!info?.thumburl) return null;
+  if (!info.mime.startsWith("image/")) return null;
+
+  return info.thumburl;
+}

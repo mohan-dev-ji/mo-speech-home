@@ -3,15 +3,24 @@ import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { recordUnsplashDownload } from "@/lib/image-providers/unsplash";
+import { resolveWikimediaSaveUrl } from "@/lib/image-providers/wikimedia";
 import type { ImageProvider } from "@/lib/image-providers/types";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Hosts we're willing to fetch image bytes from. The client passes the URL
- * back to us (it was previously cached in our `imageSearchCache` table), but
- * we re-validate so a malicious cache row or modified client request can't
- * pull bytes from arbitrary URLs through our authenticated proxy.
+ * Hosts we're willing to fetch image bytes from.
+ *
+ * For every provider except Wikimedia the client passes the save URL back to
+ * us (it came from our `imageSearchCache` row), so we re-validate the host —
+ * otherwise a poisoned cache row or a modified client could pull bytes from an
+ * arbitrary URL through our authenticated proxy.
+ *
+ * Wikimedia no longer sends a URL at all: the save URL is resolved here from
+ * the result's `pageid` (MOS-30), so that class of risk does not exist for it.
+ * The resolved URL is still checked against this list — it should always be
+ * `upload.wikimedia.org`, and if Wikimedia ever returns something else we want
+ * to fail rather than fetch it.
  */
 const ALLOWED_HOSTS = new Set([
   "upload.wikimedia.org",
@@ -33,7 +42,11 @@ const USER_AGENT =
 
 /**
  * POST /api/image-search/proxy
- * Body: { fullImageUrl: string, provider: ImageProvider, providerId: string }
+ * Body: { provider: ImageProvider, providerId: string, fullImageUrl?: string }
+ *
+ * `fullImageUrl` is required for every provider except `wikimedia`, where it is
+ * ignored if sent: the save-size URL is resolved server-side from `providerId`
+ * (the Commons pageid) via `resolveWikimediaSaveUrl`.
  *
  * Streams image bytes from the provider CDN back to the client. The client
  * uses the bytes to populate the symbol editor preview; the eventual R2 write
@@ -59,9 +72,6 @@ export async function POST(request: Request) {
   }
 
   const { fullImageUrl, provider, providerId } = body;
-  if (!fullImageUrl || typeof fullImageUrl !== "string") {
-    return NextResponse.json({ error: "Missing fullImageUrl" }, { status: 400 });
-  }
   if (!provider || !KNOWN_PROVIDERS.has(provider as ImageProvider)) {
     return NextResponse.json({ error: "Unknown provider" }, { status: 400 });
   }
@@ -88,10 +98,34 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── Resolve the URL to fetch ─────────────────────────────────────────────
+  // Wikimedia: from the pageid, server-side. Anything the client sent for this
+  // provider is discarded. Everyone else: the client-supplied URL, allowlisted
+  // below.
+  let upstreamUrl: string;
+  if (provider === "wikimedia") {
+    const resolved = await resolveWikimediaSaveUrl(providerId);
+    if (!resolved) {
+      console.error(
+        `[image-proxy] wikimedia_resolve_failed providerId=${providerId}`
+      );
+      return NextResponse.json(
+        { error: "wikimedia_resolve_failed" },
+        { status: 502 }
+      );
+    }
+    upstreamUrl = resolved;
+  } else {
+    if (!fullImageUrl || typeof fullImageUrl !== "string") {
+      return NextResponse.json({ error: "Missing fullImageUrl" }, { status: 400 });
+    }
+    upstreamUrl = fullImageUrl;
+  }
+
   // ── Host allowlist ───────────────────────────────────────────────────────
   let parsed: URL;
   try {
-    parsed = new URL(fullImageUrl);
+    parsed = new URL(upstreamUrl);
   } catch {
     return NextResponse.json({ error: "invalid_url" }, { status: 400 });
   }
@@ -108,12 +142,12 @@ export async function POST(request: Request) {
   }
 
   // ── Stream bytes back ────────────────────────────────────────────────────
-  const upstream = await fetch(fullImageUrl, {
+  const upstream = await fetch(upstreamUrl, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!upstream.ok || !upstream.body) {
     console.error(
-      `[image-proxy] upstream_fetch_failed provider=${provider} status=${upstream.status} url=${fullImageUrl}`
+      `[image-proxy] upstream_fetch_failed provider=${provider} status=${upstream.status} url=${upstreamUrl}`
     );
     return NextResponse.json(
       { error: "upstream_fetch_failed", status: upstream.status },
@@ -124,7 +158,7 @@ export async function POST(request: Request) {
   const contentType = upstream.headers.get("content-type") ?? "";
   if (!contentType.startsWith("image/")) {
     console.error(
-      `[image-proxy] upstream_not_image provider=${provider} contentType=${contentType} url=${fullImageUrl}`
+      `[image-proxy] upstream_not_image provider=${provider} contentType=${contentType} url=${upstreamUrl}`
     );
     return NextResponse.json(
       { error: "upstream_not_image", contentType },

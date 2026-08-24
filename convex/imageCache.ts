@@ -13,7 +13,9 @@ const resultValidator = v.object({
   provider: v.string(),
   title: v.string(),
   thumbnailUrl: v.string(),
-  fullImageUrl: v.string(),
+  // Optional: Wikimedia results omit it — the proxy resolves their save URL
+  // from `providerId` (the pageid). See lib/image-providers/types.ts.
+  fullImageUrl: v.optional(v.string()),
   sourceUrl: v.string(),
   attribution: v.string(),
   license: v.string(),

@@ -1235,7 +1235,10 @@ export default defineSchema({
         provider: v.string(),   // 'wikimedia' | 'pixabay' | 'unsplash' | 'pexels'
         title: v.string(),
         thumbnailUrl: v.string(), // ~320px target
-        fullImageUrl: v.string(), // ~640px target — proxy streams this directly
+        // ~640px save target, when the provider supplies one at search time.
+        // Absent for Wikimedia: the proxy resolves that provider's save URL
+        // server-side from the pageid instead (MOS-30).
+        fullImageUrl: v.optional(v.string()),
         sourceUrl: v.string(),
         attribution: v.string(),
         license: v.string(),
