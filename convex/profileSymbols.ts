@@ -243,7 +243,11 @@ export const getProfileSymbolDeleteOrphanKeys = query({
       }
     }
 
-    // Audio: per-language. Delete `recorded` paths + `recorded` alternates.
+    // Audio: per-language. Delete `recorded` paths + `recorded` alternates,
+    // AND only when the path is itself a personal key (accounts/ or
+    // profiles/) — a symbol installed from a published module can carry a
+    // `recorded` audio entry that still points at a shared
+    // `library_modules/…` object, which is not this account's to delete.
     // Keep `tts` (shared cache) and `r2` (SymbolStix default). Post Phase 8.0
     // the per-language map is an open record keyed by ISO code — iterate
     // values rather than naming locales.
@@ -251,8 +255,12 @@ export const getProfileSymbolDeleteOrphanKeys = query({
       (sym.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
     for (const a of Object.values(audioMap)) {
       if (!a) continue;
-      if (a.type === "recorded") keys.push(a.path);
-      if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
+      if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
+      if (
+        a.alternates?.recorded &&
+        a.alternates.recorded !== a.path &&
+        isPersonalAssetKey(a.alternates.recorded)
+      ) {
         keys.push(a.alternates.recorded);
       }
     }

@@ -262,7 +262,7 @@ export function ListDetailContent({ listId }: Props) {
   }
 
   function handleRemoveSymbol(index: number) {
-    const next = localItems.map((item, i) => i === index ? { ...item, imagePath: undefined } : item);
+    const next = localItems.map((item, i) => i === index ? { ...item, imagePath: undefined, imageSourceType: undefined, imageSourceUrl: undefined, attribution: undefined, license: undefined } : item);
     setLocalItems(next);
     persistItems(next);
   }

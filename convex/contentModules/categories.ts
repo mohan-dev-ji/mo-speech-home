@@ -156,6 +156,11 @@ export const getPublicCategoryCatalogue = query({
  * this module installed flat into the caller's account. Collected by the
  * uninstall route BEFORE `deleteCategoryModule` runs. Mirrors
  * `getCategoryReloadOrphanKeys` but spans all of the module's categories.
+ *
+ * Guarded by `isPersonalAssetKey` on both the image path and any `recorded`
+ * audio path/alternate: a symbol installed from a published module can carry
+ * an image or a `recorded` audio entry that still points at a shared
+ * `library_modules/…` object, which is not this account's to delete.
  */
 export const getCategoryModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },
@@ -194,8 +199,12 @@ export const getCategoryModuleDeleteOrphanKeys = query({
           >) ?? {};
         for (const a of Object.values(audioMap)) {
           if (!a) continue;
-          if (a.type === "recorded") keys.push(a.path);
-          if (a.alternates?.recorded && a.alternates.recorded !== a.path) {
+          if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
+          if (
+            a.alternates?.recorded &&
+            a.alternates.recorded !== a.path &&
+            isPersonalAssetKey(a.alternates.recorded)
+          ) {
             keys.push(a.alternates.recorded);
           }
         }

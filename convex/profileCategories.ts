@@ -543,7 +543,10 @@ export const deleteCategory = mutation({
  * destructive category operation.
  *
  * Excludes shared caches: ai-cache/ (aiGenerated images) and audio/<voice>/tts/
- * (TTS cache) are reusable across users and never deleted on reload.
+ * (TTS cache) are reusable across users and never deleted on reload. Also
+ * excludes `library_modules/…`: a symbol installed from a published module
+ * can carry an image or a `recorded` audio entry that still points at that
+ * shared object, which is not this account's to delete.
  *
  * Auth-checked. Returns an empty array if the caller doesn't own the category
  * or it isn't from the library — silent empty rather than a throw, since the
@@ -579,17 +582,22 @@ export const getCategoryReloadOrphanKeys = query({
         }
       }
       // Audio: per-language. Delete the active path if type "recorded", plus
-      // any "recorded" alternate. Keep "tts" (cache) and "r2" (SymbolStix
-      // default). The per-language map is an open record keyed by ISO code
-      // post Phase 8.0 — iterate keys rather than naming locales.
+      // any "recorded" alternate — AND only when the path is itself a
+      // personal key (accounts/ or profiles/); a symbol installed from a
+      // published module can carry a "recorded" entry that still points at
+      // a shared `library_modules/…` object, which is not this account's to
+      // delete. Keep "tts" (cache) and "r2" (SymbolStix default). The
+      // per-language map is an open record keyed by ISO code post Phase 8.0
+      // — iterate keys rather than naming locales.
       const audioMap =
         (s.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
       for (const a of Object.values(audioMap)) {
         if (!a) continue;
-        if (a.type === "recorded") keys.push(a.path);
+        if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
         if (
           a.alternates?.recorded &&
-          a.alternates.recorded !== a.path
+          a.alternates.recorded !== a.path &&
+          isPersonalAssetKey(a.alternates.recorded)
         ) {
           keys.push(a.alternates.recorded);
         }
