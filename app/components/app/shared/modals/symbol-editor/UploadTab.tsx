@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload } from 'lucide-react';
 import type { Draft } from './types';
+import { toResizedWebp } from './resizeImage';
 
 type Props = {
   draft: Draft;
@@ -16,35 +17,20 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
   const t = useTranslations('symbolEditor');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    const img = new Image();
-
-    img.onload = () => {
-      const MAX = 512;
-      let w = img.width, h = img.height;
-      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-      else { w = Math.round(w * MAX / h); h = MAX; }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(objectUrl);
-
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const preview = URL.createObjectURL(blob);
-        onImageSelected(blob, preview);
-        patch({ imageSourceTab: 'upload', resolvedImagePath: undefined, aiPrompt: undefined });
-      }, 'image/webp', 0.85);
-    };
-
-    img.src = objectUrl;
-    e.target.value = '';
+    try {
+      const blob = await toResizedWebp(file);
+      const preview = URL.createObjectURL(blob);
+      onImageSelected(blob, preview);
+      patch({ imageSourceTab: 'upload', resolvedImagePath: undefined, aiPrompt: undefined });
+    } catch {
+      // Resize failed (corrupt/unsupported image) — silently no-op, matching
+      // the previous behaviour of the inline blob===null check.
+    }
   }
 
   const displaySrc = pendingImagePreviewUrl

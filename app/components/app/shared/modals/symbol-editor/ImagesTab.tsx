@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import type { ImageProvider, ImageSearchResult } from "@/lib/image-providers/types";
 import type { Draft } from "./types";
+import { toResizedWebp } from "./resizeImage";
 
 const FEATURE = "imageSearch";
 const DAILY_LIMIT = 30;
@@ -143,7 +144,10 @@ export function ImagesTab({
         setSearchError(t("imageSearchError"));
         return;
       }
-      const blob = await res.blob();
+      const rawBlob = await res.blob();
+      // Provider JPEGs aren't pre-sized for us; bring them down to the same
+      // 512px-max webp all three image sources now produce.
+      const blob = await toResizedWebp(rawBlob);
       const previewUrl = URL.createObjectURL(blob);
       onImageSelected(blob, previewUrl);
       // Picking an image always overwrites the description label with the

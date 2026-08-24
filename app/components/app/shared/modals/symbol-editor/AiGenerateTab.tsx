@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { STYLE_PRESETS, STYLE_IDS, type StyleId } from "@/lib/ai-style-prompts";
 import type { Draft } from "./types";
+import { toResizedWebp } from "./resizeImage";
 
 const FEATURE = "aiImageGenerate";
 const DAILY_LIMIT = 10;
@@ -94,10 +95,23 @@ export function AiGenerateTab({
     }
   }
 
-  // ── Add to Symbol — hand the already-held blob to the modal ─────────────
-  function handleAddToSymbol() {
+  // ── Add to Symbol — resize the generated blob, then hand it to the modal ──
+  async function handleAddToSymbol() {
     if (!generatedBlob || !previewUrl) return;
-    onImageSelected(generatedBlob, previewUrl);
+    // Gemini returns a 1024x1024 PNG (~880KB); resize it down to the same
+    // 512px-max webp all three image sources now produce.
+    let resizedBlob: Blob;
+    let resizedPreviewUrl: string;
+    try {
+      resizedBlob = await toResizedWebp(generatedBlob);
+      resizedPreviewUrl = URL.createObjectURL(resizedBlob);
+    } catch {
+      setError(t("aiGenerationError"));
+      return;
+    }
+    URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(resizedPreviewUrl);
+    onImageSelected(resizedBlob, resizedPreviewUrl);
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated
     // for. Decoupled afterwards: editing the label doesn't echo back.
