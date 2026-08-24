@@ -16,6 +16,13 @@ import { audioSourceValidator } from "./profileSymbols";
 // final fallback (matches DEFAULT_VOICE_ID in lib/r2-paths.ts).
 const DEFAULT_VOICE_ID = "en-GB-News-M";
 
+// Legacy MVP-era audio prefix, superseded by the per-voice convention in
+// lib/audio/resolveAudioPath.ts (see that file's header). A handful of default
+// modules still carry `recorded`/`tts`-labelled rows whose `path` points here —
+// mislabelled stale caches, not genuine overrides (phase-30 §6). Any stored
+// path under this prefix is treated as stale regardless of declared `type`.
+const LEGACY_AUDIO_PREFIX = "audio/eng/default/";
+
 // ─── Internal: seed ───────────────────────────────────────────────────────────
 
 /**
@@ -227,7 +234,19 @@ export const getProfileSymbolsWithImages = query({
           // live board-voice re-resolution below, freezing audio to the authoring
           // language so voice-follows-text breaks on every language switch. So skip
           // `r2` entries here and let the default-locale resolution own them.
-          if (src?.path && (src.type === "recorded" || src.type === "tts")) {
+          //
+          // A handful of default-module rows are mislabelled `recorded`/`tts` but
+          // their `path` still points at the legacy `audio/eng/default/` prefix
+          // (phase-30 §6) — same stale-cache shape as the `r2` case above, just
+          // hiding behind the wrong `type`. Key on the path, not the declared
+          // type, so these fall through to convention resolution too. Genuine
+          // per-language recordings/TTS never live under this prefix, so they are
+          // unaffected.
+          if (
+            src?.path &&
+            (src.type === "recorded" || src.type === "tts") &&
+            !src.path.startsWith(LEGACY_AUDIO_PREFIX)
+          ) {
             audio[lang] = src.path;
             overriddenLangs.add(lang);
           }
