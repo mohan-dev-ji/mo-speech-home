@@ -228,13 +228,19 @@ export const getProfileSymbolDeleteOrphanKeys = query({
 
     const keys: string[] = [];
 
-    // Image: delete only uploads + image-search. Skip symbolstix (no
-    // separate R2 path) and aiGenerated (lives in shared ai-cache/).
+    // Image: delete only uploads + image-search, AND only when the path is a
+    // personal key (accounts/ or profiles/). Skip symbolstix (no separate R2
+    // path), aiGenerated (lives in shared ai-cache/), and any userUpload /
+    // imageSearch path that already points at a shared library_modules/…
+    // asset (installed from a published module) — that object is not this
+    // account's to delete.
     if (
       sym.imageSource.type === "userUpload" ||
       sym.imageSource.type === "imageSearch"
     ) {
-      keys.push(sym.imageSource.imagePath);
+      if (isPersonalAssetKey(sym.imageSource.imagePath)) {
+        keys.push(sym.imageSource.imagePath);
+      }
     }
 
     // Audio: per-language. Delete `recorded` paths + `recorded` alternates.
@@ -280,12 +286,16 @@ export const getProfileSymbolUsageCount = query({
     const keys: string[] = [];
 
     // Same personal-key rules as getProfileSymbolDeleteOrphanKeys: uploads +
-    // image-search picks, and recorded audio (incl. recorded alternates).
+    // image-search picks (only when the path is itself a personal key, not a
+    // shared library_modules/… asset), and recorded audio (incl. recorded
+    // alternates).
     if (
       sym.imageSource.type === "userUpload" ||
       sym.imageSource.type === "imageSearch"
     ) {
-      keys.push(sym.imageSource.imagePath);
+      if (isPersonalAssetKey(sym.imageSource.imagePath)) {
+        keys.push(sym.imageSource.imagePath);
+      }
     }
 
     const audioMap =

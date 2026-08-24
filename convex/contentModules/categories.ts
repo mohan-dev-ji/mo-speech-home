@@ -25,6 +25,7 @@ import {
   isModuleVisible,
 } from "../lib/contentModuleInstall";
 import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
+import { isPersonalAssetKey } from "../lib/contentModuleDelete";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -182,7 +183,9 @@ export const getCategoryModuleDeleteOrphanKeys = query({
           s.imageSource.type === "userUpload" ||
           s.imageSource.type === "imageSearch"
         ) {
-          keys.push(s.imageSource.imagePath);
+          if (isPersonalAssetKey(s.imageSource.imagePath)) {
+            keys.push(s.imageSource.imagePath);
+          }
         }
         const audioMap =
           (s.audio as Record<

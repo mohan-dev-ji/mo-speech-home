@@ -8,6 +8,7 @@ import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 import { getLanguage, getVoiceEntry, getVoiceLang } from "../lib/languages/registry";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
+import { isPersonalAssetKey } from "./lib/contentModuleDelete";
 import { audioSourceValidator } from "./profileSymbols";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
@@ -554,7 +555,9 @@ export const getCategoryReloadOrphanKeys = query({
         s.imageSource.type === "userUpload" ||
         s.imageSource.type === "imageSearch"
       ) {
-        keys.push(s.imageSource.imagePath);
+        if (isPersonalAssetKey(s.imageSource.imagePath)) {
+          keys.push(s.imageSource.imagePath);
+        }
       }
       // Audio: per-language. Delete the active path if type "recorded", plus
       // any "recorded" alternate. Keep "tts" (cache) and "r2" (SymbolStix
