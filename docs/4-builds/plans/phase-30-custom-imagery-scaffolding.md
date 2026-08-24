@@ -3,7 +3,7 @@
 > **Standalone.** Written 2026-08-24 for a fresh session. Everything needed to start is in this file — no prior conversation required.
 
 **Status:** not started
-**Tickets:** MOS-8 · MOS-30 · MOS-31 · plus two new bugs found 2026-08-24 (file them, see §1 and §2)
+**Tickets:** MOS-8 (✅ closed 2026-08-24) · MOS-30 · MOS-31 · MOS-33 · MOS-34 · plus §6, absorbed from the retired phase-20 stage-5 plan
 **Blocks:** MOS-25 and MOS-13 are **paused** until this lands.
 
 ---
@@ -21,7 +21,7 @@ The owner's decision on 2026-08-24: *"fully fix our scaffolding before finishing
 ## Global constraints
 
 - **Work on `main`.** No branch, no worktree — project standing convention.
-- **The dev server is owner-run on port 3000.** Never `npm run dev`. Note it does **not** always hot-reload route handlers — see §6.
+- **The dev server is owner-run on port 3000.** Never `npm run dev`. Note it does **not** always hot-reload route handlers — see §7.
 - **Never `npx convex dev`.** Use `--no-push` on every `npx convex run`.
 - Node 20.17.0 (Convex CLI requirement).
 - **No test framework exists and none may be added** (settled in phase-17). "Test" means a runnable command with a stated expected output.
@@ -91,13 +91,13 @@ Latent because image search has only ever been used in categories — measured 2
 
 ---
 
-## 3. MOS-8 — confirm and close
+## 3. MOS-8 — ✅ DONE (closed 2026-08-24)
 
 **Already fixed** in `c895df4` (Wikimedia restricts thumbnail generation to a per-file allowlist of widths; the provider was rewriting the API's valid `thumburl` to a hard-coded 640, which 400'd). Root cause and evidence are on the ticket.
 
 It could not be confirmed in-app on 2026-08-23 because `imageSearchCache` was serving pre-fix rows (that is MOS-31). Those rows expired ~15:05 on 2026-08-24.
 
-**Do:** run one Image Search, select a Wikimedia ("W" badge) result, confirm it lands in the preview. Then close MOS-8. If it still fails, the cache is not the explanation and it needs reopening.
+**Confirmed and closed 2026-08-24.** The owner ran a `guitar` Image Search after the stale rows expired: no errors, Wikimedia results select cleanly. Kept here only as the record of why it lagged — the cache, not the fix. Nothing to do.
 
 ---
 
@@ -128,7 +128,63 @@ The same blind spot bit twice in one day. Both caches key on content but not on 
 
 ---
 
-## 6. A debugging trap that cost time — read before verifying anything
+## 6. Legacy `audio/eng/default/` overrides on nine default symbols
+
+**Absorbed from `phase-20-stage-5-legacy-audio-path-backfill-plan.md`, which is retired to `_done/`.** That plan was written 2026-08-15 and its scope has shrunk: phase-20's resolver cutover and the en-GB-News-M reseed both shipped, and the happy path is confirmed working (owner 2026-08-24: TTS resolving to `audio/en-GB-News-M/tts/…`). What remains is the residual below.
+
+### The nine
+
+Nine symbols in **default** modules carry a stale audio override pointing at the legacy prefix:
+
+| Module | Symbols |
+|---|---|
+| `actions` | write, stop, feel |
+| `activities` | football, holiday |
+| `home` | kettle |
+| `nature` | fog, field, star |
+
+All nine legacy objects exist and play, so nothing is silent — and **the correct modern file already exists** for every one at `audio/en-GB-News-M/symbols/<word>.mp3` (verified 2026-08-24). They are simply not being reached.
+
+### Why they slip through
+
+The stored entries are `type: "tts"`, even though the filenames (`kettle.mp3`, `football_sign_language.mp3`, `symbol00197645.mp3`) show they are SymbolStix defaults, not TTS output.
+
+`getProfileSymbolsWithImages` (`convex/profileCategories.ts`) skips `type: "r2"` entries as "a stale cache, not an override" — but **keeps `recorded` and `tts` as genuine per-language overrides**. The mislabel is what defeats the guard.
+
+These are default modules, so every new account installs them and every user gets those nine tiles served from the legacy prefix instead of the current board voice.
+
+### Fix — the read-time guard only
+
+Treat **any** stored audio path under `audio/eng/default/` as a stale cache regardless of its declared `type`, and fall through to convention resolution (`resolveSymbolAudioPath`). Self-healing, no migration, and it catches rows nobody has enumerated.
+
+Phase-20 stage-5's *part 2* (a backfill for list items, sentence units, phrases) is **dropped as unnecessary**: the 40 remaining legacy strings are all in `life-skills.json` (`audioPath` ×20, `defaultAudioPath` ×20) and are vestigial — `ListItemPlayModal` (`app/components/app/lists/sections/ListDetailDisplay.tsx:86`) never reads `audioPath`. A recording wins if present, otherwise it calls `playTts(description)` per ADR-018. Three of the four list modules lost those fields entirely during the MOS-13 remake with no audible effect, which is the proof.
+
+### Why it is worth doing rather than tolerating
+
+Same shape as the `library_packs/` retirement: the `audio/eng/default/` prefix cannot be retired while rows still point into it — and the live MVP still serves that prefix, so it matters when the two deployments are eventually separated.
+
+### Verify
+
+Tap each of the nine on an EN board and confirm the request goes to `audio/en-GB-News-M/symbols/<word>.mp3`, not `audio/eng/default/…`. Then re-run the field scan and expect zero category hits:
+
+```bash
+node -e '
+const fs=require("fs");
+let n=0;
+for (const f of fs.readdirSync("convex/data/categories").filter(x=>x.endsWith(".json"))) {
+  const m=JSON.parse(fs.readFileSync("convex/data/categories/"+f,"utf8"));
+  for (const it of m.items) for (const s of it.symbols||[]) for (const a of Object.values(s.audio||{}))
+    if (a?.path?.includes("audio/eng/default") || a?.alternates?.default?.includes("audio/eng/default")) n++;
+}
+console.log("legacy category audio refs:", n);
+'
+```
+
+Note the artifact only changes once the modules are re-exported, so expect the count to stay at 14 until then — the runtime behaviour is the real check.
+
+---
+
+## 7. A debugging trap that cost time — read before verifying anything
 
 The dev server **served a stale compile** of `app/api/assets/route.ts`, so a correctly-set `Cache-Control` header looked absent. Several measurements were taken against old code before this was noticed, and a wrong conclusion was briefly committed.
 
@@ -139,10 +195,10 @@ The dev server **served a stale compile** of `app/api/assets/route.ts`, so a cor
 ## Suggested order
 
 1. **§1 guards** — small, strictly protective, and it unblocks publishing. Do it first.
-2. **§3 MOS-8 confirm** — two minutes, and it closes a ticket.
-3. **§5 MOS-31** — the cache guards, because they make every later verification trustworthy.
+2. **§5 MOS-31** — the cache guards, because they make every later verification trustworthy.
 4. **§4 MOS-30** — depends on nothing else; do it whenever.
-5. **§2 attribution** — the largest piece, touching every layer of three trees. Last, with the most room.
+5. **§6 audio guard** — five-line read-time guard, independent of everything else.
+6. **§2 attribution** — the largest piece, touching every layer of three trees. Last, with the most room.
 
 ---
 

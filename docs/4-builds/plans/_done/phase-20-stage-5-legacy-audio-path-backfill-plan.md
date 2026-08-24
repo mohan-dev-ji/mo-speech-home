@@ -4,7 +4,14 @@
 
 > **For a fresh session:** this plan is self-contained — you do NOT need any prior conversation. Read it top to bottom, then execute task by task.
 
-**Written:** 2026-08-15 · **Owner:** Mo · **Status:** ready to execute (not started)
+**Written:** 2026-08-15 · **Owner:** Mo · **Status:** ⚠️ RETIRED 2026-08-24 — superseded, see below
+
+> **Retired without being executed as written.** Phase-20's resolver cutover and the en-GB-News-M reseed both shipped, and the happy path was confirmed working on 2026-08-24 (TTS resolving to `audio/en-GB-News-M/tts/…`). What remained was much smaller than this plan assumes, and has moved to **`docs/4-builds/plans/phase-30-custom-imagery-scaffolding.md` §6**:
+>
+> - **Part 1 (read-time guard) survives**, re-scoped to nine named symbols in `actions`, `activities`, `home` and `nature`. They carry stale `audio/eng/default/…` overrides stored as `type: "tts"` — and `getProfileSymbolsWithImages` only skips `type: "r2"`, so the mislabel defeats the guard. The correct modern file exists for all nine at `audio/en-GB-News-M/symbols/<word>.mp3`.
+> - **Part 2 (list/sentence/phrase backfill) is DROPPED as unnecessary.** The 40 remaining legacy strings are all in `life-skills.json` and are vestigial: `ListItemPlayModal` never reads `audioPath` — a recording wins, else `playTts(description)` per ADR-018. Three of four list modules lost those fields entirely in the MOS-13 remake with no audible effect.
+>
+> Kept here for the reasoning and the original scope, not as an executable runbook.
 **Follows:** `docs/4-builds/plans/_done/phase-20-en-gb-news-m-reseed-plan.md` (Stages 0–3 + 4a shipped; 4b deliberately not done)
 
 **Goal:** stop Home from serving symbol audio out of the legacy `audio/eng/default/` prefix, by fixing the *persisted* paths that phase-20's resolver cutover left behind.
