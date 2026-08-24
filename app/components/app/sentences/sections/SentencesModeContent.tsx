@@ -92,6 +92,13 @@ type Slot = {
   };
   // AUTHORING ONLY — never rendered. Seeds the slot editor's symbol search.
   label?: Record<string, string>;
+  // Image provenance + credit (phase-30 §2) — must survive every re-shape of
+  // a slot (reorder, remove, save) or a Creative Commons image silently loses
+  // its attribution. See handleReorderSlots below for the bug this closes.
+  imageSourceType?: 'symbolstix' | 'upload' | 'imageSearch' | 'aiGenerated';
+  imageSourceUrl?: string;
+  attribution?: string;
+  license?: string;
 };
 
 type SentenceRow = {
@@ -1086,14 +1093,10 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
 
   async function handleReorderSlots(sentenceId: Id<'profileSentences'>, nextSlots: Slot[]) {
     // `nextSlots` already carries reindexed `order` values from SlotStrip.
-    // Re-shape to the mutation arg type so optional fields default to undefined
-    // when absent. `label` rides along so a reorder never drops a slot's seed.
-    const slotsArg = nextSlots.map((s, i) => ({
-      order: i,
-      imagePath: s.imagePath,
-      displayProps: s.displayProps,
-      label: s.label,
-    }));
+    // Spread each slot so every field — including the image provenance/credit
+    // (phase-30 §2) — survives the reorder untouched; only `order` changes.
+    // Same pattern as handleRemoveSlot above.
+    const slotsArg = nextSlots.map((s, i) => ({ ...s, order: i }));
     const targetId = await resolveWriteTarget(sentenceId);
     await updateSlots({
       profileSentenceId: targetId,

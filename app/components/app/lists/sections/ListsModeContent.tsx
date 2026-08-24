@@ -602,16 +602,13 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     await renameList({ profileListId: translateTarget, name: fill(translateFullList.name) });
     await updateListItems({
       profileListId: translateTarget,
+      // Spread the source item so every field — including the image provenance
+      // and credit (phase-30 §2) — survives the translate-whole-list write;
+      // only `order` and `description` change.
       items: translateFullList.items.map((it, i) => ({
-        imagePath: it.imagePath,
+        ...it,
         order: i,
         description: it.description === undefined ? undefined : fill(recordOf(it.description, srcLang)),
-        audioPath: it.audioPath,
-        activeAudioSource: it.activeAudioSource,
-        defaultAudioPath: it.defaultAudioPath,
-        generatedAudioPath: it.generatedAudioPath,
-        recordedAudioPath: it.recordedAudioPath,
-        imageSourceType: it.imageSourceType,
       })),
     });
     setTranslateTarget(null);
