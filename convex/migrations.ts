@@ -1355,29 +1355,47 @@ export const purgeTtsCacheRowsByIds = internalMutation({
   },
 });
 
-// ─── One-off: backfill AI Generate symbol images to 512px webp ────────────────
-// AI Generate images were saved as raw 1024x1024 PNGs (~880KB each) before the
-// client started resizing to 512px webp (~20KB) via resizeImage.ts (see that
-// file's docblock). Existing `aiGenerated` profileSymbols rows still point at
-// the oversized originals — a 12-symbol board was ~10.5MB and took ~10s to
-// render. Image Search JPEGs and userUpload images are out of scope: Image
-// Search already averages ~66KB and gets its own pass later; uploads are
-// already resized client-side.
+// ─── One-off: backfill oversized symbol images to 512px webp ─────────────────
+// Two sources produce oversized images:
+//
+//   aiGenerated — saved as raw 1024x1024 PNGs (~880KB each) before the client
+//     started resizing to 512px webp (~20KB) via resizeImage.ts (see that
+//     file's docblock). A 12-symbol board was ~10.5MB and took ~10s to render.
+//   imageSearch — Wikimedia JPEGs land at ~66KB each and re-encode to ~20KB
+//     webp. Smaller per image than the AI case but the same fix; the
+//     `instruments` module is the bulk of them.
+//
+// userUpload is deliberately OUT of scope — those are already resized
+// client-side before upload.
 //
 // Driven end-to-end by scripts/backfill-ai-image-sizes.mjs, which defaults to
-// a read-only --dry-run and only writes with --apply. Run:
-//   npx convex run migrations:listAiGeneratedSymbolImages '{}' --no-push
+// a read-only --dry-run and only writes with --apply, and can be narrowed to
+// one source with --type=aiGenerated|imageSearch. Run:
+//   npx convex run migrations:listResizableSymbolImages '{}' --no-push
 //   npx convex run migrations:repointSymbolImagePath '{"symbolId":"...","imagePath":"..."}' --no-push
 
-/** Read-only: every aiGenerated profileSymbols row's current image path. */
-export const listAiGeneratedSymbolImages = internalQuery({
+/** One resizable symbol image: which row, where it lives, and which source made it. */
+type ResizableSymbolImage = {
+  _id: string;
+  imagePath: string;
+  type: "aiGenerated" | "imageSearch";
+};
+
+/**
+ * Read-only: every `aiGenerated` or `imageSearch` profileSymbols row's current
+ * image path, tagged with its source type so the caller can filter. Excludes
+ * `userUpload` (already resized client-side), `symbolstix` (shared vector
+ * assets, no imagePath) and `placeholder` (no image at all).
+ */
+export const listResizableSymbolImages = internalQuery({
   args: {},
   handler: async (ctx) => {
     const all = await ctx.db.query("profileSymbols").collect();
-    const rows: Array<{ _id: string; imagePath: string }> = [];
+    const rows: ResizableSymbolImage[] = [];
     for (const ps of all) {
-      if (ps.imageSource.type === "aiGenerated") {
-        rows.push({ _id: ps._id, imagePath: ps.imageSource.imagePath });
+      const src = ps.imageSource;
+      if (src.type === "aiGenerated" || src.type === "imageSearch") {
+        rows.push({ _id: ps._id, imagePath: src.imagePath, type: src.type });
       }
     }
     return rows;
@@ -1385,14 +1403,23 @@ export const listAiGeneratedSymbolImages = internalQuery({
 });
 
 /**
- * Point one aiGenerated profileSymbols row at a freshly-resized R2 object.
- * Patches ONLY `imageSource.imagePath` — every other field on the union
- * member (notably `aiPrompt`, needed for regeneration) is preserved by
- * spreading the existing `imageSource` before overriding the path. Throws
- * if the row is no longer `aiGenerated` (e.g. hand-edited between the list
- * and repoint calls) rather than silently corrupting a different union
- * shape. Does NOT touch R2 — the old object is left in place; the caller
- * script prints orphaned keys for a later sweep.
+ * Point one resizable profileSymbols row at a freshly-resized R2 object.
+ *
+ * Patches ONLY `imageSource.imagePath`. Every other field on the union member
+ * is preserved by SPREADING the existing `imageSource` rather than rebuilding
+ * it — `aiPrompt` (needed for regeneration) on the AI member, and
+ * `imageSourceUrl` / `attribution` / `license` on the image-search member.
+ * Dropping the latter three would be a licensing problem, not just a data
+ * loss, so the spread is load-bearing: do not replace it with an object
+ * literal.
+ *
+ * Accepts `aiGenerated` and `imageSearch`. Throws if the row is neither (e.g.
+ * hand-edited between the list and repoint calls) rather than silently
+ * corrupting a different union shape — notably `symbolstix` and `placeholder`,
+ * which have no `imagePath` field at all.
+ *
+ * Does NOT touch R2 — the old object is left in place; the caller script
+ * prints orphaned keys for a later sweep.
  */
 export const repointSymbolImagePath = internalMutation({
   args: { symbolId: v.string(), imagePath: v.string() },
@@ -1401,13 +1428,14 @@ export const repointSymbolImagePath = internalMutation({
     if (!id) throw new Error(`Not a profileSymbols id: ${args.symbolId}`);
     const ps = await ctx.db.get(id);
     if (!ps) throw new Error(`profileSymbols row not found: ${args.symbolId}`);
-    if (ps.imageSource.type !== "aiGenerated") {
+    const src = ps.imageSource;
+    if (src.type !== "aiGenerated" && src.type !== "imageSearch") {
       throw new Error(
-        `profileSymbols ${args.symbolId} is no longer aiGenerated (now "${ps.imageSource.type}") — refusing to repoint`
+        `profileSymbols ${args.symbolId} is not a resizable image source (now "${src.type}") — refusing to repoint`
       );
     }
     await ctx.db.patch(id, {
-      imageSource: { ...ps.imageSource, imagePath: args.imagePath },
+      imageSource: { ...src, imagePath: args.imagePath },
       updatedAt: Date.now(),
     });
     return { ok: true };

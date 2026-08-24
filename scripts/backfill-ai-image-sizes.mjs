@@ -1,23 +1,26 @@
 /**
- * Backfill: shrink pre-resize AI Generate symbol images to 512px webp.
+ * Backfill: shrink oversized symbol images to 512px webp.
  *
  * Why:
  *   AI Generate images were saved as raw 1024x1024 PNGs straight from Gemini
  *   (~880KB each) before the client started resizing to 512px webp (~20KB)
  *   via app/components/app/shared/modals/symbol-editor/resizeImage.ts. A
  *   12-symbol board built from the old originals was ~10.5MB and took ~10s
- *   to render. This script re-encodes every existing `aiGenerated`
- *   profileSymbols image the same way resizeImage.ts encodes new ones, so
- *   backfilled and newly-authored images are indistinguishable.
+ *   to render. Image Search picks have the same shape of problem at a smaller
+ *   scale: Wikimedia JPEGs land at ~66KB and re-encode to ~20KB webp (the
+ *   `instruments` module is the bulk of them). This script re-encodes both
+ *   the same way resizeImage.ts encodes new ones, so backfilled and
+ *   newly-authored images are indistinguishable.
  *
- *   Scope: aiGenerated symbols ONLY. Image Search JPEGs (~66KB avg) and
- *   userUpload images (~17KB avg, already resized client-side) are
- *   explicitly out of scope — do not touch them.
+ *   Scope: `aiGenerated` + `imageSearch` profileSymbols. `userUpload` is
+ *   explicitly OUT of scope — already resized client-side before upload.
+ *   Use --type to narrow to one source per run.
  *
  * Run with (Node 20+):
  *   source ~/.nvm/nvm.sh && nvm use 20.17.0
- *   node --env-file=.env.local scripts/backfill-ai-image-sizes.mjs               # dry run (default)
- *   node --env-file=.env.local scripts/backfill-ai-image-sizes.mjs --apply       # writes R2 + Convex
+ *   node --env-file=.env.local scripts/backfill-ai-image-sizes.mjs                     # dry run, all types
+ *   node --env-file=.env.local scripts/backfill-ai-image-sizes.mjs --type=imageSearch  # dry run, one type
+ *   node --env-file=.env.local scripts/backfill-ai-image-sizes.mjs --apply             # writes R2 + Convex
  *
  * Flags:
  *   --dry-run   (default, explicit form also accepted) — download + resize in
@@ -27,6 +30,10 @@
  *               migrations:repointSymbolImagePath. The old full-size object is
  *               left in place (never deleted) — printed at the end under
  *               "orphaned, safe to sweep later".
+ *   --type=<aiGenerated|imageSearch|all>
+ *               which image source(s) to process. Default `all`. Lets the
+ *               owner run one type at a time and check the result between
+ *               passes.
  *
  * Per-image behaviour:
  *   1. Download the object at `imagePath` from R2.
@@ -40,7 +47,7 @@
  *   5. Repoint every profileSymbols row that referenced the old path.
  *
  * Prerequisites:
- *   - convex/migrations.ts:listAiGeneratedSymbolImages / repointSymbolImagePath
+ *   - convex/migrations.ts:listResizableSymbolImages / repointSymbolImagePath
  *     must be deployed.
  *   - R2 env vars: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
  *     R2_BUCKET_NAME (see lib/r2-storage.ts).
@@ -63,12 +70,26 @@ import sharp from "sharp";
 const APPLY = process.argv.includes("--apply");
 const DRY_RUN = !APPLY;
 
+// --type=<aiGenerated|imageSearch|all>. `all` (the default) means both
+// resizable sources; `userUpload` is never selectable — those images are
+// already resized client-side and the Convex query does not return them.
+const TYPES = ["aiGenerated", "imageSearch"];
+const typeArg = process.argv.find((a) => a.startsWith("--type="));
+const TYPE_FILTER = typeArg ? typeArg.slice("--type=".length) : "all";
+if (TYPE_FILTER !== "all" && !TYPES.includes(TYPE_FILTER)) {
+  console.error(
+    `❌ Bad --type=${TYPE_FILTER}. Expected one of: ${TYPES.join(", ")}, all`
+  );
+  process.exit(1);
+}
+
 console.log("");
 console.log(
   DRY_RUN
     ? "🔎🔎🔎  DRY RUN (default) — reads R2 + Convex only, writes NOTHING. Pass --apply to write.  🔎🔎🔎"
     : "🚨🚨🚨  APPLY MODE — this WILL upload new R2 objects and repoint Convex rows.  🚨🚨🚨"
 );
+console.log(`         type filter: ${TYPE_FILTER}`);
 console.log("");
 
 // ── R2 client ────────────────────────────────────────────────────────────────
@@ -131,9 +152,24 @@ const WEBP_QUALITY = 85; // MUST match resizeImage.ts's default quality (0.85)
 const CACHE_CONTROL = "private, max-age=31536000, immutable";
 
 // ── Fetch target rows ─────────────────────────────────────────────────────────
-console.log("📖 Listing aiGenerated profileSymbols rows via migrations:listAiGeneratedSymbolImages…");
-let rows = convexRun("migrations:listAiGeneratedSymbolImages", {});
-console.log(`   found ${rows.length} aiGenerated symbol${rows.length === 1 ? "" : "s"}\n`);
+console.log(
+  "📖 Listing resizable profileSymbols rows via migrations:listResizableSymbolImages…"
+);
+let rows = convexRun("migrations:listResizableSymbolImages", {});
+const byType = (rs) =>
+  TYPES.map((t) => `${rs.filter((r) => r.type === t).length} ${t}`).join(", ");
+console.log(
+  `   found ${rows.length} symbol${rows.length === 1 ? "" : "s"} (${byType(rows)})`
+);
+
+if (TYPE_FILTER !== "all") {
+  const before = rows.length;
+  rows = rows.filter((r) => r.type === TYPE_FILTER);
+  console.log(
+    `   --type=${TYPE_FILTER} → ${rows.length} of ${before} kept`
+  );
+}
+console.log("");
 
 if (rows.length === 0) {
   console.log("Nothing to do.");
@@ -170,14 +206,22 @@ rows = INCLUDE_SHARED ? rows : rows.filter((r) => isPersonalKey(r.imagePath));
 // Dedupe by imagePath defensively — two profileSymbols rows COULD in
 // principle reference the identical R2 key (e.g. a duplicated category), so
 // group by path and resize/upload once per unique object, then repoint every
-// row that referenced it. In practice each aiGenerated upload gets its own
-// UUID key (see app/api/upload-asset/route.ts), so duplicates are expected
-// to be rare-to-nonexistent — this is a safety net, not the common case.
+// row that referenced it. In practice each aiGenerated / imageSearch upload
+// gets its own UUID key (see app/api/upload-asset/route.ts), so duplicates
+// are expected to be rare-to-nonexistent — this is a safety net, not the
+// common case. Note a duplicate group can in principle mix types; the
+// per-row repoint below handles each row on its own, and
+// `repointSymbolImagePath` re-checks the live union member anyway.
 const byPath = new Map();
+const typesByPath = new Map();
 for (const row of rows) {
   if (!byPath.has(row.imagePath)) byPath.set(row.imagePath, []);
   byPath.get(row.imagePath).push(row._id);
+  if (!typesByPath.has(row.imagePath)) typesByPath.set(row.imagePath, new Set());
+  typesByPath.get(row.imagePath).add(row.type);
 }
+/** e.g. "imageSearch", or "aiGenerated+imageSearch" for a mixed dupe group. */
+const typeLabel = (path) => [...(typesByPath.get(path) ?? [])].sort().join("+");
 const dupeCount = rows.length - byPath.size;
 console.log(
   `   ${byPath.size} unique image${byPath.size === 1 ? "" : "s"}` +
@@ -207,7 +251,7 @@ for (const [imagePath, symbolIds] of byPath) {
       imagesSkipped++;
       symbolsSkipped += symbolIds.length;
       console.log(
-        `${groupLabel} SKIP  ${imagePath}  (${(originalSize / KB).toFixed(0)} KB, already webp) ` +
+        `${groupLabel} SKIP  [${typeLabel(imagePath)}]  ${imagePath}  (${(originalSize / KB).toFixed(0)} KB, already webp) ` +
           `× ${symbolIds.length} symbol${symbolIds.length === 1 ? "" : "s"}`
       );
       continue;
@@ -227,7 +271,7 @@ for (const [imagePath, symbolIds] of byPath) {
     totalAfter += newSize;
 
     console.log(
-      `${groupLabel} ${DRY_RUN ? "WOULD RESIZE" : "RESIZE"}  ${imagePath} → ${newKey}  ` +
+      `${groupLabel} ${DRY_RUN ? "WOULD RESIZE" : "RESIZE"}  [${typeLabel(imagePath)}]  ${imagePath} → ${newKey}  ` +
         `${(originalSize / KB).toFixed(0)} KB → ${(newSize / KB).toFixed(0)} KB  (-${pct}%)`
     );
     for (const symbolId of symbolIds) {
