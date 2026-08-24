@@ -132,13 +132,40 @@ const CACHE_CONTROL = "private, max-age=31536000, immutable";
 
 // ── Fetch target rows ─────────────────────────────────────────────────────────
 console.log("📖 Listing aiGenerated profileSymbols rows via migrations:listAiGeneratedSymbolImages…");
-const rows = convexRun("migrations:listAiGeneratedSymbolImages", {});
+let rows = convexRun("migrations:listAiGeneratedSymbolImages", {});
 console.log(`   found ${rows.length} aiGenerated symbol${rows.length === 1 ? "" : "s"}\n`);
 
 if (rows.length === 0) {
   console.log("Nothing to do.");
   process.exit(0);
 }
+
+// Skip anything outside the authoring account's own namespace unless asked.
+//
+// Installed content-module symbols point at the MODULE's shared assets (e.g.
+// `library_packs/space/images/…`), not at copies the instructor owns. Resizing
+// those would (a) write objects into a published module's asset folder that
+// the module's own JSON does not reference, and (b) repoint the installed row
+// away from the module's canonical path, so a reinstall would silently restore
+// the oversized original. The module is the source of truth for its own assets;
+// shrink it by re-publishing it, not by rewriting an installed copy.
+//
+// `accounts/` and `profiles/` are the personal namespaces (see
+// `isPersonalAssetKey` in convex/lib/contentModuleDelete.ts) — those are the
+// instructor's own images and safe to rewrite in place.
+const INCLUDE_SHARED = process.argv.includes("--include-shared-module-assets");
+const isPersonalKey = (k) =>
+  k.startsWith("accounts/") || k.startsWith("profiles/");
+const shared = rows.filter((r) => !isPersonalKey(r.imagePath));
+if (shared.length && !INCLUDE_SHARED) {
+  console.log(
+    `\n⏭️  skipping ${shared.length} symbol(s) whose image lives in a shared ` +
+      `module namespace (pass --include-shared-module-assets to override):`
+  );
+  for (const r of shared) console.log(`      ${r.imagePath}`);
+  console.log();
+}
+rows = INCLUDE_SHARED ? rows : rows.filter((r) => isPersonalKey(r.imagePath));
 
 // Dedupe by imagePath defensively — two profileSymbols rows COULD in
 // principle reference the identical R2 key (e.g. a duplicated category), so
