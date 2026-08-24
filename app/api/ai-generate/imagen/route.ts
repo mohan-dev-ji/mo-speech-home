@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { uploadBuffer, getFile, isConfigured } from "@/lib/r2-storage";
 import { R2_PATHS } from "@/lib/r2-paths";
 import { STYLE_PRESETS, isStyleId, type StyleId } from "@/lib/ai-style-prompts";
+import { AI_IMAGE_MODEL, aiImageCacheHashInput } from "@/lib/cache-identity";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 
 export const dynamic = "force-dynamic";
@@ -37,14 +38,13 @@ const DAILY_LIMIT = (() => {
 })();
 const MAX_PROMPT_LENGTH = 500;
 
-// Google retired the Imagen publisher models from Vertex (confirmed 2026-08:
-// zero `^imagen` models under publishers/google/models across us-central1,
-// europe-west1/2/4, and global). Image generation now lives in the Gemini
-// image family. This constant is the swap point for the next retirement —
-// change the model id here; the request/response shape below is Gemini's
-// :generateContent contract and will need to move too if a future model
-// changes it.
-const IMAGE_MODEL = "gemini-2.5-flash-image";
+// The model id — and therefore this cache's identity — now lives in
+// lib/cache-identity.ts alongside the image-search cache version, because a
+// model swap IS a cache invalidation (MOS-31): it is part of the aiImageCache
+// key, so changing it makes every Imagen-era row unreachable. Read that file's
+// bump procedure before changing it. Aliased locally so the request code below
+// reads the same as before.
+const IMAGE_MODEL = AI_IMAGE_MODEL;
 
 // ─── Gemini image generation (Vertex AI REST) ────────────────────────────────
 
@@ -104,10 +104,13 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
   return Buffer.from(b64, "base64");
 }
 
+/**
+ * The cache key. The pre-digest string comes from `aiImageCacheHashInput` (the
+ * single source of truth for the recipe) so the orphan sweep can re-derive the
+ * key a stored row would have today and spot the ones that are unreachable.
+ */
 function hashPromptStyleModel(style: StyleId, prompt: string): string {
-  return createHash("sha256")
-    .update(`${IMAGE_MODEL}|${style}|${prompt.toLowerCase().trim()}`)
-    .digest("hex");
+  return createHash("sha256").update(aiImageCacheHashInput(style, prompt)).digest("hex");
 }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -232,6 +235,7 @@ export async function POST(request: Request) {
     prompt: rawPrompt,
     style,
     r2Key,
+    model: IMAGE_MODEL,
   });
 
   // Product analytics: cache-miss = real usage signal. See plan §7.4.

@@ -1245,6 +1245,11 @@ export default defineSchema({
       })
     ),
     expiresAt: v.number(),
+    // Identity of the provider code that produced `results` — see
+    // lib/cache-identity.ts. Optional because rows written before the guard
+    // existed have no value; `lookupSearch` treats absent as a mismatch (they
+    // were produced by the pre-MOS-8 Wikimedia provider and ARE stale).
+    cacheVersion: v.optional(v.number()),
   }).index("by_query_and_page", ["query", "page"]),
 
   /**
@@ -1255,11 +1260,17 @@ export default defineSchema({
    * r2Key points to ai-cache/{uuid}.png (PNG, ~1MB, untouched from Imagen).
    */
   aiImageCache: defineTable({
-    hash: v.string(),    // sha256 of `${style}|${prompt.toLowerCase().trim()}`
+    hash: v.string(),    // sha256 of aiImageCacheHashInput() — `${model}|${style}|${prompt}`
     prompt: v.string(),  // original user prompt (pre-style-wrap), for analytics
     style: v.string(),   // 'photorealistic' | 'iconic' | 'storybook' | 'claymation'
     r2Key: v.string(),   // ai-cache/{uuid}.png — global, shared across users
     hits: v.number(),    // incremented on cache hit
+    // The generator that produced this image. The model is already inside
+    // `hash` (that IS this cache's identity guard — see lib/cache-identity.ts);
+    // recording it here as well lets the orphan sweep name the model behind an
+    // unreachable row instead of just reporting "not reproducible". Optional:
+    // rows written before the stamp existed have no value.
+    model: v.optional(v.string()),
   }).index("by_hash", ["hash"]),
 
   /**

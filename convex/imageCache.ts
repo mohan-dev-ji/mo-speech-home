@@ -1,5 +1,10 @@
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import {
+  AI_IMAGE_MODEL,
+  IMAGE_SEARCH_CACHE_VERSION,
+  aiImageCacheHashInput,
+} from "../lib/cache-identity";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -19,7 +24,8 @@ const resultValidator = v.object({
 
 /**
  * Look up cached image-search results for a (query, page) pair.
- * Returns null on miss or expiry — callers fall through to the live provider.
+ * Returns null on miss, expiry, or stale identity — callers fall through to
+ * the live provider.
  */
 export const lookupSearch = query({
   args: { query: v.string(), page: v.number() },
@@ -33,15 +39,22 @@ export const lookupSearch = query({
 
     if (!row) return null;
     if (row.expiresAt <= Date.now()) return null;
+    // Identity guard (MOS-31). A row produced by provider code that has since
+    // changed is a MISS, exactly like an expired one — otherwise a provider
+    // fix stays invisible behind hits for up to the full TTL. `undefined`
+    // (written before the guard shipped) never equals the current version, so
+    // pre-guard rows fall through too. See lib/cache-identity.ts.
+    if (row.cacheVersion !== IMAGE_SEARCH_CACHE_VERSION) return null;
 
     return row.results;
   },
 });
 
 /**
- * Persist provider results for a (query, page) pair with a 24h TTL.
- * If a row exists (expired or otherwise), it is replaced — the index has at
- * most one row per (query, page).
+ * Persist provider results for a (query, page) pair with a 24h TTL, stamped
+ * with the current provider-code identity.
+ * If a row exists (expired, stale or otherwise), it is replaced — the index has
+ * at most one row per (query, page).
  */
 export const writeSearch = mutation({
   args: {
@@ -65,6 +78,7 @@ export const writeSearch = mutation({
         page: args.page,
         results: args.results,
         expiresAt,
+        cacheVersion: IMAGE_SEARCH_CACHE_VERSION,
       });
     } else {
       await ctx.db.insert("imageSearchCache", {
@@ -72,12 +86,13 @@ export const writeSearch = mutation({
         page: args.page,
         results: args.results,
         expiresAt,
+        cacheVersion: IMAGE_SEARCH_CACHE_VERSION,
       });
     }
   },
 });
 
-// ─── AI image cache (Imagen 4 Fast) ──────────────────────────────────────────
+// ─── AI image cache (Gemini image family) ────────────────────────────────────
 
 /**
  * Look up a cached AI image by hash. Returns null on miss.
@@ -98,6 +113,12 @@ export const lookupAi = query({
 
 /**
  * Persist a freshly generated image. Inserts on miss; replaces on (rare) race.
+ *
+ * `model` is the caller's generator id. It is already baked into `hash` (that
+ * is this cache's identity guard — see lib/cache-identity.ts); it is passed
+ * explicitly rather than read from the constant here so the stored value can
+ * never disagree with the hash the caller actually used. Optional so a route
+ * deployed ahead of this function still writes a valid row.
  */
 export const writeAi = mutation({
   args: {
@@ -105,6 +126,7 @@ export const writeAi = mutation({
     prompt: v.string(),
     style: v.string(),
     r2Key: v.string(),
+    model: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -126,6 +148,7 @@ export const writeAi = mutation({
       style: args.style,
       r2Key: args.r2Key,
       hits: 0,
+      model: args.model,
     });
   },
 });
@@ -143,5 +166,69 @@ export const recordAiHit = mutation({
       .unique();
     if (!row) return;
     await ctx.db.patch(row._id, { hits: row.hits + 1 });
+  },
+});
+
+// ─── Orphan sweep (read-only) ────────────────────────────────────────────────
+
+/**
+ * Read-only census of both image caches for the orphan sweep (MOS-31).
+ *
+ * Returns the *current* cache identity alongside every row's *stored* identity
+ * so the caller can classify each row without duplicating the recipe:
+ *
+ *  - `imageSearchCache`: compare `cacheVersion` to
+ *    `identity.imageSearchCacheVersion`; a mismatch (including `undefined`) is
+ *    a row `lookupSearch` can never return again.
+ *  - `aiImageCache`: SHA-256 `hashInput` and compare to `hash`. `hashInput` is
+ *    built here from the row's own prompt/style via the shared
+ *    `aiImageCacheHashInput`, so it is the key this row WOULD have today. A
+ *    mismatch means the key can no longer be produced — `lookupAi` can never
+ *    reach the row again.
+ *
+ * Deliberately returns `resultCount`/`providers` rather than the cached
+ * `results` arrays: a single search row holds ~20-40 fully-populated results
+ * and the sweep only needs to describe rows, not reproduce them.
+ *
+ * `.collect()` on both tables is safe at this scale — `imageSearchCache` is
+ * TTL'd to a day of searches and `aiImageCache` holds one row per distinct
+ * (model, style, prompt). Revisit if either ever grows past a few thousand.
+ *
+ * Internal: driven by `scripts/sweep-cache-orphans.mjs` via the Convex CLI,
+ * which has no caller identity. Run:
+ *   npx convex run imageCache:listCacheRowsForSweep '{}' --no-push
+ */
+export const listCacheRowsForSweep = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const searchRows = await ctx.db.query("imageSearchCache").collect();
+    const aiRows = await ctx.db.query("aiImageCache").collect();
+
+    return {
+      identity: {
+        imageSearchCacheVersion: IMAGE_SEARCH_CACHE_VERSION,
+        aiImageModel: AI_IMAGE_MODEL,
+      },
+      now: Date.now(),
+      imageSearch: searchRows.map((row) => ({
+        _id: row._id,
+        query: row.query,
+        page: row.page,
+        expiresAt: row.expiresAt,
+        cacheVersion: row.cacheVersion,
+        resultCount: row.results.length,
+        providers: [...new Set(row.results.map((r) => r.provider))].sort(),
+      })),
+      aiImage: aiRows.map((row) => ({
+        _id: row._id,
+        hash: row.hash,
+        prompt: row.prompt,
+        style: row.style,
+        r2Key: row.r2Key,
+        hits: row.hits,
+        model: row.model,
+        hashInput: aiImageCacheHashInput(row.style, row.prompt),
+      })),
+    };
   },
 });
