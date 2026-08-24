@@ -53,10 +53,26 @@ export async function getSignedFileUrl(
   return getSignedUrl(r2Client, command, { expiresIn });
 }
 
+/**
+ * Every key we write is UUID-based and content-addressed — a given key's bytes
+ * never change once written (symbol images, TTS clips, the AI image cache).
+ * So the object can be cached by the browser indefinitely, which is what stops
+ * a board re-downloading every tile and clip on each visit.
+ *
+ * `private`, not `public`: these are fetched through pre-signed URLs and are
+ * per-user data under licence (SymbolStix) — a shared proxy must never store
+ * them. `private` still allows the requesting browser to cache.
+ *
+ * Objects written before this was added carry no Cache-Control and will keep
+ * re-downloading until they are rewritten.
+ */
+const IMMUTABLE_CACHE_CONTROL = "private, max-age=31536000, immutable";
+
 export async function uploadBuffer(
   key: string,
   buffer: Buffer | Uint8Array,
-  contentType: string
+  contentType: string,
+  cacheControl: string = IMMUTABLE_CACHE_CONTROL
 ): Promise<void> {
   if (!r2Client || !bucketName) throw new Error("R2 not configured");
   await r2Client.send(
@@ -65,6 +81,7 @@ export async function uploadBuffer(
       Key: key,
       Body: buffer,
       ContentType: contentType,
+      CacheControl: cacheControl,
     })
   );
 }
