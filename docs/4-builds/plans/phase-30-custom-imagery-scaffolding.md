@@ -196,9 +196,11 @@ The dev server **served a stale compile** of `app/api/assets/route.ts`, so a cor
 
 1. **§1 guards** — small, strictly protective, and it unblocks publishing. Do it first.
 2. **§5 MOS-31** — the cache guards, because they make every later verification trustworthy.
+3. **§6 audio guard** — a five-line read-time guard, independent of everything else.
 4. **§4 MOS-30** — depends on nothing else; do it whenever.
-5. **§6 audio guard** — five-line read-time guard, independent of everything else.
-6. **§2 attribution** — the largest piece, touching every layer of three trees. Last, with the most room.
+5. **§2 attribution** — the largest piece, touching every layer of three trees. Last, with the most room.
+
+(§3 is already done — MOS-8 was confirmed and closed on 2026-08-24.)
 
 ---
 
