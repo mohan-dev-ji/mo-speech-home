@@ -1170,6 +1170,95 @@ export const wipeLibraryModules = internalMutation({
 });
 
 /**
+ * Unpublish ONE module — the targeted counterpart to `wipeLibraryModules`.
+ *
+ * Publishing has always been a one-way door: there is no unpublish in the UI and
+ * the only removal was the all-or-nothing wipe above. That makes a throwaway
+ * publish (an acceptance run, a mistake, a slug typo) disproportionately
+ * annoying to undo. This deletes exactly one row, by `(tree, slug)`.
+ *
+ * What it does NOT do, deliberately:
+ *
+ *   - **It does not touch R2.** The module's objects under
+ *     `library_modules/<tree>/<slug>/…` are left in place. Deleting shared
+ *     objects from a mutation is the exact catastrophe ADR-022 and phase-30 §1
+ *     exist to prevent, and a module row is not proof that nothing else points
+ *     at those keys. Clean the prefix separately and deliberately:
+ *       `rclone purge r2:<bucket>/library_modules/<tree>/<slug>`
+ *
+ *   - **It does not touch accounts that installed the module.** Install
+ *     materialises its own rows; those copies are the family's content, not
+ *     ours to remove. They keep working, and their `imageCredits` rows keep
+ *     resolving. Removing an installed copy is `uninstall`, a different path.
+ *
+ *   - **It does not touch `imageCredits`.** The registry is per-account and
+ *     records what an account has USED. Over-crediting is never a licence
+ *     violation; silently dropping a credit is. There is no delete path for
+ *     registry rows anywhere, by design.
+ *
+ * Guards: `confirm` must equal the slug (so a stale slug from shell history
+ * cannot fire), and a `isDefault` module is refused unless `allowDefault` is
+ * passed — deleting one changes what every future sign-up receives.
+ *
+ * Run:  npx convex run migrations:deleteLibraryModule --no-push \
+ *         '{"tree":"categories","slug":"acceptance-instruments","confirm":"acceptance-instruments"}'
+ */
+export const deleteLibraryModule = internalMutation({
+  args: {
+    tree: v.union(
+      v.literal("categories"),
+      v.literal("lists"),
+      v.literal("sentences"),
+      v.literal("phrases")
+    ),
+    slug: v.string(),
+    /** Must equal `slug`. Cheap protection against a mis-pasted command. */
+    confirm: v.string(),
+    /** Required to delete a Default module (auto-installed for new accounts). */
+    allowDefault: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { tree, slug, confirm, allowDefault }) => {
+    if (confirm !== slug) {
+      throw new Error(
+        `Refusing: pass { confirm: "${slug}" } to delete ${tree}/${slug}.`
+      );
+    }
+
+    const row = await ctx.db
+      .query("libraryModules")
+      .withIndex("by_tree_and_slug", (q) => q.eq("tree", tree).eq("slug", slug))
+      .unique();
+
+    if (!row) {
+      throw new Error(`No libraryModules row for ${tree}/${slug}.`);
+    }
+
+    if (row.isDefault && !allowDefault) {
+      throw new Error(
+        `Refusing: ${tree}/${slug} is a DEFAULT module — it auto-installs into ` +
+          `every new account. Pass { allowDefault: true } if that is really intended.`
+      );
+    }
+
+    // Captured before the delete so the operator has a record of what went, and
+    // of which R2 prefix is now unreferenced by this module and safe to review.
+    const record = {
+      tree,
+      slug,
+      isDefault: row.isDefault === true,
+      defaultTier: row.defaultTier,
+      credits: row.credits?.length ?? 0,
+      coverImagePath: row.coverImagePath ?? null,
+      r2PrefixNowUnreferenced: `library_modules/${tree}/${slug}/`,
+    };
+
+    await ctx.db.delete(row._id);
+    console.log(`[deleteLibraryModule] deleted ${tree}/${slug}`, record);
+    return record;
+  },
+});
+
+/**
  * DR / remake teardown: empty every per-account profile CONTENT table
  * (the six that carry a dropped `profileId` in the MOS-17 schema slim).
  * Content-only — leaves `users` + `studentProfiles` (and Clerk) intact, so a
