@@ -2,7 +2,7 @@
 
 > **Standalone.** Written 2026-08-24 for a fresh session. Everything needed to start is in this file — no prior conversation required.
 
-**Status:** not started
+**Status:** SHIPPED 2026-08-25 — commits `53a0376..0c9b832` (9 commits). See "What shipped" at the foot.
 **Tickets:** MOS-8 (✅ closed 2026-08-24) · MOS-30 · MOS-31 · MOS-33 · MOS-34 · plus §6, absorbed from the retired phase-20 stage-5 plan
 **Blocks:** MOS-25 and MOS-13 are **paused** until this lands.
 
@@ -180,7 +180,9 @@ console.log("legacy category audio refs:", n);
 '
 ```
 
-Note the artifact only changes once the modules are re-exported, so expect the count to stay at 14 until then — the runtime behaviour is the real check.
+Note the artifact only changes once the modules are re-exported, so the count does not move until then — the runtime behaviour is the real check.
+
+**Correction (2026-08-25):** this block originally said to expect **14**. The script it publishes ORs `path` and `alternates.default` **per audio entry**, so it prints **9**. 14 is the count of individual matching *strings* (5 entries match in both fields, 4 in `path` only → 5×2 + 4×1 = 14). The nine entries map exactly onto the table above — actions ×3, activities ×2, home ×1, nature ×3 — which is the real confirmation. Verified twice during execution.
 
 ---
 
@@ -221,3 +223,47 @@ Return to **phase-29** (`docs/4-builds/plans/phase-29-module-artifact-restore-an
 
 - **`translate-modules` skips symbol labels.** It assumes symbols resolve their labels from the global `symbols` table (ADR-014 §4) — true for SymbolStix, false for custom-image symbols, which have no `symbols` row. So their labels are reached by neither pipeline and must be hand-authored per language: ~72 translations across the three new modules. Recorded in `docs/4-builds/translation-style-guide.md`; **not yet ticketed.**
 - **MOS-32** — category symbols cannot carry per-language variants, so a Hindi board cannot swap to a different symbol set. Filed, not urgent.
+
+
+---
+
+## What shipped (2026-08-25)
+
+Executed with subagent-driven development: one implementer per section, a spec+quality review after each, then a whole-branch review. Nine commits, `53a0376..0c9b832`.
+
+| Section | Commits | Notes |
+|---|---|---|
+| §1 R2 delete guards | `f310d41` | Four `imagePath` pushes wrapped in `isPersonalAssetKey`. Strictly subtractive; predicate byte-identical. |
+| §5 MOS-31 cache identity | `7f2e8e8` | `lib/cache-identity.ts` — one identity module for both caches + documented bump procedure. Sweep script is **read-only**. |
+| §6 legacy audio guard | `0a06c2d` | Guard re-keyed on the `audio/eng/default/` prefix rather than the declared `type`. Catches the 9; leaves 15 genuine per-language overrides untouched. |
+| §4 MOS-30 Wikimedia sizes | `6370beb` | Grid at 320, save resolved server-side from `pageid`. Removes the client-supplied-URL risk class for this provider. Cache version 1 → 2. |
+| §2 attribution | `722078f`, `5c257bd`, `ff7414f`, `70db2b3` | Fields across lists/sentences/phrases, carried save → publish → export → restore → install → editor. `70db2b3` is a fix pass closing two credit-stripping rebuild paths found in review. |
+| §1 follow-on (plan miss) | `0c9b832` | See below. |
+
+### The plan miss the final review caught
+
+§1's table enumerated only the `imageSource.imagePath` pushes. **The `recorded` audio pushes immediately below them, in the same three functions, were equally unguarded** — and reachable with a `library_modules/…` key by two routes (`publish.ts:512-517` → `materialiseSymbols.ts:107-112` for custom images; `publish.ts:485-489` → `materialiseSymbols.ts:66` for promoted `alternates.recorded`). Identical downstream chain, no guard at any layer. Fixed in `0c9b832`, same three-line subtractive shape.
+
+Two further inaccuracies in that table, for the record: `profileSymbols.ts:288` is `getProfileSymbolUsageCount`, a read-only count that already ended in `keys.filter(isPersonalAssetKey)` — never a delete path; and `getCategoryReloadOrphanKeys` has no caller at all (its route was deleted — that is one of the four baseline `tsc` errors). **Of the four "unguarded delete paths", two were live.**
+
+### Deferred — ticketed, not dropped
+
+- **MOS-35** — folder/category **cover images** discard credit. A fifth surface §2's scope list does not name: covers are folder-level and category-level, on two other tables, and they publish and install. Owner decision 2026-08-25: ticket rather than extend the phase.
+- **MOS-36** — saving the **talker bar** as a sentence drops credit. `TalkerSymbolItem` carries no provenance, so the credit never enters the bar. Plumbing, not a strip site.
+- **MOS-37** — `translate-modules` skips custom-image symbol labels (~72 hand translations). Was this plan's own "out of scope, but ticket-worthy" item.
+- **MOS-38** — the provenance field shape is now declared in six places. The bug class this phase just fixed is "a field list forgot a field."
+
+### Outstanding before publishing
+
+1. **Run the §2 end-to-end verification.** It is the designated evidence for this phase's central claim and has not been executed. Script: `.superpowers/sdd/task-5-acceptance.md` (12 checkpoints). Every hop was traced by hand in review and carries the fields — but that is not the same as having run it.
+2. **Tap the nine §6 symbols on an EN board** and confirm the request goes to `audio/en-GB-News-M/symbols/<word>.mp3`.
+3. **Click a Wikimedia result** in the signed-in app — the §4 provider ran live but the client→proxy seam has not been exercised end to end.
+4. **Review the sweep output** before deleting anything: `node scripts/sweep-cache-orphans.mjs`. It deletes nothing itself.
+
+### ⚠ Deploy-order precondition introduced by §4
+
+`npm run build` is plain `next build` — it does not run `convex deploy`. The widened `imageSearchCache` validator (`convex/imageCache.ts:18`, `fullImageUrl` now optional) **must reach Convex before or with** the Next.js provider change, which no longer sends that field. Deploy Next first and every cache-miss search throws in `writeSearch` and returns a 500. Dev is unaffected — `npx convex dev` on `main` auto-pushed it.
+
+### Known Minors left in place
+
+Logged and triaged by the whole-branch review as non-blocking: `wikimedia.ts:227` parses resolver JSON outside its try/catch (unhandled 500 instead of the designed 502, and the doc comment at `:180` is wrong about it); `proxy/route.ts:99-101` logs a client-supplied `providerId` before the digit guard; the resolver accepts any `image/*` while the grid also rejects `image/svg+xml`; the three credit helpers use three different emptiness tests (verified unreachable — every provider defaults to `"Unknown"`); `SymbolEditorModal.tsx:1070` uses raw `px-6 pb-2` to stay aligned with its sibling container.
