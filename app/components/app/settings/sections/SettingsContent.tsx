@@ -10,14 +10,15 @@ import { StudentProfilesPanel } from "@/app/components/app/settings/sections/Stu
 import { AccountBillingPanel } from "@/app/components/app/settings/sections/AccountBillingPanel";
 import { InvitesPanel } from "@/app/components/app/settings/sections/InvitesPanel";
 import { PrivacyPanel } from "@/app/components/app/settings/sections/PrivacyPanel";
+import { CreditsPanel } from "@/app/components/app/settings/sections/CreditsPanel";
 import { Users } from "lucide-react";
 
 const OWNER_SETTINGS_IDS = [
-  "instructor", "profile", "plan", "invites", "privacy",
+  "instructor", "profile", "plan", "invites", "privacy", "credits",
 ] as const;
 
 const COLLABORATOR_SETTINGS_IDS = [
-  "instructor", "privacy",
+  "instructor", "privacy", "credits",
 ] as const;
 
 type SettingId = typeof OWNER_SETTINGS_IDS[number];
@@ -57,6 +58,7 @@ export function SettingsContent() {
       case "plan":       return <AccountBillingPanel />;
       case "invites":    return <InvitesPanel onOpenPlan={() => setActiveTab("plan")} />;
       case "privacy":    return <PrivacyPanel />;
+      case "credits":    return <CreditsPanel />;
     }
   };
 

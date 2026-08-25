@@ -558,6 +558,7 @@
     "navbar": "Navigational Side Bar",
     "invites": "Invites",
     "privacy": "Data & Privacy",
+    "credits": "Credits",
     "collaboratorNotice": "You're collaborating on this account. Plan and invite management are handled by the account owner.",
     "language": {
       "title": "Language",
@@ -723,6 +724,15 @@
     "toggleOnHint": "Anonymous events will be sent.",
     "toggleOffHint": "No events will be sent from your device.",
     "close": "Close"
+  },
+  "credits": {
+    "title": "Image Credits",
+    "description": "Photos from Image Search are Creative Commons — the photographer and licence are credited here, as their terms require.",
+    "loading": "Loading credits…",
+    "emptyState": "No image credits yet. They'll appear here as you add photos from Image Search.",
+    "usedFor": "Used on: {label}",
+    "viewSource": "View source",
+    "aiGeneratedCount": "AI-generated images ({count})"
   },
   "instructorProfile": {
     "title": "Instructor Profile",
