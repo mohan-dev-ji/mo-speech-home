@@ -25,7 +25,7 @@ import type { Doc } from "../_generated/dataModel";
 import { mutation, query } from "../_generated/server";
 import { requireCallerIsAdmin } from "../lib/account";
 import { collectSourcePromotableKeys } from "../lib/personalAssetRefs";
-import { collectModuleCredits } from "../lib/moduleCredits";
+import { collectModuleCredits, mergeModuleCredits } from "../lib/moduleCredits";
 import { needsTranslation } from "../../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../../lib/languages/registry";
 
@@ -371,6 +371,18 @@ export const publishFolderAsModule = mutation({
     let moduleId;
     let updated: boolean;
     if (existing) {
+      // MERGE, never replace: keep every credit the module already had, and
+      // only add credits for keys this publish newly found. A re-publish must
+      // never be able to strip a licence obligation off a module that already
+      // had one — replacing the array wholesale whenever this pass found
+      // *any* credits used to do exactly that when it found fewer than before
+      // (e.g. the registry row was lost, the backfill hasn't run yet, or the
+      // source is a re-published installed copy that only partially
+      // resolves). `mergeModuleCredits` merges by `imageKey`, existing-wins,
+      // matching the registry's own first-wins rule — a stale extra credit
+      // surviving the merge is cosmetic, a missing one is not (review fix,
+      // 2026-08-25).
+      const mergedCredits = mergeModuleCredits(existing.credits, credits);
       await ctx.db.patch(existing._id, {
         name: moduleName,
         ...(folder.icon ? { icon: folder.icon } : {}),
@@ -383,12 +395,7 @@ export const publishFolderAsModule = mutation({
         // Log the admin's folder position so default seeds mirror it.
         defaultOrder: folder.order,
         items,
-        // Replace the credits when this publish found any; leave the existing
-        // array alone when it found none. A re-publish must never be able to
-        // strip a licence obligation off a module that already had one (e.g.
-        // the registry row was lost, or the backfill has not run yet) — a
-        // stale extra credit is cosmetic, a missing one is not.
-        ...(credits.length ? { credits } : {}),
+        ...(mergedCredits ? { credits: mergedCredits } : {}),
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
         updatedAt: now,
@@ -410,6 +417,8 @@ export const publishFolderAsModule = mutation({
         // Log the admin's folder position so default seeds mirror it.
         defaultOrder: folder.order,
         items,
+        // No existing module row yet, so nothing to merge with — same result
+        // as before (embed if this publish found any, else omit the field).
         ...(credits.length ? { credits } : {}),
         publishedAt: now,
         lastPublishedAt: now,
@@ -605,6 +614,9 @@ export const publishCategoryAsModule = mutation({
     let moduleId;
     let updated: boolean;
     if (existing) {
+      // MERGE, never replace — see the folder mutation's note above
+      // (review fix, 2026-08-25).
+      const mergedCredits = mergeModuleCredits(existing.credits, credits);
       await ctx.db.patch(existing._id, {
         name: moduleName,
         // Carry the core-word surface so a published dropbar board re-seeds as
@@ -620,8 +632,7 @@ export const publishCategoryAsModule = mutation({
         // Log the admin's category-page position so default seeds mirror it.
         defaultOrder: cat.order,
         items,
-        // Never wipe on an empty result — see the folder mutation's note.
-        ...(credits.length ? { credits } : {}),
+        ...(mergedCredits ? { credits: mergedCredits } : {}),
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
         updatedAt: now,

@@ -7,11 +7,17 @@
  * and holds nothing. Without this file every installed module is unattributed
  * on the account that actually displays it.
  *
- * Two halves, one on each end of the chain:
+ * Three pieces:
  *
  *   `collectModuleCredits`        — publish: read the publishing account's rows
  *                                   for the keys this module uses, and REMAP
  *                                   them onto the promoted keys.
+ *   `mergeModuleCredits`          — publish: combine a freshly-collected credit
+ *                                   set with whatever a re-published module
+ *                                   already carried, by `imageKey`, so a
+ *                                   partial re-publish can never wipe a
+ *                                   licence obligation off a key it didn't
+ *                                   happen to touch.
  *   `writeInstalledModuleCredits` — install: write those rows into the
  *                                   installing account's registry.
  *
@@ -26,7 +32,7 @@
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { CreditRow } from "../imageCredits";
-import { collectSourcePromotableKeys } from "./personalAssetRefs";
+import { collectSourceCreditableKeys } from "./personalAssetRefs";
 
 /** Project a stored registry row onto the wire shape, dropping absent fields
  * (`undefined` is not a Convex value) and stamping the caller's chosen key. */
@@ -55,17 +61,25 @@ function toCreditRow(
 /**
  * The credit rows a publish should embed in the module artifact.
  *
- * "Which images does this module use?" is already answered by
- * `collectSourcePromotableKeys` — the same walk publish uses to decide what to
- * copy into R2 — so this looks those exact keys up in the publishing account's
- * registry rather than adding a second traversal that could drift from the
- * first. Audio keys come back from that walk too; they simply never match a
- * registry row (the registry is images only).
+ * "Which images does this module use?" is answered by
+ * `collectSourceCreditableKeys` — a walk of the same tables
+ * `collectSourcePromotableKeys` uses to decide what to copy into R2, but with
+ * the wider `isCreditableAssetKey` predicate (phase-31 review, 2026-08-25).
+ * The two questions are different: an installed copy's source rows already
+ * point at `library_modules/…` keys — nothing to copy — but if that image is
+ * CC-licensed it still needs credit when re-published. Using the promotable
+ * (copy) predicate here silently dropped credit for exactly that case; see
+ * `isCreditableAssetKey` in ./contentModuleDelete for the full rationale.
+ * Audio keys come back from the walk too; they simply never match a registry
+ * row (the registry is images only).
  *
  * `assetPathMap` is REQUIRED, not optional-with-a-default, so a caller cannot
  * silently publish source-keyed credits. `undefined` is a legitimate value —
  * "publish without promotion", R2 unconfigured — and then keys pass through
- * unchanged, exactly as `promoted()` in `contentModules/publish.ts` does.
+ * unchanged, exactly as `promoted()` in `contentModules/publish.ts` does. A
+ * `library_modules/…` source key is never in `assetPathMap` either (nothing
+ * was copied for it), so it also passes through unchanged — which is correct,
+ * because it is already in its final published form.
  *
  * Returned sorted by key: the array lands in the git-export artifact, so its
  * order must be stable across publishes or every export churns the diff.
@@ -79,7 +93,7 @@ export async function collectModuleCredits(
   },
   assetPathMap: Record<string, string> | undefined,
 ): Promise<CreditRow[]> {
-  const sourceKeys = await collectSourcePromotableKeys(ctx, source);
+  const sourceKeys = await collectSourceCreditableKeys(ctx, source);
   if (sourceKeys.length === 0) return [];
 
   const byPromotedKey = new Map<string, CreditRow>();
@@ -101,6 +115,55 @@ export async function collectModuleCredits(
   return [...byPromotedKey.values()].sort((a, b) =>
     a.imageKey.localeCompare(b.imageKey),
   );
+}
+
+/**
+ * Combine a freshly-collected credit set with whatever a module already
+ * carried, keyed by `imageKey`, EXISTING wins on collision (review fix,
+ * 2026-08-25).
+ *
+ * A partial re-publish only re-collects credits for the keys the *current*
+ * source still points at. If an admin installs their own published module —
+ * whose items now hold `library_modules/…` keys — adds ONE new image, and
+ * re-publishes, `collectModuleCredits` returns a set that may be missing
+ * entries for images that were always there (e.g. the registry row for one of
+ * them was never written, or hasn't been backfilled yet). Replacing the
+ * module's `credits` array wholesale with that shorter set would silently
+ * strip attribution off every image the collection pass missed — an
+ * unrecoverable loss for a CC-licensed image whose photographer/licence text
+ * lives nowhere else.
+ *
+ * So: keep every credit the module already had, and only ADD credits for keys
+ * not already present. This is the same "first wins" rule the registry itself
+ * uses on collision (`recordImageCredit`, convex/imageCredits.ts:58-67, and
+ * `writeInstalledModuleCredits` above) — here "first" means "already on the
+ * module," because that row survived every prior publish and a fresher lookup
+ * is not grounds to distrust it. A stale extra credit surviving in the merged
+ * array (the source image was removed from the module but its credit row
+ * remains) is cosmetic; losing one is not.
+ *
+ * Returns `undefined` (never `[]`) when the merge is empty, matching
+ * `collectModuleCredits`'s "absent, not empty-array" convention — so a patch
+ * that finds nothing to merge omits the `credits` key entirely rather than
+ * writing `[]` over `undefined`.
+ */
+export function mergeModuleCredits(
+  existing: readonly CreditRow[] | undefined,
+  incoming: readonly CreditRow[],
+): CreditRow[] | undefined {
+  if (!existing || existing.length === 0) {
+    return incoming.length
+      ? [...incoming].sort((a, b) => a.imageKey.localeCompare(b.imageKey))
+      : undefined;
+  }
+
+  const byKey = new Map<string, CreditRow>();
+  for (const credit of existing) byKey.set(credit.imageKey, credit); // existing wins
+  for (const credit of incoming) {
+    if (!byKey.has(credit.imageKey)) byKey.set(credit.imageKey, credit);
+  }
+
+  return [...byKey.values()].sort((a, b) => a.imageKey.localeCompare(b.imageKey));
 }
 
 /**

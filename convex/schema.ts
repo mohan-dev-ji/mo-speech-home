@@ -174,8 +174,8 @@ const imageProvenanceFields = {
  *   2. `libraryModules.credits` — the copy that TRAVELS with a published module
  *      so the installing account can populate its own registry.
  *
- * `CreditRow` in `convex/imageCredits.ts` is the TypeScript mirror of this
- * shape. `imageSourceType` deliberately has no `upload` or `symbolstix` member —
+ * `CreditRow` below is the TypeScript mirror of this shape.
+ * `imageSourceType` deliberately has no `upload` or `symbolstix` member —
  * see the `imageCredits` table's doc comment for why.
  */
 const imageCreditFields = {
@@ -193,6 +193,27 @@ const imageCreditFields = {
   // Best-effort label of what it was first used for. Display hint only —
   // never the dedupe key, and never trusted to stay accurate.
   firstUsedFor: v.optional(v.string()),
+};
+
+/**
+ * TypeScript mirror of `imageCreditFields` above (review fix, 2026-08-25 —
+ * moved here from `convex/imageCredits.ts`, which is a Convex FUNCTION module
+ * (imports `./_generated/server`, defines mutations/queries) and so is the
+ * wrong place for a type that `convex/data/_shared/types.ts` — a shared,
+ * frontend-visible type file — needs to import. This file, `schema.ts`,
+ * defines only table shapes and has no such dependency, so it is safe for a
+ * pure type file to import from. `convex/imageCredits.ts` re-exports this
+ * type so its own call sites (`getAccountImageCredits`'s return type,
+ * `convex/lib/moduleCredits.ts`) are unaffected.
+ */
+export type CreditRow = {
+  imageKey: string;
+  imageSourceType: "imageSearch" | "aiGenerated";
+  imageTitle?: string;
+  attribution?: string;
+  license?: string;
+  imageSourceUrl?: string;
+  firstUsedFor?: string;
 };
 
 const libraryModuleCategoryItems = v.array(

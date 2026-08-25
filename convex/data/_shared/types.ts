@@ -19,10 +19,15 @@
  * `lib/languages/displayValue.ts`.
  */
 
-// The canonical credit-row shape lives with the registry it belongs to
-// (`convex/imageCredits.ts`, phase-31); a module artifact carries an array of
-// them. Type-only import — erased at build, no runtime dependency.
-import type { CreditRow } from "../../imageCredits";
+// The canonical credit-row shape lives beside the validator it mirrors
+// (`imageCreditFields` in `convex/schema.ts`, phase-31); a module artifact
+// carries an array of them. Type-only import — erased at build. Deliberately
+// NOT imported from `convex/imageCredits.ts` (review fix, 2026-08-25): that
+// file is a Convex FUNCTION module (defines mutations/queries), and this file
+// is a shared, frontend-visible type file that must not route even a type-only
+// import through one. `schema.ts` defines only table shapes, so it carries no
+// such dependency.
+import type { CreditRow } from "../../schema";
 
 export type PackTier = "free" | "pro" | "max";
 

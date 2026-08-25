@@ -77,6 +77,38 @@ export function isPromotableAssetKey(
   return isPersonalAssetKey(key) || isLegacySharedModuleAssetKey(key);
 }
 
+/**
+ * A THIRD predicate (phase-31 review, 2026-08-25) — "should this key carry an
+ * image credit?" — deliberately wider than `isPromotableAssetKey` and built
+ * without touching it or `isPersonalAssetKey`.
+ *
+ * "Which keys need copying to R2" and "which keys need crediting" are
+ * different questions. An already-shared `library_modules/…` object (e.g. the
+ * source folder for a re-publish is itself an installed copy) needs no copy —
+ * it is already in its final published location — but it absolutely still
+ * needs credit if the image behind it is CC-licensed. `isPromotableAssetKey`
+ * answers the copy question and must stay narrow, or promotion starts copying
+ * objects that don't need copying (see the "PROMOTABLE ≠ PERSONAL" docblock
+ * above). This predicate only feeds the credit-registry lookup
+ * (`collectSourceCreditableKeys` in ./personalAssetRefs, used by
+ * `collectModuleCredits` in ./moduleCredits) — it must never be used to decide
+ * what promote-module-assets copies.
+ */
+export function isCreditableAssetKey(
+  key: string | undefined | null,
+): key is string {
+  return isPromotableAssetKey(key) || isLibraryModuleAssetKey(key);
+}
+
+/** Split into its own function (not inlined) so its `key` parameter is a
+ * fresh, unnarrowed binding — inlining `!!key && key.startsWith(...)` after
+ * `isPromotableAssetKey(key)` in an `||` leaves TypeScript narrowing `key` to
+ * `never` in the second operand, because the first operand's `key is string`
+ * guard asserts non-string in its false branch. */
+function isLibraryModuleAssetKey(key: string | undefined | null): key is string {
+  return !!key && key.startsWith("library_modules/");
+}
+
 /** Personal R2 keys on a profileLists row's inline items (uploads + recordings). */
 export function collectListOrphanKeys(items: ReadonlyArray<{
   imagePath?: string;

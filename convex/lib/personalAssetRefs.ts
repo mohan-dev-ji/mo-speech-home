@@ -1,6 +1,10 @@
 import type { QueryCtx } from "../_generated/server";
 import type { Id, Doc } from "../_generated/dataModel";
-import { isPersonalAssetKey, isPromotableAssetKey } from "./contentModuleDelete";
+import {
+  isPersonalAssetKey,
+  isPromotableAssetKey,
+  isCreditableAssetKey,
+} from "./contentModuleDelete";
 
 /**
  * Which keys an extractor keeps. Two — and only two — values are ever passed:
@@ -255,49 +259,89 @@ export async function countRowsReferencingKeys(
  * symbols; the foldered trees address a `profileFolders` row plus its children.
  * Reuses the same per-table extractors, so field coverage can never drift from
  * the delete path (ADR-022) — only the `keep` predicate differs.
+ *
+ * The actual walk lives in `collectSourceKeysByPredicate` below, parameterised
+ * by `keep`. This function is a thin wrapper that hardcodes `keep =
+ * isPromotableAssetKey` — its body is exactly what it was before
+ * `collectSourceCreditableKeys` was added below it, so every existing caller
+ * (`getPublishAssetKeys` in contentModules/publish.ts, which
+ * `/api/admin/promote-module-assets` uses to decide what to copy) sees
+ * byte-for-byte identical behaviour.
  */
 export async function collectSourcePromotableKeys(
   ctx: QueryCtx,
   args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+): Promise<string[]> {
+  return collectSourceKeysByPredicate(ctx, args, isPromotableAssetKey);
+}
+
+/**
+ * Every CREDITABLE R2 key referenced by ONE publish source — wider than
+ * `collectSourcePromotableKeys` (phase-31 review, 2026-08-25). "Which keys
+ * need copying to R2" and "which keys need crediting" are different
+ * questions: an already-shared `library_modules/…` key (the source is itself
+ * an installed copy being re-published) needs no copy, but if it holds a
+ * CC-licensed image it still needs credit. See `isCreditableAssetKey` in
+ * ./contentModuleDelete for the full rationale.
+ *
+ * Used ONLY by the credit lookup (`collectModuleCredits` in ./moduleCredits).
+ * Never use this to decide what promote-module-assets copies — that stays on
+ * `collectSourcePromotableKeys` / `isPromotableAssetKey`.
+ */
+export async function collectSourceCreditableKeys(
+  ctx: QueryCtx,
+  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+): Promise<string[]> {
+  return collectSourceKeysByPredicate(ctx, args, isCreditableAssetKey);
+}
+
+/** Shared walk behind both `collectSourcePromotableKeys` and
+ * `collectSourceCreditableKeys` — identical table traversal, `keep` is the
+ * only thing that differs, so the two collectors can never drift apart on
+ * "what fields does this source have." */
+async function collectSourceKeysByPredicate(
+  ctx: QueryCtx,
+  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+  keep: KeyFilter,
 ): Promise<string[]> {
   const out: string[] = [];
 
   if (args.tree === "categories") {
     const cat = await ctx.db.get(args.sourceId as Id<"profileCategories">);
     if (!cat) return [];
-    for (const k of categoryKeys(cat, isPromotableAssetKey)) out.push(k);
+    for (const k of categoryKeys(cat, keep)) out.push(k);
     const symbols = await ctx.db
       .query("profileSymbols")
       .withIndex("by_profile_category_id", (q) =>
         q.eq("profileCategoryId", cat._id)
       )
       .collect();
-    for (const s of symbols) for (const k of symbolKeys(s, isPromotableAssetKey)) out.push(k);
+    for (const s of symbols) for (const k of symbolKeys(s, keep)) out.push(k);
     return [...new Set(out)];
   }
 
   const folder = await ctx.db.get(args.sourceId as Id<"profileFolders">);
   if (!folder) return [];
-  for (const k of folderKeys(folder, isPromotableAssetKey)) out.push(k);
+  for (const k of folderKeys(folder, keep)) out.push(k);
 
   if (args.tree === "lists") {
     const rows = await ctx.db
       .query("profileLists")
       .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
-    for (const r of rows) for (const k of listKeys(r, isPromotableAssetKey)) out.push(k);
+    for (const r of rows) for (const k of listKeys(r, keep)) out.push(k);
   } else if (args.tree === "sentences") {
     const rows = await ctx.db
       .query("profileSentences")
       .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
-    for (const r of rows) for (const k of sentenceKeys(r, isPromotableAssetKey)) out.push(k);
+    for (const r of rows) for (const k of sentenceKeys(r, keep)) out.push(k);
   } else {
     const rows = await ctx.db
       .query("profilePhrases")
       .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
       .collect();
-    for (const r of rows) for (const k of phraseKeys(r, isPromotableAssetKey)) out.push(k);
+    for (const r of rows) for (const k of phraseKeys(r, keep)) out.push(k);
   }
 
   return [...new Set(out)];

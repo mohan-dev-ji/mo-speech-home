@@ -15,6 +15,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
+import type { CreditRow } from "./schema";
 
 /** The only image sources with external provenance worth preserving. */
 export const imageCreditSourceType = v.union(
@@ -22,16 +23,17 @@ export const imageCreditSourceType = v.union(
   v.literal("aiGenerated"),
 );
 
-/** One registry row as returned to the client — no `_id`, no `accountId`. */
-export type CreditRow = {
-  imageKey: string;
-  imageSourceType: "imageSearch" | "aiGenerated";
-  imageTitle?: string;
-  attribution?: string;
-  license?: string;
-  imageSourceUrl?: string;
-  firstUsedFor?: string;
-};
+/**
+ * One registry row as returned to the client — no `_id`, no `accountId`.
+ * Re-exported from `./schema` (review fix, 2026-08-25): this file is a Convex
+ * FUNCTION module, so a shared type file (`convex/data/_shared/types.ts`)
+ * importing `CreditRow` from here was importing a type-only reference through
+ * a module that also defines mutations/queries. The definition now lives
+ * beside the validator it mirrors (`imageCreditFields` in `schema.ts`); this
+ * re-export keeps existing call sites (`convex/lib/moduleCredits.ts`, and
+ * this file's own `getAccountImageCredits`) unchanged.
+ */
+export type { CreditRow };
 
 /**
  * Record the credit for one R2 object key, once.
