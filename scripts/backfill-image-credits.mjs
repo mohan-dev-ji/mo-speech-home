@@ -371,6 +371,11 @@ for (const [table, n] of Object.entries(walkedTotals)) {
   console.log(`   ${table.padEnd(20)} ${pad(n)}`);
 }
 console.log(`   (rows with no accountId at all: ${rowsWithNoAccountId} — unreachable by any account walk)`);
+console.log(
+  "   (each account/table pair above is its own paginated read, not one snapshot — if this" +
+    "\n    total disagrees with a live `npx convex data` count, re-run before treating it as a" +
+    "\n    bug: content written concurrently with this run can be seen zero or twice across a page boundary.)"
+);
 console.log("");
 
 reconcile(

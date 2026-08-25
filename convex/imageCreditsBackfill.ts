@@ -46,14 +46,32 @@
  * — at `PAGE_SIZE` this is orders of magnitude more headroom than any table
  * in this deployment needs today.
  *
- * The two remaining flat `.collect()` calls — `users` in `listBackfillAccounts`
- * and one account's own `imageCredits` rows in `planAccountImageCredits` /
- * `checkAccountImageCreditCompleteness` — are deliberately left unpaginated.
- * Both are bounded by a much smaller, much slower-growing quantity (family
- * accounts; the registry's own de-duplicated row count) than the content
- * tables that motivated this fix, not by the same per-family content volume.
- * If either ever approaches the ceiling that is a different, much later
- * problem than the one this pass closes.
+ * THREE flat `.collect()` calls remain, deliberately left unpaginated
+ * (review-fix pass 2, Finding 2 — this list was previously missing the
+ * third and is now the authoritative count; keep it accurate if a fourth
+ * ever gets added):
+ *   1. `users` in `listBackfillAccounts` — bounded by family-account count,
+ *      a much smaller and much slower-growing quantity than the content
+ *      tables that motivated this fix.
+ *   2. One account's own `imageCredits` rows, in `planAccountImageCredits` /
+ *      `checkAccountImageCreditCompleteness` — bounded by the registry's own
+ *      de-duplicated row count, same reasoning.
+ *   3. `libraryModules` in `planLibraryModuleCredits` (module-artifact
+ *      credits, not the standing `--check` alarm — `--check` exits before
+ *      this function is ever called, so a slow death here does not take the
+ *      alarm down with it). Row count is small and stable (38 modules
+ *      today), but `libraryModules` documents are the fattest in the
+ *      deployment — whole item trees, 191 image placements across those 38
+ *      rows today — so the binding constraint here is the 8 MiB
+ *      per-execution READ cap, not the 16,384-document count cap the other
+ *      two are safely far under. Left unpaginated because module count
+ *      grows far slower than per-family content and a single module's item
+ *      tree, not the table scan, would hit 8 MiB first if anything did —
+ *      re-evaluate (paginate `libraryModules` too, same shape as the six
+ *      content tables above) if module count or average module size grows
+ *      materially from today's baseline.
+ * If any of the three ever approaches its respective ceiling that is a
+ * different, much later problem than the one this pass closes.
  *
  * The writes reuse `writeInstalledModuleCredits` (Task 2) rather than
  * re-implementing the insert, so the dedupe rule stays in exactly one place:
@@ -199,10 +217,19 @@ function toCreditRow(image: MergedImage): CreditRow {
 
 // ─── Pagination primitives — see PAGINATION at the top of this file ─────────
 
-/** Shared shape returned by every per-table page query below. */
+/** Shared shape returned by every per-table page query below.
+ *
+ * `accountIds` is `| null`, never `| undefined` (review-fix pass 2, Finding
+ * 1) — Convex arrays cannot contain `undefined` (`convexToJsonInternal`
+ * throws `"undefined is not a valid Convex value"` on any `undefined`
+ * element; objects silently drop absent keys, arrays do not). `accountId` is
+ * `v.optional(v.id("users"))` on all six content tables, so a legacy
+ * pre-migration row without one is exactly the case this query has to be
+ * able to return without crashing — that is the row `rowsWithNoAccountId`
+ * below exists to count. */
 type RefsPageResult = {
   refs: ImageRef[];
-  accountIds: Array<Id<"users"> | undefined>;
+  accountIds: Array<Id<"users"> | null>;
   rowsInPage: number;
   isDone: boolean;
   continueCursor: string;
@@ -215,6 +242,15 @@ const pageArgs = {
   accountId: v.optional(v.id("users")),
   cursor: v.optional(v.union(v.string(), v.null())),
   pageSize: v.optional(v.number()),
+  // Review-fix pass 2, Finding 3: the distinct-accountId sweep
+  // (`listBackfillAccounts`) only ever reads `accountIds` and `rowsInPage`
+  // off the returned page — it throws `refs` away. Without this flag every
+  // `ImageRef` in the deployment (attribution + source-URL strings included)
+  // gets computed and serialized query→action on every backfill and every
+  // `--check` run, purely to be discarded, on a metered Convex plan. Set by
+  // the sweep only; the per-account walk (`collectAccountRefsPaginated`,
+  // which DOES need `refs`) leaves it unset.
+  idsOnly: v.optional(v.boolean()),
 };
 
 export const pageProfileSymbolsForCredits = internalQuery({
@@ -226,8 +262,8 @@ export const pageProfileSymbolsForCredits = internalQuery({
       : ctx.db.query("profileSymbols");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap(symbolRefs),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap(symbolRefs),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -244,8 +280,8 @@ export const pageProfileListsForCredits = internalQuery({
       : ctx.db.query("profileLists");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap(listRefs),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap(listRefs),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -262,8 +298,8 @@ export const pageProfileSentencesForCredits = internalQuery({
       : ctx.db.query("profileSentences");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap(sentenceRefs),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap(sentenceRefs),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -280,8 +316,8 @@ export const pageProfilePhrasesForCredits = internalQuery({
       : ctx.db.query("profilePhrases");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap(phraseRefs),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap(phraseRefs),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -298,8 +334,8 @@ export const pageProfileCategoriesForCredits = internalQuery({
       : ctx.db.query("profileCategories");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap((c) => coverRef(c, "profileCategories.imagePath")),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap((c) => coverRef(c, "profileCategories.imagePath")),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -316,8 +352,8 @@ export const pageProfileFoldersForCredits = internalQuery({
       : ctx.db.query("profileFolders");
     const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
     return {
-      refs: page.page.flatMap((f) => coverRef(f, "profileFolders.imagePath")),
-      accountIds: page.page.map((d) => d.accountId),
+      refs: args.idsOnly ? [] : page.page.flatMap((f) => coverRef(f, "profileFolders.imagePath")),
+      accountIds: page.page.map((d) => d.accountId ?? null),
       rowsInPage: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,
@@ -327,9 +363,9 @@ export const pageProfileFoldersForCredits = internalQuery({
 
 /**
  * `users` and one account's own `imageCredits` rows are deliberately NOT
- * paginated — see the "two remaining flat `.collect()` calls" note at the top
- * of this file for why that is an accepted, much-later-problem bound rather
- * than an oversight.
+ * paginated — see the "THREE flat `.collect()` calls remain" note at the top
+ * of this file (items 1 and 2 of 3) for why that is an accepted,
+ * much-later-problem bound rather than an oversight.
  */
 export const listAllUsers = internalQuery({
   args: {},
@@ -369,6 +405,10 @@ async function pageThroughTable(
   fn: RefsPageFn,
   accountId: Id<"users"> | undefined,
   onPage: (page: RefsPageResult) => void,
+  // Review-fix pass 2, Finding 3: true only for the distinct-accountId sweep
+  // (`listBackfillAccounts`), which reads `page.accountIds` /
+  // `page.rowsInPage` and never touches `page.refs` — see `pageArgs.idsOnly`.
+  idsOnly = false,
 ): Promise<void> {
   let cursor: string | null = null;
   let isDone = false;
@@ -379,7 +419,7 @@ async function pageThroughTable(
         `imageCreditsBackfill: runaway pagination loop (>${MAX_PAGES_PER_TABLE} pages) — a table has grown far beyond what PAGE_SIZE=${PAGE_SIZE} was sized for.`,
       );
     }
-    const page: RefsPageResult = await ctx.runQuery(fn, { accountId, cursor, pageSize: PAGE_SIZE });
+    const page: RefsPageResult = await ctx.runQuery(fn, { accountId, cursor, pageSize: PAGE_SIZE, idsOnly });
     onPage(page);
     isDone = page.isDone;
     cursor = page.continueCursor;
@@ -460,17 +500,27 @@ export const listBackfillAccounts = internalAction({
     // receive a registry row — counted so the caller can say so out loud.
     let rowsWithNoAccountId = 0;
     for (const { fn } of REF_PAGE_TABLES) {
-      await pageThroughTable(ctx, fn, undefined, (page) => {
-        for (const accountId of page.accountIds) {
-          if (!accountId) {
-            rowsWithNoAccountId++;
-            continue;
+      // idsOnly: true — this sweep only ever reads `accountIds` /
+      // `rowsInPage` below, never `page.refs` (Finding 3: skips computing
+      // and serializing every ImageRef in the deployment, including
+      // attribution/source-URL strings, purely to discard it).
+      await pageThroughTable(
+        ctx,
+        fn,
+        undefined,
+        (page) => {
+          for (const accountId of page.accountIds) {
+            if (!accountId) {
+              rowsWithNoAccountId++;
+              continue;
+            }
+            if (!byId.has(accountId)) {
+              byId.set(accountId, { accountId, email: "", name: "", hasUserRow: false });
+            }
           }
-          if (!byId.has(accountId)) {
-            byId.set(accountId, { accountId, email: "", name: "", hasUserRow: false });
-          }
-        }
-      });
+        },
+        true,
+      );
     }
 
     const accounts = [...byId.values()].sort(
