@@ -7,14 +7,53 @@
  * is exactly what `npx convex run` is. A backfill has to span every account and
  * runs from a terminal, so it cannot reuse it.
  *
- * AUTH MODEL — every function here is `internalQuery` / `internalMutation`.
- * Internal functions are not part of the public `api` surface: they are
- * addressable only as `internal.*`, which the Convex client cannot reference
- * and the server refuses to run for a browser call. So an explicit `accountId`
- * argument — a cross-account write, which nothing in the public API is allowed
- * to be — is only ever reachable from a deploy-key-holding CLI or another
- * server-side function. Nothing here weakens the caller-scoped public path;
- * `recordImageCredit` is untouched.
+ * AUTH MODEL — every function here is `internalQuery` / `internalMutation` /
+ * `internalAction`. None of the three is part of the public `api` surface:
+ * they are addressable only as `internal.*`, which the Convex client cannot
+ * reference and the server refuses to run for a browser call. So an explicit
+ * `accountId` argument — a cross-account write, which nothing in the public
+ * API is allowed to be — is only ever reachable from a deploy-key-holding CLI
+ * or another server-side function. Nothing here weakens the caller-scoped
+ * public path; `recordImageCredit` is untouched. (Review-fix pass 2 promoted
+ * `listBackfillAccounts` / `planAccountImageCredits` /
+ * `checkAccountImageCreditCompleteness` from `internalQuery` to
+ * `internalAction` so they can page through more than one query's worth of
+ * data — see PAGINATION below. An `internalAction` is exactly as unreachable
+ * from a browser as an `internalQuery`; only the `internal`/`api` split
+ * matters for that, not which of the three internal kinds it is.)
+ *
+ * PAGINATION — Convex caps a single query/mutation EXECUTION at 16,384
+ * documents / 8 MiB read, cumulative across every `ctx.db` call made during
+ * that one execution. Two reads here used to be flat, unbounded `.collect()`
+ * calls that could trip that ceiling as the app grows:
+ *   1. `listBackfillAccounts`'s distinct-accountId sweep — a full scan of all
+ *      six content tables, across every account. ~2,524 docs today; grows
+ *      with every account, and it is the FIRST call in both the backfill and
+ *      `--check`, so tripping it would stop the standing alarm from running
+ *      at all.
+ *   2. The per-account walk behind `planAccountImageCredits` /
+ *      `checkAccountImageCreditCompleteness` — index-scoped to one account,
+ *      but still unbounded within that scope (1,057 `profileSymbols` for the
+ *      biggest account today).
+ * Both are now paginated the same way `migrations.ts` already paginates
+ * `backfillSearchTextPage` / `backfillSearchText`: a per-page `internalQuery`
+ * bounded by `PAGE_SIZE`, driven by an `internalAction` that loops
+ * `ctx.runQuery` with a cursor until `isDone`. Each `ctx.runQuery` call is its
+ * own bounded transaction, so the total read across a whole sweep or a whole
+ * account is never counted against one execution's ceiling, no matter how
+ * large the table or the account gets. `MAX_PAGES_PER_TABLE` is a hard cap
+ * (matching `backfillSearchText`'s "safety net against a runaway loop")
+ * — at `PAGE_SIZE` this is orders of magnitude more headroom than any table
+ * in this deployment needs today.
+ *
+ * The two remaining flat `.collect()` calls — `users` in `listBackfillAccounts`
+ * and one account's own `imageCredits` rows in `planAccountImageCredits` /
+ * `checkAccountImageCreditCompleteness` — are deliberately left unpaginated.
+ * Both are bounded by a much smaller, much slower-growing quantity (family
+ * accounts; the registry's own de-duplicated row count) than the content
+ * tables that motivated this fix, not by the same per-family content volume.
+ * If either ever approaches the ceiling that is a different, much later
+ * problem than the one this pass closes.
  *
  * The writes reuse `writeInstalledModuleCredits` (Task 2) rather than
  * re-implementing the insert, so the dedupe rule stays in exactly one place:
@@ -22,24 +61,35 @@
  * patch, never a throw, never a delete.
  *
  * Read/write split is deliberate: everything the script needs in order to
- * PRINT a plan is a query, and the only two mutations are guarded behind the
- * script's `--apply` flag.
+ * PRINT a plan is a query or action, and the only two mutations that WRITE are
+ * guarded behind the script's `--apply` flag.
  */
 
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
-import type { QueryCtx } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import type { ActionCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { imageCreditFields } from "./schema";
 import type { CreditRow } from "./schema";
 import { isCreditableAssetKey } from "./lib/contentModuleDelete";
 import { mergeModuleCredits, writeInstalledModuleCredits } from "./lib/moduleCredits";
 import {
-  collectAccountImageRefs,
+  symbolRefs,
+  listRefs,
+  sentenceRefs,
+  phraseRefs,
+  coverRef,
   collectModuleImageRefs,
   type ImageRef,
   type PlacementSourceType,
+  type WalkedRowCounts,
 } from "./lib/imageCreditRefs";
+
+/** Rows per page for every paginated read in this file — see PAGINATION above. */
+const PAGE_SIZE = 1000;
+/** Safety net against a runaway loop, matching `migrations.backfillSearchText`. */
+const MAX_PAGES_PER_TABLE = 500;
 
 // ─── Grouping + classification (pure) ────────────────────────────────────────
 
@@ -147,19 +197,223 @@ function toCreditRow(image: MergedImage): CreditRow {
   };
 }
 
-/** Does this account already hold a registry row for `imageKey`? */
-async function hasCredit(
-  ctx: QueryCtx,
+// ─── Pagination primitives — see PAGINATION at the top of this file ─────────
+
+/** Shared shape returned by every per-table page query below. */
+type RefsPageResult = {
+  refs: ImageRef[];
+  accountIds: Array<Id<"users"> | undefined>;
+  rowsInPage: number;
+  isDone: boolean;
+  continueCursor: string;
+};
+
+const pageArgs = {
+  // Present → scoped to one account via `by_account_id` (the per-account walk).
+  // Absent  → a full, unfiltered table scan, one page at a time (the
+  // distinct-accountId sweep). Same six queries serve both callers.
+  accountId: v.optional(v.id("users")),
+  cursor: v.optional(v.union(v.string(), v.null())),
+  pageSize: v.optional(v.number()),
+};
+
+export const pageProfileSymbolsForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profileSymbols").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profileSymbols");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap(symbolRefs),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const pageProfileListsForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profileLists").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profileLists");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap(listRefs),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const pageProfileSentencesForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profileSentences").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profileSentences");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap(sentenceRefs),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const pageProfilePhrasesForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profilePhrases").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profilePhrases");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap(phraseRefs),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const pageProfileCategoriesForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profileCategories").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profileCategories");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap((c) => coverRef(c, "profileCategories.imagePath")),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const pageProfileFoldersForCredits = internalQuery({
+  args: pageArgs,
+  handler: async (ctx, args): Promise<RefsPageResult> => {
+    const accountId = args.accountId;
+    const q = accountId
+      ? ctx.db.query("profileFolders").withIndex("by_account_id", (qq) => qq.eq("accountId", accountId))
+      : ctx.db.query("profileFolders");
+    const page = await q.paginate({ cursor: args.cursor ?? null, numItems: args.pageSize ?? PAGE_SIZE });
+    return {
+      refs: page.page.flatMap((f) => coverRef(f, "profileFolders.imagePath")),
+      accountIds: page.page.map((d) => d.accountId),
+      rowsInPage: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+/**
+ * `users` and one account's own `imageCredits` rows are deliberately NOT
+ * paginated — see the "two remaining flat `.collect()` calls" note at the top
+ * of this file for why that is an accepted, much-later-problem bound rather
+ * than an oversight.
+ */
+export const listAllUsers = internalQuery({
+  args: {},
+  handler: async (ctx): Promise<Doc<"users">[]> => ctx.db.query("users").collect(),
+});
+
+export const listAccountCreditKeys = internalQuery({
+  args: { accountId: v.id("users") },
+  handler: async (ctx, args): Promise<string[]> => {
+    const rows = await ctx.db
+      .query("imageCredits")
+      .withIndex("by_account_and_key", (q) => q.eq("accountId", args.accountId))
+      .collect();
+    return rows.map((r) => r.imageKey);
+  },
+});
+
+/** One of the six paginated per-table queries above, all sharing `pageArgs` in → `RefsPageResult` out. */
+type RefsPageFn = typeof internal.imageCreditsBackfill.pageProfileSymbolsForCredits;
+
+const REF_PAGE_TABLES: ReadonlyArray<{ table: keyof WalkedRowCounts; fn: RefsPageFn }> = [
+  { table: "profileSymbols", fn: internal.imageCreditsBackfill.pageProfileSymbolsForCredits },
+  { table: "profileLists", fn: internal.imageCreditsBackfill.pageProfileListsForCredits },
+  { table: "profileSentences", fn: internal.imageCreditsBackfill.pageProfileSentencesForCredits },
+  { table: "profilePhrases", fn: internal.imageCreditsBackfill.pageProfilePhrasesForCredits },
+  { table: "profileCategories", fn: internal.imageCreditsBackfill.pageProfileCategoriesForCredits },
+  { table: "profileFolders", fn: internal.imageCreditsBackfill.pageProfileFoldersForCredits },
+];
+
+/**
+ * Loop one paginated per-table query to exhaustion, calling `onPage` for every
+ * page. `MAX_PAGES_PER_TABLE` is a hard stop against a runaway loop — the same
+ * safety net `migrations.backfillSearchText` uses around its own cursor loop.
+ */
+async function pageThroughTable(
+  ctx: ActionCtx,
+  fn: RefsPageFn,
+  accountId: Id<"users"> | undefined,
+  onPage: (page: RefsPageResult) => void,
+): Promise<void> {
+  let cursor: string | null = null;
+  let isDone = false;
+  let pages = 0;
+  while (!isDone) {
+    if (++pages > MAX_PAGES_PER_TABLE) {
+      throw new Error(
+        `imageCreditsBackfill: runaway pagination loop (>${MAX_PAGES_PER_TABLE} pages) — a table has grown far beyond what PAGE_SIZE=${PAGE_SIZE} was sized for.`,
+      );
+    }
+    const page: RefsPageResult = await ctx.runQuery(fn, { accountId, cursor, pageSize: PAGE_SIZE });
+    onPage(page);
+    isDone = page.isDone;
+    cursor = page.continueCursor;
+  }
+}
+
+/**
+ * Every image placement in ONE account's content, in table order — the
+ * paginated replacement for the old (unbounded) `collectAccountImageRefs`.
+ * Bounded per page rather than per account, so this never trips the
+ * per-execution ceiling no matter how large one account's content gets.
+ */
+async function collectAccountRefsPaginated(
+  ctx: ActionCtx,
   accountId: Id<"users">,
-  imageKey: string,
-): Promise<boolean> {
-  const row = await ctx.db
-    .query("imageCredits")
-    .withIndex("by_account_and_key", (q) =>
-      q.eq("accountId", accountId).eq("imageKey", imageKey),
-    )
-    .first();
-  return row !== null;
+): Promise<{ refs: ImageRef[]; rowsWalked: WalkedRowCounts }> {
+  const refs: ImageRef[] = [];
+  const rowsWalked: WalkedRowCounts = {
+    profileSymbols: 0,
+    profileLists: 0,
+    profileSentences: 0,
+    profilePhrases: 0,
+    profileCategories: 0,
+    profileFolders: 0,
+  };
+
+  for (const { table, fn } of REF_PAGE_TABLES) {
+    await pageThroughTable(ctx, fn, accountId, (page) => {
+      refs.push(...page.refs);
+      rowsWalked[table] += page.rowsInPage;
+    });
+  }
+
+  return { refs, rowsWalked };
 }
 
 // ─── Account backfill ────────────────────────────────────────────────────────
@@ -178,19 +432,21 @@ async function hasCredit(
  * report them separately instead of mixing dead content into live totals.
  *
  * The distinct-accountId sweep is a full scan of the six tables — there is no
- * index that yields distinct values. Acceptable because this is a CLI-only
- * backfill/audit function, never a request path; the per-account plan and
- * check below both stay index-driven.
+ * index that yields distinct values. It stays automatic (runs on every
+ * invocation, not behind an opt-in flag) so a newly-orphaned account is caught
+ * the next time anyone runs the backfill or `--check`, not only when someone
+ * remembers to ask for a resweep — see PAGINATION above for how it stays
+ * bounded regardless of table size.
  */
-export const listBackfillAccounts = internalQuery({
+export const listBackfillAccounts = internalAction({
   args: {},
   handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
+    const users: Doc<"users">[] = await ctx.runQuery(internal.imageCreditsBackfill.listAllUsers, {});
     const byId = new Map<
       string,
       { accountId: Id<"users">; email: string; name: string; hasUserRow: boolean }
     >();
-    for (const u of users as Doc<"users">[]) {
+    for (const u of users) {
       byId.set(u._id, {
         accountId: u._id,
         email: u.email ?? "",
@@ -199,26 +455,22 @@ export const listBackfillAccounts = internalQuery({
       });
     }
 
-    const referenced: Array<Id<"users"> | undefined> = [];
-    for (const row of await ctx.db.query("profileSymbols").collect()) referenced.push(row.accountId);
-    for (const row of await ctx.db.query("profileLists").collect()) referenced.push(row.accountId);
-    for (const row of await ctx.db.query("profileSentences").collect()) referenced.push(row.accountId);
-    for (const row of await ctx.db.query("profilePhrases").collect()) referenced.push(row.accountId);
-    for (const row of await ctx.db.query("profileCategories").collect()) referenced.push(row.accountId);
-    for (const row of await ctx.db.query("profileFolders").collect()) referenced.push(row.accountId);
-
     // A row whose `accountId` is absent altogether (the field is still
     // `v.optional` for pre-migration rows) belongs to no account and can never
     // receive a registry row — counted so the caller can say so out loud.
     let rowsWithNoAccountId = 0;
-    for (const accountId of referenced) {
-      if (!accountId) {
-        rowsWithNoAccountId++;
-        continue;
-      }
-      if (!byId.has(accountId)) {
-        byId.set(accountId, { accountId, email: "", name: "", hasUserRow: false });
-      }
+    for (const { fn } of REF_PAGE_TABLES) {
+      await pageThroughTable(ctx, fn, undefined, (page) => {
+        for (const accountId of page.accountIds) {
+          if (!accountId) {
+            rowsWithNoAccountId++;
+            continue;
+          }
+          if (!byId.has(accountId)) {
+            byId.set(accountId, { accountId, email: "", name: "", hasUserRow: false });
+          }
+        }
+      });
     }
 
     const accounts = [...byId.values()].sort(
@@ -233,11 +485,14 @@ export const listBackfillAccounts = internalQuery({
  *
  * Read-only. The script prints this; only `applyAccountImageCredits` writes.
  */
-export const planAccountImageCredits = internalQuery({
+export const planAccountImageCredits = internalAction({
   args: { accountId: v.id("users") },
   handler: async (ctx, args) => {
-    const { refs, rowsWalked } = await collectAccountImageRefs(ctx, args.accountId);
+    const { refs, rowsWalked } = await collectAccountRefsPaginated(ctx, args.accountId);
     const merged = mergeByKey(refs);
+    const existingKeys = new Set(
+      await ctx.runQuery(internal.imageCreditsBackfill.listAccountCreditKeys, { accountId: args.accountId }),
+    );
 
     const counts = {
       totalPlacements: refs.length,
@@ -255,7 +510,7 @@ export const planAccountImageCredits = internalQuery({
     const lostCredit: Array<{ imageKey: string; label: string; foundIn: string }> = [];
 
     for (const image of merged) {
-      const present = await hasCredit(ctx, args.accountId, image.imageKey);
+      const present = existingKeys.has(image.imageKey);
       const bucket = bucketFor(image, present);
       counts[bucket]++;
       if (bucket === "create") proposals.push(toCreditRow(image));
@@ -297,26 +552,45 @@ export const applyAccountImageCredits = internalMutation({
  * so it stays meaningful long after this phase, and is how a save path that
  * forgets to call `recordImageCredit` gets caught.
  *
- * Two buckets, per the plan's "What gets recorded, and why":
- *   `definitelyLost` — the row says `imageSearch`, no registry row exists.
- *                      Every entry is a real gap.
- *   `unknown`        — no type on any placement (covers, talker-built slots),
- *                      so an absent row could be a legitimate upload or a lost
- *                      credit. Should stay short enough to eyeball; if it does
- *                      not, recording uploads is the fix.
+ * THREE buckets (review-fix pass 2 added the third — the original plan named
+ * only the first two, and that instruction was incomplete: `aiGenerated` is a
+ * type the backfill DOES create rows for, so a save path regression on the AI
+ * path was previously undetectable here):
+ *   `definitelyLost`     — the row says `imageSearch`, no registry row exists.
+ *                          Split into recoverable-via-backfill vs permanently
+ *                          lost by `hasRecoverableCredit` (Finding 2 — the
+ *                          bucket name stays, the script's summary line is
+ *                          what has to stop calling every entry "lost").
+ *   `aiGeneratedMissing` — the row says `aiGenerated`, no registry row exists.
+ *                          Always recoverable via backfill: unlike
+ *                          `imageSearch`, an `aiGenerated` placement never
+ *                          carries a licence/attribution that could be absent,
+ *                          so there is no "permanent" variant of this bucket.
+ *   `unknown`            — no type on any placement (covers, talker-built
+ *                          slots), so an absent row could be a legitimate
+ *                          upload or a lost credit. Should stay short enough
+ *                          to eyeball; if it does not, recording uploads is
+ *                          the fix.
+ * `upload` / `symbolstix` placements fall through all three, on purpose —
+ * matching `bucketFor`'s `byDesignUpload` bucket in the backfill plan; an
+ * upload is never expected to have a registry row.
  */
-export const checkAccountImageCreditCompleteness = internalQuery({
+export const checkAccountImageCreditCompleteness = internalAction({
   args: { accountId: v.id("users") },
   handler: async (ctx, args) => {
-    const { refs } = await collectAccountImageRefs(ctx, args.accountId);
+    const { refs } = await collectAccountRefsPaginated(ctx, args.accountId);
     const merged = mergeByKey(refs);
+    const existingKeys = new Set(
+      await ctx.runQuery(internal.imageCreditsBackfill.listAccountCreditKeys, { accountId: args.accountId }),
+    );
 
     const definitelyLost: Array<{ imageKey: string; label: string; foundIn: string; hasRecoverableCredit: boolean }> = [];
+    const aiGeneratedMissing: Array<{ imageKey: string; label: string; foundIn: string }> = [];
     const unknown: Array<{ imageKey: string; label: string; foundIn: string }> = [];
 
     for (const image of merged) {
       if (!isCreditableAssetKey(image.imageKey)) continue;
-      if (await hasCredit(ctx, args.accountId, image.imageKey)) continue;
+      if (existingKeys.has(image.imageKey)) continue;
 
       if (image.sourceType === "imageSearch") {
         definitelyLost.push({
@@ -327,6 +601,12 @@ export const checkAccountImageCreditCompleteness = internalQuery({
             image.attribution || image.license || image.imageSourceUrl,
           ),
         });
+      } else if (image.sourceType === "aiGenerated") {
+        aiGeneratedMissing.push({
+          imageKey: image.imageKey,
+          label: image.label ?? "",
+          foundIn: image.foundIn.join(", "),
+        });
       } else if (image.sourceType === undefined) {
         unknown.push({
           imageKey: image.imageKey,
@@ -336,7 +616,7 @@ export const checkAccountImageCreditCompleteness = internalQuery({
       }
     }
 
-    return { definitelyLost, unknown };
+    return { definitelyLost, aiGeneratedMissing, unknown };
   },
 });
 

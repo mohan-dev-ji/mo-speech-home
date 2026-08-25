@@ -19,9 +19,14 @@
  *   node --env-file=.env.local scripts/backfill-image-credits.mjs --apply   # writes
  *
  * Flags:
- *   --dry-run  (default, explicit form also accepted) — read Convex, print the
- *              full plan and the reconciliation, write NOTHING.
- *   --apply    perform the writes. Take a snapshot FIRST, per CLAUDE.md:
+ *   --dry-run  (default) — read Convex, print the full plan and the
+ *              reconciliation, write NOTHING. ALSO A HARD VETO: if both
+ *              --dry-run and --apply are passed, --dry-run wins and nothing is
+ *              written. (Review-fix pass 2 — previously this flag was
+ *              documented but never parsed, so `--dry-run --apply` silently
+ *              wrote. Now it is checked first, before --apply is honoured.)
+ *   --apply    perform the writes, UNLESS --dry-run is also present (see
+ *              above). Take a snapshot FIRST, per CLAUDE.md:
  *                npx convex export --path backups/<date>-image-credit-backfill.zip
  *   --check    run only the standing completeness check ("is there an image in
  *              use whose credit we lost?"). Always read-only, even with --apply.
@@ -71,9 +76,20 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // ── Args ─────────────────────────────────────────────────────────────────────
-const APPLY = process.argv.includes("--apply");
+// --dry-run is a HARD VETO over --apply (Finding 4, review-fix pass 2): this is
+// the one flag where getting it wrong is unrecoverable, so an explicit
+// --dry-run always wins even if --apply is also present on the command line.
+const APPLY_REQUESTED = process.argv.includes("--apply");
+const DRY_RUN_REQUESTED = process.argv.includes("--dry-run");
 const CHECK_ONLY = process.argv.includes("--check");
+const APPLY = APPLY_REQUESTED && !DRY_RUN_REQUESTED;
 const DRY_RUN = !APPLY;
+
+if (APPLY_REQUESTED && DRY_RUN_REQUESTED) {
+  console.log(
+    "⚠️  Both --apply and --dry-run were passed — --dry-run wins. Nothing will be written.\n"
+  );
+}
 
 /** Rows per mutation call — keeps one transaction well inside Convex's limits. */
 const APPLY_BATCH = 100;
@@ -133,24 +149,40 @@ console.log(
 // independent of the backfill plan, so it stays useful long after this phase.
 // ─────────────────────────────────────────────────────────────────────────────
 if (CHECK_ONLY) {
-  const tally = { lost: 0, unknown: 0, orphanedLost: 0, orphanedUnknown: 0 };
+  const tally = {
+    lost: 0,
+    lostRecoverable: 0,
+    lostPermanent: 0,
+    aiMissing: 0,
+    unknown: 0,
+    orphanedLost: 0,
+    orphanedAiMissing: 0,
+    orphanedUnknown: 0,
+  };
 
   for (const account of accounts) {
-    const { definitelyLost, unknown } = convexRun(
+    const { definitelyLost, aiGeneratedMissing, unknown } = convexRun(
       "imageCreditsBackfill:checkAccountImageCreditCompleteness",
       { accountId: account.accountId }
     );
+    const recoverable = definitelyLost.filter((r) => r.hasRecoverableCredit).length;
+    const permanent = definitelyLost.length - recoverable;
     if (account.hasUserRow) {
       tally.lost += definitelyLost.length;
+      tally.lostRecoverable += recoverable;
+      tally.lostPermanent += permanent;
+      tally.aiMissing += aiGeneratedMissing.length;
       tally.unknown += unknown.length;
     } else {
       tally.orphanedLost += definitelyLost.length;
+      tally.orphanedAiMissing += aiGeneratedMissing.length;
       tally.orphanedUnknown += unknown.length;
     }
 
     console.log(`ACCOUNT ${label(account)}`);
     console.log(
-      `   definitely lost (row says imageSearch, no registry row): ${definitelyLost.length}`
+      `   definitely lost (row says imageSearch, no registry row): ${definitelyLost.length}` +
+        `  (${recoverable} recoverable via backfill, ${permanent} permanent)`
     );
     for (const row of definitelyLost) {
       console.log(
@@ -158,6 +190,18 @@ if (CHECK_ONLY) {
           `${row.label ? `  “${row.label}”` : ""}` +
           `  [${row.foundIn}]` +
           `  ${row.hasRecoverableCredit ? "credit recoverable — run the backfill" : "NO recoverable credit"}`
+      );
+    }
+    // aiGenerated is always fully recoverable via the backfill — see the
+    // docblock on checkAccountImageCreditCompleteness for why it never has a
+    // "permanent" variant the way imageSearch does.
+    console.log(
+      `   missing (row says aiGenerated, no registry row): ${aiGeneratedMissing.length}` +
+        `  (all recoverable via backfill)`
+    );
+    for (const row of aiGeneratedMissing) {
+      console.log(
+        `      ${row.imageKey}${row.label ? `  “${row.label}”` : ""}  [${row.foundIn}]  credit recoverable — run the backfill`
       );
     }
     console.log(`   unknown, review manually (no type on any placement): ${unknown.length}`);
@@ -172,14 +216,22 @@ if (CHECK_ONLY) {
   rule();
   console.log("COMPLETENESS CHECK SUMMARY");
   rule();
-  console.log(`definitely lost:                       ${pad(tally.lost)}`);
+  console.log(
+    `definitely lost:                       ${pad(tally.lost)}` +
+      `  (${tally.lostRecoverable} recoverable via backfill, ${tally.lostPermanent} permanent)`
+  );
+  console.log(`missing (aiGenerated, no registry row): ${pad(tally.aiMissing)}  (all recoverable via backfill)`);
   console.log(`unknown, review manually:              ${pad(tally.unknown)}`);
   console.log(`  · orphaned-account content, lost:    ${pad(tally.orphanedLost)}  (unreachable — no users row)`);
+  console.log(`  · orphaned-account content, ai-missing:${pad(tally.orphanedAiMissing)}  (unreachable — no users row)`);
   console.log(`  · orphaned-account content, unknown: ${pad(tally.orphanedUnknown)}  (unreachable — no users row)`);
   console.log(
-    "\nA non-zero 'definitely lost' with credit still recoverable means the backfill" +
-      "\nhas not been applied yet. A non-zero one WITHOUT recoverable credit is a" +
-      "\npermanent phase-29-era hole — information, not a bug to chase." +
+    "\nA non-zero 'definitely lost' or 'missing (aiGenerated)' with credit still" +
+      "\nrecoverable means the backfill has not been applied yet (or has not been" +
+      "\nre-run since new content was added). A non-zero 'definitely lost' WITHOUT" +
+      "\nrecoverable credit is a permanent phase-29-era hole — information, not a bug" +
+      "\nto chase. 'aiGenerated' has no permanent variant: it never carries the" +
+      "\nlicence/attribution fields that could be absent." +
       "\n'unknown' should stay short enough to eyeball; if it does not, recording" +
       "\nuploads in the registry is the fix."
   );
@@ -290,9 +342,15 @@ const sum = (t) =>
 const verdict = (t) => (sum(t) === t.totalImages ? "✅ matches total scanned" : "❌ DOES NOT MATCH");
 const mc = modulePlan.counts;
 
+// Finding 5 (review-fix pass 2): the count below is unique (account, imageKey)
+// PAIRS, not distinct images — an image installed on both accounts (e.g. the
+// `space` module's 15 images) counts once per account, because that is the
+// registry's own unit (`imageCredits` is keyed by (accountId, imageKey)). The
+// old label "total unique images scanned" invited a reader to take the number
+// as a distinct-image count, which it is not.
 function reconcile(title, t) {
   console.log(title);
-  console.log(`total unique images scanned:                  ${pad(t.totalImages)}`);
+  console.log(`total unique (account, image) pairs scanned:  ${pad(t.totalImages)}`);
   console.log(`  would create a registry row:                ${pad(t.create)}`);
   console.log(`  skipped, registry row already present:      ${pad(t.present)}`);
   console.log(`  skipped by design (upload / symbolstix):    ${pad(t.byDesignUpload + t.byDesignShared)}`);
@@ -330,7 +388,9 @@ if (orphanedAccounts.length > 0) {
 }
 
 console.log(`PUBLISHED MODULES — ${plural(mc.modules, "module", "modules")}`);
-console.log(`total unique images scanned:                  ${pad(mc.totalImages)}`);
+// Same unit note as reconcile() above: unique (module, imageKey) pairs — an
+// image reused across two modules counts once per module.
+console.log(`total unique (module, image) pairs scanned:   ${pad(mc.totalImages)}`);
 console.log(`  would add a credit to the artifact:         ${pad(mc.create)}  (across ${plural(mc.modulesWouldChange, "module", "modules")})`);
 console.log(`  skipped, credit already on the artifact:    ${pad(mc.present)}`);
 console.log(`  skipped by design (upload / symbolstix):    ${pad(mc.byDesignUpload + mc.byDesignShared)}`);

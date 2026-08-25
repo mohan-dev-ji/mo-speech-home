@@ -2,7 +2,8 @@
  * "Which images does this account's content actually reference, and what does
  * each placement still remember about where it came from?" (phase-31 Task 3).
  *
- * ONE walk, TWO consumers, so their field coverage can never drift apart:
+ * ONE set of per-table extractors, TWO consumers, so their field coverage can
+ * never drift apart:
  *
  *   `planAccountImageCredits`            — the backfill: lift phase-30's
  *                                          per-placement credit into the
@@ -10,6 +11,21 @@
  *   `checkAccountImageCreditCompleteness` — the standing self-check: "is there
  *                                          an image in use whose credit we
  *                                          lost?"
+ *
+ * PAGINATION (review fix, phase-31 Task 3 pass 2) — this file used to also
+ * export `collectAccountImageRefs`, a single function that ran `.collect()`
+ * on all six tables (index-scoped to one account) inside one query. Convex
+ * caps a single query/mutation EXECUTION at 16,384 documents / 8 MiB read,
+ * cumulative across every `ctx.db` call made during that execution — so that
+ * one function could trip the ceiling once a single account's own content
+ * grew large enough (1,057 `profileSymbols` for the biggest account today).
+ * The per-table extractors below are now called from PAGINATED
+ * `internalQuery`s in `imageCreditsBackfill.ts`, each bounded to one page of
+ * one table, driven by an `internalAction` that loops `ctx.runQuery` — the
+ * same "paginate + caller loops" shape `migrations.ts` already uses for
+ * `backfillSearchTextPage` / `backfillSearchText`. Each `ctx.runQuery` call is
+ * its own bounded transaction, so the account-level total is never read in one
+ * execution no matter how large a single account's content gets.
  *
  * This is deliberately NOT `collectReferencedPersonalKeys` /
  * `collectSourcePromotableKeys` in ./personalAssetRefs. Those answer "which R2
@@ -30,8 +46,7 @@
  *   - every audio field — the registry has no audio member.
  */
 
-import type { Doc, Id } from "../_generated/dataModel";
-import type { QueryCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
 
 /**
  * The image-source vocabulary as it is spelled ON A PLACEMENT — wider than the
@@ -135,8 +150,12 @@ function pushProvenanceItem(
  * has no field for it, it is never removed from the symbol row, and putting it
  * in `firstUsedFor` would make backfilled rows read differently from the ones
  * `SymbolEditorModal` writes live (which put the English label there).
+ *
+ * Exported (not module-private) so the paginated per-page queries in
+ * `imageCreditsBackfill.ts` can call it per-row without re-implementing the
+ * extraction logic — see the PAGINATION note above.
  */
-function symbolRefs(symbol: Doc<"profileSymbols">): ImageRef[] {
+export function symbolRefs(symbol: Doc<"profileSymbols">): ImageRef[] {
   const src = symbol.imageSource as {
     type?: string;
     imagePath?: string;
@@ -160,7 +179,7 @@ function symbolRefs(symbol: Doc<"profileSymbols">): ImageRef[] {
   return [ref];
 }
 
-function listRefs(list: Doc<"profileLists">): ImageRef[] {
+export function listRefs(list: Doc<"profileLists">): ImageRef[] {
   const out: ImageRef[] = [];
   for (const item of list.items ?? []) {
     pushProvenanceItem(
@@ -181,7 +200,7 @@ function listRefs(list: Doc<"profileLists">): ImageRef[] {
  * writes. Walking only `slots[]` would silently miss every composition-built
  * sentence.
  */
-function sentenceRefs(sentence: Doc<"profileSentences">): ImageRef[] {
+export function sentenceRefs(sentence: Doc<"profileSentences">): ImageRef[] {
   const out: ImageRef[] = [];
   for (const slot of sentence.slots ?? []) {
     pushProvenanceItem(
@@ -199,7 +218,7 @@ function sentenceRefs(sentence: Doc<"profileSentences">): ImageRef[] {
   return out;
 }
 
-function phraseRefs(phrase: Doc<"profilePhrases">): ImageRef[] {
+export function phraseRefs(phrase: Doc<"profilePhrases">): ImageRef[] {
   const out: ImageRef[] = [];
   for (const word of (phrase.words ?? []) as Array<Record<string, unknown>>) {
     pushProvenanceItem(out, word, "profilePhrases.words");
@@ -210,7 +229,7 @@ function phraseRefs(phrase: Doc<"profilePhrases">): ImageRef[] {
 /** Category and folder COVER images. These carry a key and nothing else — no
  * `imageSourceType` field exists on either table — which is precisely why the
  * completeness check needs an "unknown, review manually" bucket (MOS-35). */
-function coverRef(
+export function coverRef(
   row: { imagePath?: string; name?: unknown },
   foundIn: string,
 ): ImageRef[] {
@@ -233,71 +252,6 @@ export type WalkedRowCounts = {
   profileCategories: number;
   profileFolders: number;
 };
-
-/**
- * Every image placement in ONE account's content, in table order.
- *
- * Index-driven (`by_account_id` on all six tables), so this stays bounded as
- * the account grows and never reads another account's rows.
- */
-export async function collectAccountImageRefs(
-  ctx: QueryCtx,
-  accountId: Id<"users">,
-): Promise<{ refs: ImageRef[]; rowsWalked: WalkedRowCounts }> {
-  const refs: ImageRef[] = [];
-  const rowsWalked: WalkedRowCounts = {
-    profileSymbols: 0,
-    profileLists: 0,
-    profileSentences: 0,
-    profilePhrases: 0,
-    profileCategories: 0,
-    profileFolders: 0,
-  };
-
-  const symbols = await ctx.db
-    .query("profileSymbols")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profileSymbols = symbols.length;
-  for (const s of symbols) refs.push(...symbolRefs(s));
-
-  const lists = await ctx.db
-    .query("profileLists")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profileLists = lists.length;
-  for (const l of lists) refs.push(...listRefs(l));
-
-  const sentences = await ctx.db
-    .query("profileSentences")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profileSentences = sentences.length;
-  for (const s of sentences) refs.push(...sentenceRefs(s));
-
-  const phrases = await ctx.db
-    .query("profilePhrases")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profilePhrases = phrases.length;
-  for (const p of phrases) refs.push(...phraseRefs(p));
-
-  const categories = await ctx.db
-    .query("profileCategories")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profileCategories = categories.length;
-  for (const c of categories) refs.push(...coverRef(c, "profileCategories.imagePath"));
-
-  const folders = await ctx.db
-    .query("profileFolders")
-    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
-    .collect();
-  rowsWalked.profileFolders = folders.length;
-  for (const f of folders) refs.push(...coverRef(f, "profileFolders.imagePath"));
-
-  return { refs, rowsWalked };
-}
 
 /**
  * Every image placement in ONE published module artifact.
