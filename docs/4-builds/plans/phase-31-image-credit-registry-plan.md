@@ -51,6 +51,24 @@ Of the four providers, **only Wikimedia's CC licences legally require attributio
 
 We still capture and display all four. A credits list with arbitrary gaps is harder to trust and harder to maintain than one that lists everything, and crediting photographers who did not demand it is the right default for this product.
 
+### What gets recorded, and why
+
+| Source | Recorded? | Reasoning |
+|---|---|---|
+| **SymbolStix** | No | Licensed to us wholesale, not credited per image. Excluding it is also what keeps the registry small and meaningful. |
+| **Image Search** — Wikimedia, Unsplash, Pixabay, Pexels | **Yes, all four** | Only Wikimedia's CC licences legally compel attribution today. The other three are recorded anyway because **licence terms change and cannot be complied with retroactively** — Unsplash has already changed its terms twice — and because a takedown on any platform requires answering "which of our images came from there, and which modules shipped them?" |
+| **AI-generated** | **Yes** | No licence obligation. Recorded for model provenance: when Google retired Imagen mid-2026 we could not distinguish Imagen-era from Gemini-era images because the cache key carried no model (MOS-31). Training-data litigation is live and model terms move; if output ever has to be identified and replaced, this is the only durable record. `aiImageCache` is a cache, not provenance — Phase 30 built a sweep that deletes from it. |
+| **User uploads** | **No** | Owner decision 2026-08-25. No external provenance exists: no photographer, no licence, no source URL. The row would be nearly empty and nothing about it can be lost later. |
+
+**The cost argument is not the deciding factor either way.** `recordImageCredit` fires once per image *save* and dedupes, so lifetime volume is in the hundreds per heavy author, plus a burst at install. Ten thousand writes is ~1% of the Starter free-tier call allowance and roughly 3 MB — a few pence at overage rates. Decide on risk, not on call count.
+
+**Consequence of excluding uploads — accept knowingly.** Task 3's completeness check can no longer assert "every non-SymbolStix image has a row". It reports two buckets instead:
+
+- **Definitely lost** — the content row says `imageSourceType: "imageSearch"` but no registry row exists.
+- **Unknown, review manually** — no type is available on the row (folder/category covers and talker-built sentence slots carry none), so an absent registry row could be a legitimate upload or a lost credit.
+
+The second list should stay short enough to eyeball. If it ever does not, recording uploads is the fix.
+
 ### Owner decisions, 2026-08-25
 
 - **Credit never appears on a board tile.** On an AAC board, competing visual information degrades symbol recognition. The tile has one job. CC requires attribution "in a manner reasonable to the medium", and a credits screen is long-established practice for apps, games and film.
@@ -160,8 +178,10 @@ imageCredits: defineTable({
   accountId:       v.id("users"),
   // The R2 object key this credit describes. THE dedupe key.
   imageKey:        v.string(),
+  // Only sources with external provenance worth preserving. `upload` and
+  // `symbolstix` are deliberately absent — see "What gets recorded" below.
   imageSourceType: v.union(
-    v.literal("upload"), v.literal("imageSearch"), v.literal("aiGenerated"),
+    v.literal("imageSearch"), v.literal("aiGenerated"),
   ),
   imageTitle:      v.optional(v.string()),
   attribution:     v.optional(v.string()),
@@ -180,7 +200,7 @@ export const getAccountImageCredits = query({ /* returns CreditRow[] */ });
 
 export type CreditRow = {
   imageKey: string;
-  imageSourceType: "upload" | "imageSearch" | "aiGenerated";
+  imageSourceType: "imageSearch" | "aiGenerated";
   imageTitle?: string;
   attribution?: string;
   license?: string;
@@ -191,7 +211,7 @@ export type CreditRow = {
 
 **Rules for `recordImageCredit`:**
 - **Dedupe on `(accountId, imageKey)`.** If a row exists, **skip** — do not update. The first record wins. This keeps the write idempotent and means re-saving an image is free.
-- **Never record `symbolstix`.** SymbolStix is licensed to us wholesale and is not credited per-image. The union above deliberately has no `symbolstix` member, so this is enforced by the type rather than by a runtime check.
+- **Record `imageSearch` and `aiGenerated` only.** The union has no `symbolstix` or `upload` member, so this is enforced by the type rather than by a runtime check. See "What gets recorded, and why" below.
 - **Auth-checked**, following the `resolveCallerAccountId` pattern in `convex/profileSymbols.ts`. An account writes only its own rows.
 - **Never throws on a duplicate.** A save path calling this must not fail because the credit already exists.
 - Fire-and-forget from the client's point of view: recording a credit must never block or fail an image save. If it errors, log and continue — a missing credit row is recoverable by the Task 3 backfill; a failed image save is not.
@@ -215,7 +235,7 @@ export type CreditRow = {
 ```bash
 grep -rn "accounts/\${accountId}/images\|imagePath:" app/components/app/shared/modals/symbol-editor/ --include="*.tsx"
 ```
-List every path found in your report, and for each state whether it now records a credit and why. A path that saves a `symbolstix` image correctly records nothing — say so rather than omitting it.
+List every path found in your report, and for each state whether it now records a credit and why. A path that saves a `symbolstix` or `upload` image correctly records nothing — say so explicitly rather than omitting it, so a reader can tell a deliberate exclusion from an oversight. That distinction is the whole point of the sweep.
 
 - [ ] **Step 6: Verify and commit**
 
@@ -291,10 +311,13 @@ git add -A && git commit -m "feat(credits): carry image credits through publish,
 - `profileSymbols.imageSource` — the `imageSearch` member carries `attribution` / `license` / `imageSourceUrl` (`convex/schema.ts:609`). This is where essentially all existing credit lives.
 - `profileLists` items, `profileSentences` slots, `profilePhrases` words — carry the fields as of Phase 30, but measured 2026-08-24 as **all SymbolStix**, so expect zero. Cover them anyway.
 - `libraryModuleCategoryItems → symbols` (`convex/schema.ts:164`) — published module artifacts.
+- `profileSymbols` rows whose `imageSource.type` is `aiGenerated` — these carry no attribution to lift, but still get a registry row recording the source type. Where an `aiPrompt` was persisted (Phase 29 fixed that), carry it into `firstUsedFor` or note in your report that it was dropped and why.
+
+**Skip `upload` and `symbolstix` rows entirely** — they are out of the registry by design. Count them in the report so the totals reconcile, but create nothing.
 
 **Rules:**
 - **Dry-run by default.** No `--apply`, no writes, until the flag is passed. Follow the shape of `scripts/backfill-ai-image-sizes.mjs`, which is dry-run-by-default and prints what it would do.
-- **Print the plan first**: how many credit rows would be created, how many skipped as already present, and how many content rows carry an image with **no** recoverable credit (those are permanently lost — Phase 29-era saves — and must be reported, not silently ignored).
+- **Print the plan first**: how many credit rows would be created, how many skipped as already present, how many skipped as `upload`/`symbolstix` by design, and how many content rows carry an `imageSearch` image with **no** recoverable credit. That last group is permanently lost — Phase 29-era saves predating the attribution work — and must be reported as a number, not silently ignored. It is information for the owner, not a bug to fix.
 - **Never delete anything.**
 - Idempotent: running it twice creates nothing the second time, because `recordImageCredit` dedupes.
 
@@ -308,7 +331,12 @@ node --env-file=.env.local scripts/backfill-image-credits.mjs
 
 - [ ] **Step 3: Add a completeness check**
 
-A read-only query or script mode that lists image keys referenced by content rows which have **no** registry row. This is the standing self-check that the registry has not drifted from reality — it is how a missed save path gets caught later. Report its output.
+A read-only query or script mode that lists image keys referenced by content rows which have **no** registry row, split into the two buckets described in "What gets recorded, and why":
+
+- **Definitely lost** — the content row says `imageSourceType: "imageSearch"` but no registry row exists. Every entry here is a real gap.
+- **Unknown, review manually** — no type is available on the row (folder/category covers and talker-built sentence slots carry none), so an absent row could be a legitimate upload or a lost credit.
+
+This is the standing self-check that the registry has not drifted from reality — it is how a missed save path gets caught six months from now. Report both counts and the full second list, which should be short.
 
 - [ ] **Step 4: Verify and commit. Do NOT run `--apply`.**
 
@@ -342,7 +370,8 @@ git add -A && git commit -m "feat(credits): dry-run backfill of existing attribu
 
 - The **thumbnail** renders from `imageKey` through the existing asset route (`/api/assets?key=…`). Small, fixed size, `loading="lazy"`.
 - The **whole row links** to `imageSourceUrl` where present, `target="_blank" rel="noopener noreferrer"`. The Commons page carries the full licence text and proves provenance, which is what someone checking a credit wants to land on.
-- Missing fields collapse gracefully. An `upload` row has no title, artist or URL — render the thumbnail plus a "your own image" label rather than a row of dashes. An `aiGenerated` row gets its own label.
+- Missing fields collapse gracefully — render the thumbnail plus whatever is known rather than a row of dashes.
+- **Group by kind so the list stays readable.** Third-party images (`imageSearch`) list in full, with thumbnail, title, artist and licence — these are the ones carrying an obligation. `aiGenerated` rows collapse under a single expandable line, "AI-generated images (N)", since they carry no attribution and would otherwise bury the credits that matter.
 - `firstUsedFor` is a display hint only. If it is stale or absent, the row still renders.
 
 **Theme tokens only.** No raw colour, spacing, radius or font-size classes — check every class string against `app/globals.css`. **All copy via `useTranslations`, keys in `messages/en.json` only.**
@@ -388,7 +417,7 @@ Write a click-by-click script covering, with the exact value to look for at each
 1. Author a **category** with mixed SymbolStix and Image Search tiles, plus an Image Search **cover image**.
 2. Author a **list** and a **sentence** the same way, each in a folder with its own cover. Build at least one sentence **via the talker bar** — that path has no credit plumbing by design, and this proves the registry covers it.
 3. Confirm the content rows landed in `profileCategories` / `profileSymbols`, `profileLists`, `profileSentences`, `profileFolders`.
-4. Confirm **Settings → Credits** lists every non-SymbolStix image exactly once, with thumbnails, and that the SymbolStix tiles produced **no** rows.
+4. Confirm **Settings → Credits** lists every Image Search image exactly once, with a working thumbnail — and that SymbolStix tiles and your own uploads produced **no** rows, by design. Add at least one AI-generated image and confirm it appears in the collapsed "AI-generated images (N)" group rather than among the third-party credits.
 5. **Publish** each module from the admin account.
 6. Confirm R2 keys land under **`library_modules/<tree>/<slug>/images/…`** and `…/audio/…`, cover included.
 7. Confirm rows exist in **`libraryModules`**, that each carries a `credits` array, and that its `imageKey`s are the **promoted** `library_modules/…` keys — not the admin's `accounts/…` keys. This is the single most likely thing to be wrong.
@@ -416,6 +445,8 @@ Include a teardown section: which test folders and R2 prefixes to remove afterwa
 - MOS-35 / MOS-36 / MOS-38 → superseded, see "What this replaces". MOS-34 → Task 5.
 - Type consistency: `CreditRow`, `recordImageCredit`, `getAccountImageCredits` (Task 1) are consumed by name in Tasks 2, 3, 4; `CreditList` (Task 4) by `CreditsPanel` (Task 4).
 - **Known trade, accepted:** deleting the last item that used an image leaves its credit row behind. Over-crediting is never a licence violation, and reference-counting would mean scanning every content row on every delete — the expensive join this design exists to avoid. Revisit only if the list becomes cluttered in practice.
+- **Known trade, accepted:** excluding uploads means the completeness check reports an "unknown, review manually" bucket rather than a clean invariant. Recording uploads is the fix if that list ever grows unwieldy.
+- **Known trade, accepted:** AI images are recorded for model provenance despite carrying no attribution obligation, and are grouped away from the third-party credits in the UI so they do not bury them.
 - **Known gap, not in scope:** MOS-37 (`translate-modules` skips custom-image symbol labels). Does not touch credit or this test.
 - **Known gap, not in scope:** `displayPropsSchema` is duplicated across `profileLists.ts` / `profileSentences.ts` / `profilePhrases.ts` the same way the provenance shape was. Ticket it; do not bundle it.
 
