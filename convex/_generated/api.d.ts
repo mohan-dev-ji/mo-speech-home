@@ -34,6 +34,7 @@ import type * as data_themes_types from "../data/themes/types.js";
 import type * as dropbar from "../dropbar.js";
 import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
+import type * as imageCredits from "../imageCredits.js";
 import type * as languages from "../languages.js";
 import type * as lib_access from "../lib/access.js";
 import type * as lib_account from "../lib/account.js";
@@ -97,6 +98,7 @@ declare const fullApi: ApiFromModules<{
   dropbar: typeof dropbar;
   featureQuota: typeof featureQuota;
   imageCache: typeof imageCache;
+  imageCredits: typeof imageCredits;
   languages: typeof languages;
   "lib/access": typeof lib_access;
   "lib/account": typeof lib_account;

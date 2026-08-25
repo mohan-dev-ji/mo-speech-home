@@ -25,6 +25,11 @@ export type Draft = {
   imageAttribution?: string;
   imageLicense?: string;
   imageProvider?: string;
+  // The provider's own title for the picked result. Captured at search time and
+  // — before phase-31 — dropped at save. Draft-only: it is not persisted on the
+  // content row, it goes into the `imageCredits` registry so a credits screen
+  // can name the picture as well as the photographer.
+  imageTitle?: string;
   // AI Generate — the prompt that produced the current image. Persists onto
   // profileSymbols.imageSource (type 'aiGenerated') so the symbol can be
   // regenerated/restyled later. Draft-only otherwise; cleared by the other

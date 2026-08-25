@@ -123,6 +123,7 @@ export function AiGenerateTab({
       imageAttribution: undefined,
       imageLicense: undefined,
       imageProvider: undefined,
+      imageTitle: undefined,
       ...(trimmedPrompt ? { labelEng: trimmedPrompt, aiPrompt: trimmedPrompt } : {}),
     });
   }

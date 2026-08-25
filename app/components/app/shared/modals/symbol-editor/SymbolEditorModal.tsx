@@ -350,6 +350,7 @@ export function SymbolEditorModal({
 
   const createProfileSymbol = useMutation(api.profileSymbols.createProfileSymbol);
   const updateProfileSymbol = useMutation(api.profileSymbols.updateProfileSymbol);
+  const recordImageCredit = useMutation(api.imageCredits.recordImageCredit);
 
   // ── Pre-populate draft in edit mode ────────────────────────────────────────
 
@@ -662,6 +663,52 @@ export function SymbolEditorModal({
     };
   }
 
+  /**
+   * Record this image's credit in the per-account registry, keyed by its R2
+   * object key (phase-31). Called from EVERY save path that pushes a new image
+   * to R2, so no surface has to remember to plumb credit fields through.
+   *
+   * Only `imageSearch` and `aiGenerated` are recordable — SymbolStix is licensed
+   * wholesale and not credited per image, and an upload has no external
+   * provenance to preserve. Both fall out of this function silently and by
+   * design (see convex/schema.ts → `imageCredits`).
+   *
+   * Deliberately fire-and-forget and deliberately swallowing. Recording a credit
+   * is strictly secondary to saving the image: a missing registry row is
+   * recoverable by the backfill, a failed image save is not. Nothing in here may
+   * reject into `handleSave`'s try/catch, and nothing may make the user wait.
+   */
+  function recordImageCreditSafely(
+    imageKey: string,
+    type: ImageCreditResult['imageSourceType']
+  ) {
+    if (type !== 'imageSearch' && type !== 'aiGenerated') return;
+    // An AI generation has no photographer, licence or source URL to carry —
+    // the row exists for model provenance, not attribution.
+    const provenance =
+      type === 'imageSearch'
+        ? {
+            ...(draft.imageTitle ? { imageTitle: draft.imageTitle } : {}),
+            ...(draft.imageSourceUrl ? { imageSourceUrl: draft.imageSourceUrl } : {}),
+            ...(draft.imageAttribution ? { attribution: draft.imageAttribution } : {}),
+            ...(draft.imageLicense ? { license: draft.imageLicense } : {}),
+          }
+        : {};
+    const firstUsedFor = draft.labelEng.trim();
+    try {
+      void recordImageCredit({
+        imageKey,
+        imageSourceType: type,
+        ...provenance,
+        ...(firstUsedFor ? { firstUsedFor } : {}),
+      }).catch((err) => {
+        console.warn('[imageCredits] credit not recorded for', imageKey, err);
+      });
+    } catch (err) {
+      console.warn('[imageCredits] credit not recorded for', imageKey, err);
+    }
+  }
+
   async function handleSave() {
     setSaveError(null);
 
@@ -686,6 +733,7 @@ export function SymbolEditorModal({
           imageSourceType =
             draft.imageSourceTab === 'image-search' ? 'imageSearch' :
             draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          recordImageCreditSafely(key, imageSourceType);
         }
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
@@ -720,6 +768,7 @@ export function SymbolEditorModal({
           imageSourceType =
             draft.imageSourceTab === 'image-search' ? 'imageSearch' :
             draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          recordImageCreditSafely(key, imageSourceType);
         }
         onSentenceSlotSave?.({
           imagePath,
@@ -753,6 +802,7 @@ export function SymbolEditorModal({
           imageSourceType =
             draft.imageSourceTab === 'image-search' ? 'imageSearch' :
             draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          recordImageCreditSafely(key, imageSourceType);
         }
 
         // Upload pending recording before save (only if record is the active source —
@@ -809,6 +859,11 @@ export function SymbolEditorModal({
         const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
+        recordImageCreditSafely(
+          key,
+          draft.imageSourceTab === 'image-search' ? 'imageSearch' :
+          draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload'
+        );
       }
 
       // 2. Upload pending audio recording (only if the record tab is selected)

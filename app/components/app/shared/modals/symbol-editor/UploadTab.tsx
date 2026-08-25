@@ -37,6 +37,7 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
         imageAttribution: undefined,
         imageLicense: undefined,
         imageProvider: undefined,
+        imageTitle: undefined,
       });
     } catch {
       // Resize failed (corrupt/unsupported image) — silently no-op, matching

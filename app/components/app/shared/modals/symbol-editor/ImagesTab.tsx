@@ -165,6 +165,7 @@ export function ImagesTab({
         imageAttribution: result.attribution,
         imageLicense: result.license,
         imageProvider: result.provider,
+        imageTitle: result.title,
         aiPrompt: undefined,
         ...(trimmedQuery ? { labelEng: trimmedQuery } : {}),
       });

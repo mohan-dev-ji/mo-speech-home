@@ -1305,6 +1305,42 @@ export default defineSchema({
   }).index("by_hash", ["hash"]),
 
   /**
+   * Image-credit registry (Phase 31). One row per (account, R2 object key)
+   * recording where that image came from.
+   *
+   * Phase 30 stored credit per PLACEMENT — on category symbols, list items,
+   * sentence slots and phrase words — so every new surface that could hold an
+   * image was another field list that could forget a field, and two shipped
+   * with exactly that bug. Keying on the R2 object key inverts it: any surface
+   * that saves an image writes one row and nothing needs plumbing through.
+   *
+   * `imageSourceType` deliberately has no `upload` or `symbolstix` member.
+   * SymbolStix is licensed to us wholesale and is not credited per image; user
+   * uploads have no external provenance to lose (no photographer, no licence,
+   * no source URL). Both exclusions are owner decisions, 2026-08-25 — see
+   * docs/4-builds/plans/phase-31-image-credit-registry-plan.md, "What gets
+   * recorded, and why". Excluding them is enforced by the type, not by a
+   * runtime check.
+   */
+  imageCredits: defineTable({
+    accountId: v.id("users"),
+    // The R2 object key this credit describes. THE dedupe key.
+    imageKey: v.string(),
+    // Only sources with external provenance worth preserving.
+    imageSourceType: v.union(
+      v.literal("imageSearch"),
+      v.literal("aiGenerated"),
+    ),
+    imageTitle: v.optional(v.string()),
+    attribution: v.optional(v.string()),
+    license: v.optional(v.string()),
+    imageSourceUrl: v.optional(v.string()),
+    // Best-effort label of what it was first used for. Display hint only —
+    // never the dedupe key, and never trusted to stay accurate.
+    firstUsedFor: v.optional(v.string()),
+  }).index("by_account_and_key", ["accountId", "imageKey"]),
+
+  /**
    * Per-user per-day quota counters for metered features.
    * Day key is YYYY-MM-DD UTC. One row per (userId, feature, day).
    * Shared infra — image search uses 'imageSearch'; AI gen will use 'aiImageGenerate'.
