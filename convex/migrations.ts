@@ -524,6 +524,11 @@ export const seedLibraryModulesFromJSON = mutation({
           ...(mod.surface ? { surface: mod.surface } : {}),
           ...(mod.isDefault ? { isDefault: true } : {}),
           ...(mod.defaultOrder !== undefined ? { defaultOrder: mod.defaultOrder } : {}),
+          // Restore half of the phase-31 §2 credit round-trip (the export half is
+          // `contentModules/exportModules:dumpAllModules`). Its own column, not
+          // part of `items`, so it must be carried explicitly or a restore
+          // republishes every module with its attribution stripped.
+          ...(mod.credits?.length ? { credits: mod.credits } : {}),
           items: mod.items,
           publishedAt: now,
           featured: mod.featured ?? false,

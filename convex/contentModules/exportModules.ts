@@ -55,6 +55,12 @@ export const dumpAllModules = query({
       // Curated-library featuring. Round-tripped (restored by
       // seedLibraryModulesFromJSON) so a wipe/restore keeps the shelf layout.
       ...(m.featured ? { featured: true } : {}),
+      // Image credits travelling with the module (phase-31 §2). NOT carried by
+      // `items` — it is its own column, so it needs carrying explicitly here and
+      // in `migrations.seedLibraryModulesFromJSON` on the way back. Without both
+      // hops, a wipe/restore silently strips the licence obligation off every
+      // module. Omitted when empty so the 38 pre-phase-31 artifacts are unchanged.
+      ...(m.credits?.length ? { credits: m.credits } : {}),
       items: m.items,
     }));
   },

@@ -166,6 +166,35 @@ const imageProvenanceFields = {
   license: v.optional(v.string()), // e.g. "CC BY-SA 4.0"
 };
 
+/**
+ * One image-credit row (phase-31). ONE definition, used in two places that must
+ * never drift apart:
+ *
+ *   1. the `imageCredits` registry table (below) — plus an `accountId`;
+ *   2. `libraryModules.credits` — the copy that TRAVELS with a published module
+ *      so the installing account can populate its own registry.
+ *
+ * `CreditRow` in `convex/imageCredits.ts` is the TypeScript mirror of this
+ * shape. `imageSourceType` deliberately has no `upload` or `symbolstix` member —
+ * see the `imageCredits` table's doc comment for why.
+ */
+const imageCreditFields = {
+  // The R2 object key this credit describes. THE dedupe key.
+  imageKey: v.string(),
+  // Only sources with external provenance worth preserving.
+  imageSourceType: v.union(
+    v.literal("imageSearch"),
+    v.literal("aiGenerated"),
+  ),
+  imageTitle: v.optional(v.string()),
+  attribution: v.optional(v.string()),
+  license: v.optional(v.string()),
+  imageSourceUrl: v.optional(v.string()),
+  // Best-effort label of what it was first used for. Display hint only —
+  // never the dedupe key, and never trusted to stay accurate.
+  firstUsedFor: v.optional(v.string()),
+};
+
 const libraryModuleCategoryItems = v.array(
   v.object({
     name: localisedString,
@@ -1051,6 +1080,23 @@ export default defineSchema({
       libraryModuleSentenceItems,
       libraryModulePhraseItems
     ),
+    /**
+     * Image credits for the R2 objects this module ships (phase-31 §2).
+     *
+     * The `imageCredits` registry is PER-ACCOUNT: the admin who authored this
+     * module has rows for these images, the family who installs it has none. So
+     * the credits ride inside the module and `installContentModule` writes them
+     * into the installer's registry.
+     *
+     * Keyed by the PROMOTED `library_modules/<tree>/<slug>/images/…` key — the
+     * key the installed content rows actually hold — never the admin's
+     * `accounts/…` source key, which nothing on the installing account could
+     * ever join to. See `collectModuleCredits` in `convex/lib/moduleCredits.ts`.
+     *
+     * Optional: the 38 modules published before phase-31 carry none, and a
+     * module built entirely from SymbolStix or uploads never will.
+     */
+    credits: v.optional(v.array(v.object(imageCreditFields))),
     // ── Lifecycle, merged onto the row (was the per-type `*Lifecycle` table) ──
     publishedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
@@ -1324,20 +1370,10 @@ export default defineSchema({
    */
   imageCredits: defineTable({
     accountId: v.id("users"),
-    // The R2 object key this credit describes. THE dedupe key.
-    imageKey: v.string(),
-    // Only sources with external provenance worth preserving.
-    imageSourceType: v.union(
-      v.literal("imageSearch"),
-      v.literal("aiGenerated"),
-    ),
-    imageTitle: v.optional(v.string()),
-    attribution: v.optional(v.string()),
-    license: v.optional(v.string()),
-    imageSourceUrl: v.optional(v.string()),
-    // Best-effort label of what it was first used for. Display hint only —
-    // never the dedupe key, and never trusted to stay accurate.
-    firstUsedFor: v.optional(v.string()),
+    // The row shape itself lives in `imageCreditFields` (top of this file) —
+    // `libraryModules.credits` reuses it verbatim, which is what lets a credit
+    // survive publish → export → restore → install without a second field list.
+    ...imageCreditFields,
   }).index("by_account_and_key", ["accountId", "imageKey"]),
 
   /**

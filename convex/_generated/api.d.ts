@@ -43,6 +43,7 @@ import type * as lib_contentModuleDelete from "../lib/contentModuleDelete.js";
 import type * as lib_contentModuleInstall from "../lib/contentModuleInstall.js";
 import type * as lib_contentModules from "../lib/contentModules.js";
 import type * as lib_materialiseSymbols from "../lib/materialiseSymbols.js";
+import type * as lib_moduleCredits from "../lib/moduleCredits.js";
 import type * as lib_personalAssetRefs from "../lib/personalAssetRefs.js";
 import type * as lib_themes from "../lib/themes.js";
 import type * as lib_variantAuthoring from "../lib/variantAuthoring.js";
@@ -107,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   "lib/contentModuleInstall": typeof lib_contentModuleInstall;
   "lib/contentModules": typeof lib_contentModules;
   "lib/materialiseSymbols": typeof lib_materialiseSymbols;
+  "lib/moduleCredits": typeof lib_moduleCredits;
   "lib/personalAssetRefs": typeof lib_personalAssetRefs;
   "lib/themes": typeof lib_themes;
   "lib/variantAuthoring": typeof lib_variantAuthoring;

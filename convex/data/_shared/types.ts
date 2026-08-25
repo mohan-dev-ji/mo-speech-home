@@ -19,6 +19,11 @@
  * `lib/languages/displayValue.ts`.
  */
 
+// The canonical credit-row shape lives with the registry it belongs to
+// (`convex/imageCredits.ts`, phase-31); a module artifact carries an array of
+// them. Type-only import — erased at build, no runtime dependency.
+import type { CreditRow } from "../../imageCredits";
+
 export type PackTier = "free" | "pro" | "max";
 
 /**
@@ -263,6 +268,20 @@ type ContentModuleBase = {
    * dropped on seed and not re-emitted by the exporter. Retained on the type
    * for the legacy pack-converted JSONs that still carry it. */
   provenance?: ModuleProvenance;
+  /**
+   * Image credits for the R2 objects this module ships (phase-31 §2). The
+   * `imageCredits` registry is per-account, so a family installing this module
+   * has no rows for the admin's images — the credits ride along here and
+   * `installContentModule` writes them into the installer's registry.
+   *
+   * Keyed by the PROMOTED `library_modules/<tree>/<slug>/images/…` key, which is
+   * what the installed content rows hold. NOT the admin's `accounts/…` source
+   * key — see `collectModuleCredits` in `convex/lib/moduleCredits.ts`.
+   *
+   * Optional and absent from every module published before phase-31. Live
+   * source of truth: `libraryModules.credits`.
+   */
+  credits?: CreditRow[];
 };
 
 /** A Categories-tree module: one folder of symbol grids. */

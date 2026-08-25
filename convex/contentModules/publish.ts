@@ -25,6 +25,7 @@ import type { Doc } from "../_generated/dataModel";
 import { mutation, query } from "../_generated/server";
 import { requireCallerIsAdmin } from "../lib/account";
 import { collectSourcePromotableKeys } from "../lib/personalAssetRefs";
+import { collectModuleCredits } from "../lib/moduleCredits";
 import { needsTranslation } from "../../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../../lib/languages/registry";
 
@@ -343,6 +344,17 @@ export const publishFolderAsModule = mutation({
       });
     }
 
+    // Image credits for every promotable key this folder points at, already
+    // remapped onto the promoted `library_modules/…` keys (phase-31 §2). Same
+    // key walk publish uses to decide what to copy into R2, so the artifact can
+    // never credit a key the module does not ship.
+    const credits = await collectModuleCredits(
+      ctx,
+      accountId,
+      { tree, sourceId: folderId },
+      assetPathMap,
+    );
+
     const moduleName = name ? { ...folder.name, en: name } : folder.name;
     // Default modules are always free to access (you can't auto-install a paid
     // module into a free account).
@@ -371,6 +383,12 @@ export const publishFolderAsModule = mutation({
         // Log the admin's folder position so default seeds mirror it.
         defaultOrder: folder.order,
         items,
+        // Replace the credits when this publish found any; leave the existing
+        // array alone when it found none. A re-publish must never be able to
+        // strip a licence obligation off a module that already had one (e.g.
+        // the registry row was lost, or the backfill has not run yet) — a
+        // stale extra credit is cosmetic, a missing one is not.
+        ...(credits.length ? { credits } : {}),
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
         updatedAt: now,
@@ -392,6 +410,7 @@ export const publishFolderAsModule = mutation({
         // Log the admin's folder position so default seeds mirror it.
         defaultOrder: folder.order,
         items,
+        ...(credits.length ? { credits } : {}),
         publishedAt: now,
         lastPublishedAt: now,
         featured: false,
@@ -560,6 +579,16 @@ export const publishCategoryAsModule = mutation({
       },
     ];
 
+    // Image credits for this category's cover + symbol images, already remapped
+    // onto the promoted `library_modules/…` keys (phase-31 §2). Mirrors the
+    // folder mutation above.
+    const credits = await collectModuleCredits(
+      ctx,
+      accountId,
+      { tree: "categories", sourceId: profileCategoryId },
+      assetPathMap,
+    );
+
     const moduleName = name ? { ...cat.name, en: name } : cat.name;
     const effectiveDefault = isDefault ?? false;
     const resolvedTier = effectiveDefault ? "free" : tier;
@@ -591,6 +620,8 @@ export const publishCategoryAsModule = mutation({
         // Log the admin's category-page position so default seeds mirror it.
         defaultOrder: cat.order,
         items,
+        // Never wipe on an empty result — see the folder mutation's note.
+        ...(credits.length ? { credits } : {}),
         publishedAt: existing.publishedAt ?? now,
         lastPublishedAt: now,
         updatedAt: now,
@@ -613,6 +644,7 @@ export const publishCategoryAsModule = mutation({
         // Log the admin's category-page position so default seeds mirror it.
         defaultOrder: cat.order,
         items,
+        ...(credits.length ? { credits } : {}),
         publishedAt: now,
         lastPublishedAt: now,
         featured: false,

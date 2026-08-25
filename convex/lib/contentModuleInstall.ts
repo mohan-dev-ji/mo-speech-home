@@ -23,6 +23,7 @@ import type {
   LibraryPackPhrase,
 } from "../data/_shared/types";
 import { planVariantGroups } from "./variantGroupPlan";
+import { writeInstalledModuleCredits } from "./moduleCredits";
 
 /** The lifecycle fields the install gate needs (shared shape across the three
  * per-type lifecycle tables). */
@@ -397,6 +398,14 @@ export async function installContentModule(
       itemsAdded += 1 + group.siblings.length;
     }
   }
+
+  // Image credits for the module's R2 objects, into THIS account's registry
+  // (phase-31 §2). The rows above hold promoted `library_modules/…` keys and the
+  // installing account has no registry rows for them — `module.credits` is the
+  // only carrier, and it is already keyed by the promoted key (set at publish by
+  // `collectModuleCredits`). Dedupes on `(accountId, imageKey)`, first wins.
+  // Absent on every module published before phase-31, and then a no-op.
+  await writeInstalledModuleCredits(ctx, accountId, module.credits);
 
   return {
     tree: module.tree,
