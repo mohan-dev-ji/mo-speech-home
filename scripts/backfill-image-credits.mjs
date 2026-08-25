@@ -83,12 +83,19 @@
  * Published modules are covered too. They are global (no accountId), so their
  * credit rides on `libraryModules.credits` rather than in a per-account
  * registry; `mergeModuleCredits` is existing-wins, so this can only ever ADD.
- * ONE EXCEPTION (whole-phase review, Finding 3a): images still keyed under the
- * retired `library_packs/` prefix are counted and reported but never written to
- * the artifact — that module is scheduled to be re-published onto
- * `library_modules/`, existing-wins would then leave BOTH key sets on it
- * forever, and the credit is recovered by the re-publish anyway. The reasoning
- * in full is on `planLibraryModuleCredits` in convex/imageCreditsBackfill.ts.
+ * ONE EXCEPTION (whole-phase review, Finding 3a; fix pass 2 gave the account
+ * registry the SAME exception): images still keyed under the retired
+ * `library_packs/` prefix are counted and reported but never written — not to
+ * the artifact, and not to any account's registry either. `space` is
+ * scheduled to be re-published onto `library_modules/`, existing-wins credit
+ * merge would then leave BOTH key sets on the artifact forever, and an
+ * account that had `space` installed under the old keys would collect a
+ * second, permanently-orphaned registry row the moment it reinstalled —
+ * there is no delete path for `imageCredits` rows. The credit is recovered by
+ * the re-publish anyway (a fallback, not a loss) — re-run this backfill after
+ * `space` is re-published and reinstalled to pick these up under their new
+ * keys. The reasoning in full is on `planLibraryModuleCredits` and
+ * `planAccountImageCredits` in convex/imageCreditsBackfill.ts.
  *
  * Orphaned content — rows whose `accountId` names an account that no longer
  * exists in `users` — is SCANNED AND REPORTED but never written to. A registry
@@ -185,13 +192,15 @@ if (CHECK_ONLY) {
     lostPermanent: 0,
     aiMissing: 0,
     unknown: 0,
+    deferredLegacyPrefix: 0,
     orphanedLost: 0,
     orphanedAiMissing: 0,
     orphanedUnknown: 0,
+    orphanedDeferredLegacyPrefix: 0,
   };
 
   for (const account of accounts) {
-    const { definitelyLost, aiGeneratedMissing, unknown } = convexRun(
+    const { definitelyLost, aiGeneratedMissing, unknown, deferredLegacyPrefix } = convexRun(
       "imageCreditsBackfill:checkAccountImageCreditCompleteness",
       { accountId: account.accountId }
     );
@@ -203,10 +212,12 @@ if (CHECK_ONLY) {
       tally.lostPermanent += permanent;
       tally.aiMissing += aiGeneratedMissing.length;
       tally.unknown += unknown.length;
+      tally.deferredLegacyPrefix += deferredLegacyPrefix.length;
     } else {
       tally.orphanedLost += definitelyLost.length;
       tally.orphanedAiMissing += aiGeneratedMissing.length;
       tally.orphanedUnknown += unknown.length;
+      tally.orphanedDeferredLegacyPrefix += deferredLegacyPrefix.length;
     }
 
     console.log(`ACCOUNT ${label(account)}`);
@@ -236,6 +247,18 @@ if (CHECK_ONLY) {
     }
     console.log(`   unknown, review manually (no type on any placement): ${unknown.length}`);
     for (const row of unknown) {
+      console.log(
+        `      ${row.imageKey}${row.label ? `  “${row.label}”` : ""}  [${row.foundIn}]`
+      );
+    }
+    // NOT lost — a deliberate, temporary exclusion. See
+    // `checkAccountImageCreditCompleteness`'s docblock for the full reasoning;
+    // this bucket self-heals to zero once `space` is re-published and
+    // reinstalled and the backfill is re-run.
+    console.log(
+      `   deferred until \`space\` is re-keyed (legacy \`library_packs/\` key, not lost): ${deferredLegacyPrefix.length}`
+    );
+    for (const row of deferredLegacyPrefix) {
       console.log(
         `      ${row.imageKey}${row.label ? `  “${row.label}”` : ""}  [${row.foundIn}]`
       );
@@ -278,10 +301,31 @@ if (CHECK_ONLY) {
   );
   console.log(`missing (aiGenerated, no registry row): ${pad(tally.aiMissing)}  (all recoverable via backfill)`);
   console.log(`unknown, review manually:              ${pad(tally.unknown)}`);
+  console.log(
+    `deferred until \`space\` is re-keyed:    ${pad(tally.deferredLegacyPrefix)}` +
+      `  (legacy \`library_packs/\` keys — NOT lost, see below)`
+  );
   console.log(`  · orphaned-account content, lost:    ${pad(tally.orphanedLost)}  (unreachable — no users row)`);
   console.log(`  · orphaned-account content, ai-missing:${pad(tally.orphanedAiMissing)}  (unreachable — no users row)`);
   console.log(`  · orphaned-account content, unknown: ${pad(tally.orphanedUnknown)}  (unreachable — no users row)`);
+  console.log(
+    `  · orphaned-account content, deferred:${pad(tally.orphanedDeferredLegacyPrefix)}  (unreachable — no users row)`
+  );
   console.log("");
+  if (tally.deferredLegacyPrefix > 0 || tally.orphanedDeferredLegacyPrefix > 0) {
+    console.log(
+      "Those keys live under the retired `library_packs/` prefix. They are a" +
+        "\nDELIBERATE, TEMPORARY exclusion — not a gap needing action — because an" +
+        "\ninstalled copy of `space` points at the very same shared objects the admin's" +
+        "\nown `space` category does, and recording them under `library_packs/` now" +
+        "\nwould collide with the re-publish onto `library_modules/` the moment it" +
+        "\nhappens (existing-wins credits merge would leave BOTH key sets forever —" +
+        "\nthere is no delete path for `imageCredits` rows). This self-heals to zero:" +
+        "\nonce `space` is re-published and reinstalled, re-run this backfill and these" +
+        "\nkeys get recorded under their new `library_modules/…` keys."
+    );
+    console.log("");
+  }
   console.log(
     `MODULE ARTIFACTS — missing credit:     ${pad(cmc.create)}` +
       `  (across ${plural(cmc.modulesWouldChange, "module", "modules")} of ${cmc.modules})`
@@ -322,6 +366,7 @@ const emptyTotals = () => ({
   byDesignUpload: 0,
   imageSearchNoCredit: 0,
   unknownNoType: 0,
+  legacyPrefixSkipped: 0,
 });
 const totals = emptyTotals();
 const orphanTotals = emptyTotals();
@@ -409,8 +454,9 @@ for (const plan of modulePlan.plans) {
 }
 
 // ── Reconciliation ───────────────────────────────────────────────────────────
-// `legacyPrefixSkipped` exists only on the module counts (the account walk has
-// no such bucket) — `?? 0` keeps this one function serving both.
+// `legacyPrefixSkipped` exists on BOTH the account-registry counts and the
+// module counts (fix pass 2 gave the account walk its own skip, mirroring the
+// module-artifact one) — `?? 0` is defensive only, every caller now sets it.
 const sum = (t) =>
   t.create + t.present + t.byDesignShared + t.byDesignUpload + t.imageSearchNoCredit +
   t.unknownNoType + (t.legacyPrefixSkipped ?? 0);
@@ -433,6 +479,10 @@ function reconcile(title, t) {
   console.log(`      · upload/symbolstix on a creditable key:${pad(t.byDesignUpload)}`);
   console.log(`  imageSearch with NO recoverable credit:     ${pad(t.imageSearchNoCredit)}`);
   console.log(`  no type recorded (unknown, review manually):${pad(t.unknownNoType)}`);
+  console.log(
+    `  legacy \`library_packs/\` key, skipped:      ${pad(t.legacyPrefixSkipped)}` +
+      `  (deferred until \`space\` is re-keyed — see below)`
+  );
   console.log(`                                              ${"─".repeat(6)}`);
   console.log(`  reconciles to:                              ${pad(sum(t))}  ${verdict(t)}`);
   console.log("");
@@ -457,6 +507,22 @@ reconcile(
   `ACCOUNT REGISTRY — ${totals.totalPlacements} image placements across ${plural(liveAccounts.length, "live account", "live accounts")}`,
   totals
 );
+if (totals.legacyPrefixSkipped > 0) {
+  console.log(
+    "  Those keys live under the retired `library_packs/` prefix. An installed" +
+      "\n  copy of `space` points at the very same shared R2 objects the admin's own" +
+      "\n  `space` category does, so an account with `space` installed hits these" +
+      "\n  during this scan too. Recording them now would be unrecoverable the same" +
+      "\n  way it would be for the module artifact: once `space` is re-published onto" +
+      "\n  `library_modules/` and reinstalled, `writeInstalledModuleCredits` would" +
+      "\n  insert a SECOND row under the new key, `getAccountImageCredits` returns" +
+      "\n  both, and after `library_packs/` is deleted one renders as a 404" +
+      "\n  placeholder — permanently, since there is no delete path for `imageCredits`" +
+      "\n  rows. Skipping creates only a TEMPORARY gap that self-heals: re-run this" +
+      "\n  backfill after `space` is re-published and reinstalled, and these get" +
+      "\n  recorded under their new `library_modules/…` keys.\n"
+  );
+}
 
 if (orphanedAccounts.length > 0) {
   reconcile(

@@ -282,37 +282,17 @@ export async function countRowsReferencingKeys(
  *
  * The actual walk lives in `collectSourceKeysByPredicate` below, parameterised
  * by `keep`. This function is a thin wrapper that hardcodes `keep =
- * isPromotableAssetKey` — its body is exactly what it was before
- * `collectSourceCreditableKeys` was added below it, so every existing caller
- * (`getPublishAssetKeys` in contentModules/publish.ts, which
- * `/api/admin/promote-module-assets` uses to decide what to copy) sees
- * byte-for-byte identical behaviour.
+ * isPromotableAssetKey` — its body is exactly what it was before this file
+ * grew a second, CREDITABLE projection of the same rows (`collectSourceImageRefs`
+ * below), so every existing caller (`getPublishAssetKeys` in
+ * contentModules/publish.ts, which `/api/admin/promote-module-assets` uses to
+ * decide what to copy) sees byte-for-byte identical behaviour.
  */
 export async function collectSourcePromotableKeys(
   ctx: QueryCtx,
   args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
 ): Promise<string[]> {
   return collectSourceKeysByPredicate(ctx, args, isPromotableAssetKey);
-}
-
-/**
- * Every CREDITABLE R2 key referenced by ONE publish source — wider than
- * `collectSourcePromotableKeys` (phase-31 review, 2026-08-25). "Which keys
- * need copying to R2" and "which keys need crediting" are different
- * questions: an already-shared `library_modules/…` key (the source is itself
- * an installed copy being re-published) needs no copy, but if it holds a
- * CC-licensed image it still needs credit. See `isCreditableAssetKey` in
- * ./contentModuleDelete for the full rationale.
- *
- * Used ONLY by the credit lookup (`collectModuleCredits` in ./moduleCredits).
- * Never use this to decide what promote-module-assets copies — that stays on
- * `collectSourcePromotableKeys` / `isPromotableAssetKey`.
- */
-export async function collectSourceCreditableKeys(
-  ctx: QueryCtx,
-  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
-): Promise<string[]> {
-  return collectSourceKeysByPredicate(ctx, args, isCreditableAssetKey);
 }
 
 /**
@@ -379,13 +359,12 @@ async function loadPublishSourceRows(
   return { ...empty, folder, phrases };
 }
 
-/** Shared walk behind both `collectSourcePromotableKeys` and
- * `collectSourceCreditableKeys` — identical table traversal, `keep` is the
- * only thing that differs, so the two collectors can never drift apart on
- * "what fields does this source have." Row loading now goes through
- * `loadPublishSourceRows` so `collectSourceImageRefs` cannot drift from it
- * either; the per-field extraction and the `[...new Set(out)]` dedupe are
- * unchanged. */
+/** The walk behind `collectSourcePromotableKeys`, parameterised by `keep` so a
+ * future second key-predicate caller can share it without drifting on "what
+ * fields does this source have." Row loading goes through
+ * `loadPublishSourceRows`, the same loader `collectSourceImageRefs` below
+ * uses, so the key walk and the refs walk cannot disagree on which rows a
+ * source contains either. */
 async function collectSourceKeysByPredicate(
   ctx: QueryCtx,
   args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
@@ -409,17 +388,16 @@ async function collectSourceKeysByPredicate(
  * Every creditable image placement in ONE publish source, WITH the provenance
  * the placement itself still carries (phase-31 whole-phase review, Finding 1).
  *
- * The refs counterpart of `collectSourceCreditableKeys`, and the reason publish
- * can now survive an un-backfilled registry. A bare key string tells
- * `collectModuleCredits` nothing when the registry lookup misses, so publish
- * embedded NO credit for that image — even though `attribution` / `license` /
- * `imageSourceUrl` were sitting on the very row being published (phase 30's
- * per-placement fields, which phase 31 deliberately kept). These refs carry
- * those fields, so the miss has somewhere to fall back to.
+ * The reason publish can now survive an un-backfilled registry. A bare key
+ * string tells `collectModuleCredits` nothing when the registry lookup
+ * misses, so publish embedded NO credit for that image — even though
+ * `attribution` / `license` / `imageSourceUrl` were sitting on the very row
+ * being published (phase 30's per-placement fields, which phase 31
+ * deliberately kept). These refs carry those fields, so the miss has
+ * somewhere to fall back to.
  *
- * Filtered by `isCreditableAssetKey`, the same predicate
- * `collectSourceCreditableKeys` applies, so both answer the same question about
- * the same rows and differ only in how much of each row they carry back. Audio
+ * Filtered by `isCreditableAssetKey` — see ./contentModuleDelete for the full
+ * rationale on why this predicate is wider than `isPromotableAssetKey`. Audio
  * keys are absent by construction here rather than by predicate — the ref
  * extractors in ./imageCreditRefs are images-only.
  */

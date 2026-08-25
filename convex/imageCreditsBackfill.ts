@@ -487,6 +487,38 @@ export const listBackfillAccounts = internalAction({
  * What the backfill WOULD write for one account, plus the reconciliation.
  *
  * Read-only. The script prints this; only `applyAccountImageCredits` writes.
+ *
+ * LEGACY `library_packs/` KEYS ARE SKIPPED, NOT CREDITED, HERE TOO (fix pass
+ * 2 — the module-artifact skip in `planLibraryModuleCredits` above had no
+ * account-side twin, and the collision it guards against is live on the
+ * account walk as well). `library_packs/…` keys ARE creditable
+ * (`isCreditableAssetKey` composes `isLegacySharedModuleAssetKey`), and an
+ * INSTALLED copy of `space` points at the very same shared R2 objects the
+ * admin's own `space` category does — so an account that has `space`
+ * installed walks straight into the 15+1 `library_packs/space/images/…`
+ * keys during this scan. Recording them now creates the identical
+ * unrecoverable duplicate: once `space` is re-published onto
+ * `library_modules/` and reinstalled, `writeInstalledModuleCredits` inserts
+ * a SECOND row under the new `library_modules/…` key, `getAccountImageCredits`
+ * returns both unfiltered, and after `library_packs/` is deleted one of the
+ * two renders as the `ImageOff` placeholder forever — there is no delete path
+ * for `imageCredits` rows, so a written row cannot later be taken back.
+ *
+ * The asymmetry that decides this: skipping here creates a TEMPORARY gap
+ * (these images are simply absent from the Credits screen until `space` is
+ * re-published and reinstalled, which is already scheduled and which
+ * self-heals the gap the moment it happens, the same way Finding 1's publish
+ * fallback already lets a re-publish embed correct credits from an
+ * un-backfilled registry) — versus a PERMANENT, unrepairable duplicate on
+ * every account that ever installs `space` from here on. A temporary
+ * under-listing on the handful of accounts that currently have `space`
+ * installed beats a permanent mess on all of them forever.
+ *
+ * Skipped before classification, exactly like `planLibraryModuleCredits`, and
+ * counted in its own `legacyPrefixSkipped` bucket rather than folded into
+ * `byDesignShared` — an exclusion stays visible, not silent. `totalImages`
+ * still counts every merged image (skipped ones included), so the
+ * reconciliation sum keeps balancing.
  */
 export const planAccountImageCredits = internalAction({
   args: { accountId: v.id("users") },
@@ -506,6 +538,7 @@ export const planAccountImageCredits = internalAction({
       byDesignUpload: 0,
       imageSearchNoCredit: 0,
       unknownNoType: 0,
+      legacyPrefixSkipped: 0,
     };
     const proposals: CreditRow[] = [];
     // Arrays, never objects keyed by user text — a Hindi label as a key
@@ -513,6 +546,12 @@ export const planAccountImageCredits = internalAction({
     const lostCredit: Array<{ imageKey: string; label: string; foundIn: string }> = [];
 
     for (const image of merged) {
+      // See LEGACY `library_packs/` KEYS above — skipped before
+      // classification, same as the module-artifact plan.
+      if (isLegacySharedModuleAssetKey(image.imageKey)) {
+        counts.legacyPrefixSkipped++;
+        continue;
+      }
       const present = existingKeys.has(image.imageKey);
       const bucket = bucketFor(image, present);
       counts[bucket]++;
@@ -558,10 +597,8 @@ export const applyAccountImageCredits = internalMutation({
  * so it stays meaningful long after this phase, and is how a save path that
  * forgets to call `recordImageCredit` gets caught.
  *
- * THREE buckets (review-fix pass 2 added the third — the original plan named
- * only the first two, and that instruction was incomplete: `aiGenerated` is a
- * type the backfill DOES create rows for, so a save path regression on the AI
- * path was previously undetectable here):
+ * FOUR buckets (fix pass 2 added the fourth — review-fix pass 2 had already
+ * added the third; see below):
  *   `definitelyLost`     — the row says `imageSearch`, no registry row exists.
  *                          Split into recoverable-via-backfill vs permanently
  *                          lost by `hasRecoverableCredit` (Finding 2 — the
@@ -577,7 +614,25 @@ export const applyAccountImageCredits = internalMutation({
  *                          upload or a lost credit. Should stay short enough
  *                          to eyeball; if it does not, recording uploads is
  *                          the fix.
- * `upload` / `symbolstix` placements fall through all three, on purpose —
+ *   `deferredLegacyPrefix` — a `library_packs/…` key with no registry row.
+ *                          NOT reported as lost, missing, or unknown — it is
+ *                          a DELIBERATE, TEMPORARY exclusion mirroring
+ *                          `planAccountImageCredits`'s `legacyPrefixSkipped`
+ *                          (fix pass 2, same collision: `space` is scheduled
+ *                          to be re-published onto `library_modules/` and
+ *                          `library_packs/` deleted, and backfilling these
+ *                          now would leave a permanent duplicate no delete
+ *                          path can remove). Self-heals to zero the moment
+ *                          `space` is re-published and reinstalled and the
+ *                          backfill is re-run against the new keys — see the
+ *                          `library_packs/` retirement checklist in
+ *                          `docs/4-builds/plans/phase-31-image-credit-registry-plan.md`.
+ *                          Read this as "deferred until `space` is re-keyed,"
+ *                          never as a gap needing action today — a standing
+ *                          alarm firing on a deliberate deferral is exactly
+ *                          the wolf-cry problem review-fix pass 2's third
+ *                          bucket was added to avoid repeating.
+ * `upload` / `symbolstix` placements fall through all four, on purpose —
  * matching `bucketFor`'s `byDesignUpload` bucket in the backfill plan; an
  * upload is never expected to have a registry row.
  */
@@ -593,10 +648,23 @@ export const checkAccountImageCreditCompleteness = internalAction({
     const definitelyLost: Array<{ imageKey: string; label: string; foundIn: string; hasRecoverableCredit: boolean }> = [];
     const aiGeneratedMissing: Array<{ imageKey: string; label: string; foundIn: string }> = [];
     const unknown: Array<{ imageKey: string; label: string; foundIn: string }> = [];
+    const deferredLegacyPrefix: Array<{ imageKey: string; label: string; foundIn: string }> = [];
 
     for (const image of merged) {
       if (!isCreditableAssetKey(image.imageKey)) continue;
       if (existingKeys.has(image.imageKey)) continue;
+
+      // See `deferredLegacyPrefix` above — checked before the type dispatch
+      // so a `library_packs/` key never lands in `definitelyLost` /
+      // `aiGeneratedMissing` / `unknown` and cannot read as a live gap.
+      if (isLegacySharedModuleAssetKey(image.imageKey)) {
+        deferredLegacyPrefix.push({
+          imageKey: image.imageKey,
+          label: image.label ?? "",
+          foundIn: image.foundIn.join(", "),
+        });
+        continue;
+      }
 
       if (image.sourceType === "imageSearch") {
         definitelyLost.push({
@@ -622,7 +690,7 @@ export const checkAccountImageCreditCompleteness = internalAction({
       }
     }
 
-    return { definitelyLost, aiGeneratedMissing, unknown };
+    return { definitelyLost, aiGeneratedMissing, unknown, deferredLegacyPrefix };
   },
 });
 

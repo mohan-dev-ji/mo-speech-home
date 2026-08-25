@@ -33,7 +33,9 @@
 
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import type { CreditRow } from "../imageCredits";
+// Type-only, erased at build. `schema.ts` — never `imageCredits.ts`, which is a
+// Convex FUNCTION module; see `convex/data/_shared/types.ts:22-30`.
+import type { CreditRow } from "../schema";
 import { collectSourceImageRefs } from "./personalAssetRefs";
 import { mergeByKey, creditRowFromMergedImage } from "./imageCreditRefs";
 

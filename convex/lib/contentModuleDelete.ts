@@ -94,10 +94,12 @@ export function isPromotableAssetKey(
  * needs credit if the image behind it is CC-licensed. `isPromotableAssetKey`
  * answers the copy question and must stay narrow, or promotion starts copying
  * objects that don't need copying (see the "PROMOTABLE ≠ PERSONAL" docblock
- * above). This predicate only feeds the credit-registry lookup
- * (`collectSourceCreditableKeys` in ./personalAssetRefs, used by
- * `collectModuleCredits` in ./moduleCredits) — it must never be used to decide
- * what promote-module-assets copies.
+ * above). This predicate only feeds the credit-registry lookup: it filters
+ * `collectSourceImageRefs` in ./personalAssetRefs (the refs `collectModuleCredits`
+ * in ./moduleCredits publishes against), and gates `bucketFor` and
+ * `checkAccountImageCreditCompleteness` in ../imageCreditsBackfill (the backfill
+ * plan and the standing self-check) — it must never be used to decide what
+ * promote-module-assets copies.
  */
 export function isCreditableAssetKey(
   key: string | undefined | null,
