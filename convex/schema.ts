@@ -178,7 +178,7 @@ const imageProvenanceFields = {
  * `imageSourceType` deliberately has no `upload` or `symbolstix` member —
  * see the `imageCredits` table's doc comment for why.
  */
-const imageCreditFields = {
+export const imageCreditFields = {
   // The R2 object key this credit describes. THE dedupe key.
   imageKey: v.string(),
   // Only sources with external provenance worth preserving.
