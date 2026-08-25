@@ -429,8 +429,8 @@ Write a click-by-click script covering, with the exact value to look for at each
 
 Include a teardown section: which test folders and R2 prefixes to remove afterwards, and which to leave.
 
-- [ ] **Step 1: Write the script**
-- [ ] **Step 2: Hand it to the owner and stop.** Do not execute steps 0–12.
+- [x] **Step 1: Write the script** — `.superpowers/sdd/phase-31-acceptance.md` (13 checkpoints, 0–12, plus pre-flight and teardown).
+- [x] **Step 2: Hand it to the owner and stop.** Nothing in steps 0–12 was executed.
 
 ---
 
