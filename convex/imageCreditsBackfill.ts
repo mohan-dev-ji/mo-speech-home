@@ -56,10 +56,15 @@
  *   2. One account's own `imageCredits` rows, in `planAccountImageCredits` /
  *      `checkAccountImageCreditCompleteness` — bounded by the registry's own
  *      de-duplicated row count, same reasoning.
- *   3. `libraryModules` in `planLibraryModuleCredits` (module-artifact
- *      credits, not the standing `--check` alarm — `--check` exits before
- *      this function is ever called, so a slow death here does not take the
- *      alarm down with it). Row count is small and stable (38 modules
+ *   3. `libraryModules` in `planLibraryModuleCredits`. NOTE (whole-phase
+ *      review, Finding 4): this used to say "not the standing `--check`
+ *      alarm — `--check` exits before this function is ever called, so a slow
+ *      death here does not take the alarm down with it." That is no longer
+ *      true — `--check` now runs this too, precisely because a module
+ *      published with missing credits was the one gap the alarm could not
+ *      see. So a limit trip HERE would take the standing alarm down with it,
+ *      which raises the stakes on the re-evaluation below.
+ *      Row count is small and stable (38 modules
  *      today), but `libraryModules` documents are the fattest in the
  *      deployment — whole item trees, 191 image placements across those 38
  *      rows today — so the binding constraint here is the 8 MiB
@@ -90,8 +95,15 @@ import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { imageCreditFields } from "./schema";
 import type { CreditRow } from "./schema";
-import { isCreditableAssetKey } from "./lib/contentModuleDelete";
-import { mergeModuleCredits, writeInstalledModuleCredits } from "./lib/moduleCredits";
+import {
+  isCreditableAssetKey,
+  isLegacySharedModuleAssetKey,
+} from "./lib/contentModuleDelete";
+import {
+  collectModuleCredits,
+  mergeModuleCredits,
+  writeInstalledModuleCredits,
+} from "./lib/moduleCredits";
 import {
   symbolRefs,
   listRefs,
@@ -99,8 +111,11 @@ import {
   phraseRefs,
   coverRef,
   collectModuleImageRefs,
+  mergeByKey,
+  classifyMergedImage,
+  creditRowFromMergedImage,
   type ImageRef,
-  type PlacementSourceType,
+  type MergedImage,
   type WalkedRowCounts,
 } from "./lib/imageCreditRefs";
 
@@ -109,59 +124,20 @@ const PAGE_SIZE = 1000;
 /** Safety net against a runaway loop, matching `migrations.backfillSearchText`. */
 const MAX_PAGES_PER_TABLE = 500;
 
-// ─── Grouping + classification (pure) ────────────────────────────────────────
+// ─── Grouping + classification ──────────────────────────────────────────────
+//
+// `MergedImage`, `mergeByKey`, `classifyMergedImage` and
+// `creditRowFromMergedImage` MOVED to `./lib/imageCreditRefs` (phase-31
+// whole-phase review, Finding 1). PUBLISH now applies the same "does this
+// placement earn a credit, and what does it say?" rule when the registry
+// lookup misses, and publish lives in `convex/lib` — it cannot import from
+// this file, which is a Convex FUNCTION module. One copy of a licence rule,
+// three call sites.
 
-/** One R2 object key, with the union of everything its placements remember. */
-type MergedImage = {
-  imageKey: string;
-  sourceType?: PlacementSourceType;
-  attribution?: string;
-  license?: string;
-  imageSourceUrl?: string;
-  label?: string;
-  foundIn: string[];
-};
-
-/**
- * Collapse placements onto their R2 key — the registry's unit is the object,
- * not the placement, so a symbol and the three talker slots that reuse it are
- * ONE image.
- *
- * Field-by-field first-defined-wins, with one deliberate exception: a
- * RECORDABLE `sourceType` (`imageSearch` / `aiGenerated`) beats a non-recordable
- * one no matter which placement was walked first. A key that one row calls
- * `upload` and another calls `imageSearch` is a row that lost its type
- * somewhere, and the asymmetry is intentional — the cost of wrongly recording
- * an upload is one thin registry row, the cost of wrongly skipping an
- * image-search pick is a licence obligation with nothing left to recover it
- * from.
- */
-function mergeByKey(refs: readonly ImageRef[]): MergedImage[] {
-  const byKey = new Map<string, MergedImage>();
-  const recordable = (t: PlacementSourceType | undefined) =>
-    t === "imageSearch" || t === "aiGenerated";
-
-  for (const ref of refs) {
-    let merged = byKey.get(ref.imageKey);
-    if (!merged) {
-      merged = { imageKey: ref.imageKey, foundIn: [] };
-      byKey.set(ref.imageKey, merged);
-    }
-    if (ref.sourceType && (!merged.sourceType || (recordable(ref.sourceType) && !recordable(merged.sourceType)))) {
-      merged.sourceType = ref.sourceType;
-    }
-    if (!merged.attribution && ref.attribution) merged.attribution = ref.attribution;
-    if (!merged.license && ref.license) merged.license = ref.license;
-    if (!merged.imageSourceUrl && ref.imageSourceUrl) merged.imageSourceUrl = ref.imageSourceUrl;
-    if (!merged.label && ref.label) merged.label = ref.label;
-    if (!merged.foundIn.includes(ref.foundIn)) merged.foundIn.push(ref.foundIn);
-  }
-
-  return [...byKey.values()].sort((a, b) => a.imageKey.localeCompare(b.imageKey));
-}
-
-/** Which bucket a key lands in. The five content buckets partition the scan
- * exactly — every unique key gets one and only one. */
+/** Which bucket a key lands in. The six content buckets partition the scan
+ * exactly — every unique key gets one and only one. The last four delegate to
+ * `classifyMergedImage`; the first two are questions only a caller can answer
+ * (namespace, and whether a row already exists). */
 type Bucket =
   /** Would get a new registry row. */
   | "create"
@@ -185,34 +161,11 @@ type Bucket =
 function bucketFor(image: MergedImage, alreadyPresent: boolean): Bucket {
   if (!isCreditableAssetKey(image.imageKey)) return "byDesignShared";
   if (alreadyPresent) return "present";
-  switch (image.sourceType) {
-    case "imageSearch":
-      return image.attribution || image.license || image.imageSourceUrl
-        ? "create"
-        : "imageSearchNoCredit";
-    case "aiGenerated":
-      return "create";
-    case "upload":
-    case "symbolstix":
-      return "byDesignUpload";
-    default:
-      return "unknownNoType";
-  }
-}
-
-/** Project a merged image onto the registry row it would become. Only ever
- * called for a `create` bucket, so the source type is one of the two the
- * registry accepts. `imageTitle` is absent by construction — phase-30 stored no
- * title on a placement, so there is none to lift. */
-function toCreditRow(image: MergedImage): CreditRow {
-  return {
-    imageKey: image.imageKey,
-    imageSourceType: image.sourceType === "aiGenerated" ? "aiGenerated" : "imageSearch",
-    ...(image.attribution ? { attribution: image.attribution } : {}),
-    ...(image.license ? { license: image.license } : {}),
-    ...(image.imageSourceUrl ? { imageSourceUrl: image.imageSourceUrl } : {}),
-    ...(image.label ? { firstUsedFor: image.label } : {}),
-  };
+  const classification = classifyMergedImage(image);
+  // The two recordable classes are the ones that earn a row.
+  return classification === "imageSearch" || classification === "aiGenerated"
+    ? "create"
+    : classification;
 }
 
 // ─── Pagination primitives — see PAGINATION at the top of this file ─────────
@@ -563,7 +516,10 @@ export const planAccountImageCredits = internalAction({
       const present = existingKeys.has(image.imageKey);
       const bucket = bucketFor(image, present);
       counts[bucket]++;
-      if (bucket === "create") proposals.push(toCreditRow(image));
+      if (bucket === "create") {
+        const row = creditRowFromMergedImage(image);
+        if (row) proposals.push(row);
+      }
       if (bucket === "imageSearchNoCredit") {
         lostCredit.push({
           imageKey: image.imageKey,
@@ -670,6 +626,51 @@ export const checkAccountImageCreditCompleteness = internalAction({
   },
 });
 
+// ─── Publish preview (read-only) ─────────────────────────────────────────────
+
+/**
+ * EXACTLY what a publish of `source` would embed in the module artifact, without
+ * publishing anything (phase-31 whole-phase review, Finding 1).
+ *
+ * Why this exists: `collectModuleCredits` is only ever reached from a publish
+ * MUTATION, so before this there was no way to see its output except by
+ * publishing — which is irreversible in the way that matters, because a
+ * module's `credits` array is append-only. A registry-miss fallback that has
+ * never been observed is a fallback nobody can trust. This calls the real
+ * function, on real rows, and returns its real result.
+ *
+ * `assetPathMap` is the same source-key → promoted-key map
+ * `/api/admin/promote-module-assets` hands the publish mutation. Pass the real
+ * one to preview an actual publish; pass a synthetic one to prove THE REMAP
+ * reaches every credit row, fallback rows included. Omit it and keys pass
+ * through unchanged, exactly as a publish without promotion does.
+ *
+ * `internalQuery`, and a query cannot write: unreachable from a browser and
+ * incapable of changing anything even if it were.
+ */
+export const previewModuleCredits = internalQuery({
+  args: {
+    accountId: v.id("users"),
+    tree: v.union(
+      v.literal("categories"),
+      v.literal("lists"),
+      v.literal("sentences"),
+      v.literal("phrases"),
+    ),
+    sourceId: v.string(),
+    assetPathMap: v.optional(v.record(v.string(), v.string())),
+  },
+  handler: async (ctx, args): Promise<{ credits: CreditRow[] }> => {
+    const credits = await collectModuleCredits(
+      ctx,
+      args.accountId,
+      { tree: args.tree, sourceId: args.sourceId },
+      args.assetPathMap,
+    );
+    return { credits };
+  },
+});
+
 // ─── Published-module artifacts ──────────────────────────────────────────────
 
 /**
@@ -687,6 +688,31 @@ export const checkAccountImageCreditCompleteness = internalAction({
  * Keys are already the promoted `library_modules/…` keys, so no remap is needed
  * here — unlike `collectModuleCredits`, which starts from the admin's source
  * keys and must go through `assetPathMap`.
+ *
+ * LEGACY `library_packs/` KEYS ARE SKIPPED, NOT CREDITED (phase-31 whole-phase
+ * review, Finding 3a). Exactly one module — `categories/space` — still holds
+ * its images under the retired pack-era prefix, and it is scheduled to be
+ * re-published onto `library_modules/` so that prefix can be deleted wholesale
+ * (ADR-022 amendment, 2026-08-24). Writing its 15 credits under the old keys
+ * now would be unrecoverable: `mergeModuleCredits` is EXISTING-WINS by
+ * `imageKey`, so on the re-publish the 15 dead keys would survive ALONGSIDE
+ * the 15 new ones, and every account that installed or reinstalled `space`
+ * afterwards would get both sets — each space photo listed twice on the
+ * Credits screen, one copy with a 404 thumbnail. Nothing in the phase can
+ * remove them again; the artifact `credits` array is deliberately append-only.
+ *
+ * Nothing is lost by skipping. The credit is not in the registry, it is on the
+ * source rows, and since Finding 1 `collectModuleCredits` falls back to those
+ * rows when the registry misses — so the re-publish embeds the same 15
+ * credits, correctly keyed to the new `library_modules/categories/space/…`
+ * objects, whether or not the backfill ever ran. The alternative (write them
+ * now, strip them after the re-publish) needs a new destructive mutation
+ * against the one array this phase made append-only, plus another unenforced
+ * human step — the exact failure mode Finding 1 exists to remove.
+ *
+ * They are counted in their own `legacyPrefixSkipped` bucket rather than
+ * folded into `byDesignShared`, so the reconciliation still shows them and a
+ * reader can see the decision rather than infer it from a missing number.
  */
 export const planLibraryModuleCredits = internalQuery({
   args: {},
@@ -703,6 +729,7 @@ export const planLibraryModuleCredits = internalQuery({
       byDesignUpload: 0,
       imageSearchNoCredit: 0,
       unknownNoType: 0,
+      legacyPrefixSkipped: 0,
     };
     const plans: Array<{
       moduleId: Id<"libraryModules">;
@@ -720,9 +747,19 @@ export const planLibraryModuleCredits = internalQuery({
 
       counts.totalImages += merged.length;
       for (const image of merged) {
+        // See LEGACY `library_packs/` KEYS above — skipped before
+        // classification, so the whole retired prefix is one visible number
+        // rather than smeared across four buckets.
+        if (isLegacySharedModuleAssetKey(image.imageKey)) {
+          counts.legacyPrefixSkipped++;
+          continue;
+        }
         const bucket = bucketFor(image, existingKeys.has(image.imageKey));
         counts[bucket]++;
-        if (bucket === "create") credits.push(toCreditRow(image));
+        if (bucket === "create") {
+          const row = creditRowFromMergedImage(image);
+          if (row) credits.push(row);
+        }
       }
 
       if (credits.length > 0) {

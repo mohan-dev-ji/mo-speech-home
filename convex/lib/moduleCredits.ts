@@ -10,8 +10,10 @@
  * Three pieces:
  *
  *   `collectModuleCredits`        — publish: read the publishing account's rows
- *                                   for the keys this module uses, and REMAP
- *                                   them onto the promoted keys.
+ *                                   for the keys this module uses — falling
+ *                                   back to the provenance on the published
+ *                                   row itself when the registry has none —
+ *                                   and REMAP them onto the promoted keys.
  *   `mergeModuleCredits`          — publish: combine a freshly-collected credit
  *                                   set with whatever a re-published module
  *                                   already carried, by `imageKey`, so a
@@ -32,7 +34,8 @@
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { CreditRow } from "../imageCredits";
-import { collectSourceCreditableKeys } from "./personalAssetRefs";
+import { collectSourceImageRefs } from "./personalAssetRefs";
+import { mergeByKey, creditRowFromMergedImage } from "./imageCreditRefs";
 
 /** Project a stored registry row onto the wire shape, dropping absent fields
  * (`undefined` is not a Convex value) and stamping the caller's chosen key. */
@@ -61,20 +64,51 @@ function toCreditRow(
 /**
  * The credit rows a publish should embed in the module artifact.
  *
- * "Which images does this module use?" is answered by
- * `collectSourceCreditableKeys` — a walk of the same tables
- * `collectSourcePromotableKeys` uses to decide what to copy into R2, but with
- * the wider `isCreditableAssetKey` predicate (phase-31 review, 2026-08-25).
- * The two questions are different: an installed copy's source rows already
- * point at `library_modules/…` keys — nothing to copy — but if that image is
- * CC-licensed it still needs credit when re-published. Using the promotable
- * (copy) predicate here silently dropped credit for exactly that case; see
- * `isCreditableAssetKey` in ./contentModuleDelete for the full rationale.
- * Audio keys come back from the walk too; they simply never match a registry
- * row (the registry is images only).
+ * "Which images does this module use?" is answered by `collectSourceImageRefs`
+ * — a walk of the same tables `collectSourcePromotableKeys` uses to decide what
+ * to copy into R2, filtered by the wider `isCreditableAssetKey` predicate
+ * (phase-31 review, 2026-08-25). The two questions are different: an installed
+ * copy's source rows already point at `library_modules/…` keys — nothing to
+ * copy — but if that image is CC-licensed it still needs credit when
+ * re-published. Using the promotable (copy) predicate here silently dropped
+ * credit for exactly that case; see `isCreditableAssetKey` in
+ * ./contentModuleDelete for the full rationale.
+ *
+ * TWO SOURCES OF CREDIT, IN PRIORITY ORDER (phase-31 whole-phase review,
+ * Finding 1). Until that review this function read the `imageCredits` registry
+ * and NOTHING ELSE: on a lookup miss it did `continue`, embedding no credit for
+ * that image — even though `attribution` / `license` / `imageSourceUrl` were
+ * sitting on the very `profileSymbols` / `items[]` / `slots[]` row being
+ * published. Publish before the backfill had been applied and the installing
+ * family got an empty Credits screen for a CC image whose photographer was
+ * recorded three tables away. That made the correctness of the whole publish
+ * path rest on an unenforced human precondition ("always `--apply` before you
+ * ever re-publish") stated only in a script comment. So:
+ *
+ *   1. The registry row for the source key, if one exists. Still first: it is
+ *      the phase-31 record, it can carry an `imageTitle` no placement has, and
+ *      it is what a live save writes.
+ *   2. FAILING THAT, the placement's own provenance, via
+ *      `creditRowFromMergedImage` — the same rule the backfill and the standing
+ *      completeness check apply, shared from ./imageCreditRefs so a licence
+ *      decision cannot be made differently in three places.
+ *
+ * The fallback is filtered exactly as the registry is: only `imageSearch` and
+ * `aiGenerated` are recordable, so a row whose provenance says `upload` or
+ * `symbolstix` still produces NOTHING, and a THIN `imageSearch` placement (a
+ * recordable type with no attribution, no licence and no source URL — phase-29
+ * era) is refused too, matching the backfill's deliberate refusal to write one.
+ * A thin credit carries no licence information, cannot be upgraded afterwards
+ * (every downstream write is skip-first-wins), and would silence the one alarm
+ * that reports the gap. See `creditRowFromMergedImage` for the full argument.
+ *
+ * The ordering constraint is now a performance nicety, not a correctness
+ * requirement: applying the backfill first still means fewer per-key lookups
+ * miss, but publishing without it no longer loses anything recoverable.
  *
  * `assetPathMap` is REQUIRED, not optional-with-a-default, so a caller cannot
- * silently publish source-keyed credits. `undefined` is a legitimate value —
+ * silently publish source-keyed credits — and it is applied to the fallback
+ * rows too, not just the registry ones. `undefined` is a legitimate value —
  * "publish without promotion", R2 unconfigured — and then keys pass through
  * unchanged, exactly as `promoted()` in `contentModules/publish.ts` does. A
  * `library_modules/…` source key is never in `assetPathMap` either (nothing
@@ -93,23 +127,43 @@ export async function collectModuleCredits(
   },
   assetPathMap: Record<string, string> | undefined,
 ): Promise<CreditRow[]> {
-  const sourceKeys = await collectSourceCreditableKeys(ctx, source);
-  if (sourceKeys.length === 0) return [];
+  const refs = await collectSourceImageRefs(ctx, source);
+  if (refs.length === 0) return [];
+
+  // Collapse placements onto their R2 key before looking anything up: the
+  // registry's unit is the object, not the placement, and a symbol plus the
+  // three talker slots that reuse it must produce ONE credit built from the
+  // union of what those four rows remember.
+  const merged = mergeByKey(refs);
 
   const byPromotedKey = new Map<string, CreditRow>();
-  for (const sourceKey of sourceKeys) {
+  for (const image of merged) {
+    const sourceKey = image.imageKey;
+    // ── THE REMAP ── source key → promoted key. Unmapped keys pass through
+    // (nothing was copied for them), matching `promoted()` in publish.ts.
+    // Applied ONCE here so both the registry row and the fallback row are
+    // stamped with it — a credit keyed to the admin's `accounts/…` source key
+    // lands in the installer's registry looking perfectly correct and joins to
+    // nothing.
+    const promotedKey = assetPathMap?.[sourceKey] ?? sourceKey;
+    // First wins, as in the registry. Checked before the lookup, which is safe
+    // because the map is only ever written when a credit was actually found.
+    if (byPromotedKey.has(promotedKey)) continue;
+
     const row = await ctx.db
       .query("imageCredits")
       .withIndex("by_account_and_key", (q) =>
         q.eq("accountId", accountId).eq("imageKey", sourceKey),
       )
       .first();
-    if (!row) continue;
-    // ── THE REMAP ── source key → promoted key. Unmapped keys pass through
-    // (nothing was copied for them), matching `promoted()` in publish.ts.
-    const promotedKey = assetPathMap?.[sourceKey] ?? sourceKey;
-    if (byPromotedKey.has(promotedKey)) continue; // first wins, as in the registry
-    byPromotedKey.set(promotedKey, toCreditRow(promotedKey, row));
+    if (row) {
+      byPromotedKey.set(promotedKey, toCreditRow(promotedKey, row));
+      continue;
+    }
+
+    // Registry miss — fall back to what the published row itself remembers.
+    const fallback = creditRowFromMergedImage(image, promotedKey);
+    if (fallback) byPromotedKey.set(promotedKey, fallback);
   }
 
   return [...byPromotedKey.values()].sort((a, b) =>

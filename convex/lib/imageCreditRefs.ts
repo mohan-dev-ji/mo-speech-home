@@ -47,6 +47,9 @@
  */
 
 import type { Doc } from "../_generated/dataModel";
+// Type-only, erased at build. `schema.ts` — never `imageCredits.ts`, which is a
+// Convex FUNCTION module; see `convex/data/_shared/types.ts:22-30`.
+import type { CreditRow } from "../schema";
 
 /**
  * The image-source vocabulary as it is spelled ON A PLACEMENT — wider than the
@@ -239,6 +242,143 @@ export function coverRef(
   const label = enText(row.name);
   if (label) ref.label = label;
   return [ref];
+}
+
+// ─── Grouping + classification (pure) ───────────────────────────────────────
+//
+// MOVED HERE from `convex/imageCreditsBackfill.ts` (phase-31 whole-phase
+// review, Finding 1). Three call sites now answer "does this placement earn a
+// credit row, and what does that row say?" — the backfill plan, the standing
+// completeness check, and PUBLISH's registry-miss fallback in
+// ./moduleCredits. Publish is a `convex/lib` module and must not import from a
+// Convex FUNCTION module, and three copies of a licence rule is three chances
+// to drift, so the rule lives here, beside the extractors that feed it.
+
+/** One R2 object key, with the union of everything its placements remember. */
+export type MergedImage = {
+  imageKey: string;
+  sourceType?: PlacementSourceType;
+  attribution?: string;
+  license?: string;
+  imageSourceUrl?: string;
+  label?: string;
+  foundIn: string[];
+};
+
+/**
+ * Collapse placements onto their R2 key — the registry's unit is the object,
+ * not the placement, so a symbol and the three talker slots that reuse it are
+ * ONE image.
+ *
+ * Field-by-field first-defined-wins, with one deliberate exception: a
+ * RECORDABLE `sourceType` (`imageSearch` / `aiGenerated`) beats a non-recordable
+ * one no matter which placement was walked first. A key that one row calls
+ * `upload` and another calls `imageSearch` is a row that lost its type
+ * somewhere, and the asymmetry is intentional — the cost of wrongly recording
+ * an upload is one thin registry row, the cost of wrongly skipping an
+ * image-search pick is a licence obligation with nothing left to recover it
+ * from.
+ */
+export function mergeByKey(refs: readonly ImageRef[]): MergedImage[] {
+  const byKey = new Map<string, MergedImage>();
+  const recordable = (t: PlacementSourceType | undefined) =>
+    t === "imageSearch" || t === "aiGenerated";
+
+  for (const ref of refs) {
+    let merged = byKey.get(ref.imageKey);
+    if (!merged) {
+      merged = { imageKey: ref.imageKey, foundIn: [] };
+      byKey.set(ref.imageKey, merged);
+    }
+    if (ref.sourceType && (!merged.sourceType || (recordable(ref.sourceType) && !recordable(merged.sourceType)))) {
+      merged.sourceType = ref.sourceType;
+    }
+    if (!merged.attribution && ref.attribution) merged.attribution = ref.attribution;
+    if (!merged.license && ref.license) merged.license = ref.license;
+    if (!merged.imageSourceUrl && ref.imageSourceUrl) merged.imageSourceUrl = ref.imageSourceUrl;
+    if (!merged.label && ref.label) merged.label = ref.label;
+    if (!merged.foundIn.includes(ref.foundIn)) merged.foundIn.push(ref.foundIn);
+  }
+
+  return [...byKey.values()].sort((a, b) => a.imageKey.localeCompare(b.imageKey));
+}
+
+/**
+ * What a merged image's own provenance entitles it to. Says NOTHING about the
+ * key's namespace (`isCreditableAssetKey`) or about whether a registry row
+ * already exists — those are the caller's questions, and keeping them out is
+ * what lets the backfill, the check and publish share this one function.
+ */
+export type MergedImageClass =
+  /** Recordable, and carries at least one of attribution / licence / source
+   * URL. Earns a credit row. */
+  | "imageSearch"
+  /** Recordable with no attribution requirement. Earns a credit row. */
+  | "aiGenerated"
+  /** Says `imageSearch` but carries NO attribution, licence or source URL —
+   * phase-29-era saves that predate the attribution work. Earns NOTHING, on
+   * purpose: see `creditRowFromMergedImage`. */
+  | "imageSearchNoCredit"
+  /** `upload` / `symbolstix` — no external provenance exists for an upload and
+   * SymbolStix is licensed wholesale (owner decision, 2026-08-25). */
+  | "byDesignUpload"
+  /** No type recorded on any placement — covers and talker-built slots. Could
+   * be a legitimate upload or a lost credit; a human decides. */
+  | "unknownNoType";
+
+export function classifyMergedImage(image: MergedImage): MergedImageClass {
+  switch (image.sourceType) {
+    case "imageSearch":
+      return image.attribution || image.license || image.imageSourceUrl
+        ? "imageSearch"
+        : "imageSearchNoCredit";
+    case "aiGenerated":
+      return "aiGenerated";
+    case "upload":
+    case "symbolstix":
+      return "byDesignUpload";
+    default:
+      return "unknownNoType";
+  }
+}
+
+/**
+ * The credit row a merged image earns, or `undefined` when it earns none.
+ *
+ * `imageKey` defaults to the image's own key and is overridable so PUBLISH can
+ * stamp the PROMOTED key (`collectModuleCredits` in ./moduleCredits) — a credit
+ * keyed to the admin's `accounts/…` source key joins to nothing in the
+ * installing account's registry.
+ *
+ * A THIN `imageSearch` row — recordable type, no attribution, no licence, no
+ * source URL — is deliberately refused, exactly as the backfill refuses to
+ * write one. It would carry no licence information at all, so it satisfies no
+ * CC obligation; it would render in the Credits screen as a thumbnail with a
+ * blank caption; and because every write path downstream is skip-first-wins
+ * (`recordImageCredit`, `writeInstalledModuleCredits`, `mergeModuleCredits`) it
+ * could never afterwards be upgraded to the real credit. Worst of all it would
+ * silence `checkAccountImageCreditCompleteness`, which is the only alarm that
+ * surfaces the gap. Absent and reported beats present and empty.
+ *
+ * `imageTitle` is never produced here: no placement has ever stored a title, so
+ * there is none to lift.
+ */
+export function creditRowFromMergedImage(
+  image: MergedImage,
+  imageKey: string = image.imageKey,
+): CreditRow | undefined {
+  const classification = classifyMergedImage(image);
+  if (classification !== "imageSearch" && classification !== "aiGenerated") {
+    return undefined;
+  }
+  return {
+    imageKey,
+    imageSourceType: classification,
+    ...(image.attribution ? { attribution: image.attribution } : {}),
+    ...(image.license ? { license: image.license } : {}),
+    ...(image.imageSourceUrl ? { imageSourceUrl: image.imageSourceUrl } : {}),
+    ...(image.label ? { firstUsedFor: image.label } : {}),
+  };
 }
 
 /** How many rows the walk actually read, per table — printed by the script so

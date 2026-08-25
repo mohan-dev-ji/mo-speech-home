@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown } from "lucide-react";
-import type { CreditRow } from "@/convex/imageCredits";
+import { ChevronDown, ImageOff } from "lucide-react";
+// Type-only, erased at build — but it still points at `convex/schema.ts`, the
+// module that defines the validator this type mirrors, NOT at
+// `convex/imageCredits.ts` (review fix, 2026-08-25). That file is a Convex
+// FUNCTION module; routing even a type-only import from a frontend component
+// through one is the drift `convex/data/_shared/types.ts:22-30` documents.
+import type { CreditRow } from "@/convex/schema";
 
 /**
  * Renders one account's image-credit rows (Phase 31 Task 4). Presentational
@@ -35,6 +40,54 @@ export function CreditList({ credits }: { credits: CreditRow[] }) {
   );
 }
 
+/** Shared box geometry for a credit thumbnail and its fallback, so a 404
+ * cannot change the row's height or the AI grid's wrapping. */
+const THUMB_CLASS = "size-12 shrink-0 rounded-theme-sm bg-theme-surface object-contain";
+
+/**
+ * One credit thumbnail that degrades to a visible placeholder when the object
+ * is gone (phase-31 whole-phase review, Finding 3b).
+ *
+ * A credit row outlives the object it points at: `imageCredits` rows are never
+ * garbage-collected, a module's `credits` array is append-only, and the
+ * `library_packs/` prefix is scheduled for deletion. So `/api/assets?key=…`
+ * returning 404 is an expected state, not a bug — and a bare `<img alt="">`
+ * renders it as a blank box next to a photographer's name, on the one screen
+ * whose entire job is to look trustworthy. The glyph says "thumbnail
+ * unavailable" without claiming the app is broken.
+ *
+ * `aria-hidden` on the fallback deliberately matches `alt=""` on the image it
+ * replaces: the credit text sits right beside it, so announcing the thumbnail
+ * twice — or announcing its absence — adds nothing. Failure state and success
+ * state therefore read identically to a screen reader. No copy string is
+ * introduced, so nothing here can drift out of `en.json`.
+ */
+function CreditThumb({ imageKey }: { imageKey: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`${THUMB_CLASS} flex items-center justify-center border border-theme-line`}
+      >
+        <ImageOff className="size-5 text-theme-secondary-alt-text" />
+      </div>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/api/assets?key=${imageKey}`}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={THUMB_CLASS}
+    />
+  );
+}
+
 function CreditRowItem({ row }: { row: CreditRow }) {
   const t = useTranslations("credits");
   const textParts = [row.imageTitle, row.attribution, row.license].filter(
@@ -44,13 +97,7 @@ function CreditRowItem({ row }: { row: CreditRow }) {
 
   const body = (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/api/assets?key=${row.imageKey}`}
-        alt=""
-        loading="lazy"
-        className="size-12 shrink-0 rounded-theme-sm bg-theme-surface object-contain"
-      />
+      <CreditThumb imageKey={row.imageKey} />
       <div className="min-w-0 flex-1">
         {hasText && (
           <p className="text-theme-s text-theme-alt-text">
@@ -114,14 +161,7 @@ function AiGeneratedGroup({ rows }: { rows: CreditRow[] }) {
       {expanded && (
         <div className="flex flex-wrap gap-theme-elements border-t border-theme-line p-theme-item">
           {rows.map((row) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={row.imageKey}
-              src={`/api/assets?key=${row.imageKey}`}
-              alt=""
-              loading="lazy"
-              className="size-12 shrink-0 rounded-theme-sm bg-theme-surface object-contain"
-            />
+            <CreditThumb key={row.imageKey} imageKey={row.imageKey} />
           ))}
         </div>
       )}

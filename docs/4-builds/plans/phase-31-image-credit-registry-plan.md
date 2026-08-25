@@ -456,4 +456,12 @@ Close **MOS-35**, **MOS-36** and **MOS-38** as *superseded by design*. Close **M
 
 Then return to **phase-29** (`docs/4-builds/plans/phase-29-module-artifact-restore-and-dr-test.md`), paused mid-Task-8 with Tasks 1–7 complete. Task 7 Step 9 there is discharged by this plan's Task 5.
 
-After that, the `library_packs/` retirement: backfill `space`, re-publish it onto `library_modules/`, verify it renders, **reinstall it so the installed copy repoints too**, and only then delete the folder.
+After that, the `library_packs/` retirement: re-publish `space` onto `library_modules/`, verify it renders, **reinstall it so the installed copy repoints too**, re-export the artifacts (`node scripts/export-library-modules.mjs`, commit `convex/data/**`, then `node scripts/verify-module-roundtrip.mjs` → exit 0), and only then delete the folder.
+
+> **Amended by the whole-phase review, 2026-08-25 (Finding 3a).** The step used to read "backfill `space`" first. It must NOT be backfilled first. The backfill would write its 15 credits under the dead `library_packs/…` keys, and `mergeModuleCredits` is existing-wins by `imageKey` — so on the re-publish the 15 dead keys would survive ALONGSIDE the 15 new ones, and every account that installed or reinstalled `space` afterwards would get both sets: each space photo listed twice on the Credits screen, one copy with a 404 thumbnail, permanently, because the artifact's `credits` array is append-only. `planLibraryModuleCredits` therefore skips every `library_packs/` key and reports them in a `legacyPrefixSkipped` bucket. Nothing is lost: `collectModuleCredits` now falls back to the source rows' own `attribution` / `license` / `imageSourceUrl` when the registry misses (Finding 1), so the re-publish alone embeds all 15 credits correctly keyed to the new objects.
+>
+> **Before deleting the prefix**, `scripts/backfill-image-credits.mjs --check` must report `MODULE ARTIFACTS — missing credit: 0` and `legacy \`library_packs/\` keys: 0`.
+
+### After any `--apply`: re-export the committed artifacts
+
+`--apply` patches `libraryModules.credits` in the LIVE table; the committed disaster-recovery copies under `convex/data/<tree>/<slug>.json` do not have those credits, so `scripts/verify-module-roundtrip.mjs` reports drift and a restore via `seedLibraryModulesFromJSON` would republish the module with its credits **stripped** — landing straight in phase-29's paused wipe/restore DR test. Run `node scripts/export-library-modules.mjs`, commit `convex/data/**`, then `node scripts/verify-module-roundtrip.mjs` and confirm exit 0. The backfill script prints this reminder itself at the end of every `--apply` run.

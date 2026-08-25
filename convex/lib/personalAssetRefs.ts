@@ -5,6 +5,14 @@ import {
   isPromotableAssetKey,
   isCreditableAssetKey,
 } from "./contentModuleDelete";
+import {
+  symbolRefs,
+  listRefs,
+  sentenceRefs,
+  phraseRefs,
+  coverRef,
+  type ImageRef,
+} from "./imageCreditRefs";
 
 /**
  * Which keys an extractor keeps. Three — and only three — values are ever
@@ -307,54 +315,128 @@ export async function collectSourceCreditableKeys(
   return collectSourceKeysByPredicate(ctx, args, isCreditableAssetKey);
 }
 
+/**
+ * Every row ONE publish source addresses — the cover-bearing container plus its
+ * children. Loaded once, in one place (phase-31 whole-phase review, Finding 1),
+ * because THREE different projections are now taken of the same rows:
+ * promotable keys (what to copy), creditable keys, and `ImageRef`s carrying the
+ * provenance that sits next to each key (`collectSourceImageRefs` below). If
+ * each projection ran its own traversal they could come to disagree about WHICH
+ * ROWS a module contains, and a publish would then copy an object it did not
+ * credit, or credit one it did not ship.
+ *
+ * Returns `undefined` when the source row is gone — callers return empty,
+ * exactly as they did before.
+ */
+type PublishSourceRows = {
+  category?: Doc<"profileCategories">;
+  folder?: Doc<"profileFolders">;
+  symbols: Doc<"profileSymbols">[];
+  lists: Doc<"profileLists">[];
+  sentences: Doc<"profileSentences">[];
+  phrases: Doc<"profilePhrases">[];
+};
+
+async function loadPublishSourceRows(
+  ctx: QueryCtx,
+  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+): Promise<PublishSourceRows | undefined> {
+  const empty = { symbols: [], lists: [], sentences: [], phrases: [] };
+
+  if (args.tree === "categories") {
+    const category = await ctx.db.get(args.sourceId as Id<"profileCategories">);
+    if (!category) return undefined;
+    const symbols = await ctx.db
+      .query("profileSymbols")
+      .withIndex("by_profile_category_id", (q) =>
+        q.eq("profileCategoryId", category._id)
+      )
+      .collect();
+    return { ...empty, category, symbols };
+  }
+
+  const folder = await ctx.db.get(args.sourceId as Id<"profileFolders">);
+  if (!folder) return undefined;
+
+  if (args.tree === "lists") {
+    const lists = await ctx.db
+      .query("profileLists")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    return { ...empty, folder, lists };
+  }
+  if (args.tree === "sentences") {
+    const sentences = await ctx.db
+      .query("profileSentences")
+      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+      .collect();
+    return { ...empty, folder, sentences };
+  }
+  const phrases = await ctx.db
+    .query("profilePhrases")
+    .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+    .collect();
+  return { ...empty, folder, phrases };
+}
+
 /** Shared walk behind both `collectSourcePromotableKeys` and
  * `collectSourceCreditableKeys` — identical table traversal, `keep` is the
  * only thing that differs, so the two collectors can never drift apart on
- * "what fields does this source have." */
+ * "what fields does this source have." Row loading now goes through
+ * `loadPublishSourceRows` so `collectSourceImageRefs` cannot drift from it
+ * either; the per-field extraction and the `[...new Set(out)]` dedupe are
+ * unchanged. */
 async function collectSourceKeysByPredicate(
   ctx: QueryCtx,
   args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
   keep: KeyFilter,
 ): Promise<string[]> {
+  const rows = await loadPublishSourceRows(ctx, args);
+  if (!rows) return [];
+
   const out: string[] = [];
-
-  if (args.tree === "categories") {
-    const cat = await ctx.db.get(args.sourceId as Id<"profileCategories">);
-    if (!cat) return [];
-    for (const k of categoryKeys(cat, keep)) out.push(k);
-    const symbols = await ctx.db
-      .query("profileSymbols")
-      .withIndex("by_profile_category_id", (q) =>
-        q.eq("profileCategoryId", cat._id)
-      )
-      .collect();
-    for (const s of symbols) for (const k of symbolKeys(s, keep)) out.push(k);
-    return [...new Set(out)];
-  }
-
-  const folder = await ctx.db.get(args.sourceId as Id<"profileFolders">);
-  if (!folder) return [];
-  for (const k of folderKeys(folder, keep)) out.push(k);
-
-  if (args.tree === "lists") {
-    const rows = await ctx.db
-      .query("profileLists")
-      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
-      .collect();
-    for (const r of rows) for (const k of listKeys(r, keep)) out.push(k);
-  } else if (args.tree === "sentences") {
-    const rows = await ctx.db
-      .query("profileSentences")
-      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
-      .collect();
-    for (const r of rows) for (const k of sentenceKeys(r, keep)) out.push(k);
-  } else {
-    const rows = await ctx.db
-      .query("profilePhrases")
-      .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
-      .collect();
-    for (const r of rows) for (const k of phraseKeys(r, keep)) out.push(k);
-  }
+  if (rows.category) for (const k of categoryKeys(rows.category, keep)) out.push(k);
+  if (rows.folder) for (const k of folderKeys(rows.folder, keep)) out.push(k);
+  for (const s of rows.symbols) for (const k of symbolKeys(s, keep)) out.push(k);
+  for (const l of rows.lists) for (const k of listKeys(l, keep)) out.push(k);
+  for (const s of rows.sentences) for (const k of sentenceKeys(s, keep)) out.push(k);
+  for (const p of rows.phrases) for (const k of phraseKeys(p, keep)) out.push(k);
 
   return [...new Set(out)];
+}
+
+/**
+ * Every creditable image placement in ONE publish source, WITH the provenance
+ * the placement itself still carries (phase-31 whole-phase review, Finding 1).
+ *
+ * The refs counterpart of `collectSourceCreditableKeys`, and the reason publish
+ * can now survive an un-backfilled registry. A bare key string tells
+ * `collectModuleCredits` nothing when the registry lookup misses, so publish
+ * embedded NO credit for that image — even though `attribution` / `license` /
+ * `imageSourceUrl` were sitting on the very row being published (phase 30's
+ * per-placement fields, which phase 31 deliberately kept). These refs carry
+ * those fields, so the miss has somewhere to fall back to.
+ *
+ * Filtered by `isCreditableAssetKey`, the same predicate
+ * `collectSourceCreditableKeys` applies, so both answer the same question about
+ * the same rows and differ only in how much of each row they carry back. Audio
+ * keys are absent by construction here rather than by predicate — the ref
+ * extractors in ./imageCreditRefs are images-only.
+ */
+export async function collectSourceImageRefs(
+  ctx: QueryCtx,
+  args: { tree: "categories" | "lists" | "sentences" | "phrases"; sourceId: string },
+): Promise<ImageRef[]> {
+  const rows = await loadPublishSourceRows(ctx, args);
+  if (!rows) return [];
+
+  const out: ImageRef[] = [];
+  if (rows.category) out.push(...coverRef(rows.category, "profileCategories.imagePath"));
+  if (rows.folder) out.push(...coverRef(rows.folder, "profileFolders.imagePath"));
+  for (const s of rows.symbols) out.push(...symbolRefs(s));
+  for (const l of rows.lists) out.push(...listRefs(l));
+  for (const s of rows.sentences) out.push(...sentenceRefs(s));
+  for (const p of rows.phrases) out.push(...phraseRefs(p));
+
+  return out.filter((ref) => isCreditableAssetKey(ref.imageKey));
 }

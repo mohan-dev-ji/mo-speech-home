@@ -30,13 +30,37 @@
  *                npx convex export --path backups/<date>-image-credit-backfill.zip
  *   --check    run only the standing completeness check ("is there an image in
  *              use whose credit we lost?"). Always read-only, even with --apply.
+ *              Covers BOTH the per-account registry AND the published module
+ *              artifacts (whole-phase review, Finding 4 — it used to exit
+ *              before the module plan ran, so a module shipping with missing
+ *              credits got a clean bill of health).
  *
- * ORDERING — apply this BEFORE re-publishing any content module.
+ * ORDERING — prefer applying this BEFORE re-publishing any content module.
  *   A module's `credits` array is effectively immutable once written: publish
  *   merges existing-wins, export/restore carry it verbatim, install skips on
  *   collision. A module published while the admin's registry is thin is thin
  *   for every account that ever installs it, and a later re-publish cannot
  *   upgrade it — repair then means hand-editing the artifact.
+ *
+ *   Since the whole-phase review (Finding 1) this is a NICETY, not a
+ *   correctness requirement: `collectModuleCredits` now falls back to the
+ *   provenance on the published row itself when the registry lookup misses, so
+ *   a publish on an un-backfilled registry no longer silently drops a credit it
+ *   could have recovered. Applying first still means fewer lookups miss, and
+ *   only the registry can supply an `imageTitle`.
+ *
+ * AFTER --apply, RE-EXPORT THE COMMITTED ARTIFACTS (whole-phase review,
+ * Finding 2). `--apply` patches `libraryModules.credits` in the LIVE table, and
+ * `convex/data/<tree>/<slug>.json` — the committed disaster-recovery artifact
+ * that `seedLibraryModulesFromJSON` restores from — does not have those credits
+ * on disk. Leave them out of sync and `scripts/verify-module-roundtrip.mjs`
+ * reports drift, and a restore republishes the module with its credits
+ * STRIPPED. So:
+ *     node scripts/export-library-modules.mjs
+ *     git add convex/data && git commit
+ *     node scripts/verify-module-roundtrip.mjs      # must exit 0
+ * The script prints this reminder at the end of every --apply run too, so the
+ * instruction survives any acceptance doc being archived.
  *
  * What it writes (and what it deliberately does not):
  *   imageSearch with any of attribution / licence / source URL  → registry row
@@ -59,6 +83,12 @@
  * Published modules are covered too. They are global (no accountId), so their
  * credit rides on `libraryModules.credits` rather than in a per-account
  * registry; `mergeModuleCredits` is existing-wins, so this can only ever ADD.
+ * ONE EXCEPTION (whole-phase review, Finding 3a): images still keyed under the
+ * retired `library_packs/` prefix are counted and reported but never written to
+ * the artifact — that module is scheduled to be re-published onto
+ * `library_modules/`, existing-wins would then leave BOTH key sets on it
+ * forever, and the credit is recovered by the re-publish anyway. The reasoning
+ * in full is on `planLibraryModuleCredits` in convex/imageCreditsBackfill.ts.
  *
  * Orphaned content — rows whose `accountId` names an account that no longer
  * exists in `users` — is SCANNED AND REPORTED but never written to. A registry
@@ -213,6 +243,32 @@ if (CHECK_ONLY) {
     console.log("");
   }
 
+  // ── Published module artifacts (whole-phase review, Finding 4) ────────────
+  // `--check` used to EXIT before this, so it gave a clean bill of health to a
+  // module published with missing credits. Modules are the multiplier this
+  // whole phase is about — publish once, forty families install — so the
+  // artifact was the one thing not under the standing alarm. It is now.
+  // Read-only: `planLibraryModuleCredits` is an internalQuery and plans only.
+  const checkModulePlan = convexRun("imageCreditsBackfill:planLibraryModuleCredits", {});
+  const cmc = checkModulePlan.counts;
+
+  console.log(`MODULE ARTIFACTS — ${plural(cmc.modules, "published module", "published modules")}`);
+  for (const plan of checkModulePlan.plans) {
+    console.log(
+      `   ${plan.tree}/${plan.slug}` +
+        `  —  ${plural(plan.credits.length, "image with no credit on the artifact", "images with no credit on the artifact")}` +
+        `  (carries ${plural(plan.existing, "credit", "credits")} today)`
+    );
+    for (const row of plan.credits) {
+      console.log(
+        `      ${row.imageKey}${row.firstUsedFor ? `  “${row.firstUsedFor}”` : ""}` +
+          `${row.attribution ? `  — ${row.attribution}` : ""}` +
+          `${row.license ? `  (${row.license})` : ""}`
+      );
+    }
+  }
+  console.log("");
+
   rule();
   console.log("COMPLETENESS CHECK SUMMARY");
   rule();
@@ -225,8 +281,24 @@ if (CHECK_ONLY) {
   console.log(`  · orphaned-account content, lost:    ${pad(tally.orphanedLost)}  (unreachable — no users row)`);
   console.log(`  · orphaned-account content, ai-missing:${pad(tally.orphanedAiMissing)}  (unreachable — no users row)`);
   console.log(`  · orphaned-account content, unknown: ${pad(tally.orphanedUnknown)}  (unreachable — no users row)`);
+  console.log("");
   console.log(
-    "\nA non-zero 'definitely lost' or 'missing (aiGenerated)' with credit still" +
+    `MODULE ARTIFACTS — missing credit:     ${pad(cmc.create)}` +
+      `  (across ${plural(cmc.modulesWouldChange, "module", "modules")} of ${cmc.modules})`
+  );
+  console.log(`  · imageSearch, NO recoverable credit:${pad(cmc.imageSearchNoCredit)}  (permanent)`);
+  console.log(`  · unknown, review manually:          ${pad(cmc.unknownNoType)}`);
+  console.log(
+    `  · legacy \`library_packs/\` keys:      ${pad(cmc.legacyPrefixSkipped)}` +
+      `  (skipped by design — credited on re-publish)`
+  );
+  console.log(
+    "\nA non-zero 'MODULE ARTIFACTS — missing credit' means a PUBLISHED module is" +
+      "\nshipping an image with no travelling credit: every account that installs it" +
+      "\ngets nothing for that image. Run this script with NO flags to see the plan," +
+      "\nthen --apply. Unlike the per-account registry this is not self-healing — a" +
+      "\nmodule's credits array is append-only, so fix it before the module spreads." +
+      "\n\nA non-zero 'definitely lost' or 'missing (aiGenerated)' with credit still" +
       "\nrecoverable means the backfill has not been applied yet (or has not been" +
       "\nre-run since new content was added). A non-zero 'definitely lost' WITHOUT" +
       "\nrecoverable credit is a permanent phase-29-era hole — information, not a bug" +
@@ -337,8 +409,11 @@ for (const plan of modulePlan.plans) {
 }
 
 // ── Reconciliation ───────────────────────────────────────────────────────────
+// `legacyPrefixSkipped` exists only on the module counts (the account walk has
+// no such bucket) — `?? 0` keeps this one function serving both.
 const sum = (t) =>
-  t.create + t.present + t.byDesignShared + t.byDesignUpload + t.imageSearchNoCredit + t.unknownNoType;
+  t.create + t.present + t.byDesignShared + t.byDesignUpload + t.imageSearchNoCredit +
+  t.unknownNoType + (t.legacyPrefixSkipped ?? 0);
 const verdict = (t) => (sum(t) === t.totalImages ? "✅ matches total scanned" : "❌ DOES NOT MATCH");
 const mc = modulePlan.counts;
 
@@ -401,8 +476,20 @@ console.log(`  skipped, credit already on the artifact:    ${pad(mc.present)}`);
 console.log(`  skipped by design (upload / symbolstix):    ${pad(mc.byDesignUpload + mc.byDesignShared)}`);
 console.log(`  imageSearch with NO recoverable credit:     ${pad(mc.imageSearchNoCredit)}`);
 console.log(`  no type recorded (unknown, review manually):${pad(mc.unknownNoType)}`);
+console.log(`  legacy \`library_packs/\` key, skipped:      ${pad(mc.legacyPrefixSkipped)}  (credited on re-publish — see below)`);
 console.log(`                                              ${"─".repeat(6)}`);
 console.log(`  reconciles to:                              ${pad(sum(mc))}  ${verdict(mc)}`);
+if (mc.legacyPrefixSkipped > 0) {
+  console.log(
+    "\n  Those keys live under the retired `library_packs/` prefix, which is" +
+      "\n  scheduled for deletion once `space` is re-published onto `library_modules/`." +
+      "\n  Crediting them NOW would be unrecoverable: `mergeModuleCredits` is" +
+      "\n  existing-wins, so the dead keys would survive alongside the new ones and" +
+      "\n  every installer would see each photo listed twice, one with a 404" +
+      "\n  thumbnail. The credit is not lost — publish falls back to the source" +
+      "\n  rows' own attribution, so the re-publish embeds it under the new keys."
+  );
+}
 
 if (APPLY) {
   console.log("");
@@ -413,9 +500,20 @@ if (APPLY) {
 console.log(
   DRY_RUN
     ? "\n✅ Dry run complete. Nothing written.\n" +
-        "   Re-run with --apply to write — AFTER `npx convex export`, and BEFORE\n" +
-        "   re-publishing any content module (a module's credits cannot be upgraded\n" +
-        "   by a later re-publish).\n" +
-        "   Then `--check` to confirm the registry matches reality."
-    : "\n✅ Apply complete. Run with --check to confirm."
+        "   Re-run with --apply to write — AFTER `npx convex export`, and preferably\n" +
+        "   BEFORE re-publishing any content module (a module's credits cannot be\n" +
+        "   upgraded by a later re-publish; publish does now fall back to the source\n" +
+        "   rows' own attribution, so this is a nicety, not a correctness gate).\n" +
+        "   Then re-export the committed artifacts (`node scripts/export-library-modules.mjs`,\n" +
+        "   commit `convex/data/**`, `node scripts/verify-module-roundtrip.mjs`),\n" +
+        "   then `--check` to confirm the registry matches reality."
+    : "\n✅ Apply complete. Run with --check to confirm." +
+        "\n\n⚠️  NOW RE-EXPORT THE COMMITTED ARTIFACTS — --apply patched" +
+        "\n   `libraryModules.credits` in the LIVE table, and the committed" +
+        "\n   disaster-recovery copies under `convex/data/` do not have those" +
+        "\n   credits. Until you do this, verify-module-roundtrip.mjs reports drift" +
+        "\n   and a restore would republish those modules with credits STRIPPED:" +
+        "\n       node scripts/export-library-modules.mjs" +
+        "\n       git add convex/data && git commit" +
+        "\n       node scripts/verify-module-roundtrip.mjs      # must exit 0"
 );
