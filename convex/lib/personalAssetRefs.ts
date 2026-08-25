@@ -7,11 +7,23 @@ import {
 } from "./contentModuleDelete";
 
 /**
- * Which keys an extractor keeps. Two — and only two — values are ever passed:
+ * Which keys an extractor keeps. Three — and only three — values are ever
+ * passed, each answering a different question about the same key:
  *
- *   `isPersonalAssetKey`   → the DELETE path (`accounts/` | `profiles/` only).
- *   `isPromotableAssetKey` → the PUBLISH/promotion path (personal + legacy
- *                            `library_packs/`).
+ *   `isPersonalAssetKey`   → "may DELETE remove this?" (`accounts/` |
+ *                            `profiles/` only).
+ *   `isPromotableAssetKey` → "must PUBLISH copy this into the module's own
+ *                            prefix?" (personal + legacy `library_packs/`).
+ *   `isCreditableAssetKey` → "does this key carry a licence credit?"
+ *                            (promotable + `library_modules/`). Widest of the
+ *                            three: an already-shared `library_modules/`
+ *                            object needs no copy but still needs crediting,
+ *                            which is why this cannot reuse the publish set.
+ *
+ * Widest ≠ interchangeable. Handing the credit predicate to the promotion path
+ * would copy objects that are already shared; handing it to the delete path
+ * would let one account delete another's assets. See the doc block on
+ * `isPromotableAssetKey` in `contentModuleDelete.ts`.
  *
  * The predicate is an explicit parameter rather than a hard-coded call so the
  * delete path physically cannot inherit the wider promotion rule. See the

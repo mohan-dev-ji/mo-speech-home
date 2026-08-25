@@ -70,6 +70,11 @@ export function isLegacySharedModuleAssetKey(
  * Used ONLY by the publish/promotion path:
  *   - `collectSourcePromotableKeys` (convex/lib/personalAssetRefs.ts)
  *   - `/api/admin/promote-module-assets`
+ *
+ * Also COMPOSED (never replaced) by `isCreditableAssetKey` below, which adds
+ * `library_modules/` on top for the licence-credit lookup. That is a third
+ * question — "does this key carry a credit?" — and must not be confused with
+ * either of the two above.
  */
 export function isPromotableAssetKey(
   key: string | undefined | null,
