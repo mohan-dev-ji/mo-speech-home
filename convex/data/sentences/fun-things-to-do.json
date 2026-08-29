@@ -1,0 +1,422 @@
+{
+  "colour": "cyan",
+  "coverImagePath": "symbols/fun.png",
+  "credits": [
+    {
+      "firstUsedFor": "cityscape",
+      "imageKey": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "attribution": "why kei",
+      "firstUsedFor": "drive",
+      "imageKey": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+      "imageTitle": "Hand on steering wheel",
+      "license": "Unsplash License"
+    }
+  ],
+  "defaultOrder": 4,
+  "defaultTier": "max",
+  "items": [
+    {
+      "authoredLanguage": "en",
+      "name": {
+        "en": "I want to go watch"
+      },
+      "order": 0,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "license": "Unsplash License",
+          "order": 3
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/watch.png",
+          "order": 6
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "order": 7
+        }
+      ],
+      "text": "I want to go for a drive in the city then watch TV in the lounge",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go for a"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "imageSourceType": "symbolstix",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "kind": "word",
+          "label": {
+            "en": "drive"
+          },
+          "license": "Unsplash License",
+          "order": 1
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "kind": "word",
+          "label": {
+            "en": "in the city"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "kind": "word",
+          "label": {
+            "en": "then"
+          },
+          "order": 3
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/watch.mp3",
+          "imagePath": "symbols/watch.png",
+          "kind": "word",
+          "label": {
+            "en": "watch"
+          },
+          "order": 4
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "kind": "word",
+          "label": {
+            "en": "TV in the lounge"
+          },
+          "order": 5
+        }
+      ],
+      "variantGroupKey": "k57brdnr61x4x5r6z9swe3e9q18da399"
+    },
+    {
+      "authoredLanguage": "es",
+      "name": {
+        "en": "I want to go watch"
+      },
+      "order": 1,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/i_i_am.png",
+          "order": 0
+        },
+        {
+          "imagePath": "symbols/want.png",
+          "order": 1
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "imageSourceType": "symbolstix",
+          "order": 2
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "license": "Unsplash License",
+          "order": 3
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "imagePath": "symbols/watch.png",
+          "order": 6
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "order": 7
+        }
+      ],
+      "text": "Yo quiero ir a paseo en coche por la ciudad luego ver la televisión en la sala de estar",
+      "units": [
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go for a",
+            "es": "Yo quiero ir a"
+          },
+          "order": 0,
+          "words": [
+            {
+              "imagePath": "symbols/i_i_am.png",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/want.png",
+              "order": 1
+            },
+            {
+              "imagePath": "symbols/go.png",
+              "imageSourceType": "symbolstix",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "kind": "word",
+          "label": {
+            "en": "drive",
+            "es": "paseo en coche"
+          },
+          "license": "Unsplash License",
+          "order": 1
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "kind": "word",
+          "label": {
+            "en": "in the city",
+            "es": "por la ciudad"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "kind": "word",
+          "label": {
+            "en": "then",
+            "es": "luego"
+          },
+          "order": 3
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/watch.mp3",
+          "imagePath": "symbols/watch.png",
+          "kind": "word",
+          "label": {
+            "en": "watch",
+            "es": "ver"
+          },
+          "order": 4
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "kind": "word",
+          "label": {
+            "es": "la televisión en la sala de estar"
+          },
+          "order": 5
+        }
+      ],
+      "variantGroupKey": "k57brdnr61x4x5r6z9swe3e9q18da399"
+    },
+    {
+      "authoredLanguage": "hi",
+      "name": {
+        "en": "I want to go watch"
+      },
+      "order": 2,
+      "playback": "sequence",
+      "slots": [
+        {
+          "imagePath": "symbols/me.png",
+          "imageSourceType": "symbolstix",
+          "order": 0
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "order": 1
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "license": "Unsplash License",
+          "order": 2
+        },
+        {
+          "imagePath": "symbols/go.png",
+          "imageSourceType": "symbolstix",
+          "order": 3
+        },
+        {
+          "imagePath": "symbols/is.png",
+          "imageSourceType": "symbolstix",
+          "order": 4
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "order": 5
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "order": 6
+        },
+        {
+          "imagePath": "symbols/watch.png",
+          "order": 7
+        }
+      ],
+      "text": "मुझे शहर में गाड़ी चलाने जाना है फिर लाउंज में टीवी देखना है",
+      "units": [
+        {
+          "imagePath": "symbols/me.png",
+          "imageSourceType": "symbolstix",
+          "kind": "word",
+          "label": {
+            "hi": "मुझे"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/c86ad932-f92c-42c6-bce3-e24fc2c1c3f8.webp",
+          "imageSourceType": "aiGenerated",
+          "kind": "word",
+          "label": {
+            "en": "in the city",
+            "hi": "शहर में"
+          },
+          "order": 1
+        },
+        {
+          "attribution": "why kei",
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/fd2140e0-6302-4e1b-aa1a-3822da837a9c.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/man-driving-a-car-wearing-wrist-watch-8e2gal_GIE8",
+          "kind": "word",
+          "label": {
+            "en": "drive",
+            "hi": "गाड़ी चलाने"
+          },
+          "license": "Unsplash License",
+          "order": 2
+        },
+        {
+          "kind": "phrase",
+          "name": {
+            "en": "I want to go for a",
+            "hi": "जाना है"
+          },
+          "order": 3,
+          "words": [
+            {
+              "imagePath": "symbols/go.png",
+              "imageSourceType": "symbolstix",
+              "order": 0
+            },
+            {
+              "imagePath": "symbols/is.png",
+              "imageSourceType": "symbolstix",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "imagePath": "symbols/symbol00053371.png",
+          "imageSourceType": "symbolstix",
+          "kind": "word",
+          "label": {
+            "en": "then",
+            "hi": "फिर"
+          },
+          "order": 4
+        },
+        {
+          "imagePath": "library_modules/sentences/fun-things-to-do/images/230a1e54-389e-4564-9267-20a1b7d2e3cd.webp",
+          "imageSourceType": "upload",
+          "kind": "word",
+          "label": {
+            "en": "TV in the lounge",
+            "hi": "लाउंज में टीवी"
+          },
+          "order": 5
+        },
+        {
+          "audioPath": "audio/en-GB-News-M/symbols/watch.mp3",
+          "imagePath": "symbols/watch.png",
+          "kind": "word",
+          "label": {
+            "en": "watch",
+            "hi": "देखना है"
+          },
+          "order": 6
+        }
+      ],
+      "variantGroupKey": "k57brdnr61x4x5r6z9swe3e9q18da399"
+    }
+  ],
+  "name": {
+    "en": "Fun things to do",
+    "es": "Cosas divertidas para hacer",
+    "hi": "मज़ेदार काम करने के लिए"
+  },
+  "slug": "fun-things-to-do",
+  "tree": "sentences"
+}

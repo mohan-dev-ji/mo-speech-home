@@ -10,6 +10,7 @@ import type { SentenceModule } from "../_shared/types";
 // ── Module imports ────────────────────────────────────────────────────────────
 import everydayPhrases from "./everyday-phrases.json";
 import expressingFeelings from "./expressing-feelings.json";
+import funThingsToDo from "./fun-things-to-do.json";
 import goingPlaces from "./going-places.json";
 import talkingAboutFood from "./talking-about-food.json";
 
@@ -17,6 +18,7 @@ import talkingAboutFood from "./talking-about-food.json";
 export const SENTENCE_MODULES: Record<string, SentenceModule> = {
   "everyday-phrases": everydayPhrases as unknown as SentenceModule,
   "expressing-feelings": expressingFeelings as unknown as SentenceModule,
+  "fun-things-to-do": funThingsToDo as unknown as SentenceModule,
   "going-places": goingPlaces as unknown as SentenceModule,
   "talking-about-food": talkingAboutFood as unknown as SentenceModule,
 };

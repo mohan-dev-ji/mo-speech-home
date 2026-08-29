@@ -1,0 +1,112 @@
+{
+  "colour": "blue",
+  "coverImagePath": "library_modules/categories/clothes/images/c5ab9eec-4425-4627-b97a-52bb22142f00.webp",
+  "defaultOrder": 24,
+  "defaultTier": "free",
+  "icon": "📁",
+  "items": [
+    {
+      "colour": "blue",
+      "icon": "📁",
+      "imagePath": "library_modules/categories/clothes/images/c5ab9eec-4425-4627-b97a-52bb22142f00.webp",
+      "name": {
+        "en": "Clothes"
+      },
+      "symbols": [
+        {
+          "imagePath": "library_modules/categories/clothes/images/454de9fa-873a-4c32-8518-e1cb1d6676d8.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "t-shirt"
+          },
+          "order": 0
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/d9e41875-ab9f-44f9-83cf-7298c8bfeaa3.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "jumper"
+          },
+          "order": 1
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/74847d14-8210-412f-b407-fc94266404db.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "trousers"
+          },
+          "order": 2
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/a161b29f-363b-4f50-807c-1c2a8ba1cbeb.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "shorts"
+          },
+          "order": 3
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/db151036-0a02-4701-ad97-4edb83cddb86.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "socks"
+          },
+          "order": 4
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/06090e6e-80dd-4b2b-81c6-e233597d8977.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "shoes"
+          },
+          "order": 5
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/451709b5-1bc7-45db-8568-b9ea041fba8d.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "coat"
+          },
+          "order": 6
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/9b843f44-c4fa-48a7-b475-f2d14de339c3.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "hat"
+          },
+          "order": 7
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/4709fc85-4c61-49fb-a72b-7be7f5a84e00.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "gloves"
+          },
+          "order": 8
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/8a10d120-ad07-44e9-8cdf-187a856f81d1.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "pyjamas"
+          },
+          "order": 9
+        },
+        {
+          "imagePath": "library_modules/categories/clothes/images/a0c46a88-05bf-497c-9862-27a1c472f27d.webp",
+          "imageSourceType": "upload",
+          "label": {
+            "en": "scarf"
+          },
+          "order": 10
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Clothes"
+  },
+  "slug": "clothes",
+  "tree": "categories"
+}

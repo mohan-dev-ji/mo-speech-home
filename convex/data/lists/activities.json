@@ -1,0 +1,132 @@
+{
+  "colour": "fuchsia",
+  "coverImagePath": "library_modules/lists/activities/images/5b98f7ab-afc9-4025-8f30-8c892951d353.webp",
+  "credits": [
+    {
+      "attribution": "Muhamad Khoirul Anam",
+      "firstUsedFor": "sit at the table",
+      "imageKey": "library_modules/lists/activities/images/272fad39-2e03-457d-98ac-540c695538e5.webp",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://www.pexels.com/photo/wooden-tables-and-chairs-14339220/",
+      "imageTitle": "Contemporary dining setup with wooden chairs and tiled floor in East Kalimantan.",
+      "license": "Pexels License"
+    },
+    {
+      "attribution": "Jorge Franganillo",
+      "firstUsedFor": "Activities",
+      "imageKey": "library_modules/lists/activities/images/5b98f7ab-afc9-4025-8f30-8c892951d353.webp",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/colored-pencils-and-paper-craft-supplies-E0-pt-C9UwY",
+      "imageTitle": "Craft workshop",
+      "license": "Unsplash License"
+    }
+  ],
+  "defaultOrder": 4,
+  "defaultTier": "pro",
+  "items": [
+    {
+      "displayFormat": "rows",
+      "items": [
+        {
+          "description": {
+            "en": "get the playdoh out",
+            "es": "saca la plastilina",
+            "hi": "प्लेडो निकालो"
+          },
+          "imagePath": "library_modules/lists/activities/images/37469fda-0624-4e47-98c8-b4fd4940c298.webp",
+          "imageSourceType": "upload",
+          "order": 0
+        },
+        {
+          "attribution": "Muhamad Khoirul Anam",
+          "description": {
+            "en": "sit at the table",
+            "es": "siéntate en la mesa",
+            "hi": "मेज पर बैठो"
+          },
+          "imagePath": "library_modules/lists/activities/images/272fad39-2e03-457d-98ac-540c695538e5.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/wooden-tables-and-chairs-14339220/",
+          "license": "Pexels License",
+          "order": 1
+        },
+        {
+          "description": {
+            "en": "flatten the playdoh",
+            "es": "aplasta la plastilina",
+            "hi": "प्लेडो को चपटा करो"
+          },
+          "imagePath": "library_modules/lists/activities/images/af326206-f5f2-456c-b9f1-8c6ea5a042dc.webp",
+          "imageSourceType": "upload",
+          "order": 2
+        },
+        {
+          "description": {
+            "en": "cut into squares",
+            "es": "corta en cuadrados",
+            "hi": "चौकोर काटो"
+          },
+          "imagePath": "library_modules/lists/activities/images/20ebb6f6-eb9f-431e-8f41-42d13d4913d4.webp",
+          "imageSourceType": "upload",
+          "order": 3
+        },
+        {
+          "description": {
+            "en": "flatten the playdoh again",
+            "es": "aplasta la plastilina otra vez",
+            "hi": "प्लेडो को फिर से चपटा करो"
+          },
+          "imagePath": "library_modules/lists/activities/images/e995513d-cecc-4cd2-aa6c-683aeaeb94b1.webp",
+          "imageSourceType": "upload",
+          "order": 4
+        },
+        {
+          "description": {
+            "en": "cut into triangles",
+            "es": "corta en triángulos",
+            "hi": "तिकोना काटो"
+          },
+          "imagePath": "library_modules/lists/activities/images/9b13dda9-c6c7-43b6-87ae-9d599956b49c.webp",
+          "imageSourceType": "upload",
+          "order": 5
+        },
+        {
+          "description": {
+            "en": "tidy up",
+            "es": "a recoger",
+            "hi": "समेटो"
+          },
+          "imagePath": "library_modules/lists/activities/images/5657bbb0-edeb-4fe7-a02a-81e7fceac32c.webp",
+          "imageSourceType": "upload",
+          "order": 6
+        },
+        {
+          "description": {
+            "en": "finished",
+            "es": "terminado",
+            "hi": "खत्म हो गया"
+          },
+          "imagePath": "symbols/symbol00194802.png",
+          "imageSourceType": "symbolstix",
+          "order": 7
+        }
+      ],
+      "name": {
+        "en": "Playdoh",
+        "es": "Playdoh",
+        "hi": "प्लेडो"
+      },
+      "order": 0,
+      "showChecklist": true,
+      "showFirstThen": true,
+      "showNumbers": true
+    }
+  ],
+  "name": {
+    "en": "Activities",
+    "es": "Actividades",
+    "hi": "गतिविधियाँ"
+  },
+  "slug": "activities",
+  "tree": "lists"
+}

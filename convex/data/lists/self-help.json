@@ -301,7 +301,9 @@
     }
   ],
   "name": {
-    "en": "Self-help"
+    "en": "Self-help",
+    "es": "Ayuda personal",
+    "hi": "खुद की मदद"
   },
   "slug": "self-help",
   "tree": "lists"

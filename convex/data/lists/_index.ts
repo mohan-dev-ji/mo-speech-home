@@ -8,6 +8,7 @@
 import type { ListModule } from "../_shared/types";
 
 // ── Module imports ────────────────────────────────────────────────────────────
+import activities from "./activities.json";
 import foodRoutines from "./food-routines.json";
 import goingPlaces from "./going-places.json";
 import lifeSkills from "./life-skills.json";
@@ -15,6 +16,7 @@ import selfHelp from "./self-help.json";
 
 // ── Catalogue map ─────────────────────────────────────────────────────────────
 export const LIST_MODULES: Record<string, ListModule> = {
+  "activities": activities as unknown as ListModule,
   "food-routines": foodRoutines as unknown as ListModule,
   "going-places": goingPlaces as unknown as ListModule,
   "life-skills": lifeSkills as unknown as ListModule,

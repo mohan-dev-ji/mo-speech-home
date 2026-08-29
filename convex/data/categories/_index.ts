@@ -13,6 +13,7 @@ import activities from "./activities.json";
 import animals from "./animals.json";
 import chat from "./chat.json";
 import christmas from "./christmas.json";
+import clothes from "./clothes.json";
 import community from "./community.json";
 import descriptions from "./descriptions.json";
 import dinosaurs from "./dinosaurs.json";
@@ -24,6 +25,7 @@ import fun from "./fun.json";
 import general from "./general.json";
 import health from "./health.json";
 import home from "./home.json";
+import instruments from "./instruments.json";
 import joiningWords from "./joining-words.json";
 import letters from "./letters.json";
 import nature from "./nature.json";
@@ -35,6 +37,7 @@ import pronouns from "./pronouns.json";
 import religion from "./religion.json";
 import school from "./school.json";
 import space from "./space.json";
+import storybook from "./storybook.json";
 import time from "./time.json";
 import vehicles from "./vehicles.json";
 
@@ -45,6 +48,7 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "animals": animals as unknown as CategoryModule,
   "chat": chat as unknown as CategoryModule,
   "christmas": christmas as unknown as CategoryModule,
+  "clothes": clothes as unknown as CategoryModule,
   "community": community as unknown as CategoryModule,
   "descriptions": descriptions as unknown as CategoryModule,
   "dinosaurs": dinosaurs as unknown as CategoryModule,
@@ -56,6 +60,7 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "general": general as unknown as CategoryModule,
   "health": health as unknown as CategoryModule,
   "home": home as unknown as CategoryModule,
+  "instruments": instruments as unknown as CategoryModule,
   "joining-words": joiningWords as unknown as CategoryModule,
   "letters": letters as unknown as CategoryModule,
   "nature": nature as unknown as CategoryModule,
@@ -67,6 +72,7 @@ export const CATEGORY_MODULES: Record<string, CategoryModule> = {
   "religion": religion as unknown as CategoryModule,
   "school": school as unknown as CategoryModule,
   "space": space as unknown as CategoryModule,
+  "storybook": storybook as unknown as CategoryModule,
   "time": time as unknown as CategoryModule,
   "vehicles": vehicles as unknown as CategoryModule,
 };

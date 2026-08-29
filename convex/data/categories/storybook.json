@@ -1,0 +1,222 @@
+{
+  "colour": "purple",
+  "coverImagePath": "library_modules/categories/storybook/images/855b23d3-1a74-43a9-bb68-972f9a2746bb.png",
+  "credits": [
+    {
+      "firstUsedFor": "unicorn",
+      "imageKey": "library_modules/categories/storybook/images/065bd5f2-38eb-48fe-bfa7-9d0917a11724.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "friendly giant",
+      "imageKey": "library_modules/categories/storybook/images/0b35533a-c55f-411f-91c4-7b51a7927473.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "knight",
+      "imageKey": "library_modules/categories/storybook/images/0d2dc030-704f-4c9d-882e-858c00a5a205.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "witch",
+      "imageKey": "library_modules/categories/storybook/images/1254984f-b57d-41c1-b750-559658b89f6f.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "mermaid",
+      "imageKey": "library_modules/categories/storybook/images/54002bae-c547-4593-af61-f5c4fc64de08.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "castle",
+      "imageKey": "library_modules/categories/storybook/images/56bb35e5-fb39-4ba2-8ca6-65c69d5e5d3e.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "treasure",
+      "imageKey": "library_modules/categories/storybook/images/593ee269-8e54-4130-839c-53f508269f2a.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "magic wand",
+      "imageKey": "library_modules/categories/storybook/images/63b4e36e-b3de-45f1-b773-c5f6ad512aa6.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "monster",
+      "imageKey": "library_modules/categories/storybook/images/66a12ee5-740c-4370-8bc7-13d9b35de7cb.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "wizard",
+      "imageKey": "library_modules/categories/storybook/images/72eda97d-642b-46ca-aba9-04fbd53c9256.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "dragon",
+      "imageKey": "library_modules/categories/storybook/images/c0e0ceba-57ea-49b3-a9e3-1497a0b24648.webp",
+      "imageSourceType": "aiGenerated"
+    },
+    {
+      "firstUsedFor": "fairy",
+      "imageKey": "library_modules/categories/storybook/images/f17a29a3-7040-4ebf-9470-6e898a2b3e64.webp",
+      "imageSourceType": "aiGenerated"
+    }
+  ],
+  "defaultOrder": 26,
+  "defaultTier": "pro",
+  "icon": "📁",
+  "items": [
+    {
+      "colour": "purple",
+      "icon": "📁",
+      "imagePath": "library_modules/categories/storybook/images/855b23d3-1a74-43a9-bb68-972f9a2746bb.png",
+      "name": {
+        "en": "Storybook",
+        "es": "Cuentos",
+        "hi": "कहानियाँ"
+      },
+      "symbols": [
+        {
+          "aiPrompt": "dragon",
+          "imagePath": "library_modules/categories/storybook/images/c0e0ceba-57ea-49b3-a9e3-1497a0b24648.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "dragon",
+            "es": "dragón",
+            "hi": "ड्रैगन"
+          },
+          "order": 0
+        },
+        {
+          "aiPrompt": "castle",
+          "imagePath": "library_modules/categories/storybook/images/56bb35e5-fb39-4ba2-8ca6-65c69d5e5d3e.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "castle",
+            "es": "castillo",
+            "hi": "महल"
+          },
+          "order": 1
+        },
+        {
+          "aiPrompt": "wizard",
+          "imagePath": "library_modules/categories/storybook/images/72eda97d-642b-46ca-aba9-04fbd53c9256.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "wizard",
+            "es": "mago",
+            "hi": "जादूगर"
+          },
+          "order": 2
+        },
+        {
+          "aiPrompt": "fairy",
+          "imagePath": "library_modules/categories/storybook/images/f17a29a3-7040-4ebf-9470-6e898a2b3e64.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "fairy",
+            "es": "hada",
+            "hi": "परी"
+          },
+          "order": 3
+        },
+        {
+          "aiPrompt": "unicorn",
+          "imagePath": "library_modules/categories/storybook/images/065bd5f2-38eb-48fe-bfa7-9d0917a11724.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "unicorn",
+            "es": "unicornio",
+            "hi": "यूनिकॉर्न"
+          },
+          "order": 4
+        },
+        {
+          "aiPrompt": "friendly giant",
+          "imagePath": "library_modules/categories/storybook/images/0b35533a-c55f-411f-91c4-7b51a7927473.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "friendly giant",
+            "es": "gigante",
+            "hi": "दैत्य"
+          },
+          "order": 5
+        },
+        {
+          "aiPrompt": "mermaid",
+          "imagePath": "library_modules/categories/storybook/images/54002bae-c547-4593-af61-f5c4fc64de08.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "mermaid",
+            "es": "sirena",
+            "hi": "जलपरी"
+          },
+          "order": 6
+        },
+        {
+          "aiPrompt": "witch",
+          "imagePath": "library_modules/categories/storybook/images/1254984f-b57d-41c1-b750-559658b89f6f.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "witch",
+            "es": "bruja",
+            "hi": "जादूगरनी"
+          },
+          "order": 7
+        },
+        {
+          "aiPrompt": "knight",
+          "imagePath": "library_modules/categories/storybook/images/0d2dc030-704f-4c9d-882e-858c00a5a205.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "knight",
+            "es": "caballero",
+            "hi": "शूरवीर"
+          },
+          "order": 8
+        },
+        {
+          "aiPrompt": "treasure",
+          "imagePath": "library_modules/categories/storybook/images/593ee269-8e54-4130-839c-53f508269f2a.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "treasure",
+            "es": "tesoro",
+            "hi": "खजाना"
+          },
+          "order": 9
+        },
+        {
+          "aiPrompt": "monster",
+          "imagePath": "library_modules/categories/storybook/images/66a12ee5-740c-4370-8bc7-13d9b35de7cb.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "monster",
+            "es": "monstruo",
+            "hi": "राक्षस"
+          },
+          "order": 10
+        },
+        {
+          "aiPrompt": "magic wand",
+          "imagePath": "library_modules/categories/storybook/images/63b4e36e-b3de-45f1-b773-c5f6ad512aa6.webp",
+          "imageSourceType": "aiGenerated",
+          "label": {
+            "en": "magic wand",
+            "es": "varita mágica",
+            "hi": "जादू की छड़ी"
+          },
+          "order": 11
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Storybook",
+    "es": "Cuentos",
+    "hi": "कहानियाँ"
+  },
+  "slug": "storybook",
+  "tree": "categories"
+}

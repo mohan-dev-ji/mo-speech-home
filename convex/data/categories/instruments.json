@@ -1,0 +1,282 @@
+{
+  "colour": "cyan",
+  "coverImagePath": "library_modules/categories/instruments/images/7d92d833-880a-424d-85ee-8ec5ce804a46.jpg",
+  "credits": [
+    {
+      "attribution": "catandway",
+      "firstUsedFor": "ukulele",
+      "imageKey": "library_modules/categories/instruments/images/0ea40875-977a-463d-96a8-54f89fa650bf.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://pixabay.com/photos/taiwan-guitar-girl-music-life-2429920/",
+      "license": "Pixabay License"
+    },
+    {
+      "attribution": "Claude Gabriel",
+      "firstUsedFor": "piano",
+      "imageKey": "library_modules/categories/instruments/images/33a6d54d-affc-45b2-823e-9e1a61b228bc.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/person-playing-black-upright-piano-yvEVMyTzMO4",
+      "license": "Unsplash License"
+    },
+    {
+      "attribution": "Alexander Zvir",
+      "firstUsedFor": "violin",
+      "imageKey": "library_modules/categories/instruments/images/6f1cc410-1219-47d8-8140-9fb85f51c1f8.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://www.pexels.com/photo/close-up-of-people-playing-on-violins-11515563/",
+      "license": "Pexels License"
+    },
+    {
+      "attribution": "Eric Prouzet",
+      "firstUsedFor": "maracas",
+      "imageKey": "library_modules/categories/instruments/images/8780b7e2-0f62-493a-b7c7-ddfcdd8b1bdb.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/a-close-up-of-many-colorful-wooden-toys-aAmru_r8e8Y",
+      "license": "Unsplash License"
+    },
+    {
+      "attribution": "PNW Production",
+      "firstUsedFor": "trumpet",
+      "imageKey": "library_modules/categories/instruments/images/91b8a389-8626-4a8a-bffd-d51232be4998.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://www.pexels.com/photo/a-child-playing-the-trumpet-7577305/",
+      "license": "Pexels License"
+    },
+    {
+      "attribution": "Martin Möller",
+      "firstUsedFor": "guitar",
+      "imageKey": "library_modules/categories/instruments/images/9266927d-06ff-448c-a4f0-4cc1cddec0af.webp",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://commons.wikimedia.org/wiki/File:Classical_Guitar_two_views.jpg",
+      "license": "CC BY-SA 2.0 de"
+    },
+    {
+      "attribution": "steinchen",
+      "firstUsedFor": "drums",
+      "imageKey": "library_modules/categories/instruments/images/9a0cc2ba-a89a-4c07-81d1-5ef34b95e07e.webp",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://pixabay.com/photos/drum-musical-instrument-hand-drum-96179/",
+      "license": "Pixabay License"
+    },
+    {
+      "attribution": "brendageisse",
+      "firstUsedFor": "flute",
+      "imageKey": "library_modules/categories/instruments/images/aaeada91-b1cd-4481-8e47-d688522d82a2.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://pixabay.com/photos/music-jazz-flute-musician-3090204/",
+      "license": "Pixabay License"
+    },
+    {
+      "attribution": "Ron Lach",
+      "firstUsedFor": "keyboard",
+      "imageKey": "library_modules/categories/instruments/images/c7190f05-031b-405b-999c-e18210a8ddde.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://www.pexels.com/photo/young-boy-playing-synthesizer-9872955/",
+      "license": "Pexels License"
+    },
+    {
+      "attribution": "socalbrass",
+      "firstUsedFor": "tambourine",
+      "imageKey": "library_modules/categories/instruments/images/c808221c-8f6f-4ca2-8f5a-43942c27a284.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://pixabay.com/photos/percussion-tambourine-field-drum-1594325/",
+      "license": "Pixabay License"
+    },
+    {
+      "attribution": "Sushmita Chatterjee",
+      "firstUsedFor": "recorder",
+      "imageKey": "library_modules/categories/instruments/images/e53773d0-ede2-432c-8170-2c675508ffa1.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/a-young-boy-sitting-on-a-couch-with-a-dog-ffKKhih0mR0",
+      "license": "Unsplash License"
+    },
+    {
+      "attribution": "Aarón Blanco Tejedor",
+      "firstUsedFor": "xylophone",
+      "imageKey": "library_modules/categories/instruments/images/eedb2df3-6cff-4101-a28e-e0b334ae2cd1.jpg",
+      "imageSourceType": "imageSearch",
+      "imageSourceUrl": "https://unsplash.com/photos/a-man-and-a-little-girl-playing-a-musical-instrument-bGdp2ikEDmA",
+      "license": "Unsplash License"
+    }
+  ],
+  "defaultOrder": 23,
+  "defaultTier": "free",
+  "icon": "📁",
+  "items": [
+    {
+      "colour": "cyan",
+      "icon": "📁",
+      "imagePath": "library_modules/categories/instruments/images/7d92d833-880a-424d-85ee-8ec5ce804a46.jpg",
+      "name": {
+        "en": "Instruments",
+        "es": "Instrumentos",
+        "hi": "वाद्य यंत्र"
+      },
+      "symbols": [
+        {
+          "attribution": "Martin Möller",
+          "imagePath": "library_modules/categories/instruments/images/9266927d-06ff-448c-a4f0-4cc1cddec0af.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://commons.wikimedia.org/wiki/File:Classical_Guitar_two_views.jpg",
+          "label": {
+            "en": "guitar",
+            "es": "guitarra",
+            "hi": "गिटार"
+          },
+          "license": "CC BY-SA 2.0 de",
+          "order": 0
+        },
+        {
+          "attribution": "steinchen",
+          "imagePath": "library_modules/categories/instruments/images/9a0cc2ba-a89a-4c07-81d1-5ef34b95e07e.webp",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/drum-musical-instrument-hand-drum-96179/",
+          "label": {
+            "en": "drums",
+            "es": "batería",
+            "hi": "ढोल"
+          },
+          "license": "Pixabay License",
+          "order": 1
+        },
+        {
+          "attribution": "Claude Gabriel",
+          "imagePath": "library_modules/categories/instruments/images/33a6d54d-affc-45b2-823e-9e1a61b228bc.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/person-playing-black-upright-piano-yvEVMyTzMO4",
+          "label": {
+            "en": "piano",
+            "es": "piano",
+            "hi": "पियानो"
+          },
+          "license": "Unsplash License",
+          "order": 2
+        },
+        {
+          "attribution": "Ron Lach",
+          "imagePath": "library_modules/categories/instruments/images/c7190f05-031b-405b-999c-e18210a8ddde.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/young-boy-playing-synthesizer-9872955/",
+          "label": {
+            "en": "keyboard",
+            "es": "teclado",
+            "hi": "कीबोर्ड"
+          },
+          "license": "Pexels License",
+          "order": 3
+        },
+        {
+          "attribution": "Alexander Zvir",
+          "imagePath": "library_modules/categories/instruments/images/6f1cc410-1219-47d8-8140-9fb85f51c1f8.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/close-up-of-people-playing-on-violins-11515563/",
+          "label": {
+            "en": "violin",
+            "es": "violín",
+            "hi": "वायलिन"
+          },
+          "license": "Pexels License",
+          "order": 4
+        },
+        {
+          "attribution": "brendageisse",
+          "imagePath": "library_modules/categories/instruments/images/aaeada91-b1cd-4481-8e47-d688522d82a2.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/music-jazz-flute-musician-3090204/",
+          "label": {
+            "en": "flute",
+            "es": "flauta",
+            "hi": "बांसुरी"
+          },
+          "license": "Pixabay License",
+          "order": 5
+        },
+        {
+          "attribution": "PNW Production",
+          "imagePath": "library_modules/categories/instruments/images/91b8a389-8626-4a8a-bffd-d51232be4998.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://www.pexels.com/photo/a-child-playing-the-trumpet-7577305/",
+          "label": {
+            "en": "trumpet",
+            "es": "trompeta",
+            "hi": "बांसुरी"
+          },
+          "license": "Pexels License",
+          "order": 6
+        },
+        {
+          "attribution": "catandway",
+          "imagePath": "library_modules/categories/instruments/images/0ea40875-977a-463d-96a8-54f89fa650bf.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/taiwan-guitar-girl-music-life-2429920/",
+          "label": {
+            "en": "ukulele",
+            "es": "ukelele",
+            "hi": "युकुलेले"
+          },
+          "license": "Pixabay License",
+          "order": 7
+        },
+        {
+          "attribution": "socalbrass",
+          "imagePath": "library_modules/categories/instruments/images/c808221c-8f6f-4ca2-8f5a-43942c27a284.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://pixabay.com/photos/percussion-tambourine-field-drum-1594325/",
+          "label": {
+            "en": "tambourine",
+            "es": "pandereta",
+            "hi": "डफली"
+          },
+          "license": "Pixabay License",
+          "order": 8
+        },
+        {
+          "attribution": "Aarón Blanco Tejedor",
+          "imagePath": "library_modules/categories/instruments/images/eedb2df3-6cff-4101-a28e-e0b334ae2cd1.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/a-man-and-a-little-girl-playing-a-musical-instrument-bGdp2ikEDmA",
+          "label": {
+            "en": "xylophone",
+            "es": "xilófono",
+            "hi": "जाइलोफोन"
+          },
+          "license": "Unsplash License",
+          "order": 9
+        },
+        {
+          "attribution": "Eric Prouzet",
+          "imagePath": "library_modules/categories/instruments/images/8780b7e2-0f62-493a-b7c7-ddfcdd8b1bdb.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/a-close-up-of-many-colorful-wooden-toys-aAmru_r8e8Y",
+          "label": {
+            "en": "maracas",
+            "es": "maracas",
+            "hi": "मराकास"
+          },
+          "license": "Unsplash License",
+          "order": 10
+        },
+        {
+          "attribution": "Sushmita Chatterjee",
+          "imagePath": "library_modules/categories/instruments/images/e53773d0-ede2-432c-8170-2c675508ffa1.jpg",
+          "imageSourceType": "imageSearch",
+          "imageSourceUrl": "https://unsplash.com/photos/a-young-boy-sitting-on-a-couch-with-a-dog-ffKKhih0mR0",
+          "label": {
+            "en": "recorder",
+            "es": "flauta dulce",
+            "hi": "सीधी बांसुरी"
+          },
+          "license": "Unsplash License",
+          "order": 11
+        }
+      ]
+    }
+  ],
+  "name": {
+    "en": "Instruments",
+    "es": "Instrumentos",
+    "hi": "वाद्य यंत्र"
+  },
+  "slug": "instruments",
+  "tree": "categories"
+}
