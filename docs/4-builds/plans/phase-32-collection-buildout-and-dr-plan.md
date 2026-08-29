@@ -5,7 +5,7 @@
 **Status:** not started
 **Follows:** Phase 31 (`docs/4-builds/plans/phase-31-image-credit-registry-plan.md`) — shipped and
 acceptance-tested 2026-08-25/26. Phase 30 before it.
-**Tickets:** MOS-25 (In Progress) · MOS-13 (In Progress) · then the fix queue below.
+**Tickets:** MOS-25 (DR test PASSED 2026-08-29 — see Task 3 RESULT) · MOS-13 (In Progress) · then the fix queue below.
 
 ---
 
@@ -134,7 +134,14 @@ Then:
 
 ```bash
 npx convex run migrations:wipeLibraryModules '{"confirm":"WIPE"}' --no-push
-npx convex run migrations:seedLibraryModulesFromJSON '{}' --no-push
+# NOT '{}' — `seedLibraryModulesFromJSON` REQUIRES `adminClerkUserId` (it becomes
+# every restored row's `createdBy`). The value is not guessable: recover it from
+# the pre-wipe snapshot rather than inventing one, or the whole collection comes
+# back owned by a user id that does not exist:
+#   unzip -o <snapshot>.zip libraryModules/documents.jsonl && \
+#     head -1 libraryModules/documents.jsonl | grep -o '"createdBy":"[^"]*"'
+npx convex run migrations:seedLibraryModulesFromJSON \
+  '{"adminClerkUserId":"user_3FRyegzhjxRy5uokPusWO4wcytY"}' --no-push
 node scripts/verify-module-roundtrip.mjs     # must exit 0
 ```
 
@@ -144,6 +151,36 @@ render, and the resource library lists everything.
 
 **Watch for:** `seedCoreWordModules` may be needed to re-resolve core word-categories. Check
 whether the restored set matches the pre-wipe count exactly before declaring it passed.
+
+### RESULT — PASSED, 2026-08-29
+
+Run against 43 modules. `seedCoreWordModules` was **not** needed: `dropbar-core` and
+`dropbar-phrases` restored with everything else and the Core words card renders.
+
+| Check | Result |
+|---|---|
+| wipe | 43 deleted, table empty, **R2 untouched at 65 objects** |
+| seed | `{scanned:43, seeded:43, alreadyHadRow:0, skippedStarter:0}` |
+| `verify-module-roundtrip.mjs` | exit 0 — 43 compared, 0 drift |
+| vs. pre-wipe snapshot | 43/43 slugs, 0 missing, 0 extra |
+| credits | 43 rows across 5 modules, **content byte-identical** (deep compare on key/type/attribution/licence/firstUsedFor) |
+| `isDefault: true` | 30 → 30 — the auto-install set is unchanged |
+| `defaultTier` spread | identical (35 free / 4 pro / 4 max) |
+| `createdBy` | all 43 restored to the real admin id |
+| app | library renders 32/5/5, covers load, 0 broken images |
+
+**Two fidelity notes, both benign:**
+
+- `isDefault: false` restores as ABSENT on 8 modules (the seed spreads it only when
+  truthy). Semantically identical; nothing reads it as a tri-state.
+- `lastPublishedAt` is **lost on all 38 rows that had it** — the seed never writes it.
+  This is by design: `exportModules.ts:16` classifies it as volatile and excludes it,
+  and nothing in `app/` reads it. `publishedAt`/`updatedAt` become the restore time,
+  which is correct — the restore *is* a republish.
+
+**What this DR test does NOT cover:** `imageCredits`. Neither the wipe nor the seed
+touches the per-account registry, so the restore proves the module path only. An
+account whose registry was lost would still need `scripts/backfill-image-credits.mjs`.
 
 ---
 
