@@ -328,7 +328,6 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
   const convex = useConvex();
   const createList = useMutation(api.profileLists.createProfileList);
   const updateListItems = useMutation(api.profileLists.updateProfileListItems);
-  const deleteList = useMutation(api.profileLists.deleteProfileList);
   const revertListLanguage = useMutation(api.profileLists.revertProfileListLanguage);
   const renameList = useMutation(api.profileLists.updateProfileListName);
   const reorderLists = useMutation(api.profileLists.reorderProfileLists);
@@ -490,9 +489,17 @@ export function ListsModeContent({ folderId }: { folderId?: string } = {}) {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteList({
-        profileListId: pendingDelete.id,
+      // Routed through /api/delete-content so the server can also delete the
+      // personal R2 objects this delete orphans (phase 33 / MOS-41). Calling
+      // the mutation directly left every upload, recording and image-search
+      // pick behind in `accounts/<id>/…` forever — a Convex mutation cannot
+      // touch R2, so only a route can finish the job.
+      const res = await fetch('/api/delete-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'list', id: pendingDelete.id }),
       });
+      if (!res.ok) throw new Error('delete failed');
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);

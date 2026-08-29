@@ -1189,7 +1189,8 @@ export const wipeLibraryModules = internalMutation({
  *   - **It does not touch accounts that installed the module.** Install
  *     materialises its own rows; those copies are the family's content, not
  *     ours to remove. They keep working, and their `imageCredits` rows keep
- *     resolving. Removing an installed copy is `uninstall`, a different path.
+ *     resolving. Removing an installed copy is a DELETE the family performs
+ *     themselves, through `/api/delete-content` — a different path (phase 33).
  *
  *   - **It does not touch `imageCredits`.** The registry is per-account and
  *     records what an account has USED. Over-crediting is never a licence

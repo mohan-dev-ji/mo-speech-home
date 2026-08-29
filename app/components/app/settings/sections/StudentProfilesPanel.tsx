@@ -111,7 +111,6 @@ function StudentProfileForm({
   const setFlag = useMutation(api.studentProfiles.setStateFlag);
   const setGridMut = useMutation(api.studentProfiles.setGridSize);
   const setTextSizeMut = useMutation(api.studentProfiles.setSymbolTextSize);
-  const deleteProfile = useMutation(api.studentProfiles.deleteStudentProfile);
 
   const [name, setName] = useState(profile.name);
   const [origName, setOrigName] = useState(profile.name);
@@ -211,7 +210,17 @@ function StudentProfileForm({
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await deleteProfile({ profileId: profile._id });
+      // Routed through /api/delete-content so the server can also delete the
+      // personal R2 objects this delete orphans (phase 33 / MOS-41). Calling
+      // the mutation directly left every upload, recording and image-search
+      // pick behind in `accounts/<id>/…` forever — a Convex mutation cannot
+      // touch R2, so only a route can finish the job.
+      const res = await fetch('/api/delete-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'student-profile', id: profile._id }),
+      });
+      if (!res.ok) throw new Error('delete failed');
     } catch {
       setError(t("errorGeneric"));
       setDeleting(false);

@@ -62,7 +62,7 @@ const CATEGORIES_GRID_CLASSES = {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type PendingDelete = { id: Id<'profileCategories'>; name: string } | null;
+type PendingDelete = { id: Id<'profileCategories'>; name: string; isModule: boolean } | null;
 
 export function CategoriesContent() {
   const t = useTranslations('categories');
@@ -104,7 +104,6 @@ export function CategoriesContent() {
   const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
   const createCategory = useCreateCategory();
-  const deleteCategoryMutation = useMutation(api.profileCategories.deleteCategory);
   const reorderCategoriesMutation = useMutation(api.profileCategories.reorderCategories);
   const updateCategoryMeta = useMutation(api.profileCategories.updateCategoryMeta);
 
@@ -199,15 +198,34 @@ export function CategoriesContent() {
     });
   }
 
-  function handleDeleteRequest(id: Id<'profileCategories'>, name: string) {
-    setPendingDelete({ id, name });
+  function handleDeleteRequest(
+    id: Id<'profileCategories'>,
+    name: string,
+    // Whether this category came from a published module. Only affects the
+    // WORDING — the delete itself is identical either way (owner decision,
+    // 2026-08-29: there is no uninstall). A module delete additionally loses
+    // any personalisation, which reinstalling does not bring back, so the
+    // module copy has to say so.
+    isModule: boolean,
+  ) {
+    setPendingDelete({ id, name, isModule });
   }
 
   async function handleDeleteConfirm() {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteCategoryMutation({ profileCategoryId: pendingDelete.id });
+      // Routed through /api/delete-content so the server can also delete the
+      // personal R2 objects this delete orphans (phase 33 / MOS-41). Calling
+      // the mutation directly left every upload, recording and image-search
+      // pick behind in `accounts/<id>/…` forever — a Convex mutation cannot
+      // touch R2, so only a route can finish the job.
+      const res = await fetch('/api/delete-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'category', id: pendingDelete.id }),
+      });
+      if (!res.ok) throw new Error('delete failed');
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -323,7 +341,7 @@ export function CategoriesContent() {
                       }}
                       onRecolour={(key) => handleRecolour(cat._id, key)}
                       onEditImage={() => setImageTarget({ id: cat._id, name, imagePath: cat.imagePath })}
-                      onDeleteRequest={() => handleDeleteRequest(cat._id, name)}
+                      onDeleteRequest={() => handleDeleteRequest(cat._id, name, !!cat.librarySourceId)}
                     />
                   );
                 })}
@@ -357,7 +375,10 @@ export function CategoriesContent() {
           <DialogHeader>
             <DialogTitle>{t('deleteTitle')}</DialogTitle>
             <DialogDescription>
-              {t('deleteConfirm', { name: pendingDelete?.name ?? '' })}
+              {t(
+                pendingDelete?.isModule ? 'deleteConfirmModule' : 'deleteConfirm',
+                { name: pendingDelete?.name ?? '' },
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

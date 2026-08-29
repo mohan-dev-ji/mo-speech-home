@@ -9,7 +9,7 @@
     "open": "Open {name}",
     "publish": "Publish as module",
     "updateModule": "Update module",
-    "uninstallError": "Couldn't remove this module. Please try again."
+    "deleteError": "Couldn't delete this. Please try again."
   },
   "groupPicker": {
     "label": "Group",
@@ -122,7 +122,8 @@
     "createModalAutoMatching": "Auto-matching your steps…",
     "itemAudio": "Audio",
     "itemAudioTitle": "Item audio",
-    "itemAudioFieldLabel": "Item text"
+    "itemAudioFieldLabel": "Item text",
+    "deleteGroupConfirmModule": "Delete \"{name}\" and all {count} lists inside it? This permanently deletes them and any changes you made. You can install it again from the Resource Library, but it will come back as published — your changes will not."
   },
   "translate": {
     "madeInBadge": "Made in {lang}",
@@ -240,7 +241,8 @@
     "toastLibraryOn": "Published to library",
     "toastLibraryOff": "Removed from library",
     "toastTierUpdated": "Plan tier updated",
-    "toastAdminError": "Could not complete admin action"
+    "toastAdminError": "Could not complete admin action",
+    "deleteGroupConfirmModule": "Delete \"{name}\" and all {count} sentences inside it? This permanently deletes them and any changes you made. You can install it again from the Resource Library, but it will come back as published — your changes will not."
   },
   "nav": {
     "home": "Home",
@@ -544,7 +546,8 @@
     "seedOrderSync": "Sync seed order",
     "seedOrderSyncing": "Syncing…",
     "seedOrderSynced": "Seed order synced ({count} updated)",
-    "seedOrderSyncError": "Could not sync seed order"
+    "seedOrderSyncError": "Could not sync seed order",
+    "deleteConfirmModule": "This will permanently delete \"{name}\", all its symbols, and any changes you made. You can install it again from the Resource Library, but it will come back as published — your changes will not."
   },
   "settings": {
     "title": "Settings",

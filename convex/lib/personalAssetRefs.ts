@@ -1,3 +1,4 @@
+import { v, type Infer } from "convex/values";
 import type { QueryCtx } from "../_generated/server";
 import type { Id, Doc } from "../_generated/dataModel";
 import {
@@ -104,6 +105,24 @@ function folderKeys(f: Doc<"profileFolders">, keep: KeyFilter): string[] {
   return out;
 }
 
+/**
+ * The student's profile photo. Added phase 33 (MOS-41) to close a gap between
+ * this file's claim and its behaviour: `collectReferencedPersonalKeys` below
+ * documented itself as scanning "every table and every field that can hold a
+ * personal key" while walking six tables and missing this one.
+ *
+ * Deliberately absent from the CREDIT walk (`imageCreditRefs.ts`) for a
+ * different and still-valid reason — a photo of the student, taken by the
+ * instructor, is an upload by definition and belongs in no credits screen.
+ * "Carries no licence obligation" and "is not an asset we may delete" are
+ * different questions; only the first was answered before.
+ */
+function studentProfileKeys(p: Doc<"studentProfiles">, keep: KeyFilter): string[] {
+  const out: string[] = [];
+  push(out, p.profilePhoto, keep);
+  return out;
+}
+
 type ExcludeIds = {
   sentenceIds?: ReadonlySet<string>;
   phraseIds?: ReadonlySet<string>;
@@ -111,6 +130,7 @@ type ExcludeIds = {
   symbolIds?: ReadonlySet<string>;
   categoryIds?: ReadonlySet<string>;
   folderIds?: ReadonlySet<string>;
+  profileIds?: ReadonlySet<string>;
 };
 
 /**
@@ -188,7 +208,144 @@ export async function collectReferencedPersonalKeys(
     for (const k of folderKeys(f, isPersonalAssetKey)) refs.add(k);
   }
 
+  // Seventh table, added phase 33 — see `studentProfileKeys`. Adding a table
+  // to this walk can only make the result MORE conservative (more keys counted
+  // as referenced → fewer deletions), so it cannot cause a wrongful delete.
+  const profiles = await ctx.db
+    .query("studentProfiles")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+    .collect();
+  for (const p of profiles) {
+    if (exclude.profileIds?.has(String(p._id))) continue;
+    for (const k of studentProfileKeys(p, isPersonalAssetKey)) refs.add(k);
+  }
+
   return refs;
+}
+
+// ─── Delete-orphan collection (phase 33 / MOS-41) ───────────────────────────
+//
+// ONE function answers "which R2 objects does deleting this leave behind with
+// nothing pointing at them?" for every user-content delete surface, because
+// the bug this replaces was four surfaces answering it differently — three of
+// them by not asking at all (`CategoriesContent`, `GroupsView`,
+// `ListsModeContent` and `StudentProfilesPanel` all called a mutation
+// directly, and only an API route can delete from R2).
+//
+// The owner's model, settled 2026-08-29: a delete permanently removes the
+// user's own assets under `accounts/` and `profiles/`, and NEVER touches
+// `library_modules/`. That rule is already `isPersonalAssetKey` — which is why
+// nothing here widens a predicate.
+
+/** What is being deleted. One member per client delete surface; adding a
+ * surface means adding a member here, which is the point — the delete surface
+ * is enumerable in one place instead of scattered across four components. */
+export const deleteTargetValidator = v.union(
+  v.object({ kind: v.literal("category"), categoryId: v.id("profileCategories") }),
+  v.object({ kind: v.literal("folder"), folderId: v.id("profileFolders") }),
+  v.object({ kind: v.literal("list"), listId: v.id("profileLists") }),
+  v.object({ kind: v.literal("studentProfile"), profileId: v.id("studentProfiles") }),
+);
+
+export type DeleteTarget = Infer<typeof deleteTargetValidator>;
+
+/**
+ * Personal R2 keys that deleting `target` would orphan.
+ *
+ * Same three steps as `getCategoryModuleDeleteOrphanKeys`
+ * (`convex/contentModules/categories.ts:165`), which is the proven shape:
+ *
+ *   1. collect every personal key held by the rows about to be deleted,
+ *   2. collect every personal key the account's SURVIVING rows still hold,
+ *      excluding the rows about to be deleted,
+ *   3. return the difference.
+ *
+ * Step 2 is what stops a delete blanking an image the user still uses
+ * elsewhere: one uploaded photo can back a category symbol AND every talker
+ * slot that reuses it, because the slot copies the key string. Dropping step 2
+ * would turn this from a cleanup into a data-loss bug.
+ *
+ * Returns `[]` for a row that is missing or belongs to another account —
+ * the caller then deletes nothing from R2, which is the safe direction.
+ *
+ * THE CASCADE MUST MIRROR THE MUTATION. `deleteFolder`
+ * (`convex/profileFolders.ts:135`) deletes the folder's lists (tree
+ * `"lists"`) or sentences (tree `"sentences"`); this walks exactly those and
+ * nothing else. If that mutation's cascade changes, this changes with it —
+ * collecting less orphans an asset, collecting more deletes a live one.
+ */
+export async function collectDeleteOrphanKeys(
+  ctx: QueryCtx,
+  accountId: Id<"users">,
+  target: DeleteTarget,
+): Promise<string[]> {
+  const candidates: string[] = [];
+  const exclude: ExcludeIds = {};
+
+  switch (target.kind) {
+    case "category": {
+      const cat = await ctx.db.get(target.categoryId);
+      if (!cat || cat.accountId !== accountId) return [];
+      candidates.push(...categoryKeys(cat, isPersonalAssetKey));
+      const symbols = await ctx.db
+        .query("profileSymbols")
+        .withIndex("by_profile_category_id", (q) =>
+          q.eq("profileCategoryId", cat._id),
+        )
+        .collect();
+      for (const sym of symbols) {
+        candidates.push(...symbolKeys(sym, isPersonalAssetKey));
+      }
+      exclude.categoryIds = new Set([String(cat._id)]);
+      exclude.symbolIds = new Set(symbols.map((sym) => String(sym._id)));
+      break;
+    }
+
+    case "folder": {
+      const folder = await ctx.db.get(target.folderId);
+      if (!folder || folder.accountId !== accountId) return [];
+      candidates.push(...folderKeys(folder, isPersonalAssetKey));
+      exclude.folderIds = new Set([String(folder._id)]);
+      if (folder.tree === "lists") {
+        const lists = await ctx.db
+          .query("profileLists")
+          .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+          .collect();
+        for (const l of lists) candidates.push(...listKeys(l, isPersonalAssetKey));
+        exclude.listIds = new Set(lists.map((l) => String(l._id)));
+      } else if (folder.tree === "sentences") {
+        const sentences = await ctx.db
+          .query("profileSentences")
+          .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
+          .collect();
+        for (const sen of sentences) {
+          candidates.push(...sentenceKeys(sen, isPersonalAssetKey));
+        }
+        exclude.sentenceIds = new Set(sentences.map((sen) => String(sen._id)));
+      }
+      break;
+    }
+
+    case "list": {
+      const list = await ctx.db.get(target.listId);
+      if (!list || list.accountId !== accountId) return [];
+      candidates.push(...listKeys(list, isPersonalAssetKey));
+      exclude.listIds = new Set([String(list._id)]);
+      break;
+    }
+
+    case "studentProfile": {
+      const profile = await ctx.db.get(target.profileId);
+      if (!profile || profile.accountId !== accountId) return [];
+      candidates.push(...studentProfileKeys(profile, isPersonalAssetKey));
+      exclude.profileIds = new Set([String(profile._id)]);
+      break;
+    }
+  }
+
+  if (candidates.length === 0) return [];
+  const referenced = await collectReferencedPersonalKeys(ctx, accountId, exclude);
+  return [...new Set(candidates)].filter((k) => !referenced.has(k));
 }
 
 /**

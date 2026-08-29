@@ -100,7 +100,6 @@ export function GroupsView({
   const createFolder = useMutation(api.profileFolders.createFolder);
   const renameFolder = useMutation(api.profileFolders.renameFolder);
   const updateFolderMeta = useMutation(api.profileFolders.updateFolderMeta);
-  const deleteFolder = useMutation(api.profileFolders.deleteFolder);
   const reorderFolders = useMutation(api.profileFolders.reorderFolders);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -171,23 +170,42 @@ export function GroupsView({
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
+      // BOTH branches go through /api/delete-content now (phase 33 / MOS-41).
+      // The plain folder delete used to call `deleteFolder` straight from the
+      // client, and a Convex mutation cannot touch R2 — so deleting a group
+      // silently orphaned its cover image and every personal image and
+      // recording in the lists or sentences the cascade removed.
+      //
+      // Both are a DELETE, not an uninstall: an installed module can have been
+      // personalised, so removing it destroys work either way (owner decision,
+      // 2026-08-29). The branch survives only because the two address different
+      // things — a module by slug (it may span several rows), a folder by id.
       if (pendingDelete.source === 'module' && pendingDelete.librarySourceId) {
-        // Module-sourced folder → uninstall the module via the route (cascade
-        // delete + R2 orphan cleanup), not the plain folder delete. This is the
-        // in-app home for uninstall (ADR-014 §5, owner decision 2026-06-28).
-        const res = await fetch('/api/uninstall-content-module', {
+        const res = await fetch('/api/delete-content', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tree, slug: pendingDelete.librarySourceId }),
+          body: JSON.stringify({
+            kind: tree === 'lists' ? 'list-module' : 'sentence-module',
+            slug: pendingDelete.librarySourceId,
+          }),
         });
-        if (!res.ok) throw new Error('uninstall failed');
+        if (!res.ok) throw new Error('delete failed');
+        // Analytics event keeps its historical name. The product no longer
+        // says "uninstall", but renaming a PostHog event splits the funnel
+        // against every row already recorded under the old key — an event name
+        // is stored data, not user-facing copy.
         track('module_uninstalled', { slug: pendingDelete.librarySourceId, tree });
       } else {
-        await deleteFolder({ folderId: pendingDelete.id });
+        const res = await fetch('/api/delete-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: 'folder', id: pendingDelete.id }),
+        });
+        if (!res.ok) throw new Error('delete failed');
       }
       setPendingDelete(null);
     } catch {
-      showToast({ tone: 'warning', title: tGroup('uninstallError') });
+      showToast({ tone: 'warning', title: tGroup('deleteError') });
     } finally {
       setIsDeleting(false);
     }
@@ -344,7 +362,16 @@ export function GroupsView({
           <DialogHeader>
             <DialogTitle>{t('deleteGroupTitle')}</DialogTitle>
             <DialogDescription>
-              {t('deleteGroupConfirm', { name: pendingDelete?.name ?? '', count: pendingDelete?.count ?? 0 })}
+              {/* A module delete destroys personalisation and cannot be got
+                  back by reinstalling — the module returns as published. The
+                  plain-folder wording never said so because, before phase 33,
+                  the two operations were not distinguished at all. */}
+              {t(
+                pendingDelete?.source === 'module'
+                  ? 'deleteGroupConfirmModule'
+                  : 'deleteGroupConfirm',
+                { name: pendingDelete?.name ?? '', count: pendingDelete?.count ?? 0 },
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

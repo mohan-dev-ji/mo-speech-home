@@ -11,6 +11,7 @@
 import type * as account from "../account.js";
 import type * as accountMembers from "../accountMembers.js";
 import type * as admin_overviewStats from "../admin/overviewStats.js";
+import type * as contentDelete from "../contentDelete.js";
 import type * as contentModules_categories from "../contentModules/categories.js";
 import type * as contentModules_detail from "../contentModules/detail.js";
 import type * as contentModules_exportModules from "../contentModules/exportModules.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   account: typeof account;
   accountMembers: typeof accountMembers;
   "admin/overviewStats": typeof admin_overviewStats;
+  contentDelete: typeof contentDelete;
   "contentModules/categories": typeof contentModules_categories;
   "contentModules/detail": typeof contentModules_detail;
   "contentModules/exportModules": typeof contentModules_exportModules;
