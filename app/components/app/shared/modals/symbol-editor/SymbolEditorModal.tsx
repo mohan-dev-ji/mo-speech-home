@@ -80,6 +80,15 @@ export type SymbolEditorModalProps = {
   voiceId?: string;                               // defaults to DEFAULT_VOICE_ID
   editorMode?: 'categoryBoard' | 'listItem' | 'sentenceSlot' | 'imageOnly';  // defaults to 'categoryBoard'
   initialLabel?: string;                          // pre-populate label / description field
+  // The item's label IN THE BOARD LANGUAGE, with NO English fallback applied
+  // (listItem only). `initialLabel` is a display string — callers resolve it
+  // through `displayString`, so on a Hindi board a unit labelled only in
+  // English arrives as the English word. Seeding the Hindi field from that
+  // would let an untouched save write English under the `hi` key, which is the
+  // bug this pair of props exists to prevent. Absent = "no label in this
+  // language yet" = the field renders EMPTY, which is what makes a missing
+  // translation visible instead of silently overwritten.
+  initialLabelInLanguage?: string;
   // Seed ONLY the SymbolStix search box, without touching the label field.
   // sentenceSlot mode has no label field (its panel is gated out), so it needs
   // a way to pre-fill the search that doesn't drag the label machinery in.
@@ -155,6 +164,7 @@ export function SymbolEditorModal({
   voiceId = DEFAULT_VOICE_ID,
   editorMode = 'categoryBoard',
   initialLabel,
+  initialLabelInLanguage,
   initialSearchQuery,
   onClose,
   onSave,
@@ -272,6 +282,12 @@ export function SymbolEditorModal({
       ? { resolvedImagePath: initialImagePath, imageSourceTab: 'symbolstix' as const }
       : {}),
     ...listItemImageSeed,
+    // listItem on a non-English board: seed the field's own language from the
+    // item's stored label for THAT language only (see `initialLabelInLanguage`).
+    // `labelEng` above still holds the English master, so saving keeps it.
+    ...(editorMode === 'listItem' && language !== 'en' && initialLabelInLanguage
+      ? { labelLoc: { [language]: initialLabelInLanguage } }
+      : {}),
     // Stored image credit (phase-30 §2) — categoryBoard seeds its own from the
     // profileSymbol in the rehydration effect below; every other mode gets it
     // from the caller's props.
@@ -788,6 +804,10 @@ export function SymbolEditorModal({
     // ── List item mode ────────────────────────────────────────────────────
     if (editorMode === 'listItem') {
       setIsSaving(true);
+      // The text the user actually sees and edits in the Description field.
+      const descriptionText = (
+        language === 'en' ? draft.labelEng : (draft.labelLoc[language] ?? '')
+      ).trim();
       try {
         // Resolve image and remember which tab it came from
         let imagePath: string | undefined = draft.resolvedImagePath;
@@ -824,7 +844,12 @@ export function SymbolEditorModal({
 
         onListItemSave?.({
           imagePath,
-          description: draft.labelEng.trim() || undefined,
+          // MUST read the same language the Description field edits
+          // (`labelFieldLang` in PropertiesPanel = the board language for
+          // listItem). Reading `labelEng` here is what stored the English word
+          // under a `hi` key: the consumer keys the returned text by
+          // `[language]`, so the two halves of the round trip disagreed.
+          description: descriptionText || undefined,
           audioPath,
           activeAudioSource: draft.activeAudioSource ?? undefined,
           defaultAudioPath: draft.defaultAudioPath,

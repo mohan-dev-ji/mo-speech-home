@@ -1223,6 +1223,15 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
     const label = result.description?.trim();
     const prev = unitsOf(unitEditTarget.sentenceId)[unitEditTarget.unitIndex];
     const prevLabel = prev?.kind === 'word' ? displayString(prev.label, language, DEFAULT_LOCALE) : '';
+    // MERGE per language, never replace the map (fix, 2026-08-29). The unit is
+    // rebuilt from scratch on every save, so assigning `{ [language]: label }`
+    // wholesale dropped every OTHER language the unit already had — that is how
+    // the Spanish variant's last unit lost its English master. Clearing the
+    // field removes only this language's entry; the siblings survive.
+    const prevLabelMap = prev?.kind === 'word' ? prev.label : undefined;
+    const nextLabel: Record<string, string> = { ...(prevLabelMap ?? {}) };
+    if (label) nextLabel[language] = label;
+    else delete nextLabel[language];
     const textChanged = !!label && label !== prevLabel;
     // A carried-forward clip (activeAudioSource 'default') no longer matches new
     // text → drop it so playback re-synthesizes the new text in the board voice.
@@ -1234,7 +1243,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
       order: 0,
       ...(result.imagePath ? { imagePath: result.imagePath } : {}),
       ...audioField,
-      ...(label ? { label: { [language]: label } } : {}),
+      ...(Object.keys(nextLabel).length ? { label: nextLabel } : {}),
       // phase-30 §2 — the unit is rebuilt from scratch on every save, so the
       // credit has to be re-attached here or an Image Search word loses it.
       ...(result.imageSourceType ? { imageSourceType: result.imageSourceType } : {}),
@@ -1329,6 +1338,11 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
   const existingUnitLabel = editingUnit?.label
     ? displayString(editingUnit.label, language, DEFAULT_LOCALE)
     : undefined;
+  // The board language's OWN entry, with no English fallback — the editor's
+  // Description field seeds from this so a unit that has no label yet in this
+  // language opens EMPTY rather than pre-filled with the English word (which an
+  // untouched save would then write back under this language's key).
+  const existingUnitLabelInLanguage = editingUnit?.label?.[language];
 
   // Only render sentences page if state flag allows it (same pattern as lists)
   if (stateFlags && !stateFlags.sentences_visible) return null;
@@ -1645,6 +1659,7 @@ export function SentencesModeContent({ folderId }: { folderId?: string } = {}) {
           voiceId={voiceId}
           editorMode="listItem"
           initialLabel={existingUnitLabel}
+          initialLabelInLanguage={existingUnitLabelInLanguage}
           initialImagePath={existingUnitImagePath}
           initialAudioPath={existingUnitAudioPath}
           initialImageSourceType={editingUnit?.imageSourceType}

@@ -277,9 +277,24 @@ export function PropertiesPanel({
 
   const labelSectionTitle = editorMode === 'listItem' ? t('sectionDescription') : t('sectionLabel');
   // Phase 15: the label field edits the EFFECTIVE language — the editor's Language
-  // pin if set, else the board language (categoryBoard only). listItem edits the
-  // English master ('en'). English stays the master + fallback everywhere.
-  const labelFieldLang = editorMode === 'categoryBoard' ? (draft.pinnedLanguage ?? language) : 'en';
+  // pin if set, else the board language (categoryBoard only).
+  //
+  // listItem edits the BOARD language, NOT 'en' (fix, 2026-08-29). It used to
+  // force 'en' while its one consumer — `handleUnitSave` in
+  // SentencesModeContent — stores the returned text under `{ [language]: … }`.
+  // On a Hindi board that wrote the ENGLISH word under the `hi` key: the
+  // picker seeds both `labelEng` and `labelLoc.hi`, the field showed
+  // `labelEng`, and the save carried it to `hi`. Silent, because `hi` was
+  // populated — just with the wrong language. Deliberately `language` and not
+  // `pinnedLanguage ?? language`: the pin is categoryBoard-only (see the
+  // Language accordion below), and keying the field off a language the save
+  // path does not use would re-create the same class of mismatch.
+  //
+  // English stays the master + fallback everywhere.
+  const labelFieldLang =
+    editorMode === 'categoryBoard' ? (draft.pinnedLanguage ?? language)
+    : editorMode === 'listItem'    ? language
+    : 'en';
   const labelFieldValue = labelFieldLang === 'en' ? draft.labelEng : (draft.labelLoc[labelFieldLang] ?? '');
   // Play-button enablement, keyed on `activeAudioMode` (see playActiveAudio above).
   // Default is "playable" whenever there's a label to resolve (even before any
