@@ -76,7 +76,19 @@ test `j578wzn2kszv6n8mfjra89yqkn8crk8s` (moveraitch@).
 
 ---
 
-## Task 1 — Author + publish the lists and sentences modules
+## Task 1 — Author + publish the lists and sentences modules ✅ DONE 2026-08-29
+
+`lists/activities` (pro — image-search cover credited, 6 upload + 1 imageSearch + 1
+symbolstix) and `sentences/fun-things-to-do` (max — en/es/hi variant group, `variantGroupKey`
+survived the round trip). Both verified: promoted keys only, zero `accounts/…` credits, zero
+unreferenced R2 objects. Collection at **43 modules / 65 R2 objects**.
+
+**Bug found and fixed while authoring** (`1eb5098`): the block-sentence unit editor wrote the
+WRONG LANGUAGE into unit labels — `PropertiesPanel` hard-wired the Description field to `en`
+while `handleUnitSave` stored the result under `{[language]: …}`, so authoring in Hindi filed
+the English word under the `hi` key. Same handler also replaced the whole label map on every
+save, so editing a unit on an English board wiped its es/hi labels. Both fixed; see the
+commit for the evidence.
 
 Owner drives the browser; the session verifies each save and publish.
 
@@ -100,7 +112,12 @@ quota (30/day). This cost 5 searches during the last run and is unticketed.
 
 ---
 
-## Task 2 — Install everything into the test account
+## Task 2 — Install everything into the test account ✅ DONE 2026-08-29
+
+Test account gained **exactly the 4 credits that travelled**, all `library_modules/`-keyed,
+**zero leakage** from the admin's own rows (checked by scanning for the admin id in test-owned
+keys, not by grepping the account id). Installed content repointed fully: 0 rows still on
+`accounts/…`; the sentence variant family re-linked under a NEW shared `variantGroupId`.
 
 Confirm the installing account's registry gains **exactly** the credits that travelled with the
 modules — keyed on `library_modules/…`, with **no leakage** from the admin's own rows.
@@ -188,7 +205,7 @@ account whose registry was lost would still need `scripts/backfill-image-credits
 
 In the order they matter.
 
-### MOS-41 — delete vs uninstall (start here)
+### MOS-41 — delete vs uninstall (IN PROGRESS — start here)
 Two real bugs plus a design decision:
 1. **Deleting a category orphans every personal R2 asset it held.** `CategoriesContent` calls
    `deleteCategory` directly; `getCategoryModuleDeleteOrphanKeys` has exactly one caller
@@ -224,9 +241,27 @@ The bug class this repo keeps hitting is "a field list forgot a field".
 MOS-32 (per-language symbol variants) · MOS-28 (phantom 14-day trial) · MOS-29 (Stripe error
 swallowed) · MOS-13 (rebuild defaults for marketing).
 
-**Unticketed, worth filing:** the image-search pre-fill auto-search that burns quota; and
-re-published modules never shed credits or R2 objects for images they no longer use (both
-"never delete" choices that accumulate over a module's life).
+### MOS-42 — removing a module leaves stale `imageCredits` rows on installing accounts
+Filed 2026-08-29. The test account holds **12 credit rows for purged `acceptance-*` modules**
+— `getAccountImageCredits` (`convex/imageCredits.ts:92`) returns every row with no join to
+installed content. Not a missing delete: there is deliberately no delete path for the
+registry ("over-crediting is never a licence violation; dropping a credit is"), so the
+ticket exists to pick a shape. Recommended: filter at READ time using the extractors in
+`convex/lib/imageCreditRefs.ts`, which already answer "which images does this account
+reference". Read alongside MOS-41.
+
+### MOS-43 — Image Search tab auto-runs a search nobody asked for
+Filed 2026-08-29, was the unticketed quota gotcha above. One search box is shared across
+four tabs and only two are metered: `SymbolEditorModal` seeds it from `initialLabel`,
+`ImagesTab.tsx:80` fires a `useEffect` on the debounced value straight at
+`/api/image-search/search`, and that decrements `DAILY_LIMIT = 30`. Merely *looking at* the
+tab spends quota. Fix keeps SymbolStix's free auto-search and makes the metered tabs
+require intent. Unverified: whether `AiGenerateTab` (10/day) auto-fires the same way.
+
+**Still unticketed:** re-published modules never shed credits or R2 objects for images they
+no longer use. Two fresh orphans from ordinary authoring on 2026-08-28 —
+`accounts/j5717je…/images/c4afc65e…` and `…/cda96868…` — both in R2, both credited, neither
+referenced. Captured as evidence inside MOS-42.
 
 ---
 
