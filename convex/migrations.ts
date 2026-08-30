@@ -1156,6 +1156,104 @@ export const backfillSentenceUnits = internalMutation({
  *
  * Run:  npx convex run migrations:wipeLibraryModules '{"confirm":"WIPE"}'
  */
+/**
+ * Delete the content rows left behind by accounts that no longer exist
+ * (MOS-39, data-hygiene half).
+ *
+ * The LEAK is fixed separately in `convex/account.ts` — `cascadeDeleteAccount`
+ * had hand-listed its tables and forgotten `profilePhrases`, `profileFolders`
+ * and `imageCredits`, and that list is now compiler-checked. This clears what
+ * accumulated before the fix: nine account ids, 175 rows, measured
+ * 2026-08-30.
+ *
+ * TWO INDEPENDENT GUARDS, because a discovery bug here deletes a live family's
+ * board:
+ *
+ *   1. **Ids are passed in explicitly.** There is no "find the orphans" query
+ *      inside this mutation. The caller measures, eyeballs the list, and names
+ *      the accounts. A bug in a discovery walk cannot widen the blast radius,
+ *      because there is no discovery walk.
+ *   2. **Any id that still HAS a `users` row aborts the whole run.** Not
+ *      "skips that id" — aborts, before deleting anything. If the caller's
+ *      list is wrong, the safe outcome is that nothing happens and a human
+ *      looks again. Convex mutations are transactional, so an early throw
+ *      leaves the database untouched.
+ *
+ * DRY RUN BY DEFAULT. Without `apply: true` it reports what it would delete
+ * and writes nothing, matching `scripts/backfill-image-credits.mjs`.
+ *
+ * Only the three leaked tables are touched. The other six account-scoped
+ * tables were always cascaded correctly, so an orphan cannot hold rows in
+ * them — verified against live data before this was written, and `accountMembers`
+ * is empty entirely.
+ *
+ * Run:
+ *   npx convex run migrations:purgeOrphanedAccountRows --no-push '{"accountIds":["…"]}'
+ *   npx convex run migrations:purgeOrphanedAccountRows --no-push '{"accountIds":["…"],"apply":true}'
+ */
+export const purgeOrphanedAccountRows = internalMutation({
+  args: { accountIds: v.array(v.string()), apply: v.optional(v.boolean()) },
+  handler: async (ctx, { accountIds, apply }) => {
+    if (accountIds.length === 0) {
+      throw new Error("Refusing: pass at least one accountId.");
+    }
+
+    // Guard 2, run for EVERY id before a single delete.
+    const ids: Id<"users">[] = [];
+    for (const raw of accountIds) {
+      const id = ctx.db.normalizeId("users", raw);
+      if (!id) {
+        throw new Error(`Refusing: "${raw}" is not a valid users id.`);
+      }
+      const stillLive = await ctx.db.get(id);
+      if (stillLive) {
+        throw new Error(
+          `Refusing: ${raw} still has a users row — it is a LIVE account, not an orphan. Nothing was deleted.`
+        );
+      }
+      ids.push(id);
+    }
+
+    const deleted = { profilePhrases: 0, profileFolders: 0, imageCredits: 0 };
+
+    for (const accountId of ids) {
+      const phrases = await ctx.db
+        .query("profilePhrases")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect();
+      const folders = await ctx.db
+        .query("profileFolders")
+        .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+        .collect();
+      const credits = await ctx.db
+        .query("imageCredits")
+        .withIndex("by_account_and_key", (q) => q.eq("accountId", accountId))
+        .collect();
+
+      deleted.profilePhrases += phrases.length;
+      deleted.profileFolders += folders.length;
+      deleted.imageCredits += credits.length;
+
+      if (apply === true) {
+        for (const r of phrases) await ctx.db.delete(r._id);
+        for (const r of folders) await ctx.db.delete(r._id);
+        for (const r of credits) await ctx.db.delete(r._id);
+      }
+    }
+
+    const total =
+      deleted.profilePhrases + deleted.profileFolders + deleted.imageCredits;
+    const summary = {
+      accounts: ids.length,
+      applied: apply === true,
+      total,
+      ...deleted,
+    };
+    console.log(`[purgeOrphanedAccountRows] ${JSON.stringify(summary)}`);
+    return summary;
+  },
+});
+
 export const wipeLibraryModules = internalMutation({
   args: { confirm: v.string() },
   handler: async (ctx, { confirm }) => {
