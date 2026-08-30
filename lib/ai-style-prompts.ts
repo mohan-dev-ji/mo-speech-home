@@ -14,8 +14,31 @@ export const STYLE_PRESETS: Record<
 > = {
   photorealistic: {
     label: 'Photorealistic',
+    // `no watermark` REMOVED 2026-08-30 (MOS-40) — DO NOT PUT IT BACK.
+    //
+    // That one token made every Photorealistic generation fail. Gemini
+    // returned HTTP 200 with `promptFeedback.blockReason: "SAFETY"` and no
+    // candidate at all — blocked BEFORE generation, so the subject was
+    // irrelevant; `a cello` was refused as reliably as anything else.
+    //
+    // Proven by a controlled A/B against Vertex, same subject, same process,
+    // seconds apart, one token different:
+    //
+    //     studio product shot of a cello, …, no text, no watermark  -> REFUSED
+    //     studio product shot of a cello, …, no text                -> IMAGE
+    //
+    // Image models refuse watermark-adjacent wording as an anti-circumvention
+    // guard regardless of intent: asking for "no watermark" reads like an
+    // attempt to strip one. This was the ONLY template of the four containing
+    // it, and the only style that ever failed.
+    //
+    // It worked until the provider changed. All six cached Photorealistic
+    // images date from 2026-05-17 under Imagen; there is not one success on
+    // `gemini-2.5-flash-image`, whose prompt filter is stricter. So the other
+    // three templates are known-good against THIS model, not against models
+    // in general — re-verify them if the model changes again.
     template: (p) =>
-      `studio product shot of ${p}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text, no watermark`,
+      `studio product shot of ${p}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
   },
   iconic: {
     label: 'Iconic Vector',

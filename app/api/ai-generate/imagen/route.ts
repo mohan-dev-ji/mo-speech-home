@@ -290,7 +290,21 @@ export async function POST(request: Request) {
   try {
     pngBuffer = await generateImage(wrappedPrompt);
   } catch (err) {
-    console.error("[ai-generate] Gemini image generation error", err);
+    // Log what was SENT alongside what came back. The refusal fields say the
+    // provider objected, never to what — and during MOS-40 that gap cost
+    // several rounds, because a stale dev bundle meant the template being
+    // sent was not the template on disk. Printing the outgoing prompt makes
+    // that class of confusion impossible to repeat: if the log disagrees with
+    // the source, the running build is stale.
+    //
+    // Server log only. Prompt text is user content and stays out of
+    // analytics (see the `ai_generate_used` call below, which deliberately
+    // sends style but never the prompt).
+    console.error(
+      "[ai-generate] Gemini image generation error",
+      { style, rawPrompt, wrappedPrompt },
+      err
+    );
 
     // REFUND THE RESERVATION (MOS-40). The quota was incremented before the
     // call, so a failure the user did not cause has already cost them one of
