@@ -1,11 +1,14 @@
 {
+  "colour": "#D97706",
   "coverImagePath": "symbols/pray.png",
+  "defaultOrder": 30,
   "defaultTier": "free",
   "description": {
     "en": "The shared vocabulary of faith. Prayer, ceremony, blessing, the words you'd hear in most traditions. A neutral starting point before you build out your own.",
     "es": "El vocabulario compartido de la fe. Oración, ceremonia, bendición, las palabras que escucharías en la mayoría de las tradiciones. Un punto de partida neutral antes de que construyas el tuyo propio.",
     "hi": "विश्वास की बातें। प्रार्थना, पूजा, आशीर्वाद। ये वो शब्द हैं जो आप ज़्यादातर धर्मों में सुनेंगे। अपनी पसंद के शब्द जोड़ने से पहले एक शुरुआत।"
   },
+  "icon": "🙏",
   "items": [
     {
       "colour": "#D97706",
@@ -19,177 +22,218 @@
       "symbols": [
         {
           "labelOverride": {
-            "en": "Vishnu"
+            "en": "Vishnu",
+            "es": "Vishnu",
+            "hi": "Vishnu"
           },
           "order": 0,
           "symbolId": "kn7egffqwfqmx3j97hwsdkk5mx84nf9b"
         },
         {
           "labelOverride": {
-            "en": "gurdwara"
+            "en": "gurdwara",
+            "es": "gurdwara",
+            "hi": "गुरुद्वारा"
           },
           "order": 1,
           "symbolId": "kn7eex6hs690mj8webrxb9pnah84n0pg"
         },
         {
           "labelOverride": {
-            "en": "Muslim"
+            "en": "Muslim",
+            "es": "musulmán",
+            "hi": "मुसलमान"
           },
           "order": 2,
           "symbolId": "kn75x2xxm8yyg3rrqpxmvzjt5d84mrdb"
         },
         {
           "labelOverride": {
-            "en": "Jewish temple"
+            "en": "Jewish temple",
+            "es": "Templo judío",
+            "hi": "यहूदी मंदिर"
           },
           "order": 3,
           "symbolId": "kn74b2bm93tenkbzx6bff1jxv584mtss"
         },
         {
           "labelOverride": {
-            "en": "Hinduism"
+            "en": "Hinduism",
+            "es": "hinduismo",
+            "hi": "हिंदू धर्म"
           },
           "order": 4,
           "symbolId": "kn7d5dnqevnb75ne6newaqrkmd84n1vg"
         },
         {
           "labelOverride": {
-            "en": "Sikh"
+            "en": "Sikh",
+            "es": "Sikh",
+            "hi": "सिख"
           },
           "order": 5,
           "symbolId": "kn7963mmj48gvh3ene6vxp95gn84m541"
         },
         {
           "labelOverride": {
-            "en": "pray"
+            "en": "pray",
+            "es": "rezar",
+            "hi": "प्रार्थना करना"
           },
           "order": 6,
           "symbolId": "kn78p1519k7j7qrfdgc3rddg8x84nk9r"
         },
         {
           "labelOverride": {
-            "en": "prayer"
+            "en": "holy",
+            "es": "santo",
+            "hi": "पवित्र"
           },
           "order": 7,
-          "symbolId": "kn7b1vd6njyyegngmbve90eb6h84m1ph"
-        },
-        {
-          "labelOverride": {
-            "en": "holy"
-          },
-          "order": 8,
           "symbolId": "kn724110a3424yrn35gdac5bv584n5sw"
         },
         {
           "labelOverride": {
-            "en": "worship"
+            "en": "worship",
+            "es": "adorar",
+            "hi": "पूजा करना"
           },
-          "order": 9,
+          "order": 8,
           "symbolId": "kn7981vq3mk3y4cpsew07w2am584m8b0"
         },
         {
           "labelOverride": {
-            "en": "miracle"
+            "en": "miracle",
+            "es": "milagro",
+            "hi": "चमत्कार"
           },
-          "order": 10,
+          "order": 9,
           "symbolId": "kn727ggdcd6zeqs3hd07s4awg984mnk2"
         },
         {
           "labelOverride": {
-            "en": "soul"
+            "en": "soul",
+            "es": "alma",
+            "hi": "आत्मा"
           },
-          "order": 11,
+          "order": 10,
           "symbolId": "kn79gybcperxqm9jnth1pj8x3n84mcgh"
         },
         {
           "labelOverride": {
-            "en": "grace"
+            "en": "grace",
+            "es": "gracia",
+            "hi": "अनुग्रह"
           },
-          "order": 12,
+          "order": 11,
           "symbolId": "kn78q139e5vnkhpcrajv6rqegd84nfa8"
         },
         {
           "labelOverride": {
-            "en": "religion"
+            "en": "religion",
+            "es": "religión",
+            "hi": "धर्म"
           },
-          "order": 13,
+          "order": 12,
           "symbolId": "kn7dgafm5zhb0xf07egrs0kwdx84msdc"
         },
         {
           "labelOverride": {
-            "en": "angel"
+            "en": "angel",
+            "es": "ángel",
+            "hi": "देवदूत"
           },
-          "order": 14,
+          "order": 13,
           "symbolId": "kn7azpmz6ystazw6ga7ry0n9f984m1qb"
         },
         {
           "labelOverride": {
-            "en": "heaven"
+            "en": "heaven",
+            "es": "cielo",
+            "hi": "स्वर्ग"
           },
-          "order": 15,
+          "order": 14,
           "symbolId": "kn7234yx8583h218q6ah7qnbg984nyz7"
         },
         {
           "labelOverride": {
-            "en": "church"
+            "en": "church",
+            "es": "iglesia",
+            "hi": "गिरजाघर"
           },
-          "order": 16,
+          "order": 15,
           "symbolId": "kn77d4k792a0c350bzdba9yxhd84nzx8"
         },
         {
           "labelOverride": {
-            "en": "cross"
+            "en": "cross",
+            "es": "enojado",
+            "hi": "क्रॉस"
           },
-          "order": 17,
+          "order": 16,
           "symbolId": "kn7ddtdjxhvv6cj6g6tytyc5x584n3j5"
         },
         {
           "labelOverride": {
-            "en": "baptism"
+            "en": "baptism",
+            "es": "Bautismo",
+            "hi": "बपतिस्मा"
           },
-          "order": 18,
+          "order": 17,
           "symbolId": "kn70za4x16j29rgznrqa1qwmjx84mcfy"
         },
         {
           "labelOverride": {
-            "en": "saint"
+            "en": "saint",
+            "es": "santo",
+            "hi": "संत"
           },
-          "order": 19,
+          "order": 18,
           "symbolId": "kn798s6svv14mchrjnjmt0b4zx84mnaz"
         },
         {
           "labelOverride": {
-            "en": "hymn"
+            "en": "hymn",
+            "es": "himno",
+            "hi": "भजन"
           },
-          "order": 20,
+          "order": 19,
           "symbolId": "kn7105p1ne4k3kpjmnygy5kj6x84mrb6"
         },
         {
           "labelOverride": {
-            "en": "mosque"
+            "en": "mosque",
+            "es": "mezquita",
+            "hi": "मस्जिद"
           },
-          "order": 21,
+          "order": 20,
           "symbolId": "kn77h06gj3ztmp7th62mpga9fx84meq1"
         },
         {
           "labelOverride": {
-            "en": "synagogue"
+            "en": "synagogue",
+            "es": "sinagoga",
+            "hi": "सिनेगॉग"
           },
-          "order": 22,
+          "order": 21,
           "symbolId": "kn7cwj77wtmfbmdcnf7gktnnax84nyy9"
         },
         {
           "labelOverride": {
-            "en": "menorah"
+            "en": "menorah",
+            "es": "menorá",
+            "hi": "मेनोरा"
           },
-          "order": 23,
+          "order": 22,
           "symbolId": "kn74h8wz57gn75xv4emxyn39ns84nn6f"
         },
         {
           "labelOverride": {
-            "en": "temple"
+            "en": "temple",
+            "es": "sien",
+            "hi": "कनपटी"
           },
-          "order": 24,
+          "order": 23,
           "symbolId": "kn7ecp3kcsvac1aehg32d955s584nnad"
         }
       ]

@@ -1,11 +1,14 @@
 {
+  "colour": "yellow",
   "coverImagePath": "symbols/symbol00192671.png",
+  "defaultOrder": 28,
   "defaultTier": "pro",
   "description": {
     "en": "For the kid who knows their stegosaurus from their spinosaurus. Sixteen species plus the fossils, footprints and habitats they live for. Vocabulary to match the obsession.",
     "es": "Para el niño que sabe distinguir un estegosaurio de un espinosaurio. Dieciséis especies, además de los fósiles, huellas y hábitats donde vivieron. Vocabulario para su obsesión.",
     "hi": "उस बच्चे के लिए जो स्टेगोसॉरस और स्पिनोसॉरस को पहचानता है। सोलह तरह के डायनासोर, उनके जीवाश्म, पैरों के निशान और वे कहाँ रहते थे। उनकी पसंद के हिसाब से शब्द।"
   },
+  "icon": "📁",
   "items": [
     {
       "colour": "yellow",
@@ -19,112 +22,144 @@
       "symbols": [
         {
           "labelOverride": {
-            "en": "Tyrannosaurus rex"
+            "en": "Tyrannosaurus rex",
+            "es": "tiranosaurio rex",
+            "hi": "टायरानोसॉरस रेक्स"
           },
           "order": 0,
           "symbolId": "kn7a94c6jakq68p0httwnjan5s84m9v2"
         },
         {
           "labelOverride": {
-            "en": "ancient footprints"
+            "en": "ancient footprints",
+            "es": "huellas antiguas",
+            "hi": "प्राचीन पदचिह्न"
           },
           "order": 1,
           "symbolId": "kn710bzj2fa7c4h3gg893ca3j984nwsm"
         },
         {
           "labelOverride": {
-            "en": "triceratops"
+            "en": "triceratops",
+            "es": "triceratops",
+            "hi": "ट्राइसेराटॉप्स"
           },
           "order": 2,
           "symbolId": "kn75pd4q99pgmthj9wv80xh0j584md65"
         },
         {
           "labelOverride": {
-            "en": "stegosaurus"
+            "en": "stegosaurus",
+            "es": "estegosaurio",
+            "hi": "Stegosaurus"
           },
           "order": 3,
           "symbolId": "kn7avx0frxvkwdr7mena38tyb184mdg1"
         },
         {
           "labelOverride": {
-            "en": "velociraptor"
+            "en": "velociraptor",
+            "es": "velociraptor",
+            "hi": "वेलोसिरैप्टर"
           },
           "order": 4,
           "symbolId": "kn74ky8mxf7ed25wadmkhgwn8x84mmc5"
         },
         {
           "labelOverride": {
-            "en": "brachiosaurus"
+            "en": "brachiosaurus",
+            "es": "braquiosaurio",
+            "hi": "ब्राचिओसॉरस"
           },
           "order": 5,
           "symbolId": "kn7fqbwxkpstkxt9e2y4k722d184ng16"
         },
         {
           "labelOverride": {
-            "en": "pterodactyl"
+            "en": "pterodactyl",
+            "es": "pterodáctilo",
+            "hi": "टेरोडैक्टिल"
           },
           "order": 6,
           "symbolId": "kn7ap7n6rksw5axs6rwgdmeqf984mt67"
         },
         {
           "labelOverride": {
-            "en": "fossil"
+            "en": "fossil",
+            "es": "fósil",
+            "hi": "जीवाश्म"
           },
           "order": 7,
           "symbolId": "kn72fayv75ynym9492402pt7r984nwfw"
         },
         {
           "labelOverride": {
-            "en": "dig"
+            "en": "dig",
+            "es": "cavar",
+            "hi": "खोदना"
           },
           "order": 8,
           "symbolId": "kn7336efxhb04fnk3ggea45tmh84nrme"
         },
         {
           "labelOverride": {
-            "en": "museum"
+            "en": "museum",
+            "es": "museo",
+            "hi": "संग्रहालय"
           },
           "order": 9,
           "symbolId": "kn7ck3ckft14raevrdxbqk22ax84m6z7"
         },
         {
           "labelOverride": {
-            "en": "jungle"
+            "en": "jungle",
+            "es": "selva",
+            "hi": "जंगल"
           },
           "order": 10,
           "symbolId": "kn759qa0gttxwk8qqjtmexb4nd84nbyh"
         },
         {
           "labelOverride": {
-            "en": "volcano"
+            "en": "volcano",
+            "es": "volcán",
+            "hi": "ज्वालामुखी"
           },
           "order": 11,
           "symbolId": "kn7199z1erpv5fvbhgdcpsh8md84mgph"
         },
         {
           "labelOverride": {
-            "en": "river"
+            "en": "river",
+            "es": "río",
+            "hi": "नदी"
           },
           "order": 12,
           "symbolId": "kn7974c0ah91t09vre3ke2qsn984mnkg"
         },
         {
           "labelOverride": {
-            "en": "plants"
+            "en": "plants",
+            "es": "plantas",
+            "hi": "पौधे"
           },
           "order": 13,
           "symbolId": "kn788bybwpwt5zcdeh9fpmmggh84nx3x"
         },
         {
           "labelOverride": {
-            "en": "fierce"
+            "en": "fierce",
+            "es": "feroz",
+            "hi": "भयंकर"
           },
           "order": 14,
           "symbolId": "kn77xhhx1yysyg6r1qdceb5z3584mex9"
         },
         {
           "labelOverride": {
-            "en": "gentle"
+            "en": "gentle",
+            "es": "Suave",
+            "hi": "कोमल"
           },
           "order": 15,
           "symbolId": "kn7aser87f3trrx7zte4v77xp984nqpk"

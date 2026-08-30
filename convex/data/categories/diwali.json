@@ -1,11 +1,14 @@
 {
+  "colour": "rose",
   "coverImagePath": "symbols/symbol00204004.png",
-  "defaultTier": "max",
+  "defaultOrder": 26,
+  "defaultTier": "pro",
   "description": {
     "en": "The festival of lights with the vocabulary to match. Diyas, rangoli, the sweets by name, and the family around the table.",
     "es": "El festival de las luces con el vocabulario para la ocasión. Diyas, rangoli, los dulces por su nombre y la familia alrededor de la mesa.",
     "hi": "रोशनी का त्योहार, जिसके लिए ज़रूरी शब्द हैं। दीये, रंगोली, मिठाइयों के नाम, और परिवार के साथ खाना।"
   },
+  "icon": "📁",
   "items": [
     {
       "colour": "rose",
@@ -19,126 +22,178 @@
       "symbols": [
         {
           "labelOverride": {
-            "en": "festival activities"
+            "en": "festival activities",
+            "es": "actividades del festival",
+            "hi": "त्योहार की गतिविधियाँ"
           },
           "order": 0,
           "symbolId": "kn715c1fsv5pzff0n4dyhrt5k984n2fb"
         },
         {
           "labelOverride": {
-            "en": "Diwali lantern"
+            "en": "Diwali lantern",
+            "es": "farol de Diwali",
+            "hi": "दिवाली लालटेन"
           },
           "order": 1,
           "symbolId": "kn7ag5r5fp5f15pdvtjbhq1q2h84m14k"
         },
         {
           "labelOverride": {
-            "en": "Diwali festival"
+            "en": "Diwali festival",
+            "es": "festival de Diwali",
+            "hi": "दिवाली का त्योहार"
           },
           "order": 2,
           "symbolId": "kn7fd5h7cnhmb42rks582h2m9d84myb3"
         },
         {
           "labelOverride": {
-            "en": "Diwali"
+            "en": "Diwali",
+            "es": "Diwali",
+            "hi": "दिवाली"
           },
           "order": 3,
           "symbolId": "kn7anb5dn392yr6swwcwb1fbrh84mrs8"
         },
         {
           "labelOverride": {
-            "en": "happy"
+            "en": "happy",
+            "es": "feliz",
+            "hi": "खुश"
           },
           "order": 4,
           "symbolId": "kn77edpvpxsk4vrww1k88ngb5h84mjrx"
         },
         {
           "labelOverride": {
-            "en": "diya"
+            "en": "diya",
+            "es": "Diya",
+            "hi": "दीया"
           },
           "order": 5,
           "symbolId": "kn7b0vhn8mmz51tbp4ebx7aae584nvc2"
         },
         {
           "labelOverride": {
-            "en": "rangoli"
+            "en": "rangoli",
+            "es": "rangoli",
+            "hi": "रंगोली"
           },
           "order": 6,
           "symbolId": "kn77dds5gn088y4gdavg76tbc984n51a"
         },
         {
           "labelOverride": {
-            "en": "fireworks"
+            "en": "fireworks",
+            "es": "fuegos artificiales",
+            "hi": "आतिशबाजी"
           },
           "order": 7,
           "symbolId": "kn77hza6dr0atkrsaqfsqt2wss84n90a"
         },
         {
           "labelOverride": {
-            "en": "sweets"
+            "en": "sweets",
+            "es": "dulces",
+            "hi": "मिठाई"
           },
           "order": 8,
           "symbolId": "kn76ww367bsc5dbm1qn1qa1m1x84nqd1"
         },
         {
           "labelOverride": {
-            "en": "gifts"
+            "en": "gifts",
+            "es": "regalos",
+            "hi": "तोहफे"
           },
           "order": 9,
           "symbolId": "kn75nbjpjksbp1czsw9me2cfr584mjn9"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/58f5897b-d193-4afe-8b5c-eae00dbf1680.mp3",
+              "ttsText": "India",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
-            "en": "India"
+            "en": "India",
+            "es": "República de la India",
+            "hi": "भारत गणराज्य"
           },
           "order": 10,
           "symbolId": "kn79261k3jnw2jzeps1tztd4zh84mmrv"
         },
         {
           "labelOverride": {
-            "en": "new clothes"
+            "en": "new clothes",
+            "es": "ropa nueva",
+            "hi": "नए कपड़े"
           },
           "order": 11,
           "symbolId": "kn724bxcxtk2mtc38ddbxdp3cn84mscq"
         },
         {
           "labelOverride": {
-            "en": "blessed"
+            "en": "blessed",
+            "es": "bendecido",
+            "hi": "धन्य"
           },
           "order": 12,
           "symbolId": "kn7c6e0vr391z7hjrqxrtkdw2184n0q3"
         },
         {
           "labelOverride": {
-            "en": "lights"
+            "en": "lights",
+            "es": "luces",
+            "hi": "बत्तियाँ"
           },
           "order": 13,
           "symbolId": "kn75kxkw4rmbvzms1qaat9s3wx84ncb4"
         },
         {
           "labelOverride": {
-            "en": "family"
+            "en": "family",
+            "es": "familia",
+            "hi": "परिवार"
           },
           "order": 14,
           "symbolId": "kn76k525dn6h32rd8w2nb10hv984men6"
         },
         {
           "labelOverride": {
-            "en": "prayer"
+            "en": "prayer",
+            "es": "oración",
+            "hi": "प्रार्थना"
           },
           "order": 15,
           "symbolId": "kn7bz6r742s7sm9p122rs7pze184mgfj"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/symbols/sparkler.mp3",
+              "ttsText": "sparkler",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
-            "en": "sparkler"
+            "en": "sparkler",
+            "es": "sostener una bengala",
+            "hi": "फुलझड़ी पकड़ना"
           },
           "order": 16,
           "symbolId": "kn76xgd99zdfak19xw2rapnzd984nv3f"
         },
         {
           "labelOverride": {
-            "en": "candle"
+            "en": "candle",
+            "es": "Vela",
+            "hi": "मोमबत्ती"
           },
           "order": 17,
           "symbolId": "kn7553yefctk9c2gtmrcj4h2sx84ntcb"

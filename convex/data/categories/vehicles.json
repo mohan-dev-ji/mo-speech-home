@@ -1,10 +1,13 @@
 {
+  "colour": "sky",
   "coverImagePath": "symbols/symbol00109461.png",
-  "defaultTier": "pro",
+  "defaultOrder": 29,
+  "defaultTier": "free",
   "description": {
     "en": "Curated by an admin",
     "hi": "एडमिन ने बनाया है"
   },
+  "icon": "📁",
   "items": [
     {
       "colour": "sky",
@@ -19,7 +22,8 @@
         {
           "labelOverride": {
             "en": "car",
-            "es": "coche"
+            "es": "coche",
+            "hi": "कार"
           },
           "order": 0,
           "symbolId": "kn7cp3wan5gh76sqgwfq5jkkgs84ncsv"
@@ -27,14 +31,17 @@
         {
           "labelOverride": {
             "en": "bus",
-            "es": "autobús"
+            "es": "autobús",
+            "hi": "बस"
           },
           "order": 1,
           "symbolId": "kn75s6vbk6tcerwm51np0wx41n84m288"
         },
         {
           "labelOverride": {
-            "en": "tour bus"
+            "en": "tour bus",
+            "es": "autobús turístico",
+            "hi": "टूर बस"
           },
           "order": 2,
           "symbolId": "kn7640t65mvxgkw8hh2vq4k5fn84mgyg"
@@ -42,7 +49,8 @@
         {
           "labelOverride": {
             "en": "bicycle",
-            "es": "bicicleta"
+            "es": "bicicleta",
+            "hi": "साइकिल"
           },
           "order": 3,
           "symbolId": "kn72ejzd5xhanyyqnv7hrqevc184m8nh"
@@ -50,7 +58,8 @@
         {
           "labelOverride": {
             "en": "motorbike",
-            "es": "moto"
+            "es": "moto",
+            "hi": "मोटरसाइकिल"
           },
           "order": 4,
           "symbolId": "kn7cnv36kyaxeqgxnwfq0bnt2n84mrh5"
@@ -58,15 +67,25 @@
         {
           "labelOverride": {
             "en": "lorry",
-            "es": "camión"
+            "es": "camión",
+            "hi": "ट्रक"
           },
           "order": 5,
           "symbolId": "kn75ntkhtchgc1p5ne51grm3nn84nr0q"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/f3769f79-39ad-42b7-b14d-2ecee5f09443.mp3",
+              "ttsText": "fire engine",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "fire engine",
-            "es": "camión de bomberos"
+            "es": "camión de bomberos",
+            "hi": "फायर ट्रक"
           },
           "order": 6,
           "symbolId": "kn719t5yy028k04gv24vc517fx84n7fh"
@@ -74,23 +93,42 @@
         {
           "labelOverride": {
             "en": "helicopter",
-            "es": "helicóptero"
+            "es": "helicóptero",
+            "hi": "हेलीकॉप्टर"
           },
           "order": 7,
           "symbolId": "kn7b5nwz7y467gnfth0b5c7pk984mkny"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/symbols/police car.mp3",
+              "ttsText": "police car",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "police car",
-            "es": "coche de policía (Reino Unido)"
+            "es": "coche de policía (Reino Unido)",
+            "hi": "पुलिस की गाड़ी"
           },
           "order": 8,
           "symbolId": "kn78dcjfztp7cb345q6pptxqm184nryy"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/symbols/school bus.mp3",
+              "ttsText": "school bus",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "school bus",
-            "es": "autobús del Reino Unido"
+            "es": "autobús del Reino Unido",
+            "hi": "यूके बस"
           },
           "order": 9,
           "symbolId": "kn72r73hypq5hy92dx9eww9r6184nq7g"
@@ -98,23 +136,42 @@
         {
           "labelOverride": {
             "en": "space ship",
-            "es": "nave espacial"
+            "es": "nave espacial",
+            "hi": "अंतरिक्ष यान"
           },
           "order": 10,
           "symbolId": "kn7czyctwr0bcrc52q9nszhcy984nj8x"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/3e1a1185-4faa-4eb2-acdb-99c71f1691e3.mp3",
+              "ttsText": "black cab",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
-            "en": "taxi",
-            "es": "taxi negro de Londres"
+            "en": "black cab",
+            "es": "taxi negro de Londres",
+            "hi": "लंदन ब्लैक टैक्सी"
           },
           "order": 11,
           "symbolId": "kn742whb903wjthdvrrcjxm95x84m5w7"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/symbols/Uber.mp3",
+              "ttsText": "uber",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "uber",
-            "es": "Uber"
+            "es": "Uber",
+            "hi": "Uber"
           },
           "order": 12,
           "symbolId": "kn7aey6g74nenxdwe3b05xn6fs84nn2s"
@@ -122,23 +179,34 @@
         {
           "labelOverride": {
             "en": "train",
-            "es": "tren"
+            "es": "tren",
+            "hi": "ट्रेन"
           },
           "order": 13,
           "symbolId": "kn70a01504kvyxdrvevkh4jvv184mmmf"
         },
         {
           "labelOverride": {
-            "en": "tube",
-            "es": "El Tube"
+            "en": "the tube",
+            "es": "El Tube",
+            "hi": "The Tube"
           },
           "order": 14,
           "symbolId": "kn7e8e8bqxe6n3qe2h85fq5ezd84nvmx"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/6fa92d72-3639-41af-8e26-fafb3511c831.mp3",
+              "ttsText": "car boot",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "car boot",
-            "es": "tronco"
+            "es": "tronco",
+            "hi": "तना"
           },
           "order": 15,
           "symbolId": "kn7dcjjqkgve10t27pnfvp4w3d84nsmk"
@@ -146,7 +214,8 @@
         {
           "labelOverride": {
             "en": "car door",
-            "es": "puerta del coche"
+            "es": "puerta del coche",
+            "hi": "कार का दरवाज़ा"
           },
           "order": 16,
           "symbolId": "kn72040ndrs2z3q1gqq8sn8rnn84n892"
@@ -154,7 +223,8 @@
         {
           "labelOverride": {
             "en": "car engine",
-            "es": "motor del coche"
+            "es": "motor del coche",
+            "hi": "कार का इंजन"
           },
           "order": 17,
           "symbolId": "kn7bz74fedvt1j62hefr769aeh84msxs"
@@ -162,7 +232,8 @@
         {
           "labelOverride": {
             "en": "cruise ship",
-            "es": "crucero"
+            "es": "crucero",
+            "hi": "क्रूज़ जहाज़"
           },
           "order": 18,
           "symbolId": "kn7dnveke1typ63hmsm67zkxr184m971"
@@ -170,15 +241,25 @@
         {
           "labelOverride": {
             "en": "tractor",
-            "es": "tractor"
+            "es": "tractor",
+            "hi": "ट्रैक्टर"
           },
           "order": 19,
           "symbolId": "kn741fv0t2v44ac0zc0hhpkvzx84nf9n"
         },
         {
+          "audio": {
+            "en": {
+              "language": "en",
+              "path": "audio/en-GB-News-M/tts/80f5e841-037b-4917-8932-94c3c8bfbbb2.mp3",
+              "ttsText": "rubbish truck",
+              "type": "tts"
+            }
+          },
           "labelOverride": {
             "en": "rubbish truck",
-            "es": "Camión de basura"
+            "es": "Camión de basura",
+            "hi": "कूड़े का ट्रक"
           },
           "order": 20,
           "symbolId": "kn75734twkxgz1bk0xh24ve9ad84ny0w"
@@ -188,6 +269,7 @@
   ],
   "name": {
     "en": "Vehicles",
+    "es": "Vehículos",
     "hi": "गाड़ियाँ"
   },
   "slug": "vehicles",
