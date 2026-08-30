@@ -16,6 +16,42 @@ export const maxDuration = 60;
 
 const FEATURE = "aiImageGenerate";
 /**
+ * A 200 response that carried no image (MOS-40).
+ *
+ * Its own type, not a generic Error, because the caller must be able to tell
+ * "the provider refused this prompt" from "the provider broke". They need
+ * different HTTP statuses, different copy, and — critically — a refusal is
+ * deterministic. Telling a user to try again after a refusal invites an
+ * identical failure and burns another generation.
+ */
+export class ProviderRefusalError extends Error {
+  readonly finishReason?: string;
+  readonly blockReason?: string;
+  readonly texts: string[];
+  readonly safetyRatings: string[];
+
+  constructor(info: {
+    finishReason?: string;
+    blockReason?: string;
+    texts: string[];
+    safetyRatings: string[];
+  }) {
+    super(
+      `${IMAGE_MODEL} returned no image part. ` +
+        `finishReason=${info.finishReason ?? "?"} ` +
+        `blockReason=${info.blockReason ?? "-"} ` +
+        `safety=[${info.safetyRatings.join(", ")}] ` +
+        `text=${JSON.stringify(info.texts)}`
+    );
+    this.name = "ProviderRefusalError";
+    this.finishReason = info.finishReason;
+    this.blockReason = info.blockReason;
+    this.texts = info.texts;
+    this.safetyRatings = info.safetyRatings;
+  }
+}
+
+/**
  * Per-user daily generation cap. Defaults to 10; override with
  * `AI_IMAGE_DAILY_LIMIT` for admin authoring sessions, where a single content
  * module is 12 symbols and so cannot be authored in a day at the default.
@@ -87,19 +123,50 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
     throw new Error(`${IMAGE_MODEL} API error ${res.status}: ${err}`);
   }
 
+  // The response type carries `text`, `finishReason` and `safetyRatings`
+  // alongside `inlineData` (MOS-40). It used to declare ONLY `inlineData`,
+  // which is why a refusal was invisible: the model's explanation was sitting
+  // in the payload, untyped, unread, and thrown away on the error path.
   const json = (await res.json()) as {
     candidates?: Array<{
-      content?: { parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }> };
+      content?: {
+        parts?: Array<{
+          inlineData?: { data?: string; mimeType?: string };
+          text?: string;
+        }>;
+      };
+      finishReason?: string;
+      safetyRatings?: Array<{ category?: string; probability?: string }>;
     }>;
+    promptFeedback?: { blockReason?: string };
   };
+
+  const candidate = json.candidates?.[0];
   // The image part is not guaranteed to be first — a text part (e.g. a
   // caption or refusal) can precede it, so scan for inlineData rather than
   // indexing [0].
-  const parts = json.candidates?.[0]?.content?.parts ?? [];
+  const parts = candidate?.content?.parts ?? [];
   const imagePart = parts.find((p) => p.inlineData?.data);
   const b64 = imagePart?.inlineData?.data;
   if (!b64) {
-    throw new Error(`${IMAGE_MODEL} response missing inlineData image part`);
+    // A 200 WITH NO IMAGE IS A REFUSAL, not a malformed response. Gemini
+    // declines by returning success plus an explanation — a `finishReason`
+    // such as SAFETY / PROHIBITED_CONTENT / IMAGE_SAFETY, and often a text
+    // part saying what it objected to.
+    //
+    // Everything the model told us goes into the error. The previous message
+    // named only what was ABSENT ("missing inlineData image part"), so the
+    // one fact needed to fix it — why — was discarded at the exact moment it
+    // was available. This converts every future occurrence, whatever the
+    // style, prompt or model, from a black box into a self-explaining line.
+    throw new ProviderRefusalError({
+      finishReason: candidate?.finishReason,
+      blockReason: json.promptFeedback?.blockReason,
+      texts: parts.map((p) => p.text).filter((t): t is string => !!t),
+      safetyRatings: (candidate?.safetyRatings ?? [])
+        .filter((r) => r.probability && r.probability !== "NEGLIGIBLE")
+        .map((r) => `${r.category}=${r.probability}`),
+    });
   }
   return Buffer.from(b64, "base64");
 }
@@ -224,6 +291,31 @@ export async function POST(request: Request) {
     pngBuffer = await generateImage(wrappedPrompt);
   } catch (err) {
     console.error("[ai-generate] Gemini image generation error", err);
+
+    // REFUND THE RESERVATION (MOS-40). The quota was incremented before the
+    // call, so a failure the user did not cause has already cost them one of
+    // ten. Best-effort and deliberately swallowed: if the refund itself
+    // fails, the generation failure is still the thing worth reporting, and
+    // one uncredited unit beats a second error masking the first.
+    try {
+      await convex.mutation(api.featureQuota.refundOne, { feature: FEATURE });
+    } catch (refundErr) {
+      console.error("[ai-generate] quota refund failed", refundErr);
+    }
+
+    // A refusal is not a malfunction. It is deterministic — the same prompt
+    // and style will be refused identically — so it gets its own status and
+    // its own copy, and must never be presented as "try again".
+    if (err instanceof ProviderRefusalError) {
+      return NextResponse.json(
+        {
+          error: "provider_refused",
+          finishReason: err.finishReason ?? null,
+          blockReason: err.blockReason ?? null,
+        },
+        { status: 422 }
+      );
+    }
     return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 

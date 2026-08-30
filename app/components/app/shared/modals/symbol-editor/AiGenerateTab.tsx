@@ -76,6 +76,16 @@ export function AiGenerateTab({
         setError(t("aiQuotaExceeded"));
         return;
       }
+      // 422 = the model REFUSED this prompt+style, rather than failing
+      // (MOS-40). Deterministic: the identical request will be refused
+      // identically, so "please try again" is actively bad advice — it costs
+      // the user another attempt to learn nothing. Different copy, telling
+      // them to change the wording instead. The quota is refunded server-side
+      // either way, so a refusal no longer consumes one of the ten.
+      if (res.status === 422) {
+        setError(t("aiGenerationRefused"));
+        return;
+      }
       if (!res.ok) {
         setError(t("aiGenerationError"));
         return;

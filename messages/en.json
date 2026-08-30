@@ -875,6 +875,7 @@
     "aiDiscardChanges": "Discard",
     "aiGenerationsLeft": "{count} generations left today",
     "aiGenerationError": "Generation failed. Please try again.",
+    "aiGenerationRefused": "The image service wouldn't create this one. Try describing it differently — this attempt hasn't used up any of your daily generations.",
     "aiQuotaExceeded": "Daily generation limit reached. Try again tomorrow.",
     "aiUpsellTitle": "Upgrade to Max",
     "aiUpsellBody": "AI image generation is included with the Max plan — describe any symbol and pick a style.",

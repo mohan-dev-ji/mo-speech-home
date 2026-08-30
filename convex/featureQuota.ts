@@ -71,3 +71,43 @@ export const checkAndIncrement = mutation({
     return { used: next, remaining: args.limit - next, limit: args.limit };
   },
 });
+
+/**
+ * Give back one unit of today's quota (MOS-40).
+ *
+ * `checkAndIncrement` RESERVES before the provider is called, which is the
+ * right shape — incrementing afterwards would let concurrent requests both
+ * pass the check and exceed the limit. The cost of reserving is that a failed
+ * attempt has already been charged, so the failure path has to hand it back.
+ *
+ * Before this existed, a Gemini refusal still cost a generation: a user on
+ * 10/day could spend the entire allowance on a style that could never
+ * succeed, which is arguably worse than the failure itself.
+ *
+ * Floors at 0 and never creates a row: refunding into a day with no usage
+ * would be refunding something that was never spent. Callers must invoke it
+ * at most once per failed reservation — it is a compensating action for a
+ * specific increment, not an idempotent "set" — so it lives beside the
+ * failure branch that owns that increment.
+ */
+export const refundOne = mutation({
+  args: { feature: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const day = todayKey();
+    const row = await ctx.db
+      .query("featureQuota")
+      .withIndex("by_user_and_feature_and_day", (q) =>
+        q.eq("userId", identity.subject).eq("feature", args.feature).eq("day", day)
+      )
+      .unique();
+
+    if (!row || row.count <= 0) return { count: row?.count ?? 0, refunded: false };
+
+    const next = row.count - 1;
+    await ctx.db.patch(row._id, { count: next });
+    return { count: next, refunded: true };
+  },
+});
