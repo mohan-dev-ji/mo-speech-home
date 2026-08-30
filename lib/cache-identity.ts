@@ -1,3 +1,5 @@
+import { STYLE_PRESETS, isStyleId } from "./ai-style-prompts";
+
 /**
  * Cache identity — one guard, shared by both image caches (MOS-31).
  *
@@ -87,5 +89,24 @@ export const AI_IMAGE_MODEL = "gemini-2.5-flash-image";
  * misclassify the moment they drifted.
  */
 export function aiImageCacheHashInput(style: string, prompt: string): string {
-  return `${AI_IMAGE_MODEL}|${style}|${prompt.toLowerCase().trim()}`;
+  const normalised = prompt.toLowerCase().trim();
+  // THE TEMPLATE IS PART OF THE IDENTITY (MOS-46). It used to hash the RAW
+  // prompt, so the key described the ingredients but not the recipe — and the
+  // recipe is what reaches the provider. Editing a template then had no effect
+  // on anyone who had already generated that subject in that style: they kept
+  // being served the image the OLD wording produced, forever, with no way to
+  // tell. That is MOS-31's bug in a different cache.
+  //
+  // `AI_IMAGE_MODEL` above already invalidates on a model swap — the gap was
+  // specifically template edits, which are the FREQUENT change. Wrapping here
+  // closes it: any edit to a template changes every key that uses it.
+  //
+  // An unknown style (a row written before a style was renamed or removed)
+  // falls back to the bare prompt. It cannot be wrapped, and it should not
+  // silently collide with a valid style's key either — the `style` segment
+  // keeps them apart, and the sweep will report it as unreachable, which is
+  // the correct outcome for a row whose style no longer exists.
+  const preset = isStyleId(style) ? STYLE_PRESETS[style] : undefined;
+  const recipe = preset ? preset.template(normalised) : normalised;
+  return `${AI_IMAGE_MODEL}|${style}|${recipe}`;
 }
