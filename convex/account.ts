@@ -1,5 +1,70 @@
 import { mutation } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Id, DataModel } from "./_generated/dataModel";
+
+/**
+ * EVERY table that carries an `accountId`, derived from the schema rather than
+ * remembered (MOS-39).
+ *
+ * The cascade below used to be a hand-written list of tables, and it had
+ * silently forgotten three of them — `profilePhrases`, `profileFolders` and
+ * `imageCredits`. Deleting one test account left 50 dangling rows behind, and
+ * because nothing points AT an orphaned account from a table anyone iterates,
+ * nothing ever noticed. Nine account ids had accumulated that way.
+ *
+ * This is the same failure as MOS-41's four-instead-of-one delete paths and
+ * MOS-38's duplicated field shapes: a list that has to be kept in sync by
+ * memory eventually is not. So the list is now checked BY THE COMPILER.
+ *
+ * `"accountId" extends keyof Doc<K>` matches whether the field is required
+ * (`imageCredits`) or `v.optional` (most of the others, a legacy migration
+ * artefact) — `keyof` includes optional keys, and testing assignability
+ * against `{ accountId?: … }` would not work, because a table with no
+ * `accountId` at all also satisfies an optional property.
+ */
+type AccountScopedTable = {
+  [K in keyof DataModel]: "accountId" extends keyof DataModel[K]["document"]
+    ? K
+    : never;
+}[keyof DataModel];
+
+/**
+ * Every account-scoped table this cascade handles.
+ *
+ * A TYPE, not an array, because it is never iterated: these tables are reached
+ * through different indexes (`by_account_id` for most, `by_account_and_key`
+ * for `imageCredits`, two separate index paths for `accountMembers`), so the
+ * deletes below stay explicit. This exists purely so the compiler can compare
+ * it against what the schema actually declares.
+ */
+type HandledAccountTable =
+  | "accountMembers"
+  | "imageCredits"
+  | "profileCategories"
+  | "profileFolders"
+  | "profileLists"
+  | "profilePhrases"
+  | "profileSentences"
+  | "profileSymbols"
+  | "studentProfiles";
+
+/**
+ * ADD A TABLE WITH AN `accountId` AND THIS LINE FAILS TO COMPILE, naming the
+ * table you have not handled. That is the entire point — the next person does
+ * not have to know this file exists.
+ *
+ * Verified by deliberately removing `profileFolders` from the union, which
+ * produced: Type 'boolean' is not assignable to type '{ ERROR: "Add this
+ * table to cascadeDeleteAccount"; missing: "profileFolders" }'.
+ */
+type UncoveredAccountTable = Exclude<AccountScopedTable, HandledAccountTable>;
+type _EveryAccountTableIsHandled = [UncoveredAccountTable] extends [never]
+  ? true
+  : {
+      ERROR: "Add this table to cascadeDeleteAccount";
+      missing: UncoveredAccountTable;
+    };
+const _ACCOUNT_TABLE_COVERAGE: _EveryAccountTableIsHandled = true;
+void _ACCOUNT_TABLE_COVERAGE;
 
 /**
  * Cascade-delete the calling user's entire account.
@@ -82,6 +147,33 @@ export const cascadeDeleteAccount = mutation({
       .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .collect();
     for (const row of sentences) await ctx.db.delete(row._id);
+
+    const phrases = await ctx.db
+      .query("profilePhrases")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const row of phrases) await ctx.db.delete(row._id);
+
+    // Folders AFTER their contents: lists and sentences hang off `folderId`,
+    // and while Convex has no foreign keys, deleting the container first would
+    // leave a window where the children point at nothing.
+    const folders = await ctx.db
+      .query("profileFolders")
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const row of folders) await ctx.db.delete(row._id);
+
+    // The credit registry. Deleting these is correct HERE and nowhere else:
+    // the "never drop a credit" rule (see `recordImageCredit`) protects a live
+    // account's licence obligations, and an account that no longer exists has
+    // none — it displays no Credits screen and installs nothing. Leaving them
+    // is not caution, it is unreachable rows (MOS-42 covers the live-account
+    // case, which is a different question).
+    const credits = await ctx.db
+      .query("imageCredits")
+      .withIndex("by_account_and_key", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const row of credits) await ctx.db.delete(row._id);
 
     // Owner-side membership rows: every collaborator invited TO this account.
     const ownerMembers = await ctx.db

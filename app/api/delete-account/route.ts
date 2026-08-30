@@ -41,26 +41,42 @@ export async function POST() {
       await stripe.customers.del(user.subscription.stripeCustomerId);
     }
 
-    await convex.mutation(api.account.cascadeDeleteAccount, {});
+    const { profileIds } = await convex.mutation(
+      api.account.cascadeDeleteAccount,
+      {}
+    );
 
+    // BOTH personal prefixes, not just one (MOS-39). `cascadeDeleteAccount`
+    // has always returned `profileIds` precisely so this route could wipe the
+    // `profiles/<id>/` prefixes — its docblock says so — and this route has
+    // always thrown that return value away and deleted only `accounts/<id>/`.
+    // Latent so far because `profiles/` is empty (no one has set a student
+    // photo yet); it would leak the first time someone did and then deleted
+    // their account. `isPersonalAssetKey` treats both prefixes as personal —
+    // the two halves of "this account's own bytes" — so both go here.
     if (r2Client && bucketName) {
-      const Prefix = `accounts/${accountId}/`;
-      let ContinuationToken: string | undefined;
-      do {
-        const listed = await r2Client.send(
-          new ListObjectsV2Command({ Bucket: bucketName, Prefix, ContinuationToken })
-        );
-        const keys = (listed.Contents ?? []).map((o) => ({ Key: o.Key! }));
-        if (keys.length > 0) {
-          await r2Client.send(
-            new DeleteObjectsCommand({
-              Bucket: bucketName,
-              Delete: { Objects: keys, Quiet: true },
-            })
+      const prefixes = [
+        `accounts/${accountId}/`,
+        ...profileIds.map((id) => `profiles/${id}/`),
+      ];
+      for (const Prefix of prefixes) {
+        let ContinuationToken: string | undefined;
+        do {
+          const listed = await r2Client.send(
+            new ListObjectsV2Command({ Bucket: bucketName, Prefix, ContinuationToken })
           );
-        }
-        ContinuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
-      } while (ContinuationToken);
+          const keys = (listed.Contents ?? []).map((o) => ({ Key: o.Key! }));
+          if (keys.length > 0) {
+            await r2Client.send(
+              new DeleteObjectsCommand({
+                Bucket: bucketName,
+                Delete: { Objects: keys, Quiet: true },
+              })
+            );
+          }
+          ContinuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+        } while (ContinuationToken);
+      }
     }
 
     await (await clerkClient()).users.deleteUser(userId);
