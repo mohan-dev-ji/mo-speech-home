@@ -265,7 +265,24 @@ referenced. Captured as evidence inside MOS-42.
 
 ---
 
-## Then
+## Then — ✅ `library_packs/` RETIRED 2026-08-29
+
+**Done.** 19 objects → 0. The order below was the thing that mattered: the admin's installed
+`space` still held 16 `library_packs` references an hour before the purge, so purging first
+would have blanked a live board. Sequence actually run:
+
+1. scanned 11 key-bearing tables → admin's `space` had 16 refs (1 cover + 15 symbols)
+2. owner deleted + reinstalled `space` on admin → all now `library_modules`-keyed
+3. re-scanned the same 11 tables → **0 references anywhere**
+4. copied the 3 objects with no `library_modules` twin to `backups/library_packs-orphans-2026_08_29/`
+5. `rclone purge` → 19 → 0; `library_modules` 65, `accounts` 101, `symbols` 58,202 unchanged
+6. credit completeness: **`deferred: 32 → 0`**
+7. live render of `/en/library/modules/categories/space`: 17 images, 0 broken, 0 `library_packs` URLs
+
+The 3 twinless objects were unreferenced pack-era orphans from 2026-05-17 — filed on MOS-44 as
+the earliest known evidence that edit-time orphaning is three months old, not new.
+
+### Original notes (kept for the reasoning)
 
 `library_packs/` retirement — backfill `space`, re-publish onto `library_modules/`, **reinstall
 so installed copies repoint**, and only then purge the prefix.
