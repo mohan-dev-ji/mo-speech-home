@@ -13,12 +13,29 @@ import { track } from "@/lib/analytics";
 
 export type ModuleTree = "categories" | "lists" | "sentences";
 
-// Same tier-tint convention as LoadPackButton — colour reinforces what the
-// user unlocks. References the raw `:root` colour variables directly.
+// Tier tint — colour reinforces what the user unlocks. References the raw
+// `:root` colour variables directly.
+//
+// EACH TIER OWNS ITS INK AS WELL AS ITS FILL. `Button variant="primary"` is a
+// whitish fill with DARK (`--theme-button-secondary`, #52525C) text; overriding
+// only the background left that dark text sitting on whatever colour the tier
+// supplied. On `pro` (indigo-600) that measured **1.24:1** — illegible, and
+// reported from the live library page.
+//
+// The fix is per tier rather than "make it all white", because the contrast
+// runs the other way on the light fills:
+//
+//            fill          #52525C ink   white ink
+//   free     green-500        3.44:1       2.26:1
+//   pro      indigo-600       1.24:1  ✗    6.24:1  ✓
+//   max      amber-500        3.61:1       2.15:1
+//
+// So `pro` flips to the light ink and the two light fills keep the dark ink —
+// blanket-whitening would have fixed one button and broken two.
 const TIER_BG_STYLE: Record<"free" | "pro" | "max", React.CSSProperties> = {
-  free: { backgroundColor: "rgb(var(--success))" },
-  pro: { backgroundColor: "rgb(var(--primary))" },
-  max: { backgroundColor: "rgb(var(--warning))" },
+  free: { backgroundColor: "rgb(var(--success))", color: "var(--theme-button-secondary)" },
+  pro:  { backgroundColor: "rgb(var(--primary))", color: "var(--theme-button-primary)" },
+  max:  { backgroundColor: "rgb(var(--warning))", color: "var(--theme-button-secondary)" },
 };
 
 // Per-tree wiring: install mutation, installed-slugs query, and the tree page
