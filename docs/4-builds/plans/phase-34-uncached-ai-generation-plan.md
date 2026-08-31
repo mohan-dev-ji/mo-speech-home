@@ -697,8 +697,8 @@ Replace the body of `handleAddToSymbol` with:
   async function handleAddToSymbol() {
     if (!current) return;
     // Already a 512px webp — resized on arrival, so there is nothing to do
-    // here but hand it over.
-    onImageSelected(current.blob, current.url);
+    // to the blob but hand it over.
+    onImageSelected(current.blob, URL.createObjectURL(current.blob));
     const trimmedPrompt = prompt.trim();
     patch({
       resolvedImagePath: undefined,
@@ -711,6 +711,8 @@ Replace the body of `handleAddToSymbol` with:
     });
   }
 ```
+
+The parent (`SymbolEditorModal.handleImageSelected`) takes ownership of whatever url it is handed and revokes it on the modal's own unmount, so this mints a fresh url for the handoff rather than sharing the reel's own — otherwise the reel's later revokes (discard, overflow, unmount) would blank the adopted preview.
 
 Delete the now-unused `toResizedWebp` call site there — the import stays, it is used in Step 3.
 
@@ -833,7 +835,7 @@ Add the import:
 import { track } from "@/lib/analytics";
 ```
 
-In `handleAddToSymbol`, immediately after `onImageSelected(current.blob, current.url);`:
+In `handleAddToSymbol`, immediately after `onImageSelected(current.blob, URL.createObjectURL(current.blob));`:
 
 ```ts
     // Never the prompt — it is user content and, in an AAC app, is frequently

@@ -127,9 +127,10 @@ export function AiGenerateTab({
       const raw = await res.blob();
       const blob = await toResizedWebp(raw);
       const url = URL.createObjectURL(blob);
-      // Computed here rather than inside a setState updater: revoking a URL
-      // is a side effect and React 19 double-invokes updaters in StrictMode.
-      // Safe against races because `isGenerating` serialises generation.
+      // Computed here rather than inside a setState updater: revoking a url is
+      // a side effect and React 19 double-invokes updaters in StrictMode. Safe
+      // to read `reel` from this closure because the two controls that mutate
+      // it — Discard and Add to symbol — are disabled while `isGenerating`.
       const next = [...reel, { blob, url }];
       if (next.length > REEL_MAX) {
         URL.revokeObjectURL(next[0].url);
@@ -148,8 +149,14 @@ export function AiGenerateTab({
   async function handleAddToSymbol() {
     if (!current) return;
     // Already a 512px webp — resized on arrival, so there is nothing to do
-    // here but hand it over.
-    onImageSelected(current.blob, current.url);
+    // to the blob but hand it over.
+    // Hand the parent its OWN url. The modal takes ownership of whatever it is
+    // given (SymbolEditorModal.handleImageSelected stores it and revokes it on
+    // the modal's unmount), while this tab's reel keeps revoking its own urls on
+    // discard, overflow and unmount. Sharing one url between the two owners means
+    // whichever revokes first blanks the other's preview. UploadTab and ImagesTab
+    // mint a fresh url for the same reason.
+    onImageSelected(current.blob, URL.createObjectURL(current.blob));
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated
     // for. Decoupled afterwards: editing the label doesn't echo back.
@@ -313,11 +320,13 @@ export function AiGenerateTab({
             <button
               type="button"
               onClick={handleDiscard}
+              disabled={isGenerating}
               className="flex-1 py-2 rounded-theme-sm text-theme-s font-semibold"
               style={{
                 background: "var(--theme-symbol-bg)",
                 color: "var(--theme-secondary-text)",
                 border: "1px solid var(--theme-button-highlight)",
+                opacity: isGenerating ? 0.5 : 1,
               }}
             >
               {t("aiDiscardChanges")}
@@ -325,11 +334,12 @@ export function AiGenerateTab({
             <button
               type="button"
               onClick={handleAddToSymbol}
+              disabled={isGenerating}
               className="flex-1 py-2 rounded-theme-sm text-theme-s font-semibold"
               style={{
                 background: "var(--theme-brand-primary)",
                 color: "var(--theme-alt-text)",
-                opacity: 1,
+                opacity: isGenerating ? 0.5 : 1,
               }}
             >
               {t("aiAddToSymbol")}
