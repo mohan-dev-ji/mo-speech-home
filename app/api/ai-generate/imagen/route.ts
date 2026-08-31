@@ -2,13 +2,12 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleAuth } from "google-auth-library";
-import { createHash, randomUUID } from "crypto";
 import { api } from "@/convex/_generated/api";
-import { uploadBuffer, getFile, isConfigured } from "@/lib/r2-storage";
-import { R2_PATHS } from "@/lib/r2-paths";
-import { STYLE_PRESETS, isStyleId, type StyleId } from "@/lib/ai-style-prompts";
-import { AI_IMAGE_MODEL, aiImageCacheHashInput } from "@/lib/cache-identity";
+import { isConfigured } from "@/lib/r2-storage";
+import { STYLE_PRESETS, isStyleId } from "@/lib/ai-style-prompts";
+import { AI_IMAGE_MODEL } from "@/lib/cache-identity";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
+import { resolveAiImageLimits } from "@/lib/ai-image-limits";
 
 export const dynamic = "force-dynamic";
 // Gemini image generation calls take ~5–10s; bump from the default 10s.
@@ -51,27 +50,6 @@ export class ProviderRefusalError extends Error {
   }
 }
 
-/**
- * Per-user daily generation cap. Defaults to 10; override with
- * `AI_IMAGE_DAILY_LIMIT` for admin authoring sessions, where a single content
- * module is 12 symbols and so cannot be authored in a day at the default.
- *
- * Parsed defensively: a malformed value must not become NaN, because the
- * quota check is `current >= limit` and `x >= NaN` is always false — a typo
- * would silently grant unlimited generations rather than failing closed.
- */
-const DAILY_LIMIT = (() => {
-  const raw = process.env.AI_IMAGE_DAILY_LIMIT;
-  if (!raw) return 10;
-  const n = Number(raw);
-  if (!Number.isSafeInteger(n) || n < 1) {
-    console.warn(
-      `[ai-generate] ignoring invalid AI_IMAGE_DAILY_LIMIT=${raw}; using 10`
-    );
-    return 10;
-  }
-  return n;
-})();
 const MAX_PROMPT_LENGTH = 500;
 
 // The model id — and therefore this cache's identity — now lives in
@@ -171,23 +149,16 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
   return Buffer.from(b64, "base64");
 }
 
-/**
- * The cache key. The pre-digest string comes from `aiImageCacheHashInput` (the
- * single source of truth for the recipe) so the orphan sweep can re-derive the
- * key a stored row would have today and spot the ones that are unreachable.
- */
-function hashPromptStyleModel(style: StyleId, prompt: string): string {
-  return createHash("sha256").update(aiImageCacheHashInput(style, prompt)).digest("hex");
-}
-
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 /**
  * POST /api/ai-generate/imagen
  * Body: { prompt: string, style: StyleId }
  *
- * Pipeline: auth → Max-tier check → cache lookup (free) → quota increment
- * (only on miss) → Gemini image call → R2 upload → cache write → return.
+ * Pipeline: auth → Max-tier check → both quota meters reserved → Gemini image
+ * call → PNG bytes returned inline. No cache, no R2 write — see ADR-023.
+ * Every call is a live generation, which is what makes re-generating give a
+ * different image.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {
@@ -220,6 +191,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid style" }, { status: 400 });
   }
   const style = body.style;
+  const limits = resolveAiImageLimits();
 
   const token = await getToken({ template: "convex" });
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -240,44 +212,34 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Cache lookup (free; doesn't decrement quota) ─────────────────────────
-  const hash = hashPromptStyleModel(style, rawPrompt);
-  const cached = await convex.query(api.imageCache.lookupAi, { hash });
-  if (cached) {
-    await convex.mutation(api.imageCache.recordAiHit, { hash });
-    const remaining = await convex.query(api.featureQuota.getRemaining, {
-      feature: FEATURE,
-      limit: DAILY_LIMIT,
-    });
-    const file = await getFile(cached.r2Key);
-    const ab = file.buffer.buffer.slice(
-      file.buffer.byteOffset,
-      file.buffer.byteOffset + file.buffer.byteLength
-    ) as ArrayBuffer;
-    return new Response(new Blob([ab]), {
-      status: 200,
-      headers: {
-        "Content-Type": file.contentType || "image/png",
-        "Cache-Control": "no-store",
-        "X-R2-Key": cached.r2Key,
-        "X-Cache": "hit",
-        "X-Remaining": String(remaining?.remaining ?? ""),
-      },
-    });
-  }
-
-  // ── Quota check + increment (only counts a live Gemini image call) ───────
-  let remaining: number;
+  // ── Quota: both meters, one transaction (ADR-023) ────────────────────────
+  // Reserved BEFORE the provider call. Incrementing afterwards would let two
+  // concurrent requests both pass the check and exceed the limit. The cost of
+  // reserving is that a failure has already been charged — hence the refund on
+  // every failure path below.
+  let dailyRemaining: number;
+  let monthlyRemaining: number;
   try {
-    const incr = await convex.mutation(api.featureQuota.checkAndIncrement, {
+    const incr = await convex.mutation(api.featureQuota.checkAndIncrementDual, {
       feature: FEATURE,
-      limit: DAILY_LIMIT,
+      dailyLimit: limits.daily,
+      monthlyLimit: limits.monthly,
     });
-    remaining = incr.remaining;
+    dailyRemaining = incr.dailyRemaining;
+    monthlyRemaining = incr.monthlyRemaining;
   } catch (err) {
     if (err instanceof Error && err.message.includes("QuotaExceeded")) {
+      // Which ceiling bit decides the copy: "back tomorrow" and "back on the
+      // 1st" are very different things to be told.
+      const meter = err.message.endsWith(":month") ? "month" : "day";
+      trackServer(userId, "ai_generate_quota_blocked", { meter, tier: "max" });
+      await flushAnalytics();
       return NextResponse.json(
-        { error: "quota_exceeded", limit: DAILY_LIMIT },
+        {
+          error: "quota_exceeded",
+          meter,
+          limit: meter === "month" ? limits.monthly : limits.daily,
+        },
         { status: 429 }
       );
     }
@@ -312,7 +274,7 @@ export async function POST(request: Request) {
     // fails, the generation failure is still the thing worth reporting, and
     // one uncredited unit beats a second error masking the first.
     try {
-      await convex.mutation(api.featureQuota.refundOne, { feature: FEATURE });
+      await convex.mutation(api.featureQuota.refundOneDual, { feature: FEATURE });
     } catch (refundErr) {
       console.error("[ai-generate] quota refund failed", refundErr);
     }
@@ -333,24 +295,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 
-  // ── Upload + cache ───────────────────────────────────────────────────────
-  const r2Key = R2_PATHS.aiCache(randomUUID());
-  await uploadBuffer(r2Key, pngBuffer, "image/png");
-  await convex.mutation(api.imageCache.writeAi, {
-    hash,
-    prompt: rawPrompt,
-    style,
-    r2Key,
-    model: IMAGE_MODEL,
-  });
-
-  // Product analytics: cache-miss = real usage signal. See plan §7.4.
-  // The prompt text is intentionally NOT included in the payload — privacy
-  // hard rule. Style is fine: it's a fixed enum, not user content.
+  // ── Return ───────────────────────────────────────────────────────────────
+  // NO R2 WRITE. The upload existed only to populate `aiImageCache`; with the
+  // cache gone (ADR-023) nothing reads the object, and `X-R2-Key` was never
+  // read by any caller. The image reaches R2 only if the user adopts it, at
+  // which point SymbolEditorModal uploads a resized webp under
+  // accounts/<accountId>/images/.
   trackServer(userId, "ai_generate_used", {
     tier: "max",
-    cached: false,
     style,
+    dailyRemaining,
+    monthlyRemaining,
   });
   await flushAnalytics();
 
@@ -363,9 +318,8 @@ export async function POST(request: Request) {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "no-store",
-      "X-R2-Key": r2Key,
-      "X-Cache": "miss",
-      "X-Remaining": String(remaining),
+      "X-Daily-Remaining": String(dailyRemaining),
+      "X-Monthly-Remaining": String(monthlyRemaining),
     },
   });
 }
