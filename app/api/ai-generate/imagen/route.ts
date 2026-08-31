@@ -52,12 +52,12 @@ export class ProviderRefusalError extends Error {
 
 const MAX_PROMPT_LENGTH = 500;
 
-// The model id — and therefore this cache's identity — now lives in
-// lib/cache-identity.ts alongside the image-search cache version, because a
-// model swap IS a cache invalidation (MOS-31): it is part of the aiImageCache
-// key, so changing it makes every Imagen-era row unreachable. Read that file's
-// bump procedure before changing it. Aliased locally so the request code below
-// reads the same as before.
+// The Gemini image model id, aliased locally so the request code below reads
+// `IMAGE_MODEL`. It still lives in lib/cache-identity.ts for historical
+// reasons — it used to double as the AI image cache's identity — and moves
+// next to the style templates it was verified against once that cache is
+// removed (ADR-023). Changing it means re-verifying all four style templates
+// (MOS-40) and regenerating the style thumbnails.
 const IMAGE_MODEL = AI_IMAGE_MODEL;
 
 // ─── Gemini image generation (Vertex AI REST) ────────────────────────────────
