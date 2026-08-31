@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { Sparkles, Lock, AlertCircle, X } from "lucide-react";
@@ -9,9 +9,12 @@ import { useAppState } from "@/app/contexts/AppStateProvider";
 import { STYLE_PRESETS, STYLE_IDS, type StyleId } from "@/lib/ai-style-prompts";
 import type { Draft } from "./types";
 import { toResizedWebp } from "./resizeImage";
+import {
+  AI_IMAGE_DAILY_LIMIT_DEFAULT,
+  AI_IMAGE_MONTHLY_LIMIT_DEFAULT,
+} from "@/lib/ai-image-limits";
 
 const FEATURE = "aiImageGenerate";
-const DAILY_LIMIT = 10;
 
 type Props = {
   draft: Draft;
@@ -44,20 +47,40 @@ export function AiGenerateTab({
   const prompt = searchQuery;
   const setPrompt = setSearchQuery;
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // THE SESSION REEL (ADR-023). With no server-side cache, an image that is
+  // dropped is gone for good — so everything generated this session stays in
+  // memory until the modal closes. Blobs are already resized to the 512px
+  // webp on arrival, so ten of them cost ~200KB, not ~9MB.
+  const REEL_MAX = 10;
+  const [reel, setReel] = useState<{ blob: Blob; url: string }[]>([]);
+  const [reelIndex, setReelIndex] = useState(0);
+  const current = reel[reelIndex] ?? null;
   const [error, setError] = useState<string | null>(null);
 
-  // Free the object URL when the preview changes or the tab unmounts.
+  // A ref mirroring the reel, so unmount cleanup can revoke every URL without
+  // reading a stale closure and without setting state during unmount.
+  const reelRef = useRef<{ blob: Blob; url: string }[]>([]);
+  useEffect(() => {
+    reelRef.current = reel;
+  }, [reel]);
+
+  // Revoke on unmount ONLY — the empty dependency array is deliberate.
+  // Revoking on each reel change would kill URLs the reel is still showing.
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      reelRef.current.forEach((e) => URL.revokeObjectURL(e.url));
     };
-  }, [previewUrl]);
+  }, []);
 
-  const remaining = useQuery(
-    api.featureQuota.getRemaining,
-    isMax ? { feature: FEATURE, limit: DAILY_LIMIT } : "skip"
+  const quota = useQuery(
+    api.featureQuota.getRemainingDual,
+    isMax
+      ? {
+          feature: FEATURE,
+          dailyLimit: AI_IMAGE_DAILY_LIMIT_DEFAULT,
+          monthlyLimit: AI_IMAGE_MONTHLY_LIMIT_DEFAULT,
+        }
+      : "skip"
   );
 
   // ── Generate ─────────────────────────────────────────────────────────────
@@ -73,7 +96,14 @@ export function AiGenerateTab({
         body: JSON.stringify({ prompt: trimmed, style }),
       });
       if (res.status === 429) {
-        setError(t("aiQuotaExceeded"));
+        const body = (await res.json().catch(() => null)) as
+          | { meter?: "day" | "month"; limit?: number }
+          | null;
+        setError(
+          body?.meter === "month"
+            ? t("aiQuotaExceededMonth", { limit: body.limit ?? AI_IMAGE_MONTHLY_LIMIT_DEFAULT })
+            : t("aiQuotaExceeded", { limit: body?.limit ?? AI_IMAGE_DAILY_LIMIT_DEFAULT })
+        );
         return;
       }
       // 422 = the model REFUSED this prompt+style, rather than failing
@@ -91,13 +121,22 @@ export function AiGenerateTab({
         return;
       }
       // Server returns the PNG bytes inline (avoids cross-origin R2 fetch).
-      const blob = await res.blob();
+      // Resize HERE, not at adoption. The preview is then the exact artefact
+      // that gets saved — no surprise on save — and the reel holds ~20KB
+      // webps instead of ~880KB PNGs.
+      const raw = await res.blob();
+      const blob = await toResizedWebp(raw);
       const url = URL.createObjectURL(blob);
-      setGeneratedBlob(blob);
-      setPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return url;
-      });
+      // Computed here rather than inside a setState updater: revoking a URL
+      // is a side effect and React 19 double-invokes updaters in StrictMode.
+      // Safe against races because `isGenerating` serialises generation.
+      const next = [...reel, { blob, url }];
+      if (next.length > REEL_MAX) {
+        URL.revokeObjectURL(next[0].url);
+        next.shift();
+      }
+      setReel(next);
+      setReelIndex(next.length - 1);
     } catch {
       setError(t("aiGenerationError"));
     } finally {
@@ -105,23 +144,12 @@ export function AiGenerateTab({
     }
   }
 
-  // ── Add to Symbol — resize the generated blob, then hand it to the modal ──
+  // ── Add to Symbol — hand the already-resized reel entry to the modal ─────
   async function handleAddToSymbol() {
-    if (!generatedBlob || !previewUrl) return;
-    // Gemini returns a 1024x1024 PNG (~880KB); resize it down to the same
-    // 512px-max webp all three image sources now produce.
-    let resizedBlob: Blob;
-    let resizedPreviewUrl: string;
-    try {
-      resizedBlob = await toResizedWebp(generatedBlob);
-      resizedPreviewUrl = URL.createObjectURL(resizedBlob);
-    } catch {
-      setError(t("aiGenerationError"));
-      return;
-    }
-    URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(resizedPreviewUrl);
-    onImageSelected(resizedBlob, resizedPreviewUrl);
+    if (!current) return;
+    // Already a 512px webp — resized on arrival, so there is nothing to do
+    // here but hand it over.
+    onImageSelected(current.blob, current.url);
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated
     // for. Decoupled afterwards: editing the label doesn't echo back.
@@ -138,11 +166,15 @@ export function AiGenerateTab({
     });
   }
 
+  // Steps back rather than binning everything: the previous image was paid
+  // for and cannot be regenerated identically.
   function handleDiscard() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setGeneratedBlob(null);
-    setPreviewUrl(null);
     setError(null);
+    if (reel.length === 0) return;
+    const next = reel.filter((_, i) => i !== reelIndex);
+    URL.revokeObjectURL(reel[reelIndex].url);
+    setReel(next);
+    setReelIndex(Math.max(0, Math.min(reelIndex, next.length - 1)));
   }
 
   // ── Tier gate ────────────────────────────────────────────────────────────
@@ -173,10 +205,10 @@ export function AiGenerateTab({
     <div className="flex flex-col h-full">
       {/* Preview */}
       <div className="flex-1 flex items-center justify-center p-4 min-h-0">
-        {previewUrl ? (
+        {current ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={previewUrl}
+            src={current.url}
             alt={prompt}
             className="max-w-full max-h-full object-contain rounded-theme bg-white"
             style={{ border: "1px solid var(--theme-button-highlight)" }}
@@ -276,7 +308,7 @@ export function AiGenerateTab({
           />
         </div>
 
-        {generatedBlob ? (
+        {current ? (
           <div className="flex gap-2">
             <button
               type="button"
@@ -321,7 +353,7 @@ export function AiGenerateTab({
       </div>
 
       {/* Quota footer */}
-      {remaining && (
+      {quota && (
         <div
           className="shrink-0 px-3 py-2 text-theme-xs text-center"
           style={{
@@ -329,7 +361,10 @@ export function AiGenerateTab({
             borderTop: "1px solid var(--theme-button-highlight)",
           }}
         >
-          {t("aiGenerationsLeft", { count: remaining.remaining })}
+          {t("aiGenerationsLeft", {
+            daily: quota.daily.remaining,
+            monthly: quota.monthly.remaining,
+          })}
         </div>
       )}
     </div>
