@@ -1398,14 +1398,19 @@ export default defineSchema({
   }).index("by_account_and_key", ["accountId", "imageKey"]),
 
   /**
-   * Per-user per-day quota counters for metered features.
-   * Day key is YYYY-MM-DD UTC. One row per (userId, feature, day).
-   * Shared infra — image search uses 'imageSearch'; AI gen will use 'aiImageGenerate'.
+   * Per-user quota counters for metered features.
+   *
+   * `day` IS A PERIOD KEY, not always a day (ADR-023). Single-meter features
+   * (image search) write only 'YYYY-MM-DD' rows. AI generation runs two
+   * meters and writes both a 'YYYY-MM-DD' row and a 'YYYY-MM' row; the two
+   * shapes cannot collide, so one index serves both.
+   *
+   * Shared infra — image search uses 'imageSearch'; AI gen uses 'aiImageGenerate'.
    */
   featureQuota: defineTable({
     userId: v.string(),  // clerk user id (identity.subject)
     feature: v.string(), // e.g. 'imageSearch'
-    day: v.string(),     // 'YYYY-MM-DD' UTC
+    day: v.string(),     // period key: 'YYYY-MM-DD' or 'YYYY-MM', both UTC
     count: v.number(),
   }).index("by_user_and_feature_and_day", ["userId", "feature", "day"]),
 
