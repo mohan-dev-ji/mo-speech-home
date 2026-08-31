@@ -78,6 +78,12 @@ export function AiGenerateTab({
   // values. `styleRef` exists for the same reason.
   const adoptedRef = useRef(false);
   const styleRef = useRef(style);
+  // Monotonic count of successful generations this session. Deliberately NOT
+  // `reel.length`: the reel shrinks on Discard and caps at REEL_MAX, so its
+  // length measures what survived, not what was spent. This number is what
+  // retunes the 20/day + 100/month allowance (FEAT-008 §6), and an undercount
+  // would bias it low for exactly the heavy re-rollers it exists to measure.
+  const attemptsRef = useRef(0);
   useEffect(() => {
     styleRef.current = style;
   }, [style]);
@@ -86,7 +92,7 @@ export function AiGenerateTab({
       if (!adoptedRef.current && reelRef.current.length > 0) {
         track("ai_generate_abandoned", {
           style: styleRef.current,
-          attempts: reelRef.current.length,
+          attempts: attemptsRef.current,
         });
       }
     };
@@ -156,6 +162,7 @@ export function AiGenerateTab({
         URL.revokeObjectURL(next[0].url);
         next.shift();
       }
+      attemptsRef.current += 1;
       setReel(next);
       setReelIndex(next.length - 1);
     } catch {
@@ -179,7 +186,7 @@ export function AiGenerateTab({
     onImageSelected(current.blob, URL.createObjectURL(current.blob));
     // Never the prompt — it is user content and, in an AAC app, is frequently
     // about a specific child. Style is a fixed enum and safe.
-    track("ai_generate_adopted", { style, attempts: reel.length });
+    track("ai_generate_adopted", { style, attempts: attemptsRef.current });
     adoptedRef.current = true;
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated

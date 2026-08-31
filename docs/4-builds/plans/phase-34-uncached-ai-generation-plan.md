@@ -840,7 +840,7 @@ In `handleAddToSymbol`, immediately after `onImageSelected(current.blob, URL.cre
 ```ts
     // Never the prompt — it is user content and, in an AAC app, is frequently
     // about a specific child. Style is a fixed enum and safe.
-    track("ai_generate_adopted", { style, attempts: reel.length });
+    track("ai_generate_adopted", { style, attempts: attemptsRef.current });
 ```
 
 Add an unmount effect that reports abandonment. It must read the live values, not a stale closure:
@@ -851,6 +851,11 @@ Add an unmount effect that reports abandonment. It must read the live values, no
   // values. `styleRef` exists for the same reason.
   const adoptedRef = useRef(false);
   const styleRef = useRef(style);
+  // Monotonic count of successful generations this session. Deliberately NOT
+  // `reel.length`: the reel shrinks on Discard and caps at REEL_MAX, so its
+  // length measures what survived, not what was spent — a monotonic counter
+  // is what actually answers "how many attempts before this was kept?".
+  const attemptsRef = useRef(0);
   useEffect(() => {
     styleRef.current = style;
   }, [style]);
@@ -859,12 +864,14 @@ Add an unmount effect that reports abandonment. It must read the live values, no
       if (!adoptedRef.current && reelRef.current.length > 0) {
         track("ai_generate_abandoned", {
           style: styleRef.current,
-          attempts: reelRef.current.length,
+          attempts: attemptsRef.current,
         });
       }
     };
   }, []);
 ```
+
+In `handleGenerate`, increment `attemptsRef.current += 1;` once per successful generation — at the point the resized blob is committed to the reel, not on refusal (422) or error, since those are refunded and produce no image to choose from.
 
 Set `adoptedRef.current = true;` in `handleAddToSymbol` beside the `track` call. `useRef` is already imported by Task 4.
 
