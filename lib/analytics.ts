@@ -79,7 +79,21 @@ type EventMap = {
     cached: boolean;
     results_count: number;
   };
-  ai_generate_used:        { tier: SubscriptionTier; cached: boolean };
+  // `cached` is gone with the shared cache (ADR-023) — it would be false
+  // forever. `attempts` is the number these events exist for: the cache made
+  // attempts-per-kept-image unmeasurable, and it is what tells us whether
+  // 100/month is the right allowance (FEAT-008 §6).
+  ai_generate_used:        {
+    tier: SubscriptionTier;
+    style: string;
+    dailyRemaining: number;
+    monthlyRemaining: number;
+  };
+  ai_generate_adopted:     { style: string; attempts: number };
+  ai_generate_abandoned:   { style: string; attempts: number };
+  // Server-fired via trackServer (which is untyped) — catalogued here because
+  // this file is the catalogue, same as ai_generate_used.
+  ai_generate_quota_blocked: { meter: "day" | "month"; tier: SubscriptionTier };
 
   // Pricing + revenue intent (client-side; outcome events fire server-side)
   viewed_pricing:          { source: "nav" | "upgrade_nudge" | "settings" };

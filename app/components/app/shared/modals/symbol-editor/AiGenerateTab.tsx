@@ -13,6 +13,7 @@ import {
   AI_IMAGE_DAILY_LIMIT_DEFAULT,
   AI_IMAGE_MONTHLY_LIMIT_DEFAULT,
 } from "@/lib/ai-image-limits";
+import { track } from "@/lib/analytics";
 
 const FEATURE = "aiImageGenerate";
 
@@ -69,6 +70,25 @@ export function AiGenerateTab({
   useEffect(() => {
     return () => {
       reelRef.current.forEach((e) => URL.revokeObjectURL(e.url));
+    };
+  }, []);
+
+  // Wasted spend: the tab closed having kept nothing. Reuses `reelRef` from
+  // Task 4 — an unmount cleanup would otherwise read the first render's
+  // values. `styleRef` exists for the same reason.
+  const adoptedRef = useRef(false);
+  const styleRef = useRef(style);
+  useEffect(() => {
+    styleRef.current = style;
+  }, [style]);
+  useEffect(() => {
+    return () => {
+      if (!adoptedRef.current && reelRef.current.length > 0) {
+        track("ai_generate_abandoned", {
+          style: styleRef.current,
+          attempts: reelRef.current.length,
+        });
+      }
     };
   }, []);
 
@@ -157,6 +177,10 @@ export function AiGenerateTab({
     // whichever revokes first blanks the other's preview. UploadTab and ImagesTab
     // mint a fresh url for the same reason.
     onImageSelected(current.blob, URL.createObjectURL(current.blob));
+    // Never the prompt — it is user content and, in an AAC app, is frequently
+    // about a specific child. Style is a fixed enum and safe.
+    track("ai_generate_adopted", { style, attempts: reel.length });
+    adoptedRef.current = true;
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated
     // for. Decoupled afterwards: editing the label doesn't echo back.
