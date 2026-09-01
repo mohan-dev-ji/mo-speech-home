@@ -229,7 +229,9 @@ export async function POST(request: Request) {
     if (err instanceof Error && err.message.includes("QuotaExceeded")) {
       // Which ceiling bit decides the copy: "back tomorrow" and "back on the
       // 1st" are very different things to be told.
-      const meter = err.message.endsWith(":month") ? "month" : "day";
+      // Convex decorates a thrown Error with "Uncaught Error: " and a stack
+      // frame, so the message never ENDS with the suffix — match inside it.
+      const meter = err.message.includes("QuotaExceeded:month") ? "month" : "day";
       trackServer(userId, "ai_generate_quota_blocked", { meter, tier: "max" });
       await flushAnalytics();
       return NextResponse.json(

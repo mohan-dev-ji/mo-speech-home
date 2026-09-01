@@ -1287,7 +1287,13 @@ export function SymbolEditorModal({
                 setSearchQuery={setSearchQuery}
               />
             )}
-            {draft.imageSourceTab === 'ai-generate' && (
+            {/* Kept mounted for the modal's lifetime (never conditionally
+                rendered): AiGenerateTab holds the session reel in its own
+                state, and unmounting it revokes every reel url and drops
+                paid-for images on a tab click. Hidden via display instead,
+                so its unmount — and the abandonment tracking / url cleanup
+                that fires on unmount — coincides with the modal closing. */}
+            <div className={draft.imageSourceTab === 'ai-generate' ? 'h-full' : 'hidden'}>
               <AiGenerateTab
                 draft={draft}
                 patch={patch}
@@ -1295,7 +1301,7 @@ export function SymbolEditorModal({
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />
-            )}
+            </div>
           </div>
         </div>
 
