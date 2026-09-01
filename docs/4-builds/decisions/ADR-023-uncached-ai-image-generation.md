@@ -80,4 +80,4 @@ A per-account variant list (privacy fixed, modest win) was also considered and r
 
 **Falsified by this ADR**
 
-`getProfileSymbolDeleteOrphanKeys` (`convex/profileSymbols.ts`) and `getCategoryReloadOrphanKeys` (`convex/profileCategories.ts`) both skip `aiGenerated` images on the stated grounds that they "live in shared `ai-cache/`". That has been untrue since adoption started re-uploading to `accounts/<id>/images/<uuid>.webp` (Phase 29), and after this ADR there is no shared object at all. Every deleted AI symbol therefore strands its image. Tracked separately — it is a pre-existing orphan bug, not one this change introduces.
+`getProfileSymbolDeleteOrphanKeys` (`convex/profileSymbols.ts`) and `getCategoryReloadOrphanKeys` (`convex/profileCategories.ts`) both skip `aiGenerated` images on the stated grounds that they "live in shared `ai-cache/`". That has been untrue since adoption started re-uploading to `accounts/<id>/images/<uuid>.webp` (Phase 29), and after this ADR there is no shared object at all. Every deleted AI symbol therefore strands its image. Tracked separately as **MOS-50** — it is a pre-existing orphan bug, not one this change introduces.

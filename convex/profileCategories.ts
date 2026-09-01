@@ -542,11 +542,13 @@ export const deleteCategory = mutation({
  * a category's symbols, so an orchestrating API route can delete them after a
  * destructive category operation.
  *
- * Excludes shared caches: ai-cache/ (aiGenerated images) and audio/<voice>/tts/
- * (TTS cache) are reusable across users and never deleted on reload. Also
- * excludes `library_modules/…`: a symbol installed from a published module
- * can carry an image or a `recorded` audio entry that still points at that
- * shared object, which is not this account's to delete.
+ * Excludes aiGenerated images and audio/<voice>/tts/ (TTS cache) — the latter
+ * is genuinely shared and reused across users. aiGenerated is NOT: an adopted
+ * AI image lives under accounts/…, so excluding it here strands it on
+ * reload. Tracked as MOS-50, see ADR-023. Also excludes `library_modules/…`:
+ * a symbol installed from a published module can carry an image or a
+ * `recorded` audio entry that still points at that shared object, which is
+ * not this account's to delete.
  *
  * Auth-checked. Returns an empty array if the caller doesn't own the category
  * or it isn't from the library — silent empty rather than a throw, since the
@@ -572,7 +574,9 @@ export const getCategoryReloadOrphanKeys = query({
     const keys: string[] = [];
     for (const s of symbols) {
       // Image: delete only uploaded or image-search (under accounts/ or profiles/).
-      // Skip symbolstix (no separate path) and aiGenerated (shared ai-cache/).
+      // Skip symbolstix (no separate path) and aiGenerated — an adopted AI
+      // image lives under accounts/…, not shared ai-cache/, so skipping it
+      // here strands it. Tracked as MOS-50, see ADR-023.
       if (
         s.imageSource.type === "userUpload" ||
         s.imageSource.type === "imageSearch"

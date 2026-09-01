@@ -50,7 +50,9 @@ export const R2_PATHS = {
   profileAudio: (profileId: string, uuid: string, ext = "mp3") =>
     `profiles/${profileId}/audio/${uuid}.${ext}`,
 
-  // Global AI image cache — shared across all users, never deleted on profile delete.
-  // PNG because we accept Imagen's native output (no sharp resize).
+  // Legacy prefix from before ADR-023 removed the shared AI image cache.
+  // Nothing writes here any more; the objects underneath are deliberately
+  // retained and must never be deleted — some legacy profileSymbols rows may
+  // still reference them.
   aiCache: (uuid: string) => `ai-cache/${uuid}.png`,
 } as const;

@@ -230,10 +230,11 @@ export const getProfileSymbolDeleteOrphanKeys = query({
 
     // Image: delete only uploads + image-search, AND only when the path is a
     // personal key (accounts/ or profiles/). Skip symbolstix (no separate R2
-    // path), aiGenerated (lives in shared ai-cache/), and any userUpload /
-    // imageSearch path that already points at a shared library_modules/…
-    // asset (installed from a published module) — that object is not this
-    // account's to delete.
+    // path) and aiGenerated — an adopted AI image actually lives under
+    // accounts/…, not shared ai-cache/, so skipping it here strands it.
+    // Tracked as MOS-50, see ADR-023. Also skip any userUpload / imageSearch
+    // path that already points at a shared library_modules/… asset (installed
+    // from a published module) — that object is not this account's to delete.
     if (
       sym.imageSource.type === "userUpload" ||
       sym.imageSource.type === "imageSearch"

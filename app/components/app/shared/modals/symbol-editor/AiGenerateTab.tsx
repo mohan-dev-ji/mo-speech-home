@@ -53,14 +53,14 @@ export function AiGenerateTab({
   // memory until the modal closes. Blobs are already resized to the 512px
   // webp on arrival, so ten of them cost ~200KB, not ~9MB.
   const REEL_MAX = 10;
-  const [reel, setReel] = useState<{ blob: Blob; url: string }[]>([]);
+  const [reel, setReel] = useState<{ blob: Blob; url: string; style: StyleId }[]>([]);
   const [reelIndex, setReelIndex] = useState(0);
   const current = reel[reelIndex] ?? null;
   const [error, setError] = useState<string | null>(null);
 
   // A ref mirroring the reel, so unmount cleanup can revoke every URL without
   // reading a stale closure and without setting state during unmount.
-  const reelRef = useRef<{ blob: Blob; url: string }[]>([]);
+  const reelRef = useRef<{ blob: Blob; url: string; style: StyleId }[]>([]);
   useEffect(() => {
     reelRef.current = reel;
   }, [reel]);
@@ -157,7 +157,7 @@ export function AiGenerateTab({
       // a side effect and React 19 double-invokes updaters in StrictMode. Safe
       // to read `reel` from this closure because the two controls that mutate
       // it — Discard and Add to symbol — are disabled while `isGenerating`.
-      const next = [...reel, { blob, url }];
+      const next = [...reel, { blob, url, style }];
       if (next.length > REEL_MAX) {
         URL.revokeObjectURL(next[0].url);
         next.shift();
@@ -185,8 +185,10 @@ export function AiGenerateTab({
     // mint a fresh url for the same reason.
     onImageSelected(current.blob, URL.createObjectURL(current.blob));
     // Never the prompt — it is user content and, in an AAC app, is frequently
-    // about a specific child. Style is a fixed enum and safe.
-    track("ai_generate_adopted", { style, attempts: attemptsRef.current });
+    // about a specific child. Style is a fixed enum and safe. Report the
+    // adopted entry's OWN style, not the live selection — the user may have
+    // clicked another style card while deciding, after generating this one.
+    track("ai_generate_adopted", { style: current.style, attempts: attemptsRef.current });
     adoptedRef.current = true;
     // Adding the generated image always overwrites the description label
     // with the prompt — the prompt IS the word/concept the user generated
