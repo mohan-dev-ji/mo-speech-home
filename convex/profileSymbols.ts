@@ -209,8 +209,11 @@ export const reorderProfileSymbols = mutation({
  * Returns the personal R2 keys that should be deleted when this symbol is
  * removed. Mirrors the logic of `getCategoryReloadOrphanKeys` — only
  * uploads, image-search picks, and recorded audio are personal; SymbolStix
- * defaults, AI-generated images (shared `ai-cache/`) and TTS clips
- * (shared `audio/<voice>/tts/`) are kept.
+ * defaults and TTS clips (shared `audio/<voice>/tts/`) are kept.
+ *
+ * AI-generated images are ALSO skipped here, but for a reason that is no
+ * longer true: an adopted AI image lives under `accounts/…`, not in a shared
+ * cache, so skipping it strands the object. Tracked as MOS-50, see ADR-023.
  *
  * Auth-checked. Returns `[]` for missing / not-owned symbols rather than
  * throwing — the orchestrating API route falls through to the mutation
