@@ -47,7 +47,11 @@ Flow: auth → Max check → both meters checked and incremented → provider ca
 
 ### The session reel
 
-Generated images stay in the tab's state for the editing session, capped at 10, object URLs revoked as they fall off. Nothing already paid for is lost mid-task: a user can generate, generate again, and go back to the first one.
+Generated images stay in the tab's state for the editing session, capped at 10, object URLs revoked as they fall off. Nothing already paid for is destroyed by the app: the reel holds every generation until the modal closes.
+
+**What the shipped UI can reach today is narrower than that.** Once an image exists, the Generate button is replaced by Discard / Add to symbol, so a re-roll happens only by pressing Enter in the prompt field, and there are no prev/next controls — the sole way back is Discard, which removes the current entry. So the reel is real and populated, but an instructor cannot yet browse it. MOS-47 Part 2 (Generate permanently on the prompt row) and reel navigation are what make it usable; until then the reel mainly guarantees that a generation is not lost to a tab switch.
+
+The tab is **mounted for the whole time the modal is open** and hidden with `display:none` when another image source is selected, rather than being conditionally rendered. That is what makes "session" mean the editing session rather than the current tab: conditional rendering unmounted the component on every tab switch, revoking the reel's object URLs and resetting the attempt counter. One consequence worth knowing: the tab's quota subscription stays live for the modal's whole lifetime, not just while the AI tab is on screen — a single lightweight query, accepted deliberately as the cost of keeping the reel alive.
 
 It ends when the modal closes. **An image generated and never adopted is gone permanently** — the accepted regression in ADR-023.
 
