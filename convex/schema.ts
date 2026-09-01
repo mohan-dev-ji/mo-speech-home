@@ -1351,27 +1351,6 @@ export default defineSchema({
   }).index("by_query_and_page", ["query", "page"]),
 
   /**
-   * Global cache of AI-generated images, keyed by sha256(style|prompt).
-   * Shared across all Max users — repeated "tree → iconic" hits R2, not Imagen.
-   * No expiry; entries are intentionally permanent. `hits` is bumped on cache reads
-   * so a future "community library" phase can surface popular generations.
-   * r2Key points to ai-cache/{uuid}.png (PNG, ~1MB, untouched from Imagen).
-   */
-  aiImageCache: defineTable({
-    hash: v.string(),    // sha256 of aiImageCacheHashInput() — `${model}|${style}|${prompt}`
-    prompt: v.string(),  // original user prompt (pre-style-wrap), for analytics
-    style: v.string(),   // 'photorealistic' | 'iconic' | 'storybook' | 'claymation'
-    r2Key: v.string(),   // ai-cache/{uuid}.png — global, shared across users
-    hits: v.number(),    // incremented on cache hit
-    // The generator that produced this image. The model is already inside
-    // `hash` (that IS this cache's identity guard — see lib/cache-identity.ts);
-    // recording it here as well lets the orphan sweep name the model behind an
-    // unreachable row instead of just reporting "not reproducible". Optional:
-    // rows written before the stamp existed have no value.
-    model: v.optional(v.string()),
-  }).index("by_hash", ["hash"]),
-
-  /**
    * Image-credit registry (Phase 31). One row per (account, R2 object key)
    * recording where that image came from.
    *

@@ -4,8 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { GoogleAuth } from "google-auth-library";
 import { api } from "@/convex/_generated/api";
 import { isConfigured } from "@/lib/r2-storage";
-import { STYLE_PRESETS, isStyleId } from "@/lib/ai-style-prompts";
-import { AI_IMAGE_MODEL } from "@/lib/cache-identity";
+import { STYLE_PRESETS, isStyleId, AI_IMAGE_MODEL } from "@/lib/ai-style-prompts";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import { resolveAiImageLimits } from "@/lib/ai-image-limits";
 
@@ -53,11 +52,10 @@ export class ProviderRefusalError extends Error {
 const MAX_PROMPT_LENGTH = 500;
 
 // The Gemini image model id, aliased locally so the request code below reads
-// `IMAGE_MODEL`. It still lives in lib/cache-identity.ts for historical
-// reasons — it used to double as the AI image cache's identity — and moves
-// next to the style templates it was verified against once that cache is
-// removed (ADR-023). Changing it means re-verifying all four style templates
-// (MOS-40) and regenerating the style thumbnails.
+// `IMAGE_MODEL`. Lives in lib/ai-style-prompts.ts, beside the style templates
+// it was verified against — it used to also double as the AI image cache's
+// identity, but ADR-023 removed that cache. Changing it means re-verifying
+// all four style templates (MOS-40) and regenerating the style thumbnails.
 const IMAGE_MODEL = AI_IMAGE_MODEL;
 
 // ─── Gemini image generation (Vertex AI REST) ────────────────────────────────
@@ -296,11 +294,11 @@ export async function POST(request: Request) {
   }
 
   // ── Return ───────────────────────────────────────────────────────────────
-  // NO R2 WRITE. The upload existed only to populate `aiImageCache`; with the
-  // cache gone (ADR-023) nothing reads the object, and `X-R2-Key` was never
-  // read by any caller. The image reaches R2 only if the user adopts it, at
-  // which point SymbolEditorModal uploads a resized webp under
-  // accounts/<accountId>/images/.
+  // NO R2 WRITE. The upload existed only to populate the shared AI image
+  // cache; with that cache gone (ADR-023) nothing reads the object, and
+  // `X-R2-Key` was never read by any caller. The image reaches R2 only if
+  // the user adopts it, at which point SymbolEditorModal uploads a resized
+  // webp under accounts/<accountId>/images/.
   trackServer(userId, "ai_generate_used", {
     tier: "max",
     style,

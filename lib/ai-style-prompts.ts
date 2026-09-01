@@ -6,6 +6,23 @@
  * referenced by the server route and by the tab's style cards.
  */
 
+/**
+ * The image generator. Lives here, beside the templates, because the two are
+ * verified together: the four style templates below are known-good against
+ * THIS model and no other (MOS-40). Changing the model means re-verifying
+ * every template and regenerating the style thumbnails.
+ *
+ * Google retired the Imagen publisher models from Vertex (confirmed 2026-08).
+ * Image generation lives in the Gemini image family.
+ *
+ * Note the request/response shape in `app/api/ai-generate/imagen/route.ts` is
+ * Gemini's `:generateContent` contract and moves too if a future model changes it.
+ *
+ * It used to live in `lib/cache-identity.ts` because it was also the AI
+ * cache's identity. ADR-023 deleted that cache; only the model remains.
+ */
+export const AI_IMAGE_MODEL = "gemini-2.5-flash-image";
+
 export type StyleId = 'photorealistic' | 'iconic' | 'storybook' | 'claymation';
 
 export const STYLE_PRESETS: Record<

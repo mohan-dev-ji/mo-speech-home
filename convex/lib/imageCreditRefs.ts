@@ -41,8 +41,9 @@
  *     instructor. An upload by definition, never third-party, and not board
  *     content. Including it would put a private photo in every completeness
  *     report for no possible credit.
- *   - `aiImageCache` — a cache, not provenance (phase-31 plan, "What gets
- *     recorded, and why"). Phase 30 built a sweep that deletes from it.
+ *   - AI-generated images are recorded like any other: the adopted copy lives
+ *     under `accounts/…` and is credited by R2 key. There is no shared AI
+ *     cache to exclude any more (ADR-023).
  *   - every audio field — the registry has no audio member.
  */
 
