@@ -1,6 +1,6 @@
 # AI Image Generation (symbol editor → AI Generate tab)
 
-**Status:** Uncached generation + dual meters specified (MOS-48) · tab UI pending (MOS-47)
+**Status:** Shipped — uncached generation + dual meters (MOS-48) · tab UI pending (MOS-47)
 **Relates to:** ADR-023 (uncached generation — the governing decision) · ADR-005 (symbol editor image sources) · MOS-48 · MOS-47 · MOS-49 (tier pricing, which sets the ceiling)
 
 > **One-line vision:** an instructor who needs a symbol that SymbolStix doesn't have and image search can't find describes it, sees it drawn in one of four styles, and keeps re-rolling until one is right — inside a monthly allowance they can spend however they like.
