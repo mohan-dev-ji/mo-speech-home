@@ -184,9 +184,14 @@ export const getCategoryModuleDeleteOrphanKeys = query({
         .collect();
       for (const s of symbols) {
         symbolIds.add(String(s._id));
+        // Uploads, image-search picks and AI generations are all personal
+        // (MOS-50 — `aiGenerated` was excluded here too, so uninstalling a
+        // module stranded every AI image in it at once). isPersonalAssetKey
+        // still keeps legacy ai-cache/ and shared library_modules/ paths out.
         if (
           s.imageSource.type === "userUpload" ||
-          s.imageSource.type === "imageSearch"
+          s.imageSource.type === "imageSearch" ||
+          s.imageSource.type === "aiGenerated"
         ) {
           if (isPersonalAssetKey(s.imageSource.imagePath)) {
             keys.push(s.imageSource.imagePath);

@@ -538,14 +538,15 @@ export const deleteCategory = mutation({
 // ─── Category R2 orphan keys ──────────────────────────────────────────────────
 
 /**
- * Returns the personal R2 keys (uploads, recordings, image-search picks) on
- * a category's symbols, so an orchestrating API route can delete them after a
- * destructive category operation.
+ * Returns the personal R2 keys (uploads, recordings, image-search picks,
+ * AI generations) on a category's symbols, so an orchestrating API route can
+ * delete them after a destructive category operation.
  *
- * Excludes aiGenerated images and audio/<voice>/tts/ (TTS cache) — the latter
- * is genuinely shared and reused across users. aiGenerated is NOT: an adopted
- * AI image lives under accounts/…, so excluding it here strands it on
- * reload. Tracked as MOS-50, see ADR-023. Also excludes `library_modules/…`:
+ * Excludes audio/<voice>/tts/ (TTS cache) — genuinely shared and reused across
+ * users. aiGenerated is INCLUDED as of MOS-50: it was excluded on the grounds
+ * that those images live in a shared cache, which stopped being true when
+ * adoption started writing to accounts/<id>/images/ (Phase 29), so the
+ * exclusion stranded the object on every reload. Also excludes `library_modules/…`:
  * a symbol installed from a published module can carry an image or a
  * `recorded` audio entry that still points at that shared object, which is
  * not this account's to delete.
@@ -573,13 +574,17 @@ export const getCategoryReloadOrphanKeys = query({
 
     const keys: string[] = [];
     for (const s of symbols) {
-      // Image: delete only uploaded or image-search (under accounts/ or profiles/).
-      // Skip symbolstix (no separate path) and aiGenerated — an adopted AI
-      // image lives under accounts/…, not shared ai-cache/, so skipping it
-      // here strands it. Tracked as MOS-50, see ADR-023.
+      // Image: uploads, image-search picks and AI generations (under accounts/
+      // or profiles/). Skip symbolstix — no separate R2 path.
+      //
+      // `aiGenerated` was excluded until MOS-50 on the false grounds that those
+      // images live in shared ai-cache/; adoption has written them to
+      // accounts/<id>/images/ since Phase 29. The isPersonalAssetKey guard
+      // keeps legacy ai-cache/ paths skipped exactly as before.
       if (
         s.imageSource.type === "userUpload" ||
-        s.imageSource.type === "imageSearch"
+        s.imageSource.type === "imageSearch" ||
+        s.imageSource.type === "aiGenerated"
       ) {
         if (isPersonalAssetKey(s.imageSource.imagePath)) {
           keys.push(s.imageSource.imagePath);

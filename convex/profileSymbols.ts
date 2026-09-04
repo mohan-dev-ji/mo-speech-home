@@ -207,13 +207,9 @@ export const reorderProfileSymbols = mutation({
 
 /**
  * Returns the personal R2 keys that should be deleted when this symbol is
- * removed. Mirrors the logic of `getCategoryReloadOrphanKeys` — only
- * uploads, image-search picks, and recorded audio are personal; SymbolStix
- * defaults and TTS clips (shared `audio/<voice>/tts/`) are kept.
- *
- * AI-generated images are ALSO skipped here, but for a reason that is no
- * longer true: an adopted AI image lives under `accounts/…`, not in a shared
- * cache, so skipping it strands the object. Tracked as MOS-50, see ADR-023.
+ * removed. Mirrors the logic of `getCategoryReloadOrphanKeys` — uploads,
+ * image-search picks, AI-generated images and recorded audio are personal;
+ * SymbolStix defaults and TTS clips (shared `audio/<voice>/tts/`) are kept.
  *
  * Auth-checked. Returns `[]` for missing / not-owned symbols rather than
  * throwing — the orchestrating API route falls through to the mutation
@@ -231,16 +227,23 @@ export const getProfileSymbolDeleteOrphanKeys = query({
 
     const keys: string[] = [];
 
-    // Image: delete only uploads + image-search, AND only when the path is a
-    // personal key (accounts/ or profiles/). Skip symbolstix (no separate R2
-    // path) and aiGenerated — an adopted AI image actually lives under
-    // accounts/…, not shared ai-cache/, so skipping it here strands it.
-    // Tracked as MOS-50, see ADR-023. Also skip any userUpload / imageSearch
-    // path that already points at a shared library_modules/… asset (installed
-    // from a published module) — that object is not this account's to delete.
+    // Image: uploads, image-search picks and AI generations are all personal,
+    // AND only when the path is itself a personal key (accounts/ or profiles/).
+    //
+    // `aiGenerated` was excluded until MOS-50 on the grounds that those images
+    // "live in shared ai-cache/". They have not since adoption started
+    // re-uploading to accounts/<id>/images/ (Phase 29), so excluding them
+    // stranded the object on every delete. The isPersonalAssetKey guard below
+    // is what makes including them safe: a pre-Phase-29 symbol still pointing
+    // at `ai-cache/…` fails it and is skipped exactly as before.
+    //
+    // Skip symbolstix (no separate R2 path), and skip any path that already
+    // points at a shared library_modules/… asset (installed from a published
+    // module) — that object is not this account's to delete.
     if (
       sym.imageSource.type === "userUpload" ||
-      sym.imageSource.type === "imageSearch"
+      sym.imageSource.type === "imageSearch" ||
+      sym.imageSource.type === "aiGenerated"
     ) {
       if (isPersonalAssetKey(sym.imageSource.imagePath)) {
         keys.push(sym.imageSource.imagePath);
@@ -297,13 +300,19 @@ export const getProfileSymbolUsageCount = query({
 
     const keys: string[] = [];
 
-    // Same personal-key rules as getProfileSymbolDeleteOrphanKeys: uploads +
-    // image-search picks (only when the path is itself a personal key, not a
-    // shared library_modules/… asset), and recorded audio (incl. recorded
-    // alternates).
+    // Same personal-key rules as getProfileSymbolDeleteOrphanKeys: uploads,
+    // image-search picks and AI generations (only when the path is itself a
+    // personal key, not a shared library_modules/… asset), and recorded audio
+    // (incl. recorded alternates).
+    //
+    // `aiGenerated` MUST stay in step with that query (MOS-50). This one drives
+    // the "still used by N other items" warning, so omitting a source type here
+    // does not strand anything — it silently withholds the warning, which is
+    // the worse half of the same bug.
     if (
       sym.imageSource.type === "userUpload" ||
-      sym.imageSource.type === "imageSearch"
+      sym.imageSource.type === "imageSearch" ||
+      sym.imageSource.type === "aiGenerated"
     ) {
       if (isPersonalAssetKey(sym.imageSource.imagePath)) {
         keys.push(sym.imageSource.imagePath);
