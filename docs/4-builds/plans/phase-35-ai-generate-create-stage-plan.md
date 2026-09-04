@@ -50,6 +50,8 @@ Add these beside the existing `aiStyle*` keys. Use the text verbatim — it has 
     "aiStyleBlurbStorybook": "A soft pastel picture-book illustration, warm and friendly. Good for characters, animals and imaginative words. Be aware it likes to give things faces — ask for a cup and you may get a cup with eyes.",
     "aiStyleBlurbClaymation": "Rounded and toy-like, as though modelled in clay. Playful and tactile — good for toys, food and animals. Very fine detail rounds off, so keep the subject chunky.",
     "aiClearPrompt": "Clear",
+    "aiPromptPreviewLabel": "What we actually send:",
+    "aiPromptSlotPlaceholder": "your object",
 ```
 
 - [ ] **Step 2: Remove the key the blurb replaces**
@@ -186,7 +188,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `STYLE_PRESETS[id].thumbnail` (Task 2), the six copy keys (Task 1)
 
-**Reference:** [Figma state 1](https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=3332-6433). It is a **wireframe** — take the layout and the control count from it, take every colour, radius and spacing from the theme tokens. Top to bottom: blurb → thumbnails → style labels → prompt field with a clear (×) → full-width Generate.
+**Reference:** [Figma state 1](https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=3332-6433). It is a **wireframe** — take the layout and the control count from it, take every colour, radius and spacing from the theme tokens. Top to bottom: blurb → **the wrapped prompt with the user's words highlighted** → thumbnails → style labels → prompt field with a clear (×) → full-width Generate.
 
 - [ ] **Step 1: Add the blurb key map**
 
@@ -293,7 +295,85 @@ Inside the prompt row, immediately after the `<input>`, add:
 
 `X` is already imported. Note the prompt is the SHARED search query — clearing it here also clears it for the Symbols and Image Search tabs, which is the existing intended behaviour of that field, not a bug to work around.
 
-- [ ] **Step 5: Typecheck, lint, build**
+- [ ] **Step 5: Show the real prompt, with the user's words highlighted inside it**
+
+Directly below the blurb, inside the same create-stage container from Step 2, add a read-only box showing the full wrapped prompt that will actually be sent, updating as the user types and as the style changes.
+
+**Derive the two halves by splitting the template on a sentinel — never by searching the wrapped string for what the user typed.** The templates contain words a user will plausibly type ("white", "text", "no ground", "single subject"), and a naive `.split(prompt)` would then highlight the template's own words instead of theirs. Splitting on a value that cannot occur in either is exact.
+
+Add above the component:
+
+```ts
+// A value no template and no user can contain, used to find where the user's
+// words land inside the wrapped prompt. Splitting on this is exact; searching
+// the wrapped string for what the user typed is NOT — the templates contain
+// words people plausibly type ("white", "text", "no ground"), and the
+// highlight would land on the template's own wording instead of theirs.
+const PROMPT_SLOT = "\u0000";
+```
+
+Inside the component, beside the other derived values:
+
+```ts
+  // Exactly what the route will send: it calls the same template with the
+  // same trimmed prompt, so this display cannot drift from the real request.
+  const typedPrompt = prompt.trim();
+  const wrappedParts = STYLE_PRESETS[style].template(PROMPT_SLOT).split(PROMPT_SLOT);
+```
+
+Then, below the blurb paragraph in the create-stage block:
+
+```tsx
+            {wrappedParts.length === 2 && (
+              <div
+                className="w-full rounded-theme-sm p-2 text-left"
+                style={{
+                  background: "var(--theme-symbol-bg)",
+                  border: "1px solid var(--theme-button-highlight)",
+                }}
+              >
+                <p
+                  className="text-theme-xs mb-1 font-medium"
+                  style={{ color: "var(--theme-secondary-text)" }}
+                >
+                  {t("aiPromptPreviewLabel")}
+                </p>
+                <p
+                  className="text-theme-xs leading-relaxed"
+                  style={{ color: "var(--theme-secondary-text)" }}
+                >
+                  {wrappedParts[0]}
+                  <span
+                    style={{
+                      color: "var(--theme-brand-primary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {typedPrompt || t("aiPromptSlotPlaceholder")}
+                  </span>
+                  {wrappedParts[1]}
+                </p>
+              </div>
+            )}
+```
+
+The `length === 2` guard is not defensive padding: every current template interpolates the prompt exactly once, and if one ever stops doing so this renders nothing rather than a mangled sentence with a stray null byte in it.
+
+**It is read-only.** MOS-47 is explicit that user-editable prompts are a later step — *"for now it is static with one dynamic word that is the object for creation"*. Build the display so that step is not blocked; do not build editing.
+
+- [ ] **Step 6: Make the create-stage area scroll**
+
+The area now holds three blocks — lead, blurb, wrapped prompt — where it held one short line. On a short viewport that will overflow the preview region, which is `flex-1 ... min-h-0`.
+
+Change the preview container's classes so the create stage can scroll rather than being clipped:
+
+```tsx
+      <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-y-auto">
+```
+
+Confirm in the browser pass at a short window height that the Generate button stays visible and the guidance scrolls under it — the button must never be pushed off-screen, because that is the one control the whole tab exists to reach.
+
+- [ ] **Step 7: Typecheck, lint, build**
 
 ```bash
 npx tsc --noEmit && npm run lint && npm run build
@@ -301,7 +381,7 @@ npx tsc --noEmit && npm run lint && npm run build
 
 Expected: typecheck clean (baseline 0); lint no worse than its 66 pre-existing problems, **and one fewer** — the unused `STYLE_PRESETS` warning in this file should be gone; build exits 0.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add app/components/app/shared/modals/symbol-editor/AiGenerateTab.tsx
@@ -330,6 +410,8 @@ With the owner's dev server running, open a symbol editor → AI Generate as a M
 2. Clicking a style selects it **and** swaps the second paragraph of the blurb.
 3. The lead paragraph does not change.
 4. Typing shows the clear (×); pressing it empties the field.
+4b. The wrapped prompt updates **as you type**, with your words highlighted in the brand colour, and **changes wholesale when you switch style**. Type a word the template already contains — `white` is the sharpest test — and confirm the highlight is on YOUR word, not on the template's.
+4c. With the field empty, the preview reads sensibly with the placeholder in the slot.
 5. Generating still works and still shows the result view with Discard / Add to symbol — **unchanged**.
 6. No console errors.
 
@@ -354,6 +436,6 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 - **Do not build a result view.** The tab still shows its existing single-image view after a generation. MOS-52 replaces it with a switch to the My Images tab; anything built there now is thrown away.
 - **Do not regenerate the thumbnails.** They are committed and chosen. Regenerating spends quota and would produce a different horse.
-- **The blurb is the guidance, not a prompt preview.** An earlier version of MOS-47 wanted the full wrapped prompt displayed with the user's word highlighted. That was superseded — the blurb says the same thing in plain language. Do not build the highlighted-prompt display.
+- **The blurb and the prompt preview are BOTH built** (owner, 2026-09-04). An earlier draft of this plan said the blurb superseded the wrapped-prompt display; it does not. They do different jobs and sit together: the blurb says what the style is *for* in plain language, the preview shows the machinery and where the user's words land in it. The preview is read-only — editing is a later step MOS-47 explicitly defers.
 - **The Generate button needs no change.** It is already full-width and already the only action when no image exists, which is what the Figma frame shows. If you find yourself editing it, re-read the frame.
 - If a step's code does not match what is on disk, the file has moved on since 2026-09-04 — stop and re-read rather than forcing the patch.
