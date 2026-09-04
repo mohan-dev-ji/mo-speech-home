@@ -25,12 +25,23 @@ export const AI_IMAGE_MODEL = "gemini-2.5-flash-image";
 
 export type StyleId = 'photorealistic' | 'iconic' | 'storybook' | 'claymation';
 
+/**
+ * `thumbnail` is a sample of what the style ACTUALLY produces, committed at
+ * `public/ai-styles/`. It lives beside the template deliberately: the two are
+ * a matched pair, and a thumbnail generated from a different template is worse
+ * than no thumbnail because it misrepresents what the user will get.
+ *
+ * REGENERATE THE SET WHENEVER A TEMPLATE OR THE MODEL CHANGES —
+ * `scripts/generate-style-thumbnails.mjs`, whose default subject is the
+ * committed set's subject so a routine regeneration cannot silently swap it.
+ */
 export const STYLE_PRESETS: Record<
   StyleId,
-  { label: string; template: (prompt: string) => string }
+  { label: string; thumbnail: string; template: (prompt: string) => string }
 > = {
   photorealistic: {
     label: 'Photorealistic',
+    thumbnail: '/ai-styles/photorealistic.webp',
     // `no watermark` REMOVED 2026-08-30 (MOS-40) — DO NOT PUT IT BACK.
     //
     // That one token made every Photorealistic generation fail. Gemini
@@ -59,16 +70,19 @@ export const STYLE_PRESETS: Record<
   },
   iconic: {
     label: 'Iconic Vector',
+    thumbnail: '/ai-styles/iconic.webp',
     template: (p) =>
       `a simple flat vector icon of ${p}, bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
   },
   storybook: {
     label: 'Storybook',
+    thumbnail: '/ai-styles/storybook.webp',
     template: (p) =>
       `a friendly children's storybook illustration of ${p}, single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text`,
   },
   claymation: {
     label: '3D Claymation',
+    thumbnail: '/ai-styles/claymation.webp',
     template: (p) =>
       `a soft 3D claymation render of ${p}, single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
   },
