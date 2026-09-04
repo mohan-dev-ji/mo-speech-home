@@ -8,6 +8,12 @@
 
 **Tech Stack:** Convex 1.x · Next.js 16 route handler · Cloudflare R2 · next-intl v4 · Tailwind CSS 4
 
+## Context a fresh session will not have
+
+This plan was written after a long design conversation. Everything it needs is here, but the *reasoning* behind the decisions — and the four designs that were tried and rejected on the way — lives in **MOS-52**, and it is worth reading before changing anything the plan specifies. In particular the ticket records why the gallery is a symbol-editor tab rather than a Settings page, why there is no "Generate again" button, why actions sit outside the grid, and why a storage fee was rejected.
+
+Two numbers this plan quotes as of 2026-09-04, which will drift: the owner's account held **99** objects under `accounts/<id>/images/` (25.3 MB), and lint sits at **65 problems**. Re-measure rather than trusting them.
+
 ## Global Constraints
 
 - **All UI copy via `useTranslations`; new keys in `messages/en.json` ONLY.** Never hand-add to another locale — the pipeline only translates keys *absent* from a locale, so a hand-added placeholder ships forever.
@@ -163,7 +169,7 @@ export const record = mutation({
 });
 ```
 
-Check the actual export names in `convex/lib/auth.ts` before writing the import — `resolveCallerAccountId` and `requireCallerAccountId` are used in `profileSymbols.ts`; copy whatever that file imports.
+The helpers live in **`convex/lib/account.ts`** — `profileSymbols.ts:3` imports them as `import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";`. Copy that import line rather than guessing the path.
 
 - [ ] **Step 4: Persist the generation in the route**
 
@@ -243,6 +249,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `api.accountImages.listMine` (Task 1)
 - Produces: `<MyImagesTab onImageSelected={(blob, previewUrl) => void} />` — the same contract every other source tab uses
+
+**Layout reference:** [Figma — the gallery tab](https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=3333-7042). It is a **wireframe** — take the layout and control count from it, take every colour, radius and font size from the theme tokens. Note it was originally drawn as "AI Generate, state 2"; the image region becomes the grid and the two actions become Add to symbol / Delete.
 
 **Follow `ImagesTab.tsx`, which is already this component.** It holds `selectedKey` state, renders `grid grid-cols-2 sm:grid-cols-3 gap-2`, and on click fetches the bytes and calls `onImageSelected(blob, previewUrl)`. Copy that structure rather than inventing one; the differences are only that the source is `usePaginatedQuery` instead of a search API, and that this tab also has a Delete action.
 
@@ -412,7 +420,12 @@ Deleting removes the tile from the grid immediately (the paginated query is reac
 
 - [ ] **Step 3: Verify — count R2, do not trust the dashboard**
 
-The Cloudflare dashboard shows date-modified but no object count, and a new object is invisible among a hundred others. Count with a listing script (see MOS-50's verification, which used exactly this):
+The Cloudflare dashboard shows date-modified but no object count, so a new object is invisible among a hundred others and a deleted one cannot be confirmed gone. Use the committed script:
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20.17.0
+node --env-file=.env.local scripts/count-r2-objects.mjs accounts/<accountId>/images/
+```
 
 1. Count objects under `accounts/<id>/images/`.
 2. Delete an unused image from the gallery.
@@ -447,7 +460,7 @@ Needs a copy pass for tone and for the list / sentence / phrase variants, but th
 
 - [ ] **Step 3: Verify — the count must NOT move**
 
-The mirror image of Task 4's check, and the one that proves the inversion:
+The mirror image of Task 4's check, and the one that proves the inversion. Same script — `node --env-file=.env.local scripts/count-r2-objects.mjs accounts/<accountId>/images/`:
 
 1. Count objects under `accounts/<id>/images/`.
 2. Create a symbol with an AI image, save it. Count → **+1**.
