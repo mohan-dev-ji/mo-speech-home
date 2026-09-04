@@ -32,6 +32,20 @@ const STYLE_TRANSLATION_KEYS: Record<StyleId, string> = {
   claymation: "aiStyleClaymation",
 };
 
+const STYLE_BLURB_KEYS: Record<StyleId, string> = {
+  photorealistic: "aiStyleBlurbPhotorealistic",
+  iconic: "aiStyleBlurbIconic",
+  storybook: "aiStyleBlurbStorybook",
+  claymation: "aiStyleBlurbClaymation",
+};
+
+// A value no template and no user can contain, used to find where the user's
+// words land inside the wrapped prompt. Splitting on this is exact; searching
+// the wrapped string for what the user typed is NOT — the templates contain
+// words people plausibly type ("white", "text", "no ground"), and the
+// highlight would land on the template's own wording instead of theirs.
+const PROMPT_SLOT = "\u0000";
+
 export function AiGenerateTab({
   patch,
   onImageSelected,
@@ -57,6 +71,11 @@ export function AiGenerateTab({
   const [reelIndex, setReelIndex] = useState(0);
   const current = reel[reelIndex] ?? null;
   const [error, setError] = useState<string | null>(null);
+
+  // Exactly what the route will send: it calls the same template with the
+  // same trimmed prompt, so this display cannot drift from the real request.
+  const typedPrompt = prompt.trim();
+  const wrappedParts = STYLE_PRESETS[style].template(PROMPT_SLOT).split(PROMPT_SLOT);
 
   // A ref mirroring the reel, so unmount cleanup can revoke every URL without
   // reading a stale closure and without setting state during unmount.
@@ -244,7 +263,7 @@ export function AiGenerateTab({
   return (
     <div className="flex flex-col h-full">
       {/* Preview */}
-      <div className="flex-1 flex items-center justify-center p-4 min-h-0">
+      <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-y-auto">
         {current ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -264,12 +283,53 @@ export function AiGenerateTab({
             </p>
           </div>
         ) : (
-          <p
-            className="text-theme-s text-center max-w-xs"
-            style={{ color: "var(--theme-secondary-text)" }}
-          >
-            {t("aiEmptyState")}
-          </p>
+          // THE CREATE STAGE. This area becomes the generated image in the
+          // result view, so the guidance occupies exactly the space the
+          // outcome will. The lead never changes; the second paragraph
+          // follows the selected style, which is what makes clicking a
+          // thumbnail informative rather than just a selection.
+          <div className="flex flex-col gap-3 max-w-sm text-center">
+            <p className="text-theme-s" style={{ color: "var(--theme-text)" }}>
+              {t("aiGuidanceLead")}
+            </p>
+            <p
+              className="text-theme-xs"
+              style={{ color: "var(--theme-secondary-text)" }}
+            >
+              {t(STYLE_BLURB_KEYS[style])}
+            </p>
+            {wrappedParts.length === 2 && (
+              <div
+                className="w-full rounded-theme-sm p-2 text-left"
+                style={{
+                  background: "var(--theme-symbol-bg)",
+                  border: "1px solid var(--theme-button-highlight)",
+                }}
+              >
+                <p
+                  className="text-theme-xs mb-1 font-medium"
+                  style={{ color: "var(--theme-secondary-text)" }}
+                >
+                  {t("aiPromptPreviewLabel")}
+                </p>
+                <p
+                  className="text-theme-xs leading-relaxed"
+                  style={{ color: "var(--theme-secondary-text)" }}
+                >
+                  {wrappedParts[0]}
+                  <span
+                    style={{
+                      color: "var(--theme-brand-primary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {typedPrompt || t("aiPromptSlotPlaceholder")}
+                  </span>
+                  {wrappedParts[1]}
+                </p>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -301,7 +361,8 @@ export function AiGenerateTab({
                 key={id}
                 type="button"
                 onClick={() => setStyle(id)}
-                className="rounded-theme-sm py-2 px-1 text-theme-xs font-medium"
+                aria-pressed={isSelected}
+                className="flex flex-col items-center gap-1 rounded-theme-sm p-1 text-theme-xs font-medium"
                 style={{
                   background: isSelected
                     ? "color-mix(in srgb, var(--theme-brand-primary) 15%, transparent)"
@@ -314,7 +375,17 @@ export function AiGenerateTab({
                     : "var(--theme-secondary-text)",
                 }}
               >
-                {t(STYLE_TRANSLATION_KEYS[id])}
+                {/* Decorative: the visible label already names the style, so
+                    announcing it twice is noise for a screen-reader user. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={STYLE_PRESETS[id].thumbnail}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-full aspect-square object-contain rounded-theme-sm bg-white"
+                  loading="lazy"
+                />
+                <span>{t(STYLE_TRANSLATION_KEYS[id])}</span>
               </button>
             );
           })}
@@ -346,6 +417,17 @@ export function AiGenerateTab({
             className="flex-1 bg-transparent text-theme-s outline-none"
             style={{ color: "var(--theme-text)" }}
           />
+          {prompt && (
+            <button
+              type="button"
+              onClick={() => setPrompt("")}
+              aria-label={t("aiClearPrompt")}
+              className="shrink-0"
+              style={{ color: "var(--theme-secondary-text)" }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {current ? (
