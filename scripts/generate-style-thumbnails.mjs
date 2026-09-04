@@ -3,6 +3,8 @@
  *
  *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs
  *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs storybook
+ *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs \
+ *     --subject="a wooden rocking horse" --out=/tmp/trial-horse
  *
  * Writes 1024px PNGs to public/ai-styles/. Downscale them to 320px webp
  * before committing — the raw PNGs are ~700 KB each and the webps are ~5 KB:
@@ -30,7 +32,7 @@
  */
 
 import { GoogleAuth } from "google-auth-library";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 
 const MODEL = "gemini-2.5-flash-image";
 const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
@@ -45,7 +47,27 @@ const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project
 
 // Mirrors lib/ai-style-prompts.ts exactly (kept in sync by hand here because
 // this is a one-off generator, not shipped code).
-const SUBJECT = "a racing car";
+// Subject and output dir are overridable so a candidate subject can be
+// trialled without clobbering the committed set:
+//   --subject="a wooden rocking horse"  --out=/tmp/trial-horse
+// Bare arguments are still style names, so the old invocation is unchanged.
+const argv = process.argv.slice(2);
+const flag = (name, fallback) => {
+  const hit = argv.find((a) => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : fallback;
+};
+// THE DEFAULT SUBJECT IS THE COMMITTED SET'S SUBJECT. Keep them the same, or
+// a routine "regenerate because a template changed" silently swaps the subject
+// too, and the four thumbnails stop being comparable with each other.
+//
+// It was "a racing car" until 2026-09-04 (MOS-47). Rejected as AI slop: a
+// generic subject gives the model nothing to hold onto, and photorealistic and
+// claymation both came back as much the same shiny red 3D car — which defeats
+// the point, since these images exist to show that the four styles DIFFER.
+// The rocking horse separates them cleanly: real wood grain / flat outlined
+// sticker / pastel storybook / soft clay.
+const SUBJECT = flag("subject", "a wooden rocking horse");
+const OUT_DIR = flag("out", "public/ai-styles");
 const TEMPLATES = {
   photorealistic: (p) => `studio product shot of ${p}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
   iconic:         (p) => `a simple flat vector icon of ${p}, bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
@@ -53,7 +75,10 @@ const TEMPLATES = {
   claymation:     (p) => `a soft 3D claymation render of ${p}, single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
 };
 
-const order = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(TEMPLATES);
+const styleArgs = argv.filter((a) => !a.startsWith("--"));
+const order = styleArgs.length ? styleArgs : Object.keys(TEMPLATES);
+mkdirSync(OUT_DIR, { recursive: true });
+console.log(`subject: "${SUBJECT}"  ->  ${OUT_DIR}/`);
 for (const style of order) {
   const prompt = TEMPLATES[style](SUBJECT);
   const res = await fetch(url, {
@@ -66,7 +91,7 @@ for (const style of order) {
   const part = (j.candidates?.[0]?.content?.parts ?? []).find((p) => p.inlineData?.data);
   if (!part) { console.log(`  ${style.padEnd(16)} REFUSED blockReason=${j.promptFeedback?.blockReason ?? "?"}`); continue; }
   const buf = Buffer.from(part.inlineData.data, "base64");
-  const out = `public/ai-styles/${style}.png`;
+  const out = `${OUT_DIR}/${style}.png`;
   writeFileSync(out, buf);
   console.log(`  ${style.padEnd(16)} ✅ ${out}  ${(buf.length / 1024).toFixed(0)} KB`);
   await new Promise((r) => setTimeout(r, 20000)); // stay under the per-minute cap
