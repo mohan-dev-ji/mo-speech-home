@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { usePaginatedQuery, useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import type { FunctionReturnType } from "convex/server";
@@ -115,12 +115,20 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
   // disabled; the difference is that >0 says why, below, and loading says
   // nothing — a message that flickers on every selection is worse than none.
   const canDelete = !!selected && usage === 0 && !isDeleting;
+  // A remembered 409 count goes stale the instant the live count drops to 0 —
+  // another tab, or a collaborator, may have removed the last reference since
+  // the response landed. `canDelete` already follows live `usage`; the
+  // message must too, or the button re-enables while the text underneath
+  // still says it's blocked. Derived here rather than cleared in an effect —
+  // same shape as `effectiveSelectedId` above — so the correction lands on
+  // the render `usage` changes on, not one later.
   const blockedCount =
-    deleteError?.kind === "blocked"
+    deleteError?.kind === "blocked" && usage !== 0
       ? deleteError.count
       : selected && typeof usage === "number" && usage > 0
         ? usage
         : null;
+  const deleteStatusId = useId();
 
   /**
    * The one call in the product that removes an image object from R2. Goes
@@ -165,7 +173,6 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
       setIsDeleting(false);
     }
   }
-
 
   return (
     <div className="flex flex-col h-full">
@@ -290,10 +297,14 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
             {t("myImagesAdd")}
           </button>
           {/* The one hard delete for images in the product. Enabled only at a
-              known usage count of 0 — see `canDelete`. */}
+              known usage count of 0 — see `canDelete`. `aria-disabled` rather
+              than `disabled` keeps it focusable so a screen-reader user can
+              land on it and hear WHY via `aria-describedby`; the click is
+              still guarded by `canDelete` inside `handleDelete`. */}
           <button
             type="button"
-            disabled={!canDelete}
+            aria-disabled={!canDelete}
+            aria-describedby={deleteStatusId}
             onClick={handleDelete}
             className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
             style={{
@@ -306,21 +317,24 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
             {t("myImagesDelete")}
           </button>
         </div>
-        {/* A disabled button with no explanation is the worst of both: the user
-            can see the control and cannot tell why it will not work. So the
+        {/* Rendered unconditionally (empty when there's nothing to say) so the
+            Delete button's `aria-describedby` always resolves to a real node
+            — a disabled button with no explanation is the worst of both: the
+            user can see the control and cannot tell why it won't work. The
             blocked case names the count. `role="status"` so a screen reader
             hears it without the focus moving off the button. */}
-        {(blockedCount !== null || deleteError?.kind === "failed") && (
-          <p
-            role="status"
-            className="text-theme-xs leading-snug"
-            style={{ color: "var(--theme-secondary-text)" }}
-          >
-            {blockedCount !== null
-              ? t("myImagesDeleteBlocked", { count: blockedCount })
-              : t("myImagesDeleteFailed")}
-          </p>
-        )}
+        <p
+          id={deleteStatusId}
+          role="status"
+          className="text-theme-xs leading-snug"
+          style={{ color: "var(--theme-secondary-text)" }}
+        >
+          {blockedCount !== null
+            ? t("myImagesDeleteBlocked", { count: blockedCount })
+            : deleteError?.kind === "failed"
+              ? t("myImagesDeleteFailed")
+              : ""}
+        </p>
       </div>
     </div>
   );

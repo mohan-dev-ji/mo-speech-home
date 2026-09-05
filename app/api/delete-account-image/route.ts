@@ -90,6 +90,24 @@ export async function POST(request: Request) {
       if (data.code === "NOT_FOUND") {
         return NextResponse.json({ error: "not_found" }, { status: 404 });
       }
+      // `NOT_PERSONAL` falls through to the 500 below on purpose, unmapped.
+      // It is unreachable by construction: the only writers of `accountImages`
+      // rows are the backfill and the imagen route, and both write keys under
+      // `accounts/`. A `NOT_PERSONAL` here means one of those writers put a
+      // non-personal key in the table — an upstream write bug, not a
+      // retryable client state — so "try again" (the UI's generic failure
+      // copy) is the honest message even though it can't actually help.
+    }
+    // A plain `Error("Unauthenticated")` (thrown by `requireCallerAccountId`,
+    // not a `ConvexError`) also lands here. The repo convention for a plain
+    // Convex-thrown error is `includes()`, never `endsWith()` — the message
+    // arrives wrapped with a stack frame, so an exact/suffix match misses it.
+    if (
+      !(e instanceof ConvexError) &&
+      e instanceof Error &&
+      e.message.includes("Unauthenticated")
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("[delete-account-image] mutation failed", e);
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });

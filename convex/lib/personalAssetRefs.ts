@@ -470,6 +470,21 @@ export async function countRowsReferencingKeys(
     if (intersects(folderKeys(f, isPersonalAssetKey))) count++;
   }
 
+  // Seventh table, mirroring `collectReferencedPersonalKeys` above — see
+  // `studentProfileKeys`. Adding a table to this walk can only make the count
+  // MORE conservative (more rows counted as referencing → fewer deletions),
+  // so it cannot cause a wrongful delete. The two walks answer the same
+  // question (see the docblock in convex/accountImages.ts) and must agree
+  // table-for-table.
+  const profiles = await ctx.db
+    .query("studentProfiles")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
+    .collect();
+  for (const p of profiles) {
+    if (exclude.profileIds?.has(String(p._id))) continue;
+    if (intersects(studentProfileKeys(p, isPersonalAssetKey))) count++;
+  }
+
   return count;
 }
 
