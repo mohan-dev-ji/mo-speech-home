@@ -156,10 +156,13 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * 'userUpload' for the same thing — the two vocabularies are mapped at the
  * point of persistence, not here.
  *
- * Only `symbolstix` and `image-search` can ever yield a type here: both hand
- * a blob straight to the draft the moment the user picks something, so
- * "which tab is active" already tells you the source. `ai-generate` cannot —
- * since phase-36 Task 3 the AI tab never writes to the draft at all; a
+ * The switch below covers exactly five tabs: `symbolstix`, `image-search`,
+ * and `upload` (the default case) hand a blob straight to the draft the
+ * moment the user picks something, so "which tab is active" already tells
+ * you the source; `my-images` returns the row's own `libraryImageSource`,
+ * translated into this vocabulary, or `undefined` if nothing has been picked
+ * yet; `ai-generate` always returns `undefined` — since phase-36 Task 3 the
+ * AI tab never writes to the draft at all; a
  * generation only reaches the draft by being adopted from `my-images` (see
  * `handleImageReferenced`), so sitting on that tab implies nothing about the
  * draft's image and must fall through to "no change", exactly like browsing
