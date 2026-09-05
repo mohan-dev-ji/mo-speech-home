@@ -48,9 +48,12 @@ const THUMB_CLASS = "size-12 shrink-0 rounded-theme-sm bg-theme-surface object-c
  * One credit thumbnail that degrades to a visible placeholder when the object
  * is gone (phase-31 whole-phase review, Finding 3b).
  *
- * A credit row outlives the object it points at: `imageCredits` rows are never
- * garbage-collected, a module's `credits` array is append-only, and the
- * `library_packs/` prefix is scheduled for deletion. So `/api/assets?key=…`
+ * A credit row outlives the object it points at: an `imageCredits` row is only
+ * ever removed alongside its object, by the My Images Delete
+ * (`accountImages.deleteIfUnused` — the product's one hard delete for an
+ * image, ADR-024 §2), and nothing else collects them; a module's `credits`
+ * array is append-only; and the `library_packs/` prefix is scheduled for
+ * deletion. So `/api/assets?key=…`
  * returning 404 is an expected state, not a bug — and a bare `<img alt="">`
  * renders it as a blank box next to a photographer's name, on the one screen
  * whose entire job is to look trustworthy. The glyph says "thumbnail

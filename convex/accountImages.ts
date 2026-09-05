@@ -73,10 +73,47 @@ export const listMine = query({
 });
 
 /**
+ * The ONE prefix a library row may point at: the owning account's own image
+ * namespace. Enforced, not assumed.
+ *
+ * This is a security check, not a tidiness check. `accountImages` is the index
+ * behind the product's ONLY destructive image path (`deleteIfUnused` →
+ * `/api/delete-account-image` → R2 delete), and `record` is a PUBLIC mutation
+ * taking a client-supplied string. Without this, any authenticated user who
+ * knows another account's key — a former collaborator, a shared screenshot of
+ * a URL — could index it under their own account, where the "is anything still
+ * using this?" count is necessarily 0 (it only ever walks the CALLER's rows),
+ * and have the delete route remove someone else's picture from R2.
+ *
+ * `accounts/<accountId>/images/` is exactly what every legitimate writer
+ * already mints: the modal's four upload sites and `handleImageReferenced`
+ * (`SymbolEditorModal.tsx`), the AI route (`app/api/ai-generate/imagen`), and
+ * the backfill (`scripts/backfill-account-images.mjs`, which only collects
+ * keys matching `^accounts/<id>/images/`). It is deliberately NARROWER than
+ * `isPersonalAssetKey`, which also admits `profiles/…` and any other account's
+ * `accounts/…` — that predicate answers "is this owned by SOME account", which
+ * is not the question here.
+ *
+ * One helper, three call sites (`record`, `recordForAccount`, `deleteIfUnused`)
+ * so the rule cannot drift between the write path, the backfill and the delete.
+ * `.../audio/` is excluded for free: audio is not a library image (ADR-024 §1).
+ */
+function assertKeyOwnedByAccount(accountId: Id<"users">, imageKey: string) {
+  if (!imageKey.startsWith(`accounts/${accountId}/images/`)) {
+    throw new ConvexError({
+      code: "KEY_NOT_OWNED",
+      message: "Image key is not under this account's image prefix.",
+    });
+  }
+}
+
+/**
  * Shared dedupe-on-key write, used by both `record` (JWT-derived accountId)
  * and `recordForAccount` (CLI-supplied accountId, for the unauthenticated
  * backfill script) so the two can never drift on what "already indexed"
- * means.
+ * means — nor on WHICH KEYS MAY BE INDEXED: the ownership assertion lives here
+ * rather than in the two callers precisely so a future third writer cannot
+ * skip it.
  */
 async function insertAccountImageIfNew(
   ctx: MutationCtx,
@@ -87,6 +124,7 @@ async function insertAccountImageIfNew(
     prompt?: string;
   }
 ) {
+  assertKeyOwnedByAccount(accountId, args.imageKey);
   const existing = await ctx.db
     .query("accountImages")
     .withIndex("by_account_and_key", (q) =>
@@ -101,6 +139,12 @@ async function insertAccountImageIfNew(
  * Index an image the account now owns. Idempotent on `imageKey` — the same
  * object must never produce two rows, because the grid would show it twice
  * and a delete would leave one behind.
+ *
+ * PUBLIC, and `imageKey` is client-supplied, so the key is checked against the
+ * caller's own prefix (`assertKeyOwnedByAccount`, applied inside
+ * `insertAccountImageIfNew`) — throws `KEY_NOT_OWNED` otherwise. Indexing a
+ * foreign key here would hand it to `deleteIfUnused`, which counts references
+ * only within the caller's account and would therefore find none.
  */
 export const record = mutation({
   args: {
@@ -118,8 +162,11 @@ export const record = mutation({
  * CLI variant of `record` for `scripts/backfill-account-images.mjs`. The
  * script runs unauthenticated — there is no JWT for `requireCallerAccountId`
  * to resolve — so it takes `accountId` explicitly instead. Shares
- * `insertAccountImageIfNew` with `record` so dedupe semantics can't drift
- * between the live write path and the backfill.
+ * `insertAccountImageIfNew` with `record` so dedupe semantics — and the
+ * `accounts/<accountId>/images/` ownership assertion — can't drift between the
+ * live write path and the backfill. The assertion is checked against the
+ * `accountId` argument, so a mis-parsed key in the script cannot file an image
+ * under the wrong account.
  */
 export const recordForAccount = internalMutation({
   args: {
@@ -216,6 +263,14 @@ export const deleteIfUnused = mutation({
         message: "Library row points at a shared object.",
       });
     }
+
+    // Belt and braces, and deliberately stricter than the line above: this is
+    // the one place in the product that removes an image object from R2, so it
+    // re-asserts the SAME invariant the write path enforces rather than
+    // trusting that every row in the table was written through it. Rows
+    // predating `assertKeyOwnedByAccount` (or written by a future path that
+    // bypasses `insertAccountImageIfNew`) stop here instead of at R2.
+    assertKeyOwnedByAccount(accountId, row.imageKey);
 
     const count = await countRowsReferencingKeys(
       ctx,

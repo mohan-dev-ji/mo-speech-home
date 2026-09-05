@@ -15,7 +15,9 @@ export const dynamic = "force-dynamic";
  *
  * Flow, the same shape as `app/api/delete-profile-symbol/route.ts`:
  *   1. Clerk auth gate (401 without a userId or a Convex token).
- *   2. `accountImages.deleteIfUnused` — ownership check, "is anything still
+ *   2. `accountImages.deleteIfUnused` — ownership checks (the row is the
+ *      caller's, AND its key is under the caller's own
+ *      `accounts/<accountId>/images/` prefix), "is anything still
  *      using this key" check, then the row + its stale credit row. It returns
  *      the key to remove; we never trust the key from the request body for the
  *      R2 delete, only the one the mutation actually de-listed.
@@ -90,13 +92,24 @@ export async function POST(request: Request) {
       if (data.code === "NOT_FOUND") {
         return NextResponse.json({ error: "not_found" }, { status: 404 });
       }
+      if (data.code === "KEY_NOT_OWNED") {
+        // 403, not 404: the row exists and belongs to the caller's account,
+        // but its key points outside that account's own image prefix. That is
+        // a request the caller is not allowed to make, and saying so is safe —
+        // they already had to own the row to get this far.
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
       // `NOT_PERSONAL` falls through to the 500 below on purpose, unmapped.
-      // It is unreachable by construction: the only writers of `accountImages`
-      // rows are the backfill and the imagen route, and both write keys under
-      // `accounts/`. A `NOT_PERSONAL` here means one of those writers put a
-      // non-personal key in the table — an upstream write bug, not a
-      // retryable client state — so "try again" (the UI's generic failure
-      // copy) is the honest message even though it can't actually help.
+      // It is unreachable by construction, and since the phase-36 whole-branch
+      // review that is ENFORCED rather than assumed: there are three writers
+      // of `accountImages` — the backfill, the imagen route, and the symbol
+      // editor modal (client-supplied, via the public `record` mutation) —
+      // and all three go through `assertKeyOwnedByAccount`, which admits only
+      // `accounts/<accountId>/images/`. A `NOT_PERSONAL` here would mean a row
+      // that predates that check, or a writer that bypassed
+      // `insertAccountImageIfNew` — an upstream write bug, not a retryable
+      // client state — so "try again" (the UI's generic failure copy) is the
+      // honest message even though it can't actually help.
     }
     // A plain `Error("Unauthenticated")` (thrown by `requireCallerAccountId`,
     // not a `ConvexError`) also lands here. The repo convention for a plain

@@ -156,52 +156,59 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * 'userUpload' for the same thing — the two vocabularies are mapped at the
  * point of persistence, not here.
  *
- * The switch below covers exactly five tabs: `symbolstix`, `image-search`,
- * and `upload` (the default case) hand a blob straight to the draft the
- * moment the user picks something, so "which tab is active" already tells
- * you the source; `my-images` returns the row's own `libraryImageSource`,
- * translated into this vocabulary, or `undefined` if nothing has been picked
- * yet; `ai-generate` always returns `undefined` — since phase-36 Task 3 the
- * AI tab never writes to the draft at all; a
- * generation only reaches the draft by being adopted from `my-images` (see
- * `handleImageReferenced`), so sitting on that tab implies nothing about the
- * draft's image and must fall through to "no change", exactly like browsing
- * `my-images` with nothing picked. Returning `'aiGenerated'` here for a tab
- * that hasn't adopted anything would retype an existing upload/search symbol
- * as AI-sourced the moment the user opened that tab and hit Save.
+ * REFERENCE PATH ONLY — and after phase-36 that is the whole story. This
+ * answers "what does the current tab/selection imply for an image that is
+ * ALREADY on the draft", which is only meaningful when nothing is queued to
+ * upload. Once a blob is pending, its provenance was fixed at hand-over time
+ * (`pendingImageSourceType`, set in `handleImageSelected`) and the tab can
+ * move on (e.g. to 'my-images' to browse) without that blob's source
+ * changing. Every blob-upload branch in `handleSave` uses
+ * `pendingImageSourceType` / `uploadedType`, never this function.
  *
- * Returns `undefined` for two cases: `imageSourceTab === 'ai-generate'`
- * (see above), and `imageSourceTab === 'my-images'` with no
- * `libraryImageSource` — the tab is a click away (`patch({
- * imageSourceTab: value })` on the tab bar), so a user can land here just by
- * BROWSING the library, without picking a row via "Add to symbol". Neither is
- * "this is now an upload" — every caller MUST treat `undefined` as "keep
- * whatever image source was already on this draft" and fall back accordingly
- * (`initialImageSourceType` for the restore-image modes, the existing
- * symbol's own persisted type for categoryBoard), never coerce it to a
- * default.
+ * Which is exactly why only TWO tabs can answer:
  *
- * REFERENCE PATH ONLY. This answers "what does the current tab/selection
- * imply", which is only meaningful when nothing is queued to upload. Once a
- * blob is pending, its provenance is fixed at hand-over time (see
- * `pendingImageSourceType`, set in `handleImageSelected`) — the tab can move
- * on (e.g. to 'my-images' to browse) without that blob's source changing.
- * The four blob-upload branches in `handleSave` must use
- * `pendingImageSourceType`, never this function, for the type of an image
- * they are about to upload.
+ * - `symbolstix` — the pick is not a blob at all; it is
+ *   `draft.symbolstixImagePath` sitting on the draft, so an active SymbolStix
+ *   tab really does say "this symbol is SymbolStix".
+ * - `my-images` — adoption is BY REFERENCE (no blob), so the answer is the
+ *   library row's own `libraryImageSource`, translated into this vocabulary.
+ *   `undefined` when nothing has been picked.
+ *
+ * Every other tab returns `undefined`, meaning "this tab implies nothing about
+ * the draft's image":
+ *
+ * - `upload` and `image-search` hand over a BLOB the moment the user picks
+ *   something, and that blob's type travels in `pendingImageSourceType`. So
+ *   reaching this function with one of those tabs active means nothing was
+ *   picked — the user is BROWSING. The tab is one click away on the tab bar,
+ *   so opening Upload on a saved AI symbol, changing nothing, and pressing
+ *   Save used to retype it as `userUpload` (and browsing Image Search retyped
+ *   it as `imageSearch`, inventing an attribution-shaped source with no
+ *   attribution behind it). Same bug, same fix as `ai-generate` and
+ *   `my-images` below.
+ * - `ai-generate` — since phase-36 Task 3 the AI tab never writes to the draft
+ *   at all; a generation reaches the draft only by being adopted from
+ *   `my-images` (see `handleImageReferenced`).
+ *
+ * `undefined` is NEVER "this is now an upload". Every caller MUST treat it as
+ * "keep whatever image source was already on this draft" and fall back
+ * accordingly (`initialImageSourceType` for the restore-image modes, the
+ * existing symbol's own persisted type for categoryBoard), never coerce it to
+ * a default.
  */
 function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] | undefined {
   switch (d.imageSourceTab) {
     case 'symbolstix':   return 'symbolstix';
-    case 'image-search': return 'imageSearch';
-    case 'ai-generate':  return undefined; // adoption always goes through 'my-images'
     case 'my-images':
       // The library row's own provenance, captured when the user added it.
       return d.libraryImageSource === 'imageSearch'  ? 'imageSearch'
            : d.libraryImageSource === 'aiGenerated'  ? 'aiGenerated'
            : d.libraryImageSource === 'userUpload'   ? 'upload'
            : undefined; // browsing, nothing picked yet
-    default:             return 'upload';
+    // 'upload', 'image-search' and 'ai-generate' all reach here only when
+    // nothing was picked — a picked blob never consults this function. See the
+    // docblock: browsing a tab must not retype a saved symbol.
+    default:             return undefined;
   }
 }
 
@@ -739,6 +746,30 @@ export function SymbolEditorModal({
       // for a picture already counted as kept.
       lastGenerationRef.current = null;
     }
+    // ADOPTION IS ALSO WHEN THE CREDIT IS RECORDED for an AI image.
+    // Before phase-36 the AI tab handed over a blob and `handleSave` uploaded
+    // it, which is where `recordImageCreditSafely(key, 'aiGenerated')` fired.
+    // Adoption is by reference now — no blob, no upload branch — so without
+    // this line every new AI image is missing from the Credits screen's
+    // AI-generated group (`CreditList.tsx` ← `imageCredits.getAccountImageCredits`).
+    // Recorded on ADOPTION, not on generation: `imageCredits` is the registry
+    // of images IN USE, while merely owning one is what `accountImages` is
+    // for (ADR-024 §1 — the two tables are siblings, never merged).
+    //
+    // Only `aiGenerated`. `userUpload` rows are not creditable at all (the
+    // validator has no member for them). `imageSearch` rows already carry a
+    // credit on the key from their own save path, and re-recording is a
+    // server-side no-op — but the provenance this helper reads comes off the
+    // PRE-patch `draft`, so calling it for a search row could only ever
+    // attach the wrong attribution or none. Left to the save path that has it.
+    //
+    // Fire-and-forget and idempotent on `(accountId, imageKey)`, so re-adopting
+    // the same picture is free (`convex/imageCredits.ts` → first record wins,
+    // never an update, never a throw).
+    if (row.source === 'aiGenerated') {
+      recordImageCreditSafely(row.imageKey, 'aiGenerated');
+    }
+
     const fromSearch = row.source === 'imageSearch';
     // Adopting a FRESH generation still overwrites the description label with
     // the prompt — the prompt IS the word the user just generated for, and
