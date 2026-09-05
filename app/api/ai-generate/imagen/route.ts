@@ -301,13 +301,39 @@ export async function POST(request: Request) {
   // removed. That write fed a global shared cache; this one puts the image in
   // the USER'S OWN library, account-scoped, because they paid for it and it is
   // theirs to keep (MOS-52). See ADR-024.
+  //
+  // `access.accountId` is the prefix here specifically because `getMyAccess`
+  // resolves it the same collaborator-aware way `accountImages.record` does
+  // (both go through `requireCallerAccountId`/`resolveCallerAccountId`,
+  // sending an active collaborator to the HOST account) — the key, the row,
+  // and the client's own uploads (ProfileContext.tsx) must all agree on which
+  // account owns the object, or account deletion strands it under an id
+  // nothing else looks under.
   const imageKey = `accounts/${access.accountId}/images/${randomUUID()}.png`;
-  await uploadBuffer(imageKey, pngBuffer, "image/png");
-  await convex.mutation(api.accountImages.record, {
-    imageKey,
-    source: "aiGenerated",
-    prompt: rawPrompt,
-  });
+  try {
+    await uploadBuffer(imageKey, pngBuffer, "image/png");
+    await convex.mutation(api.accountImages.record, {
+      imageKey,
+      source: "aiGenerated",
+      prompt: rawPrompt,
+    });
+  } catch (err) {
+    // BY THIS POINT the quota was already reserved AND Gemini already
+    // produced the image — this is not the provider declining the prompt, so
+    // it must never be reported with the "provider_refused"/"provider_error"
+    // copy above. It's storage that failed after the user paid for a working
+    // generation, so the same REFUND THE RESERVATION logic applies here as in
+    // the generate-step catch: best-effort, deliberately swallowed, because
+    // the storage failure is still the thing worth reporting even if the
+    // refund itself fails.
+    console.error("[ai-generate] R2 upload or accountImages.record failed", { imageKey }, err);
+    try {
+      await convex.mutation(api.featureQuota.refundOneDual, { feature: FEATURE });
+    } catch (refundErr) {
+      console.error("[ai-generate] quota refund failed", refundErr);
+    }
+    return NextResponse.json({ error: "storage_error" }, { status: 502 });
+  }
 
   // ── Return ───────────────────────────────────────────────────────────────
   trackServer(userId, "ai_generate_used", {

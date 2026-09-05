@@ -178,6 +178,20 @@ const imageProvenanceFields = {
  * `imageSourceType` deliberately has no `upload` or `symbolstix` member —
  * see the `imageCredits` table's doc comment for why.
  */
+/**
+ * The three-way provenance tag on an `accountImages` row (MOS-52). ONE
+ * definition, exported so `accountImages.ts`'s `record`/`recordForAccount`
+ * arg validators can import it rather than retyping the same three literals
+ * — see `imageCreditFields` just below for why a shape shared between a
+ * table and its function module lives here, in `schema.ts`, rather than in
+ * the function module itself.
+ */
+export const accountImageSource = v.union(
+  v.literal("aiGenerated"),
+  v.literal("userUpload"),
+  v.literal("imageSearch"),
+);
+
 export const imageCreditFields = {
   // The R2 object key this credit describes. THE dedupe key.
   imageKey: v.string(),
@@ -1394,11 +1408,7 @@ export default defineSchema({
   accountImages: defineTable({
     accountId: v.id("users"),
     imageKey: v.string(),
-    source: v.union(
-      v.literal("aiGenerated"),
-      v.literal("userUpload"),
-      v.literal("imageSearch"),
-    ),
+    source: accountImageSource,
     // For AI images: what the user asked for. Display hint only — it is shown
     // in the grid as a caption and is never a lookup key.
     prompt: v.optional(v.string()),

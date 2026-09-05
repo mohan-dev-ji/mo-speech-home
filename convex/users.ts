@@ -1,6 +1,6 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { requireCallerIsAdmin } from "./lib/account";
+import { requireCallerIsAdmin, resolveCallerAccountId } from "./lib/account";
 import { isCustomAccessEffective, assertLanguageAllowed } from "./lib/access";
 import { assertThemeSelectable } from "./lib/themes";
 
@@ -46,17 +46,17 @@ export const getMyUser = query({
 export const getMyAccess = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) =>
-        q.eq("clerkUserId", identity.subject)
-      )
-      .first();
-
-    if (!user) return null;
+    // `accountId` here must be the SAME account an image write lands under —
+    // `accountImages.record` and the R2 key both resolve through
+    // `requireCallerAccountId`/`resolveCallerAccountId`, which sends an active
+    // collaborator to the HOST account, not their own row. Returning
+    // `user._id` instead would silently diverge for every collaborator: the
+    // client (ProfileContext.tsx) uploads under the host id, so a caller-id
+    // key here would strand the object the moment the host's account is
+    // deleted (nothing would be looking under the collaborator's id either).
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return null;
+    const { accountId, user } = resolved;
 
     const { status, subscriptionEndsAt, plan, trialEndsAt, customAccess } =
       user.subscription;
@@ -96,7 +96,7 @@ export const getMyAccess = query({
         : 0;
 
     return {
-      accountId: user._id,
+      accountId,
       tier,
       status,
       hasFullAccess,

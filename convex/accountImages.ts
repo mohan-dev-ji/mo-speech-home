@@ -3,12 +3,7 @@ import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import type { Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
-
-const accountImageSource = v.union(
-  v.literal("aiGenerated"),
-  v.literal("userUpload"),
-  v.literal("imageSearch"),
-);
+import { accountImageSource } from "./schema";
 
 /**
  * The account's library, newest first. Paginated because an active account

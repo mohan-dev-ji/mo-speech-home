@@ -191,7 +191,7 @@ console.log(DRY_RUN ? "DRY RUN SUMMARY (nothing written)" : "APPLY SUMMARY");
 console.log("─".repeat(72));
 console.log(`accounts:           ${keysByAccount.size}`);
 console.log(`images total:       ${totalKeys}`);
-console.log(`matched to a symbol:${" ".repeat(0)} ${matchedCount}`);
+console.log(`matched to a symbol: ${matchedCount}`);
 console.log(`guessed userUpload: ${guessedCount}`);
 if (totalKeys > 0) {
   console.log(`guess rate:         ${((100 * guessedCount) / totalKeys).toFixed(1)}%`);
