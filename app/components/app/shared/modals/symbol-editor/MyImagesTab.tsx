@@ -60,8 +60,18 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
   // query update. Computing it here means the tile is selected on the very
   // render the row appears in, and no earlier.
   const [releasedHighlight, setReleasedHighlight] = useState<string | null>(null);
+  // Whether the user has ever tapped a tile with their own hand, as opposed to
+  // a highlight promoting itself into `selectedId` via `releaseHighlight`
+  // (Add to symbol, Show more). This is permanent for the life of the mounted
+  // tab — once the user has taken over the selection, a highlight that
+  // arrives afterwards (even for a later generation, whose key was never seen
+  // by `releasedHighlight`) must not steal it back. Without this, a manual
+  // pick made while no highlight was active (so `releaseHighlight` no-ops on
+  // `!highlightKey`) would be silently overridden the moment a subsequent
+  // generation's row lands in the reactive query.
+  const [manualSelectionMade, setManualSelectionMade] = useState(false);
   const highlightRow =
-    highlightKey && highlightKey !== releasedHighlight
+    highlightKey && !manualSelectionMade && highlightKey !== releasedHighlight
       ? results.find((r) => r.imageKey === highlightKey)
       : undefined;
   const effectiveSelectedId = highlightRow ? highlightRow._id : selectedId;
@@ -117,6 +127,7 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
                   aria-label={altText}
                   onClick={() => {
                     releaseHighlight();
+                    setManualSelectionMade(true);
                     setSelectedId(isSelected ? null : row._id);
                   }}
                   className="flex flex-col items-center gap-1 rounded-theme-sm p-2"

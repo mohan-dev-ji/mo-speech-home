@@ -166,9 +166,9 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
  *
  * Pipeline: auth → Max-tier check → both quota meters reserved → Gemini image
  * call → 512px webp re-encode → R2 write + accountImages index → JSON
- * `{ imageKey, dailyRemaining, monthlyRemaining }`. No shared cache — see
- * ADR-023, which removed that. Every call is a live generation, which is what
- * makes re-generating give a different image.
+ * `{ imageKey }`. No shared cache — see ADR-023, which removed that. Every
+ * call is a live generation, which is what makes re-generating give a
+ * different image.
  *
  * The bytes are NOT returned. Phase-36 Task 3 moved the result out of the AI
  * tab entirely: the image lands in the user's library and they adopt it from
@@ -378,10 +378,14 @@ export async function POST(request: Request) {
   // JSON, not bytes. The client no longer displays the result — it switches
   // to My Images and lets the reactive `accountImages.listMine` query deliver
   // the new row — so `imageKey` (which row to select) is the whole payload it
-  // acts on. The counters ride along for callers that want the post-call
-  // numbers without waiting for the reactive quota query to land.
+  // acts on. `dailyRemaining` / `monthlyRemaining` are NOT included: the
+  // quota footer is the reactive `featureQuota.getRemainingDual` query, not
+  // this response, so counters here would be unread dead weight — same
+  // "delete what nothing reads" call ADR-023 already made for the old
+  // response headers, applied to the body too. They still ride the
+  // `ai_generate_used` analytics call above.
   return NextResponse.json(
-    { imageKey, dailyRemaining, monthlyRemaining },
+    { imageKey },
     { status: 200, headers: { "Cache-Control": "no-store" } }
   );
 }

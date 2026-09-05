@@ -156,15 +156,27 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * 'userUpload' for the same thing — the two vocabularies are mapped at the
  * point of persistence, not here.
  *
- * Returns `undefined` for exactly one case: `imageSourceTab === 'my-images'`
- * with no `libraryImageSource` — the tab is a click away (`patch({
+ * Only `symbolstix` and `image-search` can ever yield a type here: both hand
+ * a blob straight to the draft the moment the user picks something, so
+ * "which tab is active" already tells you the source. `ai-generate` cannot —
+ * since phase-36 Task 3 the AI tab never writes to the draft at all; a
+ * generation only reaches the draft by being adopted from `my-images` (see
+ * `handleImageReferenced`), so sitting on that tab implies nothing about the
+ * draft's image and must fall through to "no change", exactly like browsing
+ * `my-images` with nothing picked. Returning `'aiGenerated'` here for a tab
+ * that hasn't adopted anything would retype an existing upload/search symbol
+ * as AI-sourced the moment the user opened that tab and hit Save.
+ *
+ * Returns `undefined` for two cases: `imageSourceTab === 'ai-generate'`
+ * (see above), and `imageSourceTab === 'my-images'` with no
+ * `libraryImageSource` — the tab is a click away (`patch({
  * imageSourceTab: value })` on the tab bar), so a user can land here just by
- * BROWSING the library, without picking a row via "Add to symbol". That is
- * "no change", not "this is now an upload" — every caller MUST treat
- * `undefined` as "keep whatever image source was already on this draft" and
- * fall back accordingly (`initialImageSourceType` for the restore-image modes,
- * the existing symbol's own persisted type for categoryBoard), never coerce it
- * to a default.
+ * BROWSING the library, without picking a row via "Add to symbol". Neither is
+ * "this is now an upload" — every caller MUST treat `undefined` as "keep
+ * whatever image source was already on this draft" and fall back accordingly
+ * (`initialImageSourceType` for the restore-image modes, the existing
+ * symbol's own persisted type for categoryBoard), never coerce it to a
+ * default.
  *
  * REFERENCE PATH ONLY. This answers "what does the current tab/selection
  * imply", which is only meaningful when nothing is queued to upload. Once a
@@ -179,7 +191,7 @@ function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType']
   switch (d.imageSourceTab) {
     case 'symbolstix':   return 'symbolstix';
     case 'image-search': return 'imageSearch';
-    case 'ai-generate':  return 'aiGenerated';
+    case 'ai-generate':  return undefined; // adoption always goes through 'my-images'
     case 'my-images':
       // The library row's own provenance, captured when the user added it.
       return d.libraryImageSource === 'imageSearch'  ? 'imageSearch'
@@ -718,6 +730,11 @@ export function SymbolEditorModal({
         style: justGenerated.style,
         attempts: justGenerated.attempts,
       });
+      // One adoption per generation: without this, re-adding the same
+      // generated tile (e.g. after a "used by N other items" cancel, or a
+      // second visit to My Images) would fire `ai_generate_adopted` again
+      // for a picture already counted as kept.
+      lastGenerationRef.current = null;
     }
     const fromSearch = row.source === 'imageSearch';
     // Adopting a FRESH generation still overwrites the description label with

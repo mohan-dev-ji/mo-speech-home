@@ -887,8 +887,6 @@
     "aiGenerate": "Generate",
     "aiGenerating": "Generating…",
     "aiGeneratingToLibrary": "Generating… this takes a few seconds. Your image will be saved to My Images.",
-    "aiAddToSymbol": "Add to Symbol",
-    "aiDiscardChanges": "Discard",
     "aiGenerationsLeft": "{daily} left today · {monthly} left this month",
     "aiGenerationError": "Generation failed. Please try again.",
     "aiGenerationRefused": "The image service wouldn't create this one. Try describing it differently — this attempt hasn't cost you a generation.",
