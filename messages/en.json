@@ -886,6 +886,7 @@
     "aiStyleClaymation": "3D Claymation",
     "aiGenerate": "Generate",
     "aiGenerating": "Generating…",
+    "aiGeneratingToLibrary": "Generating… this takes a few seconds. Your image will be saved to My Images.",
     "aiAddToSymbol": "Add to Symbol",
     "aiDiscardChanges": "Discard",
     "aiGenerationsLeft": "{daily} left today · {monthly} left this month",

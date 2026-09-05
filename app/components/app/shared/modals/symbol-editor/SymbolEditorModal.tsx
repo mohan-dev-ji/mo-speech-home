@@ -19,6 +19,7 @@ import { MyImagesTab, type LibraryImage } from './MyImagesTab';
 import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { deriveAudioMode, initLabelDirty, planFollowLabelAudio, type StoredAudioEntry } from './audioLogic';
+import { track } from '@/lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -382,6 +383,15 @@ export function SymbolEditorModal({
   // may no longer be the tab that produced it. `undefined` = no pending blob,
   // or (defensively) a blob handed over from a tab that should never do that.
   const [pendingImageSourceType, setPendingImageSourceType] = useState<ImageCreditResult['imageSourceType']>(undefined);
+  // The library row an AI generation just created, for MyImagesTab to arrive
+  // on already selected. State, not a ref: it is a prop the tab renders from.
+  const [aiHighlightKey, setAiHighlightKey] = useState<string | null>(null);
+  // This session's most recent generation. A ref because nothing renders from
+  // it — it exists so that adopting a row FROM MY IMAGES can tell "the image I
+  // just paid for" from "an image I made last week", and fire
+  // `ai_generate_adopted` for only the first. `attempts` is AiGenerateTab's
+  // monotonic count of generations spent this session (FEAT-008 §6).
+  const lastGenerationRef = useRef<{ imageKey: string; style: string; attempts: number } | null>(null);
   const [pendingAudioBlob, setPendingAudioBlob] = useState<Blob | null>(null);
   const [pendingAudioBlobUrl, setPendingAudioBlobUrl] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
@@ -655,15 +665,16 @@ export function SymbolEditorModal({
     setPendingImagePreviewUrl(previewUrl);
     // Capture provenance NOW, from whichever tab is handing over the blob —
     // never re-derived later from `draft.imageSourceTab`, which can have moved
-    // on to 'my-images' (or anywhere else) by the time Save runs. Only Upload,
-    // Image Search and AI Generate wire `onImageSelected` to this callback;
-    // SymbolStix never hands over a blob at all, and My Images uses
-    // `handleImageReferenced` instead — so those two cases should never reach
-    // here, and are logged rather than silently mis-attributed.
+    // on to 'my-images' (or anywhere else) by the time Save runs. Exactly TWO
+    // tabs still hand over bytes: Upload and Image Search. SymbolStix never
+    // did; My Images adds by reference (`handleImageReferenced`); and since
+    // phase-36 AI Generate writes straight to the library server-side and is
+    // adopted from My Images like any other row — so a generation can no
+    // longer arrive here as a blob either. Anything else is logged rather than
+    // silently mis-attributed.
     setPendingImageSourceType(
       draft.imageSourceTab === 'upload'       ? 'upload' :
       draft.imageSourceTab === 'image-search' ? 'imageSearch' :
-      draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' :
       (() => {
         if (process.env.NODE_ENV !== 'production') {
           console.error(
@@ -692,7 +703,31 @@ export function SymbolEditorModal({
     setPendingImageBlob(null);
     setPendingImagePreviewUrl(null);
     setPendingImageSourceType(undefined);
+    // ADOPTION IS THE EVENT, and this is now where it happens — the AI tab
+    // hands over nothing, so the image the user paid for is adopted from the
+    // library like any other row. Fires only for THIS session's generation:
+    // re-using a picture made last week is not a new adoption, and counting it
+    // as one would inflate the attempts-per-kept-image number the 20/day +
+    // 100/month allowance gets retuned against (FEAT-008 §6). Never the prompt
+    // — it is user content and, in an AAC app, frequently about a specific
+    // child. Style is a fixed enum and safe.
+    const justGenerated = lastGenerationRef.current;
+    const isJustGenerated = justGenerated?.imageKey === row.imageKey;
+    if (justGenerated && isJustGenerated) {
+      track('ai_generate_adopted', {
+        style: justGenerated.style,
+        attempts: justGenerated.attempts,
+      });
+    }
     const fromSearch = row.source === 'imageSearch';
+    // Adopting a FRESH generation still overwrites the description label with
+    // the prompt — the prompt IS the word the user just generated for, and
+    // they typed it seconds ago. Deliberately NOT applied to older library
+    // rows: adopting a picture from the gallery must not silently retype a
+    // symbol with a sentence someone wrote weeks ago (see the my-images
+    // "no longer retypes the symbol" fix). Decoupled afterwards either way —
+    // editing the label doesn't echo back.
+    const freshPrompt = isJustGenerated ? row.prompt?.trim() : undefined;
     patch({
       imageSourceTab: 'my-images',
       resolvedImagePath: row.imageKey,
@@ -707,7 +742,20 @@ export function SymbolEditorModal({
       imageTitle:       fromSearch ? row.imageTitle     : undefined,
       // Draft-only, and not stored on the library row — nothing to restore.
       imageProvider: undefined,
+      ...(freshPrompt ? { labelEng: freshPrompt } : {}),
     });
+  }
+
+  /**
+   * A generation succeeded. Nothing is adopted yet and the draft is NOT
+   * touched: the image exists in the account's library and the user chooses it
+   * there, by reference, exactly as they would any other library row. All this
+   * does is take them to it and remember which row it is.
+   */
+  function handleAiGenerated(result: { imageKey: string; style: string; attempts: number }) {
+    lastGenerationRef.current = result;
+    setAiHighlightKey(result.imageKey);
+    patch({ imageSourceTab: 'my-images' });
   }
 
   function handleAudioBlobChange(blob: Blob | null, blobUrl: string | null) {
@@ -876,15 +924,16 @@ export function SymbolEditorModal({
     imageKey: string,
     type: ImageCreditResult['imageSourceType']
   ) {
-    if (type !== 'imageSearch' && type !== 'aiGenerated' && type !== 'upload') return;
+    // Only the two tabs that still upload bytes reach here. An AI generation
+    // is indexed by the route that produced it (phase-36) — this modal never
+    // sees those bytes, so there is no 'aiGenerated' case left to write.
+    if (type !== 'imageSearch' && type !== 'upload') return;
     // Credit vocabulary says 'upload'; the library table says 'userUpload'.
     const source = type === 'upload' ? 'userUpload' as const : type;
-    const prompt = type === 'aiGenerated' ? draft.aiPrompt?.trim() : undefined;
     try {
       void recordAccountImage({
         imageKey,
         source,
-        ...(prompt ? { prompt } : {}),
       }).catch((err) => {
         console.warn('[accountImages] image not indexed for', imageKey, err);
       });
@@ -1503,16 +1552,15 @@ export function SymbolEditorModal({
               />
             )}
             {/* Kept mounted for the modal's lifetime (never conditionally
-                rendered): AiGenerateTab holds the session reel in its own
-                state, and unmounting it revokes every reel url and drops
-                paid-for images on a tab click. Hidden via display instead,
-                so its unmount — and the abandonment tracking / url cleanup
-                that fires on unmount — coincides with the modal closing. */}
+                rendered), hidden via display instead. The generation itself is
+                now safe either way — it is written to the library before the
+                route answers — but the STYLE and PROMPT the user composed live
+                in this tab's own state, and a generation ends by sending them
+                to My Images to look at the result. Unmounting on that switch
+                would empty the form they would come straight back to. */}
             <div className={draft.imageSourceTab === 'ai-generate' ? 'h-full' : 'hidden'}>
               <AiGenerateTab
-                draft={draft}
-                patch={patch}
-                onImageSelected={handleImageSelected}
+                onGenerated={handleAiGenerated}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />
@@ -1522,7 +1570,10 @@ export function SymbolEditorModal({
                 unmounting it on a tab click would throw the user back to page
                 one every time they glanced at another source. */}
             <div className={draft.imageSourceTab === 'my-images' ? 'h-full' : 'hidden'}>
-              <MyImagesTab onImageReferenced={handleImageReferenced} />
+              <MyImagesTab
+                onImageReferenced={handleImageReferenced}
+                highlightKey={aiHighlightKey}
+              />
             </div>
           </div>
         </div>

@@ -30,9 +30,21 @@ type Props = {
    * the "used by N other items" delete gate needs to be able to count.
    */
   onImageReferenced: (row: LibraryImage) => void;
+  /**
+   * R2 key of a row that should arrive already SELECTED — set by the modal
+   * when an AI generation lands here (phase-36 Task 3). The highlight IS the
+   * selection: the tile gets the same `aria-pressed` ring a tap gives it, so
+   * the action bar is live for the new image the moment the tab switches, and
+   * "Add to symbol" is one click rather than a hunt.
+   *
+   * It does not fade on a timer — an instructor who looked away for the eight
+   * seconds the generation took must still be able to see which one is new.
+   * It ends when the user interacts (taps another tile, Adds, or pages).
+   */
+  highlightKey?: string | null;
 };
 
-export function MyImagesTab({ onImageReferenced }: Props) {
+export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
   const t = useTranslations("symbolEditor");
   const { results, status, loadMore } = usePaginatedQuery(
     api.accountImages.listMine,
@@ -41,7 +53,30 @@ export function MyImagesTab({ onImageReferenced }: Props) {
   );
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = results.find((r) => r._id === selectedId) ?? null;
+  // The `highlightKey` the user has already taken over from. Derived selection
+  // rather than an effect that writes `selectedId`: the new row arrives through
+  // the reactive paginated query, which can land a beat after the tab switch,
+  // and syncing that into state would mean a setState-in-effect firing on every
+  // query update. Computing it here means the tile is selected on the very
+  // render the row appears in, and no earlier.
+  const [releasedHighlight, setReleasedHighlight] = useState<string | null>(null);
+  const highlightRow =
+    highlightKey && highlightKey !== releasedHighlight
+      ? results.find((r) => r.imageKey === highlightKey)
+      : undefined;
+  const effectiveSelectedId = highlightRow ? highlightRow._id : selectedId;
+  const selected = results.find((r) => r._id === effectiveSelectedId) ?? null;
+
+  /**
+   * The user is choosing for themselves now, so the highlight stops being
+   * special — it becomes an ordinary selection they can keep or replace, and a
+   * row that arrives late can no longer overwrite what they just did.
+   */
+  function releaseHighlight() {
+    if (!highlightKey || highlightKey === releasedHighlight) return;
+    setReleasedHighlight(highlightKey);
+    if (highlightRow) setSelectedId(highlightRow._id);
+  }
 
   const isLoadingFirstPage = status === "LoadingFirstPage";
   const isEmpty = !isLoadingFirstPage && results.length === 0;
@@ -64,7 +99,7 @@ export function MyImagesTab({ onImageReferenced }: Props) {
         {results.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {results.map((row, index) => {
-              const isSelected = selectedId === row._id;
+              const isSelected = effectiveSelectedId === row._id;
               // The prompt is the only human-readable thing a library row
               // carries, and only AI generations have one. User content, not
               // UI copy — so it is not a translation key.
@@ -80,7 +115,10 @@ export function MyImagesTab({ onImageReferenced }: Props) {
                   type="button"
                   aria-pressed={isSelected}
                   aria-label={altText}
-                  onClick={() => setSelectedId(isSelected ? null : row._id)}
+                  onClick={() => {
+                    releaseHighlight();
+                    setSelectedId(isSelected ? null : row._id);
+                  }}
                   className="flex flex-col items-center gap-1 rounded-theme-sm p-2"
                   style={{
                     background: isSelected
@@ -119,7 +157,10 @@ export function MyImagesTab({ onImageReferenced }: Props) {
             <button
               type="button"
               disabled={status === "LoadingMore"}
-              onClick={() => loadMore(PAGE_SIZE)}
+              onClick={() => {
+                releaseHighlight();
+                loadMore(PAGE_SIZE);
+              }}
               className="px-4 py-2 rounded-theme-sm text-theme-s font-semibold"
               style={{
                 background: "var(--theme-symbol-bg)",
@@ -144,7 +185,11 @@ export function MyImagesTab({ onImageReferenced }: Props) {
         <button
           type="button"
           disabled={!selected}
-          onClick={() => selected && onImageReferenced(selected)}
+          onClick={() => {
+            if (!selected) return;
+            releaseHighlight();
+            onImageReferenced(selected);
+          }}
           className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
           style={{
             background: "var(--theme-brand-primary)",

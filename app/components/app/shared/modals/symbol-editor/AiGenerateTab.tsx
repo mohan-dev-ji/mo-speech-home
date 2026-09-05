@@ -1,26 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { Sparkles, Lock, AlertCircle, X } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { STYLE_PRESETS, STYLE_IDS, type StyleId } from "@/lib/ai-style-prompts";
-import type { Draft } from "./types";
-import { toResizedWebp } from "./resizeImage";
 import {
   AI_IMAGE_DAILY_LIMIT_DEFAULT,
   AI_IMAGE_MONTHLY_LIMIT_DEFAULT,
 } from "@/lib/ai-image-limits";
-import { track } from "@/lib/analytics";
 
 const FEATURE = "aiImageGenerate";
 
 type Props = {
-  draft: Draft;
-  patch: (partial: Partial<Draft>) => void;
-  onImageSelected: (blob: Blob, previewUrl: string) => void;
+  /**
+   * A generation succeeded and is already in the account's library — the route
+   * wrote the 512px webp to R2 and indexed it before returning. The modal
+   * switches to My Images and highlights `imageKey`; adoption happens there, by
+   * reference, so this tab never hands over bytes and never touches the draft.
+   *
+   * `style` and `attempts` ride along because the adoption event is fired by
+   * the modal (from My Images) and this tab is the only place that knows how
+   * many generations this session paid for.
+   */
+  onGenerated: (result: { imageKey: string; style: StyleId; attempts: number }) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
 };
@@ -46,9 +51,15 @@ const STYLE_BLURB_KEYS: Record<StyleId, string> = {
 // highlight would land on the template's own wording instead of theirs.
 const PROMPT_SLOT = "\u0000";
 
+/**
+ * CREATE ONLY. There is no result view here and no session reel: every
+ * generation is written to the account's image library server-side (phase-36),
+ * so the images this tab produces are looked at, kept and adopted in My Images.
+ * The reel existed because an un-adopted generation was gone the moment the
+ * modal closed — that is no longer true of anything.
+ */
 export function AiGenerateTab({
-  patch,
-  onImageSelected,
+  onGenerated,
   searchQuery,
   setSearchQuery,
 }: Props) {
@@ -62,14 +73,6 @@ export function AiGenerateTab({
   const prompt = searchQuery;
   const setPrompt = setSearchQuery;
   const [isGenerating, setIsGenerating] = useState(false);
-  // THE SESSION REEL (ADR-023). With no server-side cache, an image that is
-  // dropped is gone for good — so everything generated this session stays in
-  // memory until the modal closes. Blobs are already resized to the 512px
-  // webp on arrival, so ten of them cost ~200KB, not ~9MB.
-  const REEL_MAX = 10;
-  const [reel, setReel] = useState<{ blob: Blob; url: string; style: StyleId }[]>([]);
-  const [reelIndex, setReelIndex] = useState(0);
-  const current = reel[reelIndex] ?? null;
   const [error, setError] = useState<string | null>(null);
 
   // Exactly what the route will send: it calls the same template with the
@@ -77,45 +80,11 @@ export function AiGenerateTab({
   const typedPrompt = prompt.trim();
   const wrappedParts = STYLE_PRESETS[style].template(PROMPT_SLOT).split(PROMPT_SLOT);
 
-  // A ref mirroring the reel, so unmount cleanup can revoke every URL without
-  // reading a stale closure and without setting state during unmount.
-  const reelRef = useRef<{ blob: Blob; url: string; style: StyleId }[]>([]);
-  useEffect(() => {
-    reelRef.current = reel;
-  }, [reel]);
-
-  // Revoke on unmount ONLY — the empty dependency array is deliberate.
-  // Revoking on each reel change would kill URLs the reel is still showing.
-  useEffect(() => {
-    return () => {
-      reelRef.current.forEach((e) => URL.revokeObjectURL(e.url));
-    };
-  }, []);
-
-  // Wasted spend: the tab closed having kept nothing. Reuses `reelRef` from
-  // Task 4 — an unmount cleanup would otherwise read the first render's
-  // values. `styleRef` exists for the same reason.
-  const adoptedRef = useRef(false);
-  const styleRef = useRef(style);
-  // Monotonic count of successful generations this session. Deliberately NOT
-  // `reel.length`: the reel shrinks on Discard and caps at REEL_MAX, so its
-  // length measures what survived, not what was spent. This number is what
-  // retunes the 20/day + 100/month allowance (FEAT-008 §6), and an undercount
-  // would bias it low for exactly the heavy re-rollers it exists to measure.
+  // Monotonic count of successful generations this session — what the modal
+  // reports as `ai_generate_adopted.attempts` when one of them is adopted.
+  // This number is what retunes the 20/day + 100/month allowance (FEAT-008
+  // §6), so it counts what was SPENT, never what survived.
   const attemptsRef = useRef(0);
-  useEffect(() => {
-    styleRef.current = style;
-  }, [style]);
-  useEffect(() => {
-    return () => {
-      if (!adoptedRef.current && reelRef.current.length > 0) {
-        track("ai_generate_abandoned", {
-          style: styleRef.current,
-          attempts: attemptsRef.current,
-        });
-      }
-    };
-  }, []);
 
   const quota = useQuery(
     api.featureQuota.getRemainingDual,
@@ -157,6 +126,10 @@ export function AiGenerateTab({
       // the user another attempt to learn nothing. Different copy, telling
       // them to change the wording instead. The quota is refunded server-side
       // either way, so a refusal no longer consumes one of the ten.
+      //
+      // EVERY failure path stays on this tab. There is nothing in the gallery
+      // to show for a request that produced no image, and the one thing the
+      // user needs to change — the prompt — is right here.
       if (res.status === 422) {
         setError(t("aiGenerationRefused"));
         return;
@@ -165,77 +138,24 @@ export function AiGenerateTab({
         setError(t("aiGenerationError"));
         return;
       }
-      // Server returns the PNG bytes inline (avoids cross-origin R2 fetch).
-      // Resize HERE, not at adoption. The preview is then the exact artefact
-      // that gets saved — no surprise on save — and the reel holds ~20KB
-      // webps instead of ~880KB PNGs.
-      const raw = await res.blob();
-      const blob = await toResizedWebp(raw);
-      const url = URL.createObjectURL(blob);
-      // Computed here rather than inside a setState updater: revoking a url is
-      // a side effect and React 19 double-invokes updaters in StrictMode. Safe
-      // to read `reel` from this closure because the two controls that mutate
-      // it — Discard and Add to symbol — are disabled while `isGenerating`.
-      const next = [...reel, { blob, url, style }];
-      if (next.length > REEL_MAX) {
-        URL.revokeObjectURL(next[0].url);
-        next.shift();
+      // JSON, not bytes: the image is already in R2 and already indexed in
+      // `accountImages`, so all the client needs is the key of the row that
+      // just appeared at the top of My Images.
+      const body = (await res.json()) as { imageKey?: string };
+      if (!body.imageKey) {
+        setError(t("aiGenerationError"));
+        return;
       }
       attemptsRef.current += 1;
-      setReel(next);
-      setReelIndex(next.length - 1);
+      // Report THIS request's style, not the live selection — by the time the
+      // modal fires the adoption event the user may have clicked another
+      // style card while looking at the gallery.
+      onGenerated({ imageKey: body.imageKey, style, attempts: attemptsRef.current });
     } catch {
       setError(t("aiGenerationError"));
     } finally {
       setIsGenerating(false);
     }
-  }
-
-  // ── Add to Symbol — hand the already-resized reel entry to the modal ─────
-  async function handleAddToSymbol() {
-    if (!current) return;
-    // Already a 512px webp — resized on arrival, so there is nothing to do
-    // to the blob but hand it over.
-    // Hand the parent its OWN url. The modal takes ownership of whatever it is
-    // given (SymbolEditorModal.handleImageSelected stores it and revokes it on
-    // the modal's unmount), while this tab's reel keeps revoking its own urls on
-    // discard, overflow and unmount. Sharing one url between the two owners means
-    // whichever revokes first blanks the other's preview. UploadTab and ImagesTab
-    // mint a fresh url for the same reason.
-    onImageSelected(current.blob, URL.createObjectURL(current.blob));
-    // Never the prompt — it is user content and, in an AAC app, is frequently
-    // about a specific child. Style is a fixed enum and safe. Report the
-    // adopted entry's OWN style, not the live selection — the user may have
-    // clicked another style card while deciding, after generating this one.
-    track("ai_generate_adopted", { style: current.style, attempts: attemptsRef.current });
-    adoptedRef.current = true;
-    // Adding the generated image always overwrites the description label
-    // with the prompt — the prompt IS the word/concept the user generated
-    // for. Decoupled afterwards: editing the label doesn't echo back.
-    const trimmedPrompt = prompt.trim();
-    patch({
-      resolvedImagePath: undefined,
-      // Clear any prior image-search attribution from a different tab.
-      imageSourceUrl: undefined,
-      imageAttribution: undefined,
-      imageLicense: undefined,
-      imageProvider: undefined,
-      imageTitle: undefined,
-      // This generation is the image now — not a library reference.
-      libraryImageSource: undefined,
-      ...(trimmedPrompt ? { labelEng: trimmedPrompt, aiPrompt: trimmedPrompt } : {}),
-    });
-  }
-
-  // Steps back rather than binning everything: the previous image was paid
-  // for and cannot be regenerated identically.
-  function handleDiscard() {
-    setError(null);
-    if (reel.length === 0) return;
-    const next = reel.filter((_, i) => i !== reelIndex);
-    URL.revokeObjectURL(reel[reelIndex].url);
-    setReel(next);
-    setReelIndex(Math.max(0, Math.min(reelIndex, next.length - 1)));
   }
 
   // ── Tier gate ────────────────────────────────────────────────────────────
@@ -264,32 +184,29 @@ export function AiGenerateTab({
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
-      {/* Preview */}
+      {/* Guidance / spinner */}
       <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-y-auto">
-        {current ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={current.url}
-            alt={prompt}
-            className="max-w-full max-h-full object-contain rounded-theme bg-white"
-            style={{ border: "1px solid var(--theme-button-highlight)" }}
-          />
-        ) : isGenerating ? (
+        {isGenerating ? (
           <div className="flex flex-col items-center gap-2">
             <Sparkles
               className="w-8 h-8 animate-pulse"
               style={{ color: "var(--theme-brand-primary)" }}
             />
-            <p className="text-theme-s" style={{ color: "var(--theme-secondary-text)" }}>
-              {t("aiGenerating")}
+            {/* Names the destination BEFORE the tab switches. Arriving in My
+                Images then reads as the thing that was announced, rather than
+                as the app taking the wheel. */}
+            <p
+              className="text-theme-s max-w-xs text-center"
+              style={{ color: "var(--theme-secondary-text)" }}
+            >
+              {t("aiGeneratingToLibrary")}
             </p>
           </div>
         ) : (
-          // THE CREATE STAGE. This area becomes the generated image in the
-          // result view, so the guidance occupies exactly the space the
-          // outcome will. The lead never changes; the second paragraph
-          // follows the selected style, which is what makes clicking a
-          // thumbnail informative rather than just a selection.
+          // THE CREATE STAGE, and now the only stage. The lead never changes;
+          // the second paragraph follows the selected style, which is what
+          // makes clicking a thumbnail informative rather than just a
+          // selection.
           <div className="flex flex-col gap-3 max-w-sm text-center">
             <p className="text-theme-s" style={{ color: "var(--theme-text)" }}>
               {t("aiGuidanceLead")}
@@ -394,7 +311,7 @@ export function AiGenerateTab({
         </div>
       </div>
 
-      {/* Prompt + actions */}
+      {/* Prompt + Generate */}
       <div className="px-3 pb-3 shrink-0 flex flex-col gap-2">
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2"
@@ -432,51 +349,22 @@ export function AiGenerateTab({
           )}
         </div>
 
-        {current ? (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleDiscard}
-              disabled={isGenerating}
-              className="flex-1 py-2 rounded-theme-sm text-theme-s font-semibold"
-              style={{
-                background: "var(--theme-symbol-bg)",
-                color: "var(--theme-secondary-text)",
-                border: "1px solid var(--theme-button-highlight)",
-                opacity: isGenerating ? 0.5 : 1,
-              }}
-            >
-              {t("aiDiscardChanges")}
-            </button>
-            <button
-              type="button"
-              onClick={handleAddToSymbol}
-              disabled={isGenerating}
-              className="flex-1 py-2 rounded-theme-sm text-theme-s font-semibold"
-              style={{
-                background: "var(--theme-brand-primary)",
-                color: "var(--theme-alt-text)",
-                opacity: isGenerating ? 0.5 : 1,
-              }}
-            >
-              {t("aiAddToSymbol")}
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isGenerating || !prompt.trim()}
-            className="w-full py-2 rounded-theme-sm text-theme-s font-semibold"
-            style={{
-              background: "var(--theme-brand-primary)",
-              color: "var(--theme-alt-text)",
-              opacity: isGenerating || !prompt.trim() ? 0.5 : 1,
-            }}
-          >
-            {isGenerating ? t("aiGenerating") : t("aiGenerate")}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={isGenerating || !prompt.trim()}
+          className="w-full py-2 rounded-theme-sm text-theme-s font-semibold"
+          style={{
+            background: "var(--theme-brand-primary)",
+            color: "var(--theme-alt-text)",
+            opacity: isGenerating || !prompt.trim() ? 0.5 : 1,
+          }}
+        >
+          {/* The button says only that it is working — the sentence naming
+              where the image is going belongs to the spinner, which has the
+              room for it. */}
+          {isGenerating ? t("aiGenerating") : t("aiGenerate")}
+        </button>
       </div>
 
       {/* Quota footer */}

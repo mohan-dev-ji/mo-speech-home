@@ -89,8 +89,11 @@ type EventMap = {
     dailyRemaining: number;
     monthlyRemaining: number;
   };
+  // Fired by SymbolEditorModal when a generation is adopted FROM MY IMAGES —
+  // phase-36 moved the result out of the AI tab, so there is no longer any
+  // such thing as an abandoned generation (`ai_generate_abandoned`, removed):
+  // every image is kept in the account's library whether it is used or not.
   ai_generate_adopted:     { style: string; attempts: number };
-  ai_generate_abandoned:   { style: string; attempts: number };
   // Server-fired via trackServer (which is untyped) — catalogued here because
   // this file is the catalogue, same as ai_generate_used.
   ai_generate_quota_blocked: { meter: "day" | "month"; tier: SubscriptionTier };

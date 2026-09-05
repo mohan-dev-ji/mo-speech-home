@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleAuth } from "google-auth-library";
+import sharp from "sharp";
 import { api } from "@/convex/_generated/api";
 import { isConfigured, uploadBuffer } from "@/lib/r2-storage";
 import { STYLE_PRESETS, isStyleId, AI_IMAGE_MODEL } from "@/lib/ai-style-prompts";
@@ -51,6 +52,15 @@ export class ProviderRefusalError extends Error {
 }
 
 const MAX_PROMPT_LENGTH = 500;
+
+// The library object is what a board renders now — a symbol references the
+// R2 key directly instead of the client re-encoding a copy on adoption — so
+// the raw 1024px PNG Gemini returns (~880KB) would be served straight onto a
+// board. These MUST match `scripts/backfill-ai-image-sizes.mjs` (and, through
+// it, `resizeImage.ts`'s 512 / 0.85 defaults), or the backfill and this route
+// disagree about what a generated image is.
+const RESIZE_MAX_EDGE = 512;
+const WEBP_QUALITY = 85;
 
 // The Gemini image model id, aliased locally so the request code below reads
 // `IMAGE_MODEL`. Lives in lib/ai-style-prompts.ts, beside the style templates
@@ -155,9 +165,15 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
  * Body: { prompt: string, style: StyleId }
  *
  * Pipeline: auth → Max-tier check → both quota meters reserved → Gemini image
- * call → R2 write + accountImages index → PNG bytes returned inline. No
- * shared cache — see ADR-023, which removed that. Every call is a live
- * generation, which is what makes re-generating give a different image.
+ * call → 512px webp re-encode → R2 write + accountImages index → JSON
+ * `{ imageKey, dailyRemaining, monthlyRemaining }`. No shared cache — see
+ * ADR-023, which removed that. Every call is a live generation, which is what
+ * makes re-generating give a different image.
+ *
+ * The bytes are NOT returned. Phase-36 Task 3 moved the result out of the AI
+ * tab entirely: the image lands in the user's library and they adopt it from
+ * My Images by reference, so the only thing the client needs back is the key
+ * of the row that just appeared.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {
@@ -296,11 +312,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 
-  // ── Persist + index ──────────────────────────────────────────────────────
+  // ── Re-encode + persist + index ──────────────────────────────────────────
   // THE R2 WRITE IS BACK, for a different reason than the one ADR-023
   // removed. That write fed a global shared cache; this one puts the image in
   // the USER'S OWN library, account-scoped, because they paid for it and it is
   // theirs to keep (MOS-52). See ADR-024.
+  //
+  // It is also now the ONLY copy. Before phase-36 Task 3 the client resized
+  // the returned bytes and uploaded its own webp on adoption; the symbol
+  // pointed at that second object and this one was never rendered, so its
+  // size did not matter. Now the symbol references THIS key, so the resize
+  // has to happen here — server-side, with sharp — or every adopted
+  // generation puts an 880KB PNG on a board.
   //
   // `access.accountId` is the prefix here specifically because `getMyAccess`
   // resolves it the same collaborator-aware way `accountImages.record` does
@@ -309,9 +332,13 @@ export async function POST(request: Request) {
   // and the client's own uploads (ProfileContext.tsx) must all agree on which
   // account owns the object, or account deletion strands it under an id
   // nothing else looks under.
-  const imageKey = `accounts/${access.accountId}/images/${randomUUID()}.png`;
+  const imageKey = `accounts/${access.accountId}/images/${randomUUID()}.webp`;
   try {
-    await uploadBuffer(imageKey, pngBuffer, "image/png");
+    const webpBuffer = await sharp(pngBuffer)
+      .resize(RESIZE_MAX_EDGE, RESIZE_MAX_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer();
+    await uploadBuffer(imageKey, webpBuffer, "image/webp");
     await convex.mutation(api.accountImages.record, {
       imageKey,
       source: "aiGenerated",
@@ -326,7 +353,11 @@ export async function POST(request: Request) {
     // the generate-step catch: best-effort, deliberately swallowed, because
     // the storage failure is still the thing worth reporting even if the
     // refund itself fails.
-    console.error("[ai-generate] R2 upload or accountImages.record failed", { imageKey }, err);
+    console.error(
+      "[ai-generate] resize, R2 upload or accountImages.record failed",
+      { imageKey },
+      err
+    );
     try {
       await convex.mutation(api.featureQuota.refundOneDual, { feature: FEATURE });
     } catch (refundErr) {
@@ -344,22 +375,13 @@ export async function POST(request: Request) {
   });
   await flushAnalytics();
 
-  const pngAb = pngBuffer.buffer.slice(
-    pngBuffer.byteOffset,
-    pngBuffer.byteOffset + pngBuffer.byteLength
-  ) as ArrayBuffer;
-  return new Response(new Blob([pngAb]), {
-    status: 200,
-    headers: {
-      "Content-Type": "image/png",
-      "Cache-Control": "no-store",
-      "X-Daily-Remaining": String(dailyRemaining),
-      "X-Monthly-Remaining": String(monthlyRemaining),
-      // Unlike the `X-R2-Key` header ADR-023 deleted, this one has a
-      // consumer lined up (Task 3, highlighting the new row after the tab
-      // switch). If that ends up not reading it, delete this rather than
-      // leaving it — see ADR-023's own lesson.
-      "X-Image-Key": imageKey,
-    },
-  });
+  // JSON, not bytes. The client no longer displays the result — it switches
+  // to My Images and lets the reactive `accountImages.listMine` query deliver
+  // the new row — so `imageKey` (which row to select) is the whole payload it
+  // acts on. The counters ride along for callers that want the post-call
+  // numbers without waiting for the reactive quota query to land.
+  return NextResponse.json(
+    { imageKey, dailyRemaining, monthlyRemaining },
+    { status: 200, headers: { "Cache-Control": "no-store" } }
+  );
 }
