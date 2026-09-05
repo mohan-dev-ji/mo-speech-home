@@ -91,8 +91,10 @@
  * merge would then leave BOTH key sets on the artifact forever, and an
  * account that had `space` installed under the old keys would collect a
  * second, permanently-orphaned registry row the moment it reinstalled —
- * there is no delete path for `imageCredits` rows. The credit is recovered by
- * the re-publish anyway (a fallback, not a loss) — re-run this backfill after
+ * `deleteIfUnused` (`convex/accountImages.ts`) deletes an unused personal
+ * image's `imageCredits` row, but refuses a shared library key like this one
+ * (`NOT_PERSONAL`), so there is still no delete path for it. The credit is
+ * recovered by the re-publish anyway (a fallback, not a loss) — re-run this backfill after
  * `space` is re-published and reinstalled to pick these up under their new
  * keys. The reasoning in full is on `planLibraryModuleCredits` and
  * `planAccountImageCredits` in convex/imageCreditsBackfill.ts.
@@ -320,7 +322,8 @@ if (CHECK_ONLY) {
         "\nown `space` category does, and recording them under `library_packs/` now" +
         "\nwould collide with the re-publish onto `library_modules/` the moment it" +
         "\nhappens (existing-wins credits merge would leave BOTH key sets forever —" +
-        "\nthere is no delete path for `imageCredits` rows). This self-heals to zero:" +
+        "\n`deleteIfUnused` only deletes a personal image's credit, never a shared" +
+        "\nlibrary key like this one). This self-heals to zero:" +
         "\nonce `space` is re-published and reinstalled, re-run this backfill and these" +
         "\nkeys get recorded under their new `library_modules/…` keys."
     );
@@ -517,8 +520,9 @@ if (totals.legacyPrefixSkipped > 0) {
       "\n  `library_modules/` and reinstalled, `writeInstalledModuleCredits` would" +
       "\n  insert a SECOND row under the new key, `getAccountImageCredits` returns" +
       "\n  both, and after `library_packs/` is deleted one renders as a 404" +
-      "\n  placeholder — permanently, since there is no delete path for `imageCredits`" +
-      "\n  rows. Skipping creates only a TEMPORARY gap that self-heals: re-run this" +
+      "\n  placeholder — permanently, since `deleteIfUnused` only deletes a personal" +
+      "\n  image's credit, never a shared library key like this one. Skipping creates" +
+      "\n  only a TEMPORARY gap that self-heals: re-run this" +
       "\n  backfill after `space` is re-published and reinstalled, and these get" +
       "\n  recorded under their new `library_modules/…` keys.\n"
   );

@@ -157,38 +157,46 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * point of persistence, not here.
  *
  * REFERENCE PATH ONLY — and after phase-36 that is the whole story. This
- * answers "what does the current tab/selection imply for an image that is
- * ALREADY on the draft", which is only meaningful when nothing is queued to
- * upload. Once a blob is pending, its provenance was fixed at hand-over time
- * (`pendingImageSourceType`, set in `handleImageSelected`) and the tab can
- * move on (e.g. to 'my-images' to browse) without that blob's source
- * changing. Every blob-upload branch in `handleSave` uses
- * `pendingImageSourceType` / `uploadedType`, never this function.
+ * answers "what does the CURRENT DRAFT imply for its own image", which is
+ * only meaningful when nothing is queued to upload. Once a blob is pending,
+ * its provenance was fixed at hand-over time (`pendingImageSourceType`, set
+ * in `handleImageSelected`) and the tab can move on (e.g. to 'my-images' to
+ * browse) without that blob's source changing. Every blob-upload branch in
+ * `handleSave` uses `pendingImageSourceType` / `uploadedType`, never this
+ * function.
  *
- * Which is exactly why only TWO tabs can answer:
+ * `draft.libraryImageSource` is checked FIRST, and wins whenever it is set —
+ * REGARDLESS of which tab is currently showing. It is set only by adoption
+ * (`handleImageReferenced`, by reference — no blob) and cleared by every
+ * competing pick (`UploadTab`, `ImagesTab`, `SymbolStixTab` each clear it the
+ * moment they hand the draft a different image), so whenever it is set it IS
+ * the draft's image, whatever tab the user happens to be looking at. Checking
+ * it only while `imageSourceTab === 'my-images'` used to mean adopting a
+ * picture and then merely switching tabs to look around — without picking
+ * anything new — silently re-typed it as whatever the now-current tab
+ * implied (or fell back to the caller's/existing symbol's stale type),
+ * dropping the adopted image's attribution or `aiPrompt` on save.
  *
- * - `symbolstix` — the pick is not a blob at all; it is
- *   `draft.symbolstixImagePath` sitting on the draft, so an active SymbolStix
- *   tab really does say "this symbol is SymbolStix".
- * - `my-images` — adoption is BY REFERENCE (no blob), so the answer is the
- *   library row's own `libraryImageSource`, translated into this vocabulary.
- *   `undefined` when nothing has been picked.
+ * Next, `symbolstix` — the pick is not a blob at all; it is
+ * `draft.symbolstixImagePath` sitting on the draft, so an active SymbolStix
+ * tab (with nothing adopted since) really does say "this symbol is
+ * SymbolStix".
  *
- * Every other tab returns `undefined`, meaning "this tab implies nothing about
- * the draft's image":
+ * Every other case returns `undefined`, meaning "this draft's image implies
+ * nothing beyond what's already resolved":
  *
  * - `upload` and `image-search` hand over a BLOB the moment the user picks
  *   something, and that blob's type travels in `pendingImageSourceType`. So
- *   reaching this function with one of those tabs active means nothing was
- *   picked — the user is BROWSING. The tab is one click away on the tab bar,
- *   so opening Upload on a saved AI symbol, changing nothing, and pressing
- *   Save used to retype it as `userUpload` (and browsing Image Search retyped
- *   it as `imageSearch`, inventing an attribution-shaped source with no
- *   attribution behind it). Same bug, same fix as `ai-generate` and
- *   `my-images` below.
+ *   reaching this function with one of those tabs active and no
+ *   `libraryImageSource` set means nothing was picked — the user is
+ *   BROWSING. The tab is one click away on the tab bar, so opening Upload on
+ *   a saved AI symbol, changing nothing, and pressing Save used to retype it
+ *   as `userUpload` (and browsing Image Search retyped it as `imageSearch`,
+ *   inventing an attribution-shaped source with no attribution behind it).
  * - `ai-generate` — since phase-36 Task 3 the AI tab never writes to the draft
  *   at all; a generation reaches the draft only by being adopted from
- *   `my-images` (see `handleImageReferenced`).
+ *   `my-images` (see `handleImageReferenced`), which is exactly the
+ *   `libraryImageSource` case above.
  *
  * `undefined` is NEVER "this is now an upload". Every caller MUST treat it as
  * "keep whatever image source was already on this draft" and fall back
@@ -197,19 +205,15 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * a default.
  */
 function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] | undefined {
-  switch (d.imageSourceTab) {
-    case 'symbolstix':   return 'symbolstix';
-    case 'my-images':
-      // The library row's own provenance, captured when the user added it.
-      return d.libraryImageSource === 'imageSearch'  ? 'imageSearch'
-           : d.libraryImageSource === 'aiGenerated'  ? 'aiGenerated'
-           : d.libraryImageSource === 'userUpload'   ? 'upload'
-           : undefined; // browsing, nothing picked yet
-    // 'upload', 'image-search' and 'ai-generate' all reach here only when
-    // nothing was picked — a picked blob never consults this function. See the
-    // docblock: browsing a tab must not retype a saved symbol.
-    default:             return undefined;
-  }
+  // The library row's own provenance, captured on adoption — wins over
+  // whatever tab is currently showing (see docblock above).
+  if (d.libraryImageSource === 'imageSearch') return 'imageSearch';
+  if (d.libraryImageSource === 'aiGenerated') return 'aiGenerated';
+  if (d.libraryImageSource === 'userUpload')  return 'upload';
+  if (d.imageSourceTab === 'symbolstix')      return 'symbolstix';
+  // 'upload', 'image-search', 'my-images' (nothing adopted) and 'ai-generate'
+  // all fall through here — browsing a tab must not retype a saved symbol.
+  return undefined;
 }
 
 /**
@@ -746,6 +750,16 @@ export function SymbolEditorModal({
       // for a picture already counted as kept.
       lastGenerationRef.current = null;
     }
+    const fromSearch = row.source === 'imageSearch';
+    // Adopting a FRESH generation still overwrites the description label with
+    // the prompt — the prompt IS the word the user just generated for, and
+    // they typed it seconds ago. Deliberately NOT applied to older library
+    // rows: adopting a picture from the gallery must not silently retype a
+    // symbol with a sentence someone wrote weeks ago (see the my-images
+    // "no longer retypes the symbol" fix). Decoupled afterwards either way —
+    // editing the label doesn't echo back.
+    const freshPrompt = isJustGenerated ? row.prompt?.trim() : undefined;
+
     // ADOPTION IS ALSO WHEN THE CREDIT IS RECORDED for an AI image.
     // Before phase-36 the AI tab handed over a blob and `handleSave` uploaded
     // it, which is where `recordImageCreditSafely(key, 'aiGenerated')` fired.
@@ -763,22 +777,21 @@ export function SymbolEditorModal({
     // PRE-patch `draft`, so calling it for a search row could only ever
     // attach the wrong attribution or none. Left to the save path that has it.
     //
+    // `freshPrompt` is passed as the explicit `firstUsedFor` override: the
+    // `patch` below (not yet called) is what sets `labelEng` to this prompt on
+    // a brand-new symbol, and `recordImageCreditSafely` would otherwise read
+    // `draft.labelEng` off the still-empty pre-patch draft, freezing
+    // `firstUsedFor` blank forever (first-use-wins registry). For a REUSED
+    // generation (`freshPrompt` undefined) this falls back to the helper's own
+    // `draft.labelEng` default, unchanged from before.
+    //
     // Fire-and-forget and idempotent on `(accountId, imageKey)`, so re-adopting
     // the same picture is free (`convex/imageCredits.ts` → first record wins,
     // never an update, never a throw).
     if (row.source === 'aiGenerated') {
-      recordImageCreditSafely(row.imageKey, 'aiGenerated');
+      recordImageCreditSafely(row.imageKey, 'aiGenerated', freshPrompt);
     }
 
-    const fromSearch = row.source === 'imageSearch';
-    // Adopting a FRESH generation still overwrites the description label with
-    // the prompt — the prompt IS the word the user just generated for, and
-    // they typed it seconds ago. Deliberately NOT applied to older library
-    // rows: adopting a picture from the gallery must not silently retype a
-    // symbol with a sentence someone wrote weeks ago (see the my-images
-    // "no longer retypes the symbol" fix). Decoupled afterwards either way —
-    // editing the label doesn't echo back.
-    const freshPrompt = isJustGenerated ? row.prompt?.trim() : undefined;
     patch({
       imageSourceTab: 'my-images',
       resolvedImagePath: row.imageKey,
@@ -924,10 +937,19 @@ export function SymbolEditorModal({
    * is strictly secondary to saving the image: a missing registry row is
    * recoverable by the backfill, a failed image save is not. Nothing in here may
    * reject into `handleSave`'s try/catch, and nothing may make the user wait.
+   *
+   * `firstUsedForOverride` lets a caller hand over the label explicitly
+   * instead of defaulting to `draft.labelEng` — needed by
+   * `handleImageReferenced`, which calls this BEFORE the `patch()` that sets
+   * `labelEng` to a freshly-adopted prompt. `patch` is a `setDraft` call, so
+   * the `draft` closed over here is still last render's value when this
+   * function runs; on a brand-new symbol that's empty, which would freeze
+   * `firstUsedFor` blank forever (the registry records it only on first use).
    */
   function recordImageCreditSafely(
     imageKey: string,
-    type: ImageCreditResult['imageSourceType']
+    type: ImageCreditResult['imageSourceType'],
+    firstUsedForOverride?: string
   ) {
     if (type !== 'imageSearch' && type !== 'aiGenerated') return;
     // An AI generation has no photographer, licence or source URL to carry —
@@ -941,7 +963,7 @@ export function SymbolEditorModal({
             ...(draft.imageLicense ? { license: draft.imageLicense } : {}),
           }
         : {};
-    const firstUsedFor = draft.labelEng.trim();
+    const firstUsedFor = (firstUsedForOverride ?? draft.labelEng).trim();
     try {
       void recordImageCredit({
         imageKey,
@@ -1006,15 +1028,13 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath = draft.resolvedImagePath;
-        // My Images attaches an image BY REFERENCE — no blob, so the branch
-        // below never runs and the type has to come from the library row's own
-        // provenance rather than the caller's stored value.
+        // `libraryImageSource` wins whenever it's set, regardless of which tab
+        // is currently showing (see `imageSourceTypeForDraft`'s docblock) —
+        // `undefined` = nothing on the draft implies an image source of its
+        // own, so keep the caller's previously-stored source rather than
+        // coercing to upload.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
-          draft.imageSourceTab === 'my-images'
-            // `undefined` = browsing the tab with nothing picked — keep the
-            // caller's previously-stored source rather than coercing to upload.
-            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
-            : initialImageSourceType;
+          imageSourceTypeForDraft(draft) ?? initialImageSourceType;
         // Upload pending bytes for every non-SymbolStix tab — upload,
         // image-search proxy, and AI generate all land a blob here that
         // needs to go to R2 before we can persist a path.
@@ -1050,14 +1070,13 @@ export function SymbolEditorModal({
         // Sentence slots (and phrase words, which share this mode) now record
         // where the image came from — phase-30 §2. Untouched saves fall back to
         // the caller's stored value so reopening a slot preserves its credit.
-        // My Images attaches by reference — no blob, so the type comes from
-        // the library row's own provenance, not the caller's stored value.
+        // `libraryImageSource` wins whenever it's set, regardless of which tab
+        // is currently showing (see `imageSourceTypeForDraft`'s docblock) —
+        // `undefined` = nothing on the draft implies an image source of its
+        // own, so keep the caller's previously-stored source rather than
+        // coercing to upload.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
-          draft.imageSourceTab === 'my-images'
-            // `undefined` = browsing the tab with nothing picked — keep the
-            // caller's previously-stored source rather than coercing to upload.
-            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
-            : initialImageSourceType;
+          imageSourceTypeForDraft(draft) ?? initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
@@ -1096,14 +1115,13 @@ export function SymbolEditorModal({
       try {
         // Resolve image and remember which tab it came from
         let imagePath: string | undefined = draft.resolvedImagePath;
-        // My Images attaches by reference — no blob, so the type comes from
-        // the library row's own provenance, not the caller's stored value.
+        // `libraryImageSource` wins whenever it's set, regardless of which tab
+        // is currently showing (see `imageSourceTypeForDraft`'s docblock) —
+        // `undefined` = nothing on the draft implies an image source of its
+        // own, so keep the caller's previously-stored source rather than
+        // coercing to upload.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
-          draft.imageSourceTab === 'my-images'
-            // `undefined` = browsing the tab with nothing picked — keep the
-            // caller's previously-stored source rather than coercing to upload.
-            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
-            : initialImageSourceType;
+          imageSourceTypeForDraft(draft) ?? initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
