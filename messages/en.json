@@ -863,6 +863,7 @@
     "myImagesAdd": "Add to symbol",
     "myImagesDelete": "Delete",
     "myImagesDeleteBlocked": "This image is used by {count, plural, one {# other item} other {# other items}}. Remove it from those first.",
+    "myImagesDeleteOnDraft": "This image is on the symbol you are editing. Choose a different image first.",
     "myImagesDeleteFailed": "Couldn't delete this image. Please try again.",
     "myImagesLoadMore": "Show more",
     "searchPlaceholder": "Search for a symbol…",

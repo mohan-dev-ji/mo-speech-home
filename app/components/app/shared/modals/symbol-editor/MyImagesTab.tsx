@@ -42,9 +42,19 @@ type Props = {
    * It ends when the user interacts (taps another tile, Adds, or pages).
    */
   highlightKey?: string | null;
+  /**
+   * `draft.resolvedImagePath` from the modal — the R2 key currently on the
+   * symbol being edited, saved or not. `usageCount` below only ever sees
+   * SAVED rows (it walks committed symbol/list/sentence references), so a
+   * brand-new "Add to symbol" that hasn't been saved yet is invisible to it:
+   * the row would read `usageCount === 0` and Delete would light up even
+   * though deleting it would strand the unsaved draft's own reference. This
+   * prop lets Delete see what the query can't.
+   */
+  draftImageKey?: string;
 };
 
-export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
+export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: Props) {
   const t = useTranslations("symbolEditor");
   const { results, status, loadMore } = usePaginatedQuery(
     api.accountImages.listMine,
@@ -111,10 +121,17 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
   const isLoadingFirstPage = status === "LoadingFirstPage";
   const isEmpty = !isLoadingFirstPage && results.length === 0;
 
-  // Delete is live ONLY at a known 0. Unknown (loading) and >0 both keep it
-  // disabled; the difference is that >0 says why, below, and loading says
-  // nothing — a message that flickers on every selection is worse than none.
-  const canDelete = !!selected && usage === 0 && !isDeleting;
+  // The row currently on the symbol being edited — saved or not. `usage`
+  // above only counts SAVED references, so a just-added, not-yet-saved
+  // reference is invisible to it and would otherwise read as "unused".
+  const isSelectedOnDraft =
+    !!selected && !!draftImageKey && selected.imageKey === draftImageKey;
+
+  // Delete is live ONLY at a known 0 AND not the symbol's own in-progress
+  // image. Unknown (loading) and >0 both keep it disabled; the difference is
+  // that >0 says why, below, and loading says nothing — a message that
+  // flickers on every selection is worse than none.
+  const canDelete = !!selected && usage === 0 && !isDeleting && !isSelectedOnDraft;
   // A remembered 409 count goes stale the instant the live count drops to 0 —
   // another tab, or a collaborator, may have removed the last reference since
   // the response landed. `canDelete` already follows live `usage`; the
@@ -331,9 +348,11 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
         >
           {blockedCount !== null
             ? t("myImagesDeleteBlocked", { count: blockedCount })
-            : deleteError?.kind === "failed"
-              ? t("myImagesDeleteFailed")
-              : ""}
+            : isSelectedOnDraft
+              ? t("myImagesDeleteOnDraft")
+              : deleteError?.kind === "failed"
+                ? t("myImagesDeleteFailed")
+                : ""}
         </p>
       </div>
     </div>

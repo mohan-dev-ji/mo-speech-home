@@ -1593,6 +1593,7 @@ export function SymbolEditorModal({
               <MyImagesTab
                 onImageReferenced={handleImageReferenced}
                 highlightKey={aiHighlightKey}
+                draftImageKey={draft.resolvedImagePath}
               />
             </div>
           </div>
