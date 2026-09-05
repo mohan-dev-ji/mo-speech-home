@@ -1,7 +1,7 @@
 # Phase 15 — Default Modules Remake (Runbook)
 
 **Status:** Ready to execute · **Linear:** [Default modules remake](https://linear.app/mo-intelligence/project/default-modules-remake-4ea543e1e104) (MOS-11…MOS-23)
-**Relates to:** [FEAT-002 (library-modules backup/restore)](../features/FEAT-002-library-modules-backup-restore.md) · ADR-014 (content modules / three trees) · ADR-015 (composition primitive)
+**Relates to:** [FEAT-002 (library-modules backup/restore)](../../features/FEAT-002-library-modules-backup-restore.md) · ADR-014 (content modules / three trees) · ADR-015 (composition primitive)
 
 > This is an **operational runbook**, not a feature design — back up → prove the machinery → wipe → slim the schema → rebuild for marketing. The only slice with real code + migration risk is the schema cleanup (MOS-17); its diff is in Appendix A.
 

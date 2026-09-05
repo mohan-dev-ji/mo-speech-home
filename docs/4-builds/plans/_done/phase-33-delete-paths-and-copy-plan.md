@@ -2,7 +2,7 @@
 
 > **Standalone.** Written 2026-08-29 for a fresh session. Everything needed to start is here.
 
-**Status:** not started
+**Status:** Shipped 2026-08-29 (`a494483`, MOS-41 closed 2026-08-30), retired to `_done/` 2026-09-05. Verified live on a real account: four delete paths, shared-key survival, `library_modules/` untouched. Note phase 36 (ADR-024) later narrowed what these paths delete: images are now left in place and only recorded audio is collected — see `phase-36-my-images-library-plan.md` beside this file. Unticked boxes are the plan as written.
 **Follows:** Phase 32 (`phase-32-collection-buildout-and-dr-plan.md`) — Tasks 1–3 done, MOS-25 DR test passed.
 **Ticket:** MOS-41 (In Progress). Related: MOS-42 (stale credits), MOS-44 (edit-time orphans).
 

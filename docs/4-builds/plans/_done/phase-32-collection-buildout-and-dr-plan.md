@@ -2,7 +2,7 @@
 
 > **Standalone.** Written 2026-08-27 for a fresh session. Everything needed to start is here.
 
-**Status:** not started
+**Status:** Shipped, retired to `_done/` 2026-09-05. Tasks 1–3 and the `library_packs/` retirement landed 2026-08-29 (MOS-25 and MOS-13 closed 2026-08-30/31). Task 4 was a fix queue of Linear tickets: MOS-41 (`a494483`), MOS-40 (`490dfb6`, `854b22b`) and MOS-39 (`014d187`, `f6ed538`) shipped; MOS-37, MOS-38, MOS-42 and MOS-43 remain open in Linear, which is their home — nothing below is outstanding work for this plan. Unticked boxes are the plan as written.
 **Follows:** Phase 31 (`docs/4-builds/plans/phase-31-image-credit-registry-plan.md`) — shipped and
 acceptance-tested 2026-08-25/26. Phase 30 before it.
 **Tickets:** MOS-25 (DR test PASSED 2026-08-29 — see Task 3 RESULT) · MOS-13 (In Progress) · then the fix queue below.

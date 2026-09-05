@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 / React 19 / TypeScript / Tailwind CSS 4 / Convex 1.x.
 
-**Spec:** [`docs/superpowers/specs/2026-08-15-provenance-gated-origin-affordances-design.md`](../../superpowers/specs/2026-08-15-provenance-gated-origin-affordances-design.md)
+**Spec:** [`docs/superpowers/specs/2026-08-15-provenance-gated-origin-affordances-design.md`](../../../superpowers/specs/2026-08-15-provenance-gated-origin-affordances-design.md)
 
 ## Global Constraints
 
