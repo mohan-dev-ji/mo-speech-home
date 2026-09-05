@@ -11,7 +11,13 @@ export const dynamic = "force-dynamic";
  * Delete composed content (sentence/phrase) with personal-recording R2 cleanup.
  * scope "group"   → the whole logical item across all languages (Stage 4).
  * scope "variant" → just this board's variant row (Stage 3, Revert).
- * The mutation returns the personal R2 keys to delete; shared TTS is never touched.
+ *
+ * The mutation returns the R2 keys to delete: personal voice recordings only.
+ * Shared TTS is never touched, and neither — since phase 36 — is any IMAGE.
+ * Deleting a sentence or phrase removes the placement; slot and word images
+ * stay in R2 and stay listed in My Images, which owns the one Delete that
+ * removes an image object. See `isPersonalAudioKey` in
+ * `convex/lib/contentModuleDelete.ts`.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {

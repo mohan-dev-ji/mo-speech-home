@@ -2,12 +2,18 @@
  * Content-module delete + R2 orphan collection (ADR-014 §5).
  *
  * Uninstalling a module removes its account-side rows (flat categories + their
- * symbols, or a lists/sentences folder + its items) and the **personal** R2
- * assets the user created while customising it. "Personal" = uploaded images,
- * image-search picks, and voice recordings — these live under the `accounts/`
- * or `profiles/` namespaces. Shared assets are NEVER deleted: SymbolStix images
- * (`symbols/…`), the AI image cache (`ai-cache/…`), and TTS audio
- * (`audio/<voice>/tts/…`) are reused across users.
+ * symbols, or a lists/sentences folder + its items) and the R2 objects that
+ * removal leaves with nothing to live for. Since phase 36 that is **voice
+ * recordings only** — personal keys under an `/audio/` segment. Images are
+ * NEVER collected by a placement delete: the object stays in R2 and stays
+ * visible in My Images, which owns the single Delete in the product that
+ * removes an image object. See `isPersonalAudioKey` below for why the two
+ * media are treated differently (cost of recreation, not media type).
+ *
+ * Shared assets are NEVER deleted either, and never were: SymbolStix images
+ * (`symbols/…`), the legacy AI image cache (`ai-cache/…`), published module
+ * assets (`library_modules/…`) and TTS audio (`audio/<voice>/tts/…`) are
+ * reused across users.
  *
  * Mirrors the orphan-collection contract of `getCategoryReloadOrphanKeys`
  * (profileCategories.ts): the Next.js route collects keys BEFORE the delete
@@ -15,14 +21,68 @@
  */
 
 /**
- * True when an R2 key points at a per-account/per-profile personal asset that
- * should be deleted on uninstall. Shared namespaces (symbolstix, ai-cache, tts)
- * return false and are left untouched. The prefix test is the reliable signal:
- * personal uploads/recordings are written under `accounts/` or `profiles/`.
+ * True when an R2 key points at a per-account/per-profile personal asset —
+ * one object owned by exactly one account. Shared namespaces (symbolstix,
+ * ai-cache, tts, library_modules) return false. The prefix test is the
+ * reliable signal: personal uploads/recordings are written under `accounts/`
+ * or `profiles/`.
+ *
+ * OWNERSHIP, NOT DELETABILITY. Since phase 36 this is the predicate for the
+ * REFERENCED walk ("is anything still using this key?"), not for the
+ * delete-candidate walk — a personal IMAGE is owned but is not deletable by a
+ * placement delete. `isPersonalAudioKey` below is the delete-candidate
+ * predicate; read its docblock before using either.
  */
 export function isPersonalAssetKey(key: string | undefined | null): key is string {
   if (!key) return false;
   return key.startsWith("accounts/") || key.startsWith("profiles/");
+}
+
+/**
+ * THE DELETE-CANDIDATE PREDICATE (phase 36). Read it the way you read
+ * "PROMOTABLE ≠ PERSONAL" below: two questions, two predicates, never merged.
+ *
+ *   `isPersonalAssetKey`  — "is this object owned by exactly one account?"
+ *       It is the REFERENCED-WALK predicate and it still sees IMAGE keys, on
+ *       purpose: `collectReferencedPersonalKeys` and `countRowsReferencingKeys`
+ *       (lib/personalAssetRefs.ts) answer "is anything still using this key?",
+ *       which is precisely the question the My Images gallery asks before it
+ *       lets you delete an image a symbol still points at. Narrowing that walk
+ *       would make the gallery delete live images.
+ *
+ *   `isPersonalAudioKey`  — "may deleting a PLACEMENT remove this object from
+ *       R2?" Personal recordings only.
+ *
+ * WHY IMAGES ARE EXEMPT AND RECORDINGS ARE NOT. The principle is **cost of
+ * recreation**, not media type, and the asymmetry is deliberate — do not
+ * "tidy it up".
+ *
+ *   An AI image costs about 4p and eight seconds of provider time, and cannot
+ *   be reproduced identically even by re-running the same prompt. It also has
+ *   a home: My Images lists every image the account owns, so an image whose
+ *   last placement was deleted is still visible there and still deletable on
+ *   purpose. Soft is therefore free.
+ *
+ *   A recording costs ten seconds of a parent's time and has NO library. A
+ *   soft-deleted recording would be an invisible leak — an object nothing
+ *   points at and no screen can show, billed forever. So it still hard-deletes.
+ *
+ * THE RULE, then: one hard delete for images (the My Images Delete button) and
+ * everything else soft. Every other delete — symbol, category reload, module
+ * uninstall, list, sentence, phrase, folder — removes the placement and leaves
+ * the image object alone. This reverses half of MOS-50 (`4b2673b`), which
+ * started deleting AI images on symbol delete; that was right for a world with
+ * no library, and there is a library now.
+ *
+ * WHY THE `/audio/` SEGMENT IS THE SIGNAL. Personal keys have exactly two
+ * shapes and both name the medium in the path:
+ * `accounts/<id>/(images|audio)/<file>` (enforced by `/api/upload-asset`) and
+ * `profiles/<id>/(images|audio)/<file>` (`lib/r2-paths.ts`). A personal key
+ * under neither segment is not a recording, so it is not a delete candidate —
+ * the safe direction to be wrong in.
+ */
+export function isPersonalAudioKey(key: string | undefined | null): key is string {
+  return isPersonalAssetKey(key) && key.includes("/audio/");
 }
 
 /**
@@ -45,14 +105,15 @@ export function isLegacySharedModuleAssetKey(
  * Two different questions get asked about an R2 key, and they must never be
  * answered by the same function:
  *
- *   `isPersonalAssetKey`  — "may uninstall DELETE this object from R2?"
- *       Yes only for `accounts/` and `profiles/`, which are owned by exactly
- *       one account. Every shared namespace (`symbols/`, `ai-cache/`,
- *       `audio/<voice>/tts/`, `library_modules/`, `library_packs/`) answers
- *       NO, because other accounts and published modules still point at those
- *       objects. Widening this predicate makes a published module's assets
- *       deletable by any account that uninstalls it — the exact catastrophe
- *       ADR-022 exists to prevent.
+ *   `isPersonalAssetKey`  — "is this object OWNED by exactly one account?"
+ *       Yes only for `accounts/` and `profiles/`. Every shared namespace
+ *       (`symbols/`, `ai-cache/`, `audio/<voice>/tts/`, `library_modules/`,
+ *       `library_packs/`) answers NO, because other accounts and published
+ *       modules still point at those objects. Widening this predicate makes a
+ *       published module's assets reachable by any account that uninstalls it
+ *       — the exact catastrophe ADR-022 exists to prevent. (Ownership is
+ *       necessary but no longer sufficient for deletion: `isPersonalAudioKey`
+ *       above is the delete-candidate predicate as of phase 36.)
  *
  *   `isPromotableAssetKey` — "should publish COPY this object into the
  *       module's own `library_modules/<tree>/<slug>/…` prefix?"
@@ -116,7 +177,8 @@ function isLibraryModuleAssetKey(key: string | undefined | null): key is string 
   return !!key && key.startsWith("library_modules/");
 }
 
-/** Personal R2 keys on a profileLists row's inline items (uploads + recordings). */
+/** R2 keys on a profileLists row's inline items that deleting the list may
+ * remove from R2: personal recordings only. */
 export function collectListOrphanKeys(items: ReadonlyArray<{
   imagePath?: string;
   imageSourceType?: string;
@@ -126,34 +188,39 @@ export function collectListOrphanKeys(items: ReadonlyArray<{
 }>): string[] {
   const keys: string[] = [];
   for (const it of items) {
-    // Image: only personal uploads / image-search picks (symbolstix + aiGenerated
-    // are shared). The prefix test guards against mislabelled imageSourceType.
-    if (isPersonalAssetKey(it.imagePath)) keys.push(it.imagePath);
+    // `it.imagePath` is deliberately NOT collected (phase 36). Deleting a list
+    // removes the placement; the image object stays in R2 and stays visible in
+    // My Images, which owns the one Delete that removes it. Recordings below
+    // still hard-delete — cost of recreation, not media type. See
+    // `isPersonalAudioKey` above before changing either half.
+    //
     // Audio: voice recordings are personal. `audioPath` is the active pointer —
     // include it only when it is itself a personal recording path. Generated
     // (TTS) and default (symbolstix) audio are shared and skipped.
-    if (isPersonalAssetKey(it.recordedAudioPath)) keys.push(it.recordedAudioPath);
-    if (isPersonalAssetKey(it.audioPath)) keys.push(it.audioPath);
+    if (isPersonalAudioKey(it.recordedAudioPath)) keys.push(it.recordedAudioPath);
+    if (isPersonalAudioKey(it.audioPath)) keys.push(it.audioPath);
   }
   return dedupe(keys);
 }
 
-/** Personal R2 keys on a profileSentences row (slot images + a sentence recording). */
+/** R2 keys on a profileSentences row that deleting the sentence may remove
+ * from R2: the sentence recording only. `slots[].imagePath` stays in the type
+ * to record that slots DO hold image keys and are skipped on purpose — see
+ * `isPersonalAudioKey` above. */
 export function collectSentenceOrphanKeys(sentence: {
   slots: ReadonlyArray<{ imagePath?: string }>;
   audioPath?: string;
   recordedAudioPath?: string;
 }): string[] {
   const keys: string[] = [];
-  for (const slot of sentence.slots) {
-    if (isPersonalAssetKey(slot.imagePath)) keys.push(slot.imagePath);
-  }
-  if (isPersonalAssetKey(sentence.recordedAudioPath)) keys.push(sentence.recordedAudioPath);
-  if (isPersonalAssetKey(sentence.audioPath)) keys.push(sentence.audioPath);
+  if (isPersonalAudioKey(sentence.recordedAudioPath)) keys.push(sentence.recordedAudioPath);
+  if (isPersonalAudioKey(sentence.audioPath)) keys.push(sentence.audioPath);
   return dedupe(keys);
 }
 
-/** Personal R2 keys on a profilePhrases row (word images/recordings + a phrase recording). */
+/** R2 keys on a profilePhrases row that deleting the phrase may remove from
+ * R2: word recordings + the phrase recording. `words[].imagePath` is skipped
+ * on purpose — see `isPersonalAudioKey` above. */
 export function collectPhraseOrphanKeys(phrase: {
   words: ReadonlyArray<{ imagePath?: string; audioPath?: string }>;
   audioPath?: string;
@@ -161,11 +228,10 @@ export function collectPhraseOrphanKeys(phrase: {
 }): string[] {
   const keys: string[] = [];
   for (const w of phrase.words) {
-    if (isPersonalAssetKey(w.imagePath)) keys.push(w.imagePath);
-    if (isPersonalAssetKey(w.audioPath)) keys.push(w.audioPath);
+    if (isPersonalAudioKey(w.audioPath)) keys.push(w.audioPath);
   }
-  if (isPersonalAssetKey(phrase.recordedAudioPath)) keys.push(phrase.recordedAudioPath);
-  if (isPersonalAssetKey(phrase.audioPath)) keys.push(phrase.audioPath);
+  if (isPersonalAudioKey(phrase.recordedAudioPath)) keys.push(phrase.recordedAudioPath);
+  if (isPersonalAudioKey(phrase.audioPath)) keys.push(phrase.audioPath);
   return dedupe(keys);
 }
 

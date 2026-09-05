@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { collectReferencedPersonalKeys, countRowsReferencingKeys } from "./lib/personalAssetRefs";
-import { isPersonalAssetKey } from "./lib/contentModuleDelete";
+import { isPersonalAssetKey, isPersonalAudioKey } from "./lib/contentModuleDelete";
 
 export const audioSourceValidator = v.object({
   type: v.union(v.literal("r2"), v.literal("tts"), v.literal("recorded")),
@@ -206,10 +206,12 @@ export const reorderProfileSymbols = mutation({
 });
 
 /**
- * Returns the personal R2 keys that should be deleted when this symbol is
- * removed. Mirrors the logic of `getCategoryReloadOrphanKeys` — uploads,
- * image-search picks, AI-generated images and recorded audio are personal;
- * SymbolStix defaults and TTS clips (shared `audio/<voice>/tts/`) are kept.
+ * Returns the R2 keys that should be deleted when this symbol is removed.
+ * Mirrors the logic of `getCategoryReloadOrphanKeys` — recorded audio only.
+ * SymbolStix defaults and TTS clips (shared `audio/<voice>/tts/`) are kept,
+ * and so, as of phase 36, is the IMAGE: deleting a symbol removes the
+ * placement, not the picture. See `isPersonalAudioKey`
+ * (lib/contentModuleDelete.ts).
  *
  * Auth-checked. Returns `[]` for missing / not-owned symbols rather than
  * throwing — the orchestrating API route falls through to the mutation
@@ -227,28 +229,20 @@ export const getProfileSymbolDeleteOrphanKeys = query({
 
     const keys: string[] = [];
 
-    // Image: uploads, image-search picks and AI generations are all personal,
-    // AND only when the path is itself a personal key (accounts/ or profiles/).
+    // NO IMAGE KEY IS COLLECTED HERE (phase 36). This deliberately reverses
+    // the half of MOS-50 that started deleting the symbol's AI image: MOS-50
+    // was right that an adopted AI image lives under accounts/<id>/images/ and
+    // was being stranded, and wrong only because there was nowhere for a
+    // stranded image to be seen. There is now — My Images — so deleting a
+    // symbol removes the placement and the object stays, listed and deletable
+    // on purpose from the gallery. That is the ONE hard delete for images.
     //
-    // `aiGenerated` was excluded until MOS-50 on the grounds that those images
-    // "live in shared ai-cache/". They have not since adoption started
-    // re-uploading to accounts/<id>/images/ (Phase 29), so excluding them
-    // stranded the object on every delete. The isPersonalAssetKey guard below
-    // is what makes including them safe: a pre-Phase-29 symbol still pointing
-    // at `ai-cache/…` fails it and is skipped exactly as before.
-    //
-    // Skip symbolstix (no separate R2 path), and skip any path that already
-    // points at a shared library_modules/… asset (installed from a published
-    // module) — that object is not this account's to delete.
-    if (
-      sym.imageSource.type === "userUpload" ||
-      sym.imageSource.type === "imageSearch" ||
-      sym.imageSource.type === "aiGenerated"
-    ) {
-      if (isPersonalAssetKey(sym.imageSource.imagePath)) {
-        keys.push(sym.imageSource.imagePath);
-      }
-    }
+    // Recorded audio below still hard-deletes. The principle is cost of
+    // recreation, not media type: an AI image is ~4p and eight seconds of
+    // provider time and cannot be re-made identically, while a recording is
+    // ten seconds of a parent's time and has no library to be seen in, so a
+    // soft-deleted recording would be an invisible leak. Do not "tidy up" the
+    // asymmetry — see `isPersonalAudioKey` in lib/contentModuleDelete.ts.
 
     // Audio: per-language. Delete `recorded` paths + `recorded` alternates,
     // AND only when the path is itself a personal key (accounts/ or
@@ -262,16 +256,20 @@ export const getProfileSymbolDeleteOrphanKeys = query({
       (sym.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
     for (const a of Object.values(audioMap)) {
       if (!a) continue;
-      if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
+      if (a.type === "recorded" && isPersonalAudioKey(a.path)) keys.push(a.path);
       if (
         a.alternates?.recorded &&
         a.alternates.recorded !== a.path &&
-        isPersonalAssetKey(a.alternates.recorded)
+        isPersonalAudioKey(a.alternates.recorded)
       ) {
         keys.push(a.alternates.recorded);
       }
     }
 
+    // The referenced walk stays on isPersonalAssetKey (inside
+    // collectReferencedPersonalKeys) — it answers "is anything still using
+    // this key?", a different question from "may we delete it?", and it must
+    // keep seeing image keys for the My Images gallery's own guard.
     const referenced = await collectReferencedPersonalKeys(ctx, accountId, {
       symbolIds: new Set([String(profileSymbolId)]),
     });
@@ -300,15 +298,17 @@ export const getProfileSymbolUsageCount = query({
 
     const keys: string[] = [];
 
-    // Same personal-key rules as getProfileSymbolDeleteOrphanKeys: uploads,
+    // NOT a delete path — do not "align" it with
+    // getProfileSymbolDeleteOrphanKeys, which as of phase 36 collects audio
+    // only. This one counts REFERENCES to drive the "still used by N other
+    // items" warning, so it must keep seeing IMAGE keys: uploads,
     // image-search picks and AI generations (only when the path is itself a
-    // personal key, not a shared library_modules/… asset), and recorded audio
+    // personal key, not a shared library_modules/… asset), plus recorded audio
     // (incl. recorded alternates).
     //
-    // `aiGenerated` MUST stay in step with that query (MOS-50). This one drives
-    // the "still used by N other items" warning, so omitting a source type here
-    // does not strand anything — it silently withholds the warning, which is
-    // the worse half of the same bug.
+    // `aiGenerated` was added here by MOS-50 and stays. Omitting a source type
+    // here strands nothing — it silently withholds the warning, which is the
+    // worse half of that bug.
     if (
       sym.imageSource.type === "userUpload" ||
       sym.imageSource.type === "imageSearch" ||

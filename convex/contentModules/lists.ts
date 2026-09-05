@@ -120,8 +120,14 @@ export const getPublicListCatalogue = query({
 });
 
 /**
- * Personal R2 keys (uploads, recordings) on the lists inside this module's
+ * R2 keys (personal voice recordings) on the lists inside this module's
  * folder. Collected by the uninstall route BEFORE `deleteListModule` runs.
+ *
+ * NO IMAGE KEY IS RETURNED (phase 36) — `collectListOrphanKeys` stopped
+ * collecting them. Removing a module removes the placements; the images stay
+ * in R2 and stay listed in My Images, which owns the one Delete that removes
+ * an image object. Recordings still hard-delete: cost of recreation, not media
+ * type. See `isPersonalAudioKey` in ../lib/contentModuleDelete.
  */
 export const getListModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },

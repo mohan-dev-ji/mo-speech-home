@@ -34,8 +34,14 @@ import {
 } from "./lib/personalAssetRefs";
 
 /**
- * Personal R2 keys that deleting `target` would leave orphaned — i.e. keys the
- * doomed rows hold that NO surviving row of this account still references.
+ * R2 keys that deleting `target` would leave orphaned AND that a placement
+ * delete may remove — i.e. personal voice recordings the doomed rows hold that
+ * NO surviving row of this account still references.
+ *
+ * IMAGES ARE NEVER RETURNED (phase 36). A content delete removes the
+ * placement; the image object stays in R2 and stays listed in My Images, whose
+ * Delete is the one hard delete for images. See `isPersonalAudioKey` in
+ * ./lib/contentModuleDelete.
  *
  * Returns `[]` for an unauthenticated caller, and for a row that is missing or
  * owned by someone else. Empty means "delete nothing from R2", which is the

@@ -22,6 +22,7 @@ import {
   isModuleVisible,
 } from "../lib/contentModuleInstall";
 import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
+import { isPersonalAudioKey } from "../lib/contentModuleDelete";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -121,8 +122,14 @@ export const getPublicPhraseCatalogue = query({
 });
 
 /**
- * Personal R2 keys (phrase recordings, word uploads) inside this module's bank.
- * Collected by the uninstall route BEFORE `deletePhraseModule` runs.
+ * R2 keys (phrase + word recordings) inside this module's bank. Collected by
+ * the uninstall route BEFORE `deletePhraseModule` runs.
+ *
+ * Word images are NOT returned (phase 36). Removing a module removes the
+ * placements; the images stay in R2 and stay listed in My Images, which owns
+ * the one Delete that removes an image object. Recordings still hard-delete:
+ * cost of recreation, not media type. See `isPersonalAudioKey` in
+ * ../lib/contentModuleDelete.
  */
 export const getPhraseModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },
@@ -137,10 +144,13 @@ export const getPhraseModuleDeleteOrphanKeys = query({
       .collect();
     const keys: string[] = [];
     for (const p of phrases) {
-      if (p.recordedAudioPath?.startsWith("accounts/")) keys.push(p.recordedAudioPath);
-      if (p.audioPath?.startsWith("accounts/")) keys.push(p.audioPath);
+      // The inline `startsWith("accounts/")` this replaced was a fourth copy of
+      // the personal-key rule and is exactly how MOS-50 drifted across four
+      // sites. It now goes through the shared delete-candidate predicate.
+      if (isPersonalAudioKey(p.recordedAudioPath)) keys.push(p.recordedAudioPath);
+      if (isPersonalAudioKey(p.audioPath)) keys.push(p.audioPath);
       for (const w of p.words) {
-        if (w.imagePath?.startsWith("accounts/")) keys.push(w.imagePath);
+        if (isPersonalAudioKey(w.audioPath)) keys.push(w.audioPath);
       }
     }
 

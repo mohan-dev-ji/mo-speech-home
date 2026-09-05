@@ -3,6 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import type { Id, Doc } from "../_generated/dataModel";
 import {
   isPersonalAssetKey,
+  isPersonalAudioKey,
   isPromotableAssetKey,
   isCreditableAssetKey,
 } from "./contentModuleDelete";
@@ -16,26 +17,40 @@ import {
 } from "./imageCreditRefs";
 
 /**
- * Which keys an extractor keeps. Three — and only three — values are ever
+ * Which keys an extractor keeps. Four — and only four — values are ever
  * passed, each answering a different question about the same key:
  *
- *   `isPersonalAssetKey`   → "may DELETE remove this?" (`accounts/` |
- *                            `profiles/` only).
+ *   `isPersonalAudioKey`   → "may deleting a PLACEMENT remove this object from
+ *                            R2?" (personal keys under an `/audio/` segment).
+ *                            The narrowest, and the only one the
+ *                            delete-CANDIDATE walk may use — since phase 36 an
+ *                            image is never a delete candidate, because it has
+ *                            a home (My Images) that owns the one Delete which
+ *                            removes it.
+ *   `isPersonalAssetKey`   → "is this object OWNED by exactly one account?"
+ *                            (`accounts/` | `profiles/` only). The
+ *                            REFERENCED walk uses this and MUST keep seeing
+ *                            image keys — `collectReferencedPersonalKeys` and
+ *                            `countRowsReferencingKeys` answer "is anything
+ *                            still using this?", which is what stops the My
+ *                            Images gallery deleting an image a symbol needs.
  *   `isPromotableAssetKey` → "must PUBLISH copy this into the module's own
  *                            prefix?" (personal + legacy `library_packs/`).
  *   `isCreditableAssetKey` → "does this key carry a licence credit?"
  *                            (promotable + `library_modules/`). Widest of the
- *                            three: an already-shared `library_modules/`
+ *                            four: an already-shared `library_modules/`
  *                            object needs no copy but still needs crediting,
  *                            which is why this cannot reuse the publish set.
  *
  * Widest ≠ interchangeable. Handing the credit predicate to the promotion path
  * would copy objects that are already shared; handing it to the delete path
- * would let one account delete another's assets. See the doc block on
- * `isPromotableAssetKey` in `contentModuleDelete.ts`.
+ * would let one account delete another's assets; handing the OWNERSHIP
+ * predicate to the delete-candidate path would start hard-deleting images
+ * again. See the doc blocks on `isPersonalAudioKey` and `isPromotableAssetKey`
+ * in `contentModuleDelete.ts`.
  *
  * The predicate is an explicit parameter rather than a hard-coded call so the
- * delete path physically cannot inherit the wider promotion rule. See the
+ * delete path physically cannot inherit a wider rule. See the
  * "PROMOTABLE ≠ PERSONAL" docblock in ./contentModuleDelete.
  */
 type KeyFilter = (k: string | undefined | null) => k is string;
@@ -56,7 +71,8 @@ function push(out: string[], k: unknown, keep: KeyFilter): void {
 // `countRowsReferencingKeys` (count of rows touching a target set) and
 // `collectSourcePromotableKeys` (forward scan of one publish source) all walk
 // the same tables via these same functions, so their field coverage can never
-// drift apart. Only the `keep` predicate differs between delete and publish.
+// drift apart. Only the `keep` predicate differs between the four questions —
+// delete-candidate, still-referenced, promotable and creditable.
 
 function symbolKeys(s: Doc<"profileSymbols">, keep: KeyFilter): string[] {
   const out: string[] = [];
@@ -234,8 +250,15 @@ export async function collectReferencedPersonalKeys(
 //
 // The owner's model, settled 2026-08-29: a delete permanently removes the
 // user's own assets under `accounts/` and `profiles/`, and NEVER touches
-// `library_modules/`. That rule is already `isPersonalAssetKey` — which is why
-// nothing here widens a predicate.
+// `library_modules/`. Amended phase 36: of those own assets, only voice
+// RECORDINGS are removed. An image is never a delete candidate — it has a home
+// (My Images) whose Delete button is the one hard delete for images in the
+// product, so a placement delete leaves the object alone. Cost of recreation,
+// not media type; see `isPersonalAudioKey` in ./contentModuleDelete.
+//
+// Nothing here widens a predicate: the candidate walk NARROWED from
+// `isPersonalAssetKey` to `isPersonalAudioKey`, and the referenced walk below
+// is unchanged.
 
 /** What is being deleted. One member per client delete surface; adding a
  * surface means adding a member here, which is the point — the delete surface
@@ -250,7 +273,13 @@ export const deleteTargetValidator = v.union(
 export type DeleteTarget = Infer<typeof deleteTargetValidator>;
 
 /**
- * Personal R2 keys that deleting `target` would orphan.
+ * R2 keys that deleting `target` would orphan AND that a placement delete is
+ * allowed to remove: personal voice recordings only.
+ *
+ * IMAGES ARE NOT CANDIDATES (phase 36). Category and folder COVER images are
+ * images too, so deleting a category or a group leaves its cover in R2 and in
+ * My Images. The one exception is `studentProfiles.profilePhoto`, called out
+ * at its case below.
  *
  * Same three steps as `getCategoryModuleDeleteOrphanKeys`
  * (`convex/contentModules/categories.ts:165`), which is the proven shape:
@@ -260,10 +289,14 @@ export type DeleteTarget = Infer<typeof deleteTargetValidator>;
  *      excluding the rows about to be deleted,
  *   3. return the difference.
  *
- * Step 2 is what stops a delete blanking an image the user still uses
- * elsewhere: one uploaded photo can back a category symbol AND every talker
- * slot that reuses it, because the slot copies the key string. Dropping step 2
- * would turn this from a cleanup into a data-loss bug.
+ * Step 2 is what stops a delete blanking a recording the user still uses
+ * elsewhere: one clip can back a category symbol AND every talker slot that
+ * reuses it, because the slot copies the key string. Dropping step 2 would
+ * turn this from a cleanup into a data-loss bug. Note the two steps use
+ * DIFFERENT predicates on purpose — candidates are filtered by
+ * `isPersonalAudioKey` ("may we delete it?"), the surviving-reference walk by
+ * `isPersonalAssetKey` ("is anything still using it?"). Merging them would
+ * either resurrect image hard-deletes or blind the My Images guard.
  *
  * Returns `[]` for a row that is missing or belongs to another account —
  * the caller then deletes nothing from R2, which is the safe direction.
@@ -286,7 +319,10 @@ export async function collectDeleteOrphanKeys(
     case "category": {
       const cat = await ctx.db.get(target.categoryId);
       if (!cat || cat.accountId !== accountId) return [];
-      candidates.push(...categoryKeys(cat, isPersonalAssetKey));
+      // Cover image included via the extractor but filtered out by the audio
+      // predicate — a category cover is an image, so it is soft (phase 36).
+      // The call stays so "which fields hold keys" lives in exactly one place.
+      candidates.push(...categoryKeys(cat, isPersonalAudioKey));
       const symbols = await ctx.db
         .query("profileSymbols")
         .withIndex("by_profile_category_id", (q) =>
@@ -294,7 +330,7 @@ export async function collectDeleteOrphanKeys(
         )
         .collect();
       for (const sym of symbols) {
-        candidates.push(...symbolKeys(sym, isPersonalAssetKey));
+        candidates.push(...symbolKeys(sym, isPersonalAudioKey));
       }
       exclude.categoryIds = new Set([String(cat._id)]);
       exclude.symbolIds = new Set(symbols.map((sym) => String(sym._id)));
@@ -304,14 +340,15 @@ export async function collectDeleteOrphanKeys(
     case "folder": {
       const folder = await ctx.db.get(target.folderId);
       if (!folder || folder.accountId !== accountId) return [];
-      candidates.push(...folderKeys(folder, isPersonalAssetKey));
+      // Folder cover image: soft, same as a category cover (phase 36).
+      candidates.push(...folderKeys(folder, isPersonalAudioKey));
       exclude.folderIds = new Set([String(folder._id)]);
       if (folder.tree === "lists") {
         const lists = await ctx.db
           .query("profileLists")
           .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
           .collect();
-        for (const l of lists) candidates.push(...listKeys(l, isPersonalAssetKey));
+        for (const l of lists) candidates.push(...listKeys(l, isPersonalAudioKey));
         exclude.listIds = new Set(lists.map((l) => String(l._id)));
       } else if (folder.tree === "sentences") {
         const sentences = await ctx.db
@@ -319,7 +356,7 @@ export async function collectDeleteOrphanKeys(
           .withIndex("by_folder_id_and_order", (q) => q.eq("folderId", folder._id))
           .collect();
         for (const sen of sentences) {
-          candidates.push(...sentenceKeys(sen, isPersonalAssetKey));
+          candidates.push(...sentenceKeys(sen, isPersonalAudioKey));
         }
         exclude.sentenceIds = new Set(sentences.map((sen) => String(sen._id)));
       }
@@ -329,7 +366,7 @@ export async function collectDeleteOrphanKeys(
     case "list": {
       const list = await ctx.db.get(target.listId);
       if (!list || list.accountId !== accountId) return [];
-      candidates.push(...listKeys(list, isPersonalAssetKey));
+      candidates.push(...listKeys(list, isPersonalAudioKey));
       exclude.listIds = new Set([String(list._id)]);
       break;
     }
@@ -337,6 +374,12 @@ export async function collectDeleteOrphanKeys(
     case "studentProfile": {
       const profile = await ctx.db.get(target.profileId);
       if (!profile || profile.accountId !== accountId) return [];
+      // THE ONE CASE THAT KEEPS THE OWNERSHIP PREDICATE (owner decision,
+      // 2026-09-05: leave this collector exactly as it was). `profilePhoto` is
+      // an image, so the phase-36 rule would make it soft — but no UI writes
+      // that field today, and it is absent from My Images by construction, so
+      // "soft" here would mean an invisible leak rather than a listed image.
+      // Deliberately NOT `isPersonalAudioKey`.
       candidates.push(...studentProfileKeys(profile, isPersonalAssetKey));
       exclude.profileIds = new Set([String(profile._id)]);
       break;
@@ -344,13 +387,24 @@ export async function collectDeleteOrphanKeys(
   }
 
   if (candidates.length === 0) return [];
+  // Referenced walk keeps `isPersonalAssetKey` (hard-coded inside
+  // `collectReferencedPersonalKeys`). Over-inclusive is the safe direction
+  // here: an extra reference only leaves an orphan, a missing one deletes a
+  // live asset.
   const referenced = await collectReferencedPersonalKeys(ctx, accountId, exclude);
   return [...new Set(candidates)].filter((k) => !referenced.has(k));
 }
 
 /**
  * How many of the account's OTHER rows still reference any of `targetKeys`.
- * Used to warn (not block) before deleting a custom image that other items use.
+ * Used to warn (not block) before deleting a custom image that other items use,
+ * and — from phase 36 — to BLOCK the My Images gallery's Delete button, the one
+ * hard delete for images in the product.
+ *
+ * KEEPS `isPersonalAssetKey`, deliberately. This is a reference count, not a
+ * delete-candidate walk; narrowing it to `isPersonalAudioKey` would make it
+ * report 0 for every image and the gallery would happily delete an object a
+ * symbol still points at. See `isPersonalAudioKey` in ./contentModuleDelete.
  */
 export async function countRowsReferencingKeys(
   ctx: QueryCtx,

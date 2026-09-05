@@ -25,7 +25,7 @@ import {
   isModuleVisible,
 } from "../lib/contentModuleInstall";
 import { collectReferencedPersonalKeys } from "../lib/personalAssetRefs";
-import { isPersonalAssetKey } from "../lib/contentModuleDelete";
+import { isPersonalAudioKey } from "../lib/contentModuleDelete";
 
 const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 
@@ -152,15 +152,24 @@ export const getPublicCategoryCatalogue = query({
 });
 
 /**
- * Personal R2 keys (uploads, image-search picks, recordings) on every category
- * this module installed flat into the caller's account. Collected by the
- * uninstall route BEFORE `deleteCategoryModule` runs. Mirrors
- * `getCategoryReloadOrphanKeys` but spans all of the module's categories.
+ * R2 keys (personal voice recordings) on every category this module installed
+ * flat into the caller's account. Collected by the uninstall route BEFORE
+ * `deleteCategoryModule` runs. Mirrors `getCategoryReloadOrphanKeys` but spans
+ * all of the module's categories.
  *
- * Guarded by `isPersonalAssetKey` on both the image path and any `recorded`
- * audio path/alternate: a symbol installed from a published module can carry
- * an image or a `recorded` audio entry that still points at a shared
- * `library_modules/…` object, which is not this account's to delete.
+ * NO IMAGE KEY IS RETURNED (phase 36). Removing a module removes the
+ * placements; every image the account customised into it stays in R2 and stays
+ * listed in My Images, which owns the one Delete that removes an image object.
+ * Recordings still hard-delete — cost of recreation, not media type: an image
+ * is ~4p and eight seconds of provider time and has a library to be seen in, a
+ * recording is ten seconds of a parent's time and has none, so a soft-deleted
+ * recording would be an invisible leak. See `isPersonalAudioKey` in
+ * ../lib/contentModuleDelete.
+ *
+ * Guarded by `isPersonalAudioKey` on any `recorded` audio path/alternate: a
+ * symbol installed from a published module can carry a `recorded` audio entry
+ * that still points at a shared `library_modules/…` object, which is not this
+ * account's to delete.
  */
 export const getCategoryModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },
@@ -184,19 +193,9 @@ export const getCategoryModuleDeleteOrphanKeys = query({
         .collect();
       for (const s of symbols) {
         symbolIds.add(String(s._id));
-        // Uploads, image-search picks and AI generations are all personal
-        // (MOS-50 — `aiGenerated` was excluded here too, so uninstalling a
-        // module stranded every AI image in it at once). isPersonalAssetKey
-        // still keeps legacy ai-cache/ and shared library_modules/ paths out.
-        if (
-          s.imageSource.type === "userUpload" ||
-          s.imageSource.type === "imageSearch" ||
-          s.imageSource.type === "aiGenerated"
-        ) {
-          if (isPersonalAssetKey(s.imageSource.imagePath)) {
-            keys.push(s.imageSource.imagePath);
-          }
-        }
+        // No image branch (phase 36) — see the docblock above. MOS-50 added
+        // `aiGenerated` here; phase 36 removes the whole image collection,
+        // because a stranded image is now a listed image.
         const audioMap =
           (s.audio as Record<
             string,
@@ -204,11 +203,11 @@ export const getCategoryModuleDeleteOrphanKeys = query({
           >) ?? {};
         for (const a of Object.values(audioMap)) {
           if (!a) continue;
-          if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
+          if (a.type === "recorded" && isPersonalAudioKey(a.path)) keys.push(a.path);
           if (
             a.alternates?.recorded &&
             a.alternates.recorded !== a.path &&
-            isPersonalAssetKey(a.alternates.recorded)
+            isPersonalAudioKey(a.alternates.recorded)
           ) {
             keys.push(a.alternates.recorded);
           }

@@ -8,7 +8,7 @@ import type { ContentModule } from "./data/_shared/types";
 import { resolveSymbolAudioPath } from "../lib/audio/resolveAudioPath";
 import { getLanguage, getVoiceEntry, getVoiceLang } from "../lib/languages/registry";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
-import { isPersonalAssetKey } from "./lib/contentModuleDelete";
+import { isPersonalAudioKey } from "./lib/contentModuleDelete";
 import { audioSourceValidator } from "./profileSymbols";
 
 // Voice fallback when a caller doesn't pass one — see lib/audio/resolveAudioPath.ts.
@@ -538,18 +538,24 @@ export const deleteCategory = mutation({
 // ─── Category R2 orphan keys ──────────────────────────────────────────────────
 
 /**
- * Returns the personal R2 keys (uploads, recordings, image-search picks,
- * AI generations) on a category's symbols, so an orchestrating API route can
- * delete them after a destructive category operation.
+ * Returns the R2 keys (personal voice recordings) on a category's symbols, so
+ * an orchestrating API route can delete them after a destructive category
+ * operation.
+ *
+ * NO IMAGE KEY IS RETURNED (phase 36). Reloading a category rebuilds its
+ * symbols from the library, and the images those symbols carried stay in R2
+ * and stay listed in My Images, where the account can delete them on purpose.
+ * That is the one hard delete for images; every other path is soft. Recordings
+ * still hard-delete — cost of recreation, not media type: an AI image is ~4p
+ * and eight seconds of provider time and cannot be re-made identically, a
+ * recording is ten seconds of a parent's time and has no library to be seen
+ * in, so a soft-deleted recording would be an invisible leak. Do not "tidy up"
+ * the asymmetry; see `isPersonalAudioKey` in lib/contentModuleDelete.ts.
  *
  * Excludes audio/<voice>/tts/ (TTS cache) — genuinely shared and reused across
- * users. aiGenerated is INCLUDED as of MOS-50: it was excluded on the grounds
- * that those images live in a shared cache, which stopped being true when
- * adoption started writing to accounts/<id>/images/ (Phase 29), so the
- * exclusion stranded the object on every reload. Also excludes `library_modules/…`:
- * a symbol installed from a published module can carry an image or a
- * `recorded` audio entry that still points at that shared object, which is
- * not this account's to delete.
+ * users. Also excludes `library_modules/…`: a symbol installed from a
+ * published module can carry a `recorded` audio entry that still points at
+ * that shared object, which is not this account's to delete.
  *
  * Auth-checked. Returns an empty array if the caller doesn't own the category
  * or it isn't from the library — silent empty rather than a throw, since the
@@ -574,22 +580,10 @@ export const getCategoryReloadOrphanKeys = query({
 
     const keys: string[] = [];
     for (const s of symbols) {
-      // Image: uploads, image-search picks and AI generations (under accounts/
-      // or profiles/). Skip symbolstix — no separate R2 path.
+      // No image branch (phase 36) — see the docblock above. Reloading the
+      // category drops the symbol rows; the image objects stay in R2 and stay
+      // in My Images.
       //
-      // `aiGenerated` was excluded until MOS-50 on the false grounds that those
-      // images live in shared ai-cache/; adoption has written them to
-      // accounts/<id>/images/ since Phase 29. The isPersonalAssetKey guard
-      // keeps legacy ai-cache/ paths skipped exactly as before.
-      if (
-        s.imageSource.type === "userUpload" ||
-        s.imageSource.type === "imageSearch" ||
-        s.imageSource.type === "aiGenerated"
-      ) {
-        if (isPersonalAssetKey(s.imageSource.imagePath)) {
-          keys.push(s.imageSource.imagePath);
-        }
-      }
       // Audio: per-language. Delete the active path if type "recorded", plus
       // any "recorded" alternate — AND only when the path is itself a
       // personal key (accounts/ or profiles/); a symbol installed from a
@@ -602,11 +596,11 @@ export const getCategoryReloadOrphanKeys = query({
         (s.audio as Record<string, { type: string; path: string; alternates?: { recorded?: string } } | undefined>) ?? {};
       for (const a of Object.values(audioMap)) {
         if (!a) continue;
-        if (a.type === "recorded" && isPersonalAssetKey(a.path)) keys.push(a.path);
+        if (a.type === "recorded" && isPersonalAudioKey(a.path)) keys.push(a.path);
         if (
           a.alternates?.recorded &&
           a.alternates.recorded !== a.path &&
-          isPersonalAssetKey(a.alternates.recorded)
+          isPersonalAudioKey(a.alternates.recorded)
         ) {
           keys.push(a.alternates.recorded);
         }

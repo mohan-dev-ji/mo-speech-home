@@ -38,11 +38,20 @@ export const dynamic = "force-dynamic";
  * leaves a stray object, while failing the whole request after the rows are
  * already deleted would leave the user staring at content that is half gone.
  *
- * WHAT IS NEVER DELETED: anything outside `accounts/` and `profiles/`. That is
- * enforced upstream by `isPersonalAssetKey`, which every key collector filters
- * through, so `library_modules/`, `symbols/`, `ai-cache/` and the TTS cache
- * cannot appear in the list this route acts on. Nothing here widens that — see
- * the "PROMOTABLE ≠ PERSONAL" docblock in `convex/lib/contentModuleDelete.ts`.
+ * WHAT IS NEVER DELETED, part 1: anything outside `accounts/` and `profiles/`.
+ * `library_modules/`, `symbols/`, `ai-cache/` and the TTS cache cannot appear
+ * in the list this route acts on — see the "PROMOTABLE ≠ PERSONAL" docblock in
+ * `convex/lib/contentModuleDelete.ts`.
+ *
+ * WHAT IS NEVER DELETED, part 2 (phase 36): IMAGES. Every key collector this
+ * route calls now filters delete candidates through `isPersonalAudioKey`, so
+ * the list is personal voice recordings only. A content delete removes the
+ * placement; the image object survives and stays listed in My Images, which
+ * owns the single Delete in the product that removes an image from R2. That is
+ * cost of recreation, not media type — a recording has no library to be seen
+ * in, so leaving one behind would be an invisible leak. The one exception is
+ * `studentProfiles.profilePhoto`, which still hard-deletes (owner decision);
+ * see the `studentProfile` case in `convex/lib/personalAssetRefs.ts`.
  */
 
 /** Removing everything one published module installed, addressed by slug.

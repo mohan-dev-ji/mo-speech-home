@@ -12,16 +12,19 @@ export const dynamic = "force-dynamic";
  *
  * Flow:
  *   1. Clerk auth gate (401 if no userId).
- *   2. Fetch the personal R2 keys to delete (uploads, image-search picks,
- *      recorded audio) via getProfileSymbolDeleteOrphanKeys. Skips
- *      shared caches (ai-cache/ and audio/<voice>/tts/) — those are
- *      reusable across users.
+ *   2. Fetch the R2 keys to delete via getProfileSymbolDeleteOrphanKeys.
+ *      Since phase 36 that is RECORDED AUDIO ONLY: deleting a symbol removes
+ *      the placement, and its image stays in R2 and stays listed in My Images,
+ *      whose own Delete is the one hard delete for images in the product.
+ *      Shared caches (ai-cache/ and audio/<voice>/tts/) are skipped as before
+ *      — those are reusable across users.
  *   3. Run the DB mutation (deleteProfileSymbol).
  *   4. Delete the R2 objects in parallel via Promise.allSettled.
  *      Failures are logged but don't fail the response — the DB state is
  *      already correct and orphan accumulation is recoverable later.
  *
- * Returns: { filesDeleted, filesFailed }
+ * Returns: { filesDeleted, filesFailed } — counts of RECORDINGS, so 0 for a
+ * symbol that only ever had an image, which is the expected result.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {

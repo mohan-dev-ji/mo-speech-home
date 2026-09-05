@@ -136,9 +136,15 @@ export const getPublicSentenceCatalogue = query({
 });
 
 /**
- * Personal R2 keys (slot uploads, sentence recordings) on the sentences inside
- * this module's folder. Collected by the uninstall route BEFORE
- * `deleteSentenceModule` runs.
+ * R2 keys (sentence recordings) on the sentences inside this module's folder.
+ * Collected by the uninstall route BEFORE `deleteSentenceModule` runs.
+ *
+ * Slot images are NOT returned (phase 36) — `collectSentenceOrphanKeys`
+ * stopped collecting them. Removing a module removes the placements; the
+ * images stay in R2 and stay listed in My Images, which owns the one Delete
+ * that removes an image object. Recordings still hard-delete: cost of
+ * recreation, not media type. See `isPersonalAudioKey` in
+ * ../lib/contentModuleDelete.
  */
 export const getSentenceModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },
