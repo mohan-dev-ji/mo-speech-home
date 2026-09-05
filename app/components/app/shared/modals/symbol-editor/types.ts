@@ -1,6 +1,6 @@
 import type { Id } from '@/convex/_generated/dataModel';
 
-export type ImageSourceTab = 'symbolstix' | 'upload' | 'image-search' | 'ai-generate';
+export type ImageSourceTab = 'symbolstix' | 'upload' | 'image-search' | 'ai-generate' | 'my-images';
 export type AudioMode = 'default' | 'record' | 'generate';
 export type TextSize = 'sm' | 'md' | 'lg' | 'xl';
 export type CardShape = 'square' | 'rounded' | 'circle';
@@ -16,6 +16,13 @@ export type Draft = {
   symbolstixAudioHin?: string;
   // Custom image (upload / google / ai) — resolved R2 path
   resolvedImagePath?: string;
+  // My Images — the library row's OWN provenance for an image the user added
+  // by reference (the symbol points at the existing R2 key; no second copy is
+  // uploaded). The 'my-images' tab is a container, not a source, so this is
+  // what `imageSourceTypeForDraft` in SymbolEditorModal reads to decide the
+  // real imageSource type. Draft-only; cleared by the other image tabs the
+  // same way they clear `aiPrompt`, so a stale provenance can't ride along.
+  libraryImageSource?: 'userUpload' | 'imageSearch' | 'aiGenerated';
   // External-image attribution — populated when Image Search picks a result.
   // Provider-agnostic: works for Wikimedia, Pixabay, Unsplash, Pexels. The
   // first three persist (mapped onto profileSymbols.imageSource fields);

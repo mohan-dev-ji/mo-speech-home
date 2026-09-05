@@ -15,6 +15,7 @@ import { SymbolStixTab } from './SymbolStixTab';
 import { UploadTab } from './UploadTab';
 import { ImagesTab } from './ImagesTab';
 import { AiGenerateTab } from './AiGenerateTab';
+import { MyImagesTab, type LibraryImage } from './MyImagesTab';
 import { INITIAL_DRAFT, DEFAULT_DISPLAY, type Draft, type ImageSourceTab } from './types';
 import { getCategoryColour } from '@/app/lib/categoryColours';
 import { deriveAudioMode, initLabelDirty, planFollowLabelAudio, type StoredAudioEntry } from './audioLogic';
@@ -140,6 +141,32 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
   fd.append('key', key);
   const res = await fetch('/api/upload-asset', { method: 'POST', body: fd });
   if (!res.ok) throw new Error('Upload failed');
+}
+
+/**
+ * The ONE tab -> image-source mapping. Every save path used to carry its own
+ * copy of this ternary chain, which is how the fifth tab could silently save as
+ * an upload: 'my-images' is a CONTAINER, not a source, so a fallback-to-upload
+ * chain gets it wrong for every library image that came from Image Search or
+ * AI Generate.
+ *
+ * Returns the CREDIT vocabulary (`ImageCreditResult['imageSourceType']`, which
+ * says 'upload'). The persisted `profileSymbols.imageSource.type` says
+ * 'userUpload' for the same thing — the two vocabularies are mapped at the
+ * point of persistence, not here.
+ */
+function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] {
+  switch (d.imageSourceTab) {
+    case 'symbolstix':   return 'symbolstix';
+    case 'image-search': return 'imageSearch';
+    case 'ai-generate':  return 'aiGenerated';
+    case 'my-images':
+      // The library row's own provenance, captured when the user added it.
+      return d.libraryImageSource === 'imageSearch'  ? 'imageSearch'
+           : d.libraryImageSource === 'aiGenerated'  ? 'aiGenerated'
+           : 'upload';
+    default:             return 'upload';
+  }
 }
 
 // Pick an R2 extension from a blob mime type. UploadTab encodes to webp; the
@@ -367,6 +394,7 @@ export function SymbolEditorModal({
   const createProfileSymbol = useMutation(api.profileSymbols.createProfileSymbol);
   const updateProfileSymbol = useMutation(api.profileSymbols.updateProfileSymbol);
   const recordImageCredit = useMutation(api.imageCredits.recordImageCredit);
+  const recordAccountImage = useMutation(api.accountImages.record);
 
   // ── Pre-populate draft in edit mode ────────────────────────────────────────
 
@@ -578,6 +606,40 @@ export function SymbolEditorModal({
     setPendingImagePreviewUrl(previewUrl);
   }
 
+  /**
+   * My Images: attach an image the account ALREADY owns, by reference. The
+   * draft points at the library row's own R2 key — nothing is fetched, nothing
+   * is re-uploaded, and no second object is minted for the same picture. Every
+   * save path below already keeps `draft.resolvedImagePath` when there is no
+   * pending blob, so this is all it takes.
+   *
+   * Clears any pending blob first (the user may have picked an upload before
+   * switching tabs) and revokes its preview url, exactly as
+   * `handleImageSelected` does — the modal owns those urls.
+   */
+  function handleImageReferenced(row: LibraryImage) {
+    if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
+    imagePreviewUrlRef.current = null;
+    setPendingImageBlob(null);
+    setPendingImagePreviewUrl(null);
+    const fromSearch = row.source === 'imageSearch';
+    patch({
+      imageSourceTab: 'my-images',
+      resolvedImagePath: row.imageKey,
+      libraryImageSource: row.source,
+      // Provenance travels WITH the image: re-using an Image Search picture
+      // must not drop the attribution its licence obliges us to display, and
+      // re-using an AI image keeps the prompt that produced it.
+      aiPrompt: row.source === 'aiGenerated' ? row.prompt : undefined,
+      imageSourceUrl:   fromSearch ? row.imageSourceUrl : undefined,
+      imageAttribution: fromSearch ? row.attribution    : undefined,
+      imageLicense:     fromSearch ? row.license        : undefined,
+      imageTitle:       fromSearch ? row.imageTitle     : undefined,
+      // Draft-only, and not stored on the library row — nothing to restore.
+      imageProvider: undefined,
+    });
+  }
+
   function handleAudioBlobChange(blob: Blob | null, blobUrl: string | null) {
     setPendingAudioBlob(blob);
     setPendingAudioBlobUrl(blobUrl);
@@ -725,6 +787,42 @@ export function SymbolEditorModal({
     }
   }
 
+  /**
+   * Index this image in the account's own library (`accountImages`) so it shows
+   * up in the My Images tab. Called from EVERY save path that pushes a new
+   * image to R2 — before phase-36 only the AI-generate route wrote these rows,
+   * so uploads and Image Search picks never reached the library.
+   *
+   * SymbolStix is not an account image (it is shared, licensed wholesale and
+   * lives under a different prefix) and falls out silently.
+   *
+   * Deliberately fire-and-forget and deliberately swallowing, exactly like
+   * `recordImageCreditSafely`: the upload is the primary act, the index row is
+   * secondary and recoverable by `scripts/backfill-account-images.mjs`. Nothing
+   * in here may reject into `handleSave`'s try/catch, and nothing may make the
+   * user wait.
+   */
+  function recordAccountImageSafely(
+    imageKey: string,
+    type: ImageCreditResult['imageSourceType']
+  ) {
+    if (type !== 'imageSearch' && type !== 'aiGenerated' && type !== 'upload') return;
+    // Credit vocabulary says 'upload'; the library table says 'userUpload'.
+    const source = type === 'upload' ? 'userUpload' as const : type;
+    const prompt = type === 'aiGenerated' ? draft.aiPrompt?.trim() : undefined;
+    try {
+      void recordAccountImage({
+        imageKey,
+        source,
+        ...(prompt ? { prompt } : {}),
+      }).catch((err) => {
+        console.warn('[accountImages] image not indexed for', imageKey, err);
+      });
+    } catch (err) {
+      console.warn('[accountImages] image not indexed for', imageKey, err);
+    }
+  }
+
   async function handleSave() {
     setSaveError(null);
 
@@ -738,7 +836,13 @@ export function SymbolEditorModal({
       setIsSaving(true);
       try {
         let imagePath = draft.resolvedImagePath;
-        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
+        // My Images attaches an image BY REFERENCE — no blob, so the branch
+        // below never runs and the type has to come from the library row's own
+        // provenance rather than the caller's stored value.
+        let imageSourceType: ImageCreditResult['imageSourceType'] =
+          draft.imageSourceTab === 'my-images'
+            ? imageSourceTypeForDraft(draft)
+            : initialImageSourceType;
         // Upload pending bytes for every non-SymbolStix tab — upload,
         // image-search proxy, and AI generate all land a blob here that
         // needs to go to R2 before we can persist a path.
@@ -746,10 +850,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType =
-            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
-            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          imageSourceType = imageSourceTypeForDraft(draft);
           recordImageCreditSafely(key, imageSourceType);
+          recordAccountImageSafely(key, imageSourceType);
         }
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
@@ -773,7 +876,12 @@ export function SymbolEditorModal({
         // Sentence slots (and phrase words, which share this mode) now record
         // where the image came from — phase-30 §2. Untouched saves fall back to
         // the caller's stored value so reopening a slot preserves its credit.
-        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
+        // My Images attaches by reference — no blob, so the type comes from
+        // the library row's own provenance, not the caller's stored value.
+        let imageSourceType: ImageCreditResult['imageSourceType'] =
+          draft.imageSourceTab === 'my-images'
+            ? imageSourceTypeForDraft(draft)
+            : initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
@@ -781,10 +889,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType =
-            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
-            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          imageSourceType = imageSourceTypeForDraft(draft);
           recordImageCreditSafely(key, imageSourceType);
+          recordAccountImageSafely(key, imageSourceType);
         }
         onSentenceSlotSave?.({
           imagePath,
@@ -811,7 +918,12 @@ export function SymbolEditorModal({
       try {
         // Resolve image and remember which tab it came from
         let imagePath: string | undefined = draft.resolvedImagePath;
-        let imageSourceType: ImageCreditResult['imageSourceType'] = initialImageSourceType;
+        // My Images attaches by reference — no blob, so the type comes from
+        // the library row's own provenance, not the caller's stored value.
+        let imageSourceType: ImageCreditResult['imageSourceType'] =
+          draft.imageSourceTab === 'my-images'
+            ? imageSourceTypeForDraft(draft)
+            : initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
           imageSourceType = 'symbolstix';
@@ -819,10 +931,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType =
-            draft.imageSourceTab === 'image-search' ? 'imageSearch' :
-            draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload';
+          imageSourceType = imageSourceTypeForDraft(draft);
           recordImageCreditSafely(key, imageSourceType);
+          recordAccountImageSafely(key, imageSourceType);
         }
 
         // Upload pending recording before save (only if record is the active source —
@@ -884,11 +995,9 @@ export function SymbolEditorModal({
         const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
-        recordImageCreditSafely(
-          key,
-          draft.imageSourceTab === 'image-search' ? 'imageSearch' :
-          draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' : 'upload'
-        );
+        const uploadedType = imageSourceTypeForDraft(draft);
+        recordImageCreditSafely(key, uploadedType);
+        recordAccountImageSafely(key, uploadedType);
       }
 
       // 2. Upload pending audio recording (only if the record tab is selected)
@@ -907,10 +1016,15 @@ export function SymbolEditorModal({
         | { type: 'imageSearch'; imagePath: string; imageSourceUrl?: string; attribution?: string; license?: string }
         | { type: 'aiGenerated'; imagePath: string; aiPrompt?: string };
 
+      // Branch on the RESOLVED source, not the raw tab: 'my-images' is a
+      // container, so its images persist as whatever the library row says they
+      // are (`imageSourceTypeForDraft`). 'upload' here is the credit
+      // vocabulary's name for what the schema calls 'userUpload'.
+      const resolvedSourceType = imageSourceTypeForDraft(draft);
       const imageSource: IS =
-        draft.imageSourceTab === 'symbolstix'
+        resolvedSourceType === 'symbolstix'
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }
-          : draft.imageSourceTab === 'image-search'
+          : resolvedSourceType === 'imageSearch'
           ? {
               type: 'imageSearch',
               imagePath: resolvedImagePath!,
@@ -918,7 +1032,7 @@ export function SymbolEditorModal({
               attribution: draft.imageAttribution,
               license: draft.imageLicense,
             }
-          : draft.imageSourceTab === 'ai-generate'
+          : resolvedSourceType === 'aiGenerated'
           ? { type: 'aiGenerated', imagePath: resolvedImagePath!, ...(draft.aiPrompt ? { aiPrompt: draft.aiPrompt } : {}) }
           : { type: 'userUpload', imagePath: resolvedImagePath! };
 
@@ -1065,6 +1179,7 @@ export function SymbolEditorModal({
     { value: 'upload', label: t('tabUpload') },
     { value: 'image-search', label: t('tabImageSearch') },
     { value: 'ai-generate', label: t('tabAiGenerate') },
+    { value: 'my-images', label: t('tabMyImages') },
   ];
 
   // ── Derived ────────────────────────────────────────────────────────────────
@@ -1301,6 +1416,13 @@ export function SymbolEditorModal({
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />
+            </div>
+            {/* Kept mounted for the same reason AiGenerateTab is: the grid
+                holds its own pagination cursor and tile selection, and
+                unmounting it on a tab click would throw the user back to page
+                one every time they glanced at another source. */}
+            <div className={draft.imageSourceTab === 'my-images' ? 'h-full' : 'hidden'}>
+              <MyImagesTab onImageReferenced={handleImageReferenced} />
             </div>
           </div>
         </div>

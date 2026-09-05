@@ -221,6 +221,8 @@ export function AiGenerateTab({
       imageLicense: undefined,
       imageProvider: undefined,
       imageTitle: undefined,
+      // This generation is the image now — not a library reference.
+      libraryImageSource: undefined,
       ...(trimmedPrompt ? { labelEng: trimmedPrompt, aiPrompt: trimmedPrompt } : {}),
     });
   }

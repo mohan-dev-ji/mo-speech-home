@@ -167,6 +167,8 @@ export function ImagesTab({
         imageProvider: result.provider,
         imageTitle: result.title,
         aiPrompt: undefined,
+        // This search result is the image now — not a library reference.
+        libraryImageSource: undefined,
         ...(trimmedQuery ? { labelEng: trimmedQuery } : {}),
       });
     } catch {

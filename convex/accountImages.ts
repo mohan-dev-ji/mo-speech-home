@@ -1,24 +1,72 @@
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { paginationOptsValidator } from "convex/server";
-import type { Id } from "./_generated/dataModel";
+import { paginationOptsValidator, type PaginationResult } from "convex/server";
+import type { Doc, Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { accountImageSource } from "./schema";
 
 /**
+ * One row of the My Images grid: the library row plus whatever credit the
+ * account already holds for that same R2 key.
+ *
+ * The join exists because the grid is an "add this image to a symbol" picker
+ * and adding is BY REFERENCE — the symbol points at the library key rather
+ * than re-uploading the bytes. An Image Search picture carries a licence
+ * obligation to display its attribution, so the credit has to travel with the
+ * row or re-using the picture would silently drop it.
+ */
+export type LibraryImage = Doc<"accountImages"> & {
+  attribution?: string;
+  license?: string;
+  imageSourceUrl?: string;
+  imageTitle?: string;
+};
+
+/**
  * The account's library, newest first. Paginated because an active account
- * accumulates one row per generation and the grid loads ~10 at a time.
+ * accumulates one row per generation and the grid loads 8 at a time.
+ *
+ * Each page joins its rows against `imageCredits` on (accountId, imageKey) —
+ * one indexed lookup per row, so 8 per page. Deliberately NOT a merge of the
+ * two tables: `imageCredits` answers "what must we display for an image in
+ * use", `accountImages` answers "what does this account own"; see the
+ * `accountImages` doc comment in `schema.ts`.
  */
 export const listMine = query({
   args: { paginationOpts: paginationOptsValidator },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<PaginationResult<LibraryImage>> => {
     const resolved = await resolveCallerAccountId(ctx);
-    if (!resolved) return { page: [], isDone: true, continueCursor: "" };
-    return await ctx.db
+    if (!resolved) {
+      const empty: LibraryImage[] = [];
+      return { page: empty, isDone: true, continueCursor: "" };
+    }
+    const { accountId } = resolved;
+    const result = await ctx.db
       .query("accountImages")
-      .withIndex("by_account", (q) => q.eq("accountId", resolved.accountId))
+      .withIndex("by_account", (q) => q.eq("accountId", accountId))
       .order("desc")
       .paginate(args.paginationOpts);
+
+    const page: LibraryImage[] = [];
+    for (const row of result.page) {
+      // `.first()` rather than `.unique()`: this join is display-only, and a
+      // duplicate credit row (which the registry's own dedupe should prevent)
+      // must never be able to throw the whole grid out.
+      const credit = await ctx.db
+        .query("imageCredits")
+        .withIndex("by_account_and_key", (q) =>
+          q.eq("accountId", accountId).eq("imageKey", row.imageKey)
+        )
+        .first();
+      page.push({
+        ...row,
+        ...(credit?.attribution ? { attribution: credit.attribution } : {}),
+        ...(credit?.license ? { license: credit.license } : {}),
+        ...(credit?.imageSourceUrl ? { imageSourceUrl: credit.imageSourceUrl } : {}),
+        ...(credit?.imageTitle ? { imageTitle: credit.imageTitle } : {}),
+      });
+    }
+    return { ...result, page };
   },
 });
 

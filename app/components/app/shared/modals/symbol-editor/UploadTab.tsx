@@ -30,6 +30,8 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
         imageSourceTab: 'upload',
         resolvedImagePath: undefined,
         aiPrompt: undefined,
+        // This upload is the image now — it is not a library reference.
+        libraryImageSource: undefined,
         // Clear any prior image-search credit — it belongs to the picture the
         // user just replaced, not to this upload (phase-30 §2). Mirrors
         // AiGenerateTab.
