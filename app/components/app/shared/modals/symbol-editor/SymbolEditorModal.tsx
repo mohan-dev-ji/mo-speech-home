@@ -154,8 +154,18 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * says 'upload'). The persisted `profileSymbols.imageSource.type` says
  * 'userUpload' for the same thing — the two vocabularies are mapped at the
  * point of persistence, not here.
+ *
+ * Returns `undefined` for exactly one case: `imageSourceTab === 'my-images'`
+ * with no `libraryImageSource` — the tab is a click away (`patch({
+ * imageSourceTab: value })` on the tab bar), so a user can land here just by
+ * BROWSING the library, without picking a row via "Add to symbol". That is
+ * "no change", not "this is now an upload" — every caller MUST treat
+ * `undefined` as "keep whatever image source was already on this draft" and
+ * fall back accordingly (`initialImageSourceType` for the restore-image modes,
+ * the existing symbol's own persisted type for categoryBoard), never coerce it
+ * to a default.
  */
-function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] {
+function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] | undefined {
   switch (d.imageSourceTab) {
     case 'symbolstix':   return 'symbolstix';
     case 'image-search': return 'imageSearch';
@@ -164,8 +174,31 @@ function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType']
       // The library row's own provenance, captured when the user added it.
       return d.libraryImageSource === 'imageSearch'  ? 'imageSearch'
            : d.libraryImageSource === 'aiGenerated'  ? 'aiGenerated'
-           : 'upload';
+           : d.libraryImageSource === 'userUpload'   ? 'upload'
+           : undefined; // browsing, nothing picked yet
     default:             return 'upload';
+  }
+}
+
+/**
+ * The categoryBoard save has no `initialImageSourceType` prop to fall back on
+ * (that prop only feeds the restore-image modes — listItem, imageOnly,
+ * sentenceSlot). Its equivalent "what was already here" is the existing
+ * profileSymbol's own persisted `imageSource.type`, in the schema's
+ * vocabulary — this maps that back to the credit vocabulary
+ * `imageSourceTypeForDraft` returns, so the two can feed the same fallback
+ * chain. `undefined` covers `placeholder` (nothing to fall back to) and a
+ * brand-new symbol (no existing row at all).
+ */
+function creditTypeFromSchemaType(
+  type: 'symbolstix' | 'userUpload' | 'imageSearch' | 'aiGenerated' | 'placeholder' | undefined
+): ImageCreditResult['imageSourceType'] | undefined {
+  switch (type) {
+    case 'symbolstix':  return 'symbolstix';
+    case 'userUpload':  return 'upload';
+    case 'imageSearch': return 'imageSearch';
+    case 'aiGenerated': return 'aiGenerated';
+    default:            return undefined;
   }
 }
 
@@ -841,7 +874,9 @@ export function SymbolEditorModal({
         // provenance rather than the caller's stored value.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
           draft.imageSourceTab === 'my-images'
-            ? imageSourceTypeForDraft(draft)
+            // `undefined` = browsing the tab with nothing picked — keep the
+            // caller's previously-stored source rather than coercing to upload.
+            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
             : initialImageSourceType;
         // Upload pending bytes for every non-SymbolStix tab — upload,
         // image-search proxy, and AI generate all land a blob here that
@@ -880,7 +915,9 @@ export function SymbolEditorModal({
         // the library row's own provenance, not the caller's stored value.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
           draft.imageSourceTab === 'my-images'
-            ? imageSourceTypeForDraft(draft)
+            // `undefined` = browsing the tab with nothing picked — keep the
+            // caller's previously-stored source rather than coercing to upload.
+            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
             : initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
@@ -922,7 +959,9 @@ export function SymbolEditorModal({
         // the library row's own provenance, not the caller's stored value.
         let imageSourceType: ImageCreditResult['imageSourceType'] =
           draft.imageSourceTab === 'my-images'
-            ? imageSourceTypeForDraft(draft)
+            // `undefined` = browsing the tab with nothing picked — keep the
+            // caller's previously-stored source rather than coercing to upload.
+            ? (imageSourceTypeForDraft(draft) ?? initialImageSourceType)
             : initialImageSourceType;
         if (draft.imageSourceTab === 'symbolstix' && draft.symbolstixImagePath) {
           imagePath = draft.symbolstixImagePath;
@@ -1020,7 +1059,14 @@ export function SymbolEditorModal({
       // container, so its images persist as whatever the library row says they
       // are (`imageSourceTypeForDraft`). 'upload' here is the credit
       // vocabulary's name for what the schema calls 'userUpload'.
-      const resolvedSourceType = imageSourceTypeForDraft(draft);
+      //
+      // `imageSourceTypeForDraft` returns undefined when the user opened the
+      // My Images tab to browse but picked nothing — categoryBoard has no
+      // `initialImageSourceType` prop to fall back on (that only feeds the
+      // restore-image modes), so its "what was already here" is the existing
+      // profileSymbol's own persisted source instead.
+      const resolvedSourceType =
+        imageSourceTypeForDraft(draft) ?? creditTypeFromSchemaType(existingSymbol?.imageSource.type);
       const imageSource: IS =
         resolvedSourceType === 'symbolstix'
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }

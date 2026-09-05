@@ -859,6 +859,7 @@
     "tabAiGenerate": "AI Generate",
     "tabMyImages": "My Images",
     "myImagesEmpty": "Images you generate or upload will collect here, ready to use again on any symbol.",
+    "myImagesTileLabel": "Library image {index}",
     "myImagesAdd": "Add to symbol",
     "myImagesDelete": "Delete",
     "myImagesDeleteBlocked": "This image is used by {count} other items. Remove it from those first.",

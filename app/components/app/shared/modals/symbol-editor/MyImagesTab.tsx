@@ -63,17 +63,23 @@ export function MyImagesTab({ onImageReferenced }: Props) {
 
         {results.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {results.map((row) => {
+            {results.map((row, index) => {
               const isSelected = selectedId === row._id;
               // The prompt is the only human-readable thing a library row
               // carries, and only AI generations have one. User content, not
               // UI copy — so it is not a translation key.
               const caption = row.prompt ?? row.imageTitle ?? "";
+              // Most rows (uploads) have no caption, which would otherwise
+              // leave the tile button's only text as `alt=""` — no accessible
+              // name. Fall back to a 1-based position label; the visible
+              // caption (when there is one) is unaffected.
+              const altText = caption || t("myImagesTileLabel", { index: index + 1 });
               return (
                 <button
                   key={row._id}
                   type="button"
                   aria-pressed={isSelected}
+                  aria-label={altText}
                   onClick={() => setSelectedId(isSelected ? null : row._id)}
                   className="flex flex-col items-center gap-1 rounded-theme-sm p-2"
                   style={{
@@ -86,9 +92,9 @@ export function MyImagesTab({ onImageReferenced }: Props) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/assets?key=${row.imageKey}`}
-                    alt={caption}
+                    alt={altText}
                     loading="lazy"
-                    className="w-full aspect-square object-contain rounded"
+                    className="w-full aspect-square object-contain rounded-theme-sm"
                   />
                   {caption && (
                     <span
