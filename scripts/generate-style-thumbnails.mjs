@@ -4,7 +4,7 @@
  *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs
  *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs storybook
  *   node --env-file=.env.local scripts/generate-style-thumbnails.mjs \
- *     --subject="a wooden rocking horse" --out=/tmp/trial-horse
+ *     --subject="wooden rocking horse" --out=/tmp/trial-horse
  *
  * Writes 1024px PNGs to public/ai-styles/. Downscale them to 320px webp
  * before committing — the raw PNGs are ~700 KB each and the webps are ~5 KB:
@@ -49,7 +49,7 @@ const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project
 // this is a one-off generator, not shipped code).
 // Subject and output dir are overridable so a candidate subject can be
 // trialled without clobbering the committed set:
-//   --subject="a wooden rocking horse"  --out=/tmp/trial-horse
+//   --subject="wooden rocking horse"  --out=/tmp/trial-horse
 // Bare arguments are still style names, so the old invocation is unchanged.
 const argv = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -66,13 +66,17 @@ const flag = (name, fallback) => {
 // the point, since these images exist to show that the four styles DIFFER.
 // The rocking horse separates them cleanly: real wood grain / flat outlined
 // sticker / pastel storybook / soft clay.
-const SUBJECT = flag("subject", "a wooden rocking horse");
+const SUBJECT = flag("subject", "wooden rocking horse");
 const OUT_DIR = flag("out", "public/ai-styles");
+// The subject is the BARE object name ("wooden rocking horse"); the template
+// supplies the article, exactly as lib/ai-style-prompts.ts does. Keep these
+// four strings byte-identical to that file's templates.
+const withArticle = (s) => (/^[aeiou]/i.test(s.trim()) ? `an ${s.trim()}` : `a ${s.trim()}`);
 const TEMPLATES = {
-  photorealistic: (p) => `studio product shot of ${p}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
-  iconic:         (p) => `a simple flat vector icon of ${p}, bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
-  storybook:      (p) => `a friendly children's storybook illustration of ${p}, single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text`,
-  claymation:     (p) => `a soft 3D claymation render of ${p}, single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
+  photorealistic: (p) => `studio product shot of ${withArticle(p)}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
+  iconic:         (p) => `a simple flat vector icon of ${withArticle(p)}, with bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
+  storybook:      (p) => `a friendly children's storybook illustration of ${withArticle(p)}, as a single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text`,
+  claymation:     (p) => `a soft 3D claymation render of ${withArticle(p)}, as a single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
 };
 
 const styleArgs = argv.filter((a) => !a.startsWith("--"));

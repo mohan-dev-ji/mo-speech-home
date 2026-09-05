@@ -35,6 +35,20 @@ export type StyleId = 'photorealistic' | 'iconic' | 'storybook' | 'claymation';
  * `scripts/generate-style-thumbnails.mjs`, whose default subject is the
  * committed set's subject so a routine regeneration cannot silently swap it.
  */
+/**
+ * The indefinite article for the user's subject. The templates read
+ * "…icon of a red kite", "…render of an apple": the user types the bare
+ * object name (which is also what becomes the symbol's label, so it should
+ * not carry an article), and the template supplies the grammar. Vowel-initial
+ * words get "an"; the handful of exceptions ("a unicorn", "an hour") are
+ * left to the model, which copes.
+ */
+function withArticle(subject: string): string {
+  const s = subject.trim();
+  if (!s) return s;
+  return /^[aeiou]/i.test(s) ? `an ${s}` : `a ${s}`;
+}
+
 export const STYLE_PRESETS: Record<
   StyleId,
   { label: string; thumbnail: string; template: (prompt: string) => string }
@@ -66,25 +80,25 @@ export const STYLE_PRESETS: Record<
     // three templates are known-good against THIS model, not against models
     // in general — re-verify them if the model changes again.
     template: (p) =>
-      `studio product shot of ${p}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
+      `studio product shot of ${withArticle(p)}, isolated on a pure white background, single subject only, no ground, no shadow, no scenery, no environment, no text`,
   },
   iconic: {
     label: 'Iconic Vector',
     thumbnail: '/ai-styles/iconic.webp',
     template: (p) =>
-      `a simple flat vector icon of ${p}, bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
+      `a simple flat vector icon of ${withArticle(p)}, with bold black outlines, single subject only, isolated on a pure white background, die-cut sticker style, no ground, no scenery, no text`,
   },
   storybook: {
     label: 'Storybook',
     thumbnail: '/ai-styles/storybook.webp',
     template: (p) =>
-      `a friendly children's storybook illustration of ${p}, single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text`,
+      `a friendly children's storybook illustration of ${withArticle(p)}, as a single subject only, isolated on a pure white background, soft pastel colours, no ground, no scenery, no environment, no text`,
   },
   claymation: {
     label: '3D Claymation',
     thumbnail: '/ai-styles/claymation.webp',
     template: (p) =>
-      `a soft 3D claymation render of ${p}, single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
+      `a soft 3D claymation render of ${withArticle(p)}, as a single subject only, isolated on a pure white background, cute, no ground, no shadow, no scenery, no text`,
   },
 };
 

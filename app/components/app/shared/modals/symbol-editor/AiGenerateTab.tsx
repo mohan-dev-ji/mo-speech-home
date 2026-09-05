@@ -78,7 +78,12 @@ export function AiGenerateTab({
   // Exactly what the route will send: it calls the same template with the
   // same trimmed prompt, so this display cannot drift from the real request.
   const typedPrompt = prompt.trim();
-  const wrappedParts = STYLE_PRESETS[style].template(PROMPT_SLOT).split(PROMPT_SLOT);
+  // The slot carries the typed prompt's FIRST character so the template picks
+  // the same article the route will ("a kite" / "an apple") — the templates
+  // choose "a"/"an" from the subject's first letter, and a bare sentinel would
+  // always read "a". The NUL sentinel keeps the split exact.
+  const slot = `${typedPrompt.charAt(0)}${PROMPT_SLOT}`;
+  const wrappedParts = STYLE_PRESETS[style].template(slot).split(slot);
 
   // Monotonic count of successful generations this session — what the modal
   // reports as `ai_generate_adopted.attempts` when one of them is adopted.
