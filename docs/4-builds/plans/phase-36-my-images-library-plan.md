@@ -252,7 +252,24 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Layout reference:** [Figma — the gallery tab](https://www.figma.com/design/3DAZYuK3A1TrkeZnyGwE1o/Mo-Speech---Finals?node-id=3333-7042). It is a **wireframe** — take the layout and control count from it, take every colour, radius and font size from the theme tokens. Note it was originally drawn as "AI Generate, state 2"; the image region becomes the grid and the two actions become Add to symbol / Delete.
 
-**Follow `ImagesTab.tsx`, which is already this component.** It holds `selectedKey` state, renders `grid grid-cols-2 sm:grid-cols-3 gap-2`, and on click fetches the bytes and calls `onImageSelected(blob, previewUrl)`. Copy that structure rather than inventing one; the differences are only that the source is `usePaginatedQuery` instead of a search API, and that this tab also has a Delete action.
+**Follow `ImagesTab.tsx`, which is already this component.** It holds `selectedKey` state, renders a grid of image tiles, and on click fetches the bytes and calls `onImageSelected(blob, previewUrl)`. Copy that structure rather than inventing one; the differences are the grid shape (below), that the source is `usePaginatedQuery` instead of a search API, and that this tab also has a Delete action.
+
+### Grid shape and page size — decided together, on purpose
+
+**`grid grid-cols-2 sm:grid-cols-4`, page size 8.**
+
+> Owner: *"The My images tab pagination should be in 8s because of the 4 col grid"*
+
+Right principle: the page size must be a multiple of the column count, or every "Show more" leaves a ragged part-row and the grid looks broken rather than paginated.
+
+Which is why the breakpoint is **2 → 4 and not 3 → 4**. The obvious precedent is `SymbolStixTab.tsx:146` (`grid-cols-3 sm:grid-cols-4`) — the closest thing in the editor to this tab — but **8 does not divide by 3**, so that breakpoint would be ragged on tablets, the primary device. Two options, and only these two:
+
+| grid | clean page size |
+| -- | -- |
+| `grid-cols-2 sm:grid-cols-4` | **8** (4 rows / 2 rows) ← use this |
+| `grid-cols-3 sm:grid-cols-4` | 12 (4 rows / 3 rows) |
+
+Do not mix: `grid-cols-3` with a page of 8 is the one combination to avoid.
 
 - [ ] **Step 1: Copy keys**
 
@@ -269,7 +286,9 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 - [ ] **Step 2: Build the grid**
 
-`usePaginatedQuery(api.accountImages.listMine, {}, { initialNumItems: 10 })`, newest first, `loadMore(10)` on the Show-more control.
+`usePaginatedQuery(api.accountImages.listMine, {}, { initialNumItems: 8 })`, newest first, `loadMore(8)` on the Show-more control.
+
+**A button, not infinite scroll.** MOS-52 says "fetch more on scroll"; a button is the better call inside a modal — scroll-triggered loading fights the modal's own scroll container, has no keyboard equivalent, and gives no way to stop. If the owner prefers infinite scroll, that is a deliberate change, not an implementation detail.
 
 Requirements the markup must satisfy — take colours, radii and spacing from `--theme-*` tokens throughout:
 
