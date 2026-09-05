@@ -84,6 +84,39 @@ export const recordForAccount = internalMutation({
   },
 });
 
+/** One `accountImages` row's key + owner, for `listAllKeysForSweep`. */
+type SweepRow = {
+  imageKey: string;
+  accountId: Id<"users">;
+  source: "aiGenerated" | "userUpload" | "imageSearch";
+};
+
+/**
+ * Read-only: every `accountImages` row's key + owning account + source, for
+ * `scripts/sweep-cache-orphans.mjs` (phase-36 Task 6). Any R2 object whose key
+ * shows up here is a library image — deliberately kept, not an orphan, no
+ * matter what else does or doesn't reference it. The gallery's own Delete is
+ * the only thing that removes a library image from R2.
+ *
+ * `.collect()` is safe at this scale (~100 rows for the only account today);
+ * revisit if the table grows to the point a real sweep needs pagination.
+ *
+ * Internal: driven by the Convex CLI, which has no caller identity. Run:
+ *   npx convex run accountImages:listAllKeysForSweep '{}' --no-push
+ */
+export const listAllKeysForSweep = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("accountImages").collect();
+    const out: SweepRow[] = rows.map((row) => ({
+      imageKey: row.imageKey,
+      accountId: row.accountId,
+      source: row.source,
+    }));
+    return out;
+  },
+});
+
 /** One profileSymbols row's image key + source, for `listSymbolImageSourcesForAccount`. */
 type SymbolImageSource = {
   imagePath: string;

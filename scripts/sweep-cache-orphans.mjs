@@ -23,6 +23,9 @@
  *   R2 objects        KEEP    the full-size `accounts/…/images/*.png` left by
  *                             the Phase 29 backfill (never deleted by design;
  *                             this probe just reports what's still there).
+ *                     KEEP    any object with a row in `accountImages` — the
+ *                             account's image library (Phase 36). See THE
+ *                             LIBRARY RULE below.
  *
  *   This script used to also census a second cache, of AI-generated images,
  *   and list the `ai-cache/` PNGs behind its orphaned rows. ADR-023 deleted
@@ -31,6 +34,18 @@
  *   deletion (owner decision, 2026-08-24: the imagery is retained for the
  *   storybook module) and this script was never the thing that could reach
  *   them anyway — it has no delete path.
+ *
+ * THE LIBRARY RULE (Phase 36):
+ *   An unused library image is *deliberately* kept, not garbage — the
+ *   gallery's own Delete is the only thing that ever removes an image from
+ *   R2. So any `accounts/<accountId>/images/…` object with a row in
+ *   `accountImages` is a library image and MUST NEVER be reported as an
+ *   orphan, no matter what else does or doesn't reference it. This script has
+ *   no delete path today, which is why running it pre-Task-6 was merely
+ *   incomplete rather than actively dangerous — but the moment anyone adds a
+ *   DELETE classification here, skipping this rule would list a user's entire
+ *   library as garbage. Never remove the `accountImages` census below without
+ *   re-reading this comment.
  *
  * Run with (Node 20+):
  *   source ~/.nvm/nvm.sh && nvm use 20.17.0
@@ -122,6 +137,25 @@ for (const row of searchKeep) {
 if (imageSearch.length === 0) console.log("   (table empty)");
 console.log("\n   No R2 objects are involved — this cache stores provider URLs, not files.");
 
+// ── R2: the account image library (accountImages table) ─────────────────────
+console.log(rule("R2 — KEEP list: account image library (accountImages table)"));
+console.log("   THE LIBRARY RULE: any accounts/<accountId>/images/… object with a row");
+console.log("   here is deliberately kept, not an orphan — the gallery's own Delete is");
+console.log("   the only thing that removes a library image from R2. This is a hard");
+console.log("   KEEP, independent of whether any symbol or cache still references it.\n");
+
+const libraryRows = convexRun("accountImages:listAllKeysForSweep", {});
+const libraryKeys = new Set(libraryRows.map((row) => row.imageKey));
+console.log(
+  `   ${libraryRows.length} row${libraryRows.length === 1 ? "" : "s"} across the accountImages table\n`
+);
+for (const row of libraryRows) {
+  console.log(
+    `   [   KEEP   ] ${row.imageKey} — library image (source=${row.source}, accountId=${row.accountId})`
+  );
+}
+if (libraryRows.length === 0) console.log("   (table empty)");
+
 // ── R2: full-size PNGs left by the Phase 29 backfill ─────────────────────────
 console.log(rule("R2 — KEEP list: full-size PNGs left by the Phase 29 backfill"));
 console.log("   scripts/backfill-ai-image-sizes.mjs re-encodes `X.png` to `X.webp` and");
@@ -168,15 +202,28 @@ if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
   console.log(
     `   probing ${candidates.length} .webp symbol image${candidates.length === 1 ? "" : "s"} for a stranded .png sibling…\n`
   );
+  let alreadyInLibrary = 0;
   for (const webpKey of candidates) {
     const pngKey = `${webpKey.slice(0, webpKey.lastIndexOf("."))}.png`;
     if (referenced.has(pngKey)) continue; // still in use — not an orphan
+    // Already reported above, under the library section, with the stronger
+    // reason (it has an accountImages row, not just "nothing deletes it
+    // yet") — report each key once, never twice.
+    if (libraryKeys.has(pngKey)) {
+      alreadyInLibrary++;
+      continue;
+    }
     if (await exists(pngKey)) backfillLeftovers.push(pngKey);
   }
   if (backfillLeftovers.length === 0) {
     console.log("   (none found)");
   } else {
     for (const k of backfillLeftovers) console.log(`   KEEP  ${k}`);
+  }
+  if (alreadyInLibrary > 0) {
+    console.log(
+      `   (${alreadyInLibrary} more already listed above under the library section — same key, stronger reason)`
+    );
   }
 }
 
@@ -187,6 +234,7 @@ console.log("═".repeat(74));
 console.log("DELETE candidates (Convex rows only):");
 console.log(`   imageSearchCache rows : ${searchDelete.length} of ${imageSearch.length}`);
 console.log("KEEP (R2 objects — do NOT delete):");
+console.log(`   accountImages library rows                 : ${libraryRows.length}`);
 console.log(
   `   accounts|profiles/…/images/*.png leftovers : ${r2Skipped ? "not checked (no R2 creds)" : backfillLeftovers.length}`
 );
