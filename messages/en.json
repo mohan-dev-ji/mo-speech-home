@@ -863,6 +863,7 @@
     "myImagesAdd": "Add to symbol",
     "myImagesDelete": "Delete",
     "myImagesDeleteBlocked": "This image is used by {count} other items. Remove it from those first.",
+    "myImagesDeleteFailed": "Couldn't delete this image. Please try again.",
     "myImagesLoadMore": "Show more",
     "searchPlaceholder": "Search for a symbol…",
     "searchEmpty": "Start typing to find a symbol",

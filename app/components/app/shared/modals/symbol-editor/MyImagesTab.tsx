@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePaginatedQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
@@ -84,8 +84,88 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
     if (highlightRow) setSelectedId(highlightRow._id);
   }
 
+  /**
+   * "Is anything still using this image?" — the gate on the one hard delete in
+   * the image model. `"skip"` while nothing is selected so we don't run the
+   * reference walk on every render of an idle tab.
+   *
+   * `undefined` means still loading, and that is NOT the same as 0: treating
+   * it as 0 would enable Delete for a beat on an image a symbol uses, and a
+   * fast tap would then hit a 409 it did not deserve to see.
+   */
+  const usage = useQuery(
+    api.accountImages.usageCount,
+    selected ? { imageKey: selected.imageKey } : "skip"
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
+  /**
+   * What went wrong on the LAST delete attempt. `blocked` carries the count
+   * the SERVER returned, which can differ from `usage` above — another tab may
+   * have placed the image since this client last heard about it, and the
+   * server's number is the true one.
+   */
+  const [deleteError, setDeleteError] = useState<
+    { kind: "blocked"; count: number } | { kind: "failed" } | null
+  >(null);
+
   const isLoadingFirstPage = status === "LoadingFirstPage";
   const isEmpty = !isLoadingFirstPage && results.length === 0;
+
+  // Delete is live ONLY at a known 0. Unknown (loading) and >0 both keep it
+  // disabled; the difference is that >0 says why, below, and loading says
+  // nothing — a message that flickers on every selection is worse than none.
+  const canDelete = !!selected && usage === 0 && !isDeleting;
+  const blockedCount =
+    deleteError?.kind === "blocked"
+      ? deleteError.count
+      : selected && typeof usage === "number" && usage > 0
+        ? usage
+        : null;
+
+  /**
+   * The one call in the product that removes an image object from R2. Goes
+   * through the API route because a Convex mutation cannot reach R2; the route
+   * re-checks the reference count server-side, so this client-side gate is a
+   * courtesy, not the protection.
+   *
+   * No confirm dialog on purpose: selecting a tile and then pressing Delete in
+   * a separate bar IS the deliberate two-step (MOS-52). A modal on top of a
+   * modal would be the third.
+   */
+  async function handleDelete() {
+    if (!selected || !canDelete) return;
+    const imageKey = selected.imageKey;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/delete-account-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageKey }),
+      });
+      if (res.ok) {
+        // Nothing to remove from the grid by hand — `listMine` is reactive, so
+        // the tile disappears on its own. Clearing the selection is what stops
+        // the action bar pointing at a row that no longer exists.
+        releaseHighlight();
+        setSelectedId(null);
+        return;
+      }
+      if (res.status === 409) {
+        const data = (await res.json().catch(() => null)) as
+          | { count?: number }
+          | null;
+        setDeleteError({ kind: "blocked", count: data?.count ?? 0 });
+        return;
+      }
+      setDeleteError({ kind: "failed" });
+    } catch {
+      setDeleteError({ kind: "failed" });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
 
   return (
     <div className="flex flex-col h-full">
@@ -123,6 +203,9 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
                   aria-label={altText}
                   onClick={() => {
                     releaseHighlight();
+                    // A "used by N items" / "couldn't delete" message belongs
+                    // to the image it was raised for, not to the next one.
+                    setDeleteError(null);
                     setSelectedId(isSelected ? null : row._id);
                   }}
                   className="flex flex-col items-center gap-1 rounded-theme-sm p-2"
@@ -185,41 +268,59 @@ export function MyImagesTab({ onImageReferenced, highlightKey }: Props) {
           Delete on every thumbnail is a mis-tap waiting to happen on the
           tablets families use, and hover doesn't exist there to hide it. */}
       <div
-        className="shrink-0 flex gap-2 px-3 py-3"
+        className="shrink-0 flex flex-col gap-2 px-3 py-3"
         style={{ borderTop: "1px solid var(--theme-button-highlight)" }}
       >
-        <button
-          type="button"
-          disabled={!selected}
-          onClick={() => {
-            if (!selected) return;
-            releaseHighlight();
-            onImageReferenced(selected);
-          }}
-          className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
-          style={{
-            background: "var(--theme-brand-primary)",
-            color: "var(--theme-alt-text)",
-            opacity: selected ? 1 : 0.5,
-          }}
-        >
-          {t("myImagesAdd")}
-        </button>
-        {/* Disabled until phase-36 Task 4 wires the delete gate — it is the one
-            hard delete in the image model, so it does not ship half-built. */}
-        <button
-          type="button"
-          disabled
-          className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
-          style={{
-            background: "var(--theme-symbol-bg)",
-            color: "var(--theme-secondary-text)",
-            border: "1px solid var(--theme-button-highlight)",
-            opacity: 0.5,
-          }}
-        >
-          {t("myImagesDelete")}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={!selected || isDeleting}
+            onClick={() => {
+              if (!selected) return;
+              releaseHighlight();
+              onImageReferenced(selected);
+            }}
+            className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
+            style={{
+              background: "var(--theme-brand-primary)",
+              color: "var(--theme-alt-text)",
+              opacity: selected && !isDeleting ? 1 : 0.5,
+            }}
+          >
+            {t("myImagesAdd")}
+          </button>
+          {/* The one hard delete for images in the product. Enabled only at a
+              known usage count of 0 — see `canDelete`. */}
+          <button
+            type="button"
+            disabled={!canDelete}
+            onClick={handleDelete}
+            className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
+            style={{
+              background: "var(--theme-symbol-bg)",
+              color: "var(--theme-secondary-text)",
+              border: "1px solid var(--theme-button-highlight)",
+              opacity: canDelete ? 1 : 0.5,
+            }}
+          >
+            {t("myImagesDelete")}
+          </button>
+        </div>
+        {/* A disabled button with no explanation is the worst of both: the user
+            can see the control and cannot tell why it will not work. So the
+            blocked case names the count. `role="status"` so a screen reader
+            hears it without the focus moving off the button. */}
+        {(blockedCount !== null || deleteError?.kind === "failed") && (
+          <p
+            role="status"
+            className="text-theme-xs leading-snug"
+            style={{ color: "var(--theme-secondary-text)" }}
+          >
+            {blockedCount !== null
+              ? t("myImagesDeleteBlocked", { count: blockedCount })
+              : t("myImagesDeleteFailed")}
+          </p>
+        )}
       </div>
     </div>
   );

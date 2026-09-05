@@ -1,8 +1,10 @@
 import { internalMutation, internalQuery, mutation, query, type MutationCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { countRowsReferencingKeys } from "./lib/personalAssetRefs";
+import { isPersonalAssetKey } from "./lib/contentModuleDelete";
 import { accountImageSource } from "./schema";
 
 /**
@@ -129,6 +131,116 @@ export const recordForAccount = internalMutation({
   handler: async (ctx, args) => {
     const { accountId, ...rest } = args;
     return await insertAccountImageIfNew(ctx, accountId, rest);
+  },
+});
+
+/**
+ * How many other things still use this image. The gallery's Delete button is
+ * enabled only at 0.
+ *
+ * MUST use `countRowsReferencingKeys` — the same predicate the orphan sweep
+ * uses. These are the same question asked in two places, and if they drift the
+ * UI refuses to delete something the sweep reports as garbage, or the sweep
+ * flags images the UI is protecting. One writer, many readers.
+ *
+ * Returns 0 for an unauthenticated caller, matching `listMine`'s "no account,
+ * nothing to show" shape. That is not a hole: it only ever ENABLES a button in
+ * a signed-out UI that has no rows to select, and `deleteIfUnused` re-runs the
+ * same count server-side before it removes anything.
+ */
+export const usageCount = query({
+  args: { imageKey: v.string() },
+  handler: async (ctx, { imageKey }) => {
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return 0;
+    return await countRowsReferencingKeys(
+      ctx,
+      resolved.accountId,
+      new Set([imageKey]),
+      {}
+    );
+  },
+});
+
+/**
+ * THE ONLY PATH IN THE PRODUCT THAT DELETES AN IMAGE FROM R2 (MOS-52).
+ * Everything else — removing a symbol, a list item, a sentence slot, a student
+ * profile — is a soft delete that leaves the object alone. See
+ * `isPersonalAudioKey` in `lib/contentModuleDelete.ts` for why the two media
+ * are treated differently (cost of recreation, not media type).
+ *
+ * Removes the ROWS only. The R2 object itself is deleted by
+ * `app/api/delete-account-image/route.ts` after this returns, because a Convex
+ * mutation cannot reach R2 — this repo's established shape is
+ * route-collects → mutation → route-deletes (`app/api/delete-profile-symbol`).
+ *
+ * Refuses when anything still references the key, so a user cannot break their
+ * own boards from here. The gallery already greys the button out using
+ * `usageCount`, but that check is ADVISORY: it is one client's snapshot, and a
+ * second tab (or a collaborator on the same account) can place the image
+ * between the query and the click. The count below is the gate.
+ *
+ * Deletes the matching `imageCredits` row too. Once nothing references the key
+ * and the object is gone, the credit is stale — leaving it behind would keep
+ * an attribution for a picture that no longer exists on the Credits screen
+ * (MOS-42/MOS-44 territory) and would resurface as a phantom entry the user
+ * cannot act on. `.first()` not `.unique()`, matching the display join in
+ * `listMine`: a duplicate credit row must not be able to throw the delete.
+ */
+export const deleteIfUnused = mutation({
+  args: { imageKey: v.string() },
+  handler: async (ctx, { imageKey }) => {
+    const { accountId } = await requireCallerAccountId(ctx);
+
+    // Ownership gate. Scoping the lookup to the caller's account means another
+    // account's key is indistinguishable from a key that does not exist — the
+    // same NOT_FOUND either way, which is the answer that leaks least.
+    const row = await ctx.db
+      .query("accountImages")
+      .withIndex("by_account_and_key", (q) =>
+        q.eq("accountId", accountId).eq("imageKey", imageKey)
+      )
+      .unique();
+    if (!row) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Image not found." });
+    }
+
+    // A library row may only ever point at a personal object
+    // (`accounts/` | `profiles/`). If one points at `symbols/`, `ai-cache/` or
+    // `library_modules/`, that is a write bug upstream — and acting on it would
+    // delete a SHARED object out from under every other account. Refuse
+    // instead of "cleaning up".
+    if (!isPersonalAssetKey(row.imageKey)) {
+      throw new ConvexError({
+        code: "NOT_PERSONAL",
+        message: "Library row points at a shared object.",
+      });
+    }
+
+    const count = await countRowsReferencingKeys(
+      ctx,
+      accountId,
+      new Set([row.imageKey]),
+      {}
+    );
+    if (count > 0) {
+      throw new ConvexError({ code: "IN_USE", count });
+    }
+
+    const credit = await ctx.db
+      .query("imageCredits")
+      .withIndex("by_account_and_key", (q) =>
+        q.eq("accountId", accountId).eq("imageKey", row.imageKey)
+      )
+      .first();
+    if (credit) await ctx.db.delete(credit._id);
+
+    await ctx.db.delete(row._id);
+
+    // The caller deletes exactly this key from R2. Returned rather than echoed
+    // from the request body so the route can only ever delete an object this
+    // mutation actually de-listed.
+    return { imageKey: row.imageKey };
   },
 });
 
