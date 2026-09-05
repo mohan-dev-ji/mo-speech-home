@@ -9,6 +9,7 @@
  */
 
 import type * as account from "../account.js";
+import type * as accountImages from "../accountImages.js";
 import type * as accountMembers from "../accountMembers.js";
 import type * as admin_overviewStats from "../admin/overviewStats.js";
 import type * as contentDelete from "../contentDelete.js";
@@ -77,6 +78,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   account: typeof account;
+  accountImages: typeof accountImages;
   accountMembers: typeof accountMembers;
   "admin/overviewStats": typeof admin_overviewStats;
   contentDelete: typeof contentDelete;

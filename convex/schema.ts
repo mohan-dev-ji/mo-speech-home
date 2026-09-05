@@ -1377,6 +1377,36 @@ export default defineSchema({
   }).index("by_account_and_key", ["accountId", "imageKey"]),
 
   /**
+   * The account's image library — every image it has generated or uploaded,
+   * whether or not anything currently uses it (MOS-52).
+   *
+   * WHY A TABLE AND NOT AN R2 LISTING: the grid needs newest-first order and
+   * cursor pagination. S3/R2 lists lexicographically by key with no metadata,
+   * so ordering by recency would mean fetching every object every time.
+   * `_creationTime` gives the order for free.
+   *
+   * DELIBERATELY NOT `imageCredits`. That table records attribution for images
+   * IN USE; mixing never-used rows into it would muddy every credit report
+   * that reads it. Two tables, two questions.
+   *
+   * `imageKey` is the R2 object key and the dedupe key — one row per object.
+   */
+  accountImages: defineTable({
+    accountId: v.id("users"),
+    imageKey: v.string(),
+    source: v.union(
+      v.literal("aiGenerated"),
+      v.literal("userUpload"),
+      v.literal("imageSearch"),
+    ),
+    // For AI images: what the user asked for. Display hint only — it is shown
+    // in the grid as a caption and is never a lookup key.
+    prompt: v.optional(v.string()),
+  })
+    .index("by_account", ["accountId"])
+    .index("by_account_and_key", ["accountId", "imageKey"]),
+
+  /**
    * Per-user quota counters for metered features.
    *
    * `day` IS A PERIOD KEY, not always a day (ADR-023). Single-meter features

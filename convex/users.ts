@@ -96,6 +96,7 @@ export const getMyAccess = query({
         : 0;
 
     return {
+      accountId: user._id,
       tier,
       status,
       hasFullAccess,

@@ -1,9 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleAuth } from "google-auth-library";
 import { api } from "@/convex/_generated/api";
-import { isConfigured } from "@/lib/r2-storage";
+import { isConfigured, uploadBuffer } from "@/lib/r2-storage";
 import { STYLE_PRESETS, isStyleId, AI_IMAGE_MODEL } from "@/lib/ai-style-prompts";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import { resolveAiImageLimits } from "@/lib/ai-image-limits";
@@ -154,9 +155,9 @@ async function generateImage(wrappedPrompt: string): Promise<Buffer> {
  * Body: { prompt: string, style: StyleId }
  *
  * Pipeline: auth → Max-tier check → both quota meters reserved → Gemini image
- * call → PNG bytes returned inline. No cache, no R2 write — see ADR-023.
- * Every call is a live generation, which is what makes re-generating give a
- * different image.
+ * call → R2 write + accountImages index → PNG bytes returned inline. No
+ * shared cache — see ADR-023, which removed that. Every call is a live
+ * generation, which is what makes re-generating give a different image.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {
@@ -295,12 +296,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 
+  // ── Persist + index ──────────────────────────────────────────────────────
+  // THE R2 WRITE IS BACK, for a different reason than the one ADR-023
+  // removed. That write fed a global shared cache; this one puts the image in
+  // the USER'S OWN library, account-scoped, because they paid for it and it is
+  // theirs to keep (MOS-52). See ADR-024.
+  const imageKey = `accounts/${access.accountId}/images/${randomUUID()}.png`;
+  await uploadBuffer(imageKey, pngBuffer, "image/png");
+  await convex.mutation(api.accountImages.record, {
+    imageKey,
+    source: "aiGenerated",
+    prompt: rawPrompt,
+  });
+
   // ── Return ───────────────────────────────────────────────────────────────
-  // NO R2 WRITE. The upload existed only to populate the shared AI image
-  // cache; with that cache gone (ADR-023) nothing reads the object, and
-  // `X-R2-Key` was never read by any caller. The image reaches R2 only if
-  // the user adopts it, at which point SymbolEditorModal uploads a resized
-  // webp under accounts/<accountId>/images/.
   trackServer(userId, "ai_generate_used", {
     tier: "max",
     style,
@@ -320,6 +329,11 @@ export async function POST(request: Request) {
       "Cache-Control": "no-store",
       "X-Daily-Remaining": String(dailyRemaining),
       "X-Monthly-Remaining": String(monthlyRemaining),
+      // Unlike the `X-R2-Key` header ADR-023 deleted, this one has a
+      // consumer lined up (Task 3, highlighting the new row after the tab
+      // switch). If that ends up not reading it, delete this rather than
+      // leaving it — see ADR-023's own lesson.
+      "X-Image-Key": imageKey,
     },
   });
 }

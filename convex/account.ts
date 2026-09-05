@@ -37,6 +37,7 @@ type AccountScopedTable = {
  * it against what the schema actually declares.
  */
 type HandledAccountTable =
+  | "accountImages"
   | "accountMembers"
   | "imageCredits"
   | "profileCategories"
@@ -174,6 +175,18 @@ export const cascadeDeleteAccount = mutation({
       .withIndex("by_account_and_key", (q) => q.eq("accountId", accountId))
       .collect();
     for (const row of credits) await ctx.db.delete(row._id);
+
+    // The image library index (MOS-52). Same reasoning as `imageCredits`
+    // above — an account that no longer exists has no library to show. Only
+    // the ROWS are deleted here; the R2 objects they point at live under
+    // `accounts/<accountId>/images/…`, which `/api/delete-account` already
+    // wipes as part of the personal-prefix cleanup (see the global phase-36
+    // constraint: don't add a second R2-wipe path for this).
+    const libraryImages = await ctx.db
+      .query("accountImages")
+      .withIndex("by_account", (q) => q.eq("accountId", accountId))
+      .collect();
+    for (const row of libraryImages) await ctx.db.delete(row._id);
 
     // Owner-side membership rows: every collaborator invited TO this account.
     const ownerMembers = await ctx.db
