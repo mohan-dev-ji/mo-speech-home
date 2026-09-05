@@ -924,7 +924,7 @@ export function SymbolEditorModal({
           imagePath = key;
           // The tab that produced this blob, captured at hand-over time — NOT
           // the current tab, which may have moved on to 'my-images' since.
-          imageSourceType = pendingImageSourceType;
+          imageSourceType = pendingImageSourceType ?? imageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }
@@ -967,7 +967,7 @@ export function SymbolEditorModal({
           imagePath = key;
           // The tab that produced this blob, captured at hand-over time — NOT
           // the current tab, which may have moved on to 'my-images' since.
-          imageSourceType = pendingImageSourceType;
+          imageSourceType = pendingImageSourceType ?? imageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }
@@ -1013,7 +1013,7 @@ export function SymbolEditorModal({
           imagePath = key;
           // The tab that produced this blob, captured at hand-over time — NOT
           // the current tab, which may have moved on to 'my-images' since.
-          imageSourceType = pendingImageSourceType;
+          imageSourceType = pendingImageSourceType ?? imageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }

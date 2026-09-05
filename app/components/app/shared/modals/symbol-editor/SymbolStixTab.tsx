@@ -89,6 +89,8 @@ export function SymbolStixTab({
       imageLicense: undefined,
       imageProvider: undefined,
       imageTitle: undefined,
+      // This symbol's picture is the image now — not a library reference.
+      libraryImageSource: undefined,
       // Swapping the symbol must not clobber a generated/recorded clip the user
       // committed; only adopt 'default' when nothing is active yet.
       ...(draft.activeAudioSource ? {} : { activeAudioSource: 'default' as const, audioMode: 'default' as const }),
