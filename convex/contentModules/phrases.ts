@@ -122,14 +122,20 @@ export const getPublicPhraseCatalogue = query({
 });
 
 /**
- * R2 keys (phrase + word recordings) inside this module's bank. Collected by
- * the uninstall route BEFORE `deletePhraseModule` runs.
+ * R2 keys (phrase-level recordings only) inside this module's bank. Collected
+ * by the uninstall route BEFORE `deletePhraseModule` runs.
  *
- * Word images are NOT returned (phase 36). Removing a module removes the
- * placements; the images stay in R2 and stay listed in My Images, which owns
- * the one Delete that removes an image object. Recordings still hard-delete:
- * cost of recreation, not media type. See `isPersonalAudioKey` in
- * ../lib/contentModuleDelete.
+ * Word images are NOT returned (phase 36): removing a module removes the
+ * placements, and images stay in R2 and stay listed in My Images, which owns
+ * the one Delete that removes an image object.
+ *
+ * Word recordings are also NOT returned — this walk never collected them
+ * (only `p.recordedAudioPath` / `p.audioPath` at the phrase level did, both
+ * pre-dating phase 36). Recorded audio still hard-deletes elsewhere in the
+ * app (cost of recreation, not media type), but widening THIS collector to
+ * start hard-deleting word recordings it never touched before is a separate
+ * product decision for the owner, not a tidy-up to fold into this predicate
+ * swap. See `isPersonalAudioKey` in ../lib/contentModuleDelete.
  */
 export const getPhraseModuleDeleteOrphanKeys = query({
   args: { slug: v.string() },
@@ -149,9 +155,6 @@ export const getPhraseModuleDeleteOrphanKeys = query({
       // sites. It now goes through the shared delete-candidate predicate.
       if (isPersonalAudioKey(p.recordedAudioPath)) keys.push(p.recordedAudioPath);
       if (isPersonalAudioKey(p.audioPath)) keys.push(p.audioPath);
-      for (const w of p.words) {
-        if (isPersonalAudioKey(w.audioPath)) keys.push(w.audioPath);
-      }
     }
 
     const referenced = await collectReferencedPersonalKeys(ctx, resolved.accountId, {
