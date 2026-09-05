@@ -1,7 +1,7 @@
 # AI Image Generation (symbol editor → AI Generate tab)
 
-**Status:** Shipped — uncached generation + dual meters (MOS-48) · tab UI pending (MOS-47)
-**Relates to:** ADR-023 (uncached generation — the governing decision) · ADR-005 (symbol editor image sources) · MOS-48 · MOS-47 · MOS-49 (tier pricing, which sets the ceiling)
+**Status:** Shipped — uncached generation + dual meters (MOS-48) · create-only tab (MOS-47) · generations land in the account's image library (MOS-52)
+**Relates to:** ADR-023 (uncached generation) · ADR-024 (the image library and the one-hard-delete rule — the governing decision for everything after the provider call) · ADR-005 (symbol editor image sources) · MOS-48 · MOS-47 · MOS-52 · MOS-49 (tier pricing, which sets the ceiling)
 
 > **One-line vision:** an instructor who needs a symbol that SymbolStix doesn't have and image search can't find describes it, sees it drawn in one of four styles, and keeps re-rolling until one is right — inside a monthly allowance they can spend however they like.
 
@@ -41,25 +41,31 @@ Overrides exist because a content module is 12 symbols and default-content autho
 
 The consequence users care about: *pressing Generate again gives a different image.* `gemini-2.5-flash-image` is non-deterministic and no seed is pinned, so this needs no variant machinery — it is what the provider does when nothing intercepts it.
 
-Flow: auth → Max check → both meters checked and incremented → provider call (~5–10s) → the raw PNG returned inline to the client, which resizes it to a 512px webp before previewing. R2 is not touched. The image reaches R2 only if the user adopts it, at which point it is uploaded to `accounts/<accountId>/images/<uuid>.webp` and the symbol records `imageSource: { type: "aiGenerated", imagePath, aiPrompt }`.
+Flow: auth → Max check → both meters checked and incremented → provider call (~5–10s) → the returned PNG is re-encoded server-side to a **512px webp** (`sharp`, the same parameters as `resizeImage.ts`) → written to `accounts/<accountId>/images/<uuid>.webp` → indexed as an `accountImages` row carrying the prompt → the route answers **`{ imageKey }`** as JSON.
 
-**The resize (`toResizedWebp`, browser-side — it needs canvas) runs on arrival, not on adoption.** The preview is then the exact artefact that will be saved — no surprise on save — and the session reel costs ~20KB per image instead of ~880KB.
+Two things follow from ADR-024's decision that adoption is **by reference**. The resize has to happen server-side, because the object in the library is the object a board will render — a raw 1024px PNG there would be an ~880KB board image. And the response is an identifier rather than bytes, because the tab no longer displays the result; it only needs to know which library row to highlight.
 
-### The session reel
+**The generation is safe before the user does anything.** The library write happens inside the request, so nothing depends on the user reacting, adopting, or keeping the modal open. A storage failure at that point refunds both meters, exactly like a provider failure, and is never reported as a refusal.
 
-Generated images stay in the tab's state for the editing session, capped at 10, object URLs revoked as they fall off. Nothing already paid for is destroyed by the app: the reel holds every generation until the modal closes.
+### The tab is create-only; the result lives in My Images
 
-**What the shipped UI can reach today is narrower than that.** Once an image exists, the Generate button is replaced by Discard / Add to symbol, so a re-roll happens only by pressing Enter in the prompt field, and there are no prev/next controls — the sole way back is Discard, which removes the current entry. So the reel is real and populated, but an instructor cannot yet browse it. MOS-47 Part 2 (Generate permanently on the prompt row) and reel navigation are what make it usable; until then the reel mainly guarantees that a generation is not lost to a tab switch.
+There is no result view on the AI Generate tab, no Discard, no Add to symbol, and no session reel. The tab's job ends at "a generation now exists".
 
-The tab is **mounted for the whole time the modal is open** and hidden with `display:none` when another image source is selected, rather than being conditionally rendered. That is what makes "session" mean the editing session rather than the current tab: conditional rendering unmounted the component on every tab switch, revoking the reel's object URLs and resetting the attempt counter. One consequence worth knowing: the tab's quota subscription stays live for the modal's whole lifetime, not just while the AI tab is on screen — a single lightweight query, accepted deliberately as the cost of keeping the reel alive.
+- **The spinner pre-announces the destination** — *"Generating… this takes a few seconds. Your image will be saved to My Images."* Arriving in the gallery is then confirmation, not surprise. On success the modal switches to My Images with the new row highlighted; a newer generation always wins that highlight, even after a manual tile tap.
+- **Failures stay on the AI tab.** There is nothing to show in the gallery, and the prompt the user has to change is on this tab.
+- **Adoption happens in My Images, by reference** — see §4.
 
-It ends when the modal closes. **An image generated and never adopted is gone permanently** — the accepted regression in ADR-023.
+**ADR-023's one accepted regression is retired.** "An image generated and never adopted is gone permanently" was true of the reel-era tab and is no longer true of anything: every generation is in the library before the client hears about it, and it stays there until the user deletes it from the gallery on purpose (ADR-024's one hard delete). Re-rolling costs a credit, as it always did, but it no longer destroys the previous attempt.
 
-MOS-47 owns what this looks like: Generate on the prompt row always, Add to symbol and Discard always present and disabled when there is nothing to act on.
+The tab is still **mounted for the whole time the modal is open** and hidden with `display:none` when another image source is selected, so the prompt text and attempt counter survive a tab switch. One consequence worth knowing: the tab's quota subscription stays live for the modal's whole lifetime, not just while the AI tab is on screen — a single lightweight query, accepted deliberately.
 
 ## 4. Adoption
 
-Adopting an image overwrites the description label with the prompt — the prompt *is* the concept the symbol is for — and decouples afterwards, so editing the label doesn't echo back. It clears any image-search attribution left by another tab. AI-generated images are recordable in the image-credit registry; SymbolStix and user uploads are not.
+Adoption happens in **My Images**, not on the AI tab, and it is **by reference**: the symbol points at the library row's own R2 key rather than re-uploading the bytes. The draft carries `libraryImageSource` so the row's provenance (`aiGenerated`) travels with it and the saved symbol is still typed as AI-generated — `my-images` is a container, not a source. See ADR-024 for why a copy would break the gallery's delete gate.
+
+Adopting overwrites the description label with the prompt — the prompt *is* the concept the symbol is for — and decouples afterwards, so editing the label doesn't echo back. It clears any image-search attribution left by another tab. AI-generated images are recordable in the image-credit registry; SymbolStix and user uploads are not.
+
+Deleting the symbol afterwards does **not** delete the image: the placement goes, the picture stays in My Images, and only the gallery's own Delete removes it from R2 (ADR-024).
 
 ## 5. Failure modes
 
@@ -71,6 +77,7 @@ Adopting an image overwrites the description label with the prompt — the promp
 | Monthly ceiling reached | 429 `meter: "month"` | "You've used this month's 100 — resets on the 1st" |
 | **Provider refusal** | 422 | Deterministic: the same prompt and style will be refused identically, so the copy must say *change the wording*, never *try again*. Both meters refunded. |
 | Provider error | 502 | Both meters refunded |
+| Storage/index failure after a successful generation | 502 `storage_error` | Both meters refunded. Reported as a storage failure, never as a refusal — the model did its job |
 
 The refusal path is the one that most needs care. A 200 response with no image part **is** a refusal, not a malformed response — Gemini declines by returning success plus a `finishReason` and usually a text explanation. Everything the model said goes into the server log; the user gets copy that tells them to rephrase (MOS-40).
 
@@ -83,16 +90,15 @@ The feature ships partly blind — the cache made attempts-per-kept-image unmeas
 | event | where | properties |
 |---|---|---|
 | `ai_generate_used` | server | `tier`, `style`, `dailyRemaining`, `monthlyRemaining` |
-| `ai_generate_adopted` | client | `style`, **`attempts`** — generations before this one was kept |
-| `ai_generate_abandoned` | client | `style`, `attempts` — closed having kept nothing; this is wasted spend |
+| `ai_generate_adopted` | modal | `style`, **`attempts`** — generations before this one was kept. Fires from My Images, once, for the row this session generated |
 | `ai_generate_quota_blocked` | server | `meter: "day" \| "month"` — which ceiling actually bites |
 
-`cached` is gone as a property; it would be `false` forever.
+`cached` is gone as a property; it would be `false` forever. **`ai_generate_abandoned` is gone too** — it measured spend destroyed at modal close, and since MOS-52 nothing is destroyed at modal close. A generation that isn't adopted today is sitting in My Images waiting to be adopted tomorrow, so "abandoned" no longer names an event that happens.
 
 **No prompt text in any event, ever.** Style is a fixed enum and safe; the prompt is user content and, in an AAC app, is frequently about a specific child.
 
-Read these together after a month of real use: if `abandoned.attempts` is high, the templates or the guidance are failing, not the allowance. If `quota_blocked` fires on `month` for engaged users, 100 is too low. If it never fires at all, it is too high and the cost model has room.
+Read these together after a month of real use: if `adopted.attempts` is high, the templates or the guidance are failing, not the allowance. If `quota_blocked` fires on `month` for engaged users, 100 is too low. If it never fires at all, it is too high and the cost model has room. The gap between `ai_generate_used` and `ai_generate_adopted` counts is now a *library* of unadopted images, not wasted spend — check My Images before reading it as waste.
 
 ## 7. Privacy
 
-Generated imagery is account-scoped from the moment it is adopted and is never shared between accounts. Prompts are never stored server-side beyond request logs and are never sent to analytics. This is a change of posture, not a restatement: until ADR-023 the generated image was global and keyed on the user's own words.
+Generated imagery is account-scoped from the moment it is created — it is written straight to `accounts/<accountId>/images/` and indexed against that account — and is never shared between accounts. The library is per-account: no query returns another account's rows, and account deletion wipes the whole prefix. Prompts are never stored server-side beyond request logs and are never sent to analytics. This is a change of posture, not a restatement: until ADR-023 the generated image was global and keyed on the user's own words.

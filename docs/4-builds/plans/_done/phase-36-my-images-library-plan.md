@@ -1,5 +1,7 @@
 # Phase 36 — My Images Library Implementation Plan
 
+**Status:** Shipped 2026-09-05 (commits `ed14815`..`e47ce66` on `main`), retired to `_done/`. The decisions this plan produced — including the ones it did not anticipate (adoption by reference, uploads/search picks recorded at save, the server-side 512px resize) — are recorded in [ADR-024](../../decisions/ADR-024-account-image-library-and-one-hard-delete.md). Unticked checkboxes below are the plan as written, not outstanding work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Every image the account has ever generated or uploaded lives in a browsable library inside the symbol editor, and is destroyed only when the user says so.
