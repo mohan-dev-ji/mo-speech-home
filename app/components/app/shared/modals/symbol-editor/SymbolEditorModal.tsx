@@ -164,6 +164,15 @@ async function uploadBlobToR2(blob: Blob, key: string): Promise<void> {
  * fall back accordingly (`initialImageSourceType` for the restore-image modes,
  * the existing symbol's own persisted type for categoryBoard), never coerce it
  * to a default.
+ *
+ * REFERENCE PATH ONLY. This answers "what does the current tab/selection
+ * imply", which is only meaningful when nothing is queued to upload. Once a
+ * blob is pending, its provenance is fixed at hand-over time (see
+ * `pendingImageSourceType`, set in `handleImageSelected`) — the tab can move
+ * on (e.g. to 'my-images' to browse) without that blob's source changing.
+ * The four blob-upload branches in `handleSave` must use
+ * `pendingImageSourceType`, never this function, for the type of an image
+ * they are about to upload.
  */
 function imageSourceTypeForDraft(d: Draft): ImageCreditResult['imageSourceType'] | undefined {
   switch (d.imageSourceTab) {
@@ -366,6 +375,13 @@ export function SymbolEditorModal({
 
   const [pendingImageBlob, setPendingImageBlob] = useState<Blob | null>(null);
   const [pendingImagePreviewUrl, setPendingImagePreviewUrl] = useState<string | null>(null);
+  // The credit-vocabulary source that PRODUCED `pendingImageBlob`, captured at
+  // hand-over time in `handleImageSelected` — not re-derived from the current
+  // tab at save time. The tab bar can move on (`patch({ imageSourceTab })`)
+  // without clearing this blob, so by the time Save runs, `draft.imageSourceTab`
+  // may no longer be the tab that produced it. `undefined` = no pending blob,
+  // or (defensively) a blob handed over from a tab that should never do that.
+  const [pendingImageSourceType, setPendingImageSourceType] = useState<ImageCreditResult['imageSourceType']>(undefined);
   const [pendingAudioBlob, setPendingAudioBlob] = useState<Blob | null>(null);
   const [pendingAudioBlobUrl, setPendingAudioBlobUrl] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
@@ -637,6 +653,26 @@ export function SymbolEditorModal({
     imagePreviewUrlRef.current = previewUrl;
     setPendingImageBlob(blob);
     setPendingImagePreviewUrl(previewUrl);
+    // Capture provenance NOW, from whichever tab is handing over the blob —
+    // never re-derived later from `draft.imageSourceTab`, which can have moved
+    // on to 'my-images' (or anywhere else) by the time Save runs. Only Upload,
+    // Image Search and AI Generate wire `onImageSelected` to this callback;
+    // SymbolStix never hands over a blob at all, and My Images uses
+    // `handleImageReferenced` instead — so those two cases should never reach
+    // here, and are logged rather than silently mis-attributed.
+    setPendingImageSourceType(
+      draft.imageSourceTab === 'upload'       ? 'upload' :
+      draft.imageSourceTab === 'image-search' ? 'imageSearch' :
+      draft.imageSourceTab === 'ai-generate'  ? 'aiGenerated' :
+      (() => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(
+            `[SymbolEditorModal] handleImageSelected fired from tab '${draft.imageSourceTab}', which must never hand over a blob`
+          );
+        }
+        return undefined;
+      })()
+    );
   }
 
   /**
@@ -655,6 +691,7 @@ export function SymbolEditorModal({
     imagePreviewUrlRef.current = null;
     setPendingImageBlob(null);
     setPendingImagePreviewUrl(null);
+    setPendingImageSourceType(undefined);
     const fromSearch = row.source === 'imageSearch';
     patch({
       imageSourceTab: 'my-images',
@@ -885,7 +922,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType = imageSourceTypeForDraft(draft);
+          // The tab that produced this blob, captured at hand-over time — NOT
+          // the current tab, which may have moved on to 'my-images' since.
+          imageSourceType = pendingImageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }
@@ -926,7 +965,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType = imageSourceTypeForDraft(draft);
+          // The tab that produced this blob, captured at hand-over time — NOT
+          // the current tab, which may have moved on to 'my-images' since.
+          imageSourceType = pendingImageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }
@@ -970,7 +1011,9 @@ export function SymbolEditorModal({
           const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
           await uploadBlobToR2(pendingImageBlob, key);
           imagePath = key;
-          imageSourceType = imageSourceTypeForDraft(draft);
+          // The tab that produced this blob, captured at hand-over time — NOT
+          // the current tab, which may have moved on to 'my-images' since.
+          imageSourceType = pendingImageSourceType;
           recordImageCreditSafely(key, imageSourceType);
           recordAccountImageSafely(key, imageSourceType);
         }
@@ -1030,11 +1073,17 @@ export function SymbolEditorModal({
     try {
       // 1. Upload pending image (upload tab, Image Search proxy, or AI Generate)
       let resolvedImagePath = draft.resolvedImagePath;
+      // Set only when a blob is uploaded in THIS save, to the tab that produced
+      // it (captured at hand-over time) — never re-derived from the current
+      // tab, which may have moved on to 'my-images' since. `resolvedSourceType`
+      // below must defer to this whenever it is set, so the recorded credit/
+      // library type and the persisted `imageSource.type` cannot diverge.
+      let uploadedType: ImageCreditResult['imageSourceType'] | undefined;
       if (pendingImageBlob && draft.imageSourceTab !== 'symbolstix') {
         const key = `accounts/${accountId}/images/${crypto.randomUUID()}.${extForBlob(pendingImageBlob)}`;
         await uploadBlobToR2(pendingImageBlob, key);
         resolvedImagePath = key;
-        const uploadedType = imageSourceTypeForDraft(draft);
+        uploadedType = pendingImageSourceType;
         recordImageCreditSafely(key, uploadedType);
         recordAccountImageSafely(key, uploadedType);
       }
@@ -1060,13 +1109,18 @@ export function SymbolEditorModal({
       // are (`imageSourceTypeForDraft`). 'upload' here is the credit
       // vocabulary's name for what the schema calls 'userUpload'.
       //
-      // `imageSourceTypeForDraft` returns undefined when the user opened the
-      // My Images tab to browse but picked nothing — categoryBoard has no
-      // `initialImageSourceType` prop to fall back on (that only feeds the
-      // restore-image modes), so its "what was already here" is the existing
-      // profileSymbol's own persisted source instead.
+      // `uploadedType` wins whenever this save actually uploaded a blob — that
+      // blob's provenance was fixed at hand-over time and must not be re-derived
+      // from the current tab (which may since have moved to 'my-images'). Only
+      // when no blob was uploaded does this fall through to
+      // `imageSourceTypeForDraft` (the current selection/reference), which
+      // itself returns undefined when the user opened My Images to browse but
+      // picked nothing — categoryBoard has no `initialImageSourceType` prop to
+      // fall back on (that only feeds the restore-image modes), so its "what
+      // was already here" is the existing profileSymbol's own persisted source
+      // instead.
       const resolvedSourceType =
-        imageSourceTypeForDraft(draft) ?? creditTypeFromSchemaType(existingSymbol?.imageSource.type);
+        uploadedType ?? imageSourceTypeForDraft(draft) ?? creditTypeFromSchemaType(existingSymbol?.imageSource.type);
       const imageSource: IS =
         resolvedSourceType === 'symbolstix'
           ? { type: 'symbolstix', symbolId: draft.symbolstixId! }
