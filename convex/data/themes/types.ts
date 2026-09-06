@@ -130,7 +130,7 @@ export type ThemeTokens = {
   surfaceBlur?: number; // --theme-surface-blur    (px; 0 = no glass)
   surfaceSaturate?: string; // --theme-surface-saturate (e.g. "170%"; default "100%")
   surfaceBorder?: string; // --theme-surface-border  (hairline; default var(--theme-line))
-  altLine?: string; // --theme-alt-line        (hairline on alt-card/light surfaces, e.g. modal dividers; default zinc/400 in globals.css)
+  altLine?: string; // --theme-alt-line        (hairline on alt-card/light surfaces, e.g. modal dividers; default zinc/300 in globals.css)
 };
 
 /**

@@ -1567,7 +1567,7 @@ export function SymbolEditorModal({
           {/* Tab bar */}
           <div
             className="flex shrink-0 border-b overflow-x-auto"
-            style={{ borderColor: 'var(--theme-alt-line)' }}
+            style={{ background: 'var(--theme-symbol-bg)', borderColor: 'var(--theme-alt-line)' }}
           >
             {imageTabConfig.map(({ value, label }) => {
               const isActive = draft.imageSourceTab === value;

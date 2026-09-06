@@ -55,7 +55,7 @@
   --theme-alt-text:           #FAFAFA;  /* zinc/50    — all flat themes */
   --theme-secondary-alt-text: #D4D4D8;  /* zinc/300   — Default; zinc/100 others */
   --theme-line:               rgba(250, 250, 250, 0.14);  /* hairline — Default (Finals) */
-  --theme-alt-line:           #A1A1AA;  /* zinc/400   — hairline on alt-card (light) surfaces, e.g. modal dividers; alt-card is the same on every theme so one default serves all */
+  --theme-alt-line:           #D4D4D8;  /* zinc/300   — hairline on alt-card (zinc/200) surfaces, e.g. modal dividers: one step darker than the surface. alt-card is the same on every theme so one default serves all */
   --theme-enter-mode:         #FF6900;  /* orange/500 — all flat themes except Sky */
   --theme-success:            #00C951;  /* green/500  — all themes */
   --theme-create:             #16A34A;  /* green/600  — solid create/add affordance bg, all themes */
