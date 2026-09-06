@@ -354,7 +354,7 @@ export function ImagesTab({
           className="shrink-0 px-3 py-2 text-theme-xs text-center"
           style={{
             color: "var(--theme-secondary-text)",
-            borderTop: "1px solid var(--theme-button-highlight)",
+            borderTop: "1px solid var(--theme-alt-line)",
           }}
         >
           {t("imageSearchesLeft", { count: remaining.remaining })}

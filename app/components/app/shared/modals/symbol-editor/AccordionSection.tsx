@@ -11,7 +11,7 @@ type Props = {
 
 export function AccordionSection({ label, isOpen, onToggle, children }: Props) {
   return (
-    <div className="border-b last:border-b-0" style={{ borderColor: 'var(--theme-button-highlight)' }}>
+    <div className="border-b last:border-b-0" style={{ borderColor: 'var(--theme-alt-line)' }}>
       <button
         type="button"
         onClick={onToggle}

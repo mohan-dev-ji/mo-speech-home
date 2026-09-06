@@ -314,7 +314,7 @@ export function PropertiesPanel({
     : (getLanguage(labelFieldLang)?.nativeLabel ?? t('labelEng'));
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-button-highlight)' }}>
+    <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-alt-line)' }}>
 
       {/* ── Label / Description — hidden for sentenceSlot ─────────────────── */}
       {editorMode !== 'sentenceSlot' && <AccordionSection

@@ -293,7 +293,7 @@ export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: 
           tablets families use, and hover doesn't exist there to hide it. */}
       <div
         className="shrink-0 flex flex-col gap-2 px-3 py-3"
-        style={{ borderTop: "1px solid var(--theme-button-highlight)" }}
+        style={{ borderTop: "1px solid var(--theme-alt-line)" }}
       >
         <div className="flex gap-2">
           <button
