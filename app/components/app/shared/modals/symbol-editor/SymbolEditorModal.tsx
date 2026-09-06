@@ -1443,12 +1443,12 @@ export function SymbolEditorModal({
         {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
         <div
           className="flex flex-col md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r h-[46%] md:h-full"
-          style={{ borderColor: 'var(--theme-button-highlight)' }}
+          style={{ borderColor: 'var(--theme-alt-line)' }}
         >
           {/* Header */}
           <div
             className="flex items-center justify-between px-4 py-3 shrink-0"
-            style={{ background: 'var(--theme-symbol-bg)', borderBottom: '1px solid var(--theme-button-highlight)' }}
+            style={{ background: 'var(--theme-symbol-bg)', borderBottom: '1px solid var(--theme-alt-line)' }}
           >
             <h2 className="text-theme-s font-bold" style={{ color: 'var(--theme-text)' }}>
               {modalTitle ?? defaultTitle}
@@ -1523,7 +1523,7 @@ export function SymbolEditorModal({
           {/* Action buttons */}
           <div
             className="shrink-0 px-4 py-4 flex flex-col gap-2"
-            style={{ borderTop: '1px solid var(--theme-button-highlight)' }}
+            style={{ borderTop: '1px solid var(--theme-alt-line)' }}
           >
             {saveError && (
               <div className="flex items-center gap-1.5 text-theme-xs" style={{ color: 'var(--theme-warning)' }}>
@@ -1567,7 +1567,7 @@ export function SymbolEditorModal({
           {/* Tab bar */}
           <div
             className="flex shrink-0 border-b overflow-x-auto"
-            style={{ borderColor: 'var(--theme-button-highlight)' }}
+            style={{ borderColor: 'var(--theme-alt-line)' }}
           >
             {imageTabConfig.map(({ value, label }) => {
               const isActive = draft.imageSourceTab === value;

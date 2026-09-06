@@ -33,6 +33,7 @@ const TOKEN_TO_CSS: Record<keyof ThemeTokens, string> = {
   altText:                  '--theme-alt-text',
   secondaryAltText:         '--theme-secondary-alt-text',
   line:                     '--theme-line',
+  altLine:                  '--theme-alt-line',
   enterMode:                '--theme-enter-mode',
   success:                  '--theme-success',
   warning:                  '--theme-warning',
