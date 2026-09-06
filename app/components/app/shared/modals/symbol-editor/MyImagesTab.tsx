@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Info } from "lucide-react";
 import { usePaginatedQuery, useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import type { FunctionReturnType } from "convex/server";
@@ -334,26 +335,36 @@ export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: 
             {t("myImagesDelete")}
           </button>
         </div>
-        {/* Rendered unconditionally (empty when there's nothing to say) so the
-            Delete button's `aria-describedby` always resolves to a real node
-            — a disabled button with no explanation is the worst of both: the
-            user can see the control and cannot tell why it won't work. The
-            blocked case names the count. `role="status"` so a screen reader
-            hears it without the focus moving off the button. */}
-        <p
-          id={deleteStatusId}
-          role="status"
-          className="text-theme-xs leading-snug"
-          style={{ color: "var(--theme-secondary-text)" }}
-        >
+      </div>
+
+      {/* Permanent footer, the same band the Image Search and AI Generate tabs
+          end on (their quota lines). Always rendered so the layout never jumps
+          and the Delete button's `aria-describedby` always resolves to a real
+          node — a disabled button with no explanation is the worst of both.
+          The text answers the one question the bar raises: can this image be
+          deleted, and if not, why. `role="status"` so a screen reader hears
+          the answer without focus leaving the button. */}
+      <div
+        id={deleteStatusId}
+        role="status"
+        className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 text-theme-xs text-center leading-snug"
+        style={{
+          color: "var(--theme-secondary-text)",
+          borderTop: "1px solid var(--theme-alt-line)",
+        }}
+      >
+        <Info className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        <span>
           {blockedCount !== null
             ? t("myImagesDeleteBlocked", { count: blockedCount })
             : isSelectedOnDraft
               ? t("myImagesDeleteOnDraft")
               : deleteError?.kind === "failed"
                 ? t("myImagesDeleteFailed")
-                : ""}
-        </p>
+                : selected && usage === 0
+                  ? t("myImagesFooterUnused")
+                  : t("myImagesFooterSelect")}
+        </span>
       </div>
     </div>
   );
