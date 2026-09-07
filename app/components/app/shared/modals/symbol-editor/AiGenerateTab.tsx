@@ -275,9 +275,11 @@ export function AiGenerateTab({
         </div>
       )}
 
-      {/* Style cards */}
+      {/* Style cards. Phones: a 2×2 grid of text buttons, thumbnails hidden —
+          four 4-up thumbnail cards do not fit a 393px column (Figma 3361:6997).
+          md up: the 4-up thumbnail cards. */}
       <div className="px-3 pb-2 shrink-0">
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-1.5">
           {STYLE_IDS.map((id) => {
             const isSelected = style === id;
             return (
@@ -286,7 +288,7 @@ export function AiGenerateTab({
                 type="button"
                 onClick={() => setStyle(id)}
                 aria-pressed={isSelected}
-                className="flex flex-col items-center gap-1 rounded-theme-sm p-1 text-theme-xs font-medium"
+                className="flex flex-col items-center justify-center gap-1 rounded-theme-sm py-2.5 px-2 md:p-1 text-theme-s md:text-theme-xs font-medium"
                 style={{
                   background: isSelected
                     ? "color-mix(in srgb, var(--theme-brand-primary) 15%, transparent)"
@@ -306,7 +308,7 @@ export function AiGenerateTab({
                   src={STYLE_PRESETS[id].thumbnail}
                   alt=""
                   aria-hidden="true"
-                  className="w-full aspect-square object-contain rounded-theme-sm bg-white"
+                  className="hidden md:block w-full aspect-square object-contain rounded-theme-sm bg-white"
                   loading="lazy"
                 />
                 <span>{t(STYLE_TRANSLATION_KEYS[id])}</span>

@@ -23,6 +23,9 @@ type Props = {
   // 'imageOnly' never renders this panel (the editor gates it out), but the prop
   // type must accept it since the parent passes its full editorMode union.
   editorMode: 'categoryBoard' | 'listItem' | 'sentenceSlot' | 'imageOnly';
+  // Editing an existing symbol (vs creating). On phones the sections start
+  // collapsed; when creating, Label stays open so the required field shows.
+  isEditMode?: boolean;
   voiceId: string;
   // Resolves the R2 key the Default (follow-label) audio should play for the
   // effective language — same resolver SymbolEditorModal uses for Save, so
@@ -50,16 +53,25 @@ export function PropertiesPanel({
   pendingAudioBlobUrl,
   onAudioBlobChange,
   editorMode,
+  isEditMode = false,
   voiceId,
   resolveDefaultKey,
 }: Props) {
   const t = useTranslations('symbolEditor');
 
-  // Audio is open by default so non-SymbolStix flows (uploads, AI gen, image
-  // search) make it visually obvious there's no audio yet.
-  const [openSections, setOpenSections] = useState<Set<string>>(
-    new Set(['label', 'language', 'audio', 'category'])
-  );
+  // Desktop: Audio is open by default so non-SymbolStix flows (uploads, AI
+  // gen, image search) make it visually obvious there's no audio yet.
+  // Phones (below md, Figma 3361:6997): the editor is one scrolling page, so
+  // every section starts collapsed to keep the tabs within reach — except
+  // Label when CREATING, because it is required and the user has to find it.
+  // Read once at mount; the modal is client-only and opened on interaction,
+  // so `window` is always there. A resize mid-edit does not re-collapse.
+  const [openSections, setOpenSections] = useState<Set<string>>(() => {
+    const phone =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+    if (phone) return new Set(isEditMode ? [] : ['label']);
+    return new Set(['label', 'language', 'audio', 'category']);
+  });
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -314,7 +326,7 @@ export function PropertiesPanel({
     : (getLanguage(labelFieldLang)?.nativeLabel ?? t('labelEng'));
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-alt-line)' }}>
+    <div className="md:flex-1 md:overflow-y-auto" style={{ borderTop: '1px solid var(--theme-alt-line)' }}>
 
       {/* ── Label / Description — hidden for sentenceSlot ─────────────────── */}
       {editorMode !== 'sentenceSlot' && <AccordionSection

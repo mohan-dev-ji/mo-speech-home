@@ -1421,6 +1421,48 @@ export function SymbolEditorModal({
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  // Cancel / Save, rendered twice: in the left column's footer from md up, and
+  // in a bar pinned to the bottom of the sheet on phones, where the editor is
+  // one scrolling page and the buttons must stay reachable however far down
+  // the user has gone. One JSX value so the two can never drift.
+  const actionButtons = (
+    <>
+        {saveError && (
+          <div className="flex items-center gap-1.5 text-theme-xs" style={{ color: 'var(--theme-warning)' }}>
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>{saveError}</span>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
+            style={{
+              background: 'var(--theme-symbol-bg)',
+              color: 'var(--theme-secondary-text)',
+              border: '1px solid var(--theme-button-highlight)',
+            }}
+          >
+            {t('cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
+            style={{
+              background: 'var(--theme-brand-primary)',
+              color: 'var(--theme-alt-text)',
+              opacity: isSaving ? 0.6 : 1,
+            }}
+          >
+            {isSaving ? t('saving') : saveSuccess ? t('saveSuccess') : t('save')}
+          </button>
+        </div>
+    </>
+  );
+
   return (
     <div
       className="fixed inset-0 z-[200] flex items-end md:items-center justify-center"
@@ -1439,10 +1481,16 @@ export function SymbolEditorModal({
         className="relative flex flex-col md:flex-row w-full md:max-w-5xl h-[92dvh] md:h-[85vh] rounded-t-2xl md:rounded-2xl overflow-hidden"
         style={{ background: 'var(--theme-alt-card)' }}
       >
+        {/* Below md the editor is ONE scrolling page (Figma 3361:6997): header,
+            preview, collapsed properties, tab rows, tab content, with Cancel /
+            Save pinned outside this scroller. From md up `contents` removes
+            this wrapper from layout so the two panels are the shell's own flex
+            children with their own scroll regions, exactly as before. */}
+        <div className="flex-1 min-h-0 overflow-y-auto md:contents">
 
         {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
         <div
-          className="flex flex-col md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r h-[46%] md:h-full"
+          className="flex flex-col md:w-[340px] shrink-0 border-b md:border-b-0 md:border-r md:h-full"
           style={{ borderColor: 'var(--theme-alt-line)' }}
         >
           {/* Header */}
@@ -1515,69 +1563,45 @@ export function SymbolEditorModal({
               pendingAudioBlobUrl={pendingAudioBlobUrl}
               onAudioBlobChange={handleAudioBlobChange}
               editorMode={editorMode}
+              isEditMode={isEditMode}
               voiceId={voiceId}
               resolveDefaultKey={resolveDefaultKey}
             />
           )}
 
-          {/* Action buttons */}
+          {/* Action buttons — desktop only; on phones the same buttons live in
+              the sticky bar at the bottom of the sheet (see below). */}
           <div
-            className="shrink-0 px-4 py-4 flex flex-col gap-2"
+            className="hidden md:flex shrink-0 px-4 py-4 flex-col gap-2"
             style={{ borderTop: '1px solid var(--theme-alt-line)' }}
           >
-            {saveError && (
-              <div className="flex items-center gap-1.5 text-theme-xs" style={{ color: 'var(--theme-warning)' }}>
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>{saveError}</span>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
-                style={{
-                  background: 'var(--theme-symbol-bg)',
-                  color: 'var(--theme-secondary-text)',
-                  border: '1px solid var(--theme-button-highlight)',
-                }}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex-1 py-2.5 rounded-theme-sm text-theme-s font-semibold"
-                style={{
-                  background: 'var(--theme-brand-primary)',
-                  color: 'var(--theme-alt-text)',
-                  opacity: isSaving ? 0.6 : 1,
-                }}
-              >
-                {isSaving ? t('saving') : saveSuccess ? t('saveSuccess') : t('save')}
-              </button>
-            </div>
+            {actionButtons}
           </div>
         </div>
 
         {/* ── RIGHT PANEL: image source tabs ──────────────────────────────── */}
-        <div className="flex flex-col flex-1 min-h-0 h-[54%] md:h-full">
+        <div className="flex flex-col md:flex-1 md:min-h-0 md:h-full">
 
-          {/* Tab bar */}
+          {/* Tab bar. Phones: two full-width rows, three tabs then two (a
+              six-column grid: 2+2+2 / 3+3), so every tab is visible without a
+              sideways scroll that nothing hints at. md up: one row. */}
           <div
-            className="flex shrink-0 border-b overflow-x-auto"
+            className="grid grid-cols-6 md:flex shrink-0 border-b md:overflow-x-auto"
             style={{ background: 'var(--theme-symbol-bg)', borderColor: 'var(--theme-alt-line)' }}
           >
-            {imageTabConfig.map(({ value, label }) => {
+            {imageTabConfig.map(({ value, label }, i) => {
               const isActive = draft.imageSourceTab === value;
+              const firstRow = i < 3;
               return (
                 <button
                   key={value}
                   type="button"
                   onClick={() => patch({ imageSourceTab: value })}
-                  className="px-4 py-3 text-theme-s font-medium shrink-0 relative whitespace-nowrap"
-                  style={{ color: isActive ? 'var(--theme-brand-primary)' : 'var(--theme-secondary-text)' }}
+                  className={`${firstRow ? 'col-span-2 border-b md:border-b-0' : 'col-span-3'} px-4 py-3 text-theme-s font-medium shrink-0 relative whitespace-nowrap text-center md:text-left`}
+                  style={{
+                    color: isActive ? 'var(--theme-brand-primary)' : 'var(--theme-secondary-text)',
+                    borderColor: 'var(--theme-alt-line)',
+                  }}
                 >
                   {label}
                   {isActive && (
@@ -1591,8 +1615,9 @@ export function SymbolEditorModal({
             })}
           </div>
 
-          {/* Tab content */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          {/* Tab content — its own scroll region from md up; on phones it
+              flows in the page scroll above. */}
+          <div className="md:flex-1 md:min-h-0 md:overflow-y-auto">
             {draft.imageSourceTab === 'symbolstix' && (
               <SymbolStixTab
                 language={language}
@@ -1646,6 +1671,16 @@ export function SymbolEditorModal({
               />
             </div>
           </div>
+        </div>
+
+        </div>{/* end phone page-scroll wrapper */}
+
+        {/* Phone-only: Cancel / Save pinned to the bottom of the sheet. */}
+        <div
+          className="md:hidden shrink-0 px-4 py-3 flex flex-col gap-2"
+          style={{ borderTop: '1px solid var(--theme-alt-line)', background: 'var(--theme-alt-card)' }}
+        >
+          {actionButtons}
         </div>
 
       </div>
