@@ -6,34 +6,13 @@ import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectSentenceOrphanKeys } from "./lib/contentModuleDelete";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
 import { deriveCompositionText } from "./lib/compositionText";
-// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
-// in schema.ts. An Image Search result carries a licence obligation to display
-// credit, so `attribution`/`license` must be persisted alongside the image, not
-// dropped at the mutation boundary.
-const imageProvenanceSchema = {
-  imageSourceType: v.optional(
-    v.union(
-      v.literal("symbolstix"),
-      v.literal("upload"),
-      v.literal("imageSearch"),
-      v.literal("aiGenerated")
-    )
-  ),
-  imageSourceUrl: v.optional(v.string()),
-  attribution: v.optional(v.string()),
-  license: v.optional(v.string()),
-};
+import { imageProvenanceFields, slotDisplayProps } from "./schema";
 
-const displayPropsSchema = v.optional(
-  v.object({
-    bgColour:   v.optional(v.string()),
-    textColour: v.optional(v.string()),
-    textSize:   v.optional(v.union(v.literal("sm"), v.literal("md"), v.literal("lg"), v.literal("xl"))),
-    showLabel:  v.optional(v.boolean()),
-    showImage:  v.optional(v.boolean()),
-    cardShape:  v.optional(v.union(v.literal("square"), v.literal("rounded"), v.literal("circle"))),
-  })
-);
+// Custom-image provenance + credit (phase-30 §2) and slot display props are
+// declared ONCE in schema.ts and imported here (MOS-38) — an Image Search result
+// carries a licence obligation to display credit, and a hand-kept copy that
+// forgot a field would silently drop it at the mutation boundary.
+const displayPropsSchema = v.optional(slotDisplayProps);
 
 // Composition unit validators (ADR-015) — mirror schema.ts `compositionUnit`.
 // Used by talker saves (createProfileSentence) to persist the bar's units[]
@@ -44,7 +23,7 @@ const compositionWordSchema = v.object({
   audioPath:    v.optional(v.string()),
   label:        v.optional(v.record(v.string(), v.string())),
   displayProps: displayPropsSchema,
-  ...imageProvenanceSchema,
+  ...imageProvenanceFields,
 });
 
 const compositionUnitSchema = v.union(
@@ -55,7 +34,7 @@ const compositionUnitSchema = v.union(
     audioPath:    v.optional(v.string()),
     label:        v.optional(v.record(v.string(), v.string())),
     displayProps: displayPropsSchema,
-    ...imageProvenanceSchema,
+    ...imageProvenanceFields,
   }),
   v.object({
     kind:              v.literal("phrase"),
@@ -193,7 +172,7 @@ export const createProfileSentence = mutation({
           // Authoring-only seed for the slot editor's symbol search — never
           // rendered. See convex/schema.ts profileSentences.slots.
           label:        v.optional(v.record(v.string(), v.string())),
-          ...imageProvenanceSchema,
+          ...imageProvenanceFields,
         })
       )
     ),
@@ -331,7 +310,7 @@ export const updateProfileSentenceSlots = mutation({
         // Authoring-only seed for the slot editor's symbol search — never
         // rendered. See convex/schema.ts profileSentences.slots.
         label:        v.optional(v.record(v.string(), v.string())),
-        ...imageProvenanceSchema,
+        ...imageProvenanceFields,
       })
     ),
   },

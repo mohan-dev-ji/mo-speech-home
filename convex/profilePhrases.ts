@@ -13,35 +13,13 @@ import { requireProTier } from "./lib/access";
 import { findVariantInGroup, variantGroupIdOf } from "./lib/variantAuthoring";
 import { collectPhraseOrphanKeys } from "./lib/contentModuleDelete";
 import { collectReferencedPersonalKeys } from "./lib/personalAssetRefs";
+import { imageProvenanceFields, slotDisplayProps } from "./schema";
 
-// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
-// in schema.ts. An Image Search result carries a licence obligation to display
-// credit, so `attribution`/`license` must be persisted alongside the image, not
-// dropped at the mutation boundary.
-const imageProvenanceSchema = {
-  imageSourceType: v.optional(
-    v.union(
-      v.literal("symbolstix"),
-      v.literal("upload"),
-      v.literal("imageSearch"),
-      v.literal("aiGenerated")
-    )
-  ),
-  imageSourceUrl: v.optional(v.string()),
-  attribution: v.optional(v.string()),
-  license: v.optional(v.string()),
-};
-
-const displayPropsSchema = v.optional(
-  v.object({
-    bgColour:   v.optional(v.string()),
-    textColour: v.optional(v.string()),
-    textSize:   v.optional(v.union(v.literal("sm"), v.literal("md"), v.literal("lg"), v.literal("xl"))),
-    showLabel:  v.optional(v.boolean()),
-    showImage:  v.optional(v.boolean()),
-    cardShape:  v.optional(v.union(v.literal("square"), v.literal("rounded"), v.literal("circle"))),
-  })
-);
+// Custom-image provenance + credit (phase-30 §2) and slot display props are
+// declared ONCE in schema.ts and imported here (MOS-38) — an Image Search result
+// carries a licence obligation to display credit, and a hand-kept copy that
+// forgot a field would silently drop it at the mutation boundary.
+const displayPropsSchema = v.optional(slotDisplayProps);
 
 // A phrase's inner words (the compositionWord shape from schema.ts).
 const phraseWordsSchema = v.array(
@@ -51,7 +29,7 @@ const phraseWordsSchema = v.array(
     audioPath:    v.optional(v.string()),
     label:        v.optional(v.record(v.string(), v.string())),
     displayProps: displayPropsSchema,
-    ...imageProvenanceSchema,
+    ...imageProvenanceFields,
   })
 );
 

@@ -1,5 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, type ObjectType } from "convex/values";
 import { LANGUAGE_MODULES } from "./data/languages/_index";
 
 // Reusable audio source validator (used in profileSymbols)
@@ -159,12 +159,22 @@ const imageSourceTypeLiteral = v.union(
  * row written before phase-30 simply has none of them, and a symbolstix-,
  * upload- or AI-sourced item legitimately has no credit to carry.
  */
-const imageProvenanceFields = {
+export const imageProvenanceFields = {
   imageSourceType: v.optional(imageSourceTypeLiteral),
   imageSourceUrl: v.optional(v.string()), // original URL (audit trail)
   attribution: v.optional(v.string()), // photographer / uploader credit
   license: v.optional(v.string()), // e.g. "CC BY-SA 4.0"
 };
+/**
+ * TS mirror, derived so it cannot drift (MOS-38).
+ *
+ * Code that copies these fields tests "present" three ways — `!== undefined`
+ * (`installCredit`), truthiness (`creditOf`), explicit `undefined`
+ * (`SymbolEditorModal.creditFor`). They agree on all real data: every image
+ * provider writes a non-empty `attribution`/`license` (`|| "Unknown"`), so an
+ * empty string never reaches a row. Unify them only if that stops being true.
+ */
+export type ImageProvenance = ObjectType<typeof imageProvenanceFields>;
 
 /**
  * One image-credit row (phase-31). ONE definition, used in two places that must
@@ -298,7 +308,7 @@ const libraryModuleListItems = v.array(
 // words + its own audio). "Structure frozen, text live" (ADR-015 §3): the symbol
 // reference is snapshotted as `imagePath`; the localised `label` resolves live
 // where present. One level deep — a phrase never contains another phrase (§1).
-const slotDisplayProps = v.object({
+export const slotDisplayProps = v.object({
   bgColour: v.optional(v.string()),
   textColour: v.optional(v.string()),
   textSize: v.optional(

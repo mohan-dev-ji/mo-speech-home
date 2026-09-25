@@ -4,6 +4,7 @@ import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { stripLocaleKey } from "../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../lib/languages/registry";
+import { imageProvenanceFields } from "./schema";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -11,23 +12,6 @@ import { DEFAULT_LOCALE } from "../lib/languages/registry";
  * Returns all lists for the caller's account in display order, each with all of
  * its item image paths as thumbnails (the row UI wraps them onto new lines).
  */
-// Custom-image provenance + credit (phase-30 §2) — mirrors `imageProvenanceFields`
-// in schema.ts. An Image Search result carries a licence obligation to display
-// credit, so `attribution`/`license` must be persisted alongside the image, not
-// dropped at the mutation boundary.
-const imageProvenanceSchema = {
-  imageSourceType: v.optional(
-    v.union(
-      v.literal("symbolstix"),
-      v.literal("upload"),
-      v.literal("imageSearch"),
-      v.literal("aiGenerated")
-    )
-  ),
-  imageSourceUrl: v.optional(v.string()),
-  attribution: v.optional(v.string()),
-  license: v.optional(v.string()),
-};
 
 export const getProfileLists = query({
   args: {},
@@ -170,7 +154,7 @@ export const updateProfileListItems = mutation({
         defaultAudioPath:   v.optional(v.string()),
         generatedAudioPath: v.optional(v.string()),
         recordedAudioPath:  v.optional(v.string()),
-        ...imageProvenanceSchema,
+        ...imageProvenanceFields,
       })
     ),
   },

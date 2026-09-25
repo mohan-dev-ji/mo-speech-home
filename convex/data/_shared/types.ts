@@ -27,7 +27,7 @@
 // is a shared, frontend-visible type file that must not route even a type-only
 // import through one. `schema.ts` defines only table shapes, so it carries no
 // such dependency.
-import type { CreditRow } from "../../schema";
+import type { CreditRow, ImageProvenance as SchemaImageProvenance } from "../../schema";
 
 export type PackTier = "free" | "pro" | "max";
 
@@ -38,8 +38,8 @@ export type PackTier = "free" | "pro" | "max";
 export type LocalisedString = Record<string, string>;
 
 /**
- * Custom-image provenance + credit (phase-30 §2). Mirrors `imageProvenanceFields`
- * in `convex/schema.ts` and the long-standing fields on
+ * Custom-image provenance + credit (phase-30 §2). Derived from `imageProvenanceFields`
+ * in `convex/schema.ts` (MOS-38); matches the long-standing fields on
  * `LibraryPackCategorySymbol` below — the category branch had these from the
  * start; lists, sentences and phrases did not, so an Image Search pick outside
  * categories silently discarded a licence obligation.
@@ -48,12 +48,7 @@ export type LocalisedString = Record<string, string>;
  * `imageSourceUrl` is the audit trail back to the original file page;
  * `imageSourceType` is what makes the editor reopen on the right tab.
  */
-export type ImageProvenance = {
-  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
-  imageSourceUrl?: string;
-  attribution?: string;
-  license?: string;
-};
+export type ImageProvenance = SchemaImageProvenance;
 
 export type SymbolDisplay = {
   bgColour?: string;

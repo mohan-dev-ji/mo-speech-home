@@ -24,6 +24,7 @@ import type {
 } from "../data/_shared/types";
 import { planVariantGroups } from "./variantGroupPlan";
 import { writeInstalledModuleCredits } from "./moduleCredits";
+import type { ImageProvenance } from "../schema";
 
 /** The lifecycle fields the install gate needs (shared shape across the three
  * per-type lifecycle tables). */
@@ -120,12 +121,7 @@ export type InstallModuleResult = {
  * obligation lost on the last hop of the chain. `imageSourceType` rides along so
  * the editor still reopens on the right tab after an install.
  */
-function installCredit(src: {
-  imageSourceType?: "symbolstix" | "upload" | "imageSearch" | "aiGenerated";
-  imageSourceUrl?: string;
-  attribution?: string;
-  license?: string;
-}) {
+function installCredit(src: ImageProvenance) {
   return {
     ...(src.imageSourceType !== undefined
       ? { imageSourceType: src.imageSourceType }
