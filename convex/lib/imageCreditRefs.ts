@@ -2,8 +2,8 @@
  * "Which images does this account's content actually reference, and what does
  * each placement still remember about where it came from?" (phase-31 Task 3).
  *
- * ONE set of per-table extractors, TWO consumers, so their field coverage can
- * never drift apart:
+ * ONE set of per-table extractors, THREE consumers, so their field coverage
+ * can never drift apart:
  *
  *   `planAccountImageCredits`            — the backfill: lift phase-30's
  *                                          per-placement credit into the
@@ -11,6 +11,9 @@
  *   `checkAccountImageCreditCompleteness` — the standing self-check: "is there
  *                                          an image in use whose credit we
  *                                          lost?"
+ *   `getAccountImageCredits`             — the Credits screen: show only the
+ *                                          credits whose key is still in use
+ *                                          (MOS-42; keys only, no provenance).
  *
  * PAGINATION (review fix, phase-31 Task 3 pass 2) — this file used to also
  * export `collectAccountImageRefs`, a single function that ran `.collect()`

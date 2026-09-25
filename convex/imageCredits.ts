@@ -13,8 +13,17 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
+import {
+  coverRef,
+  listRefs,
+  phraseRefs,
+  sentenceRefs,
+  symbolRefs,
+  type ImageRef,
+} from "./lib/imageCreditRefs";
 import type { CreditRow } from "./schema";
 
 /** The only image sources with external provenance worth preserving. */
@@ -82,8 +91,80 @@ export const recordImageCredit = mutation({
 });
 
 /**
- * Every credit row for the caller's account, as an ARRAY — never an object
+ * Most content documents the in-use walk will read before it gives up and
+ * returns `null`. One query may read at most 16,384 docs / 8 MiB. Content docs
+ * sample at 0.4 to 1.8 KB, and the largest account today has about 1,057
+ * `profileSymbols`, so 6,000 leaves headroom on both limits.
+ */
+const IN_USE_WALK_BUDGET = 6_000;
+
+/**
+ * Every R2 key the account's content still references, or `null` once the walk
+ * goes past `IN_USE_WALK_BUDGET` (the caller then filters nothing).
+ *
+ * Uses the same six tables and the same extractors as the backfill and the
+ * completeness check (`./lib/imageCreditRefs`), so all three agree on what
+ * "referenced" means. `accountImages` is deliberately NOT walked: owning an
+ * image in My Images is not using it (ADR-024 §1).
+ */
+async function collectInUseImageKeys(
+  ctx: QueryCtx,
+  accountId: Id<"users">,
+): Promise<Set<string> | null> {
+  const keys = new Set<string>();
+  let read = 0;
+  const take = (refs: ImageRef[]) => {
+    for (const ref of refs) keys.add(ref.imageKey);
+    return ++read <= IN_USE_WALK_BUDGET;
+  };
+
+  for await (const row of ctx.db
+    .query("profileSymbols")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(symbolRefs(row))) return null;
+  }
+  for await (const row of ctx.db
+    .query("profileLists")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(listRefs(row))) return null;
+  }
+  for await (const row of ctx.db
+    .query("profileSentences")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(sentenceRefs(row))) return null;
+  }
+  for await (const row of ctx.db
+    .query("profilePhrases")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(phraseRefs(row))) return null;
+  }
+  for await (const row of ctx.db
+    .query("profileCategories")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(coverRef(row, "profileCategories.imagePath"))) return null;
+  }
+  for await (const row of ctx.db
+    .query("profileFolders")
+    .withIndex("by_account_id", (q) => q.eq("accountId", accountId))) {
+    if (!take(coverRef(row, "profileFolders.imagePath"))) return null;
+  }
+  return keys;
+}
+
+/**
+ * Every credit row for the caller's account whose image the account's content
+ * still uses, as an ARRAY — never an object
  * keyed by user-supplied or localised text (Hindi crashes serialisation).
+ *
+ * FILTERED WHEN READ, NEVER DELETED (MOS-42). Rows outlive their images: an
+ * uninstalled module or a replaced image leaves its credit behind, because
+ * there is no delete path on this table by design ("over-crediting is never a
+ * licence violation; silently dropping a credit is"). The registry means
+ * images IN USE, so a row whose key nothing references any more is hidden
+ * here rather than removed. If the image comes back (a reinstall or
+ * re-adoption), its original row shows again unchanged. If the walk goes over
+ * budget, every row is returned unfiltered: the fallback over-credits and
+ * never hides a credit.
  *
  * Sorted stably by `firstUsedFor` then `imageKey`; `imageKey` is unique within
  * an account, so the order is fully determined. Returns `[]` for unauthenticated
@@ -102,7 +183,15 @@ export const getAccountImageCredits = query({
       )
       .collect();
 
+    const inUse = await collectInUseImageKeys(ctx, resolved.accountId);
+    if (!inUse) {
+      console.warn(
+        `getAccountImageCredits: account ${resolved.accountId} has over ${IN_USE_WALK_BUDGET} content docs; showing all ${rows.length} credits unfiltered`,
+      );
+    }
+
     return rows
+      .filter((row) => !inUse || inUse.has(row.imageKey))
       .map((row) => ({
         imageKey: row.imageKey,
         imageSourceType: row.imageSourceType,
