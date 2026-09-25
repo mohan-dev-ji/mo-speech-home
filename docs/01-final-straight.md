@@ -110,6 +110,8 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 
 ### M2 — Billing and pricing truth
 
+> **2026-09-25:** company setup joins M2. The payment account is opened on the Ltd, so the order is: IP side letter (MOS-57) → incorporate (MOS-58) → move checkout to **Stripe Managed Payments** as merchant of record (MOS-59, [ADR-025](4-builds/decisions/ADR-025-stripe-managed-payments-mor.md)), with MOS-29 done in the same routes.
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop
@@ -124,6 +126,8 @@ Small code, one real decision. Must land before anything writes pricing copy.
 Exit: a pricing table you would put on a public page.
 
 ### M3 — Admin surfaces  *(admin symbol editor + affiliates)*
+
+> **2026-09-25:** Stripe Connect isn't available on an SMP account (ADR-025), so the affiliate payouts below move to a third-party tool or Global Payouts. See MOS-62.
 
 Both live in `/admin`, both are what the India SLT pilot exercises, so they ship together.
 
@@ -213,3 +217,17 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   MOS-43/42/38 → M0; MOS-28/29/49 → M2; MOS-51/53 → M5. MOS-37 waits for the Admin surfaces project.
 - MOS-32 and MOS-45 stay in Backlog with the *parked* label rather than being cancelled; the
   descriptions are the record.
+- ✅ 2026-09-25 (vault triage): **structure changed.** M3, M4 and M6 are **milestones inside *Final straight***, not separate projects, so M0→M7 reads as one chronological list of everything left before launch. The global vault inbox is empty; every idea is now a ticket or filed post-launch.
+
+  | Milestone | Issues (in order) |
+  |---|---|
+  | M0 Clear the deck | MOS-43, MOS-42, MOS-38 |
+  | M1 Docs truth | MOS-54 features rewrite (from `4-builds/features/_owner-brief.md`) → MOS-55 housekeeping → MOS-56 seed `5-prd/` |
+  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing |
+  | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
+  | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
+  | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression |
+  | M6 Marketing | MOS-69 design system doc · MOS-70 site design → MOS-71 site build · MOS-72 3D GFX · MOS-73 explainers → MOS-74 promo edits |
+  | M7 Deploy | MOS-75 data protection · MOS-76 trademark · MOS-77 MVP resource inventory · MOS-78 Convex export → MOS-79 cut-over / launch |
+
+  Labels: `design` (Figma work), `business` (company/legal; details live privately in the vault, never in this public repo), `ADR-025` (payments). Post-launch, deliberately not in the project: R&D claim, grants, SEIS, MOS-32, MOS-45, Phases 17–18.
