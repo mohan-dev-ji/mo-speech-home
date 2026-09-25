@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import { Search, X, ExternalLink, Lock, AlertCircle } from "lucide-react";
@@ -56,7 +56,12 @@ export function ImagesTab({
   const { subscription } = useAppState();
   const isMax = subscription.tier === "max";
 
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery.trim());
+  // The query last SUBMITTED, not the one in the box. Each search spends a
+  // unit of a metered daily quota, so it runs only on Enter / the Search
+  // button — never on the label the editor pre-fills, and never mid-typing
+  // (MOS-43). The pre-fill stays: it's one press away, and the SymbolStix tab
+  // sharing this box auto-searches it for free.
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [results, setResults] = useState<ImageSearchResult[] | null>(null);
   const [providersUsed, setProvidersUsed] = useState<ImageProvider[]>([]);
   const [providersEnabled, setProvidersEnabled] = useState<ImageProvider[]>([]);
@@ -70,60 +75,57 @@ export function ImagesTab({
     isMax ? { feature: FEATURE, limit: DAILY_LIMIT } : "skip"
   );
 
-  // ── Debounce ───────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
-    return () => clearTimeout(id);
-  }, [searchQuery]);
+  // Bumped by every submit and by clear, so a response that lands after the
+  // user has moved on is dropped instead of overwriting the newer state.
+  const requestId = useRef(0);
 
   // ── Search ─────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isMax) return;
-    if (!debouncedSearch) {
-      setResults(null);
-      setProvidersUsed([]);
-      setProvidersEnabled([]);
-      setErrorMessage(null);
-      return;
-    }
-
-    let cancelled = false;
+  async function submitSearch() {
+    const q = searchQuery.trim();
+    if (!q || isSearching) return;
+    const id = ++requestId.current;
+    setSubmittedQuery(q);
     setIsSearching(true);
     setErrorMessage(null);
-
-    fetch("/api/image-search/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: debouncedSearch, page: 0 }),
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (res.status === 429) {
-          setResults([]);
-          setErrorMessage(t("imageSearchQuotaExceeded"));
-          return;
-        }
-        if (!res.ok) {
-          setResults([]);
-          setErrorMessage(t("imageSearchError"));
-          return;
-        }
-        const json = (await res.json()) as SearchResponse;
-        setResults(json.results);
-        setProvidersUsed(json.providersUsed ?? []);
-        setProvidersEnabled(json.providersEnabled ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setErrorMessage(t("imageSearchError"));
-      })
-      .finally(() => {
-        if (!cancelled) setIsSearching(false);
+    try {
+      const res = await fetch("/api/image-search/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q, page: 0 }),
       });
+      if (id !== requestId.current) return;
+      if (res.status === 429) {
+        setResults([]);
+        setErrorMessage(t("imageSearchQuotaExceeded"));
+        return;
+      }
+      if (!res.ok) {
+        setResults([]);
+        setErrorMessage(t("imageSearchError"));
+        return;
+      }
+      const json = (await res.json()) as SearchResponse;
+      if (id !== requestId.current) return;
+      setResults(json.results);
+      setProvidersUsed(json.providersUsed ?? []);
+      setProvidersEnabled(json.providersEnabled ?? []);
+    } catch {
+      if (id === requestId.current) setErrorMessage(t("imageSearchError"));
+    } finally {
+      if (id === requestId.current) setIsSearching(false);
+    }
+  }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSearch, isMax, t]);
+  function clearSearch() {
+    requestId.current++;
+    setSearchQuery("");
+    setSubmittedQuery("");
+    setResults(null);
+    setProvidersUsed([]);
+    setProvidersEnabled([]);
+    setErrorMessage(null);
+    setIsSearching(false);
+  }
 
   // ── Select ─────────────────────────────────────────────────────────────────
   async function handleSelect(result: ImageSearchResult) {
@@ -207,8 +209,8 @@ export function ImagesTab({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
-      {/* Search bar */}
-      <div className="p-3 shrink-0">
+      {/* Search bar + button */}
+      <div className="p-3 shrink-0 flex flex-col gap-2">
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2"
           style={{
@@ -221,6 +223,9 @@ export function ImagesTab({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitSearch();
+            }}
             placeholder={t("imageSearchPlaceholder")}
             className="flex-1 bg-transparent text-theme-s outline-none"
             style={{ color: "var(--theme-text)" }}
@@ -228,24 +233,35 @@ export function ImagesTab({
           {searchQuery && (
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setDebouncedSearch("");
-              }}
+              onClick={clearSearch}
               style={{ color: "var(--theme-secondary-text)" }}
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={submitSearch}
+          disabled={isSearching || !searchQuery.trim()}
+          className="w-full py-2 rounded-theme-sm text-theme-s font-semibold"
+          style={{
+            background: "var(--theme-brand-primary)",
+            color: "var(--theme-alt-text)",
+            opacity: isSearching || !searchQuery.trim() ? 0.5 : 1,
+          }}
+        >
+          {isSearching ? t("imageSearchLoading") : t("imageSearchButton")}
+        </button>
       </div>
 
       {/* Results */}
       <div className="flex-1 overflow-y-auto px-3">
-        {!debouncedSearch && (
+        {!submittedQuery && (
           <div className="flex items-center justify-center h-32">
             <p className="text-theme-s text-center" style={{ color: "var(--theme-secondary-text)" }}>
-              {t("imageSearchEmpty")}
+              {t("imageSearchPrompt")}
             </p>
           </div>
         )}
@@ -266,10 +282,10 @@ export function ImagesTab({
           </div>
         )}
 
-        {!isSearching && debouncedSearch && results?.length === 0 && !errorMessage && (
+        {!isSearching && submittedQuery && results?.length === 0 && !errorMessage && (
           <div className="flex items-center justify-center h-32">
             <p className="text-theme-s text-center" style={{ color: "var(--theme-secondary-text)" }}>
-              {t("imageSearchNoResults", { query: debouncedSearch })}
+              {t("imageSearchNoResults", { query: submittedQuery })}
             </p>
           </div>
         )}
