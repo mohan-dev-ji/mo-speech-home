@@ -29,7 +29,7 @@ Filenames follow `FEAT-NNN-short-slug.md`.
 
 | # | Feature | In one line | Uses |
 |---|---|---|---|
-| [FEAT-101](FEAT-101-home.md) | Home | The starting screen: shortcuts into every part of the app, and quick ways to create | 107, 206 |
+| [FEAT-101](FEAT-101-home.md) | Home | The starting screen: shortcuts into every part of the app, and quick ways to create | 107, 203, 205, 206 |
 | [FEAT-102](FEAT-102-search.md) | Search | Find any symbol as you type or speak, then tap it to say it or save it into a category | 201, 203 |
 | [FEAT-103](FEAT-103-categories.md) | Categories | A grid of coloured tiles grouping symbols, kept in place so students build motor memory | 201, 202, 203, 302 |
 | [FEAT-104](FEAT-104-lists.md) | Lists | Ordered steps with audio for task analysis, shown as rows, columns or a grid, numbered, first-then or ticked | 203, 204, 205, 302 |
