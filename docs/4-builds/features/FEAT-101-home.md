@@ -23,8 +23,8 @@ something new.
 ### The resource library banner
 
 A wide banner across the top reads "Resource library: Browse and install
-ready-made modules". It opens the library, where categories, lists, sentences
-and phrases made by Mo Speech can be added to a student's board in one tap. For
+ready-made modules". It opens the library, where categories, lists and
+sentences made by Mo Speech can be added to a student's board in one tap. For
 now it's a single banner. It's planned to become a carousel of featured
 modules.
 

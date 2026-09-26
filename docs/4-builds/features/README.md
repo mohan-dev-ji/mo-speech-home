@@ -35,7 +35,7 @@ Filenames follow `FEAT-NNN-short-slug.md`.
 | [FEAT-104](FEAT-104-lists.md) | Lists | Ordered steps with audio for task analysis, shown as rows, columns or a grid, numbered, first-then or ticked | 203, 204, 205, 302 |
 | [FEAT-105](FEAT-105-sentences.md) | Sentences | Whole sentences that play aloud: fluent sentences in one voice, or block sentences a phrase at a time | 201, 203, 204, 205, 302 |
 | [FEAT-106](FEAT-106-settings.md) | Settings | Student profiles, the instructor's profile, inviting home and school, account and billing, image credits, and privacy and account deletion | 108, 301 |
-| [FEAT-107](FEAT-107-resource-library.md) | Resource library | Ready-made categories, lists, sentences and phrases to install in one tap | 108, 402 |
+| [FEAT-107](FEAT-107-resource-library.md) | Resource library | Ready-made categories, lists and sentences to add in one tap | 108, 402 |
 | [FEAT-108](FEAT-108-pricing-and-tiers.md) | Pricing & tiers | Free, Pro and Max (a Starter tier is being decided in MOS-49): what each plan unlocks, how locked features show themselves, and how to upgrade | — |
 | [FEAT-109](FEAT-109-sign-up-and-onboarding.md) | Sign-up & onboarding | From creating an account to a first student with a ready-made board | 106, 301 |
 | [FEAT-110](FEAT-110-public-website.md) | Public website | What anyone can see without signing in: the landing page, pricing and the public library | 107, 108 |
