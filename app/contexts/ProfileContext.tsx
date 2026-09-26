@@ -20,7 +20,6 @@ type StateFlags = {
   talker_visible: boolean;
   talker_banner_toggle: boolean;
   play_modal_visible: boolean;
-  voice_input_enabled: boolean;
   audio_autoplay: boolean;
   modelling_push: boolean;
   core_dropdown_visible: boolean;
@@ -47,7 +46,6 @@ const DEFAULT_FLAGS: StateFlags = {
   talker_visible: true,
   talker_banner_toggle: true,
   play_modal_visible: true,
-  voice_input_enabled: true,
   audio_autoplay: true,
   modelling_push: false,
   core_dropdown_visible: true,

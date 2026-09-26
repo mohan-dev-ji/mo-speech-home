@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireCallerIsAdmin } from "./lib/account";
@@ -10,7 +10,10 @@ import { assertThemeSelectable } from "./lib/themes";
 // Keys that have been removed from the schema but may still exist on older
 // student profile documents. Strip these before spreading stateFlags into
 // `ctx.db.patch`, otherwise Convex rejects the write with a schema error.
-const DEPRECATED_FLAG_KEYS = ["first_thens_visible"] as const;
+// `voice_input_enabled` (2026-09-26): in the schema since the first build but
+// never exposed in Settings or read anywhere. The search mic follows the Search
+// page's own visibility instead.
+const DEPRECATED_FLAG_KEYS = ["first_thens_visible", "voice_input_enabled"] as const;
 
 function cleanStateFlags<T extends Record<string, unknown>>(flags: T): T {
   const cleaned = { ...flags } as Record<string, unknown>;
@@ -28,7 +31,6 @@ const DEFAULT_STATE_FLAGS = {
   talker_visible: true,
   talker_banner_toggle: true,
   play_modal_visible: true,
-  voice_input_enabled: true,
   audio_autoplay: true,
   modelling_push: false,
   core_dropdown_visible: true,
@@ -469,6 +471,31 @@ export const cleanupDeprecatedFlags = mutation({
       const flags = profile.stateFlags as Record<string, unknown>;
       const hasDeprecated = DEPRECATED_FLAG_KEYS.some((k) => k in flags);
       if (!hasDeprecated) continue;
+      await ctx.db.patch(profile._id, {
+        stateFlags: cleanStateFlags(profile.stateFlags),
+        updatedAt: Date.now(),
+      });
+      cleaned += 1;
+    }
+    return { cleaned, total: profiles.length };
+  },
+});
+
+/**
+ * The same sweep as `cleanupDeprecatedFlags`, across EVERY account, for the
+ * CLI: `npx convex run studentProfiles:cleanupDeprecatedFlagsAll`. Run it after
+ * adding a key to `DEPRECATED_FLAG_KEYS` and before removing that key from the
+ * schema. Idempotent. `studentProfiles` is a few rows per account, so one
+ * `.collect()` is well inside a mutation's read limit.
+ */
+export const cleanupDeprecatedFlagsAll = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const profiles = await ctx.db.query("studentProfiles").collect();
+    let cleaned = 0;
+    for (const profile of profiles) {
+      const flags = profile.stateFlags as Record<string, unknown>;
+      if (!DEPRECATED_FLAG_KEYS.some((k) => k in flags)) continue;
       await ctx.db.patch(profile._id, {
         stateFlags: cleanStateFlags(profile.stateFlags),
         updatedAt: Date.now(),
