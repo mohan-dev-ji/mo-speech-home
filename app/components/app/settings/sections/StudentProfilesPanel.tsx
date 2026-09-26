@@ -52,7 +52,6 @@ const EDITING_PERMISSIONS = [
 
 const BANNER_MODE_EDITING_PERMISSIONS = [
   { flag: "student_can_edit", labelKey: "permAllowEditing", defaultVal: false },
-  { flag: "student_can_filter", labelKey: "permAllowFiltering", defaultVal: false },
   { flag: "modelling_push", labelKey: "permAllowModelling", defaultVal: false },
 ] as const;
 

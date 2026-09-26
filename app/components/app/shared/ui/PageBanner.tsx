@@ -27,14 +27,10 @@ export function PageBanner({ title, titleSlot, backHref, backLabel, children }: 
   const { viewMode, stateFlags } = useProfile();
 
   // In student-view, banner action buttons are hidden unless the instructor
-  // has granted an edit or filter permission. Each child still gates its
-  // own visibility on viewMode (e.g. Edit / Create only render outside
-  // student-view), so a student with `student_can_filter` only but no
-  // `student_can_edit` sees just the filter dropdown.
+  // has granted the edit permission.
   const showChildren =
     viewMode !== 'student-view'
-    || stateFlags.student_can_edit
-    || stateFlags.student_can_filter;
+    || stateFlags.student_can_edit;
 
   return (
     <div

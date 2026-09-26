@@ -628,7 +628,6 @@ export default defineSchema({
       lists_visible:        v.optional(v.boolean()), // Lists nav item; default true
       sentences_visible:    v.optional(v.boolean()), // Sentences feature toggle; default true
       student_can_edit:     v.optional(v.boolean()), // Student can edit board content; default false
-      student_can_filter:   v.optional(v.boolean()), // Student can use the pack-filter dropdown on listings; default false
       quick_settings_visible: v.optional(v.boolean()), // Quick-settings top-bar dropdown in student-view; default false
       header_in_banner_mode: v.optional(v.boolean()), // false=header in talker mode, true=header in banner mode
       navbar_minimal:       v.optional(v.boolean()), // collapse the nav rail to an icon-only strip

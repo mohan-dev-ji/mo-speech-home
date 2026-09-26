@@ -13,7 +13,13 @@ import { assertThemeSelectable } from "./lib/themes";
 // `voice_input_enabled` (2026-09-26): in the schema since the first build but
 // never exposed in Settings or read anywhere. The search mic follows the Search
 // page's own visibility instead.
-const DEPRECATED_FLAG_KEYS = ["first_thens_visible", "voice_input_enabled"] as const;
+// `student_can_filter` (2026-09-26): its pack-filter dropdown went with the
+// resource-pack teardown (Phase 14.5); the switch had nothing left to control.
+const DEPRECATED_FLAG_KEYS = [
+  "first_thens_visible",
+  "voice_input_enabled",
+  "student_can_filter",
+] as const;
 
 function cleanStateFlags<T extends Record<string, unknown>>(flags: T): T {
   const cleaned = { ...flags } as Record<string, unknown>;

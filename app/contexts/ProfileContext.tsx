@@ -30,7 +30,6 @@ type StateFlags = {
   lists_visible: boolean;
   sentences_visible: boolean;
   student_can_edit: boolean;
-  student_can_filter: boolean;
   quick_settings_visible: boolean;
   header_in_banner_mode: boolean;
   navbar_minimal: boolean;
@@ -56,7 +55,6 @@ const DEFAULT_FLAGS: StateFlags = {
   lists_visible: true,
   sentences_visible: true,
   student_can_edit: false,
-  student_can_filter: false,
   quick_settings_visible: true, // instructor always sees quick settings
   header_in_banner_mode: false, // false=talker mode, true=banner mode
   navbar_minimal: false,        // full rail by default
@@ -254,7 +252,6 @@ export function ProfileProvider({
         lists_visible:        studentProfile.stateFlags.lists_visible        ?? DEFAULT_FLAGS.lists_visible,
         sentences_visible:    studentProfile.stateFlags.sentences_visible    ?? DEFAULT_FLAGS.sentences_visible,
         student_can_edit:     studentProfile.stateFlags.student_can_edit     ?? DEFAULT_FLAGS.student_can_edit,
-        student_can_filter:   studentProfile.stateFlags.student_can_filter   ?? DEFAULT_FLAGS.student_can_filter,
         quick_settings_visible: studentProfile.stateFlags.quick_settings_visible ?? false,
         header_in_banner_mode: studentProfile.stateFlags.header_in_banner_mode ?? false,
         navbar_minimal:       studentProfile.stateFlags.navbar_minimal       ?? DEFAULT_FLAGS.navbar_minimal,
