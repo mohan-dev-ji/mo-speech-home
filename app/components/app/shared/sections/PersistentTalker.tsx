@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { api } from '@/convex/_generated/api';
 import { useProfile } from '@/app/contexts/ProfileContext';
 import { useTalker, type TalkerSymbolItem } from '@/app/contexts/TalkerContext';
@@ -30,6 +30,8 @@ import { resolveSpokenVoice } from '@/lib/audio/resolveSpokenVoice';
 import { GroupPicker, DRAFTS_SELECTION, isGroupSelectionReady, type GroupSelection } from '@/app/components/app/shared/ui/GroupPicker';
 import { useResolveGroupSelection } from '@/app/lib/folders/useResolveGroupSelection';
 import { useToast } from '@/app/components/app/shared/ui/Toast';
+import { useAppState } from '@/app/contexts/AppStateProvider';
+import { UpgradeNudge } from '@/app/components/app/shared/ui/UpgradeNudge';
 
 // Strip the /api/assets URL wrapper so saved compositions store RAW R2 keys
 // (the render layer re-adds `/api/assets?key=`). Idempotent for already-raw keys.
@@ -64,6 +66,13 @@ export function PersistentTalker() {
   const { stateFlags, language, voiceId } = useProfile();
   const { talkerSymbols, talkerMode, addToTalker, removeFromTalker, reorderTalker, clearTalker } = useTalker();
   const { breadcrumbExtra } = useBreadcrumb();
+  const locale = useLocale();
+  // Saving a sentence is Pro (createProfileSentence is server-gated). Intercept
+  // Free at the entry point with the upgrade nudge, like every other Pro action,
+  // instead of opening a picker whose Save the server then rejects silently.
+  const { subscription } = useAppState();
+  const isFree = subscription.tier === 'free';
+  const [upgradeNudgeOpen, setUpgradeNudgeOpen] = useState(false);
   const pathname = usePathname();
 
   const [playing, setPlaying] = useState(false);
@@ -130,6 +139,7 @@ export function PersistentTalker() {
 
   function handleSaveOpen() {
     if (talkerSymbols.length === 0) return;
+    if (isFree) { setUpgradeNudgeOpen(true); return; }
     setSaveSelection(computeDefaultFolder());
     setSaveDialogOpen(true);
   }
@@ -288,6 +298,8 @@ export function PersistentTalker() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UpgradeNudge open={upgradeNudgeOpen} onOpenChange={setUpgradeNudgeOpen} locale={locale} />
 
       {playing && (
         <CompositionPlayModal
