@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation, useConvex } from "convex/react";
+import { useMutation, useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
@@ -60,10 +60,6 @@ export function HomeContent() {
       open();
     };
   }
-
-  // Needed by the Create-a-Symbol flow: the editor's category picker can only
-  // gate save when categories exist. With none, send the user to /categories.
-  const categories = useQuery(api.profileCategories.getProfileCategories, {});
 
   const createCategory = useCreateCategory();
   const convex = useConvex();
@@ -153,16 +149,6 @@ export function HomeContent() {
     router.push(`/${locale}/sentences/folder/${folderId ?? 'ungrouped'}`);
   }
 
-  function handleCreateSymbol() {
-    // No categories yet → the picker would be empty; route to where the user
-    // can make one instead of opening an unusable editor.
-    if (categories && categories.length === 0) {
-      router.push(`/${locale}/categories`);
-      return;
-    }
-    setSymbolOpen(true);
-  }
-
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap overflow-auto">
       <ResourceLibraryBanner />
@@ -170,7 +156,7 @@ export function HomeContent() {
       <HomeNavCards />
 
       <HomeCreateCards
-        onCreateSymbol={gated(handleCreateSymbol)}
+        onCreateSymbol={gated(() => setSymbolOpen(true))}
         onCreateCategory={gated(() => setCategoryOpen(true))}
         onCreateList={gated(() => setListOpen(true))}
         onCreateSentence={gated(() => setSentenceOpen(true))}
@@ -196,8 +182,9 @@ export function HomeContent() {
         showGroupPicker
       />
 
-      {/* Create-a-Symbol — categoryBoard mode with no preset category; the
-          editor's built-in category picker gates Save until one is chosen. */}
+      {/* Create-a-Symbol — categoryBoard mode with no preset category. The
+          editor's category picker gates Save until one is chosen, and its
+          "+ New category" covers an account that has none yet. */}
       {symbolOpen && accountId && (
         <SymbolEditorModal
           isOpen
