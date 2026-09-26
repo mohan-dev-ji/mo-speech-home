@@ -20,7 +20,6 @@ type StateFlags = {
   talker_visible: boolean;
   audio_autoplay: boolean;
   modelling_push: boolean;
-  core_dropdown_visible: boolean;
   reduce_motion: boolean;
   grid_size: 'large' | 'medium' | 'small';
   symbol_label_visible: boolean;
@@ -43,7 +42,6 @@ const DEFAULT_FLAGS: StateFlags = {
   talker_visible: true,
   audio_autoplay: true,
   modelling_push: false,
-  core_dropdown_visible: true,
   reduce_motion: false,
   grid_size: 'large',
   symbol_label_visible: true,
@@ -231,7 +229,6 @@ export function ProfileProvider({
     symbol_label_visible:  userRecord?.stateFlags?.symbol_label_visible ?? DEFAULT_FLAGS.symbol_label_visible,
     symbol_text_size:      userRecord?.stateFlags?.symbol_text_size     ?? DEFAULT_FLAGS.symbol_text_size,
     reduce_motion:         userRecord?.stateFlags?.reduce_motion        ?? DEFAULT_FLAGS.reduce_motion,
-    core_dropdown_visible: userRecord?.stateFlags?.core_dropdown_visible ?? DEFAULT_FLAGS.core_dropdown_visible,
     talker_visible:        userRecord?.stateFlags?.talker_visible       ?? DEFAULT_FLAGS.talker_visible,
     header_in_banner_mode: userRecord?.stateFlags?.header_in_banner_mode ?? seededHeaderInBannerMode,
     navbar_minimal:        userRecord?.stateFlags?.navbar_minimal       ?? DEFAULT_FLAGS.navbar_minimal,

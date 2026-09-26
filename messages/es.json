@@ -302,9 +302,7 @@
     "saveLabel": "Guardar frase",
     "openDropdown": "Abrir símbolos rápidos",
     "closeDropdown": "Cerrar símbolos rápidos",
-    "tabCoreWords": "Palabras clave",
-    "tabNumbers": "Números",
-    "tabLetters": "Letras"
+    "tabCoreWords": "Palabras clave"
   },
   "categoryDetail": {
     "back": "Categorías",

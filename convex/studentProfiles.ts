@@ -18,12 +18,15 @@ import { assertThemeSelectable } from "./lib/themes";
 // `talker_banner_toggle` + `play_modal_visible` (2026-09-26): in the first
 // schema, never set or read. Whether a student can flip the talker is decided
 // by `quick_settings_visible` (both talker switches live there).
+// `core_dropdown_visible` (2026-09-26): a show/hide switch for the talker
+// dropdown with no control and no reader; removed rather than wired up.
 const DEPRECATED_FLAG_KEYS = [
   "first_thens_visible",
   "voice_input_enabled",
   "student_can_filter",
   "talker_banner_toggle",
   "play_modal_visible",
+  "core_dropdown_visible",
 ] as const;
 
 function cleanStateFlags<T extends Record<string, unknown>>(flags: T): T {
@@ -42,7 +45,6 @@ const DEFAULT_STATE_FLAGS = {
   talker_visible: true,
   audio_autoplay: true,
   modelling_push: false,
-  core_dropdown_visible: true,
   reduce_motion: false,
   grid_size: "large" as const,
   symbol_label_visible: true,

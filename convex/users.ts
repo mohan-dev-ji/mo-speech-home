@@ -569,7 +569,7 @@ export const setMyInstructorSymbolTextSize = mutation({
 
 /**
  * Toggle a single boolean flag in the instructor's stateFlags.
- * Supports: symbol_label_visible, reduce_motion, core_dropdown_visible.
+ * Supports: symbol_label_visible, reduce_motion.
  */
 export const setMyInstructorFlag = mutation({
   args: { flag: v.string(), value: v.boolean() },
