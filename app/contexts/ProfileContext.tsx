@@ -18,8 +18,6 @@ type StateFlags = {
   categories_visible: boolean;
   settings_visible: boolean;
   talker_visible: boolean;
-  talker_banner_toggle: boolean;
-  play_modal_visible: boolean;
   audio_autoplay: boolean;
   modelling_push: boolean;
   core_dropdown_visible: boolean;
@@ -43,8 +41,6 @@ const DEFAULT_FLAGS: StateFlags = {
   categories_visible: true,
   settings_visible: true,   // instructor always sees settings
   talker_visible: true,
-  talker_banner_toggle: true,
-  play_modal_visible: true,
   audio_autoplay: true,
   modelling_push: false,
   core_dropdown_visible: true,

@@ -15,10 +15,15 @@ import { assertThemeSelectable } from "./lib/themes";
 // page's own visibility instead.
 // `student_can_filter` (2026-09-26): its pack-filter dropdown went with the
 // resource-pack teardown (Phase 14.5); the switch had nothing left to control.
+// `talker_banner_toggle` + `play_modal_visible` (2026-09-26): in the first
+// schema, never set or read. Whether a student can flip the talker is decided
+// by `quick_settings_visible` (both talker switches live there).
 const DEPRECATED_FLAG_KEYS = [
   "first_thens_visible",
   "voice_input_enabled",
   "student_can_filter",
+  "talker_banner_toggle",
+  "play_modal_visible",
 ] as const;
 
 function cleanStateFlags<T extends Record<string, unknown>>(flags: T): T {
@@ -35,8 +40,6 @@ const DEFAULT_STATE_FLAGS = {
   categories_visible: true,
   settings_visible: false,
   talker_visible: true,
-  talker_banner_toggle: true,
-  play_modal_visible: true,
   audio_autoplay: true,
   modelling_push: false,
   core_dropdown_visible: true,

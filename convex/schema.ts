@@ -615,8 +615,6 @@ export default defineSchema({
       categories_visible: v.boolean(),
       settings_visible: v.boolean(),
       talker_visible: v.boolean(),
-      talker_banner_toggle: v.boolean(), // whether student can toggle talker/banner mode
-      play_modal_visible: v.boolean(),
       audio_autoplay: v.boolean(),
       modelling_push: v.boolean(), // instructor can push modelling sessions
       core_dropdown_visible: v.boolean(), // core words/numbers/letters dropdown; default true
