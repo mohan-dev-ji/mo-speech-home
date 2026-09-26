@@ -110,7 +110,6 @@ the editor. See [FEAT-203](FEAT-203-symbol-editor.md) and
   [FEAT-301](FEAT-301-instructor-and-student-views.md). A student who can see
   Search can use the mic too. There's no separate switch for it.
 
-
 ## Where it lives
 
 - The page: `app/[locale]/(app)/search/`
