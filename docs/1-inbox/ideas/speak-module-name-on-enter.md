@@ -9,6 +9,9 @@ tags: []
 related: []
 aliases: []
 ---
+
+> **Status (2026-09-27):** **Open idea, not built or ticketed.** Whether opening a group should speak its name, probably as an on/off setting. Still an inbox note.
+
 # Should we have audio when the user clicks into a group module?
 Just a simple question for claude right now
 

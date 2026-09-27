@@ -13,6 +13,9 @@ related:
 aliases:
   - Admin symbol editor
 ---
+
+> **Status (2026-09-27):** **Planned (M3), not built.** Reserved as FEAT-410, tracked in MOS-60 and MOS-61. This file is the working idea for when it's built.
+
 # Admin symbol editor
 We need a way to search the symbols table and to receive the actual symbol itself with all the translations. It should use the search page and symbol editor search algorithm showing the best symbols for the search term while typin. When selected we go to the slug page of that symbol where we can see the details such as translations for all the languages. In this page we will then have the power to edit the different language fields and save which will then take effect across the whole app and for all the users. We maybe have to build a seeding script that gets implemented on save that finds all instances of the symbol in profile symbols so all users already using the app get the change.
 

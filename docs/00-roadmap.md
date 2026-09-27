@@ -1,5 +1,11 @@
 # Mo Speech Home — Build Plan
 
+> **Frozen (2026-09-27): this is the build record, not the plan.** What comes next is in
+> [`01-final-straight.md`](01-final-straight.md) (milestones M0–M7, tracked in Linear). What the
+> app does today is in the feature specs, [`4-builds/features/README.md`](4-builds/features/README.md).
+> The phases below, and the architectural notes, stay valid as history. Don't take the
+> instructions below ("read this first", "start here") as current. Nothing below has been deleted.
+
 ## Context for the Agent
 
 This document is the starting point for building Mo Speech Home in full build mode. Read this first, then read the documents it references before writing any code.

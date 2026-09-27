@@ -1,5 +1,7 @@
 # Categories
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-103 Categories](../../4-builds/features/FEAT-103-categories.md). Architecture: [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md) (categories are flat, not foldered). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## The Category as Root Container
 
 The category is the universal parent container in Mo Speech Home. Every piece of AAC content belongs to a category. Nothing exists outside one.

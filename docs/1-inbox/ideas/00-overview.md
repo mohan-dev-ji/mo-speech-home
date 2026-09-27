@@ -1,5 +1,7 @@
 # Mo Speech Home — Overview
 
+> **Status (2026-09-27):** **Superseded.** The product as built is described by the feature index, [features/README.md](../../4-builds/features/README.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## What It Is
 
 Mo Speech Home is a full AAC (Augmentative and Alternative Communication) platform for families. An instructor creates a student profile, builds a personalised symbol library organised into categories, lists, fluent sentences, block sentences and phrases. From the MVP we found there is a gap in the market of the SymbolStix library translated into languages that use non-romanised fonts. We heard from feedback that SLPs have been told this is not possible so a big part of this project was to prove that it is possible. We are starting with English, Hindi and Spanish and Mo Speech creates a backend pipeline that machine translates the entire SymbolStix library and the UI. Each language needs a specialised human pass to catch the literalness and miss-matches that machine translation causes

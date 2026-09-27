@@ -1,5 +1,7 @@
 # Component Patterns
 
+> **Status (2026-09-27):** **Superseded.** Component rules live in [ADR-006](../../4-builds/decisions/ADR-006-component-folder-conventions.md) and the project `CLAUDE.md` (rules 5 and 6). Design tokens live in `app/globals.css`. This isn't a feature. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 Design-token-based UI patterns used across the app. These are living specs — update here first when the style changes.
 
 ---

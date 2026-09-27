@@ -1,5 +1,7 @@
 # Language and Internationalisation
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-305 Languages & voices](../../4-builds/features/FEAT-305-languages-and-voices.md), [FEAT-404 Translation pipeline](../../4-builds/features/FEAT-404-translation-pipeline.md) and [FEAT-406 Languages admin](../../4-builds/features/FEAT-406-languages-admin.md). Architecture: [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md), [ADR-012](../../4-builds/decisions/ADR-012-language-operations-console.md), [ADR-013](../../4-builds/decisions/ADR-013-translator-editing-and-staging-area.md), [ADR-016](../../4-builds/decisions/ADR-016-composed-content-language-variants.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 > **Architectural source of truth:** [ADR-009](../../4-builds/decisions/ADR-009-multi-language-multi-voice-architecture.md) (multi-language + multi-voice), [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md) (plugin pattern), and the [Phase 8 implementation spec](../../4-builds/plans/_done/language-plugin-phase-8.md) supersede the architectural specifics in this doc (schema shape, R2 paths, the "two options" question, etc.). This document is preserved as strategic context — the *why* and the *market opportunity*. The *how* lives in the ADRs.
 
 ## The Strategic Opportunity

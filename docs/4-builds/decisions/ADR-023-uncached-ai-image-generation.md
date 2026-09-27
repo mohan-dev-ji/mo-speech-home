@@ -3,6 +3,7 @@
 **Status:** accepted
 **Date:** 2026-08-31
 **Supersedes:** the AI half of `lib/cache-identity.ts` (MOS-31) and the template-in-key fix (MOS-46) — both correct, for a cache that this ADR removes
+**Partly superseded by:** [ADR-024](ADR-024-account-image-library-and-one-hard-delete.md), which reverses decision points 3 (the request-path R2 upload) and 5 (the session reel). Generation stays uncached.
 **Related:** ADR-005 (symbol editor: image search + AI generate) · ADR-022 (module asset promotion — `ai-cache/` passthrough) · MOS-48 · MOS-47 (the tab UI built on top of this)
 
 ## Context

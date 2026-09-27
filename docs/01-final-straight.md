@@ -16,7 +16,7 @@ MVP.
 
 Two numbering systems, kept separate on purpose:
 
-- **Plans** keep counting `phase-NN` in `4-builds/plans/` (next is **phase-37**). That is the
+- **Plans** keep counting `phase-NN` in `4-builds/plans/` (next is **phase-38**. phase-37 was M0's credits filter). That is the
   build ledger.
 - **This roadmap** uses named **milestones M0–M7**. A milestone is a goal, not a plan; one milestone
   may spawn several phase plans.

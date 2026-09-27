@@ -1,5 +1,7 @@
 # Pricing Tiers
 
+> **Status (2026-09-27):** **Superseded.** The decided three-tier model (Free, Pro £13.99, Max £18.99) is in [FEAT-108 Pricing & tiers](../../4-builds/features/FEAT-108-pricing-and-tiers.md) and MOS-49. Payments: [ADR-025](../../4-builds/decisions/ADR-025-stripe-managed-payments-mor.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Three Tiers
 
 Mo Speech Home has three tiers: Free, Pro, and Max.

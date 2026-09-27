@@ -8,15 +8,14 @@ All product design, feature specs, and build plans are in `docs/`:
 
 | File | Purpose |
 |---|---|
-| `docs/00-roadmap.md` | **Start here** — phased build plan |
-| `docs/1-inbox/ideas/00-overview.md` | Product vision, account model, doc index |
-| `docs/1-inbox/ideas/12-convex-schema.md` | Full schema across all 3 Convex projects |
-| `docs/1-inbox/ideas/` | Origin feature specs — numbered 01–21 (some carry a "superseded by ADR-NNN" banner) |
-| `docs/1-inbox/ideas/20-profile-lock-and-pin.md` | Profile lock edge case + proposed PIN-as-sudo confirmation gate |
+| `docs/01-final-straight.md` | **Start here**: the living plan to launch (milestones M0–M7, tracked in Linear) |
+| `docs/4-builds/features/README.md` | What the app does today: one spec per capability (FEAT-1NN pages, 2NN components, 3NN modes, 4NN admin) |
+| `docs/00-roadmap.md` | Frozen build record (phases 0–18). History, not the plan |
+| `docs/1-inbox/ideas/` | Origin ideas: history, never a source. Each carries a status banner (shipped as FEAT-NNN, superseded, planned, or open). The live schema is `convex/schema.ts` |
 | `docs/3-design/screens/` | Figma screen exports by feature |
 | `docs/3-design/design-systems/` | Design system reference image and Tokenised themes |
 | `docs/4-builds/decisions/` | ADRs — read before changing architecture |
-| `docs/4-builds/features/` | Feature specs — write one before building |
+| `docs/4-builds/features/` | Feature specs, one per shipped capability. Reserve a planned feature's number in the README, write its spec when it ships, and update a spec whenever its feature changes. Plans for building go in `plans/` |
 
 ## Stack
 - Next.js 16 / React 19 / TypeScript / Tailwind CSS 4

@@ -1,5 +1,7 @@
 # Lists and Sentences
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-104 Lists](../../4-builds/features/FEAT-104-lists.md), [FEAT-105 Sentences](../../4-builds/features/FEAT-105-sentences.md) and [FEAT-205 Groups & folders](../../4-builds/features/FEAT-205-groups-and-folders.md). Architecture: [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md), [ADR-015](../../4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md), [ADR-016](../../4-builds/decisions/ADR-016-composed-content-language-variants.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 > **⚠️ Superseded — organisation & data model.** Lists and sentences are now **profile-level content modules** filed into three separate trees, not category-nested arrays; sentences are first-class compositions that retain their decomposition. Current source of truth: [ADR-002](../../4-builds/decisions/ADR-002-global-lists-sentences-nav.md) (lists/sentences as global nav), [ADR-014](../../4-builds/decisions/ADR-014-content-modules-and-three-tree-organisation.md) (three-tree modules), [ADR-015](../../4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md) (composition primitive; `profileFirstThens` folded into a display toggle on lists). The *feature* intent below still holds; the *structure* is governed by the ADRs.
 
 ## Overview

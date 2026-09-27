@@ -1,5 +1,7 @@
 # Profile Lock and PIN
 
+> **Status (2026-09-27):** **Partly shipped.** Locking is in [FEAT-301 Instructor & student views](../../4-builds/features/FEAT-301-instructor-and-student-views.md). A lock that survives restarts, and how it's unlocked (a PIN or a Settings switch), is MOS-82. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Overview
 
 The instructor can lock a student profile so the student cannot navigate away from their own profile or change settings. This doc captures an edge case discovered during testing and the proposed long-term direction: a single PIN-based confirmation gate that doubles as the unlock mechanism and as a "sudo" prompt for any destructive or parental action.

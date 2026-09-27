@@ -1,5 +1,7 @@
 # Affiliates
 
+> **Status (2026-09-27):** **Planned (M3), not built.** Reserved as FEAT-409, tracked in MOS-62. Payouts change: Stripe Connect is ruled out by [ADR-025](../../4-builds/decisions/ADR-025-stripe-managed-payments-mor.md), and affiliates will be managed from the user page in Users admin. This file is the origin idea. Read it with the ticket, which records what has changed since.
+
 ## Overview
 
 The affiliate programme allows Mo Speech to grow internationally through trusted partners — SLTs, AAC specialists, teachers, and engaged instructors — who promote the app and earn a commission on users they recruit.

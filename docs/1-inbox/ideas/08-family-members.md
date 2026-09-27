@@ -1,5 +1,7 @@
 # Family Members and Account Collaborators
 
+> **Status (2026-09-27):** **Shipped** as Invites and collaborators in [FEAT-106 Settings](../../4-builds/features/FEAT-106-settings.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Overview
 
 Mo Speech Home is built for the whole family, not just the primary instructor. A second parent, a grandparent, or an older sibling can all be invited to the same account and use the app with the student — including running modelling mode.

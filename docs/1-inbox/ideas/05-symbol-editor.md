@@ -1,5 +1,7 @@
 # Symbol Editor Modal — Universal
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-203 Symbol editor](../../4-builds/features/FEAT-203-symbol-editor.md) (five tabs, including AI Generate and My Images). Architecture: [ADR-005](../../4-builds/decisions/ADR-005-symbol-editor-google-images-ai-generate.md), [ADR-023](../../4-builds/decisions/ADR-023-uncached-ai-image-generation.md), [ADR-024](../../4-builds/decisions/ADR-024-account-image-library-and-one-hard-delete.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Overview
 
 `SymbolEditorModal` is a single universal modal used in three contexts across Mo Speech Home. A `mode` prop controls which sections are visible and what the save action does. Improvements to image picking, audio generation, or display properties benefit all contexts automatically.

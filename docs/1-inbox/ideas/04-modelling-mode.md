@@ -1,5 +1,7 @@
 # Modelling Mode
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-303 Modelling mode](../../4-builds/features/FEAT-303-modelling-mode.md). Architecture: [ADR-007](../../4-builds/decisions/ADR-007-modelling-dim-architecture.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## What It Is
 
 Modelling mode is a real-time, synchronised, interactive guided walkthrough across two devices simultaneously. The instructor selects a symbol to model, and the student's device enters a step-by-step guided experience that teaches them how to navigate to that symbol within the app — not just what the symbol means, but where to find it.

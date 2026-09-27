@@ -1,5 +1,7 @@
 # Product Analytics with PostHog
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-408 Product analytics](../../4-builds/features/FEAT-408-product-analytics.md). Unsent events: MOS-86. The EU region move: MOS-75. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Why This Matters Now
 
 The MVP answered one question: *"is anyone using this?"* Yes — 100+ instructors, organic growth, real retention. That question is closed.

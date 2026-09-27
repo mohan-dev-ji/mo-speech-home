@@ -1,5 +1,7 @@
 # Next.js 16 Setup Notes
 
+> **Status (2026-09-27):** **Historical setup notes.** The app runs on the stack in the project `CLAUDE.md`. This isn't a feature. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## What Changed in Next.js 16
 
 These are the changes that directly affect this project when starting from the Mo Speech MVP template.

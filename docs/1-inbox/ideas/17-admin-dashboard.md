@@ -1,5 +1,7 @@
 # Admin Dashboard
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-401 Admin dashboard](../../4-builds/features/FEAT-401-admin-dashboard.md), [FEAT-405 Users admin](../../4-builds/features/FEAT-405-users-admin.md), [FEAT-406 Languages admin](../../4-builds/features/FEAT-406-languages-admin.md) and [FEAT-407 Themes admin](../../4-builds/features/FEAT-407-themes-admin.md). Architecture: [ADR-008](../../4-builds/decisions/ADR-008-admin-role-and-view-modes.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Build Priority — Read This First
 
 The `/admin` route already exists in this codebase as scaffolding (Overview stat cards, Users list, User detail). Phase 7 — immediately after Phase 6 — **completes** the admin dashboard. It does not build it from scratch.

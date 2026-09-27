@@ -1,5 +1,7 @@
 # Student Profile and Home Profile Storage
 
+> **Status (2026-09-27):** **Shipped** as student profiles in [FEAT-106 Settings](../../4-builds/features/FEAT-106-settings.md) and [FEAT-301 Instructor & student views](../../4-builds/features/FEAT-301-instructor-and-student-views.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## What the Student Profile Is
 
 The student is a profile in Mo Speech Home — not a Clerk user. They do not log in. The instructor (and any collaborators) manage the student's profile on their behalf.

@@ -1,5 +1,7 @@
 # Talker Header and Play Modal
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-201 The talker](../../4-builds/features/FEAT-201-talker.md), [FEAT-202 Talker dropdown](../../4-builds/features/FEAT-202-talker-dropdown.md) and [FEAT-204 Play modal](../../4-builds/features/FEAT-204-play-modal.md). Architecture: [ADR-004](../../4-builds/decisions/ADR-004-persistent-global-talker.md), [ADR-015](../../4-builds/decisions/ADR-015-composition-primitive-and-phrase-tree.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 > **Architecture note:** See ADR-004 for the decision to make the talker persistent and global.
 
 ## The Talker Bar

@@ -1,5 +1,7 @@
 # Mo Speech Home — Full Build Overview
 
+> **Status (2026-09-27):** **Historical.** The assessment that led to a fresh build rather than extending the MVP. This isn't a feature. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 **Purpose of this document**: Give an agent enough context to assess whether the existing MVP codebase should be extended or whether a fresh build is the right call for the full product.
 
 ---

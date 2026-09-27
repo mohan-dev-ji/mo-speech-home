@@ -1,5 +1,7 @@
 # Navigation and Permissions
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-206 App shell](../../4-builds/features/FEAT-206-app-shell.md), [FEAT-301 Instructor & student views](../../4-builds/features/FEAT-301-instructor-and-student-views.md) and the permissions in [FEAT-106 Settings](../../4-builds/features/FEAT-106-settings.md). Architecture: [ADR-008](../../4-builds/decisions/ADR-008-admin-role-and-view-modes.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## Four Nav Items
 
 ```

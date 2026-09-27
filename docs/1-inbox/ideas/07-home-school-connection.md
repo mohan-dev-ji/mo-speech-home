@@ -1,5 +1,7 @@
 # Home and School Connection
 
+> **Status (2026-09-27):** **Partly shipped.** Inviting carers and school staff into one account is in [FEAT-106 Settings](../../4-builds/features/FEAT-106-settings.md) (Invites, Max). The separate school app (`mo-speech-school`) isn't built. This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 ## The Problem This Solves
 
 In current AAC practice, a student has one device configured by their teacher and a completely different setup at home configured by their instructor. These two worlds never communicate. The student must context-switch between different symbol layouts, different vocabulary, and different sentence structures depending on where they are. This is harmful to communication development — consistency across environments is one of the most important factors in AAC success.

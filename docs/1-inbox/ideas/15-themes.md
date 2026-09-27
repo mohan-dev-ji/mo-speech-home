@@ -1,5 +1,7 @@
 # Themes and Design System
 
+> **Status (2026-09-27):** **Shipped** as [FEAT-304 Themes](../../4-builds/features/FEAT-304-themes.md) and [FEAT-407 Themes admin](../../4-builds/features/FEAT-407-themes-admin.md). New themes are made in code (M4). Architecture: [ADR-011](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md). This file is the origin idea, kept for history. Where it disagrees with the spec, the spec is right.
+
 > **Status (amended 2026-06-05, Phase 9 review).** This is the original themes spec. Its
 > *token reference* and *design rationale* (below) remain accurate and useful, but its
 > **storage/architecture model is superseded** by [ADR-011 §2](../../4-builds/decisions/ADR-011-plugin-architecture-for-content-modules.md)
