@@ -55,7 +55,9 @@ is felt as well as heard.
 
 Below it is a row of three faces: **angry**, **neutral** and **excited**. Each
 plays the whole sentence again in that tone of voice, so a student can hear how
-the same words sound with different feelings. See
+the same words sound with different feelings. For a **block sentence**, a tone
+is also the way to hear it **fluently**: as one flowing sentence instead of
+block by block. **Neutral** is the plain fluent reading. See
 [FEAT-204](FEAT-204-play-modal.md).
 
 ### Edit mode
