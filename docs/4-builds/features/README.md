@@ -57,7 +57,7 @@ Filenames follow `FEAT-NNN-short-slug.md`.
 |---|---|---|---|
 | [FEAT-301](FEAT-301-instructor-and-student-views.md) | Instructor & student views | The instructor controls what each student's view can see and change, and can lock it (a restart-proof lock is coming in MOS-82) | everything |
 | [FEAT-302](FEAT-302-edit-mode.md) | Edit mode | One switch above every editable surface for reordering, pictures and audio, then back to tap-and-play | 103, 104, 105, 202 |
-| [FEAT-303](FEAT-303-modelling-mode.md) | Modelling mode | The instructor shows the student where to tap, step by step | 103, 201 |
+| [FEAT-303](FEAT-303-modelling-mode.md) | Modelling mode | The instructor picks a symbol, and the student is guided step by step to find it | 103, 206 |
 | [FEAT-304](FEAT-304-themes.md) | Themes | Colours and backgrounds chosen per student profile | everything |
 | [FEAT-305](FEAT-305-languages-and-voices.md) | Languages & voices | Switch the board language and voice. Symbols, labels and audio follow, and your own content can be translated | everything |
 

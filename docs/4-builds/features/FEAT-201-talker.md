@@ -119,8 +119,8 @@ page with the talker. See [FEAT-202](FEAT-202-talker-dropdown.md).
   Settings menu, and the Talker mode switch sits beside it in the top bar. See
   [FEAT-106](FEAT-106-settings.md) and
   [FEAT-301](FEAT-301-instructor-and-student-views.md).
-- **Modelling** can show a student what to tap to build a sentence. See
-  [FEAT-303](FEAT-303-modelling-mode.md).
+- **Modelling** guides a student to one symbol at a time, not through building
+  a whole sentence. See [FEAT-303](FEAT-303-modelling-mode.md).
 
 ## Where it lives
 
