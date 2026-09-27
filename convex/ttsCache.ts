@@ -81,7 +81,7 @@ async function resolveCachedAudio(
     // text against English first, and — on a non-EN voice — the voice's OWN
     // language too. Without the second pass a localized word (e.g. "escritor" on
     // an es voice) never matches "writer" and we regenerate a duplicate of the
-    // default that already exists (FEAT-007).
+    // default that already exists (FEAT-305).
     const lang = getVoiceLang(voiceId) ?? "en";
     const exact =
       (await matchSymbolByWord(ctx, "en", text)) ??

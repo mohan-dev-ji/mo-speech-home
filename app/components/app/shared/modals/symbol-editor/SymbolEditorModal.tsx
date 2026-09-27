@@ -416,7 +416,7 @@ export function SymbolEditorModal({
   // it — it exists so that adopting a row FROM MY IMAGES can tell "the image I
   // just paid for" from "an image I made last week", and fire
   // `ai_generate_adopted` for only the first. `attempts` is AiGenerateTab's
-  // monotonic count of generations spent this session (FEAT-008 §6).
+  // monotonic count of generations spent this session (FEAT-203, AI Generate).
   const lastGenerationRef = useRef<{ imageKey: string; style: string; attempts: number } | null>(null);
   const [pendingAudioBlob, setPendingAudioBlob] = useState<Blob | null>(null);
   const [pendingAudioBlobUrl, setPendingAudioBlobUrl] = useState<string | null>(null);
@@ -734,7 +734,7 @@ export function SymbolEditorModal({
     // library like any other row. Fires only for THIS session's generation:
     // re-using a picture made last week is not a new adoption, and counting it
     // as one would inflate the attempts-per-kept-image number the 20/day +
-    // 100/month allowance gets retuned against (FEAT-008 §6). Never the prompt
+    // 100/month allowance gets retuned against (FEAT-203, AI Generate). Never the prompt
     // — it is user content and, in an AAC app, frequently about a specific
     // child. Style is a fixed enum and safe.
     const justGenerated = lastGenerationRef.current;

@@ -127,7 +127,7 @@ function monthKey(): string {
   // YYYY-MM UTC — the month rolls over at UTC midnight on the 1st, matching
   // todayKey()'s convention. A subscriber who joins on the 28th gets the
   // month's allowance for three days and then a fresh one; billing-anniversary
-  // alignment is deliberately not built (FEAT-008 §2).
+  // alignment is deliberately not built (FEAT-203, AI Generate).
   return new Date().toISOString().slice(0, 7);
 }
 

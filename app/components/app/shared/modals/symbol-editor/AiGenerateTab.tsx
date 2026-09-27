@@ -87,7 +87,7 @@ export function AiGenerateTab({
 
   // Monotonic count of successful generations this session — what the modal
   // reports as `ai_generate_adopted.attempts` when one of them is adopted.
-  // This number is what retunes the 20/day + 100/month allowance (FEAT-008
+  // This number is what retunes the 20/day + 100/month allowance (FEAT-203
   // §6), so it counts what was SPENT, never what survived.
   const attemptsRef = useRef(0);
 

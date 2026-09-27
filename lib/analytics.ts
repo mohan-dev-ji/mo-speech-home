@@ -82,7 +82,7 @@ type EventMap = {
   // `cached` is gone with the shared cache (ADR-023) — it would be false
   // forever. `attempts` is the number these events exist for: the cache made
   // attempts-per-kept-image unmeasurable, and it is what tells us whether
-  // 100/month is the right allowance (FEAT-008 §6).
+  // 100/month is the right allowance (FEAT-203, AI Generate).
   ai_generate_used:        {
     tier: SubscriptionTier;
     style: string;

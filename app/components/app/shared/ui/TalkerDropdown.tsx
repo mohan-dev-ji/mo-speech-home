@@ -102,7 +102,7 @@ export function TalkerDropdown({ language, onSymbolTap }: TalkerDropdownProps) {
   const { voiceId, accountId, stateFlags, viewMode } = useProfile();
   // Reactive number so the slot math (rows/totalCells) and the CSS grid stay in
   // sync as the viewport crosses md/lg. Narrowing a `large` board steps 4 → 2
-  // columns, enlarging each symbol (FEAT-006 "too small" fix).
+  // columns, enlarging each symbol (FEAT-202 "too small" fix).
   const cols = useGridColumns(stateFlags.grid_size);
   const isAdmin = useIsAdmin();
   // During sign-out, Convex auth flips to unauthenticated while this tree is

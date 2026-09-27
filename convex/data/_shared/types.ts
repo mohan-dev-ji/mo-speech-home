@@ -97,7 +97,7 @@ export type LibraryPackCategorySymbol = {
   recordedAudioPath?: string;
   /**
    * Per-symbol per-language audio override carried through publish→seed
-   * (FEAT-007). Only globally-shareable `tts` entries are published — their
+   * (FEAT-305). Only globally-shareable `tts` entries are published — their
    * paths are voice-keyed R2 clips any account can play; account-specific
    * recordings are dropped at publish. Set on the seeded profileSymbol.
    */

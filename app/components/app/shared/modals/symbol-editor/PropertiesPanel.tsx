@@ -175,7 +175,7 @@ export function PropertiesPanel({
   async function handleGenerate() {
     // Generate for the language the board (or pin) is currently on — NOT always
     // English. The override is saved under this same language in SymbolEditorModal,
-    // so each language is customised independently (voice-follows-text, FEAT-007).
+    // so each language is customised independently (voice-follows-text, FEAT-305).
     const genLang = draft.pinnedLanguage ?? language;
     const text = (draft.generateText ?? '').trim();
     if (!text) return;

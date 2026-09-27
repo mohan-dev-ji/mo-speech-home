@@ -16,7 +16,7 @@
  * 100/month is a STARTING NUMBER to be corrected with evidence, not a
  * commitment. It was sized on ~15 custom symbols x ~3 attempts for a heavy
  * setup month. `ai_generate_adopted.attempts` and `ai_generate_quota_blocked`
- * in PostHog are what replace the guess — see FEAT-008 §6.
+ * in PostHog are what replace the guess — see FEAT-203, AI Generate.
  */
 export const AI_IMAGE_DAILY_LIMIT_DEFAULT = 20;
 export const AI_IMAGE_MONTHLY_LIMIT_DEFAULT = 100;
