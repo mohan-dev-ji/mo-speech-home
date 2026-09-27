@@ -89,7 +89,7 @@ owner handles the plan and invites.
 
 Mo Speech uses privacy-first analytics to learn which screens and features are
 used. It never sends the words, symbols or sentences a child says, and IP
-addresses are anonymised. A single switch turns sharing off for this device.
+addresses are anonymised. A single switch turns sharing off for the account, on every device it signs in on.
 See [FEAT-408](FEAT-408-product-analytics.md).
 
 ### Credits
