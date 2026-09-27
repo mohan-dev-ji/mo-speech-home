@@ -2,7 +2,7 @@
 title: Features docs — owner brief
 type: note
 domain: mo-speech
-status: promoted
+status: absorbed
 created: 2026-09-10
 summary: Owner's human-readable account of how each Mo Speech feature works today; the source brief for the M1 features docs rewrite and the PRD
 tags:
@@ -15,6 +15,11 @@ aliases:
 linear: https://linear.app/mo-intelligence/issue/MOS-54
 ---
 # Features docs — owner brief
+
+> **Absorbed (2026-09-27, MOS-54).** Everything in this brief now lives in the
+> feature specs. Start at [`README.md`](README.md): the layered index, FEAT-101
+> to FEAT-408. This file is kept only as the record of the owner's original
+> intent. Don't use it as a source. The specs are the truth.
 > Source brief for **M1 — Docs truth pass** ([01-final-straight](../../01-final-straight.md)). Rewrite `4-builds/features/` as one `FEAT-NNN` spec per capability from this brief + the ADRs, then add `features/README.md` as the index (readable by marketing), then seed `5-prd/`.
 
 The app was started from features that were mass dumped into 1-inbox/ideas and screens from figma in 3-designs. This helped us with a starting point. During building the we underwent many pivots in architecture and functionality. The ADRs clearly document this and they are best kept folder of our documentation system. Because of the journey we have been on now Mo Speech works and looks far beyond it's preconceived conceptualisation. With a mid-way conversation with a real SLT supporter from India we starter implementing GLP features. Many of these are scheduled for the next phase of development after the initial launch due to data we need to collect on the relationship of individual words in different languages from professionals that adopt Mo Speech as their go to AAC [[01-glp-introduction]].
