@@ -100,8 +100,9 @@ tap. A different voice can be chosen per student in Settings. See
   Different languages for different students are a Pro feature.
 - **Defaults are added once.** Adding a second student doesn't add a second
   copy of the default boards.
-- **Referrals.** A visitor who arrives through an affiliate link has that link
-  remembered on their new account. See [FEAT-401](FEAT-401-admin-dashboard.md).
+- **Referrals aren't tracked yet.** Remembering which affiliate a family came
+  from is part of the affiliates work in M3
+  ([MOS-62](https://linear.app/mo-intelligence/issue/MOS-62)).
 
 > **Known issue:** new accounts are recorded as being on a 14-day "trial" that
 > doesn't exist in the pricing and grants nothing extra. It's harmless to the

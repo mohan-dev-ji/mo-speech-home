@@ -65,6 +65,8 @@ Filenames follow `FEAT-NNN-short-slug.md`.
 
 Not customer facing. Only accounts with the admin role see any of this.
 
+Rows in *italics* are planned. They get a spec when they're built.
+
 | # | Feature | In one line | Feeds |
 |---|---|---|---|
 | [FEAT-401](FEAT-401-admin-dashboard.md) | Admin dashboard | The back office: overview numbers, plus the Users, Themes and Languages pages | 405–407 |
@@ -75,6 +77,8 @@ Not customer facing. Only accounts with the admin role see any of this.
 | [FEAT-406](FEAT-406-languages-admin.md) | Languages admin | Add a language and control when it goes live | 305 |
 | [FEAT-407](FEAT-407-themes-admin.md) | Themes admin | Manage which themes exist and who can use them | 304 |
 | [FEAT-408](FEAT-408-product-analytics.md) | Product analytics | What usage is measured, and why | — |
+| FEAT-409 | Affiliates | *Planned, M3 ([MOS-62](https://linear.app/mo-intelligence/issue/MOS-62)).* Partners such as SLTs refer families and earn commission, managed from the user's page in Users admin | 405 |
+| FEAT-410 | Admin symbol editor | *Planned, M3 ([MOS-60](https://linear.app/mo-intelligence/issue/MOS-60) / [MOS-61](https://linear.app/mo-intelligence/issue/MOS-61)).* Search the symbol library and correct any symbol's words in every language | 404 |
 
 ## Writing a spec
 
