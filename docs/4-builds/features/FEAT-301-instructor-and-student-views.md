@@ -77,9 +77,8 @@ families use. In the admin view, edit mode adds:
 
 - **Publish as module** and **Update module** on a category, a list group, a
   sentence group, and the talker dropdown's core words and phrases.
-- **Default** or **Library**: publish as a sign-up default for every new
-  account, or as a library module.
-- **Plan tier** for a library module: Free, Pro or Max.
+- **Classification** in the publish window: **Default** (added to every new
+  account), or a library module for **Free**, **Pro** or **Max**.
 - **Plan badges** on published content (Default, Free, Pro, Max).
 - **A reminder banner** when editing something already published, because
   changes reach every new account or everyone who adds it.
