@@ -61,11 +61,12 @@ locking it.
 > **Known gap, being fixed in [MOS-82](https://linear.app/mo-intelligence/issue/MOS-82)
 > (High, M5):** today's lock can be escaped. Closing the tab or the browser,
 > or opening a new tab, returns to the instructor view, because which view a
-> device shows is only remembered by that tab. MOS-82 adds an **instructor
-> PIN** (set in Settings, instructor only) and makes the lock survive
-> restarts, new tabs, typed addresses and every other route out. A locked
-> device will always reopen in the same student's view, still locked, until
-> the PIN is entered.
+> device shows is only remembered by that tab. MOS-82 makes the lock survive
+> restarts, new tabs, typed addresses and every other route out, so a locked
+> device always reopens in the same student's view, still locked. How it's
+> unlocked is still to be decided: an instructor PIN, or a simple **Lock**
+> switch per student in Settings (possibly with the account password as a
+> fallback on the device itself).
 
 ### Admin view
 

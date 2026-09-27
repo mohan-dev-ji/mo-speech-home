@@ -55,7 +55,7 @@ Filenames follow `FEAT-NNN-short-slug.md`.
 
 | # | Feature | In one line | Applies to |
 |---|---|---|---|
-| [FEAT-301](FEAT-301-instructor-and-student-views.md) | Instructor & student views | The instructor controls what each student's view can see and change, and can lock it (an instructor PIN is coming in MOS-82) | everything |
+| [FEAT-301](FEAT-301-instructor-and-student-views.md) | Instructor & student views | The instructor controls what each student's view can see and change, and can lock it (a restart-proof lock is coming in MOS-82) | everything |
 | [FEAT-302](FEAT-302-edit-mode.md) | Edit mode | One switch above every editable surface for reordering, pictures and audio, then back to tap-and-play | 103, 104, 105, 202 |
 | [FEAT-303](FEAT-303-modelling-mode.md) | Modelling mode | The instructor shows the student where to tap, step by step | 103, 201 |
 | [FEAT-304](FEAT-304-themes.md) | Themes | Colours and backgrounds chosen per student profile | everything |
