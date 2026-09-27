@@ -70,12 +70,26 @@ locking it.
 
 ### Admin view
 
-Only accounts with Mo Speech's admin role see **Admin** in the view switcher.
-It's the instructor view with extra tools: publishing content as defaults for
-new accounts, or as library modules for each plan, plus reminders when
-something being edited is already published. It's not customer facing. See
-[FEAT-401](FEAT-401-admin-dashboard.md) and
-[FEAT-402](FEAT-402-admin-authoring.md).
+Only accounts with Mo Speech's **admin** role see **Admin** in the view
+switcher. It's not customer facing. It's the instructor view with publishing
+tools added, so Mo Speech's content is built with exactly the same screens
+families use. In the admin view, edit mode adds:
+
+- **Publish as module** and **Update module** on a category, a list group, a
+  sentence group, and the talker dropdown's core words and phrases.
+- **Default** or **Library**: publish as a sign-up default for every new
+  account, or as a library module.
+- **Plan tier** for a library module: Free, Pro or Max.
+- **Plan badges** on published content (Default, Free, Pro, Max).
+- **A reminder banner** when editing something already published, because
+  changes reach every new account or everyone who adds it.
+- **Sync seed order** on the categories grid, which saves the current order as
+  the order new accounts get.
+
+The admin view is only on when chosen. An admin account is also a normal
+account with its own students. See [FEAT-402](FEAT-402-admin-authoring.md) for
+how publishing works, and [FEAT-401](FEAT-401-admin-dashboard.md) for the
+separate back office.
 
 ## Why it helps
 

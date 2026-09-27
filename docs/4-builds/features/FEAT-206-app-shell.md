@@ -97,7 +97,7 @@ The shell doesn't speak. It's for getting around.
   current page. See [FEAT-202](FEAT-202-talker-dropdown.md).
 - **The logo** leads out to the public website's home page.
 - **Admin** appears in the view switcher only for accounts with the admin role.
-  See [FEAT-401](FEAT-401-admin-dashboard.md).
+  See [FEAT-301](FEAT-301-instructor-and-student-views.md).
 
 ## Where it lives
 

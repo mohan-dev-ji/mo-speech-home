@@ -67,7 +67,7 @@ Not customer facing. Only accounts with the admin role see any of this.
 
 | # | Feature | In one line | Feeds |
 |---|---|---|---|
-| [FEAT-401](FEAT-401-admin-dashboard.md) | Admin dashboard | The overview, and the admin view of the app | 402–408 |
+| [FEAT-401](FEAT-401-admin-dashboard.md) | Admin dashboard | The back office: overview numbers, plus the Users, Themes and Languages pages | 405–407 |
 | [FEAT-402](FEAT-402-admin-authoring.md) | Admin authoring | Build content in the app itself and publish it as a sign-up default or a library module for a tier | 107, 109 |
 | [FEAT-403](FEAT-403-backup-and-restore.md) | Backup & restore | Published content is mirrored to files in git and can be restored from them | 402 |
 | [FEAT-404](FEAT-404-translation-pipeline.md) | Translation pipeline | Machine translation of the app's words and the symbol library into each new language | 305, 406 |
