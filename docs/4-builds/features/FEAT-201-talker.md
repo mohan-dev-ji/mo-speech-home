@@ -112,7 +112,8 @@ page with the talker. See [FEAT-202](FEAT-202-talker-dropdown.md).
   to the strip. Every block needs a picture.
 - **An empty strip.** Save does nothing until there's something to save.
 - **Students.** In the student's profile, the instructor sets **Header on/off**
-  (whether the student has the talker at all) and **Talker mode / Banner mode**
+  (whether the student has a header at all: off removes the talker **and** the
+  page banner with its buttons, leaving just the board) and **Talker mode / Banner mode**
   (which one shows). The student can change these themselves only if they've
   been given **Quick Settings**. The talker on/off switch is inside the Quick
   Settings menu, and the Talker mode switch sits beside it in the top bar. See

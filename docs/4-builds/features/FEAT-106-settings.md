@@ -49,7 +49,9 @@ For each student, the instructor shapes the student's view:
 - **Sidebar**: full or icon-only, left or right.
 - **Top bar**: whether the student gets **Quick Settings**.
 - **Header**: on or off, and whether it starts in **Talker mode** or **Banner
-  mode**. In banner mode, two more permissions appear:
+  mode**. Off removes the whole strip at the top of Search and Categories (the
+  talker, and the banner with its Edit, Create and Modelling buttons), so the
+  student sees only the board. In banner mode, two more permissions appear:
   - **Allow Editing**: the student can use Edit and Create.
   - **Allow Modelling**: the student can start modelling sessions
     themselves.
