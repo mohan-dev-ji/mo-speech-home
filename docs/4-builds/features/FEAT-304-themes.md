@@ -4,7 +4,8 @@
 
 > **Status:** themes work today with seven looks. The big step is **M4 Pro &
 > Max themes**: animated, looping, textured backgrounds based on special
-> interests (water, sky, space, abstract), plus the admin theme editor
+> interests (water, sky, space, abstract), made in code, plus a review of the
+> themes admin page
 > ([MOS-63](https://linear.app/mo-intelligence/issue/MOS-63),
 > [MOS-64](https://linear.app/mo-intelligence/issue/MOS-64),
 > [MOS-65](https://linear.app/mo-intelligence/issue/MOS-65)). This spec
