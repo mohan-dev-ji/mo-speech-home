@@ -27,10 +27,12 @@ export async function POST(request: Request) {
   try {
     const priceId = getPriceId(tier, plan);
     const origin = new URL(request.url).origin;
+    // ADR-025: Stripe Managed Payments (merchant of record). Off by default —
+    // enable only once the live account is on the owner's Ltd. See ADR-025.
+    const managedPayments = process.env.STRIPE_MANAGED_PAYMENTS === "true";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/en/settings?success=true`,
       cancel_url: `${origin}/en/settings?cancelled=true`,
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
         tier,
         plan,
       },
+      ...(managedPayments ? { managed_payments: { enabled: true } } : {}),
     });
 
     return NextResponse.json({ url: session.url });

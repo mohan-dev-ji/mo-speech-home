@@ -39,6 +39,9 @@ const envSchema = z.object({
   STRIPE_MAX_YEARLY_PRICE_ID: z
     .string()
     .min(1, "STRIPE_MAX_YEARLY_PRICE_ID is required"),
+  // Stripe Managed Payments (merchant of record) — off by default until the
+  // live account is on the owner's Ltd. See ADR-025.
+  STRIPE_MANAGED_PAYMENTS: z.enum(["true", "false"]).optional(),
 
   // R2 — optional, app functions without storage
   R2_ACCOUNT_ID: z.string().optional(),
