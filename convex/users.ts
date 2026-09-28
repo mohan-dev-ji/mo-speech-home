@@ -136,8 +136,6 @@ export const createUser = mutation({
       .first();
     if (existing) return { userId: existing._id, wasCreated: false };
 
-    const trialEndsAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
-
     const userId = await ctx.db.insert("users", {
       clerkUserId: args.clerkUserId,
       email: args.email,
@@ -145,8 +143,7 @@ export const createUser = mutation({
       referredBy: args.referredBy,
       locale: args.locale,
       subscription: {
-        status: "trial",
-        trialEndsAt,
+        status: "free",
       },
       lastActiveAt: Date.now(),
     });
@@ -267,6 +264,7 @@ export const updateSubscription = mutation({
     userId: v.id("users"),
     status: v.union(
       v.literal("trial"),
+      v.literal("free"),
       v.literal("active"),
       v.literal("expired"),
       v.literal("cancelled"),

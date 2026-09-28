@@ -496,6 +496,7 @@ export default defineSchema({
     subscription: v.object({
       status: v.union(
         v.literal("trial"),
+        v.literal("free"),
         v.literal("active"),
         v.literal("expired"),
         v.literal("cancelled"),
