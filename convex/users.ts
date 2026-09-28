@@ -473,7 +473,7 @@ export const devSetTier = internalMutation({
     await ctx.db.patch(user._id, {
       subscription:
         tier === "free"
-          ? { ...sub, status: "active", plan: undefined, customAccess: undefined }
+          ? { ...sub, status: "free", plan: undefined, customAccess: undefined }
           : { ...sub, status: "active", plan: "max_monthly" },
     });
     return { email: user.email, tier };
