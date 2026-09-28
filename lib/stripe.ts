@@ -33,3 +33,11 @@ export type PricePlan = "monthly" | "yearly";
 export function getPriceId(tier: PriceTier, plan: PricePlan): string {
   return PRICE_IDS[tier][plan];
 }
+
+export function isPriceTier(x: unknown): x is PriceTier {
+  return x === "pro" || x === "max";
+}
+
+export function isPricePlan(x: unknown): x is PricePlan {
+  return x === "monthly" || x === "yearly";
+}

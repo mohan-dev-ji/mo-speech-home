@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { serverSecret } from "@/lib/convexServer";
+import { stripeErrorResponse } from "@/lib/stripeErrors";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +22,13 @@ export async function POST() {
     return NextResponse.json({ error: "No subscription to reactivate" }, { status: 400 });
   }
 
-  await stripe.subscriptions.update(user.subscription.stripeSubscriptionId, {
-    cancel_at_period_end: false,
-  });
+  try {
+    await stripe.subscriptions.update(user.subscription.stripeSubscriptionId, {
+      cancel_at_period_end: false,
+    });
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return stripeErrorResponse("reactivate", err);
+  }
 }

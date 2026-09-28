@@ -268,7 +268,11 @@ export function AccountBillingPanel() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setActionState({ status: "error", message: t("errorGeneric") });
+        const message =
+          data.error === "billing_misconfigured" ? t("errorMisconfigured")
+          : data.error === "payment_problem" ? t("errorPaymentProblem")
+          : t("errorGeneric");
+        setActionState({ status: "error", message });
         return;
       }
       if (data.url) {

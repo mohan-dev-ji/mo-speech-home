@@ -52,6 +52,12 @@ Convex Pro ships automated daily backups; on Starter we roll our own. Two layers
 
 Node version: the Convex CLI requires Node 20+. If you have multiple Node versions via nvm, prefix backup commands with `source ~/.nvm/nvm.sh && nvm use 20.17.0`.
 
+## Stripe price check
+Run this after any Stripe key or account change to verify the four price IDs still resolve, are active, and have the right billing interval:
+```bash
+node --env-file=.env.local scripts/check-stripe-prices.mjs
+```
+
 ## Pricing Tiers: free / pro / max
 (Template says "business" — this build uses "max" throughout)
 

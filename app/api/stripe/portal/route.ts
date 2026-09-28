@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { serverSecret } from "@/lib/convexServer";
+import { stripeErrorResponse } from "@/lib/stripeErrors";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,14 @@ export async function POST(request: Request) {
 
   const origin = new URL(request.url).origin;
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: user.subscription.stripeCustomerId,
-    return_url: `${origin}/settings`,
-  });
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.subscription.stripeCustomerId,
+      return_url: `${origin}/settings`,
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    return stripeErrorResponse("portal", err);
+  }
 }

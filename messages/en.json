@@ -644,6 +644,8 @@
     "cancelSuccess": "Your plan will cancel at the end of the current billing period.",
     "reactivateSuccess": "Subscription reactivated.",
     "errorGeneric": "Something went wrong. Please try again.",
+    "errorMisconfigured": "Payments aren't available right now. We've been notified. Please try again later.",
+    "errorPaymentProblem": "Your payment didn't go through. Please check your card details and try again.",
     "freeName": "Free",
     "freePrice": "£0",
     "freeFeature0": "Symbol search (voice + text)",

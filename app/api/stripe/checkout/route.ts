@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { stripe, getPriceId, type PriceTier, type PricePlan } from "@/lib/stripe";
+import { stripe, getPriceId, isPriceTier, isPricePlan } from "@/lib/stripe";
+import { stripeErrorResponse } from "@/lib/stripeErrors";
 
 export const dynamic = "force-dynamic";
 
@@ -10,28 +11,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { tier, plan } = body as { tier: PriceTier; plan: PricePlan };
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
-  if (!tier || !plan) {
+  const { tier, plan } = (body ?? {}) as { tier?: unknown; plan?: unknown };
+
+  if (!isPriceTier(tier) || !isPricePlan(plan)) {
     return NextResponse.json({ error: "tier and plan are required" }, { status: 400 });
   }
 
-  const priceId = getPriceId(tier, plan);
-  const origin = new URL(request.url).origin;
+  try {
+    const priceId = getPriceId(tier, plan);
+    const origin = new URL(request.url).origin;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/en/settings?success=true`,
-    cancel_url: `${origin}/en/settings?cancelled=true`,
-    metadata: {
-      clerkUserId: userId,
-      tier,
-      plan,
-    },
-  });
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/en/settings?success=true`,
+      cancel_url: `${origin}/en/settings?cancelled=true`,
+      metadata: {
+        clerkUserId: userId,
+        tier,
+        plan,
+      },
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    return stripeErrorResponse("checkout", err);
+  }
 }
