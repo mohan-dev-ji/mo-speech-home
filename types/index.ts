@@ -2,7 +2,7 @@
 export type SubscriptionTier = "free" | "pro" | "max";
 
 // Stripe subscription lifecycle state — must match convex/schema.ts users.subscription.status
-export type SubscriptionStatus = "trial" | "free" | "active" | "expired" | "cancelled" | "past_due";
+export type SubscriptionStatus = "free" | "active" | "expired" | "cancelled" | "past_due";
 
 // Billing interval (used in pricing UI)
 export type SubscriptionPlan = "monthly" | "yearly";
@@ -44,7 +44,6 @@ export type UserRecord = {
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     subscriptionEndsAt?: number | null;
-    trialEndsAt?: number | null;
     customAccess?: {
       isActive: boolean;
       reason: string;

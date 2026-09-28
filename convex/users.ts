@@ -59,7 +59,7 @@ export const getMyAccess = query({
     if (!resolved) return null;
     const { accountId, user } = resolved;
 
-    const { status, subscriptionEndsAt, plan, trialEndsAt, customAccess } =
+    const { status, subscriptionEndsAt, plan, customAccess } =
       user.subscription;
     const now = Date.now();
 
@@ -90,19 +90,11 @@ export const getMyAccess = query({
       customAccessActive ||
       (planTier !== "free" && (status === "active" || isCancelledButActive));
 
-    const isTrialing = status === "trial";
-    const trialDaysRemaining =
-      isTrialing && trialEndsAt
-        ? Math.max(0, Math.ceil((trialEndsAt - now) / 86_400_000))
-        : 0;
-
     return {
       accountId,
       tier,
       status,
       hasFullAccess,
-      isTrialing,
-      trialDaysRemaining,
       plan: plan ?? null,
       subscriptionEndsAt: subscriptionEndsAt ?? null,
       customAccess: customAccess ?? null,
@@ -263,7 +255,6 @@ export const updateSubscription = mutation({
   args: {
     userId: v.id("users"),
     status: v.union(
-      v.literal("trial"),
       v.literal("free"),
       v.literal("active"),
       v.literal("expired"),
@@ -281,7 +272,6 @@ export const updateSubscription = mutation({
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
     subscriptionEndsAt: v.optional(v.number()),
-    trialEndsAt: v.optional(v.number()),
     serverSecret: v.string(),
   },
   handler: async (ctx, args) => {

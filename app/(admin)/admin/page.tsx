@@ -14,7 +14,7 @@ import {
 /**
  * Phase 7 admin Overview. Returns a single Convex query result (per plan
  * §4) and renders seven stat cards. No "Active Trials" card — this build
- * has no free trial; see the No-Trial callout in the plan Context.
+ * has no trial (MOS-28).
  *
  * Deferred KPIs (MRR breakdown, scheduled/expiring soon, translation gaps,
  * custom-access activity) are TODO once their data layers exist.

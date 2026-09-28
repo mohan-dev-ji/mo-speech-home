@@ -140,7 +140,7 @@ export async function POST(request: Request) {
             to_plan: newPlan,
           });
         }
-        // Otherwise: trial extension, billing-cycle anchor change, etc. — no event.
+        // Otherwise: billing-cycle anchor change, etc. — no event.
         break;
       }
 

@@ -39,9 +39,7 @@ const PAGE_SIZE = 20;
  * Phase 7 admin Users list — extended columns, search, status filter,
  * pagination. Per plan §3.5.
  *
- * The "trial" status is a legacy artefact of signup defaults (see
- * Context No-Trial callout). It surfaces in the filter as
- * "Free (legacy)" so admins can find these accounts.
+ * This build has no trial (MOS-28).
  */
 export function UsersAdminTable({ users }: Props) {
   const [search, setSearch] = useState("");
@@ -108,7 +106,7 @@ export function UsersAdminTable({ users }: Props) {
             <option value="cancelled">Cancelled</option>
             <option value="past_due">Past due</option>
             <option value="expired">Expired</option>
-            <option value="trial">Free (legacy)</option>
+            <option value="free">Free</option>
           </Select>
         </div>
         <div className="ml-auto text-caption text-muted-foreground">

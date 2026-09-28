@@ -495,7 +495,6 @@ export default defineSchema({
     name: v.optional(v.string()),
     subscription: v.object({
       status: v.union(
-        v.literal("trial"),
         v.literal("free"),
         v.literal("active"),
         v.literal("expired"),
@@ -511,7 +510,6 @@ export default defineSchema({
           expiresAt: v.optional(v.number()),
         })
       ),
-      trialEndsAt: v.optional(v.number()),
       subscriptionEndsAt: v.optional(v.number()),
       // Encodes both tier and billing interval — derive tier via plan.startsWith()
       plan: v.optional(

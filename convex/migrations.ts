@@ -1634,24 +1634,3 @@ export const repointSymbolImagePath = internalMutation({
     return { ok: true };
   },
 });
-
-/**
- * MOS-28: the template's 14-day "trial" was never a real state (tier comes from
- * `plan`, so trial accounts already behaved as Free). Rewrite every trial row to
- * the Free status and drop its trialEndsAt. Idempotent; safe to re-run.
- * Run: npx convex run migrations:clearTrialStatus
- */
-export const clearTrialStatus = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    let changed = 0;
-    for await (const user of ctx.db.query("users")) {
-      if (user.subscription.status !== "trial") continue;
-      const { trialEndsAt: _drop, ...rest } = user.subscription;
-      void _drop;
-      await ctx.db.patch(user._id, { subscription: { ...rest, status: "free" } });
-      changed++;
-    }
-    return { changed };
-  },
-});

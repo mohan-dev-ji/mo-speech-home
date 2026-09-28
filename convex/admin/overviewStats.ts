@@ -14,7 +14,7 @@ import { tierFromPlan } from "../users";
  *
  * Deferred (no data layer yet): MRR breakdown, scheduled/expiring soon
  * counts, translation gaps, custom-access activity. No "Active Trials"
- * card — this build has no free trial (see plan Context callout).
+ * card — this build has no trial (MOS-28).
  *
  * The query intentionally `.collect()`s all users — a bounded surface at
  * current scale; swap to a denormalised counter if it grows past a few

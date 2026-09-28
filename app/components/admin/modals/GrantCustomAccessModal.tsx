@@ -32,8 +32,8 @@ type Props = {
  * `grantCustomAccess` mutation. When "Other" is picked, notes become
  * required so the audit log never has an opaque "Other" entry.
  *
- * No "trial" semantics — this build has no free trial (see plan Context
- * callout). A grant is open-ended unless the expiry datepicker has a value.
+ * No "trial" semantics — this build has no trial (MOS-28). A grant is
+ * open-ended unless the expiry datepicker has a value.
  */
 export function GrantCustomAccessModal({
   userId,
