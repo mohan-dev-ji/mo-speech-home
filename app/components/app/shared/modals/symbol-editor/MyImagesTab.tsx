@@ -6,6 +6,8 @@ import { usePaginatedQuery, useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
+import { useAppState } from "@/app/contexts/AppStateProvider";
+import { MaxLockPanel } from "./MaxLockPanel";
 
 /**
  * One row of the account's image library, as `accountImages.listMine` returns
@@ -57,9 +59,15 @@ type Props = {
 
 export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: Props) {
   const t = useTranslations("symbolEditor");
+  const { subscription } = useAppState();
+  // My Images is Max (FEAT-108). `tier` alone reads "max" for a lapsed Max
+  // plan too; `hasFullAccess` folds in billing status and custom grants.
+  // While locked, both library queries are skipped so a non-Max account never
+  // runs them (MOS-53).
+  const isMax = subscription.tier === "max" && subscription.hasFullAccess;
   const { results, status, loadMore } = usePaginatedQuery(
     api.accountImages.listMine,
-    {},
+    isMax ? {} : "skip",
     { initialNumItems: PAGE_SIZE }
   );
 
@@ -106,7 +114,7 @@ export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: 
    */
   const usage = useQuery(
     api.accountImages.usageCount,
-    selected ? { imageKey: selected.imageKey } : "skip"
+    isMax && selected ? { imageKey: selected.imageKey } : "skip"
   );
   const [isDeleting, setIsDeleting] = useState(false);
   /**
@@ -190,6 +198,10 @@ export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: 
     } finally {
       setIsDeleting(false);
     }
+  }
+
+  if (!isMax) {
+    return <MaxLockPanel title={t("myImagesUpsellTitle")} body={t("myImagesUpsellBody")} />;
   }
 
   return (

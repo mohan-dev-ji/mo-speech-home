@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
-import { Search, X, ExternalLink, Lock, AlertCircle } from "lucide-react";
+import { Search, X, ExternalLink, AlertCircle } from "lucide-react";
+import { MaxLockPanel } from "./MaxLockPanel";
 import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import type { ImageProvider, ImageSearchResult } from "@/lib/image-providers/types";
@@ -54,7 +55,9 @@ export function ImagesTab({
 }: Props) {
   const t = useTranslations("symbolEditor");
   const { subscription } = useAppState();
-  const isMax = subscription.tier === "max";
+  // `tier` alone reads "max" for a lapsed Max plan too; `hasFullAccess` folds
+  // in billing status and custom grants (FEAT-108).
+  const isMax = subscription.tier === "max" && subscription.hasFullAccess;
 
   // The query last SUBMITTED, not the one in the box. Each search spends a
   // unit of a metered daily quota, so it runs only on Enter / the Search
@@ -182,25 +185,7 @@ export function ImagesTab({
 
   // ── Tier gate ──────────────────────────────────────────────────────────────
   if (!isMax) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 h-full p-6 text-center">
-        <div
-          className="w-14 h-14 rounded-full flex items-center justify-center"
-          style={{ background: "var(--theme-symbol-bg)" }}
-        >
-          <Lock className="w-6 h-6" style={{ color: "var(--theme-secondary-text)" }} />
-        </div>
-        <h3 className="text-theme-m font-semibold" style={{ color: "var(--theme-text)" }}>
-          {t("imageSearchUpsellTitle")}
-        </h3>
-        <p
-          className="text-theme-s max-w-xs"
-          style={{ color: "var(--theme-secondary-text)" }}
-        >
-          {t("imageSearchUpsellBody")}
-        </p>
-      </div>
-    );
+    return <MaxLockPanel title={t("imageSearchUpsellTitle")} body={t("imageSearchUpsellBody")} />;
   }
 
   const someProvidersUnavailable =

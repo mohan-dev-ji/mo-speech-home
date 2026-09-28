@@ -4,6 +4,7 @@ import { paginationOptsValidator, type PaginationResult } from "convex/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
 import { countRowsReferencingKeys } from "./lib/personalAssetRefs";
+import { effectiveUserTier } from "./lib/access";
 import { isPersonalAssetKey } from "./lib/contentModuleDelete";
 import { accountImageSource } from "./schema";
 
@@ -153,7 +154,22 @@ export const record = mutation({
     prompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId } = await requireCallerAccountId(ctx);
+    const { accountId, user } = await requireCallerAccountId(ctx);
+    // My Images is Max (FEAT-108). Gated on the CALLER's own subscription —
+    // `user` here is the signed-in user even for a collaborator — because
+    // that is what every other gate reads: `users.getMyAccess` (the
+    // upload-asset and AI-generate routes, and the client tabs) and
+    // `requireProTier` all derive tier from the caller's row. Gating on the
+    // host instead would let this disagree with the route that produced the
+    // key. Reads (`listMine`, `usageCount`) and `deleteIfUnused` stay open:
+    // a downgraded account keeps its pictures on its boards.
+    if (effectiveUserTier(user) !== "max") {
+      throw new ConvexError({
+        code: "TIER_REQUIRED",
+        required: "max",
+        message: "My Images is a Max feature.",
+      });
+    }
     return await insertAccountImageIfNew(ctx, accountId, args);
   },
 });

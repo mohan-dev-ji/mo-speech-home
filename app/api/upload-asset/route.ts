@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { uploadBuffer, isConfigured } from "@/lib/r2-storage";
-import { serverSecret } from "@/lib/convexServer";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -11,12 +10,14 @@ export const dynamic = "force-dynamic";
  * Upload a user-content asset to R2.
  * Accepts: multipart/form-data with fields:
  *   file — the binary file
- *   key  — R2 destination key (must match accounts/{callerUsersId}/(images|audio)/...)
+ *   key  — R2 destination key (must match accounts/{accountId}/(images|audio)/...,
+ *          where accountId is the host account for a collaborator)
  *
  * Returns: { key } on success.
  *
  * The key path is locked to the authenticated caller's own account so a client
- * can't write into another user's prefix.
+ * can't write into another user's prefix. `images/` keys require Max and
+ * `audio/` keys require any paid plan (FEAT-108); otherwise 403.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) {
@@ -35,11 +36,11 @@ export async function POST(request: Request) {
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   convex.setAuth(token);
-  const user = await convex.query(api.users.getUserByClerkId, {
-    clerkUserId: userId,
-    serverSecret: serverSecret(),
-  });
-  if (!user) {
+  // `getMyAccess` resolves the caller from the Clerk token set above, and
+  // resolves a collaborator to the HOST account — the same account the client
+  // builds its keys under (MOS-53).
+  const access = await convex.query(api.users.getMyAccess, {});
+  if (!access) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
@@ -60,9 +61,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing key" }, { status: 400 });
   }
 
-  const allowed = new RegExp(`^accounts/${user._id}/(images|audio)/[^/]+$`);
+  const allowed = new RegExp(`^accounts/${access.accountId}/(images|audio)/[^/]+$`);
   if (!allowed.test(key)) {
     return NextResponse.json({ error: "Invalid key path" }, { status: 400 });
+  }
+
+  const isImage = key.startsWith(`accounts/${access.accountId}/images/`);
+  // `tier` alone isn't enough: getMyAccess derives it from the plan whatever the
+  // status, so a lapsed Max still reads "max". hasFullAccess folds in billing
+  // status and custom grants (which getMyAccess already lifts to tier "max").
+  const isMax = access.tier === "max" && access.hasFullAccess;
+  if (isImage && !isMax) {
+    return NextResponse.json({ error: "max_tier_required" }, { status: 403 });
+  }
+  if (!isImage && !access.hasFullAccess) {
+    // audio recording is a Pro feature (FEAT-108)
+    return NextResponse.json({ error: "pro_tier_required" }, { status: 403 });
   }
 
   const arrayBuffer = await file.arrayBuffer();

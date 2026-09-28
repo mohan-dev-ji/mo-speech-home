@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Upload } from 'lucide-react';
 import type { Draft } from './types';
 import { toResizedWebp } from './resizeImage';
+import { MaxLockPanel } from './MaxLockPanel';
+import { useAppState } from '@/app/contexts/AppStateProvider';
 
 type Props = {
   draft: Draft;
@@ -16,6 +18,11 @@ type Props = {
 export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelected }: Props) {
   const t = useTranslations('symbolEditor');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { subscription } = useAppState();
+  // Upload is Max (FEAT-108). `tier` alone reads "max" for a lapsed Max plan
+  // too; `hasFullAccess` folds in billing status and custom grants. The
+  // upload-asset route enforces the same rule server-side.
+  const isMax = subscription.tier === 'max' && subscription.hasFullAccess;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -45,6 +52,10 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
       // Resize failed (corrupt/unsupported image) — silently no-op, matching
       // the previous behaviour of the inline blob===null check.
     }
+  }
+
+  if (!isMax) {
+    return <MaxLockPanel title={t('uploadUpsellTitle')} body={t('uploadUpsellBody')} />;
   }
 
   const displaySrc = pendingImagePreviewUrl

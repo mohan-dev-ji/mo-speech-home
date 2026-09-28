@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
-import { Sparkles, Lock, AlertCircle, X } from "lucide-react";
+import { Sparkles, AlertCircle, X } from "lucide-react";
+import { MaxLockPanel } from "./MaxLockPanel";
 import { api } from "@/convex/_generated/api";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { STYLE_PRESETS, STYLE_IDS, type StyleId } from "@/lib/ai-style-prompts";
@@ -65,7 +66,9 @@ export function AiGenerateTab({
 }: Props) {
   const t = useTranslations("symbolEditor");
   const { subscription } = useAppState();
-  const isMax = subscription.tier === "max";
+  // `tier` alone reads "max" for a lapsed Max plan too; `hasFullAccess` folds
+  // in billing status and custom grants (FEAT-108).
+  const isMax = subscription.tier === "max" && subscription.hasFullAccess;
 
   const [style, setStyle] = useState<StyleId>("iconic");
   // The AI prompt IS the shared search query — typing here updates the same
@@ -165,25 +168,7 @@ export function AiGenerateTab({
 
   // ── Tier gate ────────────────────────────────────────────────────────────
   if (!isMax) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 h-full p-6 text-center">
-        <div
-          className="w-14 h-14 rounded-full flex items-center justify-center"
-          style={{ background: "var(--theme-symbol-bg)" }}
-        >
-          <Lock className="w-6 h-6" style={{ color: "var(--theme-secondary-text)" }} />
-        </div>
-        <h3 className="text-theme-m font-semibold" style={{ color: "var(--theme-text)" }}>
-          {t("aiUpsellTitle")}
-        </h3>
-        <p
-          className="text-theme-s max-w-xs"
-          style={{ color: "var(--theme-secondary-text)" }}
-        >
-          {t("aiUpsellBody")}
-        </p>
-      </div>
-    );
+    return <MaxLockPanel title={t("aiUpsellTitle")} body={t("aiUpsellBody")} />;
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
