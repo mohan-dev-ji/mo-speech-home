@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
+import { serverSecret } from "@/lib/convexServer";
 import type Stripe from "stripe";
 import type { SubscriptionPlanId } from "@/types";
 
@@ -54,7 +55,10 @@ export async function POST(request: Request) {
         console.log("[webhook] checkout.session.completed", { clerkUserId, mode: session.mode });
         if (!clerkUserId || session.mode !== "subscription") break;
 
-        const user = await convex.query(api.users.getUserByClerkId, { clerkUserId });
+        const user = await convex.query(api.users.getUserByClerkId, {
+          clerkUserId,
+          serverSecret: serverSecret(),
+        });
         console.log("[webhook] user lookup", { found: !!user, userId: user?._id });
         if (!user) break;
 
@@ -75,6 +79,7 @@ export async function POST(request: Request) {
           plan,
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId: sub.id,
+          serverSecret: serverSecret(),
         });
         console.log("[webhook] subscription updated successfully");
 
@@ -91,6 +96,7 @@ export async function POST(request: Request) {
         const sub = event.data.object as Stripe.Subscription;
         const user = await convex.query(api.users.getUserByStripeCustomerId, {
           stripeCustomerId: sub.customer as string,
+          serverSecret: serverSecret(),
         });
         if (!user) break;
 
@@ -109,6 +115,7 @@ export async function POST(request: Request) {
           subscriptionEndsAt: sub.cancel_at_period_end
             ? (sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0) * 1000
             : undefined,
+          serverSecret: serverSecret(),
         });
 
         // Decode the diff into a meaningful analytics event. Stripe sends the
@@ -141,6 +148,7 @@ export async function POST(request: Request) {
         const sub = event.data.object as Stripe.Subscription;
         const user = await convex.query(api.users.getUserByStripeCustomerId, {
           stripeCustomerId: sub.customer as string,
+          serverSecret: serverSecret(),
         });
         if (!user) break;
 
@@ -150,6 +158,7 @@ export async function POST(request: Request) {
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status: "expired",
+          serverSecret: serverSecret(),
         });
 
         trackServer(
@@ -169,12 +178,14 @@ export async function POST(request: Request) {
         const invoice = event.data.object as Stripe.Invoice;
         const user = await convex.query(api.users.getUserByStripeCustomerId, {
           stripeCustomerId: invoice.customer as string,
+          serverSecret: serverSecret(),
         });
         if (!user) break;
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status: "past_due",
+          serverSecret: serverSecret(),
         });
 
         trackServer(user.clerkUserId, "payment_failed", {

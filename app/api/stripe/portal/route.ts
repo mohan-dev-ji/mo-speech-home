@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { serverSecret } from "@/lib/convexServer";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
 
   const user = await convex.query(api.users.getUserByClerkId, {
     clerkUserId: userId,
+    serverSecret: serverSecret(),
   });
 
   if (!user?.subscription.stripeCustomerId) {

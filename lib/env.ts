@@ -9,6 +9,9 @@ const envSchema = z.object({
   // Convex
   NEXT_PUBLIC_CONVEX_URL: z.url("NEXT_PUBLIC_CONVEX_URL must be a valid URL"),
   CONVEX_DEPLOY_KEY: z.string().min(1, "CONVEX_DEPLOY_KEY is required"),
+  CONVEX_SERVER_SECRET: z
+    .string()
+    .min(32, "CONVEX_SERVER_SECRET is required (openssl rand -hex 32)"),
 
   // Clerk
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z

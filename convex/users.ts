@@ -3,6 +3,7 @@ import { ConvexError, v } from "convex/values";
 import { requireCallerIsAdmin, resolveCallerAccountId } from "./lib/account";
 import { isCustomAccessEffective, assertLanguageAllowed } from "./lib/access";
 import { assertThemeSelectable } from "./lib/themes";
+import { assertServerSecret } from "./lib/serverSecret";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -229,8 +230,9 @@ export const deleteMyUser = mutation({
  * Used in API routes (portal, webhook) with service key.
  */
 export const getUserByClerkId = query({
-  args: { clerkUserId: v.string() },
+  args: { clerkUserId: v.string(), serverSecret: v.string() },
   handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
     return await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
@@ -243,8 +245,9 @@ export const getUserByClerkId = query({
  * Used in the Stripe webhook handler.
  */
 export const getUserByStripeCustomerId = query({
-  args: { stripeCustomerId: v.string() },
+  args: { stripeCustomerId: v.string(), serverSecret: v.string() },
   handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
     return await ctx.db
       .query("users")
       .withIndex("by_stripe_customer", (q) =>
@@ -281,9 +284,12 @@ export const updateSubscription = mutation({
     stripeSubscriptionId: v.optional(v.string()),
     subscriptionEndsAt: v.optional(v.number()),
     trialEndsAt: v.optional(v.number()),
+    serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
-    const { userId, ...fields } = args;
+    assertServerSecret(args.serverSecret);
+    const { userId, serverSecret: _s, ...fields } = args;
+    void _s;
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("User not found");
 

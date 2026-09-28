@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { uploadBuffer, isConfigured } from "@/lib/r2-storage";
+import { serverSecret } from "@/lib/convexServer";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,10 @@ export async function POST(request: Request) {
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   convex.setAuth(token);
-  const user = await convex.query(api.users.getUserByClerkId, { clerkUserId: userId });
+  const user = await convex.query(api.users.getUserByClerkId, {
+    clerkUserId: userId,
+    serverSecret: serverSecret(),
+  });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }

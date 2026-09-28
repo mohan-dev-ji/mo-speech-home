@@ -5,6 +5,7 @@ import { stripe } from "@/lib/stripe";
 import { r2Client, bucketName } from "@/lib/r2-storage";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { serverSecret } from "@/lib/convexServer";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,10 @@ export async function POST() {
   convex.setAuth(token);
 
   try {
-    const user = await convex.query(api.users.getUserByClerkId, { clerkUserId: userId });
+    const user = await convex.query(api.users.getUserByClerkId, {
+      clerkUserId: userId,
+      serverSecret: serverSecret(),
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

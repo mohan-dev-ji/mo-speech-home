@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { stripe, getPriceId, type PriceTier, type PricePlan } from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { serverSecret } from "@/lib/convexServer";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { tier, plan } = body as { tier: PriceTier; plan: PricePlan };
 
-  const user = await convex.query(api.users.getUserByClerkId, { clerkUserId: userId });
+  const user = await convex.query(api.users.getUserByClerkId, {
+    clerkUserId: userId,
+    serverSecret: serverSecret(),
+  });
   if (!user?.subscription.stripeSubscriptionId) {
     return NextResponse.json({ error: "No active subscription found" }, { status: 400 });
   }

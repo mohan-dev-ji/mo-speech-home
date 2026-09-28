@@ -49,6 +49,7 @@ import type * as lib_imageCreditRefs from "../lib/imageCreditRefs.js";
 import type * as lib_materialiseSymbols from "../lib/materialiseSymbols.js";
 import type * as lib_moduleCredits from "../lib/moduleCredits.js";
 import type * as lib_personalAssetRefs from "../lib/personalAssetRefs.js";
+import type * as lib_serverSecret from "../lib/serverSecret.js";
 import type * as lib_themes from "../lib/themes.js";
 import type * as lib_variantAuthoring from "../lib/variantAuthoring.js";
 import type * as lib_variantGroupPlan from "../lib/variantGroupPlan.js";
@@ -118,6 +119,7 @@ declare const fullApi: ApiFromModules<{
   "lib/materialiseSymbols": typeof lib_materialiseSymbols;
   "lib/moduleCredits": typeof lib_moduleCredits;
   "lib/personalAssetRefs": typeof lib_personalAssetRefs;
+  "lib/serverSecret": typeof lib_serverSecret;
   "lib/themes": typeof lib_themes;
   "lib/variantAuthoring": typeof lib_variantAuthoring;
   "lib/variantGroupPlan": typeof lib_variantGroupPlan;
