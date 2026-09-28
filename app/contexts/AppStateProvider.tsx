@@ -66,7 +66,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       });
     } else {
       // Returning user — update activity timestamp
-      updateLastActive({ userId: userRecord._id as any });
+      void updateLastActive({});
     }
   }, [isLoaded, clerkUser, userRecord]);
 

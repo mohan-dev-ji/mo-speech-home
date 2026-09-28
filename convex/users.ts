@@ -182,12 +182,23 @@ export const setAnalyticsOptOut = mutation({
 });
 
 /**
- * Update last active timestamp on return visits.
+ * Update the caller's last active timestamp on return visits.
+ * The user is resolved from the Clerk JWT, never from an argument, so one
+ * account can't touch another's row. No-op when unauthenticated or when the
+ * user record doesn't exist yet.
  */
 export const updateLastActive = mutation({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.userId, { lastActiveAt: Date.now() });
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user) return null;
+    await ctx.db.patch(user._id, { lastActiveAt: Date.now() });
+    return null;
   },
 });
 
@@ -581,26 +592,14 @@ export const setMyInstructorFlag = mutation({
 
 /**
  * Get a single user by Convex document ID.
- * Used in admin user detail page.
+ * Admin-only. Used by the admin user detail page, which calls it server-side
+ * with the signed-in admin's Clerk "convex" JWT.
  */
 export const getUserById = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    await requireCallerIsAdmin(ctx);
     return await ctx.db.get(args.userId);
-  },
-});
-
-/**
- * List all users for the admin dashboard.
- * Called server-side with deploy key.
- */
-export const listAllUsers = query({
-  args: {
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const limit = args.limit ?? 50;
-    return await ctx.db.query("users").order("desc").take(limit);
   },
 });
 
