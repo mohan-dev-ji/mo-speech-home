@@ -3,15 +3,17 @@
 **Layer 1 · Page** · [Back to the index](README.md)
 
 > **Status:** the three-tier model below was decided by the owner on
-> 2026-09-26 and shipped on 2026-09-28
-> ([MOS-49](https://linear.app/mo-intelligence/issue/MOS-49)). Every row in
-> [What the build still needs](#what-the-build-still-needs) is done except
+> 2026-09-26 and built on 2026-09-28
+> ([MOS-49](https://linear.app/mo-intelligence/issue/MOS-49)). It is awaiting
+> the owner's checks in the browser and against Stripe's webhook events
+> before it counts as shipped. Every row in
+> [What the build still needs](#what-the-build-still-needs) is built except
 > **Checkout**, which still runs on plain Stripe Checkout and waits for
 > [MOS-59](https://linear.app/mo-intelligence/issue/MOS-59)'s remaining steps
-> (the Ltd exists first). See
+> (the Ltd has to exist first). See
 > [MOS-88](https://linear.app/mo-intelligence/issue/MOS-88): a Family invite
 > doesn't currently unlock editing for the invited collaborator, because
-> every gate reads the collaborator's own plan rather than the host's — that
+> every gate reads the collaborator's own plan rather than the host's. That
 > gets its own M2 ticket.
 
 - Three plans: **Free**, **Pro** and **Max**
@@ -129,30 +131,36 @@ Everything happens in Settings → Account & Billing. See
 - **Downgrading keeps content.** Things made on a higher plan stay on the
   boards and keep working. Only making or changing them needs the plan again.
 - **A cancelled plan** keeps its features until the end of the paid period.
+- **A payment that hasn't gone through** doesn't unlock a plan. Checkout takes
+  cards only for now, so a plan starts the moment the card payment succeeds.
+  A subscription Stripe reports as unpaid, incomplete or paused stops
+  unlocking paid features.
 - **Collaborators** can't see or change the plan. The account owner manages it.
   See [FEAT-106](FEAT-106-settings.md).
 - **Downgrading and My Images.** A downgraded account's My Images tab is
   locked like the rest of Max, so its existing pictures can't be deleted from
-  the app — only the account owner going back to Max reopens that. The
+  the app. Only the account owner going back to Max reopens that. The
   pictures themselves stay wherever they're already used on boards; nothing
   disappears.
 
 ## What the build still needs
 
-Today's app against the decided model. Every row is done except **Checkout**,
-which waits on MOS-59's remaining steps (the Ltd has to exist first —
-[ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)).
+Today's app against the decided model. Every row is built and awaiting the
+owner's verification, except **Checkout**, which waits on MOS-59's remaining
+steps (the Ltd has to exist first, see
+[ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)) and the
+collaborators row.
 
 | Area | Today | Decided |
 |---|---|---|
-| Upload tab and My Images | **Max** | Max — done |
-| Pro price | **£13.99 / mo · £134 / yr** | Done |
-| Max price | **£18.99 / mo · £182 / yr** | Done |
-| Plan tab feature lists | Rewritten from this spec | Done |
-| Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Done |
-| New-account trial | No trial. Free is free from sign-up | Done |
-| Collaborators and the host's plan | Every gate checks the **collaborator's own** plan, so a Family invite doesn't unlock a Max host's editing features for them ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Open — gets its own M2 ticket |
-| Checkout | Stripe Checkout | Stripe Managed Payments — waiting on MOS-58/MOS-59 |
+| Upload tab and My Images | **Max** | Max. Built (awaiting verification) |
+| Pro price | **£13.99 / mo · £134 / yr** | Built (awaiting verification) |
+| Max price | **£18.99 / mo · £182 / yr** | Built (awaiting verification) |
+| Plan tab feature lists | Rewritten from this spec | Built (awaiting verification) |
+| Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Built (awaiting verification) |
+| New-account trial | No trial. Free is free from sign-up | Built (awaiting verification) |
+| Collaborators and the host's plan | Every gate checks the **collaborator's own** plan, so a Family invite doesn't unlock a Max host's editing features for them ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Open. Gets its own M2 ticket |
+| Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 
 ## Where it lives
 

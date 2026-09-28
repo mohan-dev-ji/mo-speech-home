@@ -120,6 +120,12 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > That's **MOS-88**, filed for its own M2 slot. See the changelog:
 > [2026-09-28-billing-truth](4-builds/changelog/2026-09-28-billing-truth.md).
 
+> **2026-09-28 (review):** a whole-phase review locked the last public user-data functions, put
+> TTS tones and invites on the one Max rule, and made the Stripe webhook record honest statuses.
+> It filed **MOS-90** for M2 (a pending invite can be claimed through the sign-up mutation, which
+> trusts the browser's user ID and email) and **MOS-91** for M5 (client gates read the stored plan
+> tier, not the effective one).
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop
@@ -130,6 +136,8 @@ Small code, one real decision. Must land before anything writes pricing copy.
 3. **MOS-49** — decide: what free gates (click-and-play only?), whether a `starter` tier exists,
    which tier gets AI and at what ceiling, Stripe price IDs. If `starter` is chosen it is schema +
    gate work and gets its own plan.
+4. **MOS-90**: the sign-up mutation takes the user ID and email from the browser and activates any
+   pending invite for that email. Read both from the sign-in token so an invite can't be taken over.
 
 Exit: a pricing table you would put on a public page.
 
@@ -172,6 +180,8 @@ The original roadmap Phase 16, minus the docs work already done in M1.
 - Home/school invite-link testing (roadmap Phase 11 hypothesis).
 - Hindi launch checklist (`00-roadmap.md` §"Hindi Launch Checklist").
 - Cross-language, cross-theme, dual-profile regression.
+- **MOS-91**: client-side gates read the stored plan tier; switch them to the effective tier
+  (`tier` and `hasFullAccess` from `getMyAccess`) so the UI matches the server.
 
 ### M6 — Marketing site and promo material
 
@@ -231,10 +241,10 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   |---|---|
   | M0 Clear the deck | MOS-43, MOS-42, MOS-38 |
   | M1 Docs truth | MOS-54 features rewrite (from `4-builds/features/_owner-brief.md`) → MOS-55 housekeeping → MOS-56 seed `5-prd/` |
-  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan |
+  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up |
   | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
   | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
-  | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression |
+  | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression · MOS-91 client gates use the effective tier |
   | M6 Marketing | MOS-69 design system doc · MOS-70 site design → MOS-71 site build · MOS-72 3D GFX · MOS-73 explainers → MOS-74 promo edits |
   | M7 Deploy | MOS-75 data protection · MOS-76 trademark · MOS-77 MVP resource inventory · MOS-78 Convex export → MOS-79 cut-over / launch |
 
