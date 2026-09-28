@@ -88,9 +88,10 @@ export async function POST(request: Request) {
   if (!access) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const isMax =
-    (access.tier === "max" && access.hasFullAccess) ||
-    (access.customAccess?.isActive ?? false);
+  // getMyAccess already lifts an EFFECTIVE (unexpired) custom grant to tier
+  // "max" with hasFullAccess, so no separate customAccess check — the raw
+  // `isActive` flag ignores expiry until the daily cron sweeps it.
+  const isMax = access.tier === "max" && access.hasFullAccess;
   if (!isMax) {
     return NextResponse.json(
       { error: "max_tier_required" },

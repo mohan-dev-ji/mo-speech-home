@@ -200,6 +200,9 @@ export function MyImagesTab({ onImageReferenced, highlightKey, draftImageKey }: 
     }
   }
 
+  // Access data still loading: render nothing rather than flash the lock
+  // panel at a Max account.
+  if (subscription.loading) return null;
   if (!isMax) {
     return <MaxLockPanel title={t("myImagesUpsellTitle")} body={t("myImagesUpsellBody")} />;
   }

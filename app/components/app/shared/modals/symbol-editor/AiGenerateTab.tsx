@@ -167,6 +167,9 @@ export function AiGenerateTab({
   }
 
   // ── Tier gate ────────────────────────────────────────────────────────────
+  // Access data still loading: render nothing rather than flash the lock
+  // panel at a Max account.
+  if (subscription.loading) return null;
   if (!isMax) {
     return <MaxLockPanel title={t("aiUpsellTitle")} body={t("aiUpsellBody")} />;
   }

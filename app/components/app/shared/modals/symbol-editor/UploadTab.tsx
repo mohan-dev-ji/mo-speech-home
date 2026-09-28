@@ -54,6 +54,9 @@ export function UploadTab({ draft, patch, pendingImagePreviewUrl, onImageSelecte
     }
   }
 
+  // Access data still loading: render nothing rather than flash the lock
+  // panel at a Max account.
+  if (subscription.loading) return null;
   if (!isMax) {
     return <MaxLockPanel title={t('uploadUpsellTitle')} body={t('uploadUpsellBody')} />;
   }
