@@ -412,12 +412,12 @@ export function AccountBillingPanel() {
   };
 
   const proPrice = billingInterval === "monthly"
-    ? `${t("proMonthlyPrice")} ${t("perMonth")}`
-    : `${t("proYearlyPrice")} ${t("perYear")}`;
+    ? `${t("proPerMonth")} ${t("perMonth")}`
+    : `${t("proPerYear")} ${t("perYear")}`;
 
   const maxPrice = billingInterval === "monthly"
-    ? `${t("maxMonthlyPrice")} ${t("perMonth")}`
-    : `${t("maxYearlyPrice")} ${t("perYear")}`;
+    ? `${t("maxPerMonth")} ${t("perMonth")}`
+    : `${t("maxPerYear")} ${t("perYear")}`;
 
   return (
     <div className="flex flex-col gap-theme-gap">
@@ -435,7 +435,7 @@ export function AccountBillingPanel() {
           <PlanCard
             name={t("freeName")}
             price={t("freePrice")}
-            features={[t("freeFeature0"), t("freeFeature1"), t("freeFeature2"), t("freeFeature3")]}
+            features={[t("freeFeatureUse"), t("freeFeatureSearch"), t("freeFeatureTalker"), t("freeFeatureModules"), t("freeFeatureThemes")]}
             highlighted={tier === "free" || isExpired}
           >
             {renderFreeCTA()}
@@ -444,7 +444,14 @@ export function AccountBillingPanel() {
           <PlanCard
             name={t("proName")}
             price={proPrice}
-            features={[t("proFeature0"), t("proFeature1"), t("proFeature2"), t("proFeature3"), t("proFeature4")]}
+            features={[
+              t("proFeatureEverythingFree"),
+              t("proFeatureEdit"),
+              t("proFeatureModelling"),
+              t("proFeatureAudio"),
+              t("proFeatureLanguages"),
+              t("proFeatureModules"),
+            ]}
             highlighted={tier === "pro" && isSubscribed}
           >
             {renderPaidCTA("pro")}
@@ -453,7 +460,14 @@ export function AccountBillingPanel() {
           <PlanCard
             name={t("maxName")}
             price={maxPrice}
-            features={[t("maxFeature0"), t("maxFeature1"), t("maxFeature2"), t("maxFeature3"), t("maxFeature4")]}
+            features={[
+              t("maxFeatureEverythingPro"),
+              t("maxFeatureImages"),
+              t("maxFeatureTones"),
+              t("maxFeatureThemes"),
+              t("maxFeatureInvites"),
+              t("maxFeatureModules"),
+            ]}
             highlighted={tier === "max" && isSubscribed}
           >
             {renderPaidCTA("max")}

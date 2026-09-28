@@ -13,62 +13,85 @@ const tiers: ReadonlyArray<{
   key: TierKey;
   ctaHref: string;
   highlighted: boolean;
-  hasPrice: boolean;
+  /** Price keys; null for Free, which shows the free price label. */
+  priceKeys: { monthly: string; yearly: string } | null;
   features: ReadonlyArray<string>;
 }> = [
   {
     key: "free",
     ctaHref: "/sign-up",
     highlighted: false,
-    hasPrice: false,
-    features: ["freeFeature1", "freeFeature2", "freeFeature3", "freeFeature4"],
+    priceKeys: null,
+    features: [
+      "freeListBoards",
+      "freeListSearch",
+      "freeListTalker",
+      "freeListModules",
+      "freeListThemes",
+    ],
   },
   {
     key: "pro",
     ctaHref: "/sign-up",
     highlighted: true,
-    hasPrice: true,
+    priceKeys: { monthly: "proPricePerMonth", yearly: "proPricePerYear" },
     features: [
-      "proFeature1",
-      "proFeature2",
-      "proFeature3",
-      "proFeature4",
-      "proFeature5",
+      "proListEverythingFree",
+      "proListEdit",
+      "proListSaveSentences",
+      "proListAudio",
+      "proListModelling",
+      "proListLanguages",
+      "proListModules",
     ],
   },
   {
     key: "max",
     ctaHref: "/sign-up",
     highlighted: false,
-    hasPrice: true,
+    priceKeys: { monthly: "maxPricePerMonth", yearly: "maxPricePerYear" },
     features: [
-      "maxFeature1",
-      "maxFeature2",
-      "maxFeature3",
-      "maxFeature4",
-      "maxFeature5",
+      "maxListEverythingPro",
+      "maxListUpload",
+      "maxListImageSearch",
+      "maxListAi",
+      "maxListMyImages",
+      "maxListTones",
+      "maxListThemes",
+      "maxListInvites",
+      "maxListModules",
     ],
   },
 ];
 
-// Rows are ordered so universals appear first, then Pro+ unlocks, then
-// Max-only. Reads top-to-bottom as a progression of what each tier adds.
+// One row per FEAT-108 plan line. Ordered as a progression: what every plan
+// gets (using it), then what Pro adds (shaping it with SymbolStix), then what
+// Max adds (going beyond SymbolStix, plus the extras).
 const comparisonRows: ReadonlyArray<{
   labelKey: string;
   free: boolean;
   pro: boolean;
   max: boolean;
 }> = [
-  { labelKey: "compareSymbolSearch",      free: true,  pro: true, max: true },
-  { labelKey: "compareStarterPack",       free: true,  pro: true, max: true },
-  { labelKey: "compareCategories",        free: false, pro: true, max: true },
-  { labelKey: "compareModelling",         free: false, pro: true, max: true },
-  { labelKey: "compareProPacks",          free: false, pro: true, max: true },
-  { labelKey: "compareCustomSymbols",     free: false, pro: true, max: true },
-  { labelKey: "compareImageAi",           free: false, pro: false, max: true },
-  { labelKey: "comparePremiumThemes",     free: false, pro: false, max: true },
-  { labelKey: "compareFamilyInvites",     free: false, pro: false, max: true },
-  { labelKey: "compareUnlimitedProfiles", free: false, pro: false, max: true },
+  { labelKey: "compareRowBoards",        free: true,  pro: true,  max: true },
+  { labelKey: "compareRowSearch",        free: true,  pro: true,  max: true },
+  { labelKey: "compareRowTalker",        free: true,  pro: true,  max: true },
+  { labelKey: "compareRowFreeModules",   free: true,  pro: true,  max: true },
+  { labelKey: "compareRowBaseThemes",    free: true,  pro: true,  max: true },
+  { labelKey: "compareRowEdit",          free: false, pro: true,  max: true },
+  { labelKey: "compareRowSaveSentences", free: false, pro: true,  max: true },
+  { labelKey: "compareRowAudio",         free: false, pro: true,  max: true },
+  { labelKey: "compareRowModelling",     free: false, pro: true,  max: true },
+  { labelKey: "compareRowLanguages",     free: false, pro: true,  max: true },
+  { labelKey: "compareRowProModules",    free: false, pro: true,  max: true },
+  { labelKey: "compareRowUpload",        free: false, pro: false, max: true },
+  { labelKey: "compareRowImageSearch",   free: false, pro: false, max: true },
+  { labelKey: "compareRowAi",            free: false, pro: false, max: true },
+  { labelKey: "compareRowMyImages",      free: false, pro: false, max: true },
+  { labelKey: "compareRowTones",         free: false, pro: false, max: true },
+  { labelKey: "compareRowPremiumThemes", free: false, pro: false, max: true },
+  { labelKey: "compareRowInvites",       free: false, pro: false, max: true },
+  { labelKey: "compareRowMaxModules",    free: false, pro: false, max: true },
 ];
 
 export function PricingPageContent() {
@@ -88,7 +111,7 @@ export function PricingPageContent() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-heading font-bold mb-4">{t("pageTitle")}</h1>
-          <p className="text-muted-foreground mb-8">{t("pageSubtitle")}</p>
+          <p className="text-muted-foreground mb-8">{t("pageSubtitleTiers")}</p>
           <PricingToggle value={plan} onChange={setPlan} />
         </div>
 
@@ -98,12 +121,12 @@ export function PricingPageContent() {
             <PricingCard
               key={tier.key}
               name={t(`${tier.key}Name`)}
-              description={t(`${tier.key}Desc`)}
+              description={t(`${tier.key}Tagline`)}
               price={
-                tier.hasPrice
+                tier.priceKeys
                   ? {
-                      monthly: t(`${tier.key}PriceMonthly`),
-                      yearly: t(`${tier.key}PriceYearly`),
+                      monthly: t(tier.priceKeys.monthly),
+                      yearly: t(tier.priceKeys.yearly),
                     }
                   : null
               }
