@@ -112,6 +112,14 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 
 > **2026-09-25:** company setup joins M2. The payment account is opened on the Ltd, so the order is: IP side letter (MOS-57) → incorporate (MOS-58) → move checkout to **Stripe Managed Payments** as merchant of record (MOS-59, [ADR-025](4-builds/decisions/ADR-025-stripe-managed-payments-mor.md)), with MOS-29 done in the same routes.
 
+> **2026-09-28:** MOS-87, MOS-28, MOS-29 and MOS-49 are built and merged to `main`, pending the
+> owner's browser verification (checkout, portal, a fresh sign-up, and the Pro/Max symbol editor).
+> MOS-59's remainder — the actual Managed Payments cut-over — waits on MOS-58 (the Ltd). While
+> building MOS-49, a new gap surfaced: every access gate reads the **caller's own** plan, not the
+> host account's, so a Family-invited collaborator on Free can't use a Max host's editing features.
+> That's **MOS-88**, filed for its own M2 slot. See the changelog:
+> [2026-09-28-billing-truth](4-builds/changelog/2026-09-28-billing-truth.md).
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop
@@ -223,7 +231,7 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   |---|---|
   | M0 Clear the deck | MOS-43, MOS-42, MOS-38 |
   | M1 Docs truth | MOS-54 features rewrite (from `4-builds/features/_owner-brief.md`) → MOS-55 housekeeping → MOS-56 seed `5-prd/` |
-  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing |
+  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan |
   | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
   | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
   | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression |

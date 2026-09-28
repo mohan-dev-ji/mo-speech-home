@@ -29,6 +29,12 @@ plan it belongs to:
 - **Default**: included for everyone, and already added to new accounts.
 - **Free**, **Pro** or **Max**: the plan needed to add it.
 
+A Free module is always **SymbolStix-only**: a module that uses Image Search
+photos or uploaded pictures needs at least Max, even if it isn't otherwise a
+premium topic. **Instruments** and **Clothes**, for example, sit on Max
+because they're built from Image Search photos and uploads, not because
+they're advanced content.
+
 Filters above the grid narrow the list to one of these. Only filters with
 modules in them are shown.
 
@@ -94,6 +100,9 @@ language and voice. See [FEAT-305](FEAT-305-languages-and-voices.md).
   Adding one again after deleting it works.
 - **The plan changes.** Modules above the account's plan show **Upgrade to
   load**. Modules already added stay in the profile.
+- **Installing needs at least the module's plan.** A Pro account can't add a
+  Max module, and this is checked on the server as well as in the button, so
+  it holds even if the button is bypassed.
 - **Old links.** The previous library's addresses (from before modules) send
   visitors to the current library.
 - **Phrases aren't here.** Phrase modules exist, but they arrive with the

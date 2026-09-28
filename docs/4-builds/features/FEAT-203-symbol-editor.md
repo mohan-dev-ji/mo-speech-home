@@ -158,10 +158,15 @@ their own audio window (see [The editor in other places](#the-editor-in-other-pl
 
 ## Edge cases
 
-- **Plans.** Editing needs Pro. Image Search and AI Generate are Max, and on
-  other plans those tabs explain the feature and offer the upgrade. Upload and
-  My Images are Pro today, and move to Max under the decided pricing (M2). See
-  [FEAT-108](FEAT-108-pricing-and-tiers.md).
+- **Plans.** Editing needs Pro. Image Search, AI Generate, **Upload Picture**
+  and **My Images** are all Max: on Free or Pro, each of those four tabs shows
+  a "Max feature" panel in place of its normal content, explaining what it
+  unlocks. See [FEAT-108](FEAT-108-pricing-and-tiers.md).
+- **Re-editing an uploaded symbol.** Opening the editor on a symbol whose
+  picture was uploaded opens straight on the Upload tab. On a plan below Max
+  the tab itself shows the "Max feature" panel, but the editor's own live
+  preview still shows the uploaded picture, and saving without changing it
+  keeps it.
 - **Daily and monthly limits.** Image Search allows 30 searches a day. AI
   Generate allows 20 a day and 100 a month. When a limit is reached, the tab
   says when it resets. The monthly limit resets on the 1st.
