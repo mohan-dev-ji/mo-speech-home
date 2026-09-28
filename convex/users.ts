@@ -461,7 +461,7 @@ export const expireStaleCustomAccessGrants = internalMutation({
  *
  * TODO: REMOVE before merging to prod (no auth gate — dev-deployment tool only).
  */
-export const devSetTier = mutation({
+export const devSetTier = internalMutation({
   args: {
     email: v.string(),
     tier: v.union(v.literal("free"), v.literal("max")),
