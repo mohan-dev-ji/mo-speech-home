@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { effectiveUserTier } from "./lib/access";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -70,9 +71,9 @@ export const inviteCollaborator = mutation({
       .first();
     if (!user) throw new Error("User record not found");
 
-    // Server-side Max tier gate
-    const plan = user.subscription.plan ?? "";
-    if (!plan.startsWith("max")) throw new Error("Max tier required");
+    // Server-side Max tier gate: the effective tier, so an expired or unpaid
+    // Max plan doesn't pass and an active custom-access grant does.
+    if (effectiveUserTier(user) !== "max") throw new Error("Max tier required");
 
     // Duplicate check — accounts have few members so take(50) is safe
     const existing = await ctx.db

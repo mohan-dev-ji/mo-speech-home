@@ -74,9 +74,9 @@ export const getMyAccess = query({
     // Custom-access policy (set by admin decision, recorded in the Phase 7
     // plan): an admin grant is always Max-equivalent. The granted user's
     // tier lifts to "max" for the purposes of UI gating — every Pro and
-    // Max feature unlocks. Mirrors what the Max-only API routes already
-    // do (image-search, AI imagen, image-search proxy), which OR
-    // `customAccess.isActive` with their Max gate.
+    // Max feature unlocks. The Max-only API routes (image-search, AI
+    // imagen, image-search proxy, TTS tones) rely on this: they gate on
+    // `tier === "max" && hasFullAccess` with no separate grant check.
     //
     // Effectiveness check uses the shared `isCustomAccessEffective` helper
     // (convex/lib/access.ts), which folds in the expiry timestamp — so a

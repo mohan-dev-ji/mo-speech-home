@@ -41,7 +41,8 @@ export async function POST(request: Request) {
         tier,
         plan,
       },
-      ...(managedPayments ? { managed_payments: { enabled: true } } : {}),
+      // Delayed methods (Bacs/SEPA) must not be offered until the webhook handles async payment; Managed Payments picks its own methods (ADR-025).
+      ...(managedPayments ? { managed_payments: { enabled: true } } : { payment_method_types: ["card"] }),
     });
 
     return NextResponse.json({ url: session.url });

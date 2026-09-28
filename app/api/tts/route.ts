@@ -199,9 +199,9 @@ export async function POST(request: Request) {
     if (!access) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const isMax =
-      (access.tier === "max" && access.hasFullAccess) ||
-      (access.customAccess?.isActive ?? false);
+    // Same rule as imagen and image-search: getMyAccess already folds an
+    // effective (unexpired) custom-access grant into tier "max".
+    const isMax = access.tier === "max" && access.hasFullAccess;
     if (!isMax) {
       return NextResponse.json(
         { error: "max_tier_required", message: "Expressive tone is a Max-tier feature" },

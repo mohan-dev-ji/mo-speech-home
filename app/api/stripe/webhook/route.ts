@@ -11,14 +11,38 @@ export const dynamic = "force-dynamic";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-// Map Stripe price ID to full plan ID (encodes tier + billing interval)
-function planIdFromPriceId(priceId: string): SubscriptionPlanId {
+// Map Stripe price ID to full plan ID (encodes tier + billing interval).
+// An unknown price returns null and callers leave the stored plan untouched,
+// so a misconfigured price can never silently grant or downgrade a tier.
+function planIdFromPriceId(priceId: string): SubscriptionPlanId | null {
   if (priceId === process.env.STRIPE_PRO_MONTHLY_PRICE_ID) return "pro_monthly";
   if (priceId === process.env.STRIPE_PRO_YEARLY_PRICE_ID) return "pro_yearly";
   if (priceId === process.env.STRIPE_MAX_MONTHLY_PRICE_ID) return "max_monthly";
   if (priceId === process.env.STRIPE_MAX_YEARLY_PRICE_ID) return "max_yearly";
-  // Fallback — treat unknown price as pro_monthly; operator should check Stripe config
-  return "pro_monthly";
+  console.error("[webhook] unknown price", priceId);
+  return null;
+}
+
+type StoredStatus = "active" | "cancelled" | "past_due" | "expired";
+
+// Map a Stripe subscription onto our stored status. A scheduled cancellation
+// stays usable until period end ("cancelled" + subscriptionEndsAt); anything
+// that isn't paid-up or retrying payment is "expired" so it never unlocks.
+function statusFromSubscription(sub: Stripe.Subscription): StoredStatus {
+  if (sub.cancel_at_period_end) return "cancelled";
+  switch (sub.status) {
+    case "active":
+    case "trialing":
+      return "active";
+    case "past_due":
+    case "unpaid":
+      return "past_due";
+    case "incomplete":
+    case "incomplete_expired":
+    case "canceled":
+    case "paused":
+      return "expired";
+  }
 }
 
 // Rank tier for upgrade/downgrade comparison. Higher = more access.
@@ -55,6 +79,14 @@ export async function POST(request: Request) {
         console.log("[webhook] checkout.session.completed", { clerkUserId, mode: session.mode });
         if (!clerkUserId || session.mode !== "subscription") break;
 
+        // Only a settled payment unlocks the plan. Anything else (e.g. an
+        // "unpaid" delayed method) is skipped; the customer.subscription.*
+        // events that follow carry the real state.
+        if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
+          console.log("[webhook] checkout not paid, skipping", { payment_status: session.payment_status });
+          break;
+        }
+
         const user = await convex.query(api.users.getUserByClerkId, {
           clerkUserId,
           serverSecret: serverSecret(),
@@ -76,7 +108,7 @@ export async function POST(request: Request) {
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status: "active",
-          plan,
+          ...(plan ? { plan } : {}),
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId: sub.id,
           serverSecret: serverSecret(),
@@ -85,7 +117,7 @@ export async function POST(request: Request) {
 
         trackServer(user.clerkUserId, "subscribed", {
           plan,
-          interval: plan.endsWith("yearly") ? "yearly" : "monthly",
+          interval: plan?.endsWith("yearly") ? "yearly" : "monthly",
           amount: session.amount_total ?? 0,
           currency: session.currency ?? "gbp",
         });
@@ -103,15 +135,12 @@ export async function POST(request: Request) {
         const priceId = sub.items.data[0]?.price.id ?? "";
         const newPlan = planIdFromPriceId(priceId);
         const oldPlan = user.subscription.plan;
-        const status = sub.cancel_at_period_end ? "cancelled"
-          : sub.status === "active" ? "active"
-          : sub.status === "past_due" ? "past_due"
-          : "active";
+        const status = statusFromSubscription(sub);
 
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status,
-          plan: newPlan,
+          ...(newPlan ? { plan: newPlan } : {}),
           subscriptionEndsAt: sub.cancel_at_period_end
             ? (sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0) * 1000
             : undefined,
@@ -127,13 +156,13 @@ export async function POST(request: Request) {
           prev?.cancel_at_period_end === true && sub.cancel_at_period_end === false;
         const wasCancelled =
           prev?.cancel_at_period_end === false && sub.cancel_at_period_end === true;
-        const tierChanged = oldPlan && oldPlan !== newPlan;
+        const trackedPlan = newPlan ?? oldPlan ?? null;
 
         if (wasReactivated) {
-          trackServer(user.clerkUserId, "reactivated", { plan: newPlan });
+          trackServer(user.clerkUserId, "reactivated", { plan: trackedPlan });
         } else if (wasCancelled) {
-          trackServer(user.clerkUserId, "cancelled", { plan: newPlan });
-        } else if (tierChanged) {
+          trackServer(user.clerkUserId, "cancelled", { plan: trackedPlan });
+        } else if (newPlan && oldPlan && oldPlan !== newPlan) {
           const isUpgrade = tierRank(newPlan) > tierRank(oldPlan as SubscriptionPlanId);
           trackServer(user.clerkUserId, isUpgrade ? "upgraded" : "downgraded", {
             from_plan: oldPlan,
