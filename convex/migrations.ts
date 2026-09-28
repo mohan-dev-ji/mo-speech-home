@@ -1634,3 +1634,24 @@ export const repointSymbolImagePath = internalMutation({
     return { ok: true };
   },
 });
+
+/**
+ * MOS-49: Instruments (Image Search pictures) and Clothes (uploads) aren't
+ * SymbolStix-only, so they leave the Free class for Max.
+ * Run: npx convex run migrations:setCategoryModuleDefaultTier '{"slug":"instruments","tier":"max"}'
+ */
+export const setCategoryModuleDefaultTier = internalMutation({
+  args: {
+    slug: v.string(),
+    tier: v.union(v.literal("free"), v.literal("pro"), v.literal("max")),
+  },
+  handler: async (ctx, { slug, tier }) => {
+    const row = await ctx.db
+      .query("libraryModules")
+      .withIndex("by_tree_and_slug", (q) => q.eq("tree", "categories").eq("slug", slug))
+      .unique();
+    if (!row) throw new Error(`No category module "${slug}"`);
+    await ctx.db.patch(row._id, { defaultTier: tier, updatedAt: Date.now() });
+    return { slug, from: row.defaultTier, to: tier, tierOverride: row.tierOverride ?? null };
+  },
+});

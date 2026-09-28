@@ -11,7 +11,7 @@ import {
   requireCallerIsAdmin,
   resolveCallerAccountId,
 } from "../lib/account";
-import { userHasFullAccess } from "../lib/access";
+import { effectiveUserTier } from "../lib/access";
 import { getAllModules, getModuleBySlug } from "../lib/contentModules";
 import {
   assertModuleInstallable,
@@ -47,7 +47,7 @@ export const installListModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      hasFullAccess: userHasFullAccess(user),
+      userTier: effectiveUserTier(user),
       now: Date.now(),
     });
     if (await isModuleInstalled(ctx, accountId, slug)) {

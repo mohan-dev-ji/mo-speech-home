@@ -34,22 +34,27 @@ type LifecycleGate = {
   tierOverride?: PackTier;
 } | null;
 
+const TIER_RANK = { free: 0, pro: 1, max: 2 } as const;
+
 /**
  * Visibility + tier gate for installing a module — the per-type equivalent of
  * the inline checks in `loadResourcePackV2`. Table-agnostic: the caller fetches
- * the matching `*Lifecycle` row and computes `hasFullAccess` (via
- * `userHasFullAccess`). Starter modules bypass the gate so signup seeding works
- * before any lifecycle row exists. Throws `ConvexError` on failure.
+ * the matching `*Lifecycle` row and computes `userTier` (via
+ * `effectiveUserTier`). Starter modules bypass the gate so signup seeding works
+ * before any lifecycle row exists. Compares tier RANK (not just "any paid
+ * access") so a Pro account can't install a Max-tier module through the API —
+ * the library button already enforces this client-side; this closes the same
+ * gap on the server. Throws `ConvexError` on failure.
  */
 export function assertModuleInstallable(opts: {
   slug: string;
   isStarter: boolean;
   defaultTier: PackTier;
   lifecycle: LifecycleGate;
-  hasFullAccess: boolean;
+  userTier: PackTier;
   now: number;
 }): void {
-  const { slug, isStarter, defaultTier, lifecycle, hasFullAccess, now } = opts;
+  const { slug, isStarter, defaultTier, lifecycle, userTier, now } = opts;
   if (isStarter) return;
   if (!lifecycle) {
     throw new ConvexError({
@@ -70,12 +75,11 @@ export function assertModuleInstallable(opts: {
     });
   }
   const effectiveTier = lifecycle.tierOverride ?? defaultTier;
-  if (effectiveTier !== "free" && !hasFullAccess) {
+  if (TIER_RANK[userTier] < TIER_RANK[effectiveTier]) {
     throw new ConvexError({
       code: "TIER_REQUIRED",
       required: effectiveTier,
-      message:
-        "Resource library requires Pro or Max plan. Upgrade to install this module.",
+      message: `This module needs the ${effectiveTier} plan.`,
     });
   }
 }

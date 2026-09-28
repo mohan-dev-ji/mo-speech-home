@@ -13,7 +13,7 @@ import {
   requireCallerIsAdmin,
   resolveCallerAccountId,
 } from "../lib/account";
-import { userHasFullAccess } from "../lib/access";
+import { effectiveUserTier } from "../lib/access";
 import {
   getAllModules,
   getModuleBySlug,
@@ -59,7 +59,7 @@ export const installCategoryModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      hasFullAccess: userHasFullAccess(user),
+      userTier: effectiveUserTier(user),
       now: Date.now(),
     });
 
