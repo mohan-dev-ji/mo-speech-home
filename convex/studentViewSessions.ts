@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 const STALE_AFTER_MS = 30_000;
@@ -69,7 +69,7 @@ export const getActiveStudentViewSessions = query({
   },
 });
 
-export const cleanupStaleSessions = mutation({
+export const cleanupStaleSessions = internalMutation({
   args: {},
   handler: async (ctx) => {
     const cutoff = Date.now() - HARD_DELETE_AFTER_MS;

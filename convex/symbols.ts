@@ -1,13 +1,15 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { assertServerSecret } from "./lib/serverSecret";
 
 /**
  * Batch insert for seeding — dev/admin use only.
  * Accepts the new ISO-keyed shape (`words.en`, `synonyms.en`, etc.) per ADR-009 §2.
- * TODO: convert to internalMutation before production launch.
+ * Server-secret gated (MOS-87): called by `scripts/seedSymbols.mjs` over HTTP.
  */
 export const batchInsertSymbols = mutation({
   args: {
+    serverSecret: v.string(),
     symbols: v.array(
       v.object({
         // Mirror the schema's `symbolWords` / `symbolSynonyms` shape — the
@@ -34,6 +36,7 @@ export const batchInsertSymbols = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
     const ids: string[] = [];
     for (const symbol of args.symbols) {
       const id = await ctx.db.insert("symbols", symbol);
@@ -52,10 +55,12 @@ export const batchInsertSymbols = mutation({
  * Migration-safe: rebuilds the audio value from existing boolean entries only,
  * dropping any legacy `{ eng: { default } }` shape, so the patched value always
  * satisfies `v.record(string, boolean)`.
+ * Server-secret gated (MOS-87): called by `scripts/seed-voice-audio.mjs` over HTTP.
  */
 export const setVoiceSeededBatch = mutation({
-  args: { symbolIds: v.array(v.id("symbols")), voiceId: v.string() },
-  handler: async (ctx, { symbolIds, voiceId }) => {
+  args: { serverSecret: v.string(), symbolIds: v.array(v.id("symbols")), voiceId: v.string() },
+  handler: async (ctx, { serverSecret, symbolIds, voiceId }) => {
+    assertServerSecret(serverSecret);
     let updated = 0;
     for (const id of symbolIds) {
       const sym = await ctx.db.get(id);

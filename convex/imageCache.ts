@@ -1,6 +1,7 @@
 import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { IMAGE_SEARCH_CACHE_VERSION } from "../lib/cache-identity";
+import { assertServerSecret } from "./lib/serverSecret";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -53,14 +54,18 @@ export const lookupSearch = query({
  * with the current provider-code identity.
  * If a row exists (expired, stale or otherwise), it is replaced — the index has
  * at most one row per (query, page).
+ * Server-secret gated (MOS-87): only `app/api/image-search/search` may write,
+ * otherwise anyone could poison the shared cache.
  */
 export const writeSearch = mutation({
   args: {
+    serverSecret: v.string(),
     query: v.string(),
     page: v.number(),
     results: v.array(resultValidator),
   },
   handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
     const existing = await ctx.db
       .query("imageSearchCache")
       .withIndex("by_query_and_page", (q) =>

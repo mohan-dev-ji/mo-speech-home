@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { serverSecret } from "@/lib/convexServer";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import { searchWikimedia } from "@/lib/image-providers/wikimedia";
 import { searchPixabay } from "@/lib/image-providers/pixabay";
@@ -154,6 +155,7 @@ export async function POST(request: Request) {
   const results = interleave(groups);
 
   await convex.mutation(api.imageCache.writeSearch, {
+    serverSecret: serverSecret(),
     query,
     page,
     results,

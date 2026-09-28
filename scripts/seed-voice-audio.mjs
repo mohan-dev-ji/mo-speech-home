@@ -92,6 +92,8 @@ if (!voiceMeta) {
 const { languageCode, lang } = voiceMeta;
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+// setVoiceSeededBatch is server-secret gated (MOS-87).
+const SERVER_SECRET = process.env.CONVEX_SERVER_SECRET;
 const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const r2 = {
   accountId: process.env.R2_ACCOUNT_ID,
@@ -102,6 +104,10 @@ const r2 = {
 
 if (!CONVEX_URL) {
   console.error("❌ NEXT_PUBLIC_CONVEX_URL not set — run with: node --env-file=.env.local ...");
+  process.exit(1);
+}
+if (!SERVER_SECRET) {
+  console.error("❌ CONVEX_SERVER_SECRET not set — run with: node --env-file=.env.local ... (symbols:setVoiceSeededBatch requires it)");
   process.exit(1);
 }
 if (NEEDS_AUDIO_DEPS && !credJson) {
@@ -252,7 +258,7 @@ async function flushFlags(force = false) {
   while (flagBuffer.length > 0 && (force || flagBuffer.length >= FLAG_BATCH)) {
     const batch = flagBuffer.splice(0, FLAG_BATCH);
     try {
-      await withRetry(() => convex.mutation("symbols:setVoiceSeededBatch", { symbolIds: batch, voiceId: VOICE_ID }));
+      await withRetry(() => convex.mutation("symbols:setVoiceSeededBatch", { serverSecret: SERVER_SECRET, symbolIds: batch, voiceId: VOICE_ID }));
     } catch (err) {
       errors.push({ kind: "flag-batch", size: batch.length, message: err.message });
       console.error(`  ❌ flag batch (${batch.length}) failed: ${err.message}`);

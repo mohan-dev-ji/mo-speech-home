@@ -28,6 +28,13 @@ if (!CONVEX_URL) {
   process.exit(1);
 }
 
+// symbols:batchInsertSymbols is server-secret gated (MOS-87).
+const SERVER_SECRET = process.env.CONVEX_SERVER_SECRET;
+if (!SERVER_SECRET) {
+  console.error("❌ CONVEX_SERVER_SECRET not set — run with: node --env-file=.env.local scripts/seedSymbols.mjs");
+  process.exit(1);
+}
+
 const METADATA_PATH = path.join(
   __dirname,
   "../../Mo_Speech/_code/mo-speech-mvp-2.0/scripts/symbolstix-metadata.json"
@@ -69,7 +76,7 @@ for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
   const batchNum = Math.floor(i / BATCH_SIZE) + 1;
 
   try {
-    const result = await client.mutation("symbols:batchInsertSymbols", { symbols: batch });
+    const result = await client.mutation("symbols:batchInsertSymbols", { serverSecret: SERVER_SECRET, symbols: batch });
     total += result.count;
     console.log(`  ✓ Batch ${batchNum}/${batchCount}: ${result.count} inserted (total: ${total})`);
   } catch (err) {

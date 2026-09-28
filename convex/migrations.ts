@@ -1,4 +1,4 @@
-import { mutation, query, internalMutation, internalQuery, action } from "./_generated/server";
+import { query, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
@@ -65,7 +65,7 @@ async function migrateOneTable(
   return { backfilled, orphansRecovered, alreadyHadAccountId, total: docs.length };
 }
 
-export const migrateContentToAccount = mutation({
+export const migrateContentToAccount = internalMutation({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -175,7 +175,7 @@ function resolveCategoryPalette(colour: string): { c500: string; c100: string } 
   return null;
 }
 
-export const stripCategoryMatchingSymbolColours = mutation({
+export const stripCategoryMatchingSymbolColours = internalMutation({
   // Dashboard-runnable. No auth check — matches the pattern used by
   // `materialiseStarterPack` / `restoreStarterPackFromBackup` (one-shot
   // ops invoked manually by an operator). Idempotent; safe to re-run.
@@ -251,7 +251,7 @@ export const stripCategoryMatchingSymbolColours = mutation({
  * validator. Cache rebuilds organically on next search; 24h TTL means we'd
  * have rotated through anyway.
  */
-export const wipeImageSearchCache = mutation({
+export const wipeImageSearchCache = internalMutation({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("imageSearchCache").collect();
@@ -285,7 +285,7 @@ export const wipeImageSearchCache = mutation({
  * Core-words tab. Idempotent — re-running upserts by slug. Numbers/Letters are
  * fixed sets surfaced by the dropdown directly, not editable modules.
  */
-export const seedCoreWordModules = mutation({
+export const seedCoreWordModules = internalMutation({
   args: { adminClerkUserId: v.string() },
   handler: async (ctx, { adminClerkUserId }) => {
     const now = Date.now();
@@ -420,7 +420,7 @@ export const MODULE_NAME_I18N: Record<string, { en: string; es: string; hi: stri
  * Dashboard/CLI-runnable (no auth), matching the other one-shot ops here.
  * Run:  npx convex run migrations:localiseModuleNames
  */
-export const localiseModuleNames = mutation({
+export const localiseModuleNames = internalMutation({
   args: {},
   handler: async (ctx) => {
     let libraryPatched = 0, libraryMissing = 0, librarySkipped = 0;
@@ -479,7 +479,7 @@ export const localiseModuleNames = mutation({
   },
 });
 
-export const seedLibraryModulesFromJSON = mutation({
+export const seedLibraryModulesFromJSON = internalMutation({
   args: { adminClerkUserId: v.string() },
   handler: async (ctx, { adminClerkUserId }) => {
     const now = Date.now();
@@ -556,7 +556,7 @@ export const seedLibraryModulesFromJSON = mutation({
  *
  * Run via the dashboard with the owner's Clerk user id.
  */
-export const backfillPublishedModuleLinks = mutation({
+export const backfillPublishedModuleLinks = internalMutation({
   args: { adminClerkUserId: v.string() },
   handler: async (ctx, { adminClerkUserId }) => {
     const user = await ctx.db
@@ -676,13 +676,13 @@ function renameLegacyKeys(
  * read limit per call; with 52k symbols this needs ~7 batches.
  *
  * Caller loops:
- *   const r = await convex.mutation(api.migrations.migrateSymbolsBatch, { batchSize: 5000 });
- *   while (!r.done) { // re-call with cursor }
+ *   npx convex run migrations:migrateSymbolsBatch '{"batchSize":5000}'  (internal, MOS-87)
+ *   then re-run with the returned cursor until done.
  *
  * Idempotent — rows already migrated (no `eng`/`hin` keys, audio is a flat
  * boolean map) are skipped.
  */
-export const migrateSymbolsBatch = mutation({
+export const migrateSymbolsBatch = internalMutation({
   args: {
     cursor: v.optional(v.union(v.string(), v.null())),
     batchSize: v.optional(v.number()),
@@ -757,7 +757,7 @@ export const migrateSymbolsBatch = mutation({
 });
 
 /** Migrates themes table. */
-export const migrateThemes = mutation({
+export const migrateThemes = internalMutation({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("themes").collect();
@@ -781,7 +781,7 @@ export const migrateThemes = mutation({
 });
 
 /** Rewrites studentProfiles.language values "eng" → "en", "hin" → "hi". */
-export const migrateStudentProfilesLanguage = mutation({
+export const migrateStudentProfilesLanguage = internalMutation({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("studentProfiles").collect();
@@ -800,7 +800,7 @@ export const migrateStudentProfilesLanguage = mutation({
 });
 
 /** Rewrites users.locale values "eng" → "en", "hin" → "hi" (if any). */
-export const migrateUsersLocale = mutation({
+export const migrateUsersLocale = internalMutation({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("users").collect();
@@ -825,7 +825,7 @@ export const migrateUsersLocale = mutation({
  * pack loads — re-loading the packs after migration recreates everything.
  * Migrating these row-by-row would be more code than wiping + re-seeding.
  */
-export const wipeProfileContent = mutation({
+export const wipeProfileContent = internalMutation({
   args: {},
   handler: async (ctx) => {
     const tables = [
@@ -855,7 +855,7 @@ export const wipeProfileContent = mutation({
  *
  * Idempotent — rows already present are left alone.
  */
-export const seedLanguageLifecycle = mutation({
+export const seedLanguageLifecycle = internalMutation({
   // Mirrors `materialiseStarterPack`'s dashboard-runnable pattern: takes the
   // admin's Clerk user id as an argument so the mutation runs without an
   // identity in `npx convex run` invocations.
@@ -916,7 +916,7 @@ export const seedLanguageLifecycle = mutation({
  *
  * Idempotent — rows already with the correct basename are skipped.
  */
-export const backfillAudioBasenames = mutation({
+export const backfillAudioBasenames = internalMutation({
   args: {
     entries: v.array(
       v.object({
@@ -1024,7 +1024,7 @@ export const backfillSearchTextPage = internalMutation({
  * (optionally `--push` the schema first so the `searchText` field + indexes
  * exist). Safe to re-run — unchanged rows are skipped.
  */
-export const backfillSearchText = action({
+export const backfillSearchText = internalAction({
   args: { pageSize: v.optional(v.number()) },
   handler: async (
     ctx,
@@ -1073,7 +1073,7 @@ export const backfillSearchText = action({
 // Run, e.g. Diwali → दिवाली:
 //   npx convex run migrations:fixSymbolProperNoun \
 //     '{"en":"Diwali","locale":"hi","native":"दिवाली","translit":["diwali"]}'
-export const fixSymbolProperNoun = mutation({
+export const fixSymbolProperNoun = internalMutation({
   args: {
     en: v.string(),                       // exact English word to match (words.en)
     locale: v.string(),                   // target language code, e.g. "hi"
@@ -1466,7 +1466,7 @@ export const backfillSequenceSentenceText = internalMutation({
  * path and lacks a type. Account uploads (`accounts/…`) are left untouched.
  * Idempotent — safe to re-run. Run: `npx convex run migrations:backfillListItemImageSource`.
  */
-export const backfillListItemImageSource = mutation({
+export const backfillListItemImageSource = internalMutation({
   args: {},
   handler: async (ctx) => {
     const lists = await ctx.db.query("profileLists").collect();

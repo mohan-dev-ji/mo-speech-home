@@ -1,4 +1,4 @@
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import { ConvexError, v } from 'convex/values';
 import type { Doc } from './_generated/dataModel';
 import { requireCallerIsAdmin } from './lib/account';
@@ -44,10 +44,11 @@ export const getThemeById = query({
 });
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
-// Idempotent — checks by slug before inserting. Call from admin dashboard or
-// dev setup. All token values are placeholder hex — you bring the final values.
+// Idempotent — checks by slug before inserting. Internal (MOS-87): run with
+// `npx convex run themes:seedStarterThemes` or from the dashboard.
+// All token values are placeholder hex — you bring the final values.
 
-export const seedStarterThemes = mutation({
+export const seedStarterThemes = internalMutation({
   args: {
     adminClerkUserId: v.string(),
   },
