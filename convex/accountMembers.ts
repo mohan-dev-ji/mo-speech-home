@@ -75,18 +75,22 @@ export const inviteCollaborator = mutation({
     // Max plan doesn't pass and an active custom-access grant does.
     if (effectiveUserTier(user) !== "max") throw new Error("Max tier required");
 
+    // MOS-90: invite emails are stored lower-cased and trimmed so they match
+    // the (also lower-cased) verified email createUser reads from the token.
+    const email = args.email.trim().toLowerCase();
+
     // Duplicate check — accounts have few members so take(50) is safe
     const existing = await ctx.db
       .query("accountMembers")
       .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
       .take(50);
-    if (existing.some((m) => m.email === args.email)) {
+    if (existing.some((m) => m.email === email)) {
       throw new Error("Already invited");
     }
 
     return await ctx.db.insert("accountMembers", {
       accountId: user._id,
-      email: args.email,
+      email,
       role: "collaborator",
       status: "pending",
       invitedAt: Date.now(),

@@ -111,27 +111,34 @@ export const getMyAccess = query({
  * Returns `{ userId, wasCreated }` so the caller can distinguish first-sign-in
  * from a returning visit. The `wasCreated` flag drives the one-shot
  * `signed_up` analytics event in AppStateProvider — see plan §3.1 + §5.
+ * The Clerk ID and email are read from the verified token, not args (MOS-90).
  */
 export const createUser = mutation({
   args: {
-    clerkUserId: v.string(),
-    email: v.string(),
     name: v.optional(v.string()),
     referredBy: v.optional(v.string()), // affiliate code from signup cookie
     locale: v.optional(v.string()),     // 'en' | 'hi' — set from /start or VoiceModal
   },
   handler: async (ctx, args) => {
+    // MOS-90: the Clerk ID and email come from the verified token, never from
+    // the browser. A caller could otherwise create a row under someone else's
+    // Clerk ID, or claim a pending invite by sending the invitee's email.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const clerkUserId = identity.subject;
+    const email = (identity.email ?? "").trim().toLowerCase();
+
     // Guard: don't create duplicates
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", clerkUserId))
       .first();
     if (existing) return { userId: existing._id, wasCreated: false };
 
     const userId = await ctx.db.insert("users", {
-      clerkUserId: args.clerkUserId,
-      email: args.email,
-      name: args.name,
+      clerkUserId,
+      email,
+      name: args.name ?? identity.name ?? undefined,
       referredBy: args.referredBy,
       locale: args.locale,
       subscription: {
@@ -140,21 +147,23 @@ export const createUser = mutation({
       lastActiveAt: Date.now(),
     });
 
-    // Activate any pending invite for this email address.
-    // The inviting account owner's record is already in accountMembers with status "pending".
-    const pendingInvite = await ctx.db
-      .query("accountMembers")
-      .withIndex("by_email_and_status", (q) =>
-        q.eq("email", args.email).eq("status", "pending")
-      )
-      .first();
+    // Activate a pending invite for this email, but only once Clerk has
+    // verified the address belongs to the person signing up.
+    if (email && identity.emailVerified === true) {
+      const pendingInvite = await ctx.db
+        .query("accountMembers")
+        .withIndex("by_email_and_status", (q) =>
+          q.eq("email", email).eq("status", "pending")
+        )
+        .first();
 
-    if (pendingInvite) {
-      await ctx.db.patch(pendingInvite._id, {
-        clerkUserId: args.clerkUserId,
-        status: "active",
-        joinedAt: Date.now(),
-      });
+      if (pendingInvite) {
+        await ctx.db.patch(pendingInvite._id, {
+          clerkUserId,
+          status: "active",
+          joinedAt: Date.now(),
+        });
+      }
     }
 
     return { userId, wasCreated: true };

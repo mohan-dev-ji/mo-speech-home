@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { api } from "@/convex/_generated/api";
@@ -22,6 +22,7 @@ const AppStateContext = createContext<AppStateContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
+  const { isAuthenticated: convexAuthed } = useConvexAuth();
   const hasSynced = useRef(false);
   const params = useParams();
   const router = useRouter();
@@ -43,6 +44,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoaded || !clerkUser) return;
+    // createUser reads the Clerk identity from the Convex token (MOS-90), and
+    // getMyUser returns null until Convex has that token. Wait for it, or a
+    // first sign-in would call createUser unauthenticated and never retry.
+    if (!convexAuthed) return;
     if (userRecord === undefined) return; // still loading
     if (hasSynced.current) return;
 
@@ -55,8 +60,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       // tabs opened together), we'd skip the event — acceptable; the user
       // record exists either way.
       void createUser({
-        clerkUserId: clerkUser.id,
-        email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
         name: clerkUser.fullName ?? undefined,
         locale: urlLocale ?? "en",
       }).then((result) => {
@@ -68,7 +71,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       // Returning user — update activity timestamp
       void updateLastActive({});
     }
-  }, [isLoaded, clerkUser, userRecord]);
+  }, [isLoaded, clerkUser, convexAuthed, userRecord]);
 
   // ─── PostHog identify + opt-out respect ──────────────────────────────────────
   // Identify the user to PostHog as soon as both Clerk + Convex have resolved,
