@@ -1,7 +1,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { resolveCallerAccountId, requireCallerAccountId, callerOwnsAccount } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { installContentModule } from "./lib/contentModuleInstall";
 import type { ContentModule } from "./data/_shared/types";
@@ -130,7 +130,9 @@ export const reseedAccount = mutation({
 export const getProfileCategory = query({
   args: { profileCategoryId: v.id("profileCategories") },
   handler: async (ctx, args) => {
-    return ctx.db.get(args.profileCategoryId);
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category || !(await callerOwnsAccount(ctx, category.accountId))) return null;
+    return category;
   },
 });
 
@@ -179,6 +181,8 @@ export const getProfileSymbols = query({
     profileCategoryId: v.id("profileCategories"),
   },
   handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category || !(await callerOwnsAccount(ctx, category.accountId))) return [];
     return ctx.db
       .query("profileSymbols")
       .withIndex("by_profile_category_id_and_order", (q) =>
@@ -197,6 +201,9 @@ export const getProfileSymbolsWithImages = query({
     voiceId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.profileCategoryId);
+    if (!category || !(await callerOwnsAccount(ctx, category.accountId))) return [];
+
     const voiceId = args.voiceId ?? DEFAULT_VOICE_ID;
     // The language of the board voice. The SymbolStix default is seeded under
     // THIS key (not a hard-coded "en") so a genuine override in one language

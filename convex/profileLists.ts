@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { resolveCallerAccountId, requireCallerAccountId } from "./lib/account";
+import { resolveCallerAccountId, requireCallerAccountId, callerOwnsAccount } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { stripLocaleKey } from "../lib/languages/variants";
 import { DEFAULT_LOCALE } from "../lib/languages/registry";
@@ -52,7 +52,7 @@ export const getProfileListWithItems = query({
   args: { profileListId: v.id("profileLists") },
   handler: async (ctx, args) => {
     const list = await ctx.db.get(args.profileListId);
-    if (!list) return null;
+    if (!list || !(await callerOwnsAccount(ctx, list.accountId))) return null;
 
     const items = [...list.items].sort((a, b) => a.order - b.order);
 

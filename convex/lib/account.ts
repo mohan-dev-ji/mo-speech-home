@@ -47,6 +47,22 @@ export async function requireCallerAccountId(
 }
 
 /**
+ * Whether the signed-in caller's account owns a document with this accountId
+ * (MOS-92). Collaborators resolve to the host account, so they own the host's
+ * rows. A missing accountId is never owned. Use it in every function that takes
+ * a document ID from the client, and return what "not found" returns when it's
+ * false, so a stranger learns nothing about the ID.
+ */
+export async function callerOwnsAccount(
+  ctx: QueryCtx,
+  accountId: Id<"users"> | undefined,
+): Promise<boolean> {
+  if (!accountId) return false;
+  const resolved = await resolveCallerAccountId(ctx);
+  return resolved !== null && resolved.accountId === accountId;
+}
+
+/**
  * Require the caller to be authenticated AND have role="admin" in their
  * Clerk JWT. Role is sourced from publicMetadata.role via the Convex JWT
  * template — the template must include `"role": "{{user.public_metadata.role}}"`

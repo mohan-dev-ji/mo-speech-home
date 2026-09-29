@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireCallerAccountId, resolveCallerAccountId } from "./lib/account";
+import { requireCallerAccountId, resolveCallerAccountId, callerOwnsAccount } from "./lib/account";
 import { requireProTier } from "./lib/access";
 import { collectReferencedPersonalKeys, countRowsReferencingKeys } from "./lib/personalAssetRefs";
 import { isPersonalAssetKey, isPersonalAudioKey } from "./lib/contentModuleDelete";
@@ -58,7 +58,7 @@ export const getProfileSymbol = query({
   args: { profileSymbolId: v.id("profileSymbols") },
   handler: async (ctx, args) => {
     const ps = await ctx.db.get(args.profileSymbolId);
-    if (!ps) return null;
+    if (!ps || !(await callerOwnsAccount(ctx, ps.accountId))) return null;
 
     let symbolRecord: {
       words: Record<string, string>;
