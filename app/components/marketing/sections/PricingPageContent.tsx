@@ -116,7 +116,7 @@ export function PricingPageContent() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
           {tiers.map((tier) => (
             <PricingCard
               key={tier.key}
