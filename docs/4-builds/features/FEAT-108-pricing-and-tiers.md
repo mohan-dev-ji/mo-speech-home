@@ -158,6 +158,7 @@ collaborators row.
 | Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Shipped |
 | New-account trial | No trial. Free is free from sign-up | Shipped |
 | Collaborators and the host's plan | Every gate checks the **collaborator's own** plan, so a Family invite doesn't unlock a Max host's editing features for them ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Open. Gets its own M2 ticket |
+| Changing plan | Every switch takes effect at once. An upgrade isn't charged until the next renewal, and a downgrade removes the higher plan's features straight away, although the message says "at your next billing date" ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Open. Upgrades charge the difference now; downgrades and monthly/yearly switches wait for the next billing date, as described in [Managing a plan](#managing-a-plan) |
 | Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 
 ## Where it lives
