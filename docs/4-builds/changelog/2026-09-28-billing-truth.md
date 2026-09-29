@@ -1,7 +1,7 @@
 # 2026-09-28: Billing truth
 
 **Milestone:** M2 Billing truth (Final straight project) · **Issues:** MOS-87, MOS-28, MOS-29, MOS-49, MOS-59 (part)
-**Spec:** [FEAT-108](../features/FEAT-108-pricing-and-tiers.md) · [FEAT-203](../features/FEAT-203-symbol-editor.md) · [FEAT-107](../features/FEAT-107-resource-library.md) · **Plan:** [phase-38-billing-truth-plan](../plans/phase-38-billing-truth-plan.md) · **Decisions:** [ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)
+**Spec:** [FEAT-108](../features/FEAT-108-pricing-and-tiers.md) · [FEAT-203](../features/FEAT-203-symbol-editor.md) · [FEAT-107](../features/FEAT-107-resource-library.md) · **Plan:** [phase-38-billing-truth-plan](../plans/_done/phase-38-billing-truth-plan.md) · **Decisions:** [ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)
 
 Closed the gap between the owner's three-tier pricing decision (2026-09-26) and what the app
 actually did, and locked down the billing functions that set a plan directly. Built and on `main`;

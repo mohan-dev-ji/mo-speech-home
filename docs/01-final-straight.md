@@ -126,6 +126,14 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > trusts the browser's user ID and email) and **MOS-91** for M5 (client gates read the stored plan
 > tier, not the effective one).
 
+> **2026-09-29:** verified in the owner's Chrome and against the live dev deployment. Every closed
+> loophole refuses the call, signed out and signed in (Free, Pro and Max). A fresh sign-up is Free. A
+> Stripe test checkout and a plan switch both reach the account through the webhook. The editor's
+> Upload and My Images tabs lock below Max. The library shows Instruments and Clothes as Max. A bad
+> price ID shows the "payments aren't available" message. MOS-87, MOS-28, MOS-29 and MOS-49 are
+> **Done**; phase-38's plan is in `plans/_done/`. Open in M2: MOS-90, MOS-92, MOS-88, and MOS-59's
+> Ltd steps.
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop

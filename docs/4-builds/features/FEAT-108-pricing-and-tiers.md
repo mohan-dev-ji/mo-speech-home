@@ -3,11 +3,10 @@
 **Layer 1 · Page** · [Back to the index](README.md)
 
 > **Status:** the three-tier model below was decided by the owner on
-> 2026-09-26 and built on 2026-09-28
-> ([MOS-49](https://linear.app/mo-intelligence/issue/MOS-49)). It is awaiting
-> the owner's checks in the browser and against Stripe's webhook events
-> before it counts as shipped. Every row in
-> [What the build still needs](#what-the-build-still-needs) is built except
+> 2026-09-26, built on 2026-09-28 and verified in the browser and against
+> Stripe's webhook events on 2026-09-29
+> ([MOS-49](https://linear.app/mo-intelligence/issue/MOS-49)). Every row in
+> [What the build still needs](#what-the-build-still-needs) is shipped except
 > **Checkout**, which still runs on plain Stripe Checkout and waits for
 > [MOS-59](https://linear.app/mo-intelligence/issue/MOS-59)'s remaining steps
 > (the Ltd has to exist first). See
@@ -145,20 +144,19 @@ Everything happens in Settings → Account & Billing. See
 
 ## What the build still needs
 
-Today's app against the decided model. Every row is built and awaiting the
-owner's verification, except **Checkout**, which waits on MOS-59's remaining
+Today's app against the decided model. Every row is shipped (verified 2026-09-29), except **Checkout**, which waits on MOS-59's remaining
 steps (the Ltd has to exist first, see
 [ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)) and the
 collaborators row.
 
 | Area | Today | Decided |
 |---|---|---|
-| Upload tab and My Images | **Max** | Max. Built (awaiting verification) |
-| Pro price | **£13.99 / mo · £134 / yr** | Built (awaiting verification) |
-| Max price | **£18.99 / mo · £182 / yr** | Built (awaiting verification) |
-| Plan tab feature lists | Rewritten from this spec | Built (awaiting verification) |
-| Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Built (awaiting verification) |
-| New-account trial | No trial. Free is free from sign-up | Built (awaiting verification) |
+| Upload tab and My Images | **Max** | Max. Shipped |
+| Pro price | **£13.99 / mo · £134 / yr** | Shipped |
+| Max price | **£18.99 / mo · £182 / yr** | Shipped |
+| Plan tab feature lists | Rewritten from this spec | Shipped |
+| Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Shipped |
+| New-account trial | No trial. Free is free from sign-up | Shipped |
 | Collaborators and the host's plan | Every gate checks the **collaborator's own** plan, so a Family invite doesn't unlock a Max host's editing features for them ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Open. Gets its own M2 ticket |
 | Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 
