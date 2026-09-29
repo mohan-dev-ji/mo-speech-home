@@ -1,7 +1,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireCallerIsAdmin } from "./lib/account";
+import { callerOwnsAccount, requireCallerIsAdmin } from "./lib/account";
 import { assertLanguageAllowed } from "./lib/access";
 import { assertThemeSelectable } from "./lib/themes";
 
@@ -287,23 +287,12 @@ export const setStateFlag = mutation({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) throw new Error("Profile not found");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
-
-    const isOwner = profile.accountId === user._id;
-    const isCollaborator =
-      !isOwner &&
-      !!(await ctx.db
-        .query("accountMembers")
-        .withIndex("by_clerk_user_id", (q) =>
-          q.eq("clerkUserId", user.clerkUserId)
-        )
-        .first());
-
-    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+    // MOS-92: the profile must belong to the caller's account (an active
+    // collaborator resolves to their host account). A membership row on some
+    // other account no longer counts.
+    if (!(await callerOwnsAccount(ctx, profile.accountId))) {
+      throw new Error("Not authorised");
+    }
 
     await ctx.db.patch(args.profileId, {
       stateFlags: cleanStateFlags({
@@ -330,23 +319,12 @@ export const setGridSize = mutation({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) throw new Error("Profile not found");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
-
-    const isOwner = profile.accountId === user._id;
-    const isCollaborator =
-      !isOwner &&
-      !!(await ctx.db
-        .query("accountMembers")
-        .withIndex("by_clerk_user_id", (q) =>
-          q.eq("clerkUserId", user.clerkUserId)
-        )
-        .first());
-
-    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+    // MOS-92: the profile must belong to the caller's account (an active
+    // collaborator resolves to their host account). A membership row on some
+    // other account no longer counts.
+    if (!(await callerOwnsAccount(ctx, profile.accountId))) {
+      throw new Error("Not authorised");
+    }
 
     await ctx.db.patch(args.profileId, {
       stateFlags: cleanStateFlags({ ...profile.stateFlags, grid_size: args.gridSize }),
@@ -375,23 +353,12 @@ export const setSymbolTextSize = mutation({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) throw new Error("Profile not found");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
-
-    const isOwner = profile.accountId === user._id;
-    const isCollaborator =
-      !isOwner &&
-      !!(await ctx.db
-        .query("accountMembers")
-        .withIndex("by_clerk_user_id", (q) =>
-          q.eq("clerkUserId", user.clerkUserId)
-        )
-        .first());
-
-    if (!isOwner && !isCollaborator) throw new Error("Not authorised");
+    // MOS-92: the profile must belong to the caller's account (an active
+    // collaborator resolves to their host account). A membership row on some
+    // other account no longer counts.
+    if (!(await callerOwnsAccount(ctx, profile.accountId))) {
+      throw new Error("Not authorised");
+    }
 
     await ctx.db.patch(args.profileId, {
       stateFlags: cleanStateFlags({ ...profile.stateFlags, symbol_text_size: args.textSize }),

@@ -43,7 +43,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // ─── User sync — runs once when Convex resolves the user record ───────────────
 
   useEffect(() => {
-    if (!isLoaded || !clerkUser) return;
+    if (!isLoaded) return;
+    if (!clerkUser) {
+      // Signed out: let the next person to sign in on this page sync too.
+      hasSynced.current = false;
+      return;
+    }
     // createUser reads the Clerk identity from the Convex token (MOS-90), and
     // getMyUser returns null until Convex has that token. Wait for it, or a
     // first sign-in would call createUser unauthenticated and never retry.
