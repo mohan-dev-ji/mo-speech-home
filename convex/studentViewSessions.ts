@@ -1,5 +1,6 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { callerOwnsAccount } from "./lib/account";
 
 const STALE_AFTER_MS = 30_000;
 const HARD_DELETE_AFTER_MS = 5 * 60_000;
@@ -13,6 +14,11 @@ export const heartbeatStudentViewSession = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile || !(await callerOwnsAccount(ctx, profile.accountId))) {
+      throw new Error("Not authorized for this profile");
+    }
+
     const existing = await ctx.db
       .query("studentViewSessions")
       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
@@ -20,6 +26,7 @@ export const heartbeatStudentViewSession = mutation({
 
     const now = Date.now();
     if (existing) {
+      if (existing.clerkUserId !== identity.subject) return null;
       await ctx.db.patch(existing._id, { lastSeen: now });
     } else {
       await ctx.db.insert("studentViewSessions", {
@@ -38,11 +45,13 @@ export const endStudentViewSession = mutation({
     sessionId: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
     const existing = await ctx.db
       .query("studentViewSessions")
       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
       .first();
-    if (existing) {
+    if (existing && existing.clerkUserId === identity.subject) {
       await ctx.db.delete(existing._id);
     }
     return null;
@@ -54,6 +63,9 @@ export const getActiveStudentViewSessions = query({
     profileId: v.id("studentProfiles"),
   },
   handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile || !(await callerOwnsAccount(ctx, profile.accountId))) return [];
+
     const cutoff = Date.now() - STALE_AFTER_MS;
     const rows = await ctx.db
       .query("studentViewSessions")
