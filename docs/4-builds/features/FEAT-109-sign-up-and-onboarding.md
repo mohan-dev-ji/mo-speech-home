@@ -63,9 +63,10 @@ boards. See [FEAT-106](FEAT-106-settings.md).
 ### Joining an invited account
 
 Someone invited by email (a parent, carer or teacher) signs up with that same
-email address and is joined to the inviting account automatically. They skip
-the welcome window and go straight to the students and boards they were
-invited to share. See [FEAT-106](FEAT-106-settings.md).
+email address and is joined to the inviting account automatically, once Clerk
+has confirmed they really control that address (matched whatever the capital
+letters). They skip the welcome window and go straight to the students and
+boards they were invited to share. See [FEAT-106](FEAT-106-settings.md).
 
 ### Coming back
 

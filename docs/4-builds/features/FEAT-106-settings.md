@@ -124,6 +124,12 @@ sentences speak with. See [FEAT-305](FEAT-305-languages-and-voices.md).
   Free. The language section offers **Upgrade for more**. Higher-plan themes are
   locked.
 - **Invites are Max.** Other plans see an upgrade message on the Invites tab.
+- **An invite is claimed only by its real owner.** Signing up joins a pending
+  invite only when it's the same email address, once Clerk has confirmed the
+  visitor really controls that address, whatever the capital letters. **Known
+  gap:** someone who already has a Mo Speech account isn't added to the
+  inviting account yet if they're invited at that address —
+  [MOS-94](https://linear.app/mo-intelligence/issue/MOS-94).
 - **Collaborators** can't see the plan or send invites, and can't delete the
   account. Deleting explains that only the owner can.
 - **Deleting a student profile** permanently removes that student's content.

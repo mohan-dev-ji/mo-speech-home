@@ -126,6 +126,15 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > trusts the browser's user ID and email) and **MOS-91** for M5 (client gates read the stored plan
 > tier, not the effective one).
 
+> **2026-09-29:** **MOS-90** and **MOS-92** are **Done and verified.** Every board read (category,
+> its symbols, list, single symbol), student-view lock, presence and per-profile settings now
+> check the caller's own account, including a host's profiles for invited carers. Sign-up reads
+> the Clerk ID and email from the verified token, invites only activate once Clerk confirms the
+> email, and emails are stored lower-case. Checked as two accounts from the command line and in
+> the owner's Chrome; a fresh sign-up made its own record correctly. Filed **MOS-94** (an invite
+> to someone who already has an account never activates). See the changelog:
+> [2026-09-29-account-isolation](4-builds/changelog/2026-09-29-account-isolation.md).
+
 > **2026-09-29:** verified in the owner's Chrome and against the live dev deployment. Every closed
 > loophole refuses the call, signed out and signed in (Free, Pro and Max). A fresh sign-up is Free. A
 > Stripe test checkout and a plan switch both reach the account through the webhook. The editor's
@@ -205,6 +214,10 @@ Preconditions that are not code:
 - The MVP has 100+ live users and organic signups (see memory: audit before decommissioning any
   shared GCP project). Clerk is shared between the MVP and this build, so the user pool carries
   over, but every shared Google Cloud / Stripe / R2 resource needs an inventory first.
+- **The production Clerk instance needs the "convex" JWT template with `email` and
+  `email_verified` claims** (from phase-39, MOS-90/92), the same as the dev instance already has.
+  Without it, a new user's account stores an empty email and no invite can ever activate. Add this
+  to the MOS-77 inventory.
 - `npx convex export` full snapshot before the DNS change.
 - Convex plan/region review at real traffic (Starter EU today; see `CLAUDE.md`).
 
@@ -249,7 +262,7 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   |---|---|
   | M0 Clear the deck | MOS-43, MOS-42, MOS-38 |
   | M1 Docs truth | MOS-54 features rewrite (from `4-builds/features/_owner-brief.md`) → MOS-55 housekeeping → MOS-56 seed `5-prd/` |
-  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up |
+  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up · MOS-92 account-scoped reads · MOS-94 invite to an existing account never activates |
   | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
   | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
   | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression · MOS-91 client gates use the effective tier |

@@ -121,6 +121,12 @@ not the instructor's. See [FEAT-305](FEAT-305-languages-and-voices.md).
   [FEAT-106](FEAT-106-settings.md).
 - **Two windows.** An instructor can have their own view in one window and a
   student's view in another on the same computer, for example to check a setup.
+- **Only your own students.** Locking or unlocking a student's view, seeing
+  who's viewing it, and changing a student's settings (state flags, grid size,
+  text size) all check that the profile belongs to the caller's account —
+  including a host's profiles for a carer invited to that account. Someone
+  signed into a different account gets nothing for another family's student,
+  the same as if the profile didn't exist.
 
 ## Where it lives
 
