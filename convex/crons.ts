@@ -21,4 +21,16 @@ crons.cron(
   {}
 );
 
+/**
+ * Hourly — delete presence rows from studentViewSessions whose lastSeen
+ * is older than 5 minutes. Read-time gates already skip stale sessions,
+ * so this is housekeeping only.
+ */
+crons.interval(
+  "clean up stale student-view sessions",
+  { hours: 1 },
+  internal.studentViewSessions.cleanupStaleSessions,
+  {}
+);
+
 export default crons;
