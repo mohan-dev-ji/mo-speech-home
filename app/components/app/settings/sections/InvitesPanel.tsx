@@ -109,13 +109,21 @@ export function InvitesPanel({ onOpenPlan }: { onOpenPlan: () => void }) {
         body: JSON.stringify({ email: trimmed }),
       });
       if (!res.ok) {
-        console.warn("Invite email failed to send:", await res.text());
+        // The pending row is saved and listed below, so the owner can remove
+        // it or try again. Don't report success for an email that wasn't sent.
+        console.error("Invite email failed to send:", res.status, await res.text());
+        setError(t("errorEmailNotSent"));
+        return;
       }
       setEmail("");
       setSuccess(t("successInvited"));
     } catch (err: unknown) {
+      // Convex errors arrive wrapped with a stack frame: match with includes().
       const msg = err instanceof Error ? err.message : "";
-      setError(msg === "Already invited" ? t("errorAlreadyInvited") : t("errorGeneric"));
+      if (msg.includes("Already invited")) setError(t("errorAlreadyInvited"));
+      else if (msg.includes("You can't invite yourself")) setError(t("errorInviteSelf"));
+      else if (msg.includes("Only the account owner can invite")) setError(t("errorOwnerOnly"));
+      else setError(t("errorGeneric"));
     } finally {
       setSending(false);
     }

@@ -143,12 +143,14 @@ export const acceptPendingInvite = mutation({
       .first();
     if (!user) return { status: "none" as const };
 
-    const pending = await ctx.db
+    // Several families may have invited the same address; skip any invite on
+    // the caller's own account and take the earliest of the rest.
+    const pendingRows = await ctx.db
       .query("accountMembers")
       .withIndex("by_email_and_status", (q) => q.eq("email", email).eq("status", "pending"))
-      .first();
+      .take(10);
+    const pending = pendingRows.find((m) => m.accountId !== user._id);
     if (!pending) return { status: "none" as const };
-    if (pending.accountId === user._id) return { status: "none" as const };
 
     const alreadyMember = await ctx.db
       .query("accountMembers")

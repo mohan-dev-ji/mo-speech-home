@@ -26,7 +26,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const { isAuthenticated: convexAuthed } = useConvexAuth();
   const hasSynced = useRef(false);
-  const [inviteNotice, setInviteNotice] = useState<"has_students" | null>(null);
+  // The Clerk user a "has_students" invite notice was raised for (MOS-94).
+  // Keyed to the user, so it clears on sign-out without a setState in the
+  // sync effect (react-hooks/set-state-in-effect).
+  const [inviteNoticeFor, setInviteNoticeFor] = useState<string | null>(null);
   const params = useParams();
   const router = useRouter();
   // urlLocale is the locale segment in the current path, e.g. 'en' or 'hi'
@@ -75,16 +78,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         if (result?.wasCreated) {
           track("signed_up", { has_referral_code: false });
         }
-      });
+      }).catch((err) => console.error("createUser failed:", err));
     } else {
       // Returning user — update activity timestamp
       void updateLastActive({});
       // MOS-94: someone who already has an account joins a family they were
       // invited to here (createUser only handles first sign-up). On "joined"
       // the Convex queries re-run and the app shows the family.
+      const clerkUserId = clerkUser.id;
       void acceptPendingInvite({}).then((result) => {
-        if (result.status === "has_students") setInviteNotice("has_students");
-      });
+        if (result.status === "has_students") setInviteNoticeFor(clerkUserId);
+      }).catch((err) => console.error("acceptPendingInvite failed:", err));
     }
   }, [isLoaded, clerkUser, convexAuthed, userRecord]);
 
@@ -200,6 +204,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isCollaborator = membership?.status === "active";
+
+  const inviteNotice =
+    clerkUser && inviteNoticeFor === clerkUser.id ? ("has_students" as const) : null;
 
   const isLoading =
     userRecord === undefined ||

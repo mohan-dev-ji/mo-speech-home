@@ -22,11 +22,13 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const { email: rawEmail } = body as { email?: string };
+  // Trim before the format check so a padded address is normalised, not rejected.
+  const trimmed = typeof rawEmail === "string" ? rawEmail.trim() : "";
 
-  if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
-  const email = rawEmail.trim().toLowerCase();
+  const email = trimmed.toLowerCase();
 
   // Per-request client so the caller's token is never shared across requests.
   const token = await getToken({ template: "convex" });
