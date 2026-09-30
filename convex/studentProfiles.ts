@@ -62,76 +62,50 @@ const DEFAULT_STATE_FLAGS = {
 
 /**
  * Get the active student profile for the current user.
- * Resolution order:
- *   1. users.activeProfileId (if set and valid)
- *   2. First profile found for the account (backwards compat / first-time)
- *   3. Collaborator path: active membership → host account's active profile
+ * Resolution order, all within the caller's resolved account (their own for an
+ * owner, the family's for an active carer):
+ *   1. users.activeProfileId, the caller's own choice, if it belongs to the account
+ *   2. Carers only: the family owner's activeProfileId (the owner's current child)
+ *   3. The first profile on the account
  * Returns null if no profile exists (onboarding needed).
  */
 export const getMyStudentProfile = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return null;
+    const { accountId, user, planUser, role } = resolved;
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user) return null;
-
-    // Instructor path: own account
     if (user.activeProfileId) {
       const active = await ctx.db.get(user.activeProfileId);
-      if (active && active.accountId === user._id) return active;
+      if (active && active.accountId === accountId) return active;
     }
-    const firstOwn = await ctx.db
-      .query("studentProfiles")
-      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
-      .first();
-    if (firstOwn) return firstOwn;
-
-    // Collaborator path: active membership on another account
-    const membership = await ctx.db
-      .query("accountMembers")
-      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", user.clerkUserId))
-      .first();
-    if (!membership || membership.status !== "active") return null;
-
-    const hostUser = await ctx.db.get(membership.accountId);
-    if (!hostUser) return null;
-
-    if (hostUser.activeProfileId) {
-      const hostActive = await ctx.db.get(hostUser.activeProfileId);
-      if (hostActive) return hostActive;
+    if (role === "collaborator" && planUser.activeProfileId) {
+      const hostActive = await ctx.db.get(planUser.activeProfileId);
+      if (hostActive && hostActive.accountId === accountId) return hostActive;
     }
     return await ctx.db
       .query("studentProfiles")
-      .withIndex("by_account_id", (q) => q.eq("accountId", membership.accountId))
+      .withIndex("by_account_id", (q) => q.eq("accountId", accountId))
       .first();
   },
 });
 
 /**
- * Get all student profiles belonging to the current user's own account.
- * Returns [] for collaborators (they don't own profiles).
- * Used by the profile switcher in Settings.
+ * Get all student profiles on the caller's account: their own for an owner,
+ * the family's for an active carer, so a carer can choose which child to work
+ * with (MOS-88). Managing children stays owner-only.
+ * Used by the student switcher.
  */
 export const getMyStudentProfiles = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user) return [];
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) return [];
 
     return await ctx.db
       .query("studentProfiles")
-      .withIndex("by_account_id", (q) => q.eq("accountId", user._id))
+      .withIndex("by_account_id", (q) => q.eq("accountId", resolved.accountId))
       .collect();
   },
 });
@@ -191,8 +165,9 @@ export const createStudentProfile = mutation({
 });
 
 /**
- * Switch the active profile on the current user's account.
- * Verifies the profile belongs to the caller's own account.
+ * Switch the caller's active profile. Verifies the profile is on the caller's
+ * account (the family's, for a carer). Always patches the caller's own users
+ * row: a carer's choice never moves the owner's child (MOS-88).
  */
 export const setActiveProfile = mutation({
   args: {
@@ -209,7 +184,7 @@ export const setActiveProfile = mutation({
     if (!user) throw new Error("User not found");
 
     const profile = await ctx.db.get(args.profileId);
-    if (!profile || profile.accountId !== user._id)
+    if (!profile || !(await callerOwnsAccount(ctx, profile.accountId)))
       throw new Error("Profile not found or not authorised");
 
     await ctx.db.patch(user._id, { activeProfileId: args.profileId });
