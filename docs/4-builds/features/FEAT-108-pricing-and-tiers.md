@@ -9,11 +9,9 @@
 > [What the build still needs](#what-the-build-still-needs) is shipped except
 > **Checkout**, which still runs on plain Stripe Checkout and waits for
 > [MOS-59](https://linear.app/mo-intelligence/issue/MOS-59)'s remaining steps
-> (the Ltd has to exist first). See
-> [MOS-88](https://linear.app/mo-intelligence/issue/MOS-88): a Family invite
-> doesn't currently unlock editing for the invited collaborator, because
-> every gate reads the collaborator's own plan rather than the host's. That
-> gets its own M2 ticket.
+> (the Ltd has to exist first). An invited carer now gets the family's plan
+> ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88), verified
+> 2026-09-30).
 
 - Three plans: **Free**, **Pro** and **Max**
 - **Free:** sign up with an email and use the SymbolStix symbols, tap and play
@@ -134,8 +132,11 @@ Everything happens in Settings → Account & Billing. See
   cards only for now, so a plan starts the moment the card payment succeeds.
   A subscription Stripe reports as unpaid, incomplete or paused stops
   unlocking paid features.
-- **Collaborators** can't see or change the plan. The account owner manages it.
-  See [FEAT-106](FEAT-106-settings.md).
+- **Collaborators** (invited carers) work with the family's plan, whatever
+  their own plan is. If the family is on Max, the carer gets Max features
+  in the family's account. They can't see or change the plan, and can't open
+  a subscription of their own from there. The account owner manages it. See
+  [FEAT-106](FEAT-106-settings.md).
 - **Downgrading and My Images.** A downgraded account's My Images tab is
   locked like the rest of Max, so its existing pictures can't be deleted from
   the app. Only the account owner going back to Max reopens that. The
@@ -144,10 +145,9 @@ Everything happens in Settings → Account & Billing. See
 
 ## What the build still needs
 
-Today's app against the decided model. Every row is shipped (verified 2026-09-29), except **Checkout**, which waits on MOS-59's remaining
+Today's app against the decided model. Every row is shipped (verified 2026-09-29, and the collaborators row 2026-09-30), except **Checkout**, which waits on MOS-59's remaining
 steps (the Ltd has to exist first, see
-[ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)) and the
-collaborators row.
+[ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)).
 
 | Area | Today | Decided |
 |---|---|---|
@@ -157,7 +157,7 @@ collaborators row.
 | Plan tab feature lists | Rewritten from this spec | Shipped |
 | Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Shipped |
 | New-account trial | No trial. Free is free from sign-up | Shipped |
-| Collaborators and the host's plan | Every gate checks the **collaborator's own** plan, so a Family invite doesn't unlock a Max host's editing features for them ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Open. Gets its own M2 ticket |
+| Collaborators and the host's plan | An invited carer works with the **family's** plan, whatever their own plan is ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Shipped (verified 2026-09-30) |
 | Changing plan | Every switch takes effect at once. An upgrade isn't charged until the next renewal, and a downgrade removes the higher plan's features straight away, although the message says "at your next billing date" ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Open. Upgrades charge the difference now; downgrades and monthly/yearly switches wait for the next billing date, as described in [Managing a plan](#managing-a-plan) |
 | Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 

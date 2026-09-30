@@ -66,7 +66,15 @@ Someone invited by email (a parent, carer or teacher) signs up with that same
 email address and is joined to the inviting account automatically, once Clerk
 has confirmed they really control that address (matched whatever the capital
 letters). They skip the welcome window and go straight to the students and
-boards they were invited to share. See [FEAT-106](FEAT-106-settings.md).
+boards they were invited to share.
+
+Someone who **already has an account** doesn't sign up again. They join the
+next time they sign in, at the email address that was invited. The one
+exception is an account that already has students. It stays as it is, and Home
+shows a notice: "You've been invited to join a family on Mo Speech". The notice
+asks the family to invite a different email address, and to sign in with that
+one to join. Only the owner of a family on Max can send invites. See
+[FEAT-106](FEAT-106-settings.md).
 
 ### Coming back
 
@@ -92,6 +100,8 @@ tap. A different voice can be chosen per student in Settings. See
 
 ## Edge cases
 
+- **An owner who has carers but no students** can still accept another
+  family's invite. That's a known edge case.
 - **The welcome can't be skipped.** It has no close button, because the app
   needs a student. It's never shown to invited collaborators.
 - **A name is required.** Pressing Create without one says "Please enter the

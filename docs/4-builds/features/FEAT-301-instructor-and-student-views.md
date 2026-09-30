@@ -52,7 +52,8 @@ in the view switcher, and hands it over.
 The view switcher can **lock** a student's view. While locked, the switcher on
 that device becomes a plain label with a lock, and it can't be opened, so the
 student can't switch back to the instructor view. The instructor unlocks it
-from the view switcher on their own device.
+from the view switcher on their own device. An invited carer can lock and
+unlock a child's view in the same way.
 
 If an instructor sees that a student's view is open somewhere and **not**
 locked, a note tells them ("Student is using their profile") and suggests
@@ -116,9 +117,16 @@ not the instructor's. See [FEAT-305](FEAT-305-languages-and-voices.md).
 - **Editing in a student's view** is off by default, and needs **Allow
   Editing**. Even then, the plan's limits still apply. See
   [FEAT-108](FEAT-108-pricing-and-tiers.md).
-- **Collaborators** (invited carers) use the account's student profiles in the
-  same way, but can't change the plan or send invites. See
-  [FEAT-106](FEAT-106-settings.md).
+- **Collaborators** (invited carers) use the family's student profiles in the
+  same way. They can see all of the family's children and switch between them
+  from the view switcher. Their choice is their own, so it doesn't move the
+  owner's child, and the owner's choice doesn't move theirs. They can't add,
+  delete or change a child's profile, and they can't change the plan or send
+  invites. See [FEAT-106](FEAT-106-settings.md).
+- **Personal and shared settings.** In instructor view, grid size, text size,
+  theme and language belong to each adult, so a carer's choices don't change
+  the owner's. In a student's view, the settings belong to the child and are
+  shared by the family.
 - **Two windows.** An instructor can have their own view in one window and a
   student's view in another on the same computer, for example to check a setup.
 - **Only your own students.** Locking or unlocking a student's view, seeing

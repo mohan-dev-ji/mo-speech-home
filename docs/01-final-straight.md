@@ -143,6 +143,15 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > **Done**; phase-38's plan is in `plans/_done/`. Open in M2: MOS-90, MOS-92, MOS-88, and MOS-59's
 > Ltd steps.
 
+> **2026-09-30:** **MOS-88** and **MOS-94** are **Done and verified.** An invited carer works in the
+> family's account with the family's plan, can lock and unlock student view, and can choose between
+> the family's children. Billing is owner-only: the tab is hidden and all five billing routes refuse
+> anyone else. Only the family owner, on Max, can invite. Someone who already has an account joins on
+> their next sign-in unless their own account has students, in which case Home shows a notice. Checked
+> from the command line and in the owner's Chrome with a real invite to a brand-new email. See the
+> changelog: [2026-09-30-family-access](4-builds/changelog/2026-09-30-family-access.md). Open in M2:
+> MOS-59's Ltd steps.
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop
@@ -218,6 +227,8 @@ Preconditions that are not code:
   `email_verified` claims** (from phase-39, MOS-90/92), the same as the dev instance already has.
   Without it, a new user's account stores an empty email and no invite can ever activate. Add this
   to the MOS-77 inventory.
+- **Check the invite email sender.** In development, Clerk's invite emails landed in spam. Before
+  launch, check that the production sender domain is set up so family invites reach the inbox.
 - `npx convex export` full snapshot before the DNS change.
 - Convex plan/region review at real traffic (Starter EU today; see `CLAUDE.md`).
 

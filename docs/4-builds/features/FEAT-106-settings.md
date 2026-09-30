@@ -81,9 +81,17 @@ the same students, so home and school work from the same boards. A table shows
 each invite, and whether it's **Waiting** or **Accepted**. On other plans, this
 tab explains the feature and offers **Upgrade to Max**.
 
-Someone who has accepted an invite is a **collaborator**. They see only
-Instructor Profile, Data & Privacy and Credits, with a note that the account
-owner handles the plan and invites.
+Only the family's owner, on Max, can invite. A carer can't, and you can't
+invite your own email address. If the invite email can't be sent, the panel
+says so. The invite stays in the table, so it can be removed or tried again.
+
+Someone who has accepted an invite is a **collaborator**. They work inside the
+family's account with the family's plan. They see only Instructor Profile,
+Data & Privacy and Credits, with a note that the account owner handles the
+plan and invites. The Account & Billing tab is hidden for them, and the
+billing actions (checkout, the billing portal, switching, cancelling and
+reactivating a plan) refuse anyone who isn't the owner. Managing students (adding, deleting,
+renaming, language and voice) stays with the owner.
 
 ### Data & Privacy
 
@@ -126,12 +134,20 @@ sentences speak with. See [FEAT-305](FEAT-305-languages-and-voices.md).
 - **Invites are Max.** Other plans see an upgrade message on the Invites tab.
 - **An invite is claimed only by its real owner.** Signing up joins a pending
   invite only when it's the same email address, once Clerk has confirmed the
-  visitor really controls that address, whatever the capital letters. **Known
-  gap:** someone who already has a Mo Speech account isn't added to the
-  inviting account yet if they're invited at that address —
-  [MOS-94](https://linear.app/mo-intelligence/issue/MOS-94).
+  visitor really controls that address, whatever the capital letters.
+- **Someone who already has an account** joins the family the next time they
+  sign in, as long as their own account has no students. If it does, they stay
+  as they are, and Home shows a notice asking the family to invite a different
+  email address. Nothing of theirs is hidden. **Known edge case:** an owner
+  who has carers but no students can still accept another family's invite.
 - **Collaborators** can't see the plan or send invites, and can't delete the
-  account. Deleting explains that only the owner can.
+  account. Deleting explains that only the owner can. They work on the family's
+  boards, so what they add, change or delete is shared with everyone in the
+  family, and there's no undo yet.
+- **Personal and shared settings.** In instructor view, each adult's own grid
+  size, text size, theme and language stay their own, so a carer's choices
+  never change the owner's. A student's view settings belong to the child and
+  are shared by the whole family.
 - **Deleting a student profile** permanently removes that student's content.
 - **Deep links.** Other screens can open Settings on a particular tab. For
   example, the upgrade prompt's **See plans** opens Account & Billing.
