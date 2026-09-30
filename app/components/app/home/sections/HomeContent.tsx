@@ -8,6 +8,7 @@ import { useProfile } from "@/app/contexts/ProfileContext";
 import { useAppState } from "@/app/contexts/AppStateProvider";
 import { useCreateCategory } from "@/app/lib/categories/useCreateCategory";
 import { ResourceLibraryBanner } from "@/app/components/app/home/sections/ResourceLibraryBanner";
+import { InviteNotice } from "@/app/components/app/home/ui/InviteNotice";
 import { HomeNavCards } from "@/app/components/app/home/sections/HomeNavCards";
 import { HomeCreateCards } from "@/app/components/app/home/sections/HomeCreateCards";
 import { CreateCategoryModal } from "@/app/components/app/categories/modals/CreateCategoryModal";
@@ -151,6 +152,8 @@ export function HomeContent() {
 
   return (
     <div className="flex flex-col h-full px-theme-mobile-general py-theme-mobile-general md:px-theme-general md:py-theme-general gap-theme-mobile-gap md:gap-theme-gap overflow-auto">
+      <InviteNotice />
+
       <ResourceLibraryBanner />
 
       <HomeNavCards />

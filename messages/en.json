@@ -303,7 +303,9 @@
     "createSymbol": "Create a Symbol",
     "createCategory": "Create a Category",
     "createList": "Create a List",
-    "createSentence": "Create a Sentence"
+    "createSentence": "Create a Sentence",
+    "inviteHasStudentsTitle": "You've been invited to join a family on Mo Speech",
+    "inviteHasStudentsBody": "This account already has its own students, so it can't join another family. Ask them to invite a different email address, and sign in with that one to join."
   },
   "search": {
     "title": "Search",

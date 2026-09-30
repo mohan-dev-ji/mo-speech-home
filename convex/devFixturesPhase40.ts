@@ -38,6 +38,29 @@ export const phase40Fixtures = internalMutation({
       for await (const p of ctx.db.query("studentProfiles").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
         await ctx.db.delete(p._id); removed++;
       }
+      // createStudentProfile schedules seedDefaultAccount for the probe's own
+      // account, which installs the default modules: remove everything it wrote.
+      for await (const r of ctx.db.query("profileSymbols").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("profileCategories").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("profileLists").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("profilePhrases").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("profileSentences").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("profileFolders").withIndex("by_account_id", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
+      for await (const r of ctx.db.query("imageCredits").withIndex("by_account_and_key", (q) => q.eq("accountId", u._id))) {
+        await ctx.db.delete(r._id); removed++;
+      }
       await ctx.db.delete(u._id); removed++;
     }
     return { removed };

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +16,8 @@ type AppStateContextValue = {
   subscription: UserSubscription;
   isCollaborator: boolean;
   isLoading: boolean;
+  /** Set when a pending invite couldn't be accepted because this account has its own students (MOS-94). */
+  inviteNotice: "has_students" | null;
 };
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
@@ -24,6 +26,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const { isAuthenticated: convexAuthed } = useConvexAuth();
   const hasSynced = useRef(false);
+  const [inviteNotice, setInviteNotice] = useState<"has_students" | null>(null);
   const params = useParams();
   const router = useRouter();
   // urlLocale is the locale segment in the current path, e.g. 'en' or 'hi'
@@ -39,6 +42,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const createUser = useMutation(api.users.createUser);
   const updateLastActive = useMutation(api.users.updateLastActive);
+  const acceptPendingInvite = useMutation(api.accountMembers.acceptPendingInvite);
 
   // ─── User sync — runs once when Convex resolves the user record ───────────────
 
@@ -75,6 +79,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     } else {
       // Returning user — update activity timestamp
       void updateLastActive({});
+      // MOS-94: someone who already has an account joins a family they were
+      // invited to here (createUser only handles first sign-up). On "joined"
+      // the Convex queries re-run and the app shows the family.
+      void acceptPendingInvite({}).then((result) => {
+        if (result.status === "has_students") setInviteNotice("has_students");
+      });
     }
   }, [isLoaded, clerkUser, convexAuthed, userRecord]);
 
@@ -197,7 +207,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     accessData === null;
 
   return (
-    <AppStateContext.Provider value={{ userRecord, subscription, isCollaborator, isLoading }}>
+    <AppStateContext.Provider value={{ userRecord, subscription, isCollaborator, isLoading, inviteNotice }}>
       {children}
     </AppStateContext.Provider>
   );
