@@ -154,16 +154,16 @@ export const record = mutation({
     prompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    // My Images is Max (FEAT-108). Gated on the CALLER's own subscription —
-    // `user` here is the signed-in user even for a collaborator — because
-    // that is what every other gate reads: `users.getMyAccess` (the
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    // My Images is Max (FEAT-108). Gated on the account's plan: `planUser` is
+    // the family owner for an active carer, the caller otherwise (MOS-88).
+    // That is what every other gate reads: `users.getMyAccess` (the
     // upload-asset and AI-generate routes, and the client tabs) and
-    // `requireProTier` all derive tier from the caller's row. Gating on the
-    // host instead would let this disagree with the route that produced the
-    // key. Reads (`listMine`, `usageCount`) and `deleteIfUnused` stay open:
-    // a downgraded account keeps its pictures on its boards.
-    if (effectiveUserTier(user) !== "max") {
+    // `requireProTier` all derive the plan from the account's owner, so this
+    // agrees with the route that produced the key. Reads (`listMine`,
+    // `usageCount`) and `deleteIfUnused` stay open: a downgraded account keeps
+    // its pictures on its boards.
+    if (effectiveUserTier(planUser) !== "max") {
       throw new ConvexError({
         code: "TIER_REQUIRED",
         required: "max",

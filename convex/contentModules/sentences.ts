@@ -43,7 +43,7 @@ function logicalSentenceCount(
 export const installSentenceModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
     const module = await getModuleBySlug(ctx, "sentences", slug);
     if (!module) {
       throw new ConvexError({
@@ -63,7 +63,7 @@ export const installSentenceModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      userTier: effectiveUserTier(user),
+      userTier: effectiveUserTier(planUser),
       now: Date.now(),
     });
     if (await isModuleInstalled(ctx, accountId, slug)) {

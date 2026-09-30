@@ -3,14 +3,26 @@ import type { QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 
 /**
- * Resolve the accountId of the currently authenticated caller.
- * - Owners: their own users._id
- * - Collaborators: the host account's _id, via accountMembers
+ * Resolve the account the currently authenticated caller works in.
+ * - Owners: their own users._id; `planUser` is their own row, `role` "owner".
+ * - Active collaborators (carers): the host account's _id, via accountMembers;
+ *   `planUser` is the host owner's row, so every plan gate reads the family's
+ *   plan, not the carer's own (MOS-88). `role` is "collaborator".
+ * - A collaborator whose host account no longer exists falls back to being the
+ *   owner of their own account rather than failing.
+ * `user` is always the caller's own row: use it for per-person settings, and
+ * `planUser` for anything the plan decides.
  * Returns null when the caller is unauthenticated or has no record.
  */
 export async function resolveCallerAccountId(
   ctx: QueryCtx
-): Promise<{ accountId: Id<"users">; user: Doc<"users"> } | null> {
+): Promise<{
+  accountId: Id<"users">;
+  user: Doc<"users">;
+  /** Whose plan applies: the family owner for an active carer (MOS-88), else `user`. */
+  planUser: Doc<"users">;
+  role: "owner" | "collaborator";
+} | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
 
@@ -20,27 +32,36 @@ export async function resolveCallerAccountId(
     .first();
   if (!user) return null;
 
-  // Owner path
-  // (default — collaborator path can override below)
-  let accountId: Id<"users"> = user._id;
-
   const membership = await ctx.db
     .query("accountMembers")
     .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", user.clerkUserId))
     .first();
   if (membership && membership.status === "active") {
-    accountId = membership.accountId;
+    const host = await ctx.db.get(membership.accountId);
+    if (host) {
+      return { accountId: membership.accountId, user, planUser: host, role: "collaborator" };
+    }
+    // The host deleted their account: the carer is left as the owner of
+    // their own account (fall through).
   }
 
-  return { accountId, user };
+  // Owner path
+  return { accountId: user._id, user, planUser: user, role: "owner" };
 }
 
 /**
  * Throwing variant for mutations — fails loudly when there's no caller account.
+ * Same shape as resolveCallerAccountId: gate plan checks on `planUser`.
  */
 export async function requireCallerAccountId(
   ctx: QueryCtx
-): Promise<{ accountId: Id<"users">; user: Doc<"users"> }> {
+): Promise<{
+  accountId: Id<"users">;
+  user: Doc<"users">;
+  /** Whose plan applies: the family owner for an active carer (MOS-88), else `user`. */
+  planUser: Doc<"users">;
+  role: "owner" | "collaborator";
+}> {
   const result = await resolveCallerAccountId(ctx);
   if (!result) throw new Error("Unauthenticated");
   return result;

@@ -178,8 +178,8 @@ export const createProfileSentence = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     // The client picks a folder id off-screen from two tree-bound pickers now
     // living on one page (Home). An id from the wrong tree (e.g. a lists-tree
@@ -233,8 +233,8 @@ export const createSentenceVariant = mutation({
     text: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const source = await ctx.db.get(args.sourceSentenceId);
     if (!source || source.accountId !== accountId) throw new Error("Not authorised");
 
@@ -291,8 +291,8 @@ export const updateProfileSentenceName = mutation({
     name: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, { name: args.name, updatedAt: Date.now() });
@@ -315,8 +315,8 @@ export const updateProfileSentenceSlots = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
@@ -335,8 +335,8 @@ export const updateProfileSentenceUnits = mutation({
     units: v.array(compositionUnitSchema),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     await ctx.db.patch(args.profileSentenceId, {
@@ -361,8 +361,8 @@ export const updateProfileSentenceAudio = mutation({
     audioPath: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
@@ -378,8 +378,8 @@ export const deleteProfileSentence = mutation({
     profileSentenceId: v.id("profileSentences"),
   },
   handler: async (ctx, args): Promise<string[]> => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const sentence = await ctx.db.get(args.profileSentenceId);
     if (!sentence || sentence.accountId !== accountId) throw new Error("Not authorised");
     // A personal key can be shared across tables (e.g. a category symbol's
@@ -401,8 +401,8 @@ export const deleteProfileSentence = mutation({
 export const deleteSentenceGroup = mutation({
   args: { profileSentenceId: v.id("profileSentences") },
   handler: async (ctx, args): Promise<string[]> => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const row = await ctx.db.get(args.profileSentenceId);
     if (!row || row.accountId !== accountId) throw new Error("Not authorised");
     const groupId = variantGroupIdOf(row);
@@ -425,8 +425,8 @@ export const reorderProfileSentences = mutation({
     orderedIds: v.array(v.id("profileSentences")),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
       const sentence = await ctx.db.get(args.orderedIds[i]);

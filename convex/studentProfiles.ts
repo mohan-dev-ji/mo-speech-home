@@ -1,7 +1,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { callerOwnsAccount, requireCallerIsAdmin } from "./lib/account";
+import { callerOwnsAccount, requireCallerIsAdmin, resolveCallerAccountId } from "./lib/account";
 import { assertLanguageAllowed } from "./lib/access";
 import { assertThemeSelectable } from "./lib/themes";
 
@@ -389,11 +389,11 @@ export const updateStudentProfile = mutation({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) throw new Error("Profile not found");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .first();
-    if (!user || profile.accountId !== user._id) throw new Error("Not authorised");
+    // Owner-only: carers don't manage student profiles, so this stays on the
+    // caller's own row, not the account they resolve to.
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved || profile.accountId !== resolved.user._id) throw new Error("Not authorised");
+    const { user, planUser } = resolved;
 
     // Language tier gate (ADR-011 §3): on Free, a student may not set its own
     // language different from the (single) account language — that's the gated
@@ -407,8 +407,10 @@ export const updateStudentProfile = mutation({
     }
 
     // Theme tier/visibility gate — backend net for the per-profile picker.
+    // Gated on the account's plan (`planUser`, MOS-88); the owner-only check
+    // above means that is the caller's own row today.
     if (args.themeSlug !== undefined) {
-      await assertThemeSelectable(ctx, args.themeSlug, user);
+      await assertThemeSelectable(ctx, args.themeSlug, planUser);
     }
 
     const { profileId, voiceId, ...updates } = args;

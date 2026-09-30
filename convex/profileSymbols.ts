@@ -102,8 +102,8 @@ export const createProfileSymbol = mutation({
     slot: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const category = await ctx.db.get(args.profileCategoryId);
     if (!category) throw new Error("Category not found");
@@ -158,8 +158,8 @@ export const moveProfileSymbolToSlot = mutation({
     slot: v.number(),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const sym = await ctx.db.get(args.profileSymbolId);
     if (!sym || sym.accountId !== accountId) throw new Error("Symbol not found or not authorised");
@@ -188,8 +188,8 @@ export const reorderProfileSymbols = mutation({
     orderedIds: v.array(v.id("profileSymbols")),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const category = await ctx.db.get(args.profileCategoryId);
     if (!category || category.accountId !== accountId)
@@ -342,8 +342,8 @@ export const deleteProfileSymbol = mutation({
     profileSymbolId: v.id("profileSymbols"),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const ps = await ctx.db.get(args.profileSymbolId);
     if (!ps) throw new Error("Symbol not found");
@@ -367,8 +367,8 @@ export const updateProfileSymbol = mutation({
     pinnedLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const ps = await ctx.db.get(args.profileSymbolId);
     if (!ps) throw new Error("Symbol not found");

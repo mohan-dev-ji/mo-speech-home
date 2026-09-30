@@ -41,8 +41,12 @@ export const getMyUser = query({
 });
 
 /**
- * Returns subscription access info for the current user.
+ * Returns subscription access info for the account the caller is working in.
  * Used by the useSubscription hook — derives tier from plan, never reads stored tier.
+ * The plan fields (tier, status, hasFullAccess, plan, subscriptionEndsAt,
+ * customAccess) describe that account: for an active carer they are the
+ * family owner's plan, not the carer's own (MOS-88). `role` says whether the
+ * caller is the account's "owner" or a "collaborator" (carer).
  */
 export const getMyAccess = query({
   args: {},
@@ -57,10 +61,11 @@ export const getMyAccess = query({
     // deleted (nothing would be looking under the collaborator's id either).
     const resolved = await resolveCallerAccountId(ctx);
     if (!resolved) return null;
-    const { accountId, user } = resolved;
+    // `planUser` is the family owner for an active carer, else the caller.
+    const { accountId, planUser, role } = resolved;
 
     const { status, subscriptionEndsAt, plan, customAccess } =
-      user.subscription;
+      planUser.subscription;
     const now = Date.now();
 
     const planTier = tierFromPlan(plan);
@@ -92,6 +97,7 @@ export const getMyAccess = query({
 
     return {
       accountId,
+      role,
       tier,
       status,
       hasFullAccess,
@@ -537,12 +543,14 @@ export const setMyThemeSlug = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
-    const user = await ctx.db
-      .query("users").withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject)).first();
-    if (!user) throw new Error("User not found");
-    // Backend net: slug must exist, be published, and be within the caller's
-    // tier (the client hides gated themes — this catches direct/stale calls).
-    await assertThemeSelectable(ctx, args.themeSlug, user);
+    const resolved = await resolveCallerAccountId(ctx);
+    if (!resolved) throw new Error("User not found");
+    const { user, planUser } = resolved;
+    // Backend net: slug must exist, be published, and be within the plan of
+    // the account being worked in (`planUser`: the family owner for a carer,
+    // MOS-88). The client hides gated themes — this catches direct/stale calls.
+    // The slug is still saved on the caller's own row.
+    await assertThemeSelectable(ctx, args.themeSlug, planUser);
     await ctx.db.patch(user._id, { themeSlug: args.themeSlug });
   },
 });

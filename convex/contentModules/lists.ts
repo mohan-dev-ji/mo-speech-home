@@ -27,7 +27,7 @@ const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 export const installListModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
     const module = await getModuleBySlug(ctx, "lists", slug);
     if (!module) {
       throw new ConvexError({
@@ -47,7 +47,7 @@ export const installListModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      userTier: effectiveUserTier(user),
+      userTier: effectiveUserTier(planUser),
       now: Date.now(),
     });
     if (await isModuleInstalled(ctx, accountId, slug)) {

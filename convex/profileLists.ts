@@ -82,8 +82,8 @@ export const createProfileList = mutation({
     authoredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     // The client picks a folder id off-screen from two tree-bound pickers now
     // living on one page (Home). An id from the wrong tree (e.g. a
@@ -125,8 +125,8 @@ export const updateProfileListName = mutation({
     name: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -159,8 +159,8 @@ export const updateProfileListItems = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -175,8 +175,8 @@ export const addItemFromSymbol = mutation({
     insertAtIndex: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const sym = await ctx.db.get(args.profileSymbolId);
     if (!sym) throw new Error("profileSymbol not found");
@@ -267,8 +267,8 @@ export const deleteProfileList = mutation({
     profileListId: v.id("profileLists"),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
 
@@ -279,8 +279,8 @@ export const deleteProfileList = mutation({
 export const revertProfileListLanguage = mutation({
   args: { profileListId: v.id("profileLists"), language: v.string() },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const list = await ctx.db.get(args.profileListId);
     if (!list || list.accountId !== accountId) throw new Error("Not authorised");
     // ADR-019: never strip the origin language — reverting the master would
@@ -308,8 +308,8 @@ export const reorderProfileLists = mutation({
     orderedIds: v.array(v.id("profileLists")),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
       const list = await ctx.db.get(args.orderedIds[i]);

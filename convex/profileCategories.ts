@@ -93,13 +93,15 @@ export const seedDefaultAccount = internalMutation({
 /**
  * Re-seed default categories for an account.
  * Wipes any existing profileCategories + profileSymbols on the account first.
- * Dev/admin use only.
+ * Internal (MOS-88): it wipes an account's boards, so it must never be public.
+ * Once carers get the family's plan, a public version would let a carer wipe
+ * the family's boards. Dev/admin use only, from the CLI.
  */
-export const reseedAccount = mutation({
+export const reseedAccount = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const existingSymbols = await ctx.db
       .query("profileSymbols")
@@ -365,8 +367,8 @@ export const createProfileCategory = mutation({
     authoredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const last = await ctx.db
       .query("profileCategories")
@@ -431,8 +433,8 @@ export const addProfileSymbols = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const category = await ctx.db.get(args.profileCategoryId);
     if (!category) throw new Error("Category not found");
@@ -478,8 +480,8 @@ export const reorderCategories = mutation({
     orderedIds: v.array(v.id("profileCategories")),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const now = Date.now();
     for (let i = 0; i < args.orderedIds.length; i++) {
@@ -501,8 +503,8 @@ export const updateCategoryMeta = mutation({
     imagePath: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");
@@ -522,8 +524,8 @@ export const updateCategoryMeta = mutation({
 export const deleteCategory = mutation({
   args: { profileCategoryId: v.id("profileCategories") },
   handler: async (ctx, args) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
-    requireProTier(user);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
+    requireProTier(planUser);
 
     const cat = await ctx.db.get(args.profileCategoryId);
     if (!cat) throw new Error("Category not found");

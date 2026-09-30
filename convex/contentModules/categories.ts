@@ -37,7 +37,7 @@ const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 export const installCategoryModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
 
     const module = await getModuleBySlug(ctx, "categories", slug);
     if (!module) {
@@ -59,7 +59,7 @@ export const installCategoryModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      userTier: effectiveUserTier(user),
+      userTier: effectiveUserTier(planUser),
       now: Date.now(),
     });
 

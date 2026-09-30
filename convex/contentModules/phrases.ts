@@ -29,7 +29,7 @@ const TIER = v.union(v.literal("free"), v.literal("pro"), v.literal("max"));
 export const installPhraseModule = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const { accountId, user } = await requireCallerAccountId(ctx);
+    const { accountId, planUser } = await requireCallerAccountId(ctx);
     const module = await getModuleBySlug(ctx, "phrases", slug);
     if (!module) {
       throw new ConvexError({
@@ -49,7 +49,7 @@ export const installPhraseModule = mutation({
               expiresAt: module.expiresAt,
               tierOverride: module.tierOverride,
             },
-      userTier: effectiveUserTier(user),
+      userTier: effectiveUserTier(planUser),
       now: Date.now(),
     });
     if (await isModuleInstalled(ctx, accountId, slug)) {
