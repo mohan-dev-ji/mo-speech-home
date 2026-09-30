@@ -490,6 +490,81 @@ export const acceptPendingInvite = mutation({
 
 ---
 
+## Task 3b: Carers can choose which child to work with (MOS-88)
+
+Added 2026-09-30 after the browser test. A carer's student switcher is empty
+(`getMyStudentProfiles` lists by the caller's own `user._id`, so it returns `[]` for a carer).
+`getMyStudentProfile` gives a carer whichever child the **owner** last selected, so when the owner
+switches child, the carer's screen switches too. Owner decision: carers can see and switch
+between the family's children. Managing children (create, delete, rename, language, voice) stays
+owner-only, and the Student Profiles settings tab stays hidden.
+
+**Files:**
+- Modify: `convex/studentProfiles.ts` (`getMyStudentProfiles`, `getMyStudentProfile`, `setActiveProfile`)
+
+**Interfaces:**
+- Consumes: `resolveCallerAccountId(ctx)` returns `{ accountId, user, planUser, role }`, and
+  `callerOwnsAccount(ctx, accountId)` (`convex/lib/account.ts`).
+- The client (`ProfileContext.tsx:165-181`, `BreadcrumbViewModeDropdown.tsx`) already reads
+  these three functions, so no client change is needed.
+
+**Fixtures:** owner C (the family) is subject `user_3Jzw6rc4xEnze31jmBwKGW9QkYU`, users `_id`
+`j57bvzrhe81eap0b73kk65tdw58fah5x`, student `kh7082zxvdrb7pe7jkn0kjga7n8faw8c` ("s1"). The
+real carer is subject `user_3K2r1cfBKvEvZcj1DAd8N3Neib0`, users `_id`
+`j571dsrsra33kxkz6hx3jjw5z18fdr54`, and is an active member of C.
+
+- [ ] **Step 1: A second child to switch between.** As C, create a test student:
+  `studentProfiles:createStudentProfile` (read its args) with the name `Second child (test)`,
+  `--identity '{"subject":"user_3Jzw6rc4xEnze31jmBwKGW9QkYU"}'`. Note its `_id`. Creating a
+  student makes it C's active profile, so read C's `activeProfileId` first and put it back at
+  the end (step 5).
+
+- [ ] **Step 2: Red.** As the carer (`--identity '{"subject":"user_3K2r1cfBKvEvZcj1DAd8N3Neib0"}'`):
+  `getMyStudentProfiles` gives `[]`, and `setActiveProfile` on either of C's children gives "Profile
+  not found or not authorised".
+
+- [ ] **Step 3: Implement.**
+  - `getMyStudentProfiles`: resolve with `resolveCallerAccountId`. Return `[]` if that's null.
+    Otherwise list `studentProfiles` by `accountId` (the family's, for a carer). An owner's result
+    is unchanged.
+  - `getMyStudentProfile`: resolve with `resolveCallerAccountId`, then return the first of:
+    1. `user.activeProfileId` (the caller's own choice), if that profile's `accountId` equals the
+       resolved `accountId`
+    2. for a carer only, `planUser.activeProfileId` (the family owner's current child), if that
+       profile belongs to `accountId`
+    3. the first profile on `accountId`, or `null`
+
+    For an owner, 1 and 3 are exactly today's owner path, so check the owner's result is
+    unchanged.
+  - `setActiveProfile`: allow any profile where `callerOwnsAccount(ctx, profile.accountId)` is
+    true, and still patch the **caller's own** `users` row (`user._id`). A carer's choice never
+    moves the owner's child, and the owner's choice never moves the carer's once the carer has
+    chosen. Keep the error text.
+
+  Don't touch `createStudentProfile`, `deleteStudentProfile`, `updateStudentProfile` or
+  `cleanupDeprecatedFlags`: they stay owner-only.
+
+- [ ] **Step 4: Green.**
+  - As the carer, `getMyStudentProfiles` lists both of C's children.
+  - As the carer, `setActiveProfile` on `Second child (test)`, then `getMyStudentProfile`, gives
+    that child.
+  - As C, `getMyStudentProfile` still gives C's own choice, not the carer's.
+  - As the carer, `setActiveProfile` on `s1` gives `s1`.
+  - As account B (read only, `--identity '{"subject":"user_3FRyegzhjxRy5uokPusWO4wcytY"}'`),
+    `getMyStudentProfiles` gives B's own 2 students, unchanged.
+  - As the carer, `setActiveProfile` on B's student `kh79knp2mjw7v4cdecn5aayyps89nb9n` still gives
+    "not authorised".
+
+- [ ] **Step 5: Restore.** As C, delete `Second child (test)` with
+  `studentProfiles:deleteStudentProfile` (read its args). Put C's `activeProfileId` back to what it
+  was in step 1 with `setActiveProfile` as C. Set the carer's active child back to `s1`. Check C
+  has exactly its one original student.
+
+- [ ] **Step 6: Types, lint, commit.** Both `tsc` runs clean, lint shows no new problems.
+  `fix(invites): carers can choose which of the family's children to work with (MOS-88)`
+
+---
+
 ## Task 4: Browser check, clean-up and docs (controller)
 
 - [ ] **Clean-up.** `npx convex run devFixturesPhase40:phase40Fixtures '{"action":"cleanup"}'`,
