@@ -19,7 +19,11 @@ async function assertProfileOwnedByCaller(
 
   const profile = await ctx.db.get(profileId);
   if (!profile) throw new Error("Profile not found");
-  if (profile.accountId !== user._id) throw new Error("Not authorized for this profile");
+  // Shared account rule (MOS-88): the owner and an active carer on the
+  // family's account may lock/unlock its students.
+  if (!(await callerOwnsAccount(ctx, profile.accountId))) {
+    throw new Error("Not authorized for this profile");
+  }
 
   return profile;
 }

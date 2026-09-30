@@ -393,7 +393,7 @@ export const updateStudentProfile = mutation({
     // caller's own row, not the account they resolve to.
     const resolved = await resolveCallerAccountId(ctx);
     if (!resolved || profile.accountId !== resolved.user._id) throw new Error("Not authorised");
-    const { user, planUser } = resolved;
+    const { user } = resolved;
 
     // Language tier gate (ADR-011 §3): on Free, a student may not set its own
     // language different from the (single) account language — that's the gated
@@ -407,10 +407,12 @@ export const updateStudentProfile = mutation({
     }
 
     // Theme tier/visibility gate — backend net for the per-profile picker.
-    // Gated on the account's plan (`planUser`, MOS-88); the owner-only check
-    // above means that is the caller's own row today.
+    // This mutation is owner-only (the check above), so the profile's plan is
+    // the caller's own row: use `user`, not `planUser`. A carer's `planUser` is
+    // the family owner's row, and a carer who still owns profiles in their old
+    // account must not get the family's themes on them (MOS-88).
     if (args.themeSlug !== undefined) {
-      await assertThemeSelectable(ctx, args.themeSlug, planUser);
+      await assertThemeSelectable(ctx, args.themeSlug, user);
     }
 
     const { profileId, voiceId, ...updates } = args;

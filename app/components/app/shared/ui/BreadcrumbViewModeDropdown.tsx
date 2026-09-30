@@ -154,11 +154,20 @@ export function BreadcrumbViewModeDropdown() {
                   profileId={p._id}
                   onSelect={() => selectStudentProfile(p._id)}
                   onLock={async () => {
-                    await lockMutation({ profileId: p._id });
-                    setOpen(false);
+                    try {
+                      await lockMutation({ profileId: p._id });
+                      setOpen(false);
+                    } catch (err) {
+                      // Leave the menu and lock state as they were.
+                      console.error("Failed to lock student view", err);
+                    }
                   }}
                   onUnlock={async () => {
-                    await unlockMutation({ profileId: p._id });
+                    try {
+                      await unlockMutation({ profileId: p._id });
+                    } catch (err) {
+                      console.error("Failed to unlock student view", err);
+                    }
                   }}
                   lockLabel={t("lockStudentView")}
                   unlockLabel={t("unlockStudentView")}
