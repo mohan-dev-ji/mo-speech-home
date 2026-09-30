@@ -33,7 +33,6 @@ import type * as data_sentences__index from "../data/sentences/_index.js";
 import type * as data_starter_backups_index from "../data/starter_backups/index.js";
 import type * as data_themes__index from "../data/themes/_index.js";
 import type * as data_themes_types from "../data/themes/types.js";
-import type * as devFixturesPhase40 from "../devFixturesPhase40.js";
 import type * as dropbar from "../dropbar.js";
 import type * as featureQuota from "../featureQuota.js";
 import type * as imageCache from "../imageCache.js";
@@ -104,7 +103,6 @@ declare const fullApi: ApiFromModules<{
   "data/starter_backups/index": typeof data_starter_backups_index;
   "data/themes/_index": typeof data_themes__index;
   "data/themes/types": typeof data_themes_types;
-  devFixturesPhase40: typeof devFixturesPhase40;
   dropbar: typeof dropbar;
   featureQuota: typeof featureQuota;
   imageCache: typeof imageCache;
