@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { serverSecret } from "@/lib/convexServer";
 import { requireBillingOwner } from "@/lib/billingOwner";
 import { stripeErrorResponse } from "@/lib/stripeErrors";
+import { syncSubscriptionQuietly } from "@/lib/subscriptionSync";
 
 export const dynamic = "force-dynamic";
 
@@ -22,14 +23,14 @@ export async function POST() {
     clerkUserId: userId,
     serverSecret: serverSecret(),
   });
-  if (!user?.subscription.stripeSubscriptionId) {
+  const subscriptionId = user?.subscription.stripeSubscriptionId;
+  if (!user || !subscriptionId) {
     return NextResponse.json({ error: "No subscription to reactivate" }, { status: 400 });
   }
 
   try {
-    await stripe.subscriptions.update(user.subscription.stripeSubscriptionId, {
-      cancel_at_period_end: false,
-    });
+    await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false });
+    await syncSubscriptionQuietly(user._id, subscriptionId);
 
     return NextResponse.json({ success: true });
   } catch (err) {

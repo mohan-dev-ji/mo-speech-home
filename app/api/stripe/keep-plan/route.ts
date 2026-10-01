@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+/** Undo a plan change booked for the next billing date (MOS-93). */
 export async function POST() {
   const { userId, getToken } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,15 +31,11 @@ export async function POST() {
   }
 
   try {
-    // Stripe refuses to cancel while a plan change is booked, and cancelling
-    // replaces that change anyway.
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     await releaseScheduleIfAny(subscription);
-    await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
     await syncSubscriptionQuietly(user._id, subscriptionId);
-
     return NextResponse.json({ success: true });
   } catch (err) {
-    return stripeErrorResponse("cancel", err);
+    return stripeErrorResponse("keep-plan", err);
   }
 }

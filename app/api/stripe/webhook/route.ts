@@ -4,53 +4,14 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { trackServer, flushAnalytics } from "@/lib/analytics-server";
 import { serverSecret } from "@/lib/convexServer";
+import { classifyPlanChange } from "@/lib/planChange";
+import { planIdFromPriceId } from "@/lib/subscriptionState";
+import { syncSubscription } from "@/lib/subscriptionSync";
 import type Stripe from "stripe";
-import type { SubscriptionPlanId } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
-// Map Stripe price ID to full plan ID (encodes tier + billing interval).
-// An unknown price returns null and callers leave the stored plan untouched,
-// so a misconfigured price can never silently grant or downgrade a tier.
-function planIdFromPriceId(priceId: string): SubscriptionPlanId | null {
-  if (priceId === process.env.STRIPE_PRO_MONTHLY_PRICE_ID) return "pro_monthly";
-  if (priceId === process.env.STRIPE_PRO_YEARLY_PRICE_ID) return "pro_yearly";
-  if (priceId === process.env.STRIPE_MAX_MONTHLY_PRICE_ID) return "max_monthly";
-  if (priceId === process.env.STRIPE_MAX_YEARLY_PRICE_ID) return "max_yearly";
-  console.error("[webhook] unknown price", priceId);
-  return null;
-}
-
-type StoredStatus = "active" | "cancelled" | "past_due" | "expired";
-
-// Map a Stripe subscription onto our stored status. A scheduled cancellation
-// stays usable until period end ("cancelled" + subscriptionEndsAt); anything
-// that isn't paid-up or retrying payment is "expired" so it never unlocks.
-function statusFromSubscription(sub: Stripe.Subscription): StoredStatus {
-  if (sub.cancel_at_period_end) return "cancelled";
-  switch (sub.status) {
-    case "active":
-    case "trialing":
-      return "active";
-    case "past_due":
-    case "unpaid":
-      return "past_due";
-    case "incomplete":
-    case "incomplete_expired":
-    case "canceled":
-    case "paused":
-      return "expired";
-  }
-}
-
-// Rank tier for upgrade/downgrade comparison. Higher = more access.
-function tierRank(plan: SubscriptionPlanId): number {
-  if (plan.startsWith("max")) return 2;
-  if (plan.startsWith("pro")) return 1;
-  return 0;
-}
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -132,20 +93,13 @@ export async function POST(request: Request) {
         });
         if (!user) break;
 
-        const priceId = sub.items.data[0]?.price.id ?? "";
-        const newPlan = planIdFromPriceId(priceId);
         const oldPlan = user.subscription.plan;
-        const status = statusFromSubscription(sub);
-
-        await convex.mutation(api.users.updateSubscription, {
-          userId: user._id,
-          status,
-          ...(newPlan ? { plan: newPlan } : {}),
-          subscriptionEndsAt: sub.cancel_at_period_end
-            ? (sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0) * 1000
-            : undefined,
-          serverSecret: serverSecret(),
-        });
+        // Store what Stripe says now, not what this event carried: events can
+        // arrive out of order, and a change booked for the next billing date
+        // lives on the schedule, which the payload doesn't include. A booked
+        // change or an unpaid upgrade leaves the plan where it is (MOS-93).
+        const state = await syncSubscription(user._id, sub.id);
+        const newPlan = state.plan;
 
         // Decode the diff into a meaningful analytics event. Stripe sends the
         // change in `event.data.previous_attributes`; we use the user's prior
@@ -163,13 +117,13 @@ export async function POST(request: Request) {
         } else if (wasCancelled) {
           trackServer(user.clerkUserId, "cancelled", { plan: trackedPlan });
         } else if (newPlan && oldPlan && oldPlan !== newPlan) {
-          const isUpgrade = tierRank(newPlan) > tierRank(oldPlan as SubscriptionPlanId);
+          const isUpgrade = classifyPlanChange(oldPlan, newPlan) === "upgrade";
           trackServer(user.clerkUserId, isUpgrade ? "upgraded" : "downgraded", {
             from_plan: oldPlan,
             to_plan: newPlan,
           });
         }
-        // Otherwise: billing-cycle anchor change, etc. — no event.
+        // Otherwise: a booked change, billing-cycle anchor change, etc. — no event.
         break;
       }
 
@@ -187,6 +141,8 @@ export async function POST(request: Request) {
         await convex.mutation(api.users.updateSubscription, {
           userId: user._id,
           status: "expired",
+          pendingPlan: null,
+          pendingPlanAt: null,
           serverSecret: serverSecret(),
         });
 
@@ -211,11 +167,18 @@ export async function POST(request: Request) {
         });
         if (!user) break;
 
-        await convex.mutation(api.users.updateSubscription, {
-          userId: user._id,
-          status: "past_due",
-          serverSecret: serverSecret(),
-        });
+        // A failed renewal makes the subscription past due. A failed upgrade
+        // charge doesn't: Stripe keeps the subscription active on the plan
+        // already paid for (MOS-93). So store what the subscription says.
+        if (user.subscription.stripeSubscriptionId) {
+          await syncSubscription(user._id, user.subscription.stripeSubscriptionId);
+        } else {
+          await convex.mutation(api.users.updateSubscription, {
+            userId: user._id,
+            status: "past_due",
+            serverSecret: serverSecret(),
+          });
+        }
 
         trackServer(user.clerkUserId, "payment_failed", {
           plan: user.subscription.plan ?? null,

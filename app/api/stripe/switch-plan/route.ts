@@ -6,6 +6,11 @@ import { api } from "@/convex/_generated/api";
 import { serverSecret } from "@/lib/convexServer";
 import { requireBillingOwner } from "@/lib/billingOwner";
 import { stripeErrorResponse } from "@/lib/stripeErrors";
+import { classifyPlanChange } from "@/lib/planChange";
+import { planIdFromPriceId } from "@/lib/subscriptionState";
+import { upgradeNow, scheduleChangeAtPeriodEnd } from "@/lib/stripePlanChange";
+import { syncSubscriptionQuietly } from "@/lib/subscriptionSync";
+import type { SubscriptionPlanId } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -37,29 +42,55 @@ export async function POST(request: Request) {
     clerkUserId: userId,
     serverSecret: serverSecret(),
   });
-  if (!user?.subscription.stripeSubscriptionId) {
+  const subscriptionId = user?.subscription.stripeSubscriptionId;
+  if (!user || !subscriptionId) {
     return NextResponse.json({ error: "No active subscription found" }, { status: 400 });
   }
 
   try {
     const priceId = getPriceId(tier, plan);
-    const subscription = await stripe.subscriptions.retrieve(user.subscription.stripeSubscriptionId);
-    const currentItemId = subscription.items.data[0]?.id;
+    const targetPlan: SubscriptionPlanId = `${tier}_${plan}`;
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-    if (!currentItemId) {
-      return NextResponse.json({ error: "No subscription item found" }, { status: 400 });
+    // The price Stripe is billing decides what counts as an upgrade. The
+    // stored plan covers a subscription on an archived price.
+    const currentPlan =
+      planIdFromPriceId(subscription.items.data[0]?.price.id ?? "") ??
+      user.subscription.plan ??
+      null;
+    if (!currentPlan) {
+      console.error("[stripe:switch-plan] can't tell the current plan", { subscriptionId });
+      return NextResponse.json({ error: "billing_misconfigured" }, { status: 500 });
     }
 
-    await stripe.subscriptions.update(user.subscription.stripeSubscriptionId, {
-      items: [{ id: currentItemId, price: priceId }],
-      // Defer price change to next billing date — no immediate invoice.
-      // New tier access is granted immediately via the subscription.updated webhook.
-      proration_behavior: "none",
-      // Switching tiers always reactivates a cancelling subscription.
-      cancel_at_period_end: false,
-    });
+    const kind = classifyPlanChange(currentPlan, targetPlan);
+    if (kind === "none") {
+      return NextResponse.json({ success: true, outcome: "none" });
+    }
 
-    return NextResponse.json({ success: true });
+    if (kind === "upgrade") {
+      // Starts now, charged now. The plan only changes once the charge is paid.
+      const result = await upgradeNow(subscription, priceId);
+      await syncSubscriptionQuietly(user._id, subscriptionId);
+      if (result.applied) {
+        return NextResponse.json({ success: true, outcome: "upgraded" });
+      }
+      if (result.payUrl) {
+        // The card was declined or needs authentication: Stripe's page takes it.
+        return NextResponse.json({ url: result.payUrl });
+      }
+      return NextResponse.json({ error: "payment_problem" }, { status: 402 });
+    }
+
+    // A lower tier, or the other billing interval: booked for the end of the
+    // period already paid for.
+    const { effectiveAt } = await scheduleChangeAtPeriodEnd(
+      subscription,
+      priceId,
+      plan === "yearly" ? "year" : "month",
+    );
+    await syncSubscriptionQuietly(user._id, subscriptionId);
+    return NextResponse.json({ success: true, outcome: "scheduled", effectiveAt });
   } catch (err) {
     return stripeErrorResponse("switch-plan", err);
   }
