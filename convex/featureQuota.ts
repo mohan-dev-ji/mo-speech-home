@@ -1,5 +1,6 @@
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { resolveCallerAccountId } from "./lib/account";
 
 function todayKey(): string {
   // YYYY-MM-DD UTC — quotas roll over at UTC midnight.
@@ -146,17 +147,28 @@ async function findQuotaRow(
 }
 
 /**
+ * Whose AI allowance a call spends (MOS-93). AI pictures are paid for by the
+ * family's Max plan, so everyone working in a family draws on one allowance:
+ * an invited carer counts under the family owner's Clerk ID, anyone else under
+ * their own. Null when signed out or without an account row.
+ */
+async function sharedQuotaKey(ctx: QueryCtx | MutationCtx): Promise<string | null> {
+  const resolved = await resolveCallerAccountId(ctx);
+  return resolved ? resolved.planUser.clerkUserId : null;
+}
+
+/**
  * Remaining counts for BOTH meters. Feeds the AI tab's footer.
  * Returns null when unauthenticated, matching `getRemaining`.
  */
 export const getRemainingDual = query({
   args: { feature: v.string(), dailyLimit: v.number(), monthlyLimit: v.number() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
+    const userId = await sharedQuotaKey(ctx);
+    if (!userId) return null;
 
-    const dayRow = await findQuotaRow(ctx, identity.subject, args.feature, todayKey());
-    const monthRow = await findQuotaRow(ctx, identity.subject, args.feature, monthKey());
+    const dayRow = await findQuotaRow(ctx, userId, args.feature, todayKey());
+    const monthRow = await findQuotaRow(ctx, userId, args.feature, monthKey());
 
     const dayUsed = dayRow?.count ?? 0;
     const monthUsed = monthRow?.count ?? 0;
@@ -189,9 +201,8 @@ export const getRemainingDual = query({
 export const checkAndIncrementDual = mutation({
   args: { feature: v.string(), dailyLimit: v.number(), monthlyLimit: v.number() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const userId = identity.subject;
+    const userId = await sharedQuotaKey(ctx);
+    if (!userId) throw new Error("Unauthenticated");
 
     // Read the period keys once — a call straddling UTC midnight must not
     // check one period and increment another.
@@ -247,9 +258,8 @@ export const checkAndIncrementDual = mutation({
 export const refundOneDual = mutation({
   args: { feature: v.string() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const userId = identity.subject;
+    const userId = await sharedQuotaKey(ctx);
+    if (!userId) throw new Error("Unauthenticated");
 
     let refunded = false;
     for (const period of [todayKey(), monthKey()]) {

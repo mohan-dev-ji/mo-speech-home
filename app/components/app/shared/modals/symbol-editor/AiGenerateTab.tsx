@@ -123,8 +123,8 @@ export function AiGenerateTab({
           | null;
         setError(
           body?.meter === "month"
-            ? t("aiQuotaExceededMonth", { limit: body.limit ?? AI_IMAGE_MONTHLY_LIMIT_DEFAULT })
-            : t("aiQuotaExceeded", { limit: body?.limit ?? AI_IMAGE_DAILY_LIMIT_DEFAULT })
+            ? t("aiQuotaMonthUsed", { limit: body.limit ?? AI_IMAGE_MONTHLY_LIMIT_DEFAULT })
+            : t("aiQuotaDayUsed", { limit: body?.limit ?? AI_IMAGE_DAILY_LIMIT_DEFAULT })
         );
         return;
       }
