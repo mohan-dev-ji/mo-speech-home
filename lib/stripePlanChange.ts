@@ -7,11 +7,21 @@ import { stripe } from "@/lib/stripe";
  * docs/4-builds/plans/_done/phase-43-plan-switches-plan.md.
  */
 
-/** Drop any booked plan change. The subscription itself is left as it is. */
+/**
+ * Drop any booked plan change. The subscription itself is left as it is. The
+ * caller's copy of the subscription can be out of date (a double click, or the
+ * webhook releasing a spent schedule in the meantime), and Stripe throws on
+ * releasing a schedule that is already gone, so the schedule's own status
+ * decides.
+ */
 export async function releaseScheduleIfAny(sub: Stripe.Subscription): Promise<void> {
   if (!sub.schedule) return;
-  const id = typeof sub.schedule === "string" ? sub.schedule : sub.schedule.id;
-  await stripe.subscriptionSchedules.release(id);
+  const schedule =
+    typeof sub.schedule === "string"
+      ? await stripe.subscriptionSchedules.retrieve(sub.schedule)
+      : sub.schedule;
+  if (schedule.status !== "active" && schedule.status !== "not_started") return;
+  await stripe.subscriptionSchedules.release(schedule.id);
 }
 
 export type UpgradeResult =
@@ -51,9 +61,15 @@ export async function upgradeNow(
 
   // Upgrading a plan that was set to cancel keeps it going. Stripe won't take
   // this in the same call as a pending update, and it must not happen when the
-  // charge failed.
+  // charge failed. By now the customer has paid and is on the new plan, so a
+  // failure here is not a failed upgrade: it leaves the plan set to cancel,
+  // which the panel shows.
   if (updated.cancel_at_period_end) {
-    await stripe.subscriptions.update(sub.id, { cancel_at_period_end: false });
+    try {
+      await stripe.subscriptions.update(sub.id, { cancel_at_period_end: false });
+    } catch (err) {
+      console.error("[stripe] upgrade paid, but clearing the cancellation failed", err);
+    }
   }
   return { applied: true };
 }
@@ -69,16 +85,19 @@ export async function scheduleChangeAtPeriodEnd(
   priceId: string,
   interval: "month" | "year",
 ): Promise<{ effectiveAt: number }> {
+  const wasCancelling = sub.cancel_at_period_end;
   await releaseScheduleIfAny(sub);
   // Stripe refuses cancellation changes once a schedule is attached, and
   // choosing a new plan means the customer is staying.
-  if (sub.cancel_at_period_end) {
+  if (wasCancelling) {
     await stripe.subscriptions.update(sub.id, { cancel_at_period_end: false });
   }
 
-  const schedule = await stripe.subscriptionSchedules.create({ from_subscription: sub.id });
-  const current = schedule.phases[0];
+  let scheduleId: string | null = null;
   try {
+    const schedule = await stripe.subscriptionSchedules.create({ from_subscription: sub.id });
+    scheduleId = schedule.id;
+    const current = schedule.phases[0];
     await stripe.subscriptionSchedules.update(schedule.id, {
       end_behavior: "release",
       phases: [
@@ -98,10 +117,26 @@ export async function scheduleChangeAtPeriodEnd(
         },
       ],
     });
+    return { effectiveAt: current.end_date * 1000 };
   } catch (err) {
-    // Don't leave a one-phase schedule behind: it would block cancelling.
-    await stripe.subscriptionSchedules.release(schedule.id).catch(() => undefined);
+    // The booking failed, so put the subscription back as it was. Don't leave
+    // a one-phase schedule behind: it would block cancelling. The schedule
+    // goes first, because Stripe won't take the cancellation while it's there.
+    if (scheduleId) {
+      try {
+        await stripe.subscriptionSchedules.release(scheduleId);
+      } catch (releaseErr) {
+        console.error("[stripe] releasing the half-built schedule after a failed booking failed", releaseErr);
+      }
+    }
+    // A customer who had cancelled must not renew because a booking failed.
+    if (wasCancelling) {
+      try {
+        await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+      } catch (cancelErr) {
+        console.error("[stripe] putting the cancellation back after a failed booking failed", cancelErr);
+      }
+    }
     throw err;
   }
-  return { effectiveAt: current.end_date * 1000 };
 }

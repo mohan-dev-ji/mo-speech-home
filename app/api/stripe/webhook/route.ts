@@ -93,7 +93,22 @@ export async function POST(request: Request) {
         });
         if (!user) break;
 
-        const oldPlan = user.subscription.plan;
+        // Stripe sends what changed in `event.data.previous_attributes`. The
+        // old plan comes from there when the event carries the old price: the
+        // switch-plan route stores the new plan before this event arrives, so
+        // the stored plan can already be the new one. The stored plan is the
+        // fallback when the event has no items or the price is unknown.
+        const prev = (
+          event.data as {
+            previous_attributes?: {
+              cancel_at_period_end?: boolean;
+              items?: { data?: Array<{ price?: { id?: string } }> };
+            };
+          }
+        ).previous_attributes;
+        const prevPriceId = prev?.items?.data?.[0]?.price?.id;
+        const oldPlan =
+          (prevPriceId ? planIdFromPriceId(prevPriceId) : null) ?? user.subscription.plan;
         // Store what Stripe says now, not what this event carried: events can
         // arrive out of order, and a change booked for the next billing date
         // lives on the schedule, which the payload doesn't include. A booked
@@ -101,11 +116,7 @@ export async function POST(request: Request) {
         const state = await syncSubscription(user._id, sub.id);
         const newPlan = state.plan;
 
-        // Decode the diff into a meaningful analytics event. Stripe sends the
-        // change in `event.data.previous_attributes`; we use the user's prior
-        // stored plan as a fallback signal when previous_attributes is sparse.
-        const prev = (event.data as { previous_attributes?: { cancel_at_period_end?: boolean } })
-          .previous_attributes;
+        // Decode the diff into a meaningful analytics event.
         const wasReactivated =
           prev?.cancel_at_period_end === true && sub.cancel_at_period_end === false;
         const wasCancelled =
@@ -124,6 +135,25 @@ export async function POST(request: Request) {
           });
         }
         // Otherwise: a booked change, billing-cycle anchor change, etc. — no event.
+        break;
+      }
+
+      case "subscription_schedule.updated": {
+        // Booking a change rewrites the schedule's phases, and that fires only
+        // this event. Sync again so a read taken while the schedule was half
+        // built can't leave the stored booking stale (MOS-93).
+        const schedule = event.data.object as Stripe.SubscriptionSchedule;
+        const subscriptionId = schedule.subscription ?? schedule.released_subscription;
+        if (!subscriptionId) break;
+        const user = await convex.query(api.users.getUserByStripeCustomerId, {
+          stripeCustomerId: typeof schedule.customer === "string" ? schedule.customer : schedule.customer.id,
+          serverSecret: serverSecret(),
+        });
+        if (!user) break;
+        await syncSubscription(
+          user._id,
+          typeof subscriptionId === "string" ? subscriptionId : subscriptionId.id,
+        );
         break;
       }
 

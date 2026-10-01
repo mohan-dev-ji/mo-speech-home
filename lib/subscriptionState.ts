@@ -42,7 +42,14 @@ export type SubscriptionState = {
   /** A change booked for the end of the current period (MOS-93), or null. */
   pendingPlan: SubscriptionPlanId | null;
   pendingPlanAt: number | null;
-  /** A schedule is attached but has nothing left to change. Release it. */
+  /**
+   * The booked change has landed: the schedule is on the last of its two or
+   * more phases, so it has nothing left to change. Release it. A one-phase
+   * schedule is not spent (it is a booking caught between its two Stripe
+   * calls), and neither is a next phase whose price we don't recognise (a
+   * wrong env var): releasing either would drop a change the customer was told
+   * is booked, and they would keep paying the higher price.
+   */
   scheduleIsSpent: boolean;
 };
 
@@ -60,6 +67,7 @@ export function subscriptionState(
 
   let pendingPlan: SubscriptionPlanId | null = null;
   let pendingPlanAt: number | null = null;
+  let scheduleIsSpent = false;
   const current = schedule?.status === "active" ? schedule.current_phase : null;
   if (schedule && current) {
     const next = schedule.phases.find((phase) => phase.start_date >= current.end_date);
@@ -71,6 +79,7 @@ export function subscriptionState(
       pendingPlan = nextPlan;
       pendingPlanAt = next.start_date * 1000;
     }
+    scheduleIsSpent = schedule.phases.length >= 2 && !next;
   }
 
   return {
@@ -81,6 +90,6 @@ export function subscriptionState(
       : null,
     pendingPlan,
     pendingPlanAt,
-    scheduleIsSpent: schedule != null && schedule.status === "active" && pendingPlan === null,
+    scheduleIsSpent,
   };
 }

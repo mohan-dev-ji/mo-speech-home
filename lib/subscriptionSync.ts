@@ -10,7 +10,10 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 /**
  * Read a subscription from Stripe and store what it says: status, plan, and
  * any change booked for the next billing date (MOS-93). The webhook and every
- * billing route call this, so there is one writer and one mapping. It reads
+ * billing route call this, so it is the one place that maps a live
+ * subscription onto the stored row. (It is not the only writer: the webhook
+ * writes the row itself for a completed checkout, a deleted subscription, and
+ * a failed payment when no subscription is stored.) It reads
  * Stripe fresh rather than trusting an event payload: events can arrive out
  * of order, and the booked change lives on the schedule, not the subscription.
  */
@@ -23,9 +26,14 @@ export async function syncSubscription(
   const state = subscriptionState(sub, schedule);
 
   // The booked change has landed. Stripe refuses to cancel a subscription
-  // while a schedule is attached, so let it go.
+  // while a schedule is attached, so let it go. This is tidying up: if it
+  // fails, the state still gets stored and the next sync tries again.
   if (state.scheduleIsSpent && schedule) {
-    await stripe.subscriptionSchedules.release(schedule.id);
+    try {
+      await stripe.subscriptionSchedules.release(schedule.id);
+    } catch (err) {
+      console.error("[stripe] releasing a spent schedule failed", err);
+    }
   }
 
   await convex.mutation(api.users.updateSubscription, {

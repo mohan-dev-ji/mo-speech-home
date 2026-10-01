@@ -259,7 +259,12 @@ export function AccountBillingPanel() {
 
   const isLoading = actionState.status === "loading";
 
-  type ApiAnswer = { error?: string; url?: string; outcome?: string; effectiveAt?: number };
+  type ApiAnswer = {
+    error?: string;
+    url?: string;
+    outcome?: "upgraded" | "scheduled" | "none";
+    effectiveAt?: number;
+  };
 
   const callApi = async (
     url: string,
@@ -304,14 +309,17 @@ export function AccountBillingPanel() {
   // The server decides whether a switch starts now or at the next billing
   // date (lib/planChange.ts), so the message comes from its answer.
   const switchPlan = (targetTier: "pro" | "max") =>
-    callApi("/api/stripe/switch-plan", { tier: targetTier, plan: billingInterval }, (data) =>
-      data.outcome === "scheduled" && data.effectiveAt
-        ? t("changeScheduled", {
-            plan: planLabel(`${targetTier}_${billingInterval}`),
-            date: formatDate(data.effectiveAt),
-          })
-        : t("upgradeSuccess"),
-    );
+    callApi("/api/stripe/switch-plan", { tier: targetTier, plan: billingInterval }, (data) => {
+      if (data.outcome === "scheduled" && data.effectiveAt) {
+        return t("changeScheduled", {
+          plan: planLabel(`${targetTier}_${billingInterval}`),
+          date: formatDate(data.effectiveAt),
+        });
+      }
+      if (data.outcome === "upgraded") return t("upgradeSuccess");
+      // "none": the plan asked for is the one they are already on.
+      return t("keepPlanSuccess");
+    });
 
   const renderFreeCTA = () => {
     if (tier === "free" || isExpired) {

@@ -39,6 +39,9 @@ export async function POST() {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    // Stripe may already have been changed before the failure, so store what
+    // it says now: the panel must not show a state that is no longer true.
+    await syncSubscriptionQuietly(user._id, subscriptionId);
     return stripeErrorResponse("cancel", err);
   }
 }
