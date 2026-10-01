@@ -89,8 +89,9 @@ they're good subjects for upgrade and downgrade tests. Check the ids are still r
 ## Not part of this session
 
 - **Phase-41, the device lock with a PIN (MOS-82, M5).** The spec is approved at
-  `docs/4-builds/plans/phase-41-device-lock-SPEC.md`, and its plan is being written in another
-  session. Don't touch `convex/studentViewLock.ts`, `convex/studentViewSessions.ts`,
+  `docs/4-builds/plans/phase-41-device-lock-SPEC.md` and the plan is
+  `phase-41-device-lock-plan.md`. It's written but not started, and it's built in its own session
+  after M2. Don't touch `convex/studentViewLock.ts`, `convex/studentViewSessions.ts`,
   `app/contexts/ProfileContext.tsx` or the view switcher here.
 - **MOS-91** (client gates read the plan tier, M5) and **MOS-95** (account switcher, post-launch).
 

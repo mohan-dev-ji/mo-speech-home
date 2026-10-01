@@ -89,9 +89,8 @@ the profiles while locked.
 reachable on a locked device. But editing in student view is already a per-student permission the
 adult sets (`student_can_edit`). So the lock doesn't override it: if the adult allowed that child to
 edit, they can still edit when locked. What the lock always removes, whatever the flags say, is
-instructor view, admin view, Settings, Sign out and the resource library. **The owner confirms this
-before Task 4 starts.** If they'd rather a locked device never allowed editing, Task 3's
-`stateFlags` step also forces `student_can_edit` off while locked.
+instructor view, admin view, Settings, Sign out and the resource library. **Confirmed by the owner
+on 2026-10-01:** the lock respects the "student can edit" setting.
 
 ### Test fixtures (dev deployment; check with `npx convex data users` first)
 
@@ -176,10 +175,7 @@ export const phase41CryptoProbe = internalMutation({
   `4fb0ad08…` (64 hex characters). If it throws, stop: the PIN hash then needs a small pure-JS
   SHA-256 in `convex/lib/`, and Task 1's `hashPin` changes to use it.
 
-- [ ] **Step 3: The owner confirms the open decision** above (a locked device keeps the student's
-  existing permissions).
-
-- [ ] **Step 4:** Add a `PIN_PEPPER` environment variable to the Convex dev deployment:
+- [ ] **Step 3:** Add a `PIN_PEPPER` environment variable to the Convex dev deployment:
   `npx convex env set PIN_PEPPER "$(openssl rand -hex 32)"`. Note in the report that production
   needs its own value at M7.
 
@@ -800,9 +796,8 @@ export function writeDeviceId(id: string): void {
   - Add `deviceLocked` to the context type, the default value and the built value.
   - Everything else that branches on `viewMode` (theme, flags, language, voice) then follows with
     no further change, because it reads the same derived `viewMode`.
-  - **The open decision:** `stateFlags` in student view come from the student's own flags, so
-    `student_can_edit` keeps working when locked. If the owner chose "never edit when locked" in
-    Task 0, force `student_can_edit: false` in the locked branch here.
+  - `stateFlags` in student view come from the student's own flags, so `student_can_edit` keeps
+    working when locked. That's the owner's decision: don't override it.
 
 - [ ] **Step 5: `AppStateProvider`.** Its locale-redirect skip (`:155-158`) reads `mo-view-mode`
   from `sessionStorage`. Make it also skip when the new `initialDeviceLocked` prop is true.
