@@ -4,11 +4,11 @@
 **Spec:** [FEAT-108](../features/FEAT-108-pricing-and-tiers.md) ·
 [FEAT-106](../features/FEAT-106-settings.md) ·
 [FEAT-203](../features/FEAT-203-symbol-editor.md) · **Plan:**
-[phase-43-plan-switches-plan](../plans/phase-43-plan-switches-plan.md) · **Decisions:**
+[phase-43-plan-switches-plan](../plans/_done/phase-43-plan-switches-plan.md) · **Decisions:**
 [ADR-025](../decisions/ADR-025-stripe-managed-payments-mor.md)
 
-Changing plan now charges and takes effect when the app says it does. Built and on `main`,
-checked against the Stripe sandbox; the owner's browser check is still to do.
+Changing plan now charges and takes effect when the app says it does. Built on `main` and
+verified on 2026-10-02 against the Stripe sandbox and in the owner's Chrome.
 
 ## What was wrong
 
@@ -57,7 +57,27 @@ upgrade charges and credit balances all work, so the same code serves both. Two 
 - **The live webhook endpoint needs two more event types:** `subscription_schedule.updated` and
   `customer.subscription.pending_update_applied`.
 
-## Checked so far
+## Verified 2026-10-02
+
+In the owner's Chrome as test account A, reading Stripe back after every step:
+
+- **Switch to yearly:** booked for 29 October. The page showed the booked line, **Keep current
+  plan** and **Scheduled**. Stripe stayed on Pro monthly with no new invoice.
+- **Keep current plan:** the line went and the schedule was removed.
+- **Upgrade to Max:** £4.56 charged and paid, Max at once.
+- **Downgrade to Pro:** booked, still Max. Booking Pro yearly instead replaced it with one
+  schedule, and **Scheduled** showed only under the matching toggle.
+- **Cancel with a change booked:** worked, and the booking went. **Reactivate** worked.
+- **A declined upgrade on a plan set to cancel:** the page moved to Stripe's payment page. The
+  plan stayed Pro with access. When the invoice was then paid on Stripe's page, the webhook alone
+  moved the account to Max and cleared the cancellation, with no click in the app.
+- **With the webhook running**, a booked change stayed booked and survived a reload.
+
+Account A is left on Max with a downgrade to Pro booked for **29 October 2026**. On or after
+that date, check that A is Pro and was charged £13.99: that is the real webhook landing a booked
+change, which until then is proven only on Stripe test clocks.
+
+## Also checked
 
 - A sandbox script on Stripe test clocks exercises the real code: upgrade charged and applied;
   declined upgrade leaves the plan alone; a booked downgrade and a booked monthly/yearly switch
@@ -70,18 +90,29 @@ upgrade charges and credit balances all work, so the same code serves both. Two 
   booked on the family, the carer keeps Max.
 - From the command line: a carer's AI picture now counts against the family's allowance.
 
-**Still to do:** the browser check as the owner (the upgrade, the booked change and its undo,
-cancel with a change booked, a declined card), and a declined upgrade on a Managed Payments
-subscription.
+**Not checked:**
+
+- A declined upgrade on a **Managed Payments** subscription. The card on one can't be changed
+  through the API, so a clean case couldn't be built. It's a step on MOS-59 before Managed
+  Payments is turned on.
+- The booked-change line at phone width (screenshots from the owner's Chrome don't reflow).
+- Deleting an account that has a change booked, in the app. The Stripe call it relies on passed
+  in the sandbox script.
+
+**Worth knowing:** Stripe prorates against what was actually billed for the period. Someone moved
+from Max to Pro without a credit pays nothing to go back to Max in the same period.
 
 ## Found, not fixed here
 
 - **The quota functions can be called from the browser with limits the caller picks**, so a Max
-  user could refund their own AI counter without limit. Older than this work. Needs a ticket.
+  user could refund their own AI counter without limit. Older than this work.
+  [MOS-96](https://linear.app/mo-intelligence/issue/MOS-96).
 - **Checkout doesn't stop an owner who already has a subscription** from starting a second one.
-  Needs a ticket.
+  [MOS-97](https://linear.app/mo-intelligence/issue/MOS-97).
 - **Nothing reconciles a missed webhook.** The owner's main account still shows Max although its
-  Stripe subscription ended in September. Needs a ticket; the new sync function makes it small.
+  Stripe subscription ended in September. During this check the webhook forwarder was off for a
+  while, and the stored plan only moved when a billing route ran.
+  [MOS-98](https://linear.app/mo-intelligence/issue/MOS-98); the new sync function makes it small.
 - A booked change drops any trial or discount on the subscription. There are none today.
 - A past-due account has no way to fix its card from the billing page.
 

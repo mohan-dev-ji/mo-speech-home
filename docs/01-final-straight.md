@@ -152,14 +152,15 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > changelog: [2026-09-30-family-access](4-builds/changelog/2026-09-30-family-access.md). Open in M2:
 > MOS-59's Ltd steps.
 
-> **2026-10-01:** **MOS-93** is **built**, browser check pending. An upgrade now charges the
+> **2026-10-02:** **MOS-93** is **Done and verified.** An upgrade now charges the
 > difference and starts at once; a downgrade or a monthly/yearly switch is booked for the next
 > billing date and can be undone. Planning it turned up a worse bug: switching monthly to yearly
 > gave a year for one month's price. Stripe Managed Payments supports everything this needs
 > (checked in the sandbox), but it adds tax on top of the price, which MOS-59 has to settle. A Max
 > family now shares one AI picture allowance. See the changelog:
-> [2026-10-01-plan-switches](4-builds/changelog/2026-10-01-plan-switches.md). Open in M2: MOS-93's
-> browser check and MOS-59's Ltd steps.
+> [2026-10-01-plan-switches](4-builds/changelog/2026-10-01-plan-switches.md). Test account A has a
+> downgrade booked for 29 October: check after that date that it landed. The review filed
+> **MOS-96**, **MOS-97** and **MOS-98** for M5. Open in M2: MOS-59's Ltd steps.
 
 Small code, one real decision. Must land before anything writes pricing copy.
 
@@ -285,7 +286,7 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up · MOS-92 account-scoped reads · MOS-94 invite to an existing account never activates · MOS-93 plan switches charge and land when they should |
   | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
   | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
-  | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression · MOS-91 client gates use the effective tier |
+  | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression · MOS-91 client gates use the effective tier · MOS-96 quota functions trust the browser's limits · MOS-97 checkout allows a second subscription · MOS-98 reconcile a missed webhook |
   | M6 Marketing | MOS-69 design system doc · MOS-70 site design → MOS-71 site build · MOS-72 3D GFX · MOS-73 explainers → MOS-74 promo edits |
   | M7 Deploy | MOS-75 data protection · MOS-76 trademark · MOS-77 MVP resource inventory · MOS-78 Convex export → MOS-79 cut-over / launch |
 

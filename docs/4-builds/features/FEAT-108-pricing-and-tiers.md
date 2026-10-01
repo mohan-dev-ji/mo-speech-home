@@ -13,8 +13,8 @@
 > ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88), verified
 > 2026-09-30). Plan changes charge and start when
 > [Managing a plan](#managing-a-plan) says they do
-> ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93), built
-> 2026-10-01, browser check pending).
+> ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93), verified
+> 2026-10-02).
 
 - Three plans: **Free**, **Pro** and **Max**
 - **Free:** sign up with an email and use the SymbolStix symbols, tap and play
@@ -182,7 +182,7 @@ steps (the Ltd has to exist first, see
 | Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Shipped |
 | New-account trial | No trial. Free is free from sign-up | Shipped |
 | Collaborators and the host's plan | An invited carer works with the **family's** plan, whatever their own plan is ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Shipped (verified 2026-09-30) |
-| Changing plan | Upgrades charge the difference and start at once. Downgrades and monthly/yearly switches are booked for the next billing date and can be undone ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Built 2026-10-01, browser check pending |
+| Changing plan | Upgrades charge the difference and start at once. Downgrades and monthly/yearly switches are booked for the next billing date and can be undone ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Shipped (verified 2026-10-02) |
 | Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 
 ## Where it lives

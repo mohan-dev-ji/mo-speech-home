@@ -1633,17 +1633,27 @@ with the exact requirements are `.superpowers/sdd/fix-1-brief.md` and `fix-2-bri
 **Live endpoint:** subscribe to `subscription_schedule.updated` and
 `customer.subscription.pending_update_applied`, as well as the events already used.
 
+## Verified 2026-10-02
+
+Task 6 as run: the owner's browser check as test account A passed for every step in Step 1, plus
+re-booking, a declined upgrade on a plan set to cancel, and the paid-later webhook path. Step 2
+was run through the routes' own code and the carer's view (all five billing routes refuse a
+carer; the carer keeps Max while the family has a downgrade booked). Step 3 was inconclusive: a
+clean declined upgrade can't be built on a Managed Payments subscription through the API, so it
+is recorded on MOS-59. Account A is left with a downgrade to Pro booked for 29 October 2026.
+Details are in the changelog, `docs/4-builds/changelog/2026-10-01-plan-switches.md`.
+
 ## Not in this plan
 
 - **Account B's stored plan is out of step with Stripe** (its subscription is cancelled; Convex
   says active Max). Nothing reconciles a missed webhook. `syncSubscription` makes a reconcile
-  job easy later; it needs its own ticket.
+  job easy later. Filed as MOS-98.
 - Prices that include tax under Managed Payments (MOS-59).
 - **The quota functions can be called straight from the browser** with limits the caller picks,
   so a Max user can refund their own AI counter without limit. Found by the final review; it
-  predates this phase and needs its own ticket.
+  predates this phase. Filed as MOS-96.
 - **Checkout has no guard against an owner who already has a subscription**, which would leave a
-  second subscription billing. Needs its own ticket.
+  second subscription billing. Filed as MOS-97.
 - A booked change drops any trial or discount on the subscription. There are none today; this
   must be handled before coupons or trials are offered.
 - MOS-91 (client gates read the effective tier) and phase-41 (device lock).
