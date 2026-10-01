@@ -12,6 +12,7 @@ import { SettingsSection } from "@/app/components/app/settings/ui/SettingsSectio
 import { Check, AlertCircle, CheckCircle, Camera, ChevronDown } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { track } from "@/lib/analytics";
+import type { SubscriptionPlanId } from "@/types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -247,7 +248,7 @@ export function AccountBillingPanel() {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
   const [actionState, setActionState] = useState<ActionState>({ status: "idle" });
 
-  const { tier, status, plan, subscriptionEndsAt } = subscription;
+  const { tier, status, plan, subscriptionEndsAt, pendingPlan, pendingPlanAt } = subscription;
   const isActive    = status === "active";
   const isCancelled = status === "cancelled";
   const isExpired   = status === "expired";
@@ -258,7 +259,13 @@ export function AccountBillingPanel() {
 
   const isLoading = actionState.status === "loading";
 
-  const callApi = async (url: string, body?: object, successMsg?: string) => {
+  type ApiAnswer = { error?: string; url?: string; outcome?: string; effectiveAt?: number };
+
+  const callApi = async (
+    url: string,
+    body?: object,
+    successMsg?: string | ((data: ApiAnswer) => string),
+  ) => {
     setActionState({ status: "loading" });
     try {
       const res = await fetch(url, {
@@ -266,7 +273,7 @@ export function AccountBillingPanel() {
         headers: { "Content-Type": "application/json" },
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
-      const data = await res.json();
+      const data = (await res.json()) as ApiAnswer;
       if (!res.ok || data.error) {
         const message =
           data.error === "billing_misconfigured" ? t("errorMisconfigured")
@@ -279,11 +286,32 @@ export function AccountBillingPanel() {
         window.location.href = data.url;
         return;
       }
-      setActionState({ status: "success", message: successMsg ?? "" });
+      setActionState({
+        status: "success",
+        message: typeof successMsg === "function" ? successMsg(data) : successMsg ?? "",
+      });
     } catch {
       setActionState({ status: "error", message: t("errorGeneric") });
     }
   };
+
+  const planLabel = (p: SubscriptionPlanId) =>
+    t("planLabel", {
+      name: p.startsWith("max") ? t("maxName") : t("proName"),
+      interval: p.endsWith("yearly") ? t("intervalYearly") : t("intervalMonthly"),
+    });
+
+  // The server decides whether a switch starts now or at the next billing
+  // date (lib/planChange.ts), so the message comes from its answer.
+  const switchPlan = (targetTier: "pro" | "max") =>
+    callApi("/api/stripe/switch-plan", { tier: targetTier, plan: billingInterval }, (data) =>
+      data.outcome === "scheduled" && data.effectiveAt
+        ? t("changeScheduled", {
+            plan: planLabel(`${targetTier}_${billingInterval}`),
+            date: formatDate(data.effectiveAt),
+          })
+        : t("upgradeSuccess"),
+    );
 
   const renderFreeCTA = () => {
     if (tier === "free" || isExpired) {
@@ -337,6 +365,14 @@ export function AccountBillingPanel() {
       );
     }
 
+    if (pendingPlan === `${targetTier}_${billingInterval}`) {
+      return (
+        <Button variant="secondary" size="sm" disabled className="w-full opacity-60 cursor-default">
+          {t("ctaScheduled")}
+        </Button>
+      );
+    }
+
     if (isCurrentTier) {
       if (isActive) {
         if (currentInterval === billingInterval) {
@@ -349,11 +385,7 @@ export function AccountBillingPanel() {
         return (
           <Button
             size="sm"
-            onClick={() => callApi(
-              "/api/stripe/switch-plan",
-              { tier: targetTier, plan: billingInterval },
-              t("switchSuccess")
-            )}
+            onClick={() => switchPlan(targetTier)}
             loading={isLoading}
             className="w-full"
           >
@@ -377,11 +409,7 @@ export function AccountBillingPanel() {
         return (
           <Button
             size="sm"
-            onClick={() => callApi(
-              "/api/stripe/switch-plan",
-              { tier: targetTier, plan: billingInterval },
-              t("switchSuccess")
-            )}
+            onClick={() => switchPlan(targetTier)}
             loading={isLoading}
             className="w-full"
           >
@@ -396,11 +424,7 @@ export function AccountBillingPanel() {
       <Button
         size="sm"
         variant={isUpgrade ? "primary" : "secondary"}
-        onClick={() => callApi(
-          "/api/stripe/switch-plan",
-          { tier: targetTier, plan: billingInterval },
-          isUpgrade ? t("upgradeSuccess") : t("switchSuccess")
-        )}
+        onClick={() => switchPlan(targetTier)}
         loading={isLoading}
         className="w-full"
       >
@@ -423,8 +447,22 @@ export function AccountBillingPanel() {
     <div className="flex flex-col gap-theme-gap">
       <SettingsSection title={ta("accountBillingTitle")}>
         <div className="flex items-center justify-between gap-theme-gap">
-          {isSubscribed ? (
-            <p className="text-theme-s text-theme-secondary-alt-text">{t("changeNotice")}</p>
+          {isSubscribed && pendingPlan && pendingPlanAt ? (
+            <div className="flex flex-wrap items-center gap-theme-gap">
+              <p className="text-theme-s text-theme-secondary-alt-text">
+                {t("pendingChange", { plan: planLabel(pendingPlan), date: formatDate(pendingPlanAt) })}
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => callApi("/api/stripe/keep-plan", undefined, t("keepPlanSuccess"))}
+                loading={isLoading}
+              >
+                {t("ctaKeepCurrentPlan")}
+              </Button>
+            </div>
+          ) : isSubscribed ? (
+            <p className="text-theme-s text-theme-secondary-alt-text">{t("planChangeNotice")}</p>
           ) : (
             <span />
           )}
