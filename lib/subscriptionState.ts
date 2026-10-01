@@ -15,15 +15,19 @@ export function planIdFromPriceId(priceId: string): SubscriptionPlanId | null {
   return null;
 }
 
-// Map a Stripe subscription onto our stored status. A scheduled cancellation
-// stays usable until period end ("cancelled" + subscriptionEndsAt); anything
-// that isn't paid-up or retrying payment is "expired" so it never unlocks.
+// Map a Stripe subscription onto our stored status. Stripe's own status comes
+// first: a subscription that is past due, unpaid or ended never unlocks the
+// plan, whether or not it is also set to cancel (an ended one keeps
+// `cancel_at_period_end` true, and must read as "expired" so the customer can
+// start a new plan). Only a paid-up (active or trialing) subscription set to
+// cancel is "cancelled", which stays usable until the period end
+// (subscriptionEndsAt). Past due and unpaid are "past_due"; incomplete,
+// canceled and paused are "expired".
 export function statusFromSubscription(sub: Stripe.Subscription): StoredStatus {
-  if (sub.cancel_at_period_end) return "cancelled";
   switch (sub.status) {
     case "active":
     case "trialing":
-      return "active";
+      return sub.cancel_at_period_end ? "cancelled" : "active";
     case "past_due":
     case "unpaid":
       return "past_due";

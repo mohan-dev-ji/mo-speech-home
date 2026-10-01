@@ -158,7 +158,9 @@ async function sharedQuotaKey(ctx: QueryCtx | MutationCtx): Promise<string | nul
 }
 
 /**
- * Remaining counts for BOTH meters. Feeds the AI tab's footer.
+ * Remaining counts for BOTH meters. Feeds the AI tab's footer. Since MOS-93
+ * these are the family's counts, read under `sharedQuotaKey`, not the caller's
+ * own Clerk ID: keep the three `*Dual` functions on that key.
  * Returns null when unauthenticated, matching `getRemaining`.
  */
 export const getRemainingDual = query({

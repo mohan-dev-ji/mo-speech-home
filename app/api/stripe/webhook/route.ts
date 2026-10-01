@@ -138,6 +138,29 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "customer.subscription.pending_update_applied": {
+        // An upgrade whose charge was paid later on Stripe's page (a declined
+        // card, or 3-D Secure). `upgradeNow` keeps a plan going when the charge
+        // is paid at once; do the same here, so someone who has just paid for a
+        // higher plan isn't cut off on the old cancel date (MOS-93).
+        const sub = event.data.object as Stripe.Subscription;
+        const user = await convex.query(api.users.getUserByStripeCustomerId, {
+          stripeCustomerId: sub.customer as string,
+          serverSecret: serverSecret(),
+        });
+        if (!user) break;
+
+        if (sub.cancel_at_period_end) {
+          try {
+            await stripe.subscriptions.update(sub.id, { cancel_at_period_end: false });
+          } catch (err) {
+            console.error("[webhook] couldn't keep an upgraded plan going", err);
+          }
+        }
+        await syncSubscription(user._id, sub.id);
+        break;
+      }
+
       case "subscription_schedule.updated": {
         // Booking a change rewrites the schedule's phases, and that fires only
         // this event. Sync again so a read taken while the schedule was half
