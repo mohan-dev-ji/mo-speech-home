@@ -522,6 +522,18 @@ export default defineSchema({
       ),
       stripeCustomerId: v.optional(v.string()),
       stripeSubscriptionId: v.optional(v.string()),
+      // A plan change booked for the end of the current billing period
+      // (MOS-93): a downgrade, or a monthly/yearly switch. Mirrors the Stripe
+      // subscription schedule. `updateSubscription` writes and clears both.
+      pendingPlan: v.optional(
+        v.union(
+          v.literal("pro_monthly"),
+          v.literal("pro_yearly"),
+          v.literal("max_monthly"),
+          v.literal("max_yearly")
+        )
+      ),
+      pendingPlanAt: v.optional(v.number()), // ms: when pendingPlan takes over
     }),
     // Append-only audit trail for admin custom-access grants and revocations.
     // Phase 7 — see docs/1-inbox/ideas/17-admin-dashboard.md §3 and the plan

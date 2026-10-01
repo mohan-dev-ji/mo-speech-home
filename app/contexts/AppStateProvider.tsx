@@ -200,6 +200,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     hasFullAccess: accessData?.hasFullAccess ?? false,
     plan: accessData?.plan ?? null,
     subscriptionEndsAt: accessData?.subscriptionEndsAt ?? null,
+    pendingPlan: accessData?.pendingPlan ?? null,
+    pendingPlanAt: accessData?.pendingPlanAt ?? null,
     loading: accessData === undefined,
   };
 

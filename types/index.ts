@@ -28,6 +28,8 @@ export type UserSubscription = {
   hasFullAccess: boolean;
   plan: SubscriptionPlanId | null;
   subscriptionEndsAt: number | null;
+  pendingPlan: SubscriptionPlanId | null;   // a change booked for the next billing date
+  pendingPlanAt: number | null;             // ms: when it takes over
   loading: boolean;
 };
 
@@ -44,6 +46,8 @@ export type UserRecord = {
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     subscriptionEndsAt?: number | null;
+    pendingPlan?: SubscriptionPlanId;
+    pendingPlanAt?: number;
     customAccess?: {
       isActive: boolean;
       reason: string;

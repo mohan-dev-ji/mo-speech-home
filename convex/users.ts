@@ -103,6 +103,8 @@ export const getMyAccess = query({
       hasFullAccess,
       plan: plan ?? null,
       subscriptionEndsAt: subscriptionEndsAt ?? null,
+      pendingPlan: planUser.subscription.pendingPlan ?? null,
+      pendingPlanAt: planUser.subscription.pendingPlanAt ?? null,
       customAccess: customAccess ?? null,
     };
   },
@@ -298,22 +300,33 @@ export const updateSubscription = mutation({
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
     subscriptionEndsAt: v.optional(v.number()),
+    // null clears the field; leaving it out keeps what is stored.
+    pendingPlan: v.optional(
+      v.union(
+        v.literal("pro_monthly"),
+        v.literal("pro_yearly"),
+        v.literal("max_monthly"),
+        v.literal("max_yearly"),
+        v.null()
+      )
+    ),
+    pendingPlanAt: v.optional(v.union(v.number(), v.null())),
     serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
     assertServerSecret(args.serverSecret);
-    const { userId, serverSecret: _s, ...fields } = args;
+    const { userId, serverSecret: _s, pendingPlan, pendingPlanAt, ...fields } = args;
     void _s;
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("User not found");
 
-    await ctx.db.patch(userId, {
-      subscription: {
-        ...user.subscription,
-        ...fields,
-      },
-      lastActiveAt: Date.now(),
-    });
+    const subscription = { ...user.subscription, ...fields };
+    if (pendingPlan === null) delete subscription.pendingPlan;
+    else if (pendingPlan !== undefined) subscription.pendingPlan = pendingPlan;
+    if (pendingPlanAt === null) delete subscription.pendingPlanAt;
+    else if (pendingPlanAt !== undefined) subscription.pendingPlanAt = pendingPlanAt;
+
+    await ctx.db.patch(userId, { subscription, lastActiveAt: Date.now() });
   },
 });
 
