@@ -38,7 +38,7 @@ next-intl, Clerk.
 
 Checked on throwaway test-clock customers, on plain subscriptions and on a **Managed Payments**
 subscription (`sub_1ULqKO8dMGCn4YxVaVZ12RZP`, customer `cus_VMR2kWky7AsqbD`, test clock
-`clock_1ULiAl8dMGCn4YxVbTG7jOzM`, kept for Task 5).
+`clock_1ULiAl8dMGCn4YxVbTG7jOzM`, kept for Task 6).
 
 | Fact | Plain | Managed Payments |
 |---|---|---|
@@ -64,9 +64,9 @@ More facts:
   phase starts (`previous_attributes` carries `schedule` or `items`). No new webhook event types
   are needed.
 - **Managed Payments refuses `default_payment_method` changes by API**, so a declining card can't
-  be swapped onto the probe subscription. Task 5 tests a decline with a fresh trial checkout.
+  be swapped onto the probe subscription. Task 6 tests a decline with a fresh trial checkout.
 - **Managed Payments adds tax on top** of the price (£13.99 → £16.79 for a UK customer). That is
-  a MOS-59 matter and is recorded there in Task 5, not fixed here.
+  a MOS-59 matter and is recorded there in Task 6, not fixed here.
 - `invoice.payment_failed` today sets the account to `past_due` for **any** failed invoice. A
   failed upgrade charge would therefore lock a paying Pro customer out. Task 3 fixes it.
 - Baselines: `npx tsc --noEmit` 0 errors, `npx tsc -p convex/tsconfig.json --noEmit` 0 errors,
@@ -1163,7 +1163,7 @@ curl -s -X POST http://localhost:3000/api/stripe/switch-plan -H 'Content-Type: a
 ```
 
 Expected: `{"error":"Unauthorized"}` for both (signed out). The signed-in paths are checked in
-the owner's browser in Task 5.
+the owner's browser in Task 6.
 
 - [ ] **Step 8: Type-check, lint, commit**
 
@@ -1364,11 +1364,11 @@ git add app/components/app/settings/sections/AccountBillingPanel.tsx messages/en
 git commit -m "feat(billing): show a booked plan change, with a way to undo it (MOS-93)"
 ```
 
-Expected: 0 errors, `63 problems (34 errors, 29 warnings)`. The browser check is Task 5.
+Expected: 0 errors, `63 problems (34 errors, 29 warnings)`. The browser check is Task 6.
 
 ---
 
-## Task 4b: A family shares one AI picture allowance
+## Task 5: A family shares one AI picture allowance
 
 Rides along with MOS-93 by the owner's decision (2026-10-01).
 
@@ -1509,7 +1509,7 @@ Expected: 0 errors twice, `63 problems (34 errors, 29 warnings)`.
 
 ---
 
-## Task 5: Browser check, Managed Payments decline check, docs (controller)
+## Task 6: Browser check, Managed Payments decline check, docs (controller)
 
 Done by the controller with the owner, in the owner's Chrome through the Claude in Chrome
 extension. The owner does every sign-in and card step.
