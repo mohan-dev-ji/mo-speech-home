@@ -31,3 +31,13 @@ A merchant of record (MoR) takes on that liability. The candidates researched on
 ## Fallback
 
 **Paddle** is the documented fallback if Stripe refuses or withdraws SMP eligibility. It accepts sole traders, covers India, and has the strongest Korean payment methods. Its costs: about a week of migration (new SDK, webhooks and IDs), and weaker economics under $10 (50¢ fixed fee, $0.70 minimum).
+
+## Note, 2026-10-01: plan changes checked on a Managed Payments subscription
+
+Checked in the Stripe sandbox for [MOS-93](https://linear.app/mo-intelligence/issue/MOS-93), on a subscription bought through a Managed Payments Checkout Session:
+
+- **Works:** subscription schedules (a change booked for the end of the period), prorated upgrade invoices charged at once, and credit balances from a yearly → monthly change.
+- **Tax is added on top of the price.** The £13.99 plan charged £16.79 to a UK address. Prices need to be tax-inclusive (or the "Include tax in prices" setting turned on) before launch, or the pricing page is wrong. Recorded on MOS-59.
+- **The card on file can't be changed through the API.** Customers change it through Onelink.
+- **Not yet checked:** what a declined upgrade charge does on a Managed Payments subscription. On plain Stripe the plan stays as it was and Stripe gives a page to pay on.
+- **The live webhook endpoint needs two more event types** than before: `subscription_schedule.updated` and `customer.subscription.pending_update_applied`.

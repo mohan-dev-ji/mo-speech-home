@@ -68,8 +68,10 @@ This is where the instructor view governs the student view. See
   by email first) and password.
 - **Plan**: Free, Pro and Max, monthly or yearly (yearly saves 20%), with the
   current plan marked. From here you can upgrade, downgrade, switch between
-  monthly and yearly, cancel, or reactivate a cancelled plan. See
-  [FEAT-108](FEAT-108-pricing-and-tiers.md).
+  monthly and yearly, cancel, or reactivate a cancelled plan. An upgrade
+  starts at once. A downgrade or a monthly/yearly switch is booked for the
+  next billing date: the page shows "Changing to … on …" with **Keep current
+  plan** to undo it. See [FEAT-108](FEAT-108-pricing-and-tiers.md).
 - **Danger zone**: **Delete my account**. It asks you to type DELETE to
   confirm, then permanently removes the account, every student profile, all
   content and the subscription.

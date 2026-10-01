@@ -62,7 +62,8 @@ style:
 The editor shows exactly what will be asked for. **Generate** draws a new
 picture each time, so you can keep going until one is right. Every generated
 picture is saved to My Images and opened there, ready to use. Generations are
-limited to 20 a day and 100 a month, and the count left is shown. If the image
+limited to 20 a day and 100 a month, shared by everyone working in the
+account (the owner and any invited carers), and the count left is shown. If the image
 service refuses a request, it doesn't use up a generation.
 
 **My Images.** The account's own picture library: every picture it has
@@ -168,7 +169,8 @@ their own audio window (see [The editor in other places](#the-editor-in-other-pl
   preview still shows the uploaded picture, and saving without changing it
   keeps it.
 - **Daily and monthly limits.** Image Search allows 30 searches a day. AI
-  Generate allows 20 a day and 100 a month. When a limit is reached, the tab
+  Generate allows 20 a day and 100 a month for the whole family: the owner
+  and invited carers draw on the same allowance. When a limit is reached, the tab
   says when it resets. The monthly limit resets on the 1st.
 - **Changing the picture changes the credit.** Swapping an Image Search photo
   for a SymbolStix symbol removes the old credit. Saving without changing the

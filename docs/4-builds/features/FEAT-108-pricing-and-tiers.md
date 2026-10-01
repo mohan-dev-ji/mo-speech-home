@@ -11,7 +11,10 @@
 > [MOS-59](https://linear.app/mo-intelligence/issue/MOS-59)'s remaining steps
 > (the Ltd has to exist first). An invited carer now gets the family's plan
 > ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88), verified
-> 2026-09-30).
+> 2026-09-30). Plan changes charge and start when
+> [Managing a plan](#managing-a-plan) says they do
+> ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93), built
+> 2026-10-01, browser check pending).
 
 - Three plans: **Free**, **Pro** and **Max**
 - **Free:** sign up with an email and use the SymbolStix symbols, tap and play
@@ -104,13 +107,18 @@ Everything happens in Settings → Account & Billing. See
 [FEAT-106](FEAT-106-settings.md).
 
 - Choose **monthly** or **yearly**. Yearly costs less.
-- **Upgrade:** new features are available straight away.
-- **Downgrade** or **switch between monthly and yearly:** takes effect at the
-  next billing date.
+- **Upgrade** (Pro to Max): starts straight away. The difference for the rest
+  of the period already paid for is charged at once, and the new features
+  unlock when that payment goes through.
+- **Downgrade** (Max to Pro) or **switch between monthly and yearly:** starts
+  at the next billing date. Nothing is charged and nothing changes until
+  then. The new price is charged in full on that date.
+- **A booked change shows on the page:** "Changing to Pro (monthly) on
+  29 October 2026", with **Keep current plan** to undo it. The plan it will
+  change to shows **Scheduled**.
 - **Cancel:** the plan runs to the end of the period already paid for, and can
-  be **reactivated** until then.
-- Changes take effect at the start of the next billing period. There are no
-  refunds.
+  be **reactivated** until then. Cancelling drops a booked change.
+- There are no refunds.
 
 ## Why it helps
 
@@ -137,6 +145,22 @@ Everything happens in Settings → Account & Billing. See
   in the family's account. They can't see or change the plan, and can't open
   a subscription of their own from there. The account owner manages it. See
   [FEAT-106](FEAT-106-settings.md).
+- **An upgrade payment that doesn't go through.** The plan stays as it was,
+  and nothing is lost. If the card is declined or the bank wants to confirm
+  the payment, the page moves to Stripe's payment page to finish it. The new
+  plan starts once it's paid. An unpaid upgrade lapses after about a day.
+- **Upgrading or booking a change on a cancelled plan** keeps the plan going:
+  choosing a new plan means the customer is staying.
+- **A booked change is replaced by the next choice.** Booking a different
+  change, upgrading or cancelling drops the one already booked. That includes
+  an upgrade whose payment then fails: the earlier booking is gone and has to
+  be made again.
+- **Upgrading from a yearly plan to a monthly one.** The unused part of the
+  year isn't refunded. It stays on the account as credit and pays the
+  following months.
+- **The AI picture allowance is the family's.** The 20 a day and 100 a month
+  are shared by the owner and every carer working in the account. See
+  [FEAT-203](FEAT-203-symbol-editor.md).
 - **Downgrading and My Images.** A downgraded account's My Images tab is
   locked like the rest of Max, so its existing pictures can't be deleted from
   the app. Only the account owner going back to Max reopens that. The
@@ -158,7 +182,7 @@ steps (the Ltd has to exist first, see
 | Free library modules | A Free module is **SymbolStix-only**. **Instruments** and **Clothes** (which used Image Search photos and uploads) moved to Max rather than being re-authored | Shipped |
 | New-account trial | No trial. Free is free from sign-up | Shipped |
 | Collaborators and the host's plan | An invited carer works with the **family's** plan, whatever their own plan is ([MOS-88](https://linear.app/mo-intelligence/issue/MOS-88)) | Shipped (verified 2026-09-30) |
-| Changing plan | Every switch takes effect at once. An upgrade isn't charged until the next renewal, and a downgrade removes the higher plan's features straight away, although the message says "at your next billing date" ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Open. Upgrades charge the difference now; downgrades and monthly/yearly switches wait for the next billing date, as described in [Managing a plan](#managing-a-plan) |
+| Changing plan | Upgrades charge the difference and start at once. Downgrades and monthly/yearly switches are booked for the next billing date and can be undone ([MOS-93](https://linear.app/mo-intelligence/issue/MOS-93)) | Built 2026-10-01, browser check pending |
 | Checkout | Stripe Checkout | Stripe Managed Payments, waiting on MOS-58 and MOS-59 |
 
 ## Where it lives
@@ -166,6 +190,9 @@ steps (the Ltd has to exist first, see
 - Plan and billing screen: `app/components/app/settings/sections/AccountBillingPanel.tsx`
 - The upgrade prompt: `app/components/app/shared/ui/UpgradeNudge.tsx`
 - What each plan can do, on the server: `convex/lib/access.ts`
+- Plan changes: the rule in `lib/planChange.ts`, the Stripe calls in
+  `lib/stripePlanChange.ts`, and what gets stored in `lib/subscriptionState.ts`
+  and `lib/subscriptionSync.ts`
 - The public pricing page: `app/[locale]/(public)/pricing/`. See
   [FEAT-110](FEAT-110-public-website.md).
 

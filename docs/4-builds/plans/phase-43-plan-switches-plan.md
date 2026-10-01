@@ -61,8 +61,10 @@ More facts:
 - **A direct upgrade does not clear a booked change.** The schedule's later phase stays and would
   land. `upgradeNow` must release the schedule first.
 - **`customer.subscription.updated` fires** when a schedule is attached, released, and when a
-  phase starts (`previous_attributes` carries `schedule` or `items`). No new webhook event types
-  are needed.
+  phase starts (`previous_attributes` carries `schedule` or `items`). Rewriting a schedule's
+  phases fires only `subscription_schedule.updated`. **Corrected in the fix rounds:** the webhook
+  also handles `subscription_schedule.updated` and `customer.subscription.pending_update_applied`,
+  so the live endpoint must subscribe to both (see "Fix rounds" at the end).
 - **Managed Payments refuses `default_payment_method` changes by API**, so a declining card can't
   be swapped onto the probe subscription. Task 6 tests a decline with a fresh trial checkout.
 - **Managed Payments adds tax on top** of the price (£13.99 → £16.79 for a UK customer). That is
@@ -1600,10 +1602,48 @@ git add docs
 git commit -m "docs: phase-43 plan switches verified; plan to _done (MOS-93)"
 ```
 
+## Fix rounds (after the per-task and whole-phase reviews)
+
+The task sections above show the code as first planned. Two fix rounds changed it. The briefs
+with the exact requirements are `.superpowers/sdd/fix-1-brief.md` and `fix-2-brief.md`
+(git-ignored scratch); the code is the record.
+
+**Round 1 (`f0fcd2f`):**
+- `scheduleChangeAtPeriodEnd` puts a cancellation back if booking fails, so a customer who had
+  cancelled doesn't end up renewing.
+- `upgradeNow` no longer reports a paid upgrade as failed when the follow-up "keep the plan going"
+  call fails.
+- `releaseScheduleIfAny` checks the schedule's status first, so a schedule that is already gone
+  doesn't fail the request.
+- A schedule only counts as **spent** when it has two or more phases and is on its last one. A
+  half-built one-phase schedule, or a next phase on an unknown price, is not spent. Before, a
+  webhook sync landing mid-booking could release the booking.
+- The webhook syncs on `subscription_schedule.updated`, and takes the old plan for the
+  upgraded/downgraded analytics event from the event itself.
+- Routes sync on their failure path too. The panel's success message follows the server's answer.
+- Task 3's Step 7 expectation was wrong: a signed-out request gets a redirect to sign-in from the
+  Clerk middleware, not a JSON 401.
+
+**Round 2 (`5b0b3cc`):**
+- `statusFromSubscription` looks at Stripe's status first. An ended subscription reads as
+  expired even though it keeps its cancel flag, and a past-due one never unlocks the plan.
+- The webhook handles `customer.subscription.pending_update_applied`: an upgrade paid later on
+  Stripe's page keeps the plan going, the same as one paid at once.
+
+**Live endpoint:** subscribe to `subscription_schedule.updated` and
+`customer.subscription.pending_update_applied`, as well as the events already used.
+
 ## Not in this plan
 
 - **Account B's stored plan is out of step with Stripe** (its subscription is cancelled; Convex
   says active Max). Nothing reconciles a missed webhook. `syncSubscription` makes a reconcile
   job easy later; it needs its own ticket.
 - Prices that include tax under Managed Payments (MOS-59).
+- **The quota functions can be called straight from the browser** with limits the caller picks,
+  so a Max user can refund their own AI counter without limit. Found by the final review; it
+  predates this phase and needs its own ticket.
+- **Checkout has no guard against an owner who already has a subscription**, which would leave a
+  second subscription billing. Needs its own ticket.
+- A booked change drops any trial or discount on the subscription. There are none today; this
+  must be handled before coupons or trials are offered.
 - MOS-91 (client gates read the effective tier) and phase-41 (device lock).

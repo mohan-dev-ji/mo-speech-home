@@ -152,6 +152,15 @@ system doc is the marketing hand-off; it can be written here or at the start of 
 > changelog: [2026-09-30-family-access](4-builds/changelog/2026-09-30-family-access.md). Open in M2:
 > MOS-59's Ltd steps.
 
+> **2026-10-01:** **MOS-93** is **built**, browser check pending. An upgrade now charges the
+> difference and starts at once; a downgrade or a monthly/yearly switch is booked for the next
+> billing date and can be undone. Planning it turned up a worse bug: switching monthly to yearly
+> gave a year for one month's price. Stripe Managed Payments supports everything this needs
+> (checked in the sandbox), but it adds tax on top of the price, which MOS-59 has to settle. A Max
+> family now shares one AI picture allowance. See the changelog:
+> [2026-10-01-plan-switches](4-builds/changelog/2026-10-01-plan-switches.md). Open in M2: MOS-93's
+> browser check and MOS-59's Ltd steps.
+
 Small code, one real decision. Must land before anything writes pricing copy.
 
 1. **MOS-28** — new accounts created in a free-consistent state; clear existing `trial` rows; drop
@@ -273,7 +282,7 @@ Then: Vercel project on the existing URL, MVP archived, launch.
   |---|---|
   | M0 Clear the deck | MOS-43, MOS-42, MOS-38 |
   | M1 Docs truth | MOS-54 features rewrite (from `4-builds/features/_owner-brief.md`) → MOS-55 housekeeping → MOS-56 seed `5-prd/` |
-  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up · MOS-92 account-scoped reads · MOS-94 invite to an existing account never activates |
+  | M2 Billing truth | MOS-57 IP side letter → MOS-58 incorporate Ltd → MOS-59 SMP migration (+ MOS-29) · MOS-28 · MOS-49 pricing · MOS-87 server-only billing functions · MOS-88 collaborators use the host's plan · MOS-90 invite takeover via sign-up · MOS-92 account-scoped reads · MOS-94 invite to an existing account never activates · MOS-93 plan switches charge and land when they should |
   | M3 Admin surfaces | MOS-60 symbol editor design → MOS-61 build · MOS-37 · MOS-62 affiliates |
   | M4 Pro & Max themes | MOS-63 design loops → MOS-64 build + tier gating · MOS-65 `/admin/themes` editor |
   | M5 Hardening | MOS-51 · MOS-53 · MOS-66 home/school invites · MOS-67 Hindi checklist · MOS-68 full regression · MOS-91 client gates use the effective tier |
